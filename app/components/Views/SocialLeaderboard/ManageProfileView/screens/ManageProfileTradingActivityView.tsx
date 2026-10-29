@@ -19,11 +19,13 @@ import { useMyProfile } from '../../MyProfileView/hooks';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
+import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const ManageProfileTradingActivityView: React.FC = () => {
   const { brandColors, colors } = useTheme();
   const { profile: localProfile } = useMyProfile();
   const { isControllerBacked, profile, updateProfile } = useProfileController();
+  const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [optimisticTradingActivity, setOptimisticTradingActivity] = useState<
     boolean | undefined
@@ -59,6 +61,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
         await updateProfile({
           trading_privacy: value ? 'public' : 'private',
         });
+        trackProfileEdited();
       } catch {
         setOptimisticTradingActivity(undefined);
         setErrorMessage(
@@ -68,7 +71,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
         setIsUpdating(false);
       }
     },
-    [isControllerBacked, updateProfile],
+    [isControllerBacked, trackProfileEdited, updateProfile],
   );
 
   return (

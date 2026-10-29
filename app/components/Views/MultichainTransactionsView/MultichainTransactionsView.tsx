@@ -102,6 +102,12 @@ interface MultichainTransactionsViewProps {
    * EVM bridge transactions
    */
   bridgeArrivalTransactions?: TransactionMeta[];
+  /**
+   * Bottom padding for the list, e.g. to clear a footer floating over it
+   */
+  contentBottomInset?: number;
+  /** Moves the pull-to-refresh spinner down, e.g. below a floating header. */
+  refreshControlOffset?: number;
 }
 
 const getMultichainTransactionItemType = (
@@ -142,6 +148,8 @@ const MultichainTransactionsView = ({
   onScroll,
   location,
   bridgeArrivalTransactions,
+  contentBottomInset,
+  refreshControlOffset,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
@@ -480,12 +488,18 @@ const MultichainTransactionsView = ({
               ListEmptyComponent={renderEmptyList}
               ListFooterComponent={footer}
               style={baseStyles.flexGrow}
-              contentContainerStyle={style.listContentContainer}
+              contentContainerStyle={[
+                style.listContentContainer,
+                contentBottomInset !== undefined && {
+                  paddingBottom: contentBottomInset,
+                },
+              ]}
               refreshControl={
                 enableRefresh ? (
                   <RefreshControl
                     refreshing={refreshing}
                     onRefresh={onRefresh}
+                    progressViewOffset={refreshControlOffset}
                     colors={[colors.primary.default]}
                     tintColor={colors.icon.default}
                   />

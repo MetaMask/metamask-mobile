@@ -28,6 +28,7 @@ import {
   type PerpsTransaction,
 } from '../../../app/components/UI/Perps/types/transactionHistory';
 import {
+  KALSHI_VENUE_CHAIN_ID,
   mapPerpsTransaction,
   type ActivityListItem,
 } from '../../../app/util/activity-adapters';
@@ -1450,6 +1451,40 @@ export const buildPredictClaimActivity = (): PredictActivity => ({
   },
 });
 
+export const ACTIVITY_CV_PREDICT_SETTLEMENT_OUTCOME = 'Spain';
+export const ACTIVITY_CV_PREDICT_SETTLEMENT_TIME_MS = 1_784_505_600_000;
+
+type PredictSettlementListItem = Extract<
+  ActivityListItem,
+  { type: 'predictionSettled' }
+>;
+
+/**
+ * A Kalshi Settlement row as the PredictNext mapper (PRED-1410) will build it:
+ * a winning `yes` Position by default.
+ */
+export const buildPredictSettlementItem = (
+  data: Partial<PredictSettlementListItem['data']> = {},
+): PredictSettlementListItem => ({
+  type: 'predictionSettled',
+  chainId: KALSHI_VENUE_CHAIN_ID,
+  status: 'success',
+  timestamp: ACTIVITY_CV_PREDICT_SETTLEMENT_TIME_MS,
+  hash: 'kalshi-settlement-1',
+  data: {
+    token: { amount: '10', symbol: 'USD', direction: 'in' },
+    eventTitle: 'FIFA World Cup 2026',
+    marketQuestion: ACTIVITY_CV_PREDICT_MARKET_TITLE,
+    outcomeLabel: ACTIVITY_CV_PREDICT_SETTLEMENT_OUTCOME,
+    icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
+    side: 'yes',
+    result: 'yes',
+    shares: '10',
+    realizedPnl: '4.2',
+    ...data,
+  },
+});
+
 /** Remote flag shape that enables PredictActivitySource on ActivityScreen CV. */
 export const activityPredictTradingEnabledFlag = {
   predictTradingEnabled: {
@@ -1532,6 +1567,7 @@ export const initialStateActivity = () =>
           },
           MoneyAccountController: {
             moneyAccounts: {},
+            defaultMoneyAccountId: null,
           },
           NetworkEnablementController: {
             enabledNetworkMap: {

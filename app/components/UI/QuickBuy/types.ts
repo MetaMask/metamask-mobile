@@ -73,10 +73,15 @@ export interface QuickBuyRootProps {
   initialTradeMode?: QuickBuyTradeMode;
   analyticsContext: QuickBuyAnalyticsContext;
   /**
-   * When true, a confirmed swap opens the Social post-swap share sheet instead
+   * When true, a confirmed swap opens the Social post-trade share sheet instead
    * of Quick Buy's pending/complete/failed toasts.
    */
-  postSwapShare?: boolean;
+  postTradeShare?: boolean;
+  /**
+   * Screen that opened this Quick Buy. A failed post-trade share reopens only
+   * that screen.
+   */
+  postTradeShareOwner?: string;
   /** Social post being copied; a submitted swap records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
   children?: ReactNode;

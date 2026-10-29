@@ -9,6 +9,7 @@ import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import { Performance, PerformanceMoney } from '../../../tags.performance.js';
 import { MONEY_NEW_USER_SRP } from '../../../constants/money.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
   perfTest(
@@ -33,6 +34,7 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
         currentDeviceDetails.platform,
       );
 
+      await enableHermesAppProfiling();
       // Best practice: action before measure() with assertions inside measure();
       await TabBarComponent.tapMoney();
       await dismissMoneyOnboardingIfPresent();

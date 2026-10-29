@@ -203,7 +203,7 @@ const ExploreSearchBarButton = ({
       {isGlass ? (
         <Box twClassName="flex-1">
           <CapsuleGlass
-            twClassName="gap-3 px-4"
+            twClassName="h-12 gap-3 px-4"
             testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS}
           >
             {pillContent}
@@ -213,7 +213,7 @@ const ExploreSearchBarButton = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="h-10 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
+          twClassName="h-12 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
         >
           {pillContent}
         </Box>
@@ -273,7 +273,8 @@ const ExploreSearchBarInteractive = ({
   if (resolvedStartAccessory == null && isBackVariant) {
     resolvedStartAccessory = (
       <ButtonIcon
-        iconName={IconName.Arrow2Left}
+        iconName={IconName.ArrowLeft}
+        iconProps={{ color: IconColor.IconAlternative }}
         size={ButtonIconSize.Md}
         onPress={dismissSearch}
         accessibilityLabel={strings('navigation.back')}
@@ -285,7 +286,7 @@ const ExploreSearchBarInteractive = ({
   const searchField = (
     <TextFieldSearch
       // On glass the capsule draws the fill and the outline.
-      twClassName={isGlass ? 'h-10 flex-1 border-0 bg-transparent' : 'h-10'}
+      twClassName={isGlass ? 'h-12 flex-1 border-0 bg-transparent' : 'h-12'}
       endAccessory={endAccessory}
       value={searchQuery}
       onChangeText={onSearchChange}
@@ -317,6 +318,7 @@ const ExploreSearchBarInteractive = ({
       >
         {isGlass ? (
           <CapsuleGlass
+            twClassName="h-12"
             testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS}
           >
             {searchField}

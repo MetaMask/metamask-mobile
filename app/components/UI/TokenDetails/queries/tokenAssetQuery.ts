@@ -1,13 +1,6 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 
-/**
- * TODO: remove this constant and all `baseUrl` overrides once the prod API
- * returns `launchpadData`. Only the TDP V1 surface passes this; every other
- * consumer defaults to {@link TOKEN_API_BASE_URL} (prod).
- */
-export const DEV_TOKEN_API_BASE_URL = 'https://token.dev-api.cx.metamask.io';
-
 export const TOKEN_ASSETS_V2_PATH = '/v2/assets';
 
 const QUERY_STALE_TIME_MS = 30_000;

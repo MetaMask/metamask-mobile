@@ -20,6 +20,21 @@ import {
 const SELF_REFERRAL_BODY_SNIPPET = 'own referral code';
 const REFERRER_REFUSAL_BODY_SNIPPET = 'kol cannot register as a referee';
 const ACTIVE_TRADER_BODY_SNIPPET = 'recent trading activity';
+const RESTRICTED_COUNTRY_BODY_SNIPPET = 'restrictedcountrycodeerror';
+
+/**
+ * Stable reason a refused Accept was turned away. Sent as Segment
+ * `refusal_reason`. Not the localized sheet copy.
+ */
+export type ReferralRefusalReason =
+  | 'invalid_code'
+  | 'already_referred'
+  | 'own_code'
+  | 'kol_cannot_register'
+  | 'active_trader'
+  | 'restricted_country'
+  | 'rate_limited'
+  | 'registration_failed';
 
 /**
  * A refresh discarded because the session changed is retried under the new
@@ -28,36 +43,70 @@ const ACTIVE_TRADER_BODY_SNIPPET = 'recent trading activity';
  */
 export const MAX_REFERRAL_ME_REFRESH_ATTEMPTS = 3;
 
-/** Maps a refused registration onto copy the user can act on. */
-export function getRegisterRefereeErrorTitle(error: unknown): string {
+/** Maps a refused registration onto the analytics reason for that failure. */
+export function getRegisterRefereeRefusalReason(
+  error: unknown,
+): ReferralRefusalReason {
   const status =
     error instanceof RewardsMoneyHttpError ? error.status : undefined;
   const bodyText =
     error instanceof RewardsMoneyHttpError ? (error.bodyText ?? '') : '';
 
   if (status === 422) {
-    return strings('rewards.error_messages.invalid_referral_code');
+    return 'invalid_code';
   }
   if (status === 409) {
-    return strings('rewards.error_messages.already_referred');
+    return 'already_referred';
   }
   if (status === 403) {
     const body = bodyText.toLowerCase();
     if (body.includes(SELF_REFERRAL_BODY_SNIPPET)) {
-      return strings('rewards.error_messages.cannot_use_own_referral_code');
+      return 'own_code';
     }
     if (body.includes(REFERRER_REFUSAL_BODY_SNIPPET)) {
-      return strings('rewards.error_messages.referrer_cannot_be_referred');
+      return 'kol_cannot_register';
     }
     if (body.includes(ACTIVE_TRADER_BODY_SNIPPET)) {
-      return strings('rewards.error_messages.active_trader_cannot_be_referred');
+      return 'active_trader';
+    }
+    if (
+      body.includes(RESTRICTED_COUNTRY_BODY_SNIPPET) ||
+      body.includes('not available in your country')
+    ) {
+      return 'restricted_country';
     }
   }
   if (status === 429) {
-    return strings('rewards.error_messages.rate_limited');
+    return 'rate_limited';
   }
-  return strings('rewards.error_messages.something_went_wrong');
+  return 'registration_failed';
 }
+
+/** Maps a refused registration onto copy the user can act on. */
+export function getRegisterRefereeErrorTitle(error: unknown): string {
+  switch (getRegisterRefereeRefusalReason(error)) {
+    case 'invalid_code':
+      return strings('rewards.error_messages.invalid_referral_code');
+    case 'already_referred':
+      return strings('rewards.error_messages.already_referred');
+    case 'own_code':
+      return strings('rewards.error_messages.cannot_use_own_referral_code');
+    case 'kol_cannot_register':
+      return strings('rewards.error_messages.referrer_cannot_be_referred');
+    case 'active_trader':
+      return strings('rewards.error_messages.active_trader_cannot_be_referred');
+    case 'restricted_country':
+      return strings('rewards.onboarding.not_supported_region_description');
+    case 'rate_limited':
+      return strings('rewards.error_messages.rate_limited');
+    case 'registration_failed':
+      return strings('rewards.error_messages.something_went_wrong');
+  }
+}
+
+export type AcceptReferralCodeResult =
+  | { accepted: true }
+  | { accepted: false; refusalReason?: ReferralRefusalReason };
 
 /** `Retry-After` on a 429, in seconds. Absent for every other refusal. */
 function rateLimitWaitSeconds(error: unknown): number | undefined {
@@ -110,6 +159,7 @@ function runIfMounted(isMounted: boolean, update: () => void): void {
 type ValidationOutcome =
   | { kind: 'thrown'; error: unknown }
   | { kind: 'invalid'; message: string }
+  | { kind: 'unknown' }
   | { kind: 'ok' };
 
 async function validationOutcome(
@@ -125,13 +175,10 @@ async function validationOutcome(
   if (!validationError) {
     return { kind: 'ok' };
   }
-  return {
-    kind: 'invalid',
-    message:
-      validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR
-        ? strings('rewards.error_messages.something_went_wrong')
-        : validationError,
-  };
+  if (validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR) {
+    return { kind: 'unknown' };
+  }
+  return { kind: 'invalid', message: validationError };
 }
 
 function openAcceptedSplash(
@@ -147,10 +194,13 @@ function openAcceptedSplash(
 export interface UseAcceptMoneyReferralCodeResult {
   /**
    * Validates the code, registers the session profile as a referee, then reads
-   * referral me back. Resolves to whether the registration itself succeeded.
-   * A failed read back still resolves true and still opens the accepted splash.
+   * referral me back. Resolves to whether the registration itself succeeded,
+   * and on a register refusal the stable {@link ReferralRefusalReason}. A
+   * failed read back still resolves accepted and still opens the accepted
+   * splash. A client-side validation miss resolves without a reason: that
+   * code never reached register.
    */
-  acceptReferralCode: (code: string) => Promise<boolean>;
+  acceptReferralCode: (code: string) => Promise<AcceptReferralCodeResult>;
   /**
    * Whether an accept attempt is in progress
    */
@@ -162,14 +212,21 @@ export interface UseAcceptMoneyReferralCodeResult {
    */
   errorMessage: string;
   /**
+   * Stable reason for the refusal currently on the sheet, when the failure
+   * came from register. Null while idle, after a clear, or when the field
+   * only shows a client-side validation miss.
+   */
+  refusalReason: ReferralRefusalReason | null;
+  /**
    * Epoch ms until which accept stays disabled after a 429. Null when the
    * refusal carried no `Retry-After`, or once that wait has elapsed.
    */
   acceptBlockedUntil: number | null;
   /**
-   * Clears {@link errorMessage}. Call when the typed code changes so a
-   * previous refusal does not outlive the code that caused it. A 429 wait
-   * is left in place: editing the code does not spend the miss budget again.
+   * Clears {@link errorMessage} and {@link refusalReason}. Call when the typed
+   * code changes so a previous refusal does not outlive the code that caused
+   * it. A 429 wait is left in place: editing the code does not spend the miss
+   * budget again.
    */
   clearError: () => void;
 }
@@ -193,6 +250,8 @@ export const useAcceptMoneyReferralCode =
     const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [refusalReason, setRefusalReason] =
+      useState<ReferralRefusalReason | null>(null);
     const [acceptBlockedUntil, setAcceptBlockedUntil] = useState<number | null>(
       null,
     );
@@ -208,19 +267,23 @@ export const useAcceptMoneyReferralCode =
         return;
       }
       setErrorMessage('');
+      setRefusalReason(null);
     }, []);
 
-    const noteRefusal = useCallback((error: unknown) => {
+    const noteRefusal = useCallback((error: unknown): ReferralRefusalReason => {
+      const reason = getRegisterRefereeRefusalReason(error);
       setErrorMessage(getRegisterRefereeErrorTitle(error));
+      setRefusalReason(reason);
       const waitSeconds = rateLimitWaitSeconds(error);
       if (waitSeconds === undefined) {
         rateLimitUntilRef.current = null;
         setAcceptBlockedUntil(null);
-        return;
+        return reason;
       }
       const until = Date.now() + waitSeconds * 1000;
       rateLimitUntilRef.current = until;
       setAcceptBlockedUntil(until);
+      return reason;
     }, []);
 
     useEffect(() => {
@@ -242,6 +305,7 @@ export const useAcceptMoneyReferralCode =
         }
         setAcceptBlockedUntil(null);
         setErrorMessage('');
+        setRefusalReason(null);
       };
       if (remaining <= 0) {
         release();
@@ -257,44 +321,50 @@ export const useAcceptMoneyReferralCode =
     );
 
     const acceptReferralCode = useCallback(
-      async (code: string): Promise<boolean> => {
+      async (code: string): Promise<AcceptReferralCodeResult> => {
         if (
           acceptAlreadyRunning(
             isAcceptingRef.current,
             rateLimitUntilRef.current,
           )
         ) {
-          return false;
+          return { accepted: false };
         }
         isAcceptingRef.current = true;
         runIfMounted(isMountedRef.current, () => setIsLoading(true));
 
         try {
-          runIfMounted(isMountedRef.current, () => setErrorMessage(''));
+          runIfMounted(isMountedRef.current, () => {
+            setErrorMessage('');
+            setRefusalReason(null);
+          });
           const validation = await validationOutcome(validateCode, code);
           if (validation.kind === 'thrown') {
-            runIfMounted(isMountedRef.current, () =>
-              noteRefusal(validation.error),
-            );
-            return false;
+            const refusal = isMountedRef.current
+              ? noteRefusal(validation.error)
+              : getRegisterRefereeRefusalReason(validation.error);
+            return { accepted: false, refusalReason: refusal };
           }
           if (validation.kind === 'invalid') {
-            // A failed validation call is not a code the server rejected, so it
-            // does not claim the code is invalid.
-            runIfMounted(isMountedRef.current, () =>
-              setErrorMessage(validation.message),
-            );
-            return false;
+            runIfMounted(isMountedRef.current, () => {
+              setErrorMessage(validation.message);
+              setRefusalReason('invalid_code');
+            });
+            return { accepted: false, refusalReason: 'invalid_code' };
           }
 
+          // An unknown validate result could not reach the server. Register is
+          // the authority, matching extension.
           try {
             await Engine.controllerMessenger.call(
               'RewardsMoneyController:registerReferee',
               { code: normalizeMoneyReferralCode(code) },
             );
           } catch (error) {
-            runIfMounted(isMountedRef.current, () => noteRefusal(error));
-            return false;
+            const refusal = isMountedRef.current
+              ? noteRefusal(error)
+              : getRegisterRefereeRefusalReason(error);
+            return { accepted: false, refusalReason: refusal };
           }
 
           try {
@@ -309,7 +379,7 @@ export const useAcceptMoneyReferralCode =
           // goBack when the sheet has already left the stack, or that pop
           // would dismiss the screen underneath it.
           openAcceptedSplash(navigation, isMountedRef.current);
-          return true;
+          return { accepted: true };
         } finally {
           isAcceptingRef.current = false;
           runIfMounted(isMountedRef.current, () => setIsLoading(false));
@@ -322,6 +392,7 @@ export const useAcceptMoneyReferralCode =
       acceptReferralCode,
       isLoading,
       errorMessage,
+      refusalReason,
       acceptBlockedUntil,
       clearError,
     };

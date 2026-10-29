@@ -210,6 +210,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
           <RewardsThemeImageComponent
             themeImage={inviteHero}
             style={tw.style('h-[320px] w-full')}
+            accessibilityLabel={localizedText?.inviteIllustrationLabel ?? ''}
           />
         )}
       </Box>

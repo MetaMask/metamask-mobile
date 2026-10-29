@@ -5,6 +5,7 @@ import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   navigateToVbaOnboardingDestination,
+  openVbaEntry,
   resolveVbaOnboarding,
   useOpenVbaOnboarding,
 } from './useVbaOnboardingRouting';
@@ -12,6 +13,9 @@ import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 import { VBA_KYC_VENDOR } from '../constants';
+import { TraceName } from '../../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -72,10 +76,16 @@ const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockStartSession = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
+const mockRampsState: {
+  autoramps: { id: string; walletAddress: string; status: string }[];
+} = { autoramps: [] };
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     RampsController: {
+      get state() {
+        return mockRampsState;
+      },
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
@@ -98,6 +108,13 @@ jest.mock('../../../../../../core/redux', () => ({
     getState: () => mockGetState(),
   },
 }));
+jest.mock('../vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'vba-hydrate-id'),
+  endVbaCufChildTrace: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
 
 jest.mock('../../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: jest.fn(
@@ -804,6 +821,14 @@ describe('resolveVbaOnboarding', () => {
         }),
       }),
     );
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaHydrate,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-hydrate-id',
+      false,
+      VBA_CUF_END_REASON.ERROR,
+    );
   });
 
   it('resumes a persisted KYC session before hydration', async () => {
@@ -843,6 +868,10 @@ describe('resolveVbaOnboarding', () => {
 
     expect(mockStartSession).not.toHaveBeenCalled();
     expect(mockHydrate).toHaveBeenCalled();
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-hydrate-id',
+      true,
+    );
   });
 
   it('returns an error without hydrating when session resume fails', async () => {
@@ -870,5 +899,235 @@ describe('resolveVbaOnboarding', () => {
         sessionDisclaimersComplete: true,
       }),
     });
+  });
+});
+
+describe('navigateToVbaOnboardingDestination account create error', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the bank-details error screen', () => {
+    navigateToVbaOnboardingDestination(navigation, 'accountCreateDetails');
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: { variant: 'details' },
+    });
+  });
+
+  it('passes the safe registration fields to contact support', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateDetails',
+      undefined,
+      { httpStatus: 400, traceId: 'moonpay-trace' },
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'details',
+        failure: { httpStatus: 400, traceId: 'moonpay-trace' },
+      },
+    });
+  });
+
+  it('passes the source currency to the retry screen', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateGeneric',
+      undefined,
+      { httpStatus: 500 },
+      'USD',
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'generic',
+        failure: { httpStatus: 500 },
+        sourceCurrency: 'USD',
+      },
+    });
+  });
+
+  it('marks recoverable setup failures as retryable', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateGeneric',
+      undefined,
+      undefined,
+      'BRL',
+      true,
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'generic',
+        sourceCurrency: 'BRL',
+        retryable: true,
+      },
+    });
+  });
+
+  it('keeps Money home under an error opened from account details', () => {
+    const dispatch = jest.fn();
+    const detailsNavigation = {
+      dispatch,
+      getState: () => ({
+        index: 1,
+        routeNames: [
+          'Home',
+          Routes.RAMP.VBA_DETAILS,
+          Routes.RAMP.VBA_ONBOARDING,
+        ],
+        routes: [
+          callerRoute,
+          { key: 'details-1', name: Routes.RAMP.VBA_DETAILS },
+        ],
+      }),
+      getParent: () => undefined,
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(
+      detailsNavigation,
+      'accountCreateGeneric',
+      undefined,
+      { httpStatus: 500 },
+      'BRL',
+    );
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 1,
+          routes: [
+            callerRoute,
+            {
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [
+                  {
+                    name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+                    params: {
+                      variant: 'generic',
+                      failure: { httpStatus: 500 },
+                      sourceCurrency: 'BRL',
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      }),
+    );
+  });
+});
+
+describe('openVbaEntry', () => {
+  const devGlobal = globalThis as { __DEV__?: boolean };
+  const originalDev = devGlobal.__DEV__;
+  const dispatch = jest.fn();
+  const entryNavigation = {
+    dispatch,
+    getState: () => ({
+      index: 0,
+      routeNames: [Routes.HOME_TABS, Routes.RAMP.VBA_ONBOARDING],
+      routes: [{ name: Routes.HOME_TABS }],
+    }),
+  } as unknown as AppNavigationProp;
+  const lastResetRoutes = () =>
+    dispatch.mock.calls[dispatch.mock.calls.length - 1][0].payload.routes;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    devGlobal.__DEV__ = true;
+    mockGetState.mockReturnValue({ address: '0xabc' });
+    mockHydrate.mockResolvedValue(EMPTY_VBA_ONBOARDING_SNAPSHOT);
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
+    mockRampsState.autoramps = [
+      { id: 'ar-1', walletAddress: '0xabc', status: 'Approved' },
+    ];
+  });
+
+  afterAll(() => {
+    devGlobal.__DEV__ = originalDev;
+  });
+
+  it('opens details directly and hydrates in the background for an approved account', () => {
+    openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
+
+    expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+    expect(mockHydrate).toHaveBeenCalledWith({
+      walletAddress: '0xabc',
+      refreshKyc: true,
+      refreshAutoramps: true,
+    });
+  });
+
+  it('logs a failed background hydrate without leaving details', async () => {
+    mockHydrate.mockRejectedValue(new Error('offline'));
+
+    openVbaEntry(entryNavigation);
+    await Promise.resolve();
+
+    expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
+      }),
+    );
+  });
+
+  it.each([
+    ['the autoramp is not approved yet', 'Created', '0xabc'],
+    ['the approved autoramp belongs to another wallet', 'Approved', '0xdef'],
+  ])('opens the loading screen when %s', (_case, status, walletAddress) => {
+    mockRampsState.autoramps = [{ id: 'ar-1', walletAddress, status }];
+
+    openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({
+        name: Routes.RAMP.VBA_ONBOARDING,
+        state: {
+          index: 0,
+          routes: [
+            {
+              name: VbaOnboardingRoutes.LOADING,
+              params: { source: 'vba-action-row-details' },
+            },
+          ],
+        },
+      }),
+    );
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('opens the loading screen when a dev KYC override is set', () => {
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('rejected');
+
+    openVbaEntry(entryNavigation);
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+    );
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('opens the loading screen when no wallet is selected', () => {
+    mockGetState.mockReturnValue({});
+
+    openVbaEntry(entryNavigation);
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+    );
   });
 });

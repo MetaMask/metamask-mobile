@@ -9,6 +9,7 @@ import {
   tokenMarketDataOptions,
   type TokenMarketData,
 } from '../queries/tokenMarketData';
+import { usePriceApiHost } from '../context/PriceApiHostContext';
 
 export interface UseTokenMarketDataResult {
   /** Null until resolved, and when the token has no market data at all. */
@@ -51,6 +52,7 @@ export const useTokenMarketData = (
 ): UseTokenMarketDataResult => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const assetsPrice = useSelector(getAssetsPrice);
+  const priceApiHost = usePriceApiHost();
 
   const cachedPrice = assetId ? assetsPrice?.[assetId] : undefined;
   const cachedMarketData =
@@ -61,7 +63,7 @@ export const useTokenMarketData = (
   // nothing worth asking, so this waits rather than fetching figures it could
   // not label.
   const { data, isLoading, error } = useQuery({
-    ...tokenMarketDataOptions(assetId, currentCurrency),
+    ...tokenMarketDataOptions(assetId, currentCurrency, priceApiHost),
     enabled: Boolean(assetId) && Boolean(currentCurrency) && !cachedMarketData,
   });
 

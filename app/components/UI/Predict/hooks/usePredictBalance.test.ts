@@ -46,7 +46,9 @@ jest.mock('react-redux', () => ({
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: {
+      queries: { retry: false, retryDelay: 0, gcTime: 0 },
+    },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
@@ -206,7 +208,10 @@ describe('usePredictBalance', () => {
 
     it('clears error after successful refetch via invalidation', async () => {
       const { Wrapper, queryClient } = createWrapper();
-      mockGetBalance.mockRejectedValueOnce(new Error('Temporary error'));
+      mockGetBalance
+        .mockRejectedValueOnce(new Error('Temporary error'))
+        .mockRejectedValueOnce(new Error('Temporary error'))
+        .mockRejectedValueOnce(new Error('Temporary error'));
       mockGetBalance.mockResolvedValue(300);
 
       const { result } = renderHook(() => usePredictBalance(), {

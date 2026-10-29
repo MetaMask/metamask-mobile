@@ -1,5 +1,6 @@
 import type { RootState } from '..';
 import type {
+  ClaimDto,
   EarningsSummaryDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
@@ -8,8 +9,16 @@ import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
   canAcceptMoneyReferralInvite,
   moneyDashboardPersona,
+  selectCashbackLedger,
+  selectClaimLock,
+  selectClaimWaitingUntil,
+  selectCommissions,
+  selectEarningsHistory,
   selectEarningsSummaryEntry,
+  selectInFlightClaims,
   selectMoneyDashboardPersona,
+  selectMoneyReferralAllowedForGeo,
+  selectReferralFunnelEntry,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
 } from './selectors';
@@ -44,6 +53,7 @@ const mockReferralMe: ReferralMeDto = {
   },
   localized_text: mockLocalizedText,
   invite_hero: null,
+  excluded_regions: [],
 };
 
 const settledEntry: ReferralMeEntry = {
@@ -94,7 +104,11 @@ const buildState = (
 ): RootState =>
   ({
     ...initialRootState,
-    rewardsMoney: { referralMe, earningsSummary },
+    rewardsMoney: {
+      ...initialRootState.rewardsMoney,
+      referralMe,
+      earningsSummary,
+    },
   }) as RootState;
 
 describe('rewardsMoney selectors', () => {
@@ -204,6 +218,44 @@ describe('rewardsMoney selectors', () => {
     });
   });
 
+  describe('selectMoneyReferralAllowedForGeo', () => {
+    it('refuses when the device country is on excluded_regions', () => {
+      const state = {
+        ...buildState({
+          [PROFILE_A]: {
+            loading: false,
+            error: false,
+            data: { ...mockReferralMe, excluded_regions: ['GB'] },
+          },
+        }),
+        rewards: {
+          ...initialRootState.rewards,
+          geoLocation: 'GB',
+        },
+      } as RootState;
+
+      expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(false);
+    });
+
+    it('allows when geo is unknown', () => {
+      const state = {
+        ...buildState({
+          [PROFILE_A]: {
+            loading: false,
+            error: false,
+            data: { ...mockReferralMe, excluded_regions: ['GB'] },
+          },
+        }),
+        rewards: {
+          ...initialRootState.rewards,
+          geoLocation: null,
+        },
+      } as RootState;
+
+      expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(true);
+    });
+  });
+
   describe('selectEarningsSummaryEntry', () => {
     it('returns the entry for the given profile', () => {
       const state = buildState({}, { [PROFILE_A]: settledSummaryEntry });
@@ -223,6 +275,81 @@ describe('rewardsMoney selectors', () => {
       const state = buildState({}, { [PROFILE_A]: settledSummaryEntry });
 
       expect(selectEarningsSummaryEntry(state, undefined)).toBeUndefined();
+    });
+  });
+
+  describe('selectInFlightClaims', () => {
+    it('returns the open claims stored for the profile', () => {
+      const claims = [{ id: 'claim-open' }] as ClaimDto[];
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          inFlightClaims: { [PROFILE_A]: claims },
+        },
+      } as RootState;
+
+      expect(selectInFlightClaims(state, PROFILE_A)).toEqual(claims);
+    });
+
+    it('returns undefined when a restored slice is missing the map', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {},
+      } as RootState;
+
+      expect(selectReferralMeEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectEarningsSummaryEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectReferralFunnelEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectCommissions(state, PROFILE_A)).toBeUndefined();
+      expect(selectCashbackLedger(state, PROFILE_A)).toBeUndefined();
+      expect(selectEarningsHistory(state, PROFILE_A)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();
+      expect(selectClaimWaitingUntil(state, PROFILE_A)).toBeUndefined();
+    });
+
+    it('returns undefined when the profile or the page is missing', () => {
+      const state = buildState();
+
+      expect(selectInFlightClaims(state, undefined)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_B)).toBeUndefined();
+    });
+  });
+
+  describe('selectClaimWaitingUntil', () => {
+    it('returns the stored wait for the profile', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          claimWaitingUntil: { [PROFILE_A]: 1_800_000_000_000 },
+        },
+      };
+
+      expect(selectClaimWaitingUntil(state, PROFILE_A)).toBe(1_800_000_000_000);
+      expect(selectClaimWaitingUntil(state, PROFILE_B)).toBeUndefined();
+      expect(selectClaimWaitingUntil(state, undefined)).toBeUndefined();
+    });
+  });
+
+  describe('selectClaimLock', () => {
+    it('returns the session lock for the profile', () => {
+      const lock = {
+        status: 'in_progress' as const,
+        summaryKey: '1000000',
+      };
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          claimLocks: { [PROFILE_A]: lock },
+        },
+      };
+
+      expect(selectClaimLock(state, PROFILE_A)).toEqual(lock);
+      expect(selectClaimLock(state, PROFILE_B)).toBeUndefined();
+      expect(selectClaimLock(state, undefined)).toBeUndefined();
     });
   });
 });

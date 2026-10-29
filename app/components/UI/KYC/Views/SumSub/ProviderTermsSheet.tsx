@@ -25,6 +25,11 @@ import {
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+} from '../../kycScreenPerformance';
 
 interface TermsLink {
   id: string;
@@ -111,6 +116,12 @@ const VbaProviderTermsSheet = ({
     event?.stopPropagation?.();
     openExternalUrl(IDOS_PRIVACY_NOTICE_URL);
   }, []);
+
+  useScreenPerformance({
+    config: KYC_SCREEN_PERFORMANCE_CONFIG,
+    screenId: KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
+    contentReady: true,
+  });
 
   const handleAgree = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onAgree);

@@ -63,6 +63,7 @@ export const useMoneyNativeHeader = ({
               onPress={onMenuPress}
               accessibilityLabel="Menu"
               testID={MoneyHeaderTestIds.MENU_BUTTON}
+              twClassName="bg-transparent"
             />
           </Box>
         ),

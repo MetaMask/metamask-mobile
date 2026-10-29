@@ -91,6 +91,8 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
         style={[styles.keypadButton, style]}
         enabled={!isDisabled}
         exclusive={false}
+        shouldActivateOnStart
+        disallowInterruption
         accessibilityRole="button"
         accessible
         onPress={() => onPress?.()}
@@ -132,6 +134,8 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
       <RectButton
         style={[styles.keypadDeleteButton, style]}
         exclusive={false}
+        shouldActivateOnStart
+        disallowInterruption
         accessibilityRole="button"
         accessible
         onPress={() => onPress?.()}

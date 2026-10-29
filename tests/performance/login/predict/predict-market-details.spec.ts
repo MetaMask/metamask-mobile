@@ -9,6 +9,7 @@ import PredictDetailsPage from '../../../page-objects/Predict/PredictDetailsPage
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
 import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Predict Market Details Performance Test
@@ -42,6 +43,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         currentDeviceDetails.platform,
       );
       await ToastModal.waitForToastToDismiss();
+      await enableHermesAppProfiling();
       await WalletView.scrollAndTapPredictionsSection();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

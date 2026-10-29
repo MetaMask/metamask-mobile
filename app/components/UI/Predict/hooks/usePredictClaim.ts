@@ -15,7 +15,7 @@ import {
   PredictEventValues,
   PredictTradeStatus,
 } from '../constants/eventNames';
-import { PREDICT_CONSTANTS } from '../constants/errors';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { selectPredictPendingClaimByAddress } from '../selectors/predictController';
 import type { PredictTradeAnalyticsProperties } from '../types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
@@ -105,6 +105,17 @@ export const usePredictClaim = () => {
         });
 
         navigation.goBack();
+
+        // The Protocol V2 kill switch left nothing to claim: explain it with
+        // the Market unavailable sheet instead of a retryable error toast.
+        if (
+          ensureError(err).message === PREDICT_ERROR_CODES.MARKET_UNAVAILABLE
+        ) {
+          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+            screen: Routes.PREDICT.MODALS.MARKET_UNAVAILABLE,
+          });
+          return;
+        }
 
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,

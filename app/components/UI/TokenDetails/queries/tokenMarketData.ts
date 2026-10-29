@@ -2,12 +2,13 @@ import { queryOptions } from '@tanstack/react-query';
 import { handleFetch } from '@metamask/controller-utils';
 import type { CaipAssetType } from '@metamask/utils';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
+import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 
 export type TokenMarketData = FungibleAssetPrice & {
   liquidity?: number;
 };
 
-const SPOT_PRICES_URL = 'https://price.api.cx.metamask.io/v3/spot-prices';
+const SPOT_PRICES_PATH = '/v3/spot-prices';
 
 /**
  * Market cap, volume and supply move slowly enough to reread on the scale of
@@ -28,9 +29,21 @@ export const tokenMarketDataKeys = {
    *
    * Lower-cased to match the request, so `USD` and `usd` share one entry
    * rather than fetching the same figures twice.
+   *
+   * Keyed by host too, so that a page reading a non-prod host never reads a
+   * prod response left in the cache by another screen, and vice versa.
    */
-  byAsset: (assetId: CaipAssetType | null, currency: string | undefined) =>
-    [...tokenMarketDataKeys.all(), assetId, currency?.toLowerCase()] as const,
+  byAsset: (
+    assetId: CaipAssetType | null,
+    currency: string | undefined,
+    baseUrl: string = PRICE_API_BASE_URL,
+  ) =>
+    [
+      ...tokenMarketDataKeys.all(),
+      assetId,
+      currency?.toLowerCase(),
+      baseUrl,
+    ] as const,
 };
 
 /**
@@ -52,19 +65,22 @@ export const tokenMarketDataKeys = {
  * because the key is built on every render, including ones before the currency
  * controller has hydrated — a request without a `vsCurrency` would come back in
  * the wrong denomination, so there is nothing useful to ask for yet.
+ * @param baseUrl - Price API origin. Defaults to prod, so a caller that does
+ * not care about the host does not have to name one.
  */
 export const tokenMarketDataOptions = (
   assetId: CaipAssetType | null,
   currency: string | undefined,
+  baseUrl: string = PRICE_API_BASE_URL,
 ) =>
   queryOptions({
-    queryKey: tokenMarketDataKeys.byAsset(assetId, currency),
+    queryKey: tokenMarketDataKeys.byAsset(assetId, currency, baseUrl),
     queryFn: async (): Promise<TokenMarketData | null> => {
       if (!assetId || !currency) {
         return null;
       }
 
-      const url = `${SPOT_PRICES_URL}?${new URLSearchParams({
+      const url = `${baseUrl}${SPOT_PRICES_PATH}?${new URLSearchParams({
         assetIds: assetId,
         includeMarketData: 'true',
         vsCurrency: currency.toLowerCase(),

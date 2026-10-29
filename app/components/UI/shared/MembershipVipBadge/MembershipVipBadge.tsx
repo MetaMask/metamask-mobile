@@ -13,6 +13,11 @@ const MEMBER_BORDER_COLORS = [
   colors.rewardsMemberOrangeTransparent,
 ];
 
+export const MembershipVipBadgeSelectorsIDs = {
+  MEMBER_BADGE: 'rewards-member-badge',
+  VIP_BADGE: 'rewards-vip-badge',
+} as const;
+
 const styles = StyleSheet.create({
   foxIcon: {
     width: FOX_ICON_SIZE,
@@ -41,7 +46,7 @@ const MembershipVipBadge: React.FC<MembershipVipBadgeProps> = ({
   if (hasProEntitlement) {
     return (
       <RewardsDiscountBadge
-        testID="rewards-member-badge"
+        testID={MembershipVipBadgeSelectorsIDs.MEMBER_BADGE}
         startIcon={
           <Image source={foxIcon} style={styles.foxIcon} resizeMode="contain" />
         }
@@ -55,7 +60,7 @@ const MembershipVipBadge: React.FC<MembershipVipBadgeProps> = ({
   if (vipTier) {
     return (
       <RewardsDiscountBadge
-        testID="rewards-vip-badge"
+        testID={MembershipVipBadgeSelectorsIDs.VIP_BADGE}
         startIcon={<VipIcon name="VipIcon" width={14} height={14} />}
         label={strings('rewards.vip.badge_label', {
           tier: vipTier.toString(),

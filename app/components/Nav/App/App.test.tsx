@@ -79,8 +79,8 @@ jest.mock('../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations', () => ({
   useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock('../../Views/SocialLeaderboard/PostSwapShareBottomSheet', () => ({
-  PostSwapShareBottomSheet: () => null,
+jest.mock('../../Views/SocialLeaderboard/PostTradeShareBottomSheet', () => ({
+  PostTradeShareBottomSheet: () => null,
 }));
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);

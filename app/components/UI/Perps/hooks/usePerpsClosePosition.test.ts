@@ -360,7 +360,7 @@ describe('usePerpsClosePosition', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'perps.close_position.error_unknown',
+          message: 'Perps close position failed',
         }),
         expect.objectContaining({
           tags: expect.objectContaining({
@@ -374,7 +374,7 @@ describe('usePerpsClosePosition', () => {
               symbol: 'BTC',
               orderType: 'market',
               isFullClose: true,
-              rawError: undefined,
+              rawError: 'perps.close_position.error_unknown',
             }),
           }),
         }),
@@ -401,7 +401,10 @@ describe('usePerpsClosePosition', () => {
         error,
       );
       expect(Logger.error).toHaveBeenCalledWith(
-        error,
+        expect.objectContaining({
+          message: 'Perps close position failed',
+          cause: error,
+        }),
         expect.objectContaining({
           tags: expect.objectContaining({
             feature: 'perps',
@@ -415,6 +418,7 @@ describe('usePerpsClosePosition', () => {
               requestedSize: undefined,
               orderType: 'market',
               isFullClose: true,
+              rawError: 'Network error',
             }),
           }),
         }),

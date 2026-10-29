@@ -57,6 +57,7 @@ jest.mock('../../../../util/analytics/analytics', () => ({
 
 jest.mock('../../../../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlags: jest.fn(() => ({ bridgeConfig: {} })),
+  selectFeatureFlagThresholdGroups: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({

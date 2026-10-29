@@ -12,6 +12,42 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { mockNetworkState } from '../../../../../util/test/network';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+let mockAccount = internalAccount1;
+
+// The sheet closes on an animation and calls navigation.goBack before the
+// post-close callback. Run that sequence immediately.
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const BottomSheet = ReactActual.forwardRef(
+      (
+        { children }: { children?: React.ReactNode },
+        ref: React.Ref<{
+          onCloseBottomSheet: (callback?: () => void) => void;
+        }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            mockGoBack();
+            callback?.();
+          },
+          onOpenBottomSheet: () => undefined,
+        }));
+        return children;
+      },
+    );
+    BottomSheet.displayName = 'BottomSheet';
+    return {
+      __esModule: true,
+      default: BottomSheet,
+    };
+  },
+);
 // QRAccountDisplay is mocked because it uses the safeview context.
 // This is a workaround to render the component.
 jest.mock('../../../QRAccountDisplay', () => {
@@ -63,9 +99,6 @@ jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
   trackBlockExplorerLinkClicked: jest.fn(),
 }));
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
-const mockGoBack = jest.fn();
-const mockNavigate = jest.fn();
-let mockAccount = internalAccount1;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -303,15 +336,19 @@ describe('ShareAddress', () => {
     expect(explorerButton).toBeOnTheScreen();
     fireEvent.press(explorerButton);
 
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: {
+    // Assert — sheet pops before the explorer opens.
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW,
+      {
         url: 'https://etherscan.io',
         title: 'Etherscan',
       },
-    });
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
     expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
       expect.any(Function),
       expect.any(Function),

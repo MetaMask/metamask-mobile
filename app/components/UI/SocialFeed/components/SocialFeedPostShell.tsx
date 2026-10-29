@@ -20,6 +20,7 @@ import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
+import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
@@ -27,37 +28,58 @@ import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
 import ReactionChip, { REACTION_PILL_TW_CLASS } from './ReactionChip';
+import SocialFeedPostTranslation from './SocialFeedPostTranslation';
 import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
+import SocialFeedGif from './SocialFeedGif';
+import { useSocialFeedTracking } from '../socialFeedTracking';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
   onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
+  onCopyTradeInteraction?: (tradeType: 'perps' | 'spot') => void;
+  onReactionInteraction?: (
+    action: 'added' | 'removed',
+    emotion: string,
+  ) => void;
+  onReactionPickerOpened?: () => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   /** Opens the position details. The card's own buttons keep their press. */
   onPositionPress?: (post: SocialV1FeedPost) => void;
+  /** Clock for the relative timestamp. Defaults to `Date.now()`. */
+  now?: number;
 }
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   post,
   onCopyTrade: onSpotCopyTrade,
+  onCopyTradeInteraction,
+  onReactionInteraction,
+  onReactionPickerOpened,
   onAuthorPress,
   onPositionPress,
+  now,
 }) => {
+  const tracked = useSocialFeedTracking();
+  const notifyCopy = onCopyTradeInteraction ?? tracked.onCopyTradeInteraction;
+  const notifyReaction = onReactionInteraction ?? tracked.onReactionInteraction;
+  const notifyPicker = onReactionPickerOpened ?? tracked.onReactionPickerOpened;
   const tw = useTailwind();
   const { colors } = useTheme();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const optionsTarget = useMemo(
     () => ({
       postId: post.id,
       authorId: post.item.author.id,
       authorHandle: post.authorHandle,
+      commentId: post.commentId,
     }),
-    [post.authorHandle, post.id, post.item.author.id],
+    [post.authorHandle, post.commentId, post.id, post.item.author.id],
   );
   const {
     open: openOptions,
@@ -67,11 +89,12 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
-  const { reactions, userReaction, pickEmotion } = useFeedPostReaction(
-    post.commentId,
-    post.reactions,
-    post.userReaction ?? null,
-  );
+  const { reactions, userReaction, isPending, pickEmotion } =
+    useFeedPostReaction(
+      post.commentId,
+      post.reactions,
+      post.userReaction ?? null,
+    );
   const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
     post.item,
     post.commentId,
@@ -79,11 +102,18 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(() => {
+    notifyCopy?.('spot');
     onSpotCopyTrade?.(post.item, post.commentId);
-  }, [onSpotCopyTrade, post.item, post.commentId]);
+  }, [notifyCopy, onSpotCopyTrade, post.item, post.commentId]);
+  const handlePerpsCopyTrade = useCallback(() => {
+    notifyCopy?.('perps');
+    onPerpsCopyTrade?.();
+  }, [notifyCopy, onPerpsCopyTrade]);
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade
+        ? handlePerpsCopyTrade
+        : undefined
       : onSpotCopyTrade
         ? handleSpotCopyTrade
         : undefined;
@@ -91,11 +121,16 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const chips = visibleReactions(reactions);
 
   const openPicker = useCallback(() => {
+    if (!ensureSocialProfileOnboarding()) {
+      return;
+    }
+
     reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setPickerAnchor({ x, y, width, height });
       setPickerVisible(true);
+      notifyPicker?.();
     });
-  }, []);
+  }, [ensureSocialProfileOnboarding, notifyPicker]);
 
   const closePicker = useCallback(() => {
     setPickerVisible(false);
@@ -103,9 +138,20 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   const toggleEmotion = useCallback(
     (emotion: string) => {
+      if (!ensureSocialProfileOnboarding() || isPending) {
+        return;
+      }
+
+      notifyReaction?.(userReaction === emotion ? 'removed' : 'added', emotion);
       pickEmotion(emotion).catch(() => undefined);
     },
-    [pickEmotion],
+    [
+      ensureSocialProfileOnboarding,
+      isPending,
+      notifyReaction,
+      pickEmotion,
+      userReaction,
+    ],
   );
 
   const handlePick = useCallback(
@@ -117,12 +163,18 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   );
 
   const handleIdentityPress = useCallback(() => {
+    tracked.onAuthorTap?.();
     onAuthorPress?.(post);
-  }, [onAuthorPress, post]);
+  }, [onAuthorPress, post, tracked]);
 
   const handlePositionPress = useCallback(() => {
+    tracked.onPositionTap?.(
+      post.item.variant === 'perpsOpen' || post.item.variant === 'perpsClosed'
+        ? 'perps'
+        : 'spot',
+    );
     onPositionPress?.(post);
-  }, [onPositionPress, post]);
+  }, [onPositionPress, post, tracked]);
 
   if (isHidden) {
     return null;
@@ -130,7 +182,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   return (
     <Box
-      twClassName="py-2"
+      twClassName={post.isPending ? 'py-2 opacity-60' : 'py-2'}
       testID={`${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.id}`}
     >
       <SocialTraderIdentityRow
@@ -138,24 +190,28 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         handle={post.authorHandle}
         imageUrl={post.authorImageUrl}
         timestampMs={post.timestampMs}
+        now={now}
         recyclingKey={post.id}
         onMorePress={openOptions}
         onIdentityPress={onAuthorPress ? handleIdentityPress : undefined}
         testIDs={{
           avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
-          verifiedBadge: SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE,
           timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
-          mockMarker: `${SocialFeedPostShellSelectorsIDs.MOCK_MARKER}-${post.id}`,
           traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
           more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,
           identityPress: `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${post.id}`,
         }}
       >
-        {post.item.comment ? (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {post.item.comment}
+        {post.isPending ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={`${SocialFeedPostShellSelectorsIDs.PENDING}-${post.id}`}
+          >
+            {strings('social_leaderboard.composer.posting')}
           </Text>
         ) : null}
+        {post.item.comment ? <SocialFeedPostTranslation post={post} /> : null}
 
         {onPositionPress ? (
           <Pressable
@@ -171,9 +227,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
         {post.gifUri ? (
           <Box twClassName="rounded-2xl overflow-hidden">
-            <Image
-              source={{ uri: post.gifUri }}
-              style={tw.style('w-full aspect-square')}
+            <SocialFeedGif
+              uri={post.gifUri}
               testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
             />
           </Box>

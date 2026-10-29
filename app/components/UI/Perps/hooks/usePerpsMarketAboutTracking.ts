@@ -35,9 +35,11 @@ export interface UsePerpsMarketAboutTrackingResult {
   hasDescription: boolean;
   /**
    * onLayout handler for the About section container. Captures the section's
-   * position within the scroll content so viewport visibility can be computed.
+   * position within its parent so viewport visibility can be computed.
    */
   handleAboutLayout: (event: LayoutChangeEvent) => void;
+  handleAboutContainerLayout: (event: LayoutChangeEvent) => void;
+  setAboutTrackingEnabled: (enabled: boolean) => void;
   /**
    * onScroll handler for the scroll container. Fires the "viewed" event at most
    * once per screen session when the section scrolls into the viewport.
@@ -64,8 +66,11 @@ export function usePerpsMarketAboutTracking({
   const trimmedDescription = description?.trim() ?? '';
   const hasDescription = trimmedDescription.length > 0;
 
-  // Section layout in scroll-content coordinates (matches contentOffset space).
+  // Section layout relative to its parent; containerTopRef converts it to
+  // scroll-content coordinates (contentOffset space) when the parent is nested.
   const layoutRef = useRef<{ top: number; height: number } | null>(null);
+  const containerTopRef = useRef(0);
+  const isTrackingEnabledRef = useRef(true);
   // One-shot guard for the "viewed" event, scoped to the screen session.
   const viewedTrackedRef = useRef(false);
 
@@ -107,9 +112,24 @@ export function usePerpsMarketAboutTracking({
     layoutRef.current = { top: y, height };
   }, []);
 
+  const handleAboutContainerLayout = useCallback((event: LayoutChangeEvent) => {
+    containerTopRef.current = event.nativeEvent.layout.y;
+  }, []);
+
+  const setAboutTrackingEnabled = useCallback((enabled: boolean) => {
+    isTrackingEnabledRef.current = enabled;
+    if (!enabled) {
+      layoutRef.current = null;
+    }
+  }, []);
+
   const handleAboutScroll = useCallback(
     (event: { nativeEvent: NativeScrollEvent }) => {
-      if (!hasDescription || viewedTrackedRef.current) {
+      if (
+        !hasDescription ||
+        viewedTrackedRef.current ||
+        !isTrackingEnabledRef.current
+      ) {
         return;
       }
 
@@ -121,7 +141,9 @@ export function usePerpsMarketAboutTracking({
       const { contentOffset, layoutMeasurement } = event.nativeEvent;
       const viewportBottom = contentOffset.y + layoutMeasurement.height;
       const visibleThreshold =
-        layout.top + layout.height * PERPS_MARKET_ABOUT_VISIBILITY_THRESHOLD;
+        containerTopRef.current +
+        layout.top +
+        layout.height * PERPS_MARKET_ABOUT_VISIBILITY_THRESHOLD;
 
       if (viewportBottom >= visibleThreshold) {
         viewedTrackedRef.current = true;
@@ -138,6 +160,8 @@ export function usePerpsMarketAboutTracking({
   return {
     hasDescription,
     handleAboutLayout,
+    handleAboutContainerLayout,
+    setAboutTrackingEnabled,
     handleAboutScroll,
   };
 }

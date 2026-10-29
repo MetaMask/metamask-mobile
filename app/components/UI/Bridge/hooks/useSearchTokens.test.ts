@@ -17,6 +17,12 @@ import {
   type TraceContext,
   type TraceRequest,
 } from '../../../../util/trace';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../util/test/analyticsMock';
 
 global.fetch = jest.fn();
 
@@ -24,7 +30,11 @@ jest.mock('./useSwapsFeatureId', () => ({
   useSwapsFeatureId: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
 const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -50,6 +60,13 @@ describe('useSearchTokens', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+    mockCreateEventBuilder.mockImplementation(() => createMockEventBuilder());
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   afterEach(() => {
@@ -427,6 +444,161 @@ describe('useSearchTokens', () => {
         }),
       );
 
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('ADVANCED_ORDER_NO_ASSETS_FOUND', () => {
+    const emptySearchResponse = createMockSearchResponse({ data: [] });
+
+    const mockEmptySearchFetch = () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => emptySearchResponse,
+      });
+    };
+
+    it('tracks after a successful empty fetch for a non-unified feature', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      mockEmptySearchFetch();
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('nope');
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS,
+      );
+      expect(
+        mockCreateEventBuilder.mock.results[0].value.addProperties,
+      ).toHaveBeenCalledWith({
+        feature_id: FeatureId.LIMIT_ORDER,
+        search_query: 'nope',
+        location: 'Main View',
+      });
+    });
+
+    it('does not track before the debounce delay elapses', () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      mockEmptySearchFetch();
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      act(() => {
+        result.current.debouncedSearch('nope');
+      });
+
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('tracks after the debounced search fetch returns no results', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      mockEmptySearchFetch();
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      act(() => {
+        result.current.debouncedSearch('no');
+        result.current.debouncedSearch('nop');
+        result.current.debouncedSearch('nope');
+      });
+
+      expect(global.fetch).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS,
+      );
+    });
+
+    it('does not track when the debounced query is below the minimum length', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      mockEmptySearchFetch();
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      act(() => {
+        result.current.debouncedSearch('ab');
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track empty results for UNIFIED_SWAP_BRIDGE', async () => {
+      mockEmptySearchFetch();
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('nope');
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track when the fetch returns tokens', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => createMockSearchResponse(),
+      });
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('eth');
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track when the fetch rejects', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('nope');
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('does not track when the fetch returns a non-ok status', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+      });
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('nope');
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).not.toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
   });

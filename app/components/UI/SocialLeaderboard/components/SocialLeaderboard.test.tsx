@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { TopTrader } from '../../../Views/Homepage/Sections/TopTraders/types';
+import { SocialV1TraderRowSelectorsIDs } from '../../../Views/SocialLeaderboard/TopTradersView/components/SocialV1TraderRow.testIds';
 import {
   ALL_CHAINS,
   SPOT_CHAINS,
@@ -174,6 +175,29 @@ describe('SocialLeaderboard', () => {
     ]);
   });
 
+  it('shows the window percent and follower count on each row', () => {
+    mockQueryResult({
+      traders: [
+        buildTrader({
+          id: 'rich',
+          username: 'rich',
+          pnlValue: 100,
+          percentageChange: 7.76,
+          followerCount: 4700,
+        }),
+      ],
+    });
+
+    renderLeaderboard();
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeOnTheScreen();
+  });
+
   it('fetches spot chains for the tokens asset class', () => {
     renderLeaderboard({ source: { kind: 'all', assetClass: 'tokens' } });
 
@@ -241,6 +265,34 @@ describe('SocialLeaderboard', () => {
     expect(
       screen.getByTestId(SocialLeaderboardSelectorsIDs.SKELETON),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the clear-filters empty state when applied filters match no traders', () => {
+    const onClearFilters = jest.fn();
+    renderLeaderboard({
+      filters: { timeframe: '7d', ranking: 'pnl', cohort: 'whale' },
+      filteredEmpty: true,
+      onClearFilters,
+    });
+
+    fireEvent.press(screen.getByTestId('social-filter-empty-clear'));
+
+    expect(onClearFilters).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
+    expect(
+      screen.queryByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
+    ).toBeNull();
+  });
+
+  it('shows the empty state when the cohort filter matches no traders', () => {
+    renderLeaderboard({
+      filters: { timeframe: '7d', ranking: 'pnl', cohort: 'whale' },
+    });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
   });
 
   it('shows the empty state when the ranking has no traders', () => {
@@ -311,8 +363,21 @@ describe('SocialLeaderboard', () => {
     expect(
       screen.getByTestId(SocialLeaderboardSelectorsIDs.VIEWER_CARD),
     ).toBeOnTheScreen();
-    expect(screen.getByText('me')).toBeOnTheScreen();
+    expect(screen.getByText('Me')).toBeOnTheScreen();
     expect(rowIds()).toHaveLength(3);
+  });
+
+  it('falls back to the handle on the viewer card without a display name', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: '',
+      pnlUsd: 12,
+    };
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(screen.getByText('me')).toBeOnTheScreen();
   });
 
   it('omits the viewer card unless asked for', () => {

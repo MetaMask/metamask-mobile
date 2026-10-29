@@ -11,6 +11,7 @@ import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { usePerpsOrderContext } from '../../../contexts/PerpsOrderContext';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
@@ -20,7 +21,6 @@ import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomShe
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   selectPerpsCrossMarginEnabledFlag,
-  selectPerpsTerminalBackendEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -90,13 +90,12 @@ const PerpsProOrderFormPanel = ({
   const selectedProviderId =
     market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
-  // Terminal market data drops the no-Cross asset restriction, so Cross stays
-  // off with it. Hyperliquid refuses Cross on HIP-3 dexes (non-null source).
-  const usesTerminal = useSelector(selectPerpsTerminalBackendEnabledFlag);
+  // Hyperliquid refuses Cross on HIP-3 dexes (non-null source). The form then
+  // reads the asset's isolated-only restriction from the venue, whichever
+  // backend serves the market list.
   const isCrossMarginAvailable =
     isProModeActive &&
     isCrossMarginFlagEnabled &&
-    !usesTerminal &&
     selectedProviderId === CROSS_MARGIN_SUPPORTED_PROVIDER &&
     !market.marketSource;
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
@@ -256,7 +255,7 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
-    feeSource,
+    feeDiscountKind,
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
@@ -285,6 +284,10 @@ const PerpsProOrderFormPanel = ({
     isScreenFocused,
     isCrossMarginAvailable,
   });
+
+  // The order book and form share one provider, so a focused field can be
+  // filled by an order-book tap without switching order type.
+  const { setActivePriceField } = usePerpsOrderContext();
 
   const { styles } = useStyles(createStyles, {});
 
@@ -339,10 +342,26 @@ const PerpsProOrderFormPanel = ({
   // Limit and trigger share the order-type card because only one is visible.
   const {
     cardRef: orderTypeCardRef,
-    onFocus: onLimitPriceFocus,
+    onFocus: onPriceCardFocus,
     onBlur: onLimitPriceCardBlur,
     realign: onLimitPriceFieldPress,
   } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+
+  // Each price field records itself as the order-book target. Limit and
+  // trigger share one keyboard-scroll instance; stop-limit shows both.
+  const onLimitPriceFocus = useCallback(() => {
+    setActivePriceField('limit');
+    onPriceCardFocus();
+  }, [onPriceCardFocus, setActivePriceField]);
+
+  const onTriggerPriceFocus = useCallback(() => {
+    setActivePriceField('trigger');
+    onPriceCardFocus();
+  }, [onPriceCardFocus, setActivePriceField]);
+
+  const onChaseMaxDistanceFocus = useCallback(() => {
+    setActivePriceField('chaseMaxDistance');
+  }, [setActivePriceField]);
 
   // Composed, not replaced: the form's own handlers clear the slider preview
   // and drive the focused-size styling.
@@ -395,8 +414,20 @@ const PerpsProOrderFormPanel = ({
         scaleOrder={scaleOrder}
         activeChaseCount={activeChaseCount}
         scaleKeyboardScroll={{
-          startPrice: scaleStartKeyboardScroll,
-          endPrice: scaleEndKeyboardScroll,
+          startPrice: {
+            ...scaleStartKeyboardScroll,
+            onFocus: () => {
+              setActivePriceField('scaleStart');
+              scaleStartKeyboardScroll.onFocus();
+            },
+          },
+          endPrice: {
+            ...scaleEndKeyboardScroll,
+            onFocus: () => {
+              setActivePriceField('scaleEnd');
+              scaleEndKeyboardScroll.onFocus();
+            },
+          },
           totalOrders: scaleTotalOrdersKeyboardScroll,
           sizeSkew: scaleSizeSkewKeyboardScroll,
         }}
@@ -407,6 +438,7 @@ const PerpsProOrderFormPanel = ({
         onChaseMaxDistanceUnitChange={onChaseMaxDistanceUnitChange}
         chaseReferencePrice={chaseReferencePrice}
         onChaseMaxDistanceChange={onChaseMaxDistanceChange}
+        onChaseMaxDistanceFocus={onChaseMaxDistanceFocus}
         onLimitPriceChange={onLimitPriceChange}
         onLimitPriceFocus={onLimitPriceFocus}
         onLimitPriceBlur={onLimitPriceBlurWithKeyboardScroll}
@@ -415,7 +447,7 @@ const PerpsProOrderFormPanel = ({
         onUseMidPricePress={onUseMidPricePress}
         triggerPrice={triggerPrice}
         onTriggerPriceChange={onTriggerPriceChange}
-        onTriggerPriceFocus={onLimitPriceFocus}
+        onTriggerPriceFocus={onTriggerPriceFocus}
         onTriggerPriceBlur={onTriggerPriceBlurWithKeyboardScroll}
         onTriggerPriceFieldPress={onLimitPriceFieldPress}
         priceCardMessage={priceCardMessage}
@@ -531,7 +563,7 @@ const PerpsProOrderFormPanel = ({
                     protocolFeeRate: feeProtocolFeeRate,
                     originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
                     feeDiscountPercentage,
-                    feeSource,
+                    feeDiscountKind,
                   }
                 : undefined
             }

@@ -1,17 +1,27 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import Svg from 'react-native-svg';
+import { MembershipVipBadgeSelectorsIDs } from '../../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PerpsFeesTooltipSelectorsIDs } from '../../../Perps.testIds';
+import { SEAL_PERCENT_ICON_SIZE } from '../../PerpsFeesDisplay/SealPercentIcon';
 import FeesTooltipContent from './FeesTooltipContent';
 
 jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const actual = jest.requireActual<
+    typeof import('../../../../shared/MembershipVipBadge/MembershipVipBadge')
+  >('../../../../shared/MembershipVipBadge/MembershipVipBadge');
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
+
   return {
+    ...actual,
     __esModule: true,
     default: ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
       MockReact.createElement(View, {
         testID: hasProEntitlement
-          ? 'rewards-member-badge'
-          : 'rewards-vip-badge',
+          ? actual.MembershipVipBadgeSelectorsIDs.MEMBER_BADGE
+          : actual.MembershipVipBadgeSelectorsIDs.VIP_BADGE,
       }),
   };
 });
@@ -22,7 +32,83 @@ describe('FeesTooltipContent', () => {
     protocolFeeRate: 0.00045,
     originalMetamaskFeeRate: 0.015,
     feeDiscountPercentage: 25,
+    feeDiscountKind: 'vip' as const,
   };
+
+  it('explains the promotional discount without VIP branding', () => {
+    const {
+      getByLabelText,
+      getByText,
+      getByTestId,
+      queryByTestId,
+      queryByText,
+    } = render(
+      <FeesTooltipContent
+        testID="fees-tooltip"
+        data={{ ...mockData, feeDiscountKind: 'promotional' }}
+      />,
+    );
+
+    expect(getByText('25% off the MetaMask fee.')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeesTooltipSelectorsIDs.PROMOTIONAL_BANNER_SEAL),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeesTooltipSelectorsIDs.PROMOTIONAL_BANNER_SEAL).props
+        .accessibilityLabel,
+    ).toBeUndefined();
+    expect(getByLabelText('was 1.500%')).toBeOnTheScreen();
+    expect(
+      queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId('vip-discount-icon')).not.toBeOnTheScreen();
+    expect(queryByText(/as a VIP/)).not.toBeOnTheScreen();
+  });
+
+  it('uses success color for the promotional MetaMask fee', () => {
+    const { UNSAFE_getAllByType } = render(
+      <FeesTooltipContent
+        testID="fees-tooltip"
+        data={{ ...mockData, feeDiscountKind: 'promotional' }}
+      />,
+    );
+
+    const discountedFee = UNSAFE_getAllByType(Text).find(
+      (node) => node.props.children === '1.000%',
+    );
+
+    expect(discountedFee?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('uses the banner-sized promotional seal', () => {
+    const { UNSAFE_getByType } = render(
+      <FeesTooltipContent
+        testID="fees-tooltip"
+        data={{ ...mockData, feeDiscountKind: 'promotional' }}
+      />,
+    );
+
+    expect(UNSAFE_getByType(Svg).props).toMatchObject({
+      width: SEAL_PERCENT_ICON_SIZE.banner,
+      height: SEAL_PERCENT_ICON_SIZE.banner,
+    });
+  });
+
+  it('does not claim VIP eligibility when attribution is unknown', () => {
+    const { getByText, queryByTestId } = render(
+      <FeesTooltipContent
+        testID="fees-tooltip"
+        data={{ ...mockData, feeDiscountKind: undefined }}
+      />,
+    );
+
+    expect(
+      getByText("You're saving 25% on the MetaMask fee."),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
+  });
 
   it('displays fee information correctly', () => {
     // Arrange & Act
@@ -135,7 +221,7 @@ describe('FeesTooltipContent', () => {
       metamaskFeeRate: 0.005,
       protocolFeeRate: 0.00045,
       originalMetamaskFeeRate: 0.01,
-      feeSource: 'subscription' as const,
+      feeDiscountKind: 'member' as const,
     };
 
     it('renders the member badge instead of the VIP badge', () => {
@@ -180,13 +266,10 @@ describe('FeesTooltipContent', () => {
       expect(queryByText(/saving/i)).toBeNull();
     });
 
-    it('renders the VIP badge when the fee source is rewards', () => {
+    it('renders the VIP badge for VIP presentation', () => {
       // Arrange & Act
       const { getByTestId, queryByTestId } = render(
-        <FeesTooltipContent
-          testID="fees-tooltip"
-          data={{ ...mockData, feeSource: 'rewards' }}
-        />,
+        <FeesTooltipContent testID="fees-tooltip" data={mockData} />,
       );
 
       // Assert

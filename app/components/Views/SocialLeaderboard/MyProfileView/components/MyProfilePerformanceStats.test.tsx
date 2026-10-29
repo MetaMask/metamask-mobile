@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import type { PerformanceCell } from '../utils/overlayMyProfileLiveStats';
@@ -56,18 +56,5 @@ describe('MyProfilePerformanceStats', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_SECTION),
     ).not.toBeOnTheScreen();
-  });
-
-  it('calls onPress when the section is tapped', () => {
-    const onPress = jest.fn();
-    renderWithProvider(
-      <MyProfilePerformanceStats cells={allCells} onPress={onPress} />,
-    );
-
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_SECTION),
-    );
-
-    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

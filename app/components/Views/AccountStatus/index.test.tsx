@@ -14,8 +14,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import { AccountType } from '../../../constants/onboarding';
-import WalletExistsImg from '../../../images/wallet-exists.png';
 import WalletNotFoundImg from '../../../images/wallet-not-found.png';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -105,18 +105,39 @@ describe('AccountStatus', () => {
   });
 
   describe('Illustration image', () => {
-    it('shows wallet-exists image when type is found', () => {
-      mockRouteParams = { type: 'found' };
-      const { UNSAFE_getByType } = renderWithProvider(<AccountStatus />);
+    it.each([
+      AuthConnection.Google,
+      AuthConnection.Apple,
+      AuthConnection.Telegram,
+      undefined,
+    ])(
+      'shows the social login avatar and MetaMask fox when the wallet already exists (%s)',
+      (provider) => {
+        mockRouteParams = { type: 'found', provider };
+        const { getByTestId, UNSAFE_queryByType } = renderWithProvider(
+          <AccountStatus />,
+        );
 
-      expect(UNSAFE_getByType(Image).props.source).toBe(WalletExistsImg);
-    });
+        expect(
+          getByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_SOCIAL_AVATAR),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_FOX_AVATAR),
+        ).toBeOnTheScreen();
+        expect(UNSAFE_queryByType(Image)).toBeNull();
+      },
+    );
 
     it('shows wallet-not-found image when type is not_exist', () => {
       mockRouteParams = { type: 'not_exist' };
-      const { UNSAFE_getByType } = renderWithProvider(<AccountStatus />);
+      const { UNSAFE_getByType, queryByTestId } = renderWithProvider(
+        <AccountStatus />,
+      );
 
       expect(UNSAFE_getByType(Image).props.source).toBe(WalletNotFoundImg);
+      expect(
+        queryByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_FOX_AVATAR),
+      ).toBeNull();
     });
   });
 

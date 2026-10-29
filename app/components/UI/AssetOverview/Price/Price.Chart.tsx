@@ -63,7 +63,10 @@ const IntervalBarRow = () => {
  * indicator bar keeps 16px below it, so content underneath can shift when
  * switching modes.
  */
-const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
+const BottomChrome = ({
+  uniformSpacing = false,
+  isGlass = false,
+}: PriceChartSectionProps) => {
   const {
     activeIndicators,
     chartType,
@@ -140,6 +143,7 @@ const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
           onMAPress={handleMAPress}
           activeIndicators={activeIndicators}
           onIndicatorToggle={handleIndicatorToggle}
+          isGlass={isGlass}
         />
       </Box>
     );
@@ -188,10 +192,13 @@ export interface PriceChartSectionProps {
    * the chart chrome and the content below.
    */
   uniformSpacing?: boolean;
+  /** Draws the controls under the chart as glass; the screen passes its flag. */
+  isGlass?: boolean;
 }
 
 export const PriceChartSection = ({
   uniformSpacing = false,
+  isGlass = false,
 }: PriceChartSectionProps) => {
   const {
     activeIndicators,
@@ -363,7 +370,7 @@ export const PriceChartSection = ({
       </Box>
 
       {/* ── Bottom chrome ──────────────────────────────────────────────── */}
-      <BottomChrome uniformSpacing={uniformSpacing} />
+      <BottomChrome uniformSpacing={uniformSpacing} isGlass={isGlass} />
     </>
   );
 };

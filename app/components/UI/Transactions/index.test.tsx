@@ -1,5 +1,8 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { UnconnectedTransactions, mapStateToProps } from '.';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -47,6 +50,7 @@ interface FlashListHarnessProps {
   onScroll?: (event: { nativeEvent: { contentOffset: { y: number } } }) => void;
   refreshControl?: React.ReactElement<{ onRefresh?: () => void }>;
   renderItem: (args: { item: FlashListItem; index: number }) => React.ReactNode;
+  contentContainerStyle?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
@@ -72,6 +76,7 @@ jest.mock('@shopify/flash-list', () => {
           onScroll,
           refreshControl,
           renderItem,
+          contentContainerStyle,
           testID,
         }: FlashListHarnessProps,
         ref: React.ForwardedRef<FlashListHarnessRef>,
@@ -81,7 +86,7 @@ jest.mock('@shopify/flash-list', () => {
         }));
 
         return (
-          <View testID={testID}>
+          <View testID={testID} style={contentContainerStyle}>
             {data.length ? (
               data.map((item, index) => (
                 <View key={keyExtractor(item, index)}>
@@ -995,5 +1000,34 @@ describe('mapStateToProps', () => {
       expect(selectAllTokens).not.toHaveBeenCalled();
       expect(selectBridgeHistoryForAccount).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('Transactions list bottom inset', () => {
+  it('keeps the default bottom padding', () => {
+    renderTransactions({ transactions: [] });
+
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toHaveStyle({ paddingBottom: 80 });
+  });
+
+  it('pads the list to clear a footer floating over it', () => {
+    renderTransactions({ transactions: [], contentBottomInset: 120 });
+
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toHaveStyle({ paddingBottom: 120 });
+  });
+});
+
+describe('Transactions refresh spinner', () => {
+  it('moves the spinner below a floating header', () => {
+    renderTransactions({ transactions: [], refreshControlOffset: 96 });
+
+    expect(
+      screen.UNSAFE_getByType(FlashList).props.refreshControl.props
+        .progressViewOffset,
+    ).toBe(96);
   });
 });

@@ -53,6 +53,14 @@ jest.mock('../../../hooks/usePerpsOrderBookPreferences', () => ({
   }),
 }));
 
+const mockSetSizeOnClickPreference = jest.fn();
+let mockSizeOnClickPreference = false;
+jest.mock('../../../utils/perpsOrderBookSizeOnClickStorage', () => ({
+  getPerpsOrderBookSizeOnClickPreference: () => mockSizeOnClickPreference,
+  setPerpsOrderBookSizeOnClickPreference: (sizeOnClick: boolean) =>
+    mockSetSizeOnClickPreference(sizeOnClick),
+}));
+
 const mockOrderBook: OrderBookData = {
   bids: [
     {
@@ -146,6 +154,7 @@ describe('PerpsProOrderBookPanel', () => {
     jest.clearAllMocks();
     mockOrderBookPosition = 'right';
     mockOrderBookMetric = 'total';
+    mockSizeOnClickPreference = false;
     Object.keys(mockSavedGroupingBySymbol).forEach((key) => {
       delete mockSavedGroupingBySymbol[key];
     });
@@ -470,6 +479,115 @@ describe('PerpsProOrderBookPanel', () => {
 
     fireEvent.press(getByTestId(`${testID}-ask-row-0`));
     expect(onSelectPrice).toHaveBeenLastCalledWith('64130');
+  });
+
+  describe('size on click', () => {
+    it('reports only the price while the setting is off', () => {
+      const onSelectPrice = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <PerpsProOrderBookPanel
+          symbol="BTC"
+          marketPrice={50000}
+          onSelectPrice={onSelectPrice}
+        />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      fireEvent.press(getByTestId(`${testID}-bid-row-0`));
+
+      expect(onSelectPrice.mock.calls).toEqual([['50000']]);
+    });
+
+    it('reports the tapped row size when the setting was saved on', () => {
+      mockSizeOnClickPreference = true;
+      const onSelectPrice = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <PerpsProOrderBookPanel
+          symbol="BTC"
+          marketPrice={50000}
+          onSelectPrice={onSelectPrice}
+        />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      fireEvent.press(getByTestId(`${testID}-bid-row-0`));
+
+      expect(onSelectPrice).toHaveBeenCalledWith('50000', '1.5');
+
+      fireEvent.press(getByTestId(`${testID}-ask-row-0`));
+
+      expect(onSelectPrice).toHaveBeenLastCalledWith('50200', '1.8');
+    });
+
+    it('seeds the settings switch with the saved setting', () => {
+      mockSizeOnClickPreference = true;
+      const { getByTestId } = renderWithProvider(
+        <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+
+      expect(
+        within(
+          getByTestId(
+            PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH,
+          ),
+        ).getByRole('switch'),
+      ).toHaveProp('value', true);
+    });
+
+    it('persists the setting on save and fills size on the next tap', () => {
+      const onSelectPrice = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <PerpsProOrderBookPanel
+          symbol="BTC"
+          marketPrice={50000}
+          onSelectPrice={onSelectPrice}
+        />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+      fireEvent(
+        getByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH,
+        ),
+        'valueChange',
+        true,
+      );
+      fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
+      fireEvent.press(getByTestId(`${testID}-bid-row-0`));
+
+      expect(mockSetSizeOnClickPreference).toHaveBeenCalledWith(true);
+      expect(onSelectPrice).toHaveBeenCalledWith('50000', '1.5');
+    });
+
+    it('leaves the setting untouched when the sheet is dismissed', () => {
+      const onSelectPrice = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <PerpsProOrderBookPanel
+          symbol="BTC"
+          marketPrice={50000}
+          onSelectPrice={onSelectPrice}
+        />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+      fireEvent(
+        getByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH,
+        ),
+        'valueChange',
+        true,
+      );
+      fireEvent.press(getByTestId(`${testID}-config-sheet-close`));
+      fireEvent.press(getByTestId(`${testID}-bid-row-0`));
+
+      expect(mockSetSizeOnClickPreference).not.toHaveBeenCalled();
+      expect(onSelectPrice.mock.calls).toEqual([['50000']]);
+    });
   });
 
   it('renders static, non-interactive rows when onSelectPrice is omitted', () => {

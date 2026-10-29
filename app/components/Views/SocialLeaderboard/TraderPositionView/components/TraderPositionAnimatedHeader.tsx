@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AnimationDuration } from '@metamask/design-tokens';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  HeaderStandard,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import Animated, {
   type SharedValue,
   runOnJS,
@@ -31,6 +37,7 @@ export interface TraderPositionAnimatedHeaderProps {
   perpLeverage?: number | null;
   onBack: () => void;
   onTraderPress: () => void;
+  onShare?: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -66,6 +73,7 @@ const TraderPositionAnimatedHeader: React.FC<
   perpLeverage,
   onBack,
   onTraderPress,
+  onShare,
 }) => {
   const compactTokenProgress = useDerivedValue(() => {
     const hasMeasured = titleSectionHeight.value > 0;
@@ -112,7 +120,19 @@ const TraderPositionAnimatedHeader: React.FC<
       backButtonProps={{
         testID: TraderPositionViewSelectorsIDs.BACK_BUTTON,
       }}
-      endAccessory={<View style={styles.endSpacer} />}
+      endAccessory={
+        onShare ? (
+          <ButtonIcon
+            iconName={IconName.Share}
+            size={ButtonIconSize.Md}
+            onPress={onShare}
+            accessibilityLabel={strings('social.profile.share_position')}
+            testID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
+          />
+        ) : (
+          <View style={styles.endSpacer} />
+        )
+      }
       testID={TraderPositionViewSelectorsIDs.HEADER}
       twClassName="bg-default"
     >

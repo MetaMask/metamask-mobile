@@ -375,7 +375,7 @@ describeForPlatforms('Token Details Orders section', () => {
     });
     const row = await screen.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-        MOCK_RECURRING_OPEN_ORDER_3.orderId,
+        MOCK_RECURRING_OPEN_ORDER_3.id,
       ),
       {},
       { timeout: 15000 },
@@ -388,7 +388,7 @@ describeForPlatforms('Token Details Orders section', () => {
     expect(
       screen.queryByTestId(
         RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-          MOCK_RECURRING_OPEN_ORDER.orderId,
+          MOCK_RECURRING_OPEN_ORDER.id,
         ),
       ),
     ).toBeNull();
@@ -412,7 +412,7 @@ describeForPlatforms('Token Details Orders section', () => {
     expect(
       screen.queryByTestId(
         RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-          MOCK_RECURRING_OPEN_ORDER_3.orderId,
+          MOCK_RECURRING_OPEN_ORDER_3.id,
         ),
       ),
     ).toBeNull();
@@ -500,7 +500,7 @@ describeForPlatforms('Token Details Orders section', () => {
       expect(
         screen.queryByTestId(
           RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-            MOCK_RECURRING_OPEN_ORDER_3.orderId,
+            MOCK_RECURRING_OPEN_ORDER_3.id,
           ),
         ),
       ).toBeNull();

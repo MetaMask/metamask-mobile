@@ -4,7 +4,7 @@ import {
   Box,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
+  FontFamily,
   Icon,
   IconColor,
   IconName,
@@ -54,7 +54,7 @@ const StepperCard = ({
   const content = (
     <>
       {/* Image */}
-      <Box twClassName="p-4">
+      <Box twClassName="px-4 pt-4">
         <Box testID={getTestId('step-image')} twClassName="w-full aspect-video">
           {step.media ?? (
             <Image
@@ -70,8 +70,9 @@ const StepperCard = ({
       <Box twClassName="p-4 gap-4">
         <Box twClassName="gap-1">
           <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.DisplayMd}
+            fontFamily={FontFamily.Hero}
+            twClassName="leading-[32px]"
             testID={getTestId('title')}
           >
             {step.title}

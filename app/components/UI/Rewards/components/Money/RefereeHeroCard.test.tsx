@@ -37,7 +37,7 @@ const LOCALIZED_TEXT = {
   invitedReferredBy: 'Referred by',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   termsTitle: 'Terms and Conditions',
 } as unknown as ReferralLocalizedText;
 
@@ -137,23 +137,45 @@ describe('RefereeHeroCard', () => {
       },
     );
 
-  it('renders the inviter and own cashback as rebates, and hides trading commissions', () => {
-    const { getByTestId, getByText, queryByRole, queryByTestId, queryByText } =
-      renderHero({
-        summary: SUMMARY,
-      });
+  it('renders the inviter, trading commissions, and own cashback as rebates', () => {
+    const { getByTestId, getByText, queryByRole } = renderHero({
+      summary: SUMMARY,
+    });
 
     expect(getByText('INVITER')).toBeOnTheScreen();
+    expect(
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
+    ).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(getByText('$4.80')).toBeOnTheScreen();
     expect(
       getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
     ).toBeOnTheScreen();
     expect(getByText('$7.65')).toBeOnTheScreen();
-    expect(queryByText('Trading commissions')).not.toBeOnTheScreen();
-    expect(queryByText('$4.80')).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
-    ).not.toBeOnTheScreen();
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
+  });
+
+  it('shows the rebates lifetime as sent, without subtracting voided again', () => {
+    const { getByText, queryByText } = renderHero({
+      summary: {
+        ...SUMMARY,
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              lifetime: '6650000',
+              voided: '1000000',
+              pending: '0',
+              claimed: '0',
+              by_address: [],
+            },
+          },
+        },
+      },
+    });
+
+    expect(getByText('$6.65')).toBeOnTheScreen();
+    expect(queryByText('$5.65')).not.toBeOnTheScreen();
   });
 
   it('renders without totals when the summary has not landed', () => {
@@ -176,7 +198,7 @@ describe('RefereeHeroCard', () => {
   it('shows a dash on metric cards when the summary failed without cached data', () => {
     const { getAllByText, queryByText } = renderHero({ earningsError: true });
 
-    expect(getAllByText('-')).toHaveLength(1);
+    expect(getAllByText('-')).toHaveLength(2);
     expect(queryByText('$0.00')).not.toBeOnTheScreen();
   });
 

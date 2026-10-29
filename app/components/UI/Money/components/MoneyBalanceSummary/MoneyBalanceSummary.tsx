@@ -168,6 +168,7 @@ const MoneyBalanceSummary = ({
         amount={renderBalanceSlot()}
         amountWrapperProps={{
           twClassName: 'mt-6',
+          testID: MoneyBalanceSummaryTestIds.AMOUNT,
         }}
         bottomLabel={apyLabel}
         bottomLabelWrapperProps={{ twClassName: 'mt-1' }}
@@ -176,11 +177,10 @@ const MoneyBalanceSummary = ({
   }
 
   // The tab title lives in HeaderRoot, which centers a 32px line in a 56px
-  // bar and leaves 12px under "Money". 12px here makes that gap 24px, matching
-  // the home balance gap under the account pill.
+  // bar and leaves 12px under "Money". 4px here makes that gap 16px.
   return (
     <Box
-      twClassName="px-4 pt-3 gap-1"
+      twClassName="px-4 pt-1 gap-1"
       testID={MoneyBalanceSummaryTestIds.CONTAINER}
     >
       {renderBalanceSlot()}

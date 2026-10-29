@@ -98,6 +98,9 @@ describe('useEarningsSummary', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setEarningsSummary({ profileId: PROFILE_A, data: mockSummary }),
     );
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setEarningsSummaryError({ profileId: PROFILE_A, error: false }),
+    );
     expect(mockDispatch).toHaveBeenCalledWith(
       setEarningsSummaryLoading({ profileId: PROFILE_A, loading: false }),
     );
@@ -122,8 +125,11 @@ describe('useEarningsSummary', () => {
   it('records a failure as an error and settles loading', async () => {
     mockEngineCall.mockRejectedValue(new Error('network'));
 
-    renderHook(() => useEarningsSummary(PROFILE_A));
+    const { result } = renderHook(() => useEarningsSummary(PROFILE_A));
     await flushPromises();
+    await expect(
+      result.current.fetchEarningsSummary({ forceFresh: true }),
+    ).rejects.toThrow('network');
 
     expect(mockDispatch).toHaveBeenCalledWith(
       setEarningsSummaryError({ profileId: PROFILE_A, error: true }),
@@ -210,12 +216,121 @@ describe('useEarningsSummary', () => {
     expect(captureException).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps a stored summary when a slower instance rejects', async () => {
+    let resolveFast: (value: typeof mockSummary) => void = () => undefined;
+    let rejectSlow: (error: Error) => void = () => undefined;
+    mockEngineCall
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFast = resolve;
+        }),
+      )
+      .mockReturnValueOnce(
+        new Promise((_resolve, reject) => {
+          rejectSlow = reject;
+        }),
+      );
+
+    renderHook(() => useEarningsSummary(PROFILE_A));
+    renderHook(() => useEarningsSummary(PROFILE_A));
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      resolveFast(mockSummary);
+      await flushPromises();
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setEarningsSummary({ profileId: PROFILE_A, data: mockSummary }),
+    );
+
+    await act(async () => {
+      rejectSlow(new Error('slow'));
+      await flushPromises();
+    });
+
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setEarningsSummaryError({ profileId: PROFILE_A, error: true }),
+    );
+  });
+
+  it('records an error when a later refresh rejects', async () => {
+    const { result } = renderHook(() => useEarningsSummary(PROFILE_A));
+    await flushPromises();
+
+    mockDispatch.mockClear();
+    mockEngineCall.mockRejectedValueOnce(new Error('refresh down'));
+    await act(async () => {
+      await result.current
+        .fetchEarningsSummary({ forceFresh: true })
+        .catch(() => undefined);
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setEarningsSummaryError({ profileId: PROFILE_A, error: true }),
+    );
+  });
+
+  it('shares an in-flight read with a later caller', async () => {
+    let resolveInFlight: (value: typeof mockSummary) => void = () => undefined;
+    mockEngineCall.mockReturnValue(
+      new Promise((resolve) => {
+        resolveInFlight = resolve;
+      }),
+    );
+
+    const { result } = renderHook(() => useEarningsSummary(PROFILE_A));
+    const pending = result.current.fetchEarningsSummary();
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+    resolveInFlight(mockSummary);
+    await expect(pending).resolves.toEqual(mockSummary);
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetches fresh after an in-flight read instead of returning no summary', async () => {
+    let resolveInFlight: (value: typeof mockSummary) => void = () => undefined;
+    const fresh = { ...mockSummary, lifetime_total: '100' };
+    mockEngineCall.mockReturnValue(
+      new Promise((resolve) => {
+        resolveInFlight = resolve;
+      }),
+    );
+
+    const { result } = renderHook(() => useEarningsSummary(PROFILE_A));
+    let refreshed: EarningsSummaryDto | undefined;
+    const pending = result.current
+      .fetchEarningsSummary({ forceFresh: true })
+      .then((summary) => {
+        refreshed = summary;
+      });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+    expect(refreshed).toBeUndefined();
+
+    mockEngineCall.mockResolvedValueOnce(fresh);
+    resolveInFlight(mockSummary);
+    await act(async () => {
+      await pending;
+    });
+
+    expect(refreshed).toEqual(fresh);
+    expect(mockEngineCall).toHaveBeenLastCalledWith(
+      'RewardsMoneyController:getEarningsSummary',
+      { forceFresh: true },
+    );
+  });
+
   it('passes forceFresh through to the controller', async () => {
     const { result } = renderHook(() => useEarningsSummary(PROFILE_A));
     await flushPromises();
     mockEngineCall.mockClear();
 
-    await result.current.fetchEarningsSummary({ forceFresh: true });
+    await expect(
+      result.current.fetchEarningsSummary({ forceFresh: true }),
+    ).resolves.toBe(mockSummary);
 
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsMoneyController:getEarningsSummary',

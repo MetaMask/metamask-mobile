@@ -95,6 +95,8 @@ jest.mock('react-native-keyboard-controller', () => {
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
   getString: jest.fn().mockResolvedValue(''),
+  hasString: jest.fn().mockResolvedValue(true),
+  addListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
 
 // Mock the Keyboard to prevent Jest environment teardown errors
@@ -276,7 +278,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(continueButton).toBeDisabled();
     });
 
-    it('renders paste button when no seed phrase is entered', () => {
+    it('renders paste button when no seed phrase is entered', async () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -284,21 +286,24 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       jest.mocked(Clipboard.getString).mockResolvedValue('test');
+      await waitFor(() => {
+        expect(getByText(strings('import_from_seed.paste'))).toBeOnTheScreen();
+      });
       const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
       fireEvent.press(pasteButton);
       jest.mocked(Clipboard.getString).mockResolvedValue('');
     });
 
-    it('renders show all and Paste button when no seed phrase is entered', () => {
+    it('renders show all and Paste button when no seed phrase is entered', async () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(getByText(strings('import_from_seed.paste'))).toBeOnTheScreen();
+      });
     });
 
     it('enter 12 length seed phrase and check the input fields are rendered', async () => {
@@ -1012,8 +1017,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Initially should show "Paste" button
-      const pasteButton = getByText(strings('import_from_seed.paste'));
-      expect(pasteButton).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(getByText(strings('import_from_seed.paste'))).toBeOnTheScreen();
+      });
 
       // Type something to trigger hasStartedTyping
       const textArea = getByPlaceholderText(

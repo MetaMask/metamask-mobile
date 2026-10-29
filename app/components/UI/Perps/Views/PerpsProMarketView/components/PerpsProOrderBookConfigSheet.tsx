@@ -8,6 +8,7 @@ import {
   FilterButton,
   FilterButtonSize,
   FilterButtonVariant,
+  Switch,
   Text,
   TextColor,
   TextVariant,
@@ -23,6 +24,7 @@ import React, {
 } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
@@ -44,11 +46,14 @@ export interface PerpsProOrderBookConfigSheetProps {
   groupingOptions: number[];
   /** Side the order-book column is currently pinned to. */
   layout: ProLayoutPreferences['orderBookPosition'];
+  /** Whether a row tap also fills the order size. */
+  sizeOnClick: boolean;
   onApply: (next: {
     currency: OrderBookListCurrency;
     metric: OrderBookListMetric;
     grouping: number;
     layout: ProLayoutPreferences['orderBookPosition'];
+    sizeOnClick: boolean;
   }) => void;
   onClose: () => void;
   testID?: string;
@@ -154,8 +159,8 @@ const ThumbnailOption = ({
 };
 
 /**
- * Bottom sheet for Pro order-book list currency, metric, price grouping, and
- * the side the order-book column is pinned to.
+ * Bottom sheet for Pro order-book list currency, metric, price grouping, the
+ * side the order-book column is pinned to, and whether a row tap fills size.
  *
  * Rendered inside a Pro modal portal so the sheet is not clipped by the narrow
  * order-book column. The portal preserves the Android View/Modal rendering
@@ -170,6 +175,7 @@ const PerpsProOrderBookConfigSheet = ({
   grouping,
   groupingOptions,
   layout,
+  sizeOnClick,
   onApply,
   onClose,
   testID = 'perps-pro-order-book-config-sheet',
@@ -183,6 +189,7 @@ const PerpsProOrderBookConfigSheet = ({
   const [draftGrouping, setDraftGrouping] = useState<number | null>(grouping);
   const [draftLayout, setDraftLayout] =
     useState<ProLayoutPreferences['orderBookPosition']>(layout);
+  const [draftSizeOnClick, setDraftSizeOnClick] = useState(sizeOnClick);
 
   // Snapshot props into draft only when the sheet opens. Do not re-sync while
   // open — live grouping/mid updates would wipe in-progress chip selections.
@@ -198,8 +205,9 @@ const PerpsProOrderBookConfigSheet = ({
     setDraftMetric(metric);
     setDraftGrouping(grouping);
     setDraftLayout(layout);
+    setDraftSizeOnClick(sizeOnClick);
     sheetRef.current?.onOpenBottomSheet();
-  }, [isVisible, currency, metric, grouping, layout]);
+  }, [isVisible, currency, metric, grouping, layout, sizeOnClick]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onClose);
@@ -249,6 +257,15 @@ const PerpsProOrderBookConfigSheet = ({
     [draftLayout, playSelection],
   );
 
+  const handleSizeOnClickChange = useCallback(
+    (next: boolean) => {
+      // Haptics are best effort; a failure must not block updating the draft.
+      playSelection().catch(() => undefined);
+      setDraftSizeOnClick(next);
+    },
+    [playSelection],
+  );
+
   const handleSave = useCallback(() => {
     if (draftGrouping === null) {
       return;
@@ -259,6 +276,7 @@ const PerpsProOrderBookConfigSheet = ({
       metric: draftMetric,
       grouping: draftGrouping,
       layout: draftLayout,
+      sizeOnClick: draftSizeOnClick,
     });
     handleClose();
   }, [
@@ -266,6 +284,7 @@ const PerpsProOrderBookConfigSheet = ({
     draftMetric,
     draftGrouping,
     draftLayout,
+    draftSizeOnClick,
     onApply,
     handleClose,
     playImpact,
@@ -422,6 +441,17 @@ const PerpsProOrderBookConfigSheet = ({
                 }
               />
             </Box>
+          </Box>
+
+          <Box twClassName="w-full px-4">
+            <Switch
+              label={strings('perps.order_book.size_on_click')}
+              isOn={draftSizeOnClick}
+              onValueChange={handleSizeOnClickChange}
+              testID={
+                PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH
+              }
+            />
           </Box>
         </Box>
 

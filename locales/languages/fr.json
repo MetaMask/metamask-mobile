@@ -354,7 +354,7 @@
     "sign_in_with_apple": "Se connecter avec Apple",
     "continue_with_telegram": "Continuer avec Telegram",
     "sign_in_with_telegram": "Connexion avec Telegram",
-    "your_wallet": "Vous avez réinitialisé avec succès votre portefeuille !",
+    "your_wallet": "Vous avez réinitialisé avec succès votre portefeuille .",
     "delete_current": "Réinitialiser le portefeuille actuel",
     "have_existing_wallet": "J’ai déjà un portefeuille",
     "import_using_srp": "Importer en utilisant la phrase secrète de récupération",
@@ -545,14 +545,12 @@
     "forgot_password_desc_2": "MetaMask ne peut pas récupérer votre mot de passe pour vous.",
     "forgot_password_point_1": "Si vous êtes connecté(e) à MetaMask avec un appareil sur lequel",
     "forgot_password_point_1_bold": "la biométrie est activée",
-    "forgot_password_point_1_1": "(comme Face ID), vous pourrez réinitialiser votre mot de passe sur ce dernier.",
+    "forgot_password_point_1_1": "(like Face ID), reset your password there.",
     "forgot_password_point_2": "Si vous disposez de votre",
     "forgot_password_point_2_bold": "Phrase secrète de récupération,",
     "forgot_password_point_2_1": "vous pourrez l’utiliser pour réinitialiser et réimporter votre portefeuille actuel.",
     "reset_wallet": "Réinitialiser le portefeuille",
-    "reset_wallet_desc": "Les données de votre portefeuille seront",
-    "reset_wallet_desc_bold": "définitivement supprimées",
-    "reset_wallet_desc_2": "de MetaMask sur cet appareil. Cette opération est irréversible.",
+    "reset_wallet_desc": "Your wallet data will be erased from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "Pour restaurer votre portefeuille, vous pouvez utiliser votre phrase secrète de récupération ou le mot de passe de votre compte Google ou Apple. MetaMask ne dispose pas de ces informations.",
     "reset_wallet_desc_srp": "Pour restaurer votre portefeuille, assurez-vous de disposer de votre phrase secrète de récupération. MetaMask ne dispose pas de cette information.",
     "reset_wallet_desc_srp_1": "Pour restaurer votre portefeuille, assurez-vous de disposer de votre",
@@ -1148,6 +1146,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " et ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "Fourni par",
       "button": "Get account details"
     },
@@ -1170,8 +1170,6 @@
       "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "verify_description": "placeholder for verify description",
-      "enroll_description": "placeholder for enroll description",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening email verification. Please try again."
     },
@@ -1193,11 +1191,12 @@
     },
     "identity_verified": {
       "title": "Identité vérifiée",
-      "description": "Your identity check is complete.",
+      "description": "La vérification de votre identité est terminée.",
       "button": "Continuer"
     },
     "creating_account": {
-      "title": "Creating your bank account"
+      "title": "Création de votre compte bancaire",
+      "awaiting_provider": "En attente de la validation de votre compte par MoonPay"
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
@@ -1215,31 +1214,61 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "Réessayez"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contacter le service d’assistance",
+        "secondary": "Terminé"
+      },
+      "generic": {
+        "title": "Une erreur s’est produite",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Réessayer",
+        "secondary": "Terminé"
+      }
+    },
     "error": {
-      "title": "Couldn't open your account",
-      "description": "We couldn't load your bank account details.",
+      "title": "Impossible d'ouvrir votre compte",
+      "description": "Nous n'avons pas pu charger les informations relatives à votre compte bancaire.",
       "button": "Réessayez"
+    },
+    "choose_currency": {
+      "title": "Choisissez votre devise",
+      "description": "Sélectionnez la devise dans laquelle votre banque effectuera le virement. Nous vous indiquerons les coordonnées bancaires vers lesquelles effectuer le virement.",
+      "footnote": "Tous les fonds sont convertis en mUSD dès leur arrivée sur votre compte Money.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Real brésilien",
+        "usd": "Dollar américain",
+        "eur": "Euro"
+      }
     },
     "vba_details": {
       "title": "Add money with Pix",
-      "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
-      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
-      "copia_cola_label": "PIX Copia e Cola",
-      "pix_key_label": "PIX key",
-      "bank_transfer_title": "Add money by bank transfer",
-      "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
-      "account_holder_label": "Account holder",
+      "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
+      "helper_text": "Votre compte Money est fourni par [Entity], [regulated status, to confirm]. Les reais sont convertis en mUSD dès leur arrivée.",
+      "copia_cola_label": "Pix Copia e Cola",
+      "pix_key_label": "Pix key",
+      "bank_transfer_title": "Approvisionner le compte par virement bancaire",
+      "bank_transfer_description": "Utilisez ces coordonnées pour envoyer de l'argent depuis votre compte bancaire vers MetaMask Money.",
+      "account_holder_label": "Titulaire du compte",
       "routing_number_label": "Numéro de routage",
       "account_number_label": "Numéro du compte",
       "bank_name_label": "Nom de la banque",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "Terminé",
-      "waiting_for_details": "Your account details appear here once the account is approved.",
-      "loading_details": "Loading account details",
+      "waiting_for_details": "Les coordonnées de votre compte s'afficheront ici sous peu.",
+      "loading_details": "Chargement des coordonnées du compte",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
-      "setup_error": "Couldn't create your account.",
+      "setup_error": "Impossible de créer votre compte.",
       "retry": "Réessayer"
+    }
+  },
+  "social": {
+    "profile": {
+      "share_position": "Share position"
     }
   },
   "social_leaderboard": {
@@ -1259,7 +1288,8 @@
       "submit_report": "Soumettre",
       "post_hidden_confirmation": "Post hidden",
       "user_blocked_confirmation": "{{username}} has been blocked",
-      "report_confirmation": "Report submitted"
+      "report_confirmation": "Report submitted",
+      "action_failed": "Un problème est survenu. Veuillez réessayer."
     },
     "feed_sort": {
       "title": "Trier",
@@ -1302,11 +1332,16 @@
         "feed": "Flux",
         "trending": "Tendance",
         "following": "Vous suivez",
-        "live_trades": "Opérations de bourse en direct"
+        "live": "Active"
       },
       "live_stream": {
         "paused": "Suspendue",
-        "live": "Active"
+        "live": "Active",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "Vous suivez",
       "all": "Tous",
@@ -1340,17 +1375,22 @@
       },
       "v1_empty": {
         "trending": {
-          "title": "No posts yet",
-          "description": "Trader posts will show up here."
+          "title": "Aucune publication pour le moment",
+          "description": "Les publications des traders s'afficheront ici."
         },
         "following": {
-          "title": "No posts yet",
-          "description": "Follow traders to see their posts here."
+          "title": "Aucune publication pour le moment",
+          "description": "Suivez des traders pour voir leurs publications s’afficher ici."
         },
-        "liveTrades": {
+        "live": {
           "title": "Aucun ordre de bourse pour l’instant",
-          "description": "Live trades will show up here."
+          "description": "Live activity will show up here."
         }
+      },
+      "filter_empty": {
+        "title": "No matches",
+        "description": "Try fewer filters, or clear them all.",
+        "clear": "Effacer les filtres"
       },
       "empty_type": {
         "tokens": {
@@ -1366,7 +1406,8 @@
       },
       "load_more": "Afficher plus",
       "error": {
-        "title": "Impossible de charger le fil d’actualité",
+        "title": "The feed didn't load",
+        "description": "Give it a moment, then try again.",
         "retry": "Réessayez"
       },
       "sub_header": {
@@ -1381,7 +1422,7 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "Aucune donnée",
-      "add_reaction": "Add reaction",
+      "add_reaction": "Ajouter une réaction",
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Effet de levier",
@@ -1392,11 +1433,19 @@
         "hold_time": "Hold time",
         "buy": "Acheter",
         "sell": "Vendre",
-        "closed_ago": "Closed {{age}}"
+        "closed_ago": "Closed · {{age}}",
+        "sold_ago": "Sold · {{age}}"
       }
     },
+    "translation": {
+      "see_translation": "See translation",
+      "translating": "Translating...",
+      "translated_to_english": "Translated to English",
+      "failed": "Couldn't translate.",
+      "try_again": "Réessayer"
+    },
     "composer": {
-      "placeholder": "Share your thoughts about a position",
+      "placeholder": "Add a position and a few words to post",
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
@@ -1410,12 +1459,16 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
-      "share_position_title": "Share a position",
+      "hide_keyboard": "Hide keyboard",
+      "add_position_title": "Add a position",
       "tab_open": "Ouvert",
       "tab_closed": "Fermé",
       "section_tokens": "Jetons",
       "section_perps": "Perps",
-      "empty_title": "No positions to share",
+      "empty_title": "No positions to post yet",
+      "empty_help": "Why don't I see a position?",
+      "hidden_position_body": "Positions only appear here if they include at least one trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
+      "got_it": "D’accord",
       "empty_description": "Create a position to share it here.",
       "empty_open": "Aucune position ouverte",
       "empty_closed": "No closed positions",
@@ -1427,15 +1480,23 @@
       "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
-    "post_swap_share": {
-      "in_progress": "En cours de traitement...",
+    "post_trade_share": {
+      "swap_in_progress": "Échange en cours",
       "complete": "Échange terminé",
       "failed": "Échec du swap",
-      "share_and_earn_title": "Share and earn",
-      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
-      "share_this_trade": "Share this trade",
+      "order_in_progress": "Order in progress",
+      "order_complete": "Ordre terminé",
+      "order_failed": "L’exécution de l’ordre a échoué",
+      "post_and_earn_title": "Post and earn",
+      "post_and_earn_body": "You earn 15% on fees every time someone copies your trade",
+      "create_post": "Create post",
+      "create_profile_title": "MetaMask is now social",
+      "create_profile_body": "Create your profile and earn when others copy your trades",
+      "create_profile": "Create profile",
+      "view_activity": "Voir l’activité",
       "try_again": "Réessayer",
-      "close": "Fermer"
+      "close": "Fermer",
+      "post_to_feed": "Post to feed"
     },
     "shell": {
       "subnav": {
@@ -1461,7 +1522,12 @@
           "timeframe": "Période",
           "network": "Réseau",
           "market_cap": "Capitalisation boursière",
-          "volume_24h": "Volume sur 24 heures"
+          "volume_24h": "Volume sur 24 heures",
+          "positions": "Positions"
+        },
+        "position_status": {
+          "open": "Ouvert",
+          "closed": "Fermé"
         },
         "type": {
           "all": "Tous",
@@ -1603,9 +1669,9 @@
       "win_rate": "Taux de réussite",
       "pnl": "Résultat",
       "hold_time": "Hold time",
-      "avg_hold_time": "Avg. hold time",
+      "avg_hold_time": "Durée moyenne de détention",
       "volume": "Volume",
-      "performance_30d": "Performance (30d)",
+      "performance_30d": "Performance (30 jours)",
       "times_copied": "Times copied",
       "empty_following": "You aren't following anyone yet.",
       "empty_trader_following": "Not following anyone yet.",
@@ -1624,16 +1690,10 @@
       "empty_closed_tokens": "No closed tokens",
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
-      "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
-      "other_empty_title": "No posts yet",
-      "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "empty_title": "Aucune publication pour le moment",
       "debug_reset_profile": "debug: reset profile",
-      "joined": "Joined {{time}}",
-      "load_profile_error": "Couldn't load your profile.",
+      "joined": "Inscrit depuis {{time}}",
+      "load_profile_error": "Impossible de charger votre profil.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
@@ -1648,39 +1708,45 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
-      "choose_x_identity": "Choose a MetaMask username and avatar",
-      "choose_x_identity_description": "This is how other traders will know who you are.",
-      "use_x_username": "Use @{{username}} as username",
-      "use_x_avatar": "Use X profile picture",
-      "edit_avatar": "Edit avatar",
-      "view_profile": "View profile",
+      "choose_x_identity": "Choisissez un nom d'utilisateur et un avatar MetaMask",
+      "choose_x_identity_description": "C'est ainsi que les autres traders sauront qui vous êtes.",
+      "use_x_username": "Utilisez @{{username}} comme nom d’utilisateur",
+      "use_x_avatar": "Utilisez la photo de profil de votre compte X",
+      "edit_avatar": "Modifier l'avatar",
+      "view_profile": "Afficher le profil",
       "claim_username": "Claim a username",
       "username_label": "Nom d’utilisateur",
       "display_name_label": "Nom du réseau",
-      "username_available": "Username available",
-      "username_invalid": "Use letters, numbers, and hyphens.",
-      "username_unavailable": "This handle is unavailable. Choose another one.",
-      "username_check_error": "Couldn't check that username. Check your connection and try again.",
-      "connect_x_error": "Couldn't connect X. Check your connection and try again.",
-      "save_error": "Couldn't create your profile. Check your connection and try again.",
+      "username_available": "Nom d'utilisateur disponible",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
+      "username_invalid": "Use letters, numbers, and underscores.",
+      "username_unavailable": "Ce nom d'utilisateur n'est pas disponible. Choisissez-en un autre.",
+      "username_check_error": "Impossible de vérifier ce nom d'utilisateur. Vérifiez votre connexion et réessayez.",
+      "connect_x_error": "Impossible de se connecter à X. Vérifiez votre connexion et réessayez.",
+      "save_error": "Impossible de créer votre profil. Vérifiez votre connexion et réessayez.",
+      "try_again": "Réessayer",
       "shuffle_username": "Suggest a username",
-      "customize_avatar": "Choose an avatar",
+      "customize_avatar": "Choisissez un avatar",
+      "avatar_option_accessibility_label": "Avatar {{number}} of {{total}}",
       "avatar_background_peach": "Peach background",
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Fond indigo",
+      "avatar_background_pale_lime": "Fond vert citron pâle",
       "avatar_background_lime": "Lime background",
-      "link_account": "Pick an account to link with your profile",
+      "link_account": "Choisissez un compte à associer à votre profil",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Sélectionner un compte",
-      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
-      "link_account_benefit_private": "Your account address stays private.",
-      "link_account_benefit_follow": "Other traders can follow your profile.",
-      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
-      "link_account_change_footnote": "You can change your linked account every 30 days.",
+      "link_account_benefit_trades": "Votre profil affiche les transactions, le taux de réussite et le résultat de ce compte au cours des 30 derniers jours.",
+      "link_account_benefit_private": "L'adresse de votre compte reste confidentielle.",
+      "link_account_benefit_follow": "Les autres traders peuvent suivre votre profil.",
+      "link_account_benefit_fees": "Gagnez 15 % sur les frais lorsque quelqu'un copie vos ordres de bourse.",
+      "link_account_change_footnote": "Vous pouvez changer votre compte associé tous les 30 jours.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
-      "feed_awaits": "Your profile is ready!",
+      "feed_awaits": "Votre profil est prêt !",
       "feed_awaits_description": "Make a trade, share your take, and earn 15% on fees when someone copies you.",
       "hi": "Hi!",
       "lets_go": "C’est parti",
@@ -1701,6 +1767,9 @@
       "save": "Sauvegarder",
       "save_error": "Impossible d’enregistrer les modifications. Vérifiez votre connexion et réessayez.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
+      "username_invalid": "Use letters, numbers, and underscores.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -1859,7 +1928,7 @@
     "available_balance": "Solde disponible",
     "margin_used": "Marge utilisée",
     "gtm_content": {
-      "title": "LES PERPS SONT ENFIN DISPONIBLES",
+      "title": "Les Perps sont disponibles",
       "title_description": "Prenez des positions longues ou courtes avec un effet de levier allant jusqu’à 40x. Approvisionnez votre compte en un seul clic.",
       "not_now": "Pas maintenant",
       "try_now": "Commencer"
@@ -2325,7 +2394,7 @@
         "reduce_only_wrong_side": "Les ordres de réduction uniquement permettent uniquement de réduire une position existante. Passer du côté opposé du marché.",
         "reduce_only_too_large": "L’ordre de réduction uniquement est supérieur à votre position ouverte",
         "twap_unavailable": "La passation d'ordres TWAP n’est pas disponible pour ce fournisseur.",
-        "lighter_limit_tpsl_unsupported": "Take profit and stop loss can't both be set on a limit order for this provider yet"
+        "lighter_limit_tpsl_unsupported": "Il n'est pas encore possible de définir à la fois un take profit et un stop loss sur un ordre à cours limité pour ce fournisseur"
       },
       "error": {
         "placement_failed": "Échec de la passation de l’ordre",
@@ -2819,8 +2888,8 @@
       "depositFailed": "Le dépôt a échoué",
       "orderLeverageReductionFailed": "Vous ne pouvez pas réduire votre effet de levier",
       "insufficientLiquidity": "Liquidités insuffisantes pour exécuter l’ordre. Essayez d’utiliser un ordre à cours limité ou réessayez dans quelques instants.",
-      "iocCancel": "Your order couldn't fill within your {{maxSlippage}}% slippage tolerance. Try a limit order or adjust your slippage.",
-      "iocCancelUnknownTolerance": "Your order couldn't fill within your slippage tolerance. Try a limit order or adjust your slippage.",
+      "iocCancel": "Votre ordre n'a pas pu être exécuté dans les limites de votre tolérance au slippage qui est de {{maxSlippage}} %. Essayez un ordre à cours limité ou ajustez votre tolérance au slippage.",
+      "iocCancelUnknownTolerance": "Votre ordre n'a pas pu être exécuté dans les limites de votre tolérance au slippage. Essayez un ordre à cours limité ou ajustez votre tolérance au slippage.",
       "connectionTimeout": "Le délai de connexion a expiré. Veuillez vérifier votre connexion réseau et réessayer.",
       "clientReinitializing": "Le service est en cours de réinitialisation. Veuillez patienter un instant et réessayer.",
       "transferFailed": "Impossible de transférer des fonds. Veuillez réessayer.",
@@ -2836,7 +2905,7 @@
       "tpslUpdateFailed": "Impossible de mettre à jour le take profit/stop loss. Veuillez réessayer.",
       "orderRejected": "L’ordre a été rejeté. Veuillez vérifier vos paramètres et réessayer.",
       "slippageExceeded": "Le prix a trop fluctué. Essayez d’utiliser un ordre à cours limité ou augmentez la tolérance au slippage.",
-      "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
+      "priceMoved": "Le cours a évolué de {{priceDelta}} %, dépassant votre tolérance au slippage qui est de {{maxSlippage}} %. Vérifiez le cours actualisé et réessayez.",
       "rateLimitExceeded": "Trop de requêtes. Veuillez patienter un instant et réessayer.",
       "serviceUnavailable": "Le service est temporairement indisponible. Veuillez réessayer plus tard.",
       "networkErrorSimple": "Une erreur réseau s’est produite. Veuillez vérifier votre connexion et réessayer.",
@@ -2972,6 +3041,11 @@
       "expect_more_volatility": "Attendez-vous à une plus grande volatilité en dehors des heures d’ouverture du marché",
       "after_hours_trading_banner": "Trading après les heures d’ouverture",
       "pay_attention_to_volatility": "Faites attention à la volatilité et au slippage",
+      "tabs": {
+        "overview": "Aperçu",
+        "feed": "Flux",
+        "top_traders": "Détenteurs"
+      },
       "badge": {
         "experimental": "EXPÉRIMENTAL",
         "equity": "ACTIONS",
@@ -3024,7 +3098,12 @@
         "provider_fee": "Commission du fournisseur",
         "bridge_fee": "Frais de passerelle",
         "total": "Montant total des frais",
-        "discount_message": "Vous économisez {{percentage}} % sur les frais en tant que membre VIP."
+        "discount_message": "Vous économisez {{percentage}} % sur les frais en tant que membre VIP.",
+        "member_discount_message": "En tant que membre, vous économisez {{percentage}} % sur les frais.",
+        "promotional_discount": "Réduction promotionnelle",
+        "fee_discount": "Réduction sur les frais",
+        "promotional_discount_message": "Réduction promotionnelle : {{percentage}} % de réduction sur les frais MetaMask.",
+        "fee_discount_message": "Vous économisez {{percentage}} % sur les frais MetaMask."
       },
       "size_skew": {
         "title": "Répartition du volume",
@@ -3202,7 +3281,7 @@
       "gainers": "Actifs en hausse",
       "losers": "Actifs en baisse",
       "recently_added": "Ajoutés récemment",
-      "social_feed": "Social feed",
+      "social_feed": "Fil d'actualités social",
       "trending": "Tendance",
       "top_traders": "Meilleurs traders"
     },
@@ -3459,6 +3538,7 @@
       "layout": "Mise en page du carnet d’ordres",
       "layout_left": "À gauche",
       "layout_right": "À droite",
+      "size_on_click": "Set order book size on click",
       "apply": "Appliquer",
       "save": "Sauvegarder",
       "collapse": "Masquer le carnet d’ordres",
@@ -3523,11 +3603,18 @@
       "title": "Carte « Héros PNL (gain et perte) »",
       "header_title": "Partagez votre ordre de bourse",
       "share_button": "Partager",
-      "share_message_with_referral_code": "Tradez des contrats à terme perpétuels sur {{asset}} sur MetaMask. Inscrivez-vous à l’aide de mon code de parrainage {{code}} pour obtenir des récompenses supplémentaires. {{link}}",
       "share_message_without_referral_code": "Tradez des contrats à terme perpétuels sur {{asset}} dans MetaMask.",
       "share_failed": "L’exportation de l’image a échoué",
-      "export_success": "Image exportée",
-      "referral_code_text": "Utilisez mon code de parrainage pour obtenir des récompenses supplémentaires."
+      "export_success": "Image exportée"
+    },
+    "share_position": {
+      "title": "Partager la position",
+      "post_to_metamask": "Publier sur MetaMask",
+      "post_to_metamask_description": "Gagnez 15 % sur les frais chaque fois que quelqu’un copie vos ordres de bourse.",
+      "post_not_ready": "Cette position n'est pas encore prête à être publiée",
+      "post_other_account": "Seules les positions ouvertes sur le portefeuille de votre profil peuvent être publiées",
+      "new_badge": "Nouveau",
+      "share_externally": "Partager en externe"
     },
     "market_details": {
       "fullscreen_chart": "Graphique en plein écran",
@@ -3587,7 +3674,13 @@
       "description": "Impossible d’afficher votre solde disponible.",
       "retry": "Réessayez"
     },
+    "unavailable_in_region": "Non disponible dans votre région",
     "home_title": "Prédictions",
+    "home_sections": {
+      "error": "Markets couldn’t be loaded.",
+      "retry": "Réessayer",
+      "unavailable": "No markets are available right now."
+    },
     "event": {
       "your_positions": "Vos positions"
     },
@@ -3603,12 +3696,11 @@
       "positions": "Positions",
       "activity_empty": {
         "title": "Aucune activité pour l’instant",
-        "description": "Vos ordres exécutés et vos règlements apparaîtront ici."
+        "description": "Your trades and settlements will appear here."
       },
       "load_failed": "Impossible de charger.",
       "load_failed_retry": "Réessayez",
       "outcome_shares": "{{outcome}} · {{shares}} actions",
-      "active_positions": "Positions actives",
       "cash_out": "Encaisser",
       "add_funds": "Ajouter des fonds",
       "withdraw": "Retirer",
@@ -3619,9 +3711,29 @@
       },
       "activity": "Historique",
       "activity_rows": {
-        "settled": "Règlement effectué",
-        "shares_at_price": "{{shares}} à {{price}}"
-      }
+        "shares_at_price": "{{shares}} à {{price}}",
+        "bought": "Bought {{outcome}}",
+        "sold": "{{outcome}} vendu",
+        "settled_outcome": "Settled · {{outcome}}"
+      },
+      "total_value": "Valeur totale",
+      "positions_value": "Positions",
+      "claimable_value": "Claimable",
+      "unrealized_pnl": "Profits et pertes non réalisés",
+      "summary_incomplete": "Partial total: some positions couldn't be valued right now.",
+      "summary_unavailable": "Valeur du portefeuille non disponible",
+      "value_unavailable": "No price",
+      "unknown_market": "Market details unavailable",
+      "outcome_side": {
+        "yes": "Oui",
+        "no": "Non"
+      },
+      "position_status": {
+        "claimable": "Claimable",
+        "settled": "Règlement effectué"
+      },
+      "pnl_with_percent": "{{amount}} ({{percent}})",
+      "settlements_complete_from": "Settlements are complete from {{date}}. Earlier ones may be missing."
     },
     "order_preview": {
       "amount": "Montant en USD",
@@ -4075,6 +4187,11 @@
       "webview_title": "Conditions générales de Polymarket",
       "button": "J’ai compris"
     },
+    "market_unavailable": {
+      "title": "Marché non disponible",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
+      "button": "D’accord"
+    },
     "deposit": {
       "in_progress": "Dépôt en cours",
       "adding_funds": "Ajouter des fonds",
@@ -4201,22 +4318,26 @@
       "to_win": "Pour gagner",
       "order_failed_generic": "La transaction a échoué. Veuillez réessayer.",
       "market_busy_title": "Marché saturé",
-      "getting_price_body": "The market is moving fast, so we couldn't fill your order. Getting the latest price…",
-      "price_updated_body": "Here's the latest price. Confirm to try again:",
-      "price_moved_title": "Price moved",
-      "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
-      "no_match_title": "No match",
-      "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
-      "try_later": "Try later",
+      "getting_price_body": "Le marché évolue rapidement, nous n’avons donc pas pu exécuter votre ordre. Récupération du dernier prix…",
+      "price_updated_body": "Voici le dernier prix. Confirmez pour réessayer :",
+      "price_moved_title": "Le cours a évolué",
+      "price_moved_body": "Depuis votre confirmation, le cours est passé de {{previousPrice}} à {{currentPrice}}. Confirmez pour continuer au nouveau cours :",
+      "no_match_title": "Aucune correspondance",
+      "no_match_body": "Il n'y a pas actuellement suffisamment de liquidité pour exécuter votre ordre. Réessayez dans quelques instants.",
+      "market_timeout_title": "Market timed out",
+      "market_timeout_body": "The market took too long to respond. Nothing was sold. Try again to get the latest price.",
+      "try_later": "Réessayez plus tard",
       "retry_price_label": "Prix",
+      "retry_expected_fill_label": "Expected fill",
+      "retry_expected_fill_value": "{{shares}} actions",
       "retry_proceeds_label": "Vous recevez",
       "retry_payout_label": "Pour gagner",
-      "retry_worst_case_label": "Worst case ({{band}} band)",
+      "retry_worst_case_label": "Scénario le plus défavorable (bande {{band}})",
       "retry_fees_label": "Frais",
-      "yes_buy_at": "Yes, buy at {{price}}",
-      "yes_sell_at": "Yes, sell at {{price}}",
-      "price_unavailable_title": "Price unavailable",
-      "price_unavailable_body": "We couldn't get the latest price. Check your connection and try again.",
+      "yes_buy_at": "Oui, acheter à {{price}}",
+      "yes_sell_at": "Oui, vendre à {{price}}",
+      "price_unavailable_title": "Prix non disponible",
+      "price_unavailable_body": "Nous n’avons pas pu obtenir le dernier cours. Vérifiez votre connexion et réessayez.",
       "order_failed_title": "L’exécution de l’ordre a échoué",
       "order_failed_body": "Votre ordre n’a pas pu être exécuté. Voulez-vous réessayer ?",
       "payment_failed_title": "Le paiement n’a pas abouti",
@@ -4988,7 +5109,7 @@
     "log_out": "Déconnexion",
     "notifications": "Notifications",
     "metamask_orange": "MetaMask Orange",
-    "join_metamask_orange": "Join MetaMask Orange",
+    "join_metamask_orange": "Rejoignez MetaMask Orange",
     "buy": "Acheter",
     "scan": "Scanner"
   },
@@ -5022,7 +5143,13 @@
     "trading_activity_private": "Private and unavailable to copy",
     "trading_activity_info": "More information about trading activity",
     "trading_activity_info_description": "When this is on, other traders can see and copy your trades. You earn 15% of the fees from those copy trades. Turn it off to keep your positions, performance, and stats private.",
-    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
+    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+    "x_account_disconnect_body": "Disconnecting removes your X handle from your MetaMask profile. You can reconnect at any time.",
+    "x_account_disconnect_sheet_title": "Disconnect X account?",
+    "x_account_disconnect_sheet_body": "{{handle}} will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
+    "x_account_disconnect_success": "X account has been disconnected"
   },
   "profile_drawer": {
     "close": "Fermer",
@@ -5551,17 +5678,17 @@
         "reset_onboarding": "Réinitialiser la procédure d’intégration"
       },
       "new_wallet": {
-        "title": "New wallet",
-        "description": "Runs the Reset wallet cleanup (browser history, cookies, identity session, ramps orders and sessions), creates a new SRP with the saved password (DEV_AUTO_UNLOCK_PASSWORD, else the keychain), turns biometrics back on when the device supports them and lands on the wallet already unlocked.",
-        "button": "Wipe and create new SRP",
-        "confirm_title": "Wipe wallet and create a new SRP?",
-        "confirm_message": "The current SRP, accounts and app data are deleted. Back up the SRP first if you need it.",
-        "confirm": "Wipe and create",
+        "title": "Nouveau portefeuille",
+        "description": "Lance le nettoyage de la réinitialisation du portefeuille (historique du navigateur, cookies, session d’identité, ordres et sessions Ramps), crée une nouvelle PSR avec le mot de passe enregistré (DEV_AUTO_UNLOCK_PASSWORD, sinon le trousseau de clés), réactive l’authentification biométrique lorsque l’appareil prend en charge cette fonctionnalité et ouvre le portefeuille déjà déverrouillé.",
+        "button": "Supprimer et créer une nouvelle PSR",
+        "confirm_title": "Supprimer le portefeuille et créer une nouvelle PSR ?",
+        "confirm_message": "La PSR actuelle, les comptes et les données de l'application seront supprimés. Sauvegardez d'abord la PSR au cas où vous en auriez besoin.",
+        "confirm": "Supprimer et créer",
         "cancel": "Annuler",
-        "no_password_title": "No saved password",
-        "no_password_message": "Set DEV_AUTO_UNLOCK_PASSWORD in .js.env, or enable remember me or biometrics so the keychain holds the password.",
-        "success": "New wallet ready",
-        "failure": "New wallet failed"
+        "no_password_title": "Aucun mot de passe enregistré",
+        "no_password_message": "Définissez DEV_AUTO_UNLOCK_PASSWORD dans .js.env, ou activez l'option « Se souvenir de moi » ou l’authentification biométrique pour que le trousseau de clés conserve le mot de passe.",
+        "success": "Le nouveau portefeuille est prêt",
+        "failure": "Échec de la création du nouveau portefeuille"
       },
       "haptics": {
         "title": "Retour haptique",
@@ -5617,13 +5744,15 @@
       "enter_verification_code_desc": "Pour des raisons de sécurité, saisissez le code affiché dans l’application MetaMask sur votre appareil.",
       "add_device_to_wallet": "Ajouter cet appareil au portefeuille",
       "points": {
-        "one": "Ouvrez MetaMask sur votre autre appareil",
-        "two": "Accédez à",
-        "two_bold_one": "Paramètres",
-        "two_bold_two": "Ajouter un appareil",
-        "two_icon": ">",
-        "three": "Scannez le code QR avec cet appareil",
-        "four": "Saisissez le code de sécurité dans votre extension"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "Ajouter un appareil",
+        "two_description_prefix": "Accédez à",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "Scannez le code QR",
       "scanner": {
@@ -5718,10 +5847,15 @@
     "contact_us": "Contactez-nous"
   },
   "support_consent": {
-    "title": "Partager les informations relatives à l’appareil avec le service d’assistance",
-    "description": "Souhaitez-vous partager votre identifiant MetaMask et la version de l’application que vous utilisez avec notre centre d’assistance ? Cela peut nous aider à résoudre votre problème, mais cette étape est facultative.",
-    "confirm": "Confirmer",
-    "reject": "Ne pas partager"
+    "title": "Communiquez votre identifiant utilisateur au service d'assistance",
+    "description": "En continuant, vous acceptez de partager votre identifiant utilisateur et la version de l'application que vous utilisez avec notre centre d'assistance. Cela nous aidera à mieux résoudre votre problème.",
+    "confirm": "Continuer",
+    "reject": "Ne pas partager",
+    "save_preference": "Enregistrer mes préférences"
+  },
+  "support_consent_preference": {
+    "title": "Se souvenir de mes préférences en matière d'assistance",
+    "description": "Lorsque cette option est activée, MetaMask se souvient si vous souhaitez partager votre identifiant utilisateur et la version de l'application que vous utilisez avec notre centre d'assistance. Le partage de ces informations nous aidera à mieux résoudre votre problème."
   },
   "reveal_credential": {
     "seed_phrase_title": "Révéler la phrase secrète de récupération",
@@ -6199,10 +6333,18 @@
       "feed": "Flux",
       "holders": "Détenteurs"
     },
+    "feed_tab": {
+      "empty": {
+        "no_balance_title": "Post your trade",
+        "has_balance_title": "Start your first post",
+        "description": "You'll get 15% of the fees every time someone copies your moves.",
+        "create_post": "Create MetaMask Post"
+      }
+    },
     "holders_tab": {
-      "empty": "No holders to show yet",
+      "empty": "Aucun détenteur à afficher pour le moment",
       "error": {
-        "title": "We couldn't load holders",
+        "title": "Nous n’avons pas pu charger les détenteurs",
         "retry": "Réessayer"
       }
     },
@@ -6386,6 +6528,7 @@
     "view_account": "Voir le compte sur Etherscan",
     "show_private_key": "Afficher la clé privée",
     "account_copied_to_clipboard": "Adresse publique copiée dans le presse-papiers",
+    "token_contract_address_copied_to_clipboard": "Token contract address copied to clipboard",
     "share_public_key": "Partager ma clé publique :"
   },
   "enable_nft-auto-detection": {
@@ -7142,6 +7285,11 @@
   },
   "balance_breakdown": {
     "allocation": "Affectation",
+    "error": {
+      "accessibility_label": "Balance data unavailable",
+      "description": "There was an error fetching data for {{primitive}}. Please try again later.",
+      "title": "Impossible de charger le solde"
+    },
     "hide_balance": "Masquer le solde total",
     "show_balance": "Afficher le solde total"
   },
@@ -7500,6 +7648,7 @@
           "timestamp": "maintenant"
         }
       },
+      "error": "Couldn't turn on notifications. Try again.",
       "cta": "Activer les notifications"
     },
     "received_payment_title": "Paiement instantané reçu",
@@ -8436,22 +8585,22 @@
   "mfa": {
     "method_email": "Adresse e-mail",
     "method_passkey": "Passkey",
-    "method_totp": "Authenticator app",
+    "method_totp": "Application d’authentification",
     "intro": {
       "title": "Set up 2-step verification",
       "description": "We’ll set up a few ways to confirm it’s you. If you lose access to one method, you can use another.",
       "passkey_description": "Confirm with your device or password manager",
       "passkey_done": "Saved to this device",
       "email_description": "Get a 6-digit code sent to your inbox",
-      "totp_description": "Get a 6-digit code from an app like Google Authenticator",
-      "totp_done": "Set up in your authenticator app",
+      "totp_description": "Obtenez un code à 6 chiffres à partir d’une application telle que Google Authenticator",
+      "totp_done": "Configurer dans l’application d’authentification",
       "continue": "Démarrer"
     },
     "picker": {
       "title": "Confirm with 2-step verification",
       "passkey": "Verify with Passkey",
       "email_otp": "Get a verification code",
-      "totp": "Use authenticator app",
+      "totp": "Utiliser l'application d'authentification",
       "or": "ou"
     },
     "email_entry": {
@@ -8465,29 +8614,28 @@
       "title": "Enter your verification code",
       "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
       "description": "We sent a 6-digit code to your email. Enter it below to verify your email.",
-      "description_totp": "Open your authenticator app and enter the 6-digit code.",
-      "verify": "Vérifier",
+      "description_totp": "Ouvrez votre application d’authentification et saisissez le code à 6 chiffres.",
       "retry": "Réessayer",
-      "retry_in": "Try again in {{seconds}}s",
+      "retry_in": "Réessayez dans {{seconds}} s",
       "sending": "Sending code...",
       "send_in": "Sending a new code in {{seconds}}s",
       "resend": "Renvoyer le code",
       "resend_in": "Renvoyer le code dans {{seconds}} secondes",
       "resent": "We sent you a new code.",
       "paste": "Coller",
+      "verifying": "Verifying code",
       "get_new_code": "Get new code"
     },
     "totp_setup": {
-      "title": "Set up authenticator app",
-      "description": "Add MetaMask to your authenticator app, then enter the 6-digit code it shows.",
-      "open_app": "Open authenticator app",
-      "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
-      "setup_key": "Setup key",
-      "copy": "Copy setup key",
-      "other_device": "Set up on another device",
+      "title": "Configurez l’application d’authentification",
+      "description": "In your authenticator app, add a new account and enter the setup key or scan the QR code.",
+      "setup_key": "Clé de configuration",
+      "copy": "Copier la clé de configuration",
+      "copied": "Setup key copied",
+      "show_qr": "Show QR code",
       "qr_title": "Scannez le code QR",
-      "qr_description": "Scan this code with the authenticator app on your other device, then enter the 6-digit code it shows.",
-      "restarted": "That took too long, so we made a new setup key. Remove the earlier MetaMask entry from your authenticator app, then add this one.",
+      "qr_description": "Scan this code with your authenticator app to add your account. Then enter the 6-digit code it shows.",
+      "restarted": "Cela a pris trop de temps, nous avons donc généré une nouvelle clé de configuration. Supprimez l’entrée MetaMask précédente de votre application d’authentification, puis ajoutez celle-ci.",
       "continue": "Continuer"
     },
     "passkey": {
@@ -8497,62 +8645,70 @@
     "failure": {
       "title": "Une erreur s’est produite",
       "retry": "Réessayer",
-      "close": "Fermer"
+      "close": "Fermer",
+      "support_title": "We couldn't verify your details",
+      "support_description": "Contact support to continue.",
+      "contact_support": "Contacter le service d’assistance",
+      "done": "Terminé"
     },
     "errors": {
-      "invalid_code": "That code isn’t right. Check it and try again.",
+      "invalid_code": "This code isn’t correct. Try again",
       "too_many_attempts": "Too many attempts. Request a new code.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
+      "learn_more": "En savoir plus.",
       "cooldown": "Trop de requêtes. Veuillez patienter un instant et réessayer.",
       "limit_reached": "You've reached the limit for this method.",
-      "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
       "signed_out": "Sign in to continue.",
       "unsupported": "This method isn't supported on this device.",
       "flow_in_progress": "Another verification is already in progress.",
       "generic": "Un problème est survenu. Veuillez réessayer.",
       "code_expired": "Your verification code expired, get a new code.",
-      "invalid_totp_code": "That code isn’t right. Check that your phone’s time is set automatically, then enter the current code.",
-      "totp_expired": "That took too long. Enter the current code from your app.",
-      "totp_too_many_attempts": "Too many attempts. Wait for a new code in your app and try again.",
-      "totp_taken": "An authenticator app is already set up for this account."
+      "invalid_totp_code": "This code isn’t correct. Try again",
+      "totp_expired": "Cela a pris trop de temps. Saisissez le code actuel affiché dans votre application.",
+      "totp_too_many_attempts": "Trop de tentatives infructueuses. Attendez qu'un nouveau code s'affiche dans votre application, puis réessayez.",
+      "totp_taken": "Une application d'authentification est déjà configurée pour ce compte."
     },
     "settings": {
       "title": "2-step verification",
-      "description": "Used to confirm it's you before sensitive actions.",
+      "description": "Adds protection to Money account transactions.",
       "manage": "Gérer",
-      "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
+      "notice": "Ces méthodes permettent de sécuriser les transactions effectuées sur votre compte Money. Elles ne permettent pas de récupérer votre portefeuille.",
       "add": "Ajouter",
-      "passkeys": "Passkeys",
+      "passkeys": "Clé d'accès",
       "passkey_count": {
-        "one": "{{count}} passkey",
-        "other": "{{count}} passkeys"
+        "one": "{{count}} clé d'accès",
+        "other": "{{count}} clés d'accès"
       },
-      "add_passkey": "Add passkey",
-      "passkey_name": "Passkey #{{number}}",
-      "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
-      "added_on": "Added {{date}}",
-      "used_for": "Used for",
-      "used_for_money": "Verifying Money transactions",
-      "remove_passkey": "Remove passkey",
-      "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
-      "remove_email": "Remove email",
-      "remove_email_description": "You’ll no longer be able to log in or verify transactions by receiving a code via email.",
-      "remove_totp": "Remove authenticator app",
-      "remove_totp_description": "You’ll no longer be able to verify Money transactions with codes from your authenticator app.",
+      "add_passkey": "Ajouter une clé d'accès",
+      "passkey_name": "Clé d’accès n° {{number}}",
+      "passkey_name_with_provider": "Clé d’accès n° {{number}} - {{provider}}",
+      "added_on": "Ajouté le {{date}}",
+      "used_for": "Utilisé pour",
+      "used_for_money": "Vérification des transactions Money",
+      "remove_passkey": "Supprimer la clé d'accès",
+      "remove_passkey_description": "Cette clé d'accès sera supprimée de tous vos appareils. Assurez-vous de disposer d'un autre moyen de vous connecter avant de la supprimer.",
+      "remove_email": "Supprimer l'adresse e-mail",
+      "remove_email_description": "Vous ne pourrez plus vous connecter ni vérifier les transactions en recevant un code par e-mail.",
+      "remove_totp": "Supprimer l’application d’authentification",
+      "remove_totp_description": "Vous ne pourrez plus valider les transactions Money à l’aide des codes générés par votre application d’authentification.",
       "remove": "Supprimer",
-      "last_passkey_title": "Passkey can’t be deleted",
-      "last_passkey_description": "This passkey is the only security method for this account. Add a second method before removing it.",
-      "last_email_title": "Email can’t be removed",
-      "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
-      "last_totp_title": "Authenticator app can’t be removed",
-      "last_totp_description": "This authenticator app is the only security method for this account. Add a second method before removing it.",
+      "last_passkey_title": "La clé d'accès ne peut pas être supprimée",
+      "last_passkey_description": "Cette clé d’accès est le seul moyen d’authentification utilisé pour accéder à ce compte. Ajoutez un deuxième moyen d’authentification avant de la supprimer.",
+      "last_email_title": "L’adresse e-mail ne peut pas être supprimée",
+      "last_email_description": "Cette adresse e-mail est le seul moyen d’authentification utilisé pour accéder à ce compte. Ajoutez un deuxième moyen d’authentification avant de la supprimer.",
+      "last_totp_title": "L'application d'authentification ne peut pas être supprimée",
+      "last_totp_description": "Cette application d'authentification est le seul moyen d’authentification utilisé pour accéder à ce compte. Ajoutez un deuxième moyen d’authentification avant de la supprimer.",
+      "only_passkeys_description": "Passkeys can only be removed after verifying with another type of method. Add an email or authenticator app first.",
       "got_it": "D’accord",
-      "passkey_removed": "Passkey removed",
-      "email_removed": "Email verification removed",
-      "totp_removed": "Authenticator app removed",
-      "remove_failed": "Couldn’t remove this method. Try again later."
+      "passkey_added": "Passkey added",
+      "passkey_removed": "Clé d’accès supprimée",
+      "email_verified": "Email verified",
+      "email_removed": "Validation par e-mail supprimée",
+      "totp_added": "Authenticator app added",
+      "totp_removed": "Application d'authentification supprimée",
+      "remove_failed": "Impossible de supprimer ce moyen d'authentification. Réessayez plus tard."
     }
   },
   "media_player": {
@@ -9153,10 +9309,10 @@
         "failed": "Échec de la conversion en mUSD"
       },
       "education": {
-        "heading": "OBTENEZ {{percentage}} % SUR LES\nSTABLECOINS",
+        "heading": "Obtenez {{percentage}} % sur les stablecoins",
         "description": "Convertissez vos stablecoins en mUSD et gagnez un bonus annualisé de {{percentage}} %.",
         "terms_apply": "Des conditions s’appliquent.",
-        "primary_button": "Commencer",
+        "primary_button": "Démarrer",
         "secondary_button": "Pas maintenant",
         "checklist": {
           "dollar_backed": "Adossé au dollar",
@@ -9261,28 +9417,28 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Add money from your bank",
-        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "title": "Ajoutez de l'argent depuis votre compte bancaire",
+        "description": "Effectuez un virement directement depuis votre banque en quelques secondes. Aucuns frais de réseau ne vous seront facturés.",
         "cta": "Commencer"
       },
       "account_is_ready": {
         "title": "Et voilà ",
-        "description": "Your virtual account details are ready.",
-        "cta": "View account details"
+        "description": "Les informations relatives à votre compte virtuel sont prêtes.",
+        "cta": "Consulter les détails du compte"
       },
       "kyc_pending": {
         "title": "Vérification de votre identité",
-        "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
-        "cta": "Verifying"
+        "description": "Nous vérifions vos informations. Nous vous informerons lorsque la vérification sera terminée.",
+        "cta": "Vérification en cours"
       },
       "finish_verification": {
-        "title": "We need more info",
-        "description": "Provide more details to finish verifying your identity. It only takes a minute.",
+        "title": "Nous avons besoin de plus d'informations",
+        "description": "Fournissez davantage d'informations pour finaliser la vérification de votre identité. Cela ne prend qu'une minute.",
         "cta": "Continuer"
       },
       "kyc_decision": {
-        "title": "We can’t verify your identity",
-        "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
+        "title": "Nous n’avons pas pu vérifier votre identité",
+        "description": "Nous ne sommes pas en mesure de proposer des virements bancaires pour le moment. Contactez le service d'assistance pour obtenir de l'aide.",
         "cta": "En savoir plus.",
         "dismiss": "Annuler"
       }
@@ -9412,7 +9568,7 @@
       "title": "Ajouter des fonds",
       "convert_crypto": "Convertir des crypto-monnaies",
       "deposit_funds": "Carte bancaire ou Apple Pay",
-      "bank_account": "Compte bancaire",
+      "bank_account": "Bank transfer",
       "add_musd": "Ajouter des mUSD",
       "receive_external": "Adresse externe",
       "coming_soon": "Bientôt disponible",
@@ -9534,7 +9690,7 @@
     },
     "transaction": {
       "deposited": "Déposé",
-      "bank_transfer": "Bank transfer",
+      "bank_transfer": "Virement bancaire",
       "received": "Reçu",
       "sent": "Envoyé(s)",
       "card_transaction": "Transaction Card",
@@ -9563,7 +9719,13 @@
       "completed": "Terminé",
       "paid_to": "Payé à",
       "received_from": "Reçu de",
-      "date": "Date"
+      "date": "Date",
+      "paid_with": "Payé avec",
+      "you_deposited": "Vous avez déposé",
+      "transaction_fees": "Frais de transaction",
+      "paid_by_metamask": "Payé par MetaMask",
+      "total": "Total",
+      "pending": "En attente"
     },
     "convert_stablecoins": {
       "title": "Convertissez vos stablecoins",
@@ -9674,6 +9836,7 @@
     "staked_balance": "Solde staké",
     "staked_ethereum": "Ethereum staké",
     "unstake": "Déstaker",
+    "withdrawal_details_unavailable": "We couldn't load your withdrawal details. Try again. If the problem persists, contact MetaMask Support.",
     "stake_more": "Staker plus",
     "claim": "Réclamer",
     "staking": "Staking",
@@ -9905,7 +10068,7 @@
       "other_assets_description": "Sélectionnez parmi vos jetons",
       "other_assets_receive_description": "Sélectionnez le jeton que vous souhaitez recevoir",
       "money_account": "Money Account",
-      "no_deposit_fee": "No deposit fee"
+      "no_deposit_fee": "Pas de frais de dépôt"
     },
     "staking_footer": {
       "part1": "En continuant, vous acceptez nos ",
@@ -10165,16 +10328,16 @@
       "limit_price": "Prix limite {{symbol}}",
       "not_enough_gas": "Pas assez de gaz",
       "filled": "Exécuté",
-      "filled_at": "Exécuté le {{date}}",
+      "filled_at": "Filled on {{date}}",
       "expired": "Expiré",
       "expired_after": "A expiré après {{duration}}",
       "duration_days": "{{count}} j",
       "duration_hours": "{{count}} h",
       "duration_minutes": "{{count}} min",
       "canceled": "Annulé",
-      "canceled_at": "Annulée le {{date}}",
+      "canceled_at": "Canceled on {{date}}",
       "failed": "Échec",
-      "failed_at": "A échoué le {{date}}",
+      "failed_at": "Failed on {{date}}",
       "buy_when": "Acheter lorsque",
       "sell_when": "Vendre lorsque",
       "is_at_or_below": "est égal ou inférieur à",
@@ -10202,18 +10365,19 @@
       "account_upgrade_fee_info_title": "Account upgrade fee",
       "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute limit orders. Like all on-chain actions, this has a small network fee.",
       "metamask_fee_info_title": "Commission MetaMask",
-      "metamask_fee_info_body": "MetaMask's standard fee is {{feePercentage}}%. You may be eligible for fee discounts or rebates, so we calculate your final fee at order execution.",
+      "metamask_fee_info_body": "Les frais standard de MetaMask s'élèvent à {{feePercentage}} %. Vous pouvez bénéficier de réductions ou de remises sur les frais ; nous calculons donc le montant final de vos frais au moment de l'exécution de l'ordre.",
       "metamask_fee_info_learn_more": "En savoir plus.",
       "create_order": "Créer l'ordre",
       "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paiement",
-      "est_receiving": "Est. receiving",
+      "est_receiving": "Réception estimée",
       "trigger_condition": "Condition d’exécution",
       "trigger_condition_at_or_above": "≥",
       "trigger_condition_at_or_below": "≤",
       "expiry_label": "Expire après",
       "confirm_order": "Confirmer l'ordre",
       "status": "État",
+      "open": "Ouvert",
       "in_progress": "En cours de traitement",
       "submitted": "Envoyé",
       "cancel_order": "Annuler l’ordre",
@@ -10226,7 +10390,7 @@
       "error_signing_delegations": "Impossible de créer un ordre : l'ordre n'a pas pu être signé.",
       "error_creating_order": "Impossible de créer un ordre : l'ordre n'a pas pu être passé.",
       "error_missing_trigger_price": "Impossible de créer un ordre : le prix déclencheur n'est pas disponible.",
-      "unsupported_fee_token_pair": "Limit orders aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
+      "unsupported_fee_token_pair": "Les ordres à cours limité ne sont pas disponibles pour cette paire de jetons. Pour continuer, remplacez au moins un jeton par : {{supportedTokens}}",
       "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
       "error_canceling_order": "Impossible d'annuler votre ordre. Veuillez réessayer.",
       "order_created_title": "Ordre créé",
@@ -10538,7 +10702,7 @@
     },
     "submit": "Soumettre",
     "default_slippage_description": "Votre transaction n’aboutira pas si la variation de prix dépasse le pourcentage de slippage.",
-    "cost_tolerance": "Price Tolerance",
+    "cost_tolerance": "Price tolerance",
     "cost_tolerance_tooltip_content": "Includes slippage, price impact, and network fees.",
     "default_cost_tolerance_description": "Votre ordre à cours limité ne sera pas exécuté si nous ne pouvons pas l'exécuter dans une fourchette de {{costTolerance}} % du montant de sortie affiché.",
     "exceeding_lower_cost_tolerance_error": "Enter a price tolerance greater than {{value}}%",
@@ -10608,9 +10772,9 @@
     "bridged_token": "{{symbol}} transféré"
   },
   "account_status": {
-    "account_already_exists": "Ce portefeuille existe déjà",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "Un portefeuille utilisant « {{accountName}} » existe déjà. Voulez-vous essayer de vous y connecter à la place ?",
-    "account_already_exists_telegram_description": "Un portefeuille est déjà associé à ce compte Telegram. Voulez-vous déverrouiller ce portefeuille ?",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "Se connecter",
     "account_not_found": "Portefeuille introuvable",
     "account_not_found_description": "Nous n’avons pas trouvé de portefeuille pour « {{accountName}} ». Voulez-vous en créer un nouveau avec cet identifiant ?",
@@ -10986,7 +11150,7 @@
       "payment_creation_error": "Échec de la création du paiement. Veuillez réessayer."
     },
     "order_completed": {
-      "title": "VOTRE CARTE\nA ÉTÉ COMMANDÉE",
+      "title": "Votre carte est en route",
       "subtitle": "Elle devrait arriver dans 4 à 6 semaines.",
       "description": "Configurez votre carte virtuelle et ajoutez-la à votre portefeuille numérique pour commencer à gagner du cashback en mUSD.",
       "set_up_card_button": "Configurer la carte",
@@ -11029,16 +11193,16 @@
       "try_again": "Réessayez"
     },
     "card_onboarding": {
-      "title": "Dépensez\net gagnez",
-      "description": "MetaMask Card est un moyen de paiement rapide et facile à utiliser\nqui vous permet non seulement de dépenser vos cryptomonnaies,\nmais aussi de gagner jusqu’à 3 % de cashback en mUSD.",
+      "title": "Dépensez\net générez des revenus",
+      "description": "MetaMask Card est un moyen de paiement rapide et facile à utiliser qui vous permet non seulement de dépenser vos cryptomonnaies, mais aussi de gagner jusqu’à 3 % de cashback en mUSD.",
       "apply_now_button": "Configurer maintenant",
       "login_button": "Se connecter",
       "not_now_button": "Pas maintenant",
       "sign_up": {
-        "title": "C’est parti",
-        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "title": "Set up your MetaMask Card",
+        "description": "We need a few details to get your card ready.",
         "i_already_have_an_account": "J’ai déjà une carte MetaMask Card",
-        "i_already_have_an_account_immersve": "J’ai déjà un compte",
+        "i_already_have_an_account_immersve": "J’ai déjà une carte MetaMask Card",
         "email_label": "Adresse e-mail",
         "password_label": "Nouveau mot de passe pour MetaMask Card",
         "password_description": "Ce mot de passe doit être différent de celui que vous utilisez pour déverrouiller l’application MetaMask et doit comporter au moins 15 caractères.",
@@ -11049,9 +11213,10 @@
         "join_waitlist": "Rejoindre la liste d’attente",
         "country_not_available": "L’inscription à la carte n’est pas encore disponible dans votre pays.",
         "account_label": "Compte",
-        "account_label_immersve": "Compte Card",
+        "account_label_immersve": "Spending account",
         "account_description": "Votre carte MetaMask Card sera associée à ce compte.",
-        "account_description_immersve": "Les achats effectués avec la carte seront débités de ce compte.",
+        "account_description_immersve": "Card purchases will come from this account.",
+        "phone_number_label_immersve": "Numéro de téléphone",
         "account_exists_toast": "Vous possédez déjà un compte Card.",
         "clickwrap_prefix": "En cliquant sur « Suivant », vous acceptez les conditions générales d’Immersve ",
         "clickwrap_and": " et ",
@@ -11215,7 +11380,7 @@
       },
       "complete": {
         "title": "Vous êtes inscrit !",
-        "description": "Terminez la configuration de votre carte afin de pouvoir commencer à dépenser vos cryptomonnaies.",
+        "description": "Terminez la configuration de votre carte MetaMask afin de pouvoir commencer à dépenser vos cryptomonnaies.",
         "confirm_button": "Terminer la configuration"
       },
       "account_exists": {
@@ -11600,13 +11765,13 @@
       "update_error": "Échec de la mise à jour de la priorité de dépense"
     },
     "card_authentication": {
-      "title": "Connectez-vous à votre carte",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "Terminez la mise à jour de votre carte",
-      "description": "Connectez-vous pour gérer votre MetaMask Card.",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "Vérification de la configuration de votre carte.",
       "description_resume": "Reprenez là où vous vous êtes arrêté. Ce compte reste associé à votre carte.",
       "auth_prompt_info": "Connectez-vous à votre compte « Card » pour accéder à cette fonctionnalité.",
-      "country_label": "Pays",
+      "country_label": "Pays de résidence",
       "location_button_text": "International",
       "location_button_text_us": "États-Unis",
       "location_button_text_uk": "Royaume-Uni",
@@ -11720,7 +11885,7 @@
       "try_again": "Réessayez",
       "cancel": "Annuler",
       "verification_pending_title": "Verification pending",
-      "verification_pending_description": "Open the card in Apple Wallet to verify it on {{devices}}.",
+      "verification_pending_description": "Ouvrez la carte dans Apple Wallet pour la vérifier sur {{devices}}.",
       "open_in_apple_wallet": "Open in Apple Wallet",
       "device_iphone": "iPhone",
       "device_apple_watch": "Apple Watch",
@@ -11751,9 +11916,9 @@
   },
   "rewards": {
     "rebate": {
-      "banner": "You’re getting {{percent}}% back on fees",
-      "tooltip_title": "Trading Rewards",
-      "tooltip_content": "Get {{percent}}% of the MetaMask fee on this trade back as a reward, paid in mUSD to your Money account. Network fees aren’t included. See the Rewards tab for details."
+      "banner": "Vous bénéficiez d’un cashback de {{percent}} % sur les frais",
+      "tooltip_title": "Récompenses de trading",
+      "tooltip_content": "Récupérez {{percent}} % des frais MetaMask liés à cette transaction sous forme de récompense, versée en mUSD sur votre compte Money. Les frais de réseau ne sont pas inclus. Consultez l’onglet « Récompenses » pour plus de détails."
     },
     "auth_fail_title": "Erreur inconnue.",
     "auth_fail_description": "Une erreur inconnue s’est produite lors de l’authentification de ce compte auprès de « Récompenses MetaMask ». Veuillez réessayer plus tard.",
@@ -11808,12 +11973,13 @@
       "error_fetching_description": "Vérifiez votre connexion et réessayez.",
       "retry_button": "Réessayer"
     },
-    "referral_validation_unknown_error": {
-      "title": "Impossible de valider le code de parrainage",
-      "description": "Vérifiez votre connexion et réessayez."
-    },
     "active_activity_error": {
       "error_fetching_title": "Impossible de charger l’activité",
+      "error_fetching_description": "Vérifiez votre connexion et réessayez.",
+      "retry_button": "Réessayer"
+    },
+    "trading_activity_error": {
+      "error_fetching_title": "Une erreur s’est produite lors du chargement de vos transactions",
       "error_fetching_description": "Vérifiez votre connexion et réessayez.",
       "retry_button": "Réessayer"
     },
@@ -11828,6 +11994,9 @@
       "invalid_referral_code": "Code de parrainage non valide. Veuillez vérifier le code et réessayer.",
       "already_referred": "Vous avez déjà été parrainé par un autre utilisateur.",
       "cannot_use_own_referral_code": "Vous ne pouvez pas utiliser votre propre code de parrainage.",
+      "referrer_cannot_be_referred": "Vous ne pouvez pas être parrainé par quelqu’un d’autre.",
+      "active_trader_cannot_be_referred": "Vous ne pouvez pas être parrainé en raison de votre activité de trading récente.",
+      "rate_limited": "Trop de tentatives. Veuillez patienter un instant.",
       "invalid_bonus_code": "Code bonus non valide",
       "already_redeemed": "Vous avez déjà utilisé ce code bonus",
       "reached_maximum": "Ce code bonus a été utilisé le nombre maximum de fois"
@@ -11854,7 +12023,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} points pour passer au niveau supérieur",
       "bps_unit": "points de base",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Échanges",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -11865,7 +12033,7 @@
       "points_from_referrals_label": "Points de parrainages",
       "referrals_label": "Parrainages VIP",
       "tier_benefits_title": "Avantages par niveau",
-      "splash_title": "BIENVENUE\nCHEZ GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Bienvenue chez Gold Fox Collective",
       "splash_description": "Bénéficiez d’avantages exclusifs, de fonctionnalités en avant-première et de récompenses privilégiées. Sur invitation uniquement.",
       "splash_accept_invite": "Accepter l’invite",
       "splash_not_now": "Pas maintenant",
@@ -11910,9 +12078,7 @@
       "retry_button": "Réessayer",
       "empty_title": "Aucune transaction pour le moment. Vos transactions VIP s’afficheront ici dès qu’elles seront effectuées."
     },
-    "referral_title": "Parrainages",
     "referral_stats_earned_from_referrals": "Gagnés grâce aux parrainages",
-    "referral_stats_referrals": "Parrainages",
     "loading_activity": "Chargement de l’activité…",
     "error_loading_activity": "Une erreur s’est produite lors du chargement de l’activité",
     "activity_empty_title": "Aucune activité récente.",
@@ -11977,8 +12143,6 @@
       "step_confirm": "Suivant",
       "step_finish": "C’est parti",
       "step_skip": "Ignorer",
-      "step4_title_referral_validating": "Validation du code de parrainage…",
-      "step4_referral_input_error": "Code de parrainage non valide",
       "title": "Commencez à gagner des récompenses",
       "description": "Gagnez des prix, profitez d’avantages et découvrez d’autres façons de gagner de l’argent, simplement en utilisant MetaMask.",
       "sign_up": "Inscrivez-vous au programme de récompenses",
@@ -11987,9 +12151,6 @@
       "legal_disclaimer_2": "Conditions d’utilisation",
       "legal_disclaimer_3": ". Nous inscrirons tous les comptes sur cet appareil et suivrons l’activité sur la blockchain pour vous récompenser automatiquement.",
       "legal_disclaimer_4": "En savoir plus",
-      "referral_prompt": "Vous avez un code de parrainage ?",
-      "referral_hide": "Masquer le code",
-      "referral_placeholder": "Code de parrainage (facultatif)",
       "referral_label": "Code de parrainage"
     },
     "settings": {
@@ -12021,13 +12182,6 @@
       "off_device_accounts_sheet_title": "Comptes inscrits manquants",
       "off_device_accounts_sheet_description": "Ils peuvent appartenir à un portefeuille qui n’a pas encore été ajouté après la réinstallation de MetaMask. Ne reconnaissez-vous aucune de ces adresses ?",
       "off_device_accounts_sheet_let_us_know": "Faites-le nous savoir"
-    },
-    "referred_by_code": {
-      "title": "Code de parrainage",
-      "description_linked": "Le code d’invitation est désormais associé au compte, votre parrain recevra donc des récompenses lorsque vous tradez.",
-      "description_not_linked": "Vous vous êtes inscrit avant que votre ami ait pu vous envoyer son code ? Saisissez-le ci-dessous pour être associé à son compte.",
-      "input_placeholder": "Saisir le code de parrainage",
-      "invalid_code": "Code de parrainage non valide"
     },
     "bonus_code": {
       "input_placeholder": "Saisir le code bonus",
@@ -12074,22 +12228,6 @@
     },
     "ways_to_earn": {
       "title": "Façons de gagner des points"
-    },
-    "referral": {
-      "referral_code": "Code de parrainage",
-      "referral_link": "Lien de parrainage",
-      "actions": {
-        "share_referral_link": "Parrainer un ami",
-        "share_referral_subject": "Rejoignez MetaMask Rewards"
-      },
-      "info": {
-        "title": "Partagez votre code avec vos amis",
-        "description": "Les bonus de parrainage varient selon les campagnes. Consultez les détails de chacune des campagnes pour en savoir plus.",
-        "vip_title": "Touchez une commission sur chaque swap et chaque contrat perp effectués par vos filleuls. Votre taux varie selon votre niveau.",
-        "vip_referrals_label": "Parrainages",
-        "vip_revenue_share_label": "Commission"
-      },
-      "referral_code_copied": "Code de parrainage copié dans le presse-papiers"
     },
     "link_account_group": {
       "link_account": "Ajouter un compte",
@@ -12952,8 +13090,8 @@
     "membership_label": "Pro",
     "membership_status": {
       "active": "Actif",
-      "overdue": "Overdue",
-      "deactivated": "Deactivated",
+      "overdue": "Impayé",
+      "deactivated": "Désactivé",
       "cancelled": "Annulé",
       "unavailable": "Non disponible"
     },
@@ -12980,6 +13118,8 @@
       },
       "resets_on": "Se réinitialise le {{date}}",
       "load_error": "Impossible de charger vos quotas.",
+      "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
+      "unavailable": "Member pricing isn't available right now.",
       "retry": "Réessayer"
     },
     "physical_card": {
@@ -12990,28 +13130,28 @@
     },
     "membership_alert": {
       "low_balance": {
-        "title": "Add funds by {{date}}",
-        "description": "Your Money account is low. Add funds to keep your membership.",
+        "title": "Ajoutez des fonds avant le {{date}}",
+        "description": "Le solde de votre compte Money est insuffisant. Approvisionnez-le pour conserver votre statut d'adhérent.",
         "action": "Réessayer"
       },
       "renewal_failed": {
-        "title": "Renewal failed",
-        "description": "Your balance is too low. Add to your Money account to restore membership.",
+        "title": "Échec du renouvellement",
+        "description": "Votre solde est insuffisant. Approvisionnez votre compte Money pour rétablir votre statut d'adhérent.",
         "action": "Ajouter des fonds"
       },
       "payment_failed": {
-        "title": "Payment failed",
-        "description": "Add funds to your Money account to restore your membership.",
+        "title": "Le paiement a échoué",
+        "description": "Ajoutez des fonds à votre compte Money pour rétablir votre statut d'adhérent.",
         "action": "Ajouter des fonds"
       },
       "inactive": {
-        "title": "Your membership is inactive",
-        "description": "Add funds to your Money account to regain access to your benefits.",
+        "title": "Votre adhésion est inactive",
+        "description": "Approvisionnez votre compte Money pour bénéficier à nouveau de vos avantages.",
         "action": "Ajouter des fonds"
       },
       "cancelled": {
-        "title": "Your membership is cancelled",
-        "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
+        "title": "Votre adhésion a été résiliée",
+        "description": "Renouvelez votre adhésion avant le {{date}} pour continuer à bénéficier d'un TRA de 7 %, d'un cashback de 3 % en mUSD et bien plus encore.",
         "action": "Renouveler l’adhésion"
       }
     },
@@ -13042,9 +13182,9 @@
       "invoices": "Factures",
       "contact_support": "Contacter le service d’assistance",
       "cancel_membership": "Résilier l'abonnement",
-      "resume_membership": "Resume membership",
-      "resume_in_progress": "Resuming membership",
-      "resume_failed": "We couldn't resume your membership. Please try again."
+      "resume_membership": "Réactiver l'adhésion",
+      "resume_in_progress": "Réactivation de l'adhésion",
+      "resume_failed": "Nous n'avons pas pu réactiver votre adhésion. Veuillez réessayer."
     },
     "cancel_membership": {
       "title": "Why are you canceling your plan?",

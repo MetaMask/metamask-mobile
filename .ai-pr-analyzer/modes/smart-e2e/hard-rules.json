@@ -1,7 +1,7 @@
 [
   {
     "name": "e2e-relevant-workflow-change",
-    "description": "E2E-relevant workflow or E2E CI script changed; run all E2E tags. AI may still select performance tags.",
+    "description": "E2E-relevant workflow or E2E CI script changed; run all E2E tags.",
     "trigger": {
       "type": "pathMatch",
       "files": [
@@ -26,11 +26,7 @@
       ]
     },
     "result": {
-      "confidence": 100,
-      "performance_tests": {
-        "selected_tags": [],
-        "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
-      }
+      "confidence": 100
     },
     "continue": true
   },
@@ -42,11 +38,7 @@
       "diffPattern": "@metamask/.*controller"
     },
     "result": {
-      "confidence": 100,
-      "performance_tests": {
-        "selected_tags": [],
-        "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
-      }
+      "confidence": 100
     },
     "continue": true
   },
@@ -58,11 +50,7 @@
       "files": ["locales/languages/en.json"]
     },
     "result": {
-      "confidence": 100,
-      "performance_tests": {
-        "selected_tags": [],
-        "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
-      }
+      "confidence": 100
     },
     "continue": true
   },
@@ -75,11 +63,7 @@
       "prefixes": ["app/components/hooks/", "app/contexts/", "app/store/"]
     },
     "result": {
-      "confidence": 100,
-      "performance_tests": {
-        "selected_tags": [],
-        "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
-      }
+      "confidence": 100
     },
     "continue": true
   },
@@ -102,11 +86,7 @@
       "excludeRegexes": ["\\.test\\.(ts|tsx|js|jsx)$"]
     },
     "result": {
-      "confidence": 100,
-      "performance_tests": {
-        "selected_tags": [],
-        "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
-      }
+      "confidence": 100
     },
     "continue": true
   },
@@ -139,11 +119,7 @@
     },
     "result": {
       "risk_level": "medium",
-      "confidence": 88,
-      "performance_tests": {
-        "selected_tags": [],
-        "reasoning": "Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags."
-      }
+      "confidence": 88
     },
     "continue": true
   },
@@ -183,11 +159,7 @@
     },
     "result": {
       "risk_level": "medium",
-      "confidence": 92,
-      "performance_tests": {
-        "selected_tags": [],
-        "reasoning": "No performance impact from shared test infra changes"
-      }
+      "confidence": 92
     },
     "continue": true
   },
@@ -213,11 +185,7 @@
     },
     "result": {
       "risk_level": "medium",
-      "confidence": 95,
-      "performance_tests": {
-        "selected_tags": [],
-        "reasoning": "No performance impact from spec-only changes"
-      }
+      "confidence": 95
     },
     "continue": true
   }

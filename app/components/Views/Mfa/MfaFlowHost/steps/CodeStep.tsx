@@ -1,12 +1,21 @@
 import React, { useCallback, useEffect, useReducer, useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import {
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   Box,
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   HelpText,
+  Spinner,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -25,6 +34,8 @@ import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { StepError, type StepProps } from './StepLayout';
 
 const CELL_COUNT = 6;
+const CELL_GAP = 8;
+const SCREEN_HORIZONTAL_PADDING = 32;
 /**
  * Keeps the digits of typed or pasted text, up to a full code.
  *
@@ -55,6 +66,10 @@ const useSecondsUntil = (at?: number) => {
 
 const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   const tw = useTailwind();
+  const { width: screenWidth } = useWindowDimensions();
+  const cellWidth =
+    (screenWidth - SCREEN_HORIZONTAL_PADDING - CELL_GAP * (CELL_COUNT - 1)) /
+    CELL_COUNT;
   const [code, setCode] = useState('');
   const inputRef = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
   const [cellProps, getCellOnLayoutHandler] = useClearByFocusCell({
@@ -68,6 +83,9 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   // resent.
   const isTotp = step.method === 'totp';
   const isCoolingDown = secondsLeft > 0;
+  // Every OTP method uses this shared screen, so email and future phone/SMS
+  // codes get the same progress state as authenticator app codes.
+  const isVerifying = busy && codeSent && code.length === CELL_COUNT;
 
   // React Native ignores focus() on an input it considers focused, so a
   // keyboard hidden without a blur (Android's back button, switching apps to
@@ -131,7 +149,10 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     setCode(getCodeDigits(text));
   };
 
-  const paste = async () => handleChange(await Clipboard.getString());
+  const paste = async () => {
+    const clipboardText = await Clipboard.getString();
+    handleChange(clipboardText);
+  };
 
   // An email cooldown with a wait time shows as the countdown on the resend
   // button, also once it ended. Authenticator app errors always show.
@@ -170,7 +191,8 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
       footer={
         isTotp && !codeSent && !busy ? (
           // The verification failed to start: start it again, after any
-          // cooldown.
+          // cooldown. A started verification has no button: a complete code
+          // submits itself.
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -183,22 +205,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
               ? strings('mfa.otp.retry_in', { seconds: secondsLeft })
               : strings('mfa.otp.retry')}
           </Button>
-        ) : isTotp ? (
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            // A complete code is submitted as it is typed; this shows the
-            // verification starting or the code being checked, or submits it
-            // again after an error.
-            isLoading={busy}
-            isDisabled={!codeSent || code.length < CELL_COUNT}
-            onPress={() => onAction({ type: 'submitCode', code })}
-            testID={MfaFlowSelectorsIDs.PRIMARY_BUTTON}
-          >
-            {strings('mfa.otp.verify')}
-          </Button>
-        ) : (
+        ) : isTotp ? undefined : (
           <Button
             variant={
               canResend ? ButtonVariant.Primary : ButtonVariant.Secondary
@@ -215,17 +222,26 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
         )
       }
     >
-      <Box twClassName="gap-2">
-        <Button
-          variant={ButtonVariant.Tertiary}
-          // The button aligns itself to the start; the design puts it at the end.
-          twClassName="self-end px-0"
+      {/* Keep this container and the code field at the screen's available
+          width so entering digits cannot change the row's measurements. */}
+      <Box twClassName="-mt-4 w-full gap-2">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={strings('mfa.otp.paste')}
+          style={({ pressed }) =>
+            tw.style(
+              'h-10 self-end justify-center rounded-full pl-3 pr-2',
+              pressed ? 'bg-muted' : 'bg-transparent',
+            )
+          }
           onPress={paste}
           testID={MfaFlowSelectorsIDs.PASTE_BUTTON}
         >
-          {strings('mfa.otp.paste')}
-        </Button>
-        <View>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {strings('mfa.otp.paste')}
+          </Text>
+        </Pressable>
+        <View style={tw.style('w-full')}>
           <CodeField
             ref={inputRef as React.RefObject<TextInput>}
             {...cellProps}
@@ -235,7 +251,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             value={code}
             onChangeText={handleChange}
             cellCount={CELL_COUNT}
-            rootStyle={tw.style('gap-2')}
+            rootStyle={tw.style('w-full gap-2')}
             keyboardType="number-pad"
             textContentType="oneTimeCode"
             testID={MfaFlowSelectorsIDs.CODE_INPUT}
@@ -244,8 +260,9 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
                 key={index}
                 onLayout={getCellOnLayoutHandler(index)}
                 style={tw.style(
-                  'flex-1 h-14 items-center justify-center rounded-xl border-[1.5px] bg-muted',
+                  'h-14 items-center justify-center rounded-xl border-[1.5px] bg-muted',
                   isFocused ? 'border-primary-default' : 'border-muted',
+                  { width: cellWidth },
                 )}
               >
                 <Text variant={TextVariant.HeadingMd} twClassName="text-[22px]">
@@ -263,6 +280,19 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             testID={MfaFlowSelectorsIDs.CODE_TAP_AREA}
           />
         </View>
+        {isVerifying ? (
+          <Box
+            twClassName="flex-row items-center justify-center gap-2 pt-2"
+            accessibilityRole="progressbar"
+            accessibilityLabel={strings('mfa.otp.verifying')}
+            testID={MfaFlowSelectorsIDs.VERIFYING_INDICATOR}
+          >
+            <Spinner />
+            <Text variant={TextVariant.BodySm}>
+              {strings('mfa.otp.verifying')}
+            </Text>
+          </Box>
+        ) : null}
         {showError && error ? (
           <StepError code={error} method={step.method} />
         ) : null}

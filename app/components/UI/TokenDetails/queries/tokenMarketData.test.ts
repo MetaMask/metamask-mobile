@@ -5,6 +5,7 @@ import {
   tokenMarketDataOptions,
   TOKEN_MARKET_DATA_STALE_TIME_MS,
 } from './tokenMarketData';
+import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 
 jest.mock('@metamask/controller-utils', () => ({
   handleFetch: jest.fn(),
@@ -13,6 +14,7 @@ jest.mock('@metamask/controller-utils', () => ({
 const mockHandleFetch = jest.mocked(handleFetch);
 
 const ASSET_ID = 'eip155:1/erc20:0xabc' as CaipAssetType;
+const DEV_HOST = 'https://price.dev-api.cx.metamask.io';
 
 /**
  * Invokes the `queryFn` the way React Query would, without a client. The
@@ -37,7 +39,16 @@ describe('tokenMarketDataKeys', () => {
       'marketData',
       ASSET_ID,
       'usd',
+      PRICE_API_BASE_URL,
     ]);
+  });
+
+  // Two hosts can return different figures for the same asset, so they must
+  // not share an entry.
+  it('keys an entry by host', () => {
+    expect(tokenMarketDataKeys.byAsset(ASSET_ID, 'usd', DEV_HOST)).not.toEqual(
+      tokenMarketDataKeys.byAsset(ASSET_ID, 'usd'),
+    );
   });
 
   // The request lower-cases the currency, so the key has to as well or the
@@ -54,6 +65,7 @@ describe('tokenMarketDataKeys', () => {
       'marketData',
       null,
       undefined,
+      PRICE_API_BASE_URL,
     ]);
   });
 });
@@ -71,8 +83,32 @@ describe('tokenMarketDataOptions', () => {
       'marketData',
       ASSET_ID,
       'usd',
+      PRICE_API_BASE_URL,
     ]);
     expect(options.staleTime).toBe(TOKEN_MARKET_DATA_STALE_TIME_MS);
+  });
+
+  // The guarantee every caller outside Token Details V1 relies on.
+  it('requests prod when no host is given', async () => {
+    mockHandleFetch.mockResolvedValue({ [ASSET_ID]: { marketCap: 1 } });
+
+    await runQueryFn(ASSET_ID, 'usd');
+
+    expect(mockHandleFetch).toHaveBeenCalledWith(
+      expect.stringContaining(`${PRICE_API_BASE_URL}/v3/spot-prices?`),
+    );
+  });
+
+  it('requests the given host instead of prod', async () => {
+    mockHandleFetch.mockResolvedValue({ [ASSET_ID]: { marketCap: 1 } });
+
+    await tokenMarketDataOptions(ASSET_ID, 'usd', DEV_HOST).queryFn?.(
+      {} as never,
+    );
+
+    expect(mockHandleFetch).toHaveBeenCalledWith(
+      expect.stringContaining(`${DEV_HOST}/v3/spot-prices?`),
+    );
   });
 
   it('requests the asset in the selected currency with market data', async () => {

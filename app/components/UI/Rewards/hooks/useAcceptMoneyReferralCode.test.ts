@@ -15,7 +15,10 @@ import useRewardsToast, {
 } from './useRewardsToast';
 import {
   MAX_REFERRAL_ME_REFRESH_ATTEMPTS,
+  getRegisterRefereeRefusalReason,
   useAcceptMoneyReferralCode,
+  type AcceptReferralCodeResult,
+  type ReferralRefusalReason,
 } from './useAcceptMoneyReferralCode';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -60,6 +63,7 @@ const buildReferralMe = (
   },
   localized_text: localizedText as ReferralMeDto['localized_text'],
   invite_hero: null,
+  excluded_regions: [],
 });
 
 describe('useAcceptMoneyReferralCode', () => {
@@ -181,6 +185,7 @@ describe('useAcceptMoneyReferralCode', () => {
     expect(typeof result.current.acceptReferralCode).toBe('function');
     expect(result.current.isLoading).toBe(false);
     expect(result.current.errorMessage).toBe('');
+    expect(result.current.refusalReason).toBeNull();
     expect(result.current.acceptBlockedUntil).toBeNull();
     expect(typeof result.current.clearError).toBe('function');
   });
@@ -190,49 +195,83 @@ describe('useAcceptMoneyReferralCode', () => {
       mockMessenger({ validateSuccess: false });
 
       const { result } = renderAcceptHook();
-      let accepted: boolean | undefined;
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        accepted = await result.current.acceptReferralCode(CODE);
+        acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
-      expect(accepted).toBe(false);
+      expect(acceptResult).toEqual({
+        accepted: false,
+        refusalReason: 'invalid_code',
+      });
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         0,
       );
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.invalid_referral_code'),
       );
+      expect(result.current.refusalReason).toBe('invalid_code');
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not register when validation throws', async () => {
+    it('registers when validation could not reach the server', async () => {
       mockMessenger({ validateError: new Error('Network error') });
 
       const { result } = renderAcceptHook();
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        await result.current.acceptReferralCode(CODE);
+        acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
+      expect(acceptResult).toEqual({ accepted: true });
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
-        0,
+        1,
+      );
+      expect(result.current.refusalReason).toBeNull();
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('emits the register reason when an unknown validation still fails to register', async () => {
+      mockMessenger({
+        validateError: new Error('Network error'),
+        registerError: new Error('Rewards Money is disabled'),
+      });
+
+      const { result } = renderAcceptHook();
+      let acceptResult: AcceptReferralCodeResult | undefined;
+      await act(async () => {
+        acceptResult = await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(acceptResult).toEqual({
+        accepted: false,
+        refusalReason: 'registration_failed',
+      });
+      expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
+        1,
       );
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.something_went_wrong'),
       );
-      expect(mockShowToast).not.toHaveBeenCalled();
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(result.current.refusalReason).toBe('registration_failed');
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not reach the backend at all for a malformed code', async () => {
       mockMessenger();
 
       const { result } = renderAcceptHook();
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        await result.current.acceptReferralCode('AB');
+        acceptResult = await result.current.acceptReferralCode('AB');
       });
 
+      expect(acceptResult).toEqual({
+        accepted: false,
+        refusalReason: 'invalid_code',
+      });
       expect(
         callsFor('RewardsMoneyController:validateReferralCode'),
       ).toHaveLength(0);
@@ -242,6 +281,7 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.invalid_referral_code'),
       );
+      expect(result.current.refusalReason).toBe('invalid_code');
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
@@ -251,12 +291,12 @@ describe('useAcceptMoneyReferralCode', () => {
       mockMessenger();
 
       const { result, store } = renderAcceptHook();
-      let accepted: boolean | undefined;
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        accepted = await result.current.acceptReferralCode('  kol1 ');
+        acceptResult = await result.current.acceptReferralCode('  kol1 ');
       });
 
-      expect(accepted).toBe(true);
+      expect(acceptResult).toEqual({ accepted: true });
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsMoneyController:registerReferee',
         { code: CODE },
@@ -296,7 +336,7 @@ describe('useAcceptMoneyReferralCode', () => {
       });
 
       const { result } = renderAcceptHook();
-      let pending: Promise<boolean> | undefined;
+      let pending: Promise<AcceptReferralCodeResult> | undefined;
 
       act(() => {
         pending = result.current.acceptReferralCode(CODE);
@@ -319,28 +359,57 @@ describe('useAcceptMoneyReferralCode', () => {
       [
         422,
         'invalid code',
+        'invalid_code' as const,
         'rewards.error_messages.invalid_referral_code' as const,
       ],
-      [409, 'already referred', 'rewards.error_messages.already_referred'],
+      [
+        409,
+        'already referred',
+        'already_referred' as const,
+        'rewards.error_messages.already_referred' as const,
+      ],
       [
         403,
         'You cannot use your own referral code',
-        'rewards.error_messages.cannot_use_own_referral_code',
+        'own_code' as const,
+        'rewards.error_messages.cannot_use_own_referral_code' as const,
       ],
       [
         403,
         'A KOL cannot register as a referee',
-        'rewards.error_messages.referrer_cannot_be_referred',
+        'kol_cannot_register' as const,
+        'rewards.error_messages.referrer_cannot_be_referred' as const,
       ],
       [
         403,
         'Accounts with recent trading activity cannot register as a referee',
-        'rewards.error_messages.active_trader_cannot_be_referred',
+        'active_trader' as const,
+        'rewards.error_messages.active_trader_cannot_be_referred' as const,
       ],
-      [500, 'boom', 'rewards.error_messages.something_went_wrong'],
+      [
+        500,
+        'boom',
+        'registration_failed' as const,
+        'rewards.error_messages.something_went_wrong' as const,
+      ],
+      [
+        403,
+        'some other gate',
+        'registration_failed' as const,
+        'rewards.error_messages.something_went_wrong' as const,
+      ],
+      [
+        403,
+        JSON.stringify({
+          message: 'Product is not available in your country',
+          error: 'RestrictedCountryCodeError',
+        }),
+        'restricted_country' as const,
+        'rewards.onboarding.not_supported_region_description' as const,
+      ],
     ])(
-      'maps a %s with body "%s" to its own message and stays on the sheet',
-      async (status, bodyText, expectedKey) => {
+      'maps a %s with body "%s" to %s and stays on the sheet',
+      async (status, bodyText, expectedReason, expectedKey) => {
         mockMessenger({
           registerError: new RewardsMoneyHttpError(
             `Register referee failed: ${status}`,
@@ -350,13 +419,17 @@ describe('useAcceptMoneyReferralCode', () => {
         });
 
         const { result } = renderAcceptHook();
-        let accepted: boolean | undefined;
+        let acceptResult: AcceptReferralCodeResult | undefined;
         await act(async () => {
-          accepted = await result.current.acceptReferralCode(CODE);
+          acceptResult = await result.current.acceptReferralCode(CODE);
         });
 
-        expect(accepted).toBe(false);
+        expect(acceptResult).toEqual({
+          accepted: false,
+          refusalReason: expectedReason,
+        });
         expect(result.current.errorMessage).toBe(strings(expectedKey));
+        expect(result.current.refusalReason).toBe(expectedReason);
         expect(mockShowToast).not.toHaveBeenCalled();
         expect(mockGoBack).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
@@ -372,13 +445,19 @@ describe('useAcceptMoneyReferralCode', () => {
       });
 
       const { result } = renderAcceptHook();
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        await result.current.acceptReferralCode(CODE);
+        acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
+      expect(acceptResult).toEqual({
+        accepted: false,
+        refusalReason: 'registration_failed',
+      });
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.something_went_wrong'),
       );
+      expect(result.current.refusalReason).toBe('registration_failed');
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
@@ -396,15 +475,19 @@ describe('useAcceptMoneyReferralCode', () => {
         });
 
         const { result } = renderAcceptHook();
-        let accepted: boolean | undefined;
+        let acceptResult: AcceptReferralCodeResult | undefined;
         await act(async () => {
-          accepted = await result.current.acceptReferralCode(CODE);
+          acceptResult = await result.current.acceptReferralCode(CODE);
         });
 
-        expect(accepted).toBe(false);
+        expect(acceptResult).toEqual({
+          accepted: false,
+          refusalReason: 'rate_limited',
+        });
         expect(result.current.errorMessage).toBe(
           strings('rewards.error_messages.rate_limited'),
         );
+        expect(result.current.refusalReason).toBe('rate_limited');
         expect(result.current.acceptBlockedUntil).toBe(Date.now() + 2000);
         expect(mockGoBack).not.toHaveBeenCalled();
         expect(callsFor('RewardsMoneyController:getReferralMe')).toHaveLength(
@@ -417,11 +500,12 @@ describe('useAcceptMoneyReferralCode', () => {
         expect(result.current.errorMessage).toBe(
           strings('rewards.error_messages.rate_limited'),
         );
+        expect(result.current.refusalReason).toBe('rate_limited');
 
         await act(async () => {
-          accepted = await result.current.acceptReferralCode('OTHER');
+          acceptResult = await result.current.acceptReferralCode('OTHER');
         });
-        expect(accepted).toBe(false);
+        expect(acceptResult).toEqual({ accepted: false });
         expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
           1,
         );
@@ -432,6 +516,7 @@ describe('useAcceptMoneyReferralCode', () => {
 
         expect(result.current.acceptBlockedUntil).toBeNull();
         expect(result.current.errorMessage).toBe('');
+        expect(result.current.refusalReason).toBeNull();
       } finally {
         jest.useRealTimers();
       }
@@ -450,15 +535,19 @@ describe('useAcceptMoneyReferralCode', () => {
         });
 
         const { result, unmount } = renderAcceptHook();
-        let accepted: boolean | undefined;
+        let acceptResult: AcceptReferralCodeResult | undefined;
         await act(async () => {
-          accepted = await result.current.acceptReferralCode(CODE);
+          acceptResult = await result.current.acceptReferralCode(CODE);
         });
 
-        expect(accepted).toBe(false);
+        expect(acceptResult).toEqual({
+          accepted: false,
+          refusalReason: 'rate_limited',
+        });
         expect(result.current.errorMessage).toBe(
           strings('rewards.error_messages.rate_limited'),
         );
+        expect(result.current.refusalReason).toBe('rate_limited');
         expect(result.current.acceptBlockedUntil).toBe(Date.now() + 12000);
         unmount();
         expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
@@ -480,15 +569,19 @@ describe('useAcceptMoneyReferralCode', () => {
       });
 
       const { result } = renderAcceptHook();
-      let accepted: boolean | undefined;
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        accepted = await result.current.acceptReferralCode(CODE);
+        acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
-      expect(accepted).toBe(false);
+      expect(acceptResult).toEqual({
+        accepted: false,
+        refusalReason: 'registration_failed',
+      });
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.something_went_wrong'),
       );
+      expect(result.current.refusalReason).toBe('registration_failed');
       expect(result.current.acceptBlockedUntil).toBeNull();
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         0,
@@ -512,6 +605,7 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.rate_limited'),
       );
+      expect(result.current.refusalReason).toBe('rate_limited');
       expect(result.current.acceptBlockedUntil).toBeNull();
     });
 
@@ -532,12 +626,42 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(result.current.errorMessage).toBe(
         strings('rewards.error_messages.already_referred'),
       );
+      expect(result.current.refusalReason).toBe('already_referred');
 
       act(() => {
         result.current.clearError();
       });
 
       expect(result.current.errorMessage).toBe('');
+      expect(result.current.refusalReason).toBeNull();
+    });
+  });
+
+  describe('getRegisterRefereeRefusalReason', () => {
+    it.each([
+      [422, 'invalid', 'invalid_code'],
+      [409, 'already', 'already_referred'],
+      [403, 'own referral code', 'own_code'],
+      [403, 'kol cannot register as a referee', 'kol_cannot_register'],
+      [403, 'recent trading activity', 'active_trader'],
+      [429, 'too many', 'rate_limited'],
+      [403, 'unmatched body', 'registration_failed'],
+      [500, 'boom', 'registration_failed'],
+    ] as const)(
+      'maps status %s body "%s" to %s',
+      (status, bodyText, expected) => {
+        expect(
+          getRegisterRefereeRefusalReason(
+            new RewardsMoneyHttpError('failed', status, bodyText),
+          ),
+        ).toBe(expected as ReferralRefusalReason);
+      },
+    );
+
+    it('maps a non-HTTP error to registration_failed', () => {
+      expect(getRegisterRefereeRefusalReason(new Error('nope'))).toBe(
+        'registration_failed',
+      );
     });
   });
 
@@ -546,12 +670,12 @@ describe('useAcceptMoneyReferralCode', () => {
       mockMessenger({ referralMeError: new Error('Network error') });
 
       const { result } = renderAcceptHook();
-      let accepted: boolean | undefined;
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        accepted = await result.current.acceptReferralCode(CODE);
+        acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
-      expect(accepted).toBe(true);
+      expect(acceptResult).toEqual({ accepted: true });
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         1,
       );
@@ -572,12 +696,12 @@ describe('useAcceptMoneyReferralCode', () => {
       });
 
       const { result } = renderAcceptHook();
-      let accepted: boolean | undefined;
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        accepted = await result.current.acceptReferralCode(CODE);
+        acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
-      expect(accepted).toBe(true);
+      expect(acceptResult).toEqual({ accepted: true });
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -593,12 +717,12 @@ describe('useAcceptMoneyReferralCode', () => {
       });
 
       const { result, store } = renderAcceptHook();
-      let accepted: boolean | undefined;
+      let acceptResult: AcceptReferralCodeResult | undefined;
       await act(async () => {
-        accepted = await result.current.acceptReferralCode(CODE);
+        acceptResult = await result.current.acceptReferralCode(CODE);
       });
 
-      expect(accepted).toBe(true);
+      expect(acceptResult).toEqual({ accepted: true });
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         1,
       );
@@ -673,8 +797,8 @@ describe('useAcceptMoneyReferralCode', () => {
       });
 
       const { result } = renderAcceptHook();
-      let first: Promise<boolean> | undefined;
-      let second: Promise<boolean> | undefined;
+      let first: Promise<AcceptReferralCodeResult> | undefined;
+      let second: Promise<AcceptReferralCodeResult> | undefined;
 
       act(() => {
         first = result.current.acceptReferralCode(CODE);
@@ -694,11 +818,11 @@ describe('useAcceptMoneyReferralCode', () => {
 
       const ignored = await Promise.race([
         second,
-        new Promise<boolean>((resolve) => {
-          setTimeout(() => resolve(true), 50);
+        new Promise<AcceptReferralCodeResult>((resolve) => {
+          setTimeout(() => resolve({ accepted: true }), 50);
         }),
       ]);
-      expect(ignored).toBe(false);
+      expect(ignored).toEqual({ accepted: false });
       expect(mockGoBack).not.toHaveBeenCalled();
 
       await act(async () => {
@@ -768,7 +892,7 @@ describe('useAcceptMoneyReferralCode', () => {
     it('opens the splash without going back after unmount during register', async () => {
       const { releaseRegister } = mockDeferredRegister();
       const { result, unmount, store } = renderAcceptHook();
-      let pending: Promise<boolean> | undefined;
+      let pending: Promise<AcceptReferralCodeResult> | undefined;
 
       act(() => {
         pending = result.current.acceptReferralCode(CODE);
@@ -807,7 +931,7 @@ describe('useAcceptMoneyReferralCode', () => {
     it('opens the splash without going back after unmount during refresh', async () => {
       const { releaseRefresh } = mockDeferredRefresh();
       const { result, unmount } = renderAcceptHook();
-      let pending: Promise<boolean> | undefined;
+      let pending: Promise<AcceptReferralCodeResult> | undefined;
 
       act(() => {
         pending = result.current.acceptReferralCode(CODE);

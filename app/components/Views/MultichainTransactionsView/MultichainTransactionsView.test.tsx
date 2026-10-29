@@ -1,4 +1,6 @@
 import React from 'react';
+import { FlashList } from '@shopify/flash-list';
+import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
@@ -672,5 +674,51 @@ describe('MultichainTransactionsView', () => {
       screen: 'SimpleWebview',
       params: { url: 'https://solscan.io/account/testaddress' },
     });
+  });
+
+  it('moves the refresh spinner below a floating header', () => {
+    const { UNSAFE_getByType } = customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        enableRefresh
+        refreshControlOffset={96}
+      />,
+    );
+
+    expect(
+      UNSAFE_getByType(FlashList).props.refreshControl.props.progressViewOffset,
+    ).toBe(96);
+  });
+
+  it('pads the list to clear a footer floating over it', () => {
+    const { UNSAFE_getByType } = customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        contentBottomInset={120}
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        UNSAFE_getByType(FlashList).props.contentContainerStyle,
+      ),
+    ).toMatchObject({ paddingBottom: 120 });
+  });
+
+  it('keeps the default bottom padding without an inset', () => {
+    const { UNSAFE_getByType } = customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        UNSAFE_getByType(FlashList).props.contentContainerStyle,
+      ),
+    ).toMatchObject({ paddingBottom: 80 });
   });
 });

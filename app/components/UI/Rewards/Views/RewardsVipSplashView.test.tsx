@@ -11,6 +11,7 @@ import { selectVipProgramEnabled } from '../../../../selectors/featureFlagContro
 import { VIP_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreenLayout';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsVipSplashView from './RewardsVipSplashView';
+import { strings } from '../../../../../locales/i18n';
 
 const mockNavigateDispatch = jest.fn();
 const mockGoBack = jest.fn();
@@ -40,84 +41,13 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
+    useRoute: () => ({
+      key: 'RewardsVipSplashView',
+      name: 'RewardsVipSplashView',
+      params: undefined,
+    }),
   };
 });
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return {
-    Box: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { testID }, children),
-    FontWeight: { Bold: 'bold', Medium: 'medium' },
-    Text: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(Text, props, children),
-    TextVariant: { BodyMd: 'bodyMd' },
-  };
-});
-
-jest.mock('react-native-linear-gradient', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return function MockLinearGradient({
-    children,
-    testID,
-  }: {
-    children?: React.ReactNode;
-    testID?: string;
-  }) {
-    return ReactActual.createElement(View, { testID }, children);
-  };
-});
-
-jest.mock('@react-native-masked-view/masked-view', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return function MockMaskedView({
-    children,
-    maskElement,
-  }: {
-    children?: React.ReactNode;
-    maskElement?: React.ReactNode;
-  }) {
-    return ReactActual.createElement(View, null, maskElement, children);
-  };
-});
-
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { testID }, children),
-  };
-});
-
-jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
-
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'rewards.vip.splash_title': 'WELCOME\nTO MOCK\nVIP PROGRAM',
-      'rewards.vip.splash_description':
-        'Placeholder splash copy for tests only. Not representative of the live program.',
-      'rewards.vip.splash_accept_invite': 'Accept invite',
-      'rewards.vip.splash_not_now': 'Not now',
-    };
-    return translations[key] ?? key;
-  }),
-}));
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectIsCurrentSubscriptionVipEnabled: jest.fn(),
@@ -180,17 +110,22 @@ describe('RewardsVipSplashView', () => {
   });
 
   it('renders the VIP splash when the invite has not been accepted', () => {
-    const { getAllByText, getByTestId, getByText } = render(
-      <RewardsVipSplashView />,
-    );
+    const { getByTestId } = render(<RewardsVipSplashView />);
 
     expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getAllByText('WELCOME\nTO MOCK\nVIP PROGRAM')[0]).toBeOnTheScreen();
+    expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.TITLE)).toHaveTextContent(
+      strings('rewards.vip.splash_title'),
+    );
     expect(
-      getByText(
-        'Placeholder splash copy for tests only. Not representative of the live program.',
-      ),
-    ).toBeOnTheScreen();
+      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.DESCRIPTION),
+    ).toHaveTextContent(strings('rewards.vip.splash_description'));
+    expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.FOX)).toBeOnTheScreen();
+    expect(
+      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.ACCEPT_BUTTON),
+    ).toHaveTextContent(strings('rewards.vip.splash_accept_invite'));
+    expect(
+      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON),
+    ).toHaveTextContent(strings('rewards.vip.splash_not_now'));
     expect(mockUseVipDashboard).toHaveBeenCalled();
   });
 

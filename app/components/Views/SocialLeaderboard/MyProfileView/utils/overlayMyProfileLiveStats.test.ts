@@ -10,14 +10,8 @@ const localProfile: MySocialProfile = {
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
-  volumeUsd30d: 386_260,
-  tradeCount30d: 39,
-  profileAgeLabel: '2y',
-  copySuccessRatePercent: 72,
   followerCount: 4,
   rankingTag: 'whale',
 };
@@ -63,16 +57,8 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.performanceCells).toEqual([]);
-    expect(result.fallbackFields.winRate).toBe(true);
-    expect(result.fallbackFields.holdTime).toBe(false);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
     expect(result.rankingTag).toBe('whale');
     expect(result.followerCount).toBe(4);
-    expect(result.sheetProfile.profile.name).toBe('Giga Whale');
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
   });
 
   it('uses live stats without a fake prefix when the profile fetch succeeds', () => {
@@ -80,17 +66,17 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.fallbackFields.winRate).toBe(false);
-    expect(result.fallbackFields.pnl).toBe(false);
     expect(result.rankingTag).toBe('dolphin');
     expect(result.followerCount).toBe(88);
-    expect(result.sheetProfile.profile.name).toBe('Giga Whale');
-    expect(result.sheetProfile.stats.pnl30d).toBe(1200);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBe(180);
-    expect(result.sheetProfile.copytradedAllTime?.count).toBe(44);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual([
+      'pnl',
+      'winRate',
+      'holdTime',
+      'volume',
+    ]);
   });
 
-  it('keeps a fake prefix on fields the live profile omits', () => {
+  it('keeps a fake prefix on headline stats the live profile omits', () => {
     const result = overlayMyProfileLiveStats(
       localProfile,
       liveProfile({
@@ -101,45 +87,12 @@ describe('overlayMyProfileLiveStats', () => {
           tradeCount30d: null,
           volumeUsd30d: null,
         },
-        copytradedAllTime: {
-          count: 0,
-          volumeUSD: 0,
-          distinctActors: 0,
-        },
       }),
     );
 
-    expect(result.fallbackFields.winRate).toBe(true);
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.fallbackFields.pnl).toBe(false);
-    expect(result.fallbackFields.holdTime).toBe(false);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
+    expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
     expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
-    expect(result.fallbackFields.volume).toBe(true);
-    expect(result.fallbackFields.tradeCount).toBe(true);
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
-  });
-
-  it('backfills sheet mocks on legacy profiles that omit the new fields', () => {
-    const legacyOnly: MySocialProfile = {
-      profileId: 'current-user',
-      displayName: 'Giga Whale',
-      handle: 'giga-whale',
-      shareUrl: 'https://metamask.io/social/giga-whale',
-      winRatePercent: 60,
-      pnlUsd: 7100,
-      timesCopied: 981,
-    };
-
-    const result = overlayMyProfileLiveStats(legacyOnly, null);
-
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
   });
 });
 

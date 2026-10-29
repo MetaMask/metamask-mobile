@@ -9,6 +9,7 @@ import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AppiumAssertions from '../../framework/AppiumAssertions';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 
@@ -44,6 +45,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
 
       await loginToAppPlaywright();
+      await enableHermesAppProfiling();
       await WalletView.scrollAndTapPerpsSection();
 
       const perpsGtmOnboardingModalEnabled =

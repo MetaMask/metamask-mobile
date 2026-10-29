@@ -7,16 +7,6 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 
-export const getFontSizeForInputLength = (contentLength: number): number => {
-  if (contentLength <= 10) return 60;
-
-  if (contentLength <= 18) {
-    return Math.round(60 - (contentLength - 10) * 3.5);
-  }
-
-  return Math.max(12, Math.round(32 - (contentLength - 18) * (20 / 14)));
-};
-
 export const styleSheet = (params: {
   theme: Theme;
   vars: {

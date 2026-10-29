@@ -422,7 +422,7 @@ const ManualBackupStep2 = ({
         }}
       />
       <Box
-        twClassName="flex-1 px-4 gap-4"
+        twClassName="flex-1 px-4 gap-6"
         style={{ marginTop: headerInset }}
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >

@@ -10,6 +10,7 @@ import { MOCK_LIMIT_OPEN_ORDER } from '../../api/limitOrders/getLimitOrders/mock
 import { CancelLimitOrderModalSelectorsIDs } from '../CancelLimitOrderModal/testIds';
 import { TokenAmountValueSelectorsIDs } from '../LimitOrderConfirmationModal/TokenAmountValue/testIds';
 import { OpenLimitOrderDetailsModalSelectorsIDs } from './testIds';
+import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 
 const {
   SHEET,
@@ -35,7 +36,7 @@ const renderDetails = () =>
 const MOCK_USD_PRICE_ORDER = {
   ...MOCK_LIMIT_OPEN_ORDER,
   trigger: { kind: 'src_price', threshold: 'above', price: '2160' },
-};
+} as const;
 
 /**
  * State where the display currency is EUR. 1 ETH is worth EUR 2000 and
@@ -75,7 +76,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
       within(statusRow).getByText(strings('bridge.limit.status')),
     ).toBeOnTheScreen();
     expect(
-      within(statusRow).getByText(strings('bridge.limit.in_progress')),
+      within(statusRow).getByText(strings('bridge.limit.open')),
     ).toBeOnTheScreen();
 
     const submittedRow = getByTestId(SUBMITTED);
@@ -100,7 +101,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(within(expiryRow).getByText(EXPIRY_DATE)).toBeOnTheScreen();
   });
 
-  it.each(['src_price', 'dest_price'])(
+  it.each<LimitOrder['trigger']['kind']>(['src_price', 'dest_price'])(
     'shows a %s trigger as a USD price',
     async (kind) => {
       const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
@@ -222,6 +223,19 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
     expect(queryByTestId(CANCEL_ORDER_BUTTON)).not.toBeOnTheScreen();
+  });
+
+  it('shows in progress status when the API reports the order as not cancellable', async () => {
+    const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
+      order: { ...MOCK_LIMIT_OPEN_ORDER, isCancellable: false },
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    const statusRow = getByTestId(STATUS);
+    expect(
+      within(statusRow).getByText(strings('bridge.limit.in_progress')),
+    ).toBeOnTheScreen();
   });
 
   it('opens the cancel order sheet from the details sheet', async () => {

@@ -24,6 +24,7 @@ import { withImplicitWait } from '../../framework/AppiumUtilities.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const dismissProtectWalletModalIfPresent = async (
   timeoutMs = 1_000,
@@ -122,6 +123,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         },
       );
 
+      await enableHermesAppProfiling();
       await WalletView.tapIdenticon();
       await screen1Timer.measure(
         async () =>

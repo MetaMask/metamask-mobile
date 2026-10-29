@@ -7,6 +7,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
@@ -22,20 +23,19 @@ import Animated, {
   useFrameCallback,
   useSharedValue,
 } from 'react-native-reanimated';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
-import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
-import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
 import type { SocialV1HotToken } from '../types';
 import {
-  getSocialV1HotTokenCheckTestId,
+  getSocialV1HotTokenCloseTestId,
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 
-const EMPTY_POSTS: SocialV1FeedPost[] = [];
+const EMPTY_TOKENS: SocialV1HotToken[] = [];
 
 /** Slow news-footer crawl. */
 const MARQUEE_PIXELS_PER_SECOND = 24;
@@ -57,23 +57,28 @@ const wrapOffset = (x: number, width: number): number => {
 };
 
 export interface HotTokensCarouselProps {
-  /** Loaded feed posts the ranking is counted from. */
-  posts?: readonly SocialV1FeedPost[];
-  /** True during the feed's first fetch, before any post is on screen. */
+  /** Ranked chips, most frequent first. */
+  tokens?: SocialV1HotToken[];
+  /** True until the first ranking exists; shows the skeleton. */
   isLoading?: boolean;
   /** Chip id of the asset currently filtering the feed. */
   selectedTokenId?: string | null;
   /** Filters the feed to this asset. Pressing the selected chip clears it. */
   onTokenPress?: (token: SocialV1HotToken) => void;
+  /**
+   * False while the rail's pager page is off screen. Stops the crawl, since the
+   * pager keeps every page mounted.
+   */
+  isActive?: boolean;
 }
 
 const HotTokenChip: React.FC<{
   token: SocialV1HotToken;
   onPress?: (token: SocialV1HotToken) => void;
   testID: string;
-  checkTestID: string;
+  closeTestID: string;
   isSelected?: boolean;
-}> = ({ token, onPress, testID, checkTestID, isSelected = false }) => (
+}> = ({ token, onPress, testID, closeTestID, isSelected = false }) => (
   // ExplorePill sets `shrink` so a wrapping rail can compress labels. The
   // ticker must keep each chip at intrinsic width or the track never overflows
   // the viewport and the marquee never starts.
@@ -81,23 +86,32 @@ const HotTokenChip: React.FC<{
     <ExplorePill
       testID={testID}
       accessibilityState={{ selected: isSelected }}
-      twClassName={isSelected ? 'border-default' : undefined}
+      twClassName={
+        isSelected ? 'bg-icon-default border-transparent' : undefined
+      }
       leading={
-        <PositionTokenAvatar
-          position={token.avatar}
-          size={AvatarTokenSize.Sm}
-        />
+        <Box twClassName="mr-1">
+          <PositionTokenAvatar
+            position={token.avatar}
+            size={AvatarTokenSize.Sm}
+          />
+        </Box>
       }
       title={token.label}
+      titleTextColor={
+        isSelected ? TextColor.InfoInverse : TextColor.TextDefault
+      }
       onPress={() => onPress?.(token)}
       trailing={
         isSelected ? (
-          <Icon
-            name={IconName.Check}
-            size={IconSize.Sm}
-            color={IconColor.IconDefault}
-            testID={checkTestID}
-          />
+          <Box twClassName="ml-1">
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Sm}
+              color={IconColor.IconInverse}
+              testID={closeTestID}
+            />
+          </Box>
         ) : null
       }
     />
@@ -128,7 +142,7 @@ const HotTokenTrack: React.FC<{
           onPress={onPress}
           isSelected={token.id === selectedTokenId}
           testID={getSocialV1HotTokenChipTestId(chipId)}
-          checkTestID={getSocialV1HotTokenCheckTestId(chipId)}
+          closeTestID={getSocialV1HotTokenCloseTestId(chipId)}
         />
       );
     })}
@@ -146,27 +160,27 @@ const HotTokenTrack: React.FC<{
  * Trending (reactions, overflow menu, Popular traders). A pan on this rail
  * still wins over the pager so scrubbing the chips does not change tabs.
  *
- * Chips are the assets that appear most often in `posts`. Icons go through
- * `PositionTokenAvatar`, the same resolution the position cards use.
+ * The crawl runs a callback every frame, so low-end hardware keeps the rail
+ * still. The pan stays, so the chips can still be scrubbed.
+ *
+ * Icons go through `PositionTokenAvatar`, the same resolution the position
+ * cards use.
  */
 const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
-  posts = EMPTY_POSTS,
-  isLoading: feedIsLoading = false,
+  tokens = EMPTY_TOKENS,
+  isLoading = false,
   selectedTokenId = null,
   onTokenPress,
+  isActive = true,
 }) => {
-  const { tokens, isLoading } = useSocialV1HotTokens(
-    posts,
-    feedIsLoading,
-    selectedTokenId,
-  );
+  const [isLowHardware] = useState(() => getHardwareTier() === 'LOW');
   const rankedToken = useMemo(
     () => tokens.find((token) => token.id === selectedTokenId) ?? null,
     [selectedTokenId, tokens],
   );
-  // The rail is ranked from the unfiltered feed. Remember the selected chip,
-  // including a perp with no contract, so a refetch that drops that asset
-  // still leaves a chip the user can tap to clear the filter.
+  // The rail is ranked from the unfiltered feed. Remember the selected chip so
+  // a refetch that drops that asset still leaves a chip the user can tap to
+  // clear the filter.
   const heldTokenRef = useRef<SocialV1HotToken | null>(null);
   if (!selectedTokenId) {
     heldTokenRef.current = null;
@@ -178,17 +192,10 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     (heldTokenRef.current?.id === selectedTokenId
       ? heldTokenRef.current
       : null);
-  // The selected chip leads the rail. Frequency decides the order until a
-  // filter is on, and then the asset being filtered on has to be the one the
-  // user can see -- the rail is parked at its left edge while a chip is active.
+  // A selected chip is the only chip shown. Frequency decides the order until
+  // a filter is on, then the rail parks at its left edge with a clear action.
   const railTokens = useMemo(
-    () =>
-      selectedToken
-        ? [
-            selectedToken,
-            ...tokens.filter((token) => token.id !== selectedToken.id),
-          ]
-        : tokens,
+    () => (selectedToken ? [selectedToken] : tokens),
     [selectedToken, tokens],
   );
   const offset = useSharedValue(0);
@@ -288,7 +295,11 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     [offset, parked, paused, trackWidthSv, viewportWidthSv],
   );
 
-  useFrameCallback(tickMarquee);
+  const marqueeFrameCallback = useFrameCallback(tickMarquee, false);
+
+  useEffect(() => {
+    marqueeFrameCallback.setActive(isActive && !isLowHardware);
+  }, [isActive, isLowHardware, marqueeFrameCallback]);
 
   const trackStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: -offset.value }],

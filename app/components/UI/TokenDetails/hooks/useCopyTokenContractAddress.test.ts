@@ -40,7 +40,9 @@ describe('useCopyTokenContractAddress', () => {
     expect(mockSetString).toHaveBeenCalledWith(CONTRACT_ADDRESS);
     expect(onCopyAddress).toHaveBeenCalledTimes(1);
     expect(mockToast).toHaveBeenCalledWith({
-      title: strings('account_details.account_copied_to_clipboard'),
+      title: strings(
+        'account_details.token_contract_address_copied_to_clipboard',
+      ),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
       showCloseButton: false,

@@ -27,9 +27,6 @@ describe('VbaKycRejected', () => {
     );
 
     expect(getByTestId(VbaKycRejectedSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaOnboardingErrorSelectorsIDs.ILLUSTRATION),
-    ).toBeOnTheScreen();
     expect(getByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeOnTheScreen();
     expect(
       getByText(strings('virtual_bank_account.kyc_rejected.title')),
