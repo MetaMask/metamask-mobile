@@ -47,6 +47,17 @@ const TOKEN_API_KEY_HEADER = 'x-api-key';
 /**
  * Minimal Engine wiring for Tyler’s Telegram Cubist debugger path:
  * preview `MfaRecoveryController` + gamma Cubist escrow + MFA-703 OIDC provider.
+ *
+ * Cubist session (Tyler):
+ * 1. AuthenticationController bearer → profile `sub`
+ * 2. POST mpc-service `/token` with `x-api-key: MFA_RECOVERY_DEV_API_KEY`
+ * 3. POST recovery-registration `/v1/recovery/registration/oidc-token`
+ *    with that access token → `{ idToken, expiresAt }`
+ * 4. `CubeSignerClient.createOidcSession(gamma, orgId, idToken, scopes)`
+ *    (raw idToken, no Bearer)
+ *
+ * Telegram/Google/Apple ID tokens are NOT used for the Cubist session; they
+ * only appear later as key-bound identifier proofs on register/update/recover.
  */
 export const mfaRecoveryControllerInit: MessengerClientInitFunction<
   MfaRecoveryController,
@@ -94,6 +105,11 @@ function createMpcTokenAuthProvider({
   getBearerToken: () => Promise<string>;
   apiKey: string;
 }): RecoveryAuthProvider & { getAccessToken: () => Promise<string> } {
+  /**
+   * Mint via mpc-service-non-enclave (requires MFA_RECOVERY_DEV_API_KEY).
+   * Cubist session oidc-token must use THIS token — not the Hydra bearer
+   * (Tyler). Feeding Hydra into oidc-token yields an idToken Cubist rejects.
+   */
   const mintToken = async (
     ext?: Record<string, unknown>,
     audiences?: string[],
@@ -129,6 +145,7 @@ function createMpcTokenAuthProvider({
   };
 
   return {
+    // Step 2 access token for recovery-registration oidc-token (Cubist session).
     getAccessToken: async () => await mintToken(),
     getAuthenticatedProfileId: async () =>
       getJwtSubject(await getBearerToken()),
@@ -173,25 +190,40 @@ function createLazyCubistEscrowProvider({
       return provider;
     }
 
-    const oidcToken = await requestOidcToken(
-      await authProvider.getAccessToken(),
+    console.log(
+      '[MfaRecovery Cubist] bootstrap via MPC access token → oidc-token',
     );
-    const sessionResponse = await CubeSignerClient.createOidcSession(
-      envs[DEV_CUBIST.environment],
-      DEV_CUBIST.orgId,
-      oidcToken.idToken,
-      [...DEV_CUBIST.scopes],
-    );
-    const client = await CubeSignerClient.create(sessionResponse.data());
-    wrapPublicKey = DEV_CUBIST.wrapPublicKey;
-    provider = new CubistEscrowProvider({
-      client,
-      wrapPublicKey: DEV_CUBIST.wrapPublicKey,
-      receiptPublicKey: DEV_CUBIST.receiptPublicKey,
+    const accessToken = await authProvider.getAccessToken();
+    const oidcToken = await requestOidcToken(accessToken);
+    console.log('[MfaRecovery Cubist] oidc-token ok', {
+      expiresAt: oidcToken.expiresAt,
+      idTokenLen: oidcToken.idToken.length,
     });
-    profileId = nextProfileId;
-    expiresAt = oidcToken.expiresAt;
-    return provider;
+    try {
+      const sessionResponse = await CubeSignerClient.createOidcSession(
+        envs[DEV_CUBIST.environment],
+        DEV_CUBIST.orgId,
+        oidcToken.idToken,
+        [...DEV_CUBIST.scopes],
+      );
+      const client = await CubeSignerClient.create(sessionResponse.data());
+      wrapPublicKey = DEV_CUBIST.wrapPublicKey;
+      provider = new CubistEscrowProvider({
+        client,
+        wrapPublicKey: DEV_CUBIST.wrapPublicKey,
+        receiptPublicKey: DEV_CUBIST.receiptPublicKey,
+      });
+      profileId = nextProfileId;
+      expiresAt = oidcToken.expiresAt;
+      console.log('[MfaRecovery Cubist] CubeSigner session ok');
+      return provider;
+    } catch (error) {
+      console.warn(
+        '[MfaRecovery Cubist] createOidcSession failed',
+        error instanceof Error ? error.message : error,
+      );
+      throw error;
+    }
   };
 
   return {
@@ -200,7 +232,19 @@ function createLazyCubistEscrowProvider({
     get wrapPublicKey() {
       return wrapPublicKey;
     },
-    isAvailable: async () => await (await getProvider()).isAvailable(),
+    isAvailable: async () => {
+      try {
+        const available = await (await getProvider()).isAvailable();
+        console.log('[MfaRecovery Cubist] isAvailable', available);
+        return available;
+      } catch (error) {
+        console.warn(
+          '[MfaRecovery Cubist] isAvailable failed',
+          error instanceof Error ? error.message : error,
+        );
+        return false;
+      }
+    },
     generateChallenge: async () =>
       await (await getProvider()).generateChallenge(),
     getSecret: async (
