@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import NftGridItemBottomSheet from './NftGridItemBottomSheet';
-import { Nft } from '@metamask/assets-controllers';
+import { Nft, Source } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 
 jest.mock('react-native', () => ({
@@ -17,6 +17,10 @@ jest.mock('react-native', () => ({
     const { View } = jest.requireActual('react-native');
     return visible ? <View>{children}</View> : null;
   },
+}));
+
+jest.mock('@metamask/assets-controllers', () => ({
+  Source: { Custom: 'custom', Dapp: 'dapp', Detected: 'detected' },
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -157,6 +161,7 @@ describe('NftGridItemBottomSheet', () => {
       '0x123',
       '456',
       'mainnet',
+      { source: Source.Detected },
     );
   });
 

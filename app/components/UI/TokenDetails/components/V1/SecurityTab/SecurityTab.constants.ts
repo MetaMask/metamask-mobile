@@ -36,8 +36,8 @@ export const CHECK_OUTCOME_PRESENTATION: Record<
   SecurityCheckOutcome,
   CheckPresentation
 > = {
+  /** Green value, no tick — fail is the only outcome that still draws a glyph. */
   pass: {
-    icon: { name: IconName.CheckBold, color: IconColor.SuccessDefault },
     valueColor: TextColor.SuccessDefault,
   },
   fail: {
@@ -52,9 +52,9 @@ export const CHECK_OUTCOME_PRESENTATION: Record<
  * How one check's row presents, outcome and tone together.
  *
  * Reads the tone straight off `CONTRACT_CHECKS` so neither render site has to
- * know that a check without a pass/fail glyph exists. A `neutral` row answers
- * its question in plain text — see `ContractCheck.tone` for why `is_mintable`
- * is the one check that cannot wear a tick or a cross.
+ * know that a check without a fail glyph or passing colour exists. A `neutral`
+ * row answers its question in plain text — see `ContractCheck.tone` for why
+ * `is_mintable` is the one check that cannot wear a cross or a passing colour.
  */
 export const resolveCheckPresentation = (
   checkKey: ContractCheckKey,
