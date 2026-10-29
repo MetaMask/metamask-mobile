@@ -67,6 +67,12 @@ const OPEN_PERP_POST_ID = `${OPEN_PERP_POSITION_ID}-${OPEN_PERP_TIMESTAMP}`;
 const openPerpFeedItem = mockPerpFeedItem({
   positionId: OPEN_PERP_POSITION_ID,
   tokenSymbol: 'ETH',
+  authorComment: {
+    uid: 'comment-open-perp',
+    text: 'this is alpha',
+    timestamp: 1_700_000_100,
+    engagement: { reactions: [], userReaction: null },
+  },
   isOpen: true,
   timestamp: OPEN_PERP_TIMESTAMP,
   lastTradeAt: OPEN_PERP_TIMESTAMP,
