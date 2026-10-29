@@ -307,7 +307,7 @@ describe('PerpsOrderView', () => {
       expect(calculateFees).toHaveBeenCalledTimes(1);
       expect(
         screen.queryByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_TAKER),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it("requests the opposite side as a limit execution (not this market order's own type) and renders both rates for treatment", async () => {
