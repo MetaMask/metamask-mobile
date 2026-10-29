@@ -19,8 +19,7 @@ import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
 import { MUSD_TOKEN_ADDRESS } from '../Earn/constants/musd';
-// eslint-disable-next-line import-x/no-namespace
-import * as TokenListControlBarModule from './TokenListControlBar/TokenListControlBar';
+import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 // eslint-disable-next-line import-x/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
 // eslint-disable-next-line import-x/no-namespace
@@ -55,8 +54,9 @@ jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
 }));
 
-jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
-  TokenListControlBar: jest.fn().mockImplementation(() => null),
+jest.mock('../shared/BaseControlBar/BaseControlBar', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => null),
 }));
 
 /**
@@ -65,8 +65,8 @@ jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
  * @returns - Mocked components
  */
 const arrangeMockComponents = () => {
-  const mockTokenListControlBar = jest
-    .spyOn(TokenListControlBarModule, 'TokenListControlBar')
+  const mockBaseControlBar = jest
+    .mocked(BaseControlBar)
     .mockImplementation(() => (
       <View testID="token-list-control-bar">
         <Button testID="MOCK_NETWORK_FILTER" title="Network" />
@@ -101,7 +101,7 @@ const arrangeMockComponents = () => {
     ));
 
   return {
-    mockTokenListControlBar,
+    mockBaseControlBar,
     mockTokensList,
   };
 };
@@ -503,7 +503,7 @@ describe('Tokens', () => {
   });
 
   describe('showOnlyMusd (Cash view)', () => {
-    it('does not render TokenListControlBar when showOnlyMusd', async () => {
+    it('does not render the control bar when showOnlyMusd', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
@@ -515,9 +515,7 @@ describe('Tokens', () => {
       });
 
       expect(queryByTestId('token-list-control-bar')).toBeNull();
-      expect(
-        TokenListControlBarModule.TokenListControlBar,
-      ).not.toHaveBeenCalled();
+      expect(BaseControlBar).not.toHaveBeenCalled();
     });
 
     it('shows empty state when showOnlyMusd and no mUSD tokens', async () => {

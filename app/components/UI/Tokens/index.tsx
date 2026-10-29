@@ -29,7 +29,7 @@ import {
   TabEmptyState,
   TextFieldSearch,
 } from '@metamask/design-system-react-native';
-import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
+import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
@@ -346,7 +346,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
           </Box>
         )}
         {!showOnlyMusd && (
-          <TokenListControlBar
+          <BaseControlBar
+            networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
             style={isFullView ? tw`px-4 pb-3 pt-2` : undefined}
           />
         )}
