@@ -335,6 +335,9 @@ opens its own destination; the code never changes routing.
 - For users without a wallet, `handleDeeplinkSaga` reads the code when the
   link arrives, next to the UTM attribution. The interstitial still gates
   where the link goes; the code is only offered by the onboarding step below.
+  The link itself is parsed once onboarding hands over to `MainNavigator`
+  (`parseDeeplinkAfterOnboarding`), however long the remaining onboarding
+  steps take, so main-stack destinations such as Swap still open.
 - Non-alphanumeric characters are stripped and the code is uppercased. Codes
   outside 3–24 characters are discarded.
 - The code is kept for the current app session only, in

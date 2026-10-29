@@ -11,8 +11,10 @@ import {
   handleSnapsRegistry,
   parseDeeplink,
   parseDeeplinkAfterNavReady,
+  parseDeeplinkAfterOnboarding,
   mainNavigatorReadyStateMachine,
   __setMainNavigatorReadyForTesting,
+  __resetDeeplinkOpenedBeforeWalletForTesting,
   __resetSDKServicesInitializationForTesting,
   requestAuthOnAppStart,
 } from './';
@@ -509,6 +511,7 @@ describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __setMainNavigatorReadyForTesting(true);
+    __resetDeeplinkOpenedBeforeWalletForTesting();
     __resetSDKServicesInitializationForTesting();
     resetNextParseAppStartTypeForTesting();
     resetUnlockAppStartTypeForTesting();
@@ -896,6 +899,59 @@ describe('handleDeeplinkSaga', () => {
             .silentRun();
         });
 
+        it('holds a link opened before the wallet until onboarding hands over to MainNavigator', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap?ref=WEYRTZ';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          // Wallet creation: the user exists and onboarding is marked complete.
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterOnboarding)
+            .not.fork.fn(parseDeeplinkAfterNavReady)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+        });
+
+        it('keeps the ready timeout for a link opened once the wallet exists', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap?ref=WEYRTZ';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/buy';
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterNavReady)
+            .not.fork.fn(parseDeeplinkAfterOnboarding)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+        });
+
         it('handle onboarding deeplink when completed onboarding is false', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://metamask.io/onboarding?type=google';
@@ -1137,6 +1193,66 @@ describe('parseDeeplinkAfterNavReady', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe('parseDeeplinkAfterOnboarding', () => {
+  const TEST_URL = 'https://link.metamask.io/swap?ref=WEYRTZ';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(false);
+  });
+
+  it('parses immediately when MainNavigator is already mounted', async () => {
+    __setMainNavigatorReadyForTesting(true);
+
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('parses once MainNavigator mounts', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch(mainNavigatorReady())
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('keeps waiting past the MainNavigator ready timeout', async () => {
+    jest.useFakeTimers();
+    try {
+      const sagaPromise = expectSaga(
+        parseDeeplinkAfterOnboarding,
+        TEST_URL,
+        TEST_ORIGIN,
+      ).run({ timeout: 10000, silenceTimeout: true });
+
+      jest.advanceTimersByTime(9000);
+
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1100);
+      await sagaPromise;
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('drops the link when the user logs out before MainNavigator mounts', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch({ type: UserActionType.LOGOUT })
+      .dispatch(mainNavigatorReady())
+      .run();
+
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
   });
 });
 

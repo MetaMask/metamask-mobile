@@ -67,9 +67,17 @@ const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
 
 let hasMainNavigatorMounted = false;
 let sdkServicesInitializationTask: Task<void> | undefined;
+// The link a user opened before having a wallet. Wallet creation marks
+// onboarding complete while onboarding screens can still follow, so this link
+// waits for MainNavigator instead of the ready timeout.
+let deeplinkOpenedBeforeWallet: string | null = null;
 
 export const __setMainNavigatorReadyForTesting = (isReady: boolean) => {
   hasMainNavigatorMounted = isReady;
+};
+
+export const __resetDeeplinkOpenedBeforeWalletForTesting = () => {
+  deeplinkOpenedBeforeWallet = null;
 };
 
 export const __resetSDKServicesInitializationForTesting = () => {
@@ -157,6 +165,31 @@ export function* parseDeeplinkAfterNavReady(
     } else {
       hasMainNavigatorMounted = true;
     }
+  }
+
+  yield call(parseDeeplink, deeplink, origin, appStartType);
+}
+
+/**
+ * Parses a link opened before the wallet existed once onboarding hands over
+ * to `MainNavigator`. The remaining onboarding steps can take any amount of
+ * time, and parsing before then drops main-stack targets such as Swap.
+ * Logging out first drops the link.
+ */
+export function* parseDeeplinkAfterOnboarding(
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+) {
+  if (!hasMainNavigatorMounted) {
+    const { loggedOut } = yield race({
+      ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
+      loggedOut: take(UserActionType.LOGOUT),
+    });
+    if (loggedOut) {
+      return;
+    }
+    hasMainNavigatorMounted = true;
   }
 
   yield call(parseDeeplink, deeplink, origin, appStartType);
@@ -281,6 +314,7 @@ export function* handleDeeplinkSaga() {
         if (referralCode) {
           yield put(setPendingReferralCode(referralCode));
         }
+        deeplinkOpenedBeforeWallet = AppStateEventProcessor.pendingDeeplink;
       }
 
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
@@ -335,9 +369,14 @@ export function* handleDeeplinkSaga() {
         yield call(waitForSDKServicesInitialization);
       }
 
+      const isOpenedBeforeWallet = deeplink === deeplinkOpenedBeforeWallet;
+      deeplinkOpenedBeforeWallet = null;
+
       // Fork so the loop keeps listening. Fallback captured here — inside parse, post-unlock nav has already cleared it.
       yield fork(
-        parseDeeplinkAfterNavReady,
+        isOpenedBeforeWallet
+          ? parseDeeplinkAfterOnboarding
+          : parseDeeplinkAfterNavReady,
         deeplink,
         deeplinkSource,
         consumeNextParseAppStartType() ?? getUnlockAppStartType(),
