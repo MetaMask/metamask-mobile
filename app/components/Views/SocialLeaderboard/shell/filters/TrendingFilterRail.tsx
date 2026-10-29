@@ -21,8 +21,7 @@ const FILTER_BUTTON_SIZE = 40;
 const FILTER_BUTTON_END_INSET = 16;
 /** Gradient run before the button. The wash is solid by the time a chip meets it. */
 const GRADIENT_LEAD = 56;
-const FADE_WIDTH =
-  FILTER_BUTTON_END_INSET + FILTER_BUTTON_SIZE + GRADIENT_LEAD;
+const FADE_WIDTH = FILTER_BUTTON_END_INSET + FILTER_BUTTON_SIZE + GRADIENT_LEAD;
 
 const styles = StyleSheet.create({
   fade: {
