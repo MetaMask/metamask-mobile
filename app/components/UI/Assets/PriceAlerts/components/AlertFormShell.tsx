@@ -60,7 +60,7 @@ const AlertFormShell: React.FC<AlertFormShellProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      <Box twClassName="flex-1 justify-center px-4 pb-4">{children}</Box>
+      <Box twClassName="flex-1 justify-center px-4">{children}</Box>
 
       <View style={tw.style('px-4 pb-2')}>
         <Box
