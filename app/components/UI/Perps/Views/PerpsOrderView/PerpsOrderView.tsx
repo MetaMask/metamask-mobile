@@ -1824,6 +1824,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       } finally {
         isSubmittingRef.current = false;
       }
+      // A user-initiated submit no longer owns the action once its view has
+      // closed. Keep the committed post-deposit re-entry running so a
+      // confirmed deposit still produces its order.
+      if (!forceTrade && isDismissedRef.current) {
+        return;
+      }
       if (accountSupport === 'unsupported') {
         return 'accountUnsupported' as const;
       }

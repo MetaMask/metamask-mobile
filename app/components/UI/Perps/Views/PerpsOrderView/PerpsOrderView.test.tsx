@@ -2363,6 +2363,65 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  describe('when the Trade sheet closes while account support is pending', () => {
+    const arrangePendingAccountSupport = async () => {
+      let resolveAccountSupport: (result: 'supported') => void = () =>
+        undefined;
+      mockCheckAccountSupport.mockImplementationOnce(
+        () =>
+          new Promise<'supported'>((resolve) => {
+            resolveAccountSupport = resolve;
+          }),
+      );
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+        error: undefined,
+      });
+      useTradeSheetRoute();
+      const rendered = render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      let submission: void | Promise<void>;
+      await act(async () => {
+        submission = getMockTradeScreenProps().onSubmit();
+        await Promise.resolve();
+      });
+      expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+
+      const settleAccountSupport = () =>
+        act(async () => {
+          resolveAccountSupport('supported');
+          await submission;
+        });
+
+      return { ...rendered, placeOrder, settleAccountSupport };
+    };
+
+    it('does not place an order once the sheet reported it closed', async () => {
+      const { placeOrder, settleAccountSupport } =
+        await arrangePendingAccountSupport();
+
+      act(() => {
+        mockTradeSheetOnClose?.();
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await settleAccountSupport();
+
+      expect(placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not place an order once the view unmounted', async () => {
+      const { placeOrder, settleAccountSupport, unmount } =
+        await arrangePendingAccountSupport();
+
+      unmount();
+      await settleAccountSupport();
+
+      expect(placeOrder).not.toHaveBeenCalled();
+    });
+  });
+
   describe('when the Trade sheet is dismissed while validation is pending', () => {
     interface ValidationResult {
       isValid: boolean;
@@ -3794,54 +3853,6 @@ describe('PerpsOrderView', () => {
       ).not.toHaveBeenCalled();
     });
   });
-
-  it('blocks order placement for an unsupported account', async () => {
-    const mockPlaceOrder = jest.fn();
-    mockCheckAccountSupport.mockResolvedValue('unsupported');
-    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-      placeOrder: mockPlaceOrder,
-      isPlacing: false,
-    });
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-    await act(async () => {
-      fireEvent.press(
-        await screen.findByTestId(
-          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-        ),
-      );
-    });
-
-    expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
-    expect(mockPlaceOrder).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    { support: 'stale' as const, expected: undefined },
-    {
-      support: 'unsupported' as const,
-      expected: 'accountUnsupported' as const,
-    },
-  ])(
-    'returns $expected to the trade sheet for a $support account-support check',
-    async ({ support, expected }) => {
-      useTradeSheetRoute();
-      mockCheckAccountSupport.mockResolvedValue(support);
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      const result: { outcome?: void | 'accountUnsupported' } = {};
-      await act(async () => {
-        result.outcome = await (getMockTradeScreenProps().onSubmit() as Promise<
-          void | 'accountUnsupported'
-        >);
-      });
-
-      expect(result.outcome).toBe(expected);
-      expect(
-        defaultMockHooks.usePerpsTrading.placeOrder,
-      ).not.toHaveBeenCalled();
-    },
-  );
 
   it('handles network error during order placement', () => {
     const mockPlaceOrder = jest

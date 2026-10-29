@@ -1003,6 +1003,10 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
   GOT_IT_BUTTON: 'perps-bottom-sheet-tooltip-got-it-button',
 };
 
+export const PerpsAccountUnsupportedModalSelectorsIDs = {
+  GESTURE_ROOT: 'perps-account-unsupported-modal-gesture-root',
+} as const;
+
 // ========================================
 // PERPS TUTORIAL SELECTORS
 // ========================================
