@@ -1411,8 +1411,6 @@ export class Engine {
     // Order observation must not outlive it. Commits are abandoned before the
     // reads are dropped, so no receipt can refill the cache afterwards. The
     // Venue-scoped market-data and live-data caches carry public data and stay.
-    // Device auth is cleared on its own. A failed portfolio purge must not
-    // leave the previous wallet's Kalshi key and A2T nonce in place.
     try {
       PredictOrderService.abandonCommits();
       await PredictPortfolioService.clearAccountData();

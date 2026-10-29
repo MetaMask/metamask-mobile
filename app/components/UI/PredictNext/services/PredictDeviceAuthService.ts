@@ -53,7 +53,14 @@ export type PredictDeviceAuthServiceMessenger = Messenger<
 >;
 
 export interface PredictDeviceAuthServiceDependencies {
-  profile: VenueAuthenticationProfile;
+  /**
+   * Resolves the bundled profile the current configuration selects,
+   * independent of whether the venue is currently enabled. Queried on every
+   * capability call so a resolved profile id change rebuilds the device key
+   * and session; undefined when this build does not recognize the selected
+   * profile id. `isEnabled` is the separate on/off switch.
+   */
+  getProfile: () => VenueAuthenticationProfile | undefined;
   getIssuerUrl: () => string | undefined;
   getAccessToken: () => Promise<string>;
   getCanonicalProfileId: () => string | undefined;
@@ -68,6 +75,12 @@ export interface PredictDeviceAuthServiceDependencies {
   sleep: (ms: number) => Promise<void>;
 }
 
+interface PredictDeviceAuthBinding {
+  profileId: string;
+  deviceKey: P256DeviceKey;
+  session: A2tSession;
+}
+
 /**
  * Engine-owned authentication capability for Predict venues.
  *
@@ -76,30 +89,13 @@ export interface PredictDeviceAuthServiceDependencies {
  */
 export class PredictDeviceAuthService {
   readonly #deps: PredictDeviceAuthServiceDependencies;
-  readonly #session: A2tSession;
-  readonly #deviceKey: P256DeviceKey;
+  #active: PredictDeviceAuthBinding | undefined;
 
   constructor(
     messenger: PredictDeviceAuthServiceMessenger,
     deps: PredictDeviceAuthServiceDependencies,
   ) {
     this.#deps = deps;
-    this.#deviceKey = createP256DeviceKey(deps.profile.deviceKey);
-    this.#session = new A2tSession({
-      profile: deps.profile,
-      getIssuerUrl: () => resolveA2tIssuerUrl(deps.getIssuerUrl()),
-      getAccessToken: deps.getAccessToken,
-      getCanonicalProfileId: deps.getCanonicalProfileId,
-      getSrpIdentifier: deps.getSrpIdentifier,
-      signSrpMessage: deps.signSrpMessage,
-      getDeviceKey: this.#deviceKey.wait,
-      peekDeviceKey: this.#deviceKey.get,
-      signDeviceProof: this.#deviceKey.sign,
-      fetch: deps.fetch,
-      now: deps.now,
-      nowMs: deps.nowMs,
-      sleep: deps.sleep,
-    });
 
     messenger.registerActionHandler(
       'PredictDeviceAuthService:ensureDeviceKey',
@@ -126,11 +122,12 @@ export class PredictDeviceAuthService {
   async ensureDeviceKey(): Promise<P256DevicePublicMaterial | null> {
     const enabled = this.#deps.isEnabled();
     const unlocked = this.#deps.isUnlocked();
-    if (!enabled || !unlocked) {
+    const binding = this.#resolveBinding();
+    if (!enabled || !unlocked || !binding) {
       this.clear();
       return null;
     }
-    return this.#deviceKey.ensure(unlocked);
+    return binding.deviceKey.ensure(unlocked);
   }
 
   async getA2t(): Promise<string | undefined> {
@@ -138,31 +135,37 @@ export class PredictDeviceAuthService {
     if (!key) {
       return undefined;
     }
+    const binding = this.#resolveBinding();
     if (!this.#deps.isSignedIn()) {
-      this.#session.clear();
+      binding?.session.clear();
       return undefined;
     }
-    return this.#session.ensureA2T();
+    return binding?.session.ensureA2T();
   }
 
   async prefetch(includeA2t = true): Promise<void> {
     const key = await this.ensureDeviceKey();
+    const binding = this.#resolveBinding();
     if (key && includeA2t && this.#deps.isSignedIn()) {
-      await this.#session.ensureA2T();
+      await binding?.session.ensureA2T();
     } else if (!this.#deps.isSignedIn()) {
-      this.#session.clear();
+      binding?.session.clear();
     }
   }
 
   clear(): void {
-    this.#session.clear();
-    this.#deviceKey.clear();
+    this.#active?.session.clear();
+    this.#active?.deviceKey.clear();
   }
 
   async reset(): Promise<void> {
     try {
-      this.#session.clear();
-      await this.#deviceKey.delete();
+      // Resolve (rather than read `#active`) so a reset issued while the
+      // capability is currently disabled still targets the persisted key for
+      // the configured profile, e.g. after the remote flag turned it off.
+      const binding = this.#resolveBinding();
+      binding?.session.clear();
+      await binding?.deviceKey.delete();
     } catch (error) {
       // A failed key delete must not abort wallet reset.
       Logger.error(
@@ -170,5 +173,41 @@ export class PredictDeviceAuthService {
         'Failed to reset Predict device authentication',
       );
     }
+  }
+
+  /**
+   * Builds the device key and A2T session bound to the profile `getProfile`
+   * currently resolves, rebuilding them if the resolved profile id changed.
+   * Returns undefined only when this build does not recognize the selected
+   * profile id.
+   */
+  #resolveBinding(): PredictDeviceAuthBinding | undefined {
+    const profile = this.#deps.getProfile();
+    if (!profile || this.#active?.profileId !== profile.id) {
+      this.#active?.session.clear();
+      this.#active?.deviceKey.clear();
+      this.#active = profile && this.#buildBinding(profile);
+    }
+    return this.#active;
+  }
+
+  #buildBinding(profile: VenueAuthenticationProfile): PredictDeviceAuthBinding {
+    const deviceKey = createP256DeviceKey(profile.deviceKey);
+    const session = new A2tSession({
+      profile,
+      getIssuerUrl: () => resolveA2tIssuerUrl(this.#deps.getIssuerUrl()),
+      getAccessToken: this.#deps.getAccessToken,
+      getCanonicalProfileId: this.#deps.getCanonicalProfileId,
+      getSrpIdentifier: this.#deps.getSrpIdentifier,
+      signSrpMessage: this.#deps.signSrpMessage,
+      getDeviceKey: deviceKey.wait,
+      peekDeviceKey: deviceKey.get,
+      signDeviceProof: deviceKey.sign,
+      fetch: this.#deps.fetch,
+      now: this.#deps.now,
+      nowMs: this.#deps.nowMs,
+      sleep: this.#deps.sleep,
+    });
+    return { profileId: profile.id, deviceKey, session };
   }
 }

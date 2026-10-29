@@ -3,9 +3,10 @@ import type { SnapId } from '@metamask/snaps-sdk';
 
 import {
   parsePredictConfig,
+  resolveSelectedAuthProfile,
   resolveVenueAuthProfile,
+  type PredictConfig,
 } from '../../../components/UI/PredictNext/config/predictConfig';
-import { KALSHI_AUTHENTICATION_PROFILE } from '../../../components/UI/PredictNext/auth/venueAuthProfiles';
 import {
   PredictDeviceAuthService,
   type PredictDeviceAuthServiceMessenger,
@@ -38,6 +39,11 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   PredictDeviceAuthServiceMessenger,
   PredictDeviceAuthServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
+  const readConfig = (): PredictConfig => {
+    const state = initMessenger.call('RemoteFeatureFlagController:getState');
+    return parsePredictConfig(state.remoteFeatureFlags?.predictConfig);
+  };
+
   const invokeMessageSigningSnap = (
     method: string,
     params?: Record<string, unknown>,
@@ -64,7 +70,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     'AuthenticationController:getState',
   ).isSignedIn;
   const controller = new PredictDeviceAuthService(controllerMessenger, {
-    profile: KALSHI_AUTHENTICATION_PROFILE,
+    getProfile: () => resolveSelectedAuthProfile(readConfig()),
     getIssuerUrl: getConfiguredIssuerUrl,
     getAccessToken: async () => {
       const accessToken = await initMessenger.call(
@@ -90,13 +96,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
       }
       return signature;
     },
-    isEnabled: () => {
-      const state = initMessenger.call('RemoteFeatureFlagController:getState');
-      const config = parsePredictConfig(
-        state.remoteFeatureFlags?.predictConfig,
-      );
-      return resolveVenueAuthProfile(config) !== undefined;
-    },
+    isEnabled: () => resolveVenueAuthProfile(readConfig()) !== undefined,
     isUnlocked: () =>
       initMessenger.call('KeyringController:getState').isUnlocked,
     isSignedIn: () =>
@@ -131,9 +131,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     },
   );
   initMessenger.subscribe('RemoteFeatureFlagController:stateChange', () => {
-    const state = initMessenger.call('RemoteFeatureFlagController:getState');
-    const config = parsePredictConfig(state.remoteFeatureFlags?.predictConfig);
-    if (!resolveVenueAuthProfile(config)) {
+    if (!resolveVenueAuthProfile(readConfig())) {
       controller.clear();
     }
   });

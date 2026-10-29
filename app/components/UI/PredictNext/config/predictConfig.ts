@@ -61,6 +61,19 @@ export const parsePredictConfig = (value: unknown): PredictConfig => {
 };
 
 /**
+ * Resolves the bundled Kalshi authentication profile the config selects,
+ * independent of whether the Kalshi venue is enabled. Used anywhere that
+ * needs to know which profile applies even while the venue is off, such as
+ * targeting the right persisted device key on wallet reset.
+ */
+export const resolveSelectedAuthProfile = (
+  config: PredictConfig,
+): VenueAuthenticationProfile | undefined =>
+  resolveBundledAuthenticationProfile(
+    config.venues.kalshi.authProfileId ?? DEFAULT_KALSHI_AUTH_PROFILE_ID,
+  );
+
+/**
  * Resolves the bundled Kalshi authentication profile the current config
  * selects, or undefined when Predict, the Kalshi venue, or the selected
  * profile id is not available.
@@ -71,7 +84,5 @@ export const resolveVenueAuthProfile = (
   if (!config.enabled || !config.venues.kalshi.enabled) {
     return undefined;
   }
-  return resolveBundledAuthenticationProfile(
-    config.venues.kalshi.authProfileId ?? DEFAULT_KALSHI_AUTH_PROFILE_ID,
-  );
+  return resolveSelectedAuthProfile(config);
 };

@@ -3,7 +3,11 @@ import {
   PredictDeviceAuthService,
   type PredictDeviceAuthServiceMessenger,
 } from './PredictDeviceAuthService';
-import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
+import { createP256DeviceKey } from '../auth/p256DeviceKey';
+import {
+  KALSHI_AUTHENTICATION_PROFILE,
+  type VenueAuthenticationProfile,
+} from '../auth/venueAuthProfiles';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -35,21 +39,32 @@ jest.mock('../auth/p256DeviceKey', () => ({
   })),
 }));
 
+const SECOND_AUTHENTICATION_PROFILE: VenueAuthenticationProfile = {
+  ...KALSHI_AUTHENTICATION_PROFILE,
+  id: 'second-a2t-v1',
+  deviceKey: {
+    ...KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+    keySlot: 'second-v1',
+  },
+};
+
 const createService = ({
   enabled = true,
   unlocked = true,
   signedIn = true,
+  getProfile = () => KALSHI_AUTHENTICATION_PROFILE,
 }: {
   enabled?: boolean;
   unlocked?: boolean;
   signedIn?: boolean;
+  getProfile?: () => VenueAuthenticationProfile | undefined;
 } = {}) => {
   const registerActionHandler = jest.fn();
   const messenger = {
     registerActionHandler,
   } as unknown as PredictDeviceAuthServiceMessenger;
   const service = new PredictDeviceAuthService(messenger, {
-    profile: KALSHI_AUTHENTICATION_PROFILE,
+    getProfile,
     getIssuerUrl: () => 'https://issuer.example',
     getAccessToken: async () => 'access-token',
     getCanonicalProfileId: () => 'profile-id',
@@ -142,5 +157,54 @@ describe('PredictDeviceAuthService', () => {
       expect.objectContaining({ message: 'device key delete failed' }),
       'Failed to reset Predict device authentication',
     );
+  });
+
+  it('resolves the profile from getProfile on every capability call', async () => {
+    const getProfile = jest.fn(() => KALSHI_AUTHENTICATION_PROFILE);
+    const { service } = createService({ getProfile });
+
+    await service.getA2t();
+
+    expect(getProfile).toHaveBeenCalled();
+  });
+
+  it('does not create a device key when no profile is configured', async () => {
+    const { service } = createService({ getProfile: () => undefined });
+
+    await expect(service.ensureDeviceKey()).resolves.toBeNull();
+
+    expect(createP256DeviceKey).not.toHaveBeenCalled();
+    expect(mockEnsureDeviceKey).not.toHaveBeenCalled();
+  });
+
+  it('rebuilds the device key and session when the resolved profile id changes', async () => {
+    let profile: VenueAuthenticationProfile = KALSHI_AUTHENTICATION_PROFILE;
+    const { service } = createService({ getProfile: () => profile });
+
+    await service.ensureDeviceKey();
+    expect(createP256DeviceKey).toHaveBeenCalledTimes(1);
+    expect(createP256DeviceKey).toHaveBeenLastCalledWith(
+      KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+    );
+
+    profile = SECOND_AUTHENTICATION_PROFILE;
+    await service.ensureDeviceKey();
+
+    expect(createP256DeviceKey).toHaveBeenCalledTimes(2);
+    expect(createP256DeviceKey).toHaveBeenLastCalledWith(
+      SECOND_AUTHENTICATION_PROFILE.deviceKey,
+    );
+    // Switching profiles must clear the outgoing key's plaintext.
+    expect(mockClearDeviceKey).toHaveBeenCalledTimes(1);
+    expect(mockClearSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('reuses the existing device key and session when the resolved profile id is unchanged', async () => {
+    const { service } = createService();
+
+    await service.ensureDeviceKey();
+    await service.ensureDeviceKey();
+
+    expect(createP256DeviceKey).toHaveBeenCalledTimes(1);
   });
 });

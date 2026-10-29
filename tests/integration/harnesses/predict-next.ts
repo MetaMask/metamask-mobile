@@ -404,7 +404,7 @@ export const buildPredictDeviceAuthIntegrationHarness = (
     authenticationState.srpSessionData['entropy-source-id']?.profile
       .canonicalProfileId;
   const controller = new PredictDeviceAuthService(controllerMessenger, {
-    profile: KALSHI_AUTHENTICATION_PROFILE,
+    getProfile: () => KALSHI_AUTHENTICATION_PROFILE,
     getIssuerUrl: () => 'https://issuer.example',
     getAccessToken: async () => {
       canonicalProfileId =
