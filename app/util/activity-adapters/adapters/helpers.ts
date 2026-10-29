@@ -211,7 +211,8 @@ export function getLocalActivityFees(
 const MAINNET_HEX_CHAIN_ID = '0x1';
 const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
 
-export const isNftTransferType = (transferType?: string) => isNftAssetType(transferType);
+export const isNftTransferType = (transferType?: string) =>
+  isNftAssetType(transferType);
 
 function stringifyParsedTokenAmount(value: unknown): string | undefined {
   if (typeof value === 'string' || typeof value === 'number') {
