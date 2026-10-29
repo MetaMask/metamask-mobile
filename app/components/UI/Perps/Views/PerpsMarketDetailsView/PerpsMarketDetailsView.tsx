@@ -1352,8 +1352,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           return;
         }
 
-        if (useBottomSheet && !(await checkAccountSupport())) {
-          return;
+        if (useBottomSheet) {
+          const support = await checkAccountSupport(market.providerId);
+          if (support !== 'supported') {
+            return;
+          }
         }
 
         // While cross margin is off, an existing cross position cannot be traded.

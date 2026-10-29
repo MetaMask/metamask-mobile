@@ -68,6 +68,15 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Returns:** `{ controller }`
 - **Use when:** an older persisted Perps state must survive the installed controller's startup migration and stay readable through the selectors Mobile uses
 
+### Perps Account Support — [`perps.ts`](perps.ts)
+
+- **Shape:** focused Shape D — real controller and Hyperliquid provider support decision
+- **Real:** `PerpsController`, `HyperLiquidProvider`, account-context guards and support-result mapping
+- **Mocked:** Hyperliquid `userToMultiSigSigners` venue I/O through the existing Shape A info client
+- **Factory:** `buildPerpsAccountSupportHarness()`
+- **Returns:** `{ controller, infoClient }`
+- **Use when:** Mobile must prove that Core distinguishes ordinary and Hyperliquid-native multisig accounts
+
 ### Perps Flow — [`perps-flow.ts`](perps-flow.ts)
 
 - **Shape:** B — hook-flow harness built on Shape A

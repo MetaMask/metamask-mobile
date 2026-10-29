@@ -132,7 +132,7 @@ describe('usePerpsHomeActions', () => {
     mockDepositWithConfirmation.mockReset();
     mockDepositWithConfirmation.mockResolvedValue(undefined);
     mockWithdrawWithConfirmation.mockResolvedValue(undefined);
-    mockCheckAccountSupport.mockResolvedValue(true);
+    mockCheckAccountSupport.mockResolvedValue('supported');
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -541,7 +541,7 @@ describe('usePerpsHomeActions', () => {
 
   describe('handleWithdraw - unsupported account', () => {
     it('does not start either withdrawal flow', async () => {
-      mockCheckAccountSupport.mockResolvedValue(false);
+      mockCheckAccountSupport.mockResolvedValue('unsupported');
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {

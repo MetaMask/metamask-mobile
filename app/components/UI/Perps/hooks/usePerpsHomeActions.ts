@@ -34,7 +34,10 @@ import {
   type DepositConfirmationNavigation,
   type DepositPrepSession,
 } from '../utils/depositConfirmationGuard';
-import { usePerpsAccountSupport } from './usePerpsAccountSupport';
+import {
+  usePerpsAccountSupport,
+  type UsePerpsAccountSupportReturn,
+} from './usePerpsAccountSupport';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -85,7 +88,7 @@ export interface UsePerpsHomeActionsReturn {
   /** Close unsupported-account modal */
   closeAccountUnsupportedModal: () => void;
   /** Check whether the active account can submit provider actions */
-  checkAccountSupport: () => Promise<boolean>;
+  checkAccountSupport: UsePerpsAccountSupportReturn['checkAccountSupport'];
 }
 
 /**
@@ -318,7 +321,7 @@ export const usePerpsHomeActions = (
     });
 
     try {
-      if (!(await checkAccountSupport())) {
+      if ((await checkAccountSupport()) !== 'supported') {
         return;
       }
 
