@@ -3,7 +3,7 @@
 - **Status:** Proposed by PRED-1402. Rules marked _Proposed, needs product sign-off_ are recommended defaults, not agreements.
 - **Scope:** Account-scoped Position, Portfolio Summary, and Activity reads, and the public Venue catalog.
 - **Venues:** Kalshi implements it in the Predict API now (PRED-1378, PRED-1380, PRED-1403). Polymarket implements the same contract in the Predict API under PRED-1356.
-- **Adoption:** PRED-1404 changes `types/`, `contracts/v1/`, services, queries, fixtures, and screens to match this contract. Until then, code and tests remain the executable contract.
+- **Adoption:** PRED-1404 adopted it in mobile: `types/`, `contracts/v1/portfolio.ts`, `PredictPortfolioService` (including `getPortfolioSummary`), `portfolioQueries`, `usePortfolioSummary`, the fixtures in `contracts/v1/fixtures/portfolio-contract/`, and the Portfolio screen.
 
 ## Why
 

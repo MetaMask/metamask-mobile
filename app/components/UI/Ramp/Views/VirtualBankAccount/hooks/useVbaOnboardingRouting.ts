@@ -31,7 +31,11 @@ import {
   isAccountCreateErrorDestination,
   type AccountCreateFailureFields,
 } from '../accountCreateError';
-import { applyVbaDevOverrides } from '../vbaDevOverrides';
+import {
+  applyVbaDevOverrides,
+  getVbaKycStatusOverride,
+} from '../vbaDevOverrides';
+import { findUsableAutoramp } from '../ensureMusdAutoramp';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 import { TraceName } from '../../../../../../util/trace';
@@ -177,6 +181,49 @@ export const openCompletedVbaAccount = (
     }
     current = parent;
   }
+};
+
+const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
+  const autoramps = Engine.context.RampsController.state?.autoramps ?? [];
+  return findUsableAutoramp(autoramps, walletAddress)?.status === 'Approved';
+};
+
+/**
+ * Cold entry from Money surfaces. An account whose autoramp is already
+ * Approved on this device opens its details directly, and onboarding facts
+ * refresh in the background. Everyone else gets the loading screen, which
+ * hydrates before picking a destination. Dev KYC overrides always take the
+ * loading screen so the override still applies.
+ *
+ * @param navigation - Navigation from the entry surface.
+ * @param params - Loading screen params, used when the fast path does not apply.
+ */
+export const openVbaEntry = (
+  navigation: AppNavigationProp,
+  params?: NonNullable<VbaOnboardingParamList['VbaOnboardingLoading']>,
+): void => {
+  const walletAddress = selectSelectedVbaWalletAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  if (
+    walletAddress &&
+    getVbaKycStatusOverride() === null &&
+    hasPersistedApprovedAutoramp(walletAddress)
+  ) {
+    openCompletedVbaAccount(navigation);
+    Engine.context.RampsController.hydrateVbaOnboarding({
+      walletAddress,
+      refreshKyc: true,
+      refreshAutoramps: true,
+    }).catch((error: unknown) => {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
+      });
+    });
+    return;
+  }
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, params);
 };
 
 export const navigateToVbaOnboardingDestination = (

@@ -2,13 +2,25 @@ import React, { StrictMode } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
+import renderWithProvider, {
+  type ProviderValues,
+} from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
+import {
+  initBgState,
+  updateBgState,
+} from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
+import {
+  clearCachedDepositInstructions,
+  getCachedDepositInstructions,
+  setCachedDepositInstructions,
+} from './vbaDepositInstructionsCache';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -24,7 +36,6 @@ import {
   startVbaCufChildTrace,
 } from './vbaCufTrace';
 import { VBA_CUF_END_REASON } from './vbaCufTags';
-import { initBgState } from '../../../../../core/redux/slices/engine';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -56,13 +67,15 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
 
+const mockNavigation = {
+  canGoBack: () => mockCanGoBack,
+  goBack: (...args: unknown[]) => mockGoBack(...args),
+  navigate: (...args: unknown[]) => mockNavigate(...args),
+};
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    canGoBack: () => mockCanGoBack,
-    goBack: mockGoBack,
-    navigate: mockNavigate,
-  }),
+  // Stable like the real hook, so effects keyed on navigation do not rerun.
+  useNavigation: () => mockNavigation,
 }));
 
 jest.mock('../../../../../selectors/rampsController', () => ({
@@ -130,7 +143,10 @@ jest.mock('../../../../../hooks/useScreenPerformance');
 const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 
 jest.mock('../../../../../core/Engine', () => ({
-  state: {},
+  // Lets tests push RampsController changes into Redux via updateBgState.
+  get state() {
+    return { RampsController: this.context.RampsController.state };
+  },
   context: {
     RampsController: {
       state: {
@@ -180,6 +196,14 @@ const pixInstructions = {
   pixKey: 'pix@example.com',
 };
 
+// Test fixtures use plain status strings, not the controller's enum.
+const withPersistedAutoramps = (
+  autoramps: TestAutoramp[],
+): ProviderValues['state'] =>
+  ({
+    engine: { backgroundState: { RampsController: { autoramps } } },
+  }) as unknown as ProviderValues['state'];
+
 const setAutoramps = (autoramps: TestAutoramp[]) => {
   (
     Engine.context.RampsController.state as { autoramps: TestAutoramp[] }
@@ -205,6 +229,7 @@ describe('VbaDetails', () => {
     jest.clearAllMocks();
     mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
     resetMusdAutorampSetupGuard();
+    clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
     mockChooseCurrency = false;
@@ -319,6 +344,121 @@ describe('VbaDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
+    });
+  });
+
+  it('renders cached Pix details immediately and revalidates in the background', async () => {
+    setCachedDepositInstructions('ar-1', pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue({
+      ...pixInstructions,
+      pixKey: 'new@example.com',
+    });
+
+    const { getByTestId, queryByTestId, getByText } = renderWithProvider(
+      <VbaDetails />,
+    );
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
+    await waitFor(() => {
+      expect(getByText('new@example.com')).toBeOnTheScreen();
+    });
+    expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+  });
+
+  it('reopens instantly with details fetched on the first visit', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+    const first = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(
+        first.getByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
+      ).toBeOnTheScreen();
+    });
+    first.unmount();
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
+  });
+
+  it('ignores cached details for an account whose currency is not confirmed', () => {
+    setAutoramps([{ ...approvedAutoramp, depositRailsSummary: undefined }]);
+    setCachedDepositInstructions('ar-1', pixInstructions);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+  });
+
+  it('clears shown details when a background hydrate rejects the autoramp', async () => {
+    setAutoramps([approvedAutoramp]);
+    setCachedDepositInstructions('ar-1', pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+    const { getByTestId, queryByTestId, store } = renderWithProvider(
+      <VbaDetails />,
+      { state: withPersistedAutoramps([approvedAutoramp]) },
+    );
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalled();
+    });
+
+    setAutoramps([{ ...approvedAutoramp, status: 'Rejected' }]);
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'RampsController' }));
+    });
+
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        undefined,
+        'BRL',
+      );
+    });
+  });
+
+  it('drops late details and routes away when the autoramp is rejected mid-fetch', async () => {
+    setAutoramps([approvedAutoramp]);
+    let resolveDetails: (value: typeof pixInstructions) => void = () =>
+      undefined;
+    mockGetDepositInstructions.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDetails = resolve;
+      }),
+    );
+    const { queryByTestId, getByTestId, store } = renderWithProvider(
+      <VbaDetails />,
+      { state: withPersistedAutoramps([approvedAutoramp]) },
+    );
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    setAutoramps([{ ...approvedAutoramp, status: 'Rejected' }]);
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'RampsController' }));
+    });
+    await act(async () => {
+      resolveDetails(pixInstructions);
+    });
+
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(getCachedDepositInstructions('ar-1')).toBeNull();
+    // Routes on an immediate re-poll, not the next 10s interval.
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        undefined,
+        'BRL',
+      );
     });
   });
 
@@ -441,6 +581,34 @@ describe('VbaDetails', () => {
       fireEvent.press(getByLabelText('Copy Routing number'));
 
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
+    });
+
+    it('renders cached US bank details immediately for a USD account', () => {
+      mockUsableAutoramp = { depositRailsSummary: { currency: 'USD' } };
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'USD' },
+        },
+      ]);
+      setCachedDepositInstructions(
+        'ar-1',
+        usBankInstructions as AutorampDepositInstructions,
+      );
+      mockGetDepositInstructions.mockReturnValue(new Promise(() => undefined));
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <VbaDetails />,
+      );
+
+      expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+        strings('virtual_bank_account.vba_details.bank_transfer_title'),
+      );
+      expect(getByText('021000021')).toBeOnTheScreen();
+      expect(getByText('123456789')).toBeOnTheScreen();
+      expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
     });
 
     it('shows the bank transfer title while USD instructions are loading', async () => {

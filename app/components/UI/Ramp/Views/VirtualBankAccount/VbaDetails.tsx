@@ -26,6 +26,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import type { RootState } from '../../../../../reducers';
 import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
@@ -53,6 +54,10 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import {
+  getCachedDepositInstructions,
+  setCachedDepositInstructions,
+} from './vbaDepositInstructionsCache';
 import {
   AccountCreateRegistrationError,
   ACCOUNT_CREATE_ERROR_DESTINATION,
@@ -133,6 +138,32 @@ const isTerminalStatus = (status: string): boolean =>
 
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
+
+const readCachedInstructions = (
+  walletAddress: string | null | undefined,
+  sourceCurrency: string | undefined,
+): AutorampDepositInstructions | null => {
+  if (!walletAddress) {
+    return null;
+  }
+  const autoramp = findUsableAutoramp(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
+  if (autoramp?.status !== 'Approved') {
+    return null;
+  }
+  // An account without a stored fiat may be in another currency; refreshDeposit
+  // must confirm it before its details can show for this one.
+  if (
+    sourceCurrency &&
+    autoramp.depositRailsSummary?.currency !== sourceCurrency
+  ) {
+    return null;
+  }
+  return getCachedDepositInstructions(autoramp.id);
+};
 
 const buildDetailRows = (
   instructions: AutorampDepositInstructions | null,
@@ -221,7 +252,10 @@ const VbaDetails = () => {
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
   const [instructions, setInstructions] =
-    useState<AutorampDepositInstructions | null>(null);
+    useState<AutorampDepositInstructions | null>(() =>
+      readCachedInstructions(walletAddress, sourceCurrency),
+    );
+  const [revalidateCount, setRevalidateCount] = useState(0);
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress
@@ -443,8 +477,19 @@ const VbaDetails = () => {
             );
             return;
           }
+          // The autoramp may have been rejected, cancelled or replaced while
+          // this request was in flight (for example by a background hydrate).
+          // Poll again right away instead of showing details for it.
+          if (
+            findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+              ?.id !== autoramp.id
+          ) {
+            setRevalidateCount((count) => count + 1);
+            return;
+          }
           if (details) {
             finishPixFetchTrace(true, undefined, requestTraceId);
+            setCachedDepositInstructions(autoramp.id, details);
             setInstructions(details);
             // Debug builds keep polling so the latest deposit stays visible.
             pollingDoneRef.current = !debugEnabled;
@@ -522,7 +567,7 @@ const VbaDetails = () => {
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
     transactionsFetchedForRef.current = null;
-    setInstructions(null);
+    setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
     setLoadError(false);
     setAwaitingProviderApproval(false);
     setAutorampId(null);
@@ -533,6 +578,45 @@ const VbaDetails = () => {
         : null,
     );
   }, [finishPixFetchTrace, sourceCurrency, walletAddress]);
+
+  // Opening from Money can skip the loading screen, so hydrate may land after
+  // details are shown. When it changes the usable autoramp (Rejected,
+  // Cancelled or replaced), drop the shown details and poll again so
+  // refreshDeposit routes or reloads.
+  const usableAutorampKey = useSelector((state: RootState) => {
+    if (!walletAddress) {
+      return null;
+    }
+    const autoramps =
+      (
+        state.engine?.backgroundState?.RampsController as
+          | { autoramps?: AutorampCursor[] }
+          | undefined
+      )?.autoramps ?? [];
+    const autoramp = findUsableAutoramp(
+      autoramps,
+      walletAddress,
+      sourceCurrency,
+    );
+    return autoramp ? `${autoramp.id}:${autoramp.status}` : '';
+  });
+  const lastUsableAutorampRef = useRef({ accountKey, usableAutorampKey });
+
+  useEffect(() => {
+    const last = lastUsableAutorampRef.current;
+    lastUsableAutorampRef.current = { accountKey, usableAutorampKey };
+    if (
+      last.accountKey !== accountKey ||
+      last.usableAutorampKey === usableAutorampKey
+    ) {
+      return;
+    }
+    setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
+    if (pollingDoneRef.current) {
+      pollingDoneRef.current = false;
+      setRevalidateCount((count) => count + 1);
+    }
+  }, [accountKey, sourceCurrency, usableAutorampKey, walletAddress]);
 
   useEffect(() => {
     if (networkTier === 'NONE') {
@@ -594,7 +678,14 @@ const VbaDetails = () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [hardwareTier, navigation, networkTier, refreshDeposit, sourceCurrency]);
+  }, [
+    hardwareTier,
+    navigation,
+    networkTier,
+    refreshDeposit,
+    revalidateCount,
+    sourceCurrency,
+  ]);
 
   const isApproved = autorampStatus === 'Approved';
 
