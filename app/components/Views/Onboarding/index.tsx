@@ -354,6 +354,19 @@ const Onboarding = () => {
     isEmpty: false,
   });
 
+  // Known-answer check for the performance suite (branch only, never merged):
+  // 1,000 ms of synchronous JS on the first render, after the screen timer has
+  // started, so the screen timer, the launch-to-CTA step timer and Hermes JS
+  // work should each move by about 1,000 ms.
+  const knownAnswerInjected = useRef(false);
+  if (!knownAnswerInjected.current) {
+    knownAnswerInjected.current = true;
+    const injectUntil = Date.now() + 1000;
+    while (Date.now() < injectUntil) {
+      // busy-wait
+    }
+  }
+
   const handleOnboardingInteractiveContentReady = useCallback(() => {
     setOnboardingContentReady(true);
   }, []);
