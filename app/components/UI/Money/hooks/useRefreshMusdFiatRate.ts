@@ -2,11 +2,11 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { Caip19AssetId } from '@metamask/assets-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../Earn/constants/musd';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // Module scoped promise to avoid multiple concurrent refreshes
 let refreshMusdFiatRatePromise: Promise<void> | undefined;

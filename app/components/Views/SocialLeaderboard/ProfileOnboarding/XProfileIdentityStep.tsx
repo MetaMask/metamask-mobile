@@ -2,10 +2,10 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Icon,
   IconName,
   IconSize,
+  Switch,
   Text,
   TextColor,
   TextField,
@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, Switch, type LayoutChangeEvent } from 'react-native';
+import { Pressable, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   Easing,
   ReduceMotion,
@@ -30,7 +30,6 @@ import type {
   HardwareTier,
   NetworkTier,
 } from '../../../../util/deviceCapability/types';
-import { useTheme } from '../../../../util/theme';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { MAX_USERNAME_LENGTH } from './generateUsername';
@@ -50,40 +49,6 @@ interface XProfileIdentityStepProps {
   onShuffleUsername: () => void;
   onEditAvatar: () => void;
 }
-
-const IdentityToggle: React.FC<{
-  label: string;
-  value: boolean;
-  onValueChange: (enabled: boolean) => void;
-  testID: string;
-}> = ({ label, value, onValueChange, testID }) => {
-  const { brandColors, colors } = useTheme();
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      gap={3}
-    >
-      <Text variant={TextVariant.BodyMd} twClassName="flex-1">
-        {label}
-      </Text>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        accessibilityLabel={label}
-        ios_backgroundColor={colors.border.muted}
-        thumbColor={brandColors.white}
-        trackColor={{
-          false: colors.border.muted,
-          true: colors.primary.default,
-        }}
-        testID={testID}
-      />
-    </Box>
-  );
-};
 
 /**
  * X connect identity step. Reuses the manual username field and fox avatar,
@@ -377,18 +342,18 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
       </Box>
 
       <Box twClassName="mt-auto w-full pt-10 pb-4" gap={5}>
-        <IdentityToggle
+        <Switch
           label={strings(
             'social_leaderboard.profile_onboarding.use_x_username',
             { username: xUsername },
           )}
-          value={draft.useXUsername}
+          isOn={draft.useXUsername}
           onValueChange={onToggleUsername}
           testID={SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH}
         />
-        <IdentityToggle
+        <Switch
           label={strings('social_leaderboard.profile_onboarding.use_x_avatar')}
-          value={draft.useXAvatar}
+          isOn={draft.useXAvatar}
           onValueChange={onToggleAvatar}
           testID={SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH}
         />

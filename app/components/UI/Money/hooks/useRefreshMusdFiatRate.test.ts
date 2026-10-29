@@ -1,10 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../Earn/constants/musd';
 import useRefreshMusdFiatRate from './useRefreshMusdFiatRate';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../Earn/constants/musd';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

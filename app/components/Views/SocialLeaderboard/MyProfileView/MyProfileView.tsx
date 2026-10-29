@@ -4,12 +4,10 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandardAnimated,
   IconColor,
   IconName,
   Spinner,
@@ -36,6 +34,7 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import {
   TabsBar,
   type TabItem,
@@ -50,7 +49,6 @@ import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
@@ -82,6 +80,12 @@ import { traderProfileResponseToMySocialProfile } from './utils/traderProfileRes
 import type { MySocialProfile } from './hooks/useMyProfile';
 import type { ProfileAssetFilter } from './utils/splitPositionsByType';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+
+/** Same 12px slop the home header uses so each icon stays a comfortable tap. */
+const HEADER_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
+/** Icons sit on glass capsules; the default press fill would cover the material. */
+const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
 
 const { Filter, Interaction, Screen, Trade } = SocialEvent;
 const PROFILE_CONTENT_TABS = ['open', 'closed', 'posts'] as const;
@@ -418,7 +422,9 @@ const MyProfileView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={MyProfileViewSelectorsIDs.CONTAINER}
       >
-        <HeaderStandardAnimated
+        <HeaderStandardAnimatedGlass
+          isFloating={false}
+          backdrop="none"
           includesTopInset
           scrollY={scrollYShared}
           titleSectionHeight={titleSectionHeightSv}
@@ -456,35 +462,43 @@ const MyProfileView: React.FC = () => {
             ) : undefined
           }
           onBack={handleBack}
-          backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
-          endAccessory={
-            !isOwner && traderId ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
-                <ButtonIcon
-                  iconName={IconName.Share}
-                  iconProps={{ color: IconColor.IconDefault }}
-                  size={ButtonIconSize.Md}
-                  onPress={handleShareTraderDeeplink}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.my_profile.share_profile',
-                  )}
-                  testID={MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON}
-                />
-              </SocialHeaderGlassSurface>
-            ) : isOwner && displayProfile ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
-                <ButtonIcon
-                  iconName={IconName.Edit}
-                  iconProps={{ color: IconColor.IconDefault }}
-                  size={ButtonIconSize.Md}
-                  onPress={handleOpenComposer}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.my_profile.create_post',
-                  )}
-                  testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
-                />
-              </SocialHeaderGlassSurface>
-            ) : undefined
+          backButtonProps={{
+            testID: MyProfileViewSelectorsIDs.BACK_BUTTON,
+            hitSlop: HEADER_ICON_HIT_SLOP,
+            twClassName: HEADER_ICON_BUTTON_CLASS,
+          }}
+          endButtonIconProps={
+            !isOwner && traderId
+              ? [
+                  {
+                    iconName: IconName.Share,
+                    iconProps: { color: IconColor.IconDefault },
+                    size: ButtonIconSize.Md,
+                    onPress: handleShareTraderDeeplink,
+                    accessibilityLabel: strings(
+                      'social_leaderboard.my_profile.share_profile',
+                    ),
+                    testID: MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON,
+                    hitSlop: HEADER_ICON_HIT_SLOP,
+                    twClassName: HEADER_ICON_BUTTON_CLASS,
+                  },
+                ]
+              : isOwner && displayProfile
+                ? [
+                    {
+                      iconName: IconName.Share,
+                      iconProps: { color: IconColor.IconDefault },
+                      size: ButtonIconSize.Md,
+                      onPress: handleShareProfile,
+                      accessibilityLabel: strings(
+                        'social_leaderboard.my_profile.share_profile',
+                      ),
+                      testID: MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON,
+                      hitSlop: HEADER_ICON_HIT_SLOP,
+                      twClassName: HEADER_ICON_BUTTON_CLASS,
+                    },
+                  ]
+                : undefined
           }
           testID={MyProfileViewSelectorsIDs.HEADER}
         />
@@ -572,10 +586,13 @@ const MyProfileView: React.FC = () => {
                     <Button
                       variant={ButtonVariant.Secondary}
                       isFullWidth
-                      onPress={handleShareProfile}
-                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                      onPress={handleOpenComposer}
+                      accessibilityLabel={strings(
+                        'social_leaderboard.my_profile.create_post',
+                      )}
+                      testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
                     >
-                      {strings('social_leaderboard.my_profile.share_profile')}
+                      {strings('social_leaderboard.my_profile.create_post')}
                     </Button>
                   </Box>
                   <Box twClassName="flex-1">
