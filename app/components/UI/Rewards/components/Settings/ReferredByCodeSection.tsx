@@ -33,6 +33,7 @@ import {
   MONEY_REFERRAL_CODE_MIN_LENGTH,
   useValidateMoneyReferralCode,
 } from '../../hooks/useValidateMoneyReferralCode';
+import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './ReferredByCodeSection.testIds';
 /** Alphanumeric upper-case only, capped at the Money code max length. */
 const normalizeInviteCodeInput = (value: string) =>
   value
@@ -195,7 +196,10 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
 
   return (
     <>
-      <Box testID="referred-by-code-section" twClassName="flex-col px-4">
+      <Box
+        testID={REFERRED_BY_CODE_SECTION_TEST_IDS.SECTION}
+        twClassName="flex-col px-4"
+      >
         <Box twClassName="gap-2 pb-2">
           <Text variant={TextVariant.HeadingMd}>
             {localizedText?.settingsReferralTitle ?? ''}
@@ -219,7 +223,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
               autoComplete: 'off',
               maxLength: MONEY_REFERRAL_CODE_MAX_LENGTH,
               accessibilityLabel: localizedText?.settingsReferralTitle ?? '',
-              testID: 'referred-by-code-input',
+              testID: REFERRED_BY_CODE_SECTION_TEST_IDS.INPUT,
             }}
           />
           {!hasStoredCode && Boolean(errorMessage) && (
@@ -228,7 +232,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
               twClassName="text-error-default mt-1"
               accessibilityRole="alert"
               accessibilityLiveRegion="polite"
-              testID="referred-by-code-error"
+              testID={REFERRED_BY_CODE_SECTION_TEST_IDS.ERROR}
             >
               {errorMessage}
             </Text>
@@ -244,7 +248,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
               isLoading={isAccepting}
               isDisabled={!canApply}
               onPress={handleApply}
-              testID="referred-by-code-apply"
+              testID={REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY}
             >
               {localizedText?.settingsReferralApply ?? ''}
             </Button>

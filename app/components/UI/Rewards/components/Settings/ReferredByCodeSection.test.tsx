@@ -133,27 +133,6 @@ describe('ReferredByCodeSection', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('shows the stored code without an apply button', () => {
-    jest.mocked(selectReferralMeEntry).mockReturnValue({
-      ...openEntry,
-      data: openEntry.data
-        ? {
-            ...openEntry.data,
-            referred_by: { referral_code: 'ABC123' },
-          }
-        : null,
-    });
-
-    const { getByTestId, getByText, queryByTestId } = renderSection();
-
-    expect(getByTestId('referred-by-code-input').props.value).toBe('ABC123');
-    expect(
-      getByText('Earn rewards for both you and your friend.'),
-    ).toBeOnTheScreen();
-    expect(queryByTestId('referred-by-code-apply')).toBeNull();
-    expect(mockTrackEvent).not.toHaveBeenCalled();
-  });
-
   it('renders nothing when referral me has no cached payload', () => {
     jest.mocked(selectReferralMeEntry).mockReturnValue({
       loading: false,
@@ -192,25 +171,6 @@ describe('ReferredByCodeSection', () => {
 
     expect(mockClearError).toHaveBeenCalled();
     expect(mockSetReferralCode).toHaveBeenCalledWith('AB12CD');
-  });
-
-  it('applies a valid code', async () => {
-    jest.mocked(useValidateMoneyReferralCode).mockReturnValue({
-      referralCode: 'ABC123',
-      setReferralCode: mockSetReferralCode,
-      validateCode: jest.fn(),
-      isValidating: false,
-      isValid: true,
-      isUnknownError: false,
-    });
-
-    const { getByTestId } = renderSection();
-
-    fireEvent.press(getByTestId('referred-by-code-apply'));
-
-    await waitFor(() =>
-      expect(mockAcceptReferralCode).toHaveBeenCalledWith('ABC123'),
-    );
   });
 
   it('shows an invalid code the same way as the invite sheet', () => {

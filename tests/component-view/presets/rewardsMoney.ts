@@ -445,6 +445,17 @@ export interface RewardsMoneyViewStateOptions {
   persona?: MoneyDashboardPersona;
   summary?: EarningsSummaryDto | null;
   /**
+   * Cached `GET /referral/me`. Omitted uses the persona fixture. The Settings
+   * gear and referral field read this cache, the `REFERRER` role, and geo.
+   */
+  referralMe?: ReferralMeDto;
+  /** Points subscription. Null leaves Rewards Settings on the referral field. */
+  subscriptionId?: string | null;
+  /** Device country. Null fails open for a Money referral. */
+  geoLocation?: string | null;
+  /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
+  moneyControllerEnabled?: boolean;
+  /**
    * Monad Money account plus the vault and gas-sponsorship flags a claim
    * batch checks before it asks for a voucher.
    */
@@ -465,9 +476,13 @@ export function rewardsMoneyViewState({
   summary = CLAIMABLE_EARNINGS_SUMMARY,
   claimReady = false,
   claimGates,
+  referralMe: referralMeOverride,
+  subscriptionId = null,
+  geoLocation = null,
+  moneyControllerEnabled = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
-  const referralMe = referralMeFixture(persona);
+  const referralMe = referralMeOverride ?? referralMeFixture(persona);
   const account = moneyAccount();
   const monadVault = claimGates?.monadVault ?? claimReady;
   const gasSponsorship = claimGates?.gasSponsorship ?? claimReady;
@@ -481,6 +496,12 @@ export function rewardsMoneyViewState({
       [MONAD_MAINNET_CHAIN_ID]: true,
     };
   }
+  if (moneyControllerEnabled) {
+    remoteFeatureFlags.rewardsMoneyControllerEnabled = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+    };
+  }
 
   return createStateFixture()
     .withMinimalAccounts()
@@ -492,7 +513,8 @@ export function rewardsMoneyViewState({
     .withOverrides({
       rewards: {
         ...pointsRewardsInitialState,
-        candidateSubscriptionId: null,
+        candidateSubscriptionId: subscriptionId,
+        geoLocation,
       },
       rewardsMoney: {
         ...rewardsMoneyInitialState,
@@ -528,6 +550,18 @@ export function rewardsMoneyViewState({
           MoneyAccountController: {
             moneyAccounts: includeMoneyAccount ? { [account.id]: account } : {},
           },
+          ...(subscriptionId
+            ? {
+                RewardsController: {
+                  activeAccount: {
+                    account: `eip155:1:${REWARDS_MONEY_ACCOUNT_ADDRESS}`,
+                    subscriptionId,
+                    perpsFeeDiscount: null,
+                    lastPerpsDiscountRateFetched: null,
+                  },
+                },
+              }
+            : {}),
         },
       },
     })

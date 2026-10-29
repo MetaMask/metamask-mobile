@@ -28,6 +28,7 @@ import { selectInternalAccountsByGroupId } from '../../../../../selectors/multic
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
 import OptOutSection from './OptOutSection';
 import ReferredByCodeSection from './ReferredByCodeSection';
+import { REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS } from './RewardSettingsAccountGroupList.testIds';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
@@ -408,7 +409,10 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
   const listHeader = (
     <>
       <ReferredByCodeSection showTrailingDivider />
-      <Box testID="rewards-settings-header" twClassName="px-4">
+      <Box
+        testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.HEADER}
+        twClassName="px-4"
+      >
         <Box twClassName="gap-2 pb-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.settings.subtitle')}
@@ -498,7 +502,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
   // Account list using FlashList for better performance
   return (
     <FlashList
-      testID="rewards-settings-flash-list"
+      testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.FLASH_LIST}
       data={flattenedData}
       renderItem={renderFlatListItem}
       keyExtractor={keyExtractor}
@@ -520,7 +524,7 @@ const RewardSettingsAccountGroupList: React.FC<
   if (!subscriptionId) {
     return (
       <ScrollView
-        testID="rewards-settings-referral-only"
+        testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.REFERRAL_ONLY}
         keyboardShouldPersistTaps="handled"
         style={tw.style('flex-1')}
       >

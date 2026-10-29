@@ -7,7 +7,6 @@ import type {
   ReferralMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
@@ -19,14 +18,8 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import { selectSettingsReferralAvailable } from '../../../../reducers/rewardsMoney/selectors';
 import RewardsMoneyDashboard from './RewardsMoneyDashboard';
 import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
-
-jest.mock('../../../../reducers/rewardsMoney/selectors', () => ({
-  ...jest.requireActual('../../../../reducers/rewardsMoney/selectors'),
-  selectSettingsReferralAvailable: jest.fn(() => true),
-}));
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
@@ -316,7 +309,6 @@ const renderDashboard = ({
 describe('RewardsMoneyDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(selectSettingsReferralAvailable).mockReturnValue(true);
     jest.spyOn(analytics, 'trackEvent').mockImplementation(() => undefined);
     mockParentNavigatorType = 'tab';
     mockBuild.mockReturnValue({ event: 'mock-event' });
@@ -653,58 +645,6 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
     ).not.toBeOnTheScreen();
-  });
-
-  it('opens Rewards settings from the header when there is no subscription', () => {
-    const { getByTestId } = renderDashboard({ subscriptionId: null });
-
-    fireEvent.press(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-      screen: Routes.REWARDS_SETTINGS_VIEW,
-      params: undefined,
-    });
-  });
-
-  it('hides settings without a subscription when the money referral is unavailable', () => {
-    jest.mocked(selectSettingsReferralAvailable).mockReturnValue(false);
-    const { queryByTestId } = renderDashboard({ subscriptionId: null });
-
-    expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
-    ).not.toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('opens Rewards settings from the header when subscribed', () => {
-    const { getByTestId } = renderDashboard();
-
-    fireEvent.press(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-      screen: Routes.REWARDS_SETTINGS_VIEW,
-      params: undefined,
-    });
-  });
-
-  it('opens Rewards settings when subscribed even if the money referral is unavailable', () => {
-    jest.mocked(selectSettingsReferralAvailable).mockReturnValue(false);
-    const { getByTestId } = renderDashboard();
-    const settingsButton = getByTestId(
-      REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON,
-    );
-
-    fireEvent.press(settingsButton);
-
-    expect(settingsButton).not.toBeDisabled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-      screen: Routes.REWARDS_SETTINGS_VIEW,
-      params: undefined,
-    });
   });
 
   it('keeps the hero and hides the banner when referral me refresh fails with cached data', () => {
