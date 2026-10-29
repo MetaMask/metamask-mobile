@@ -11,6 +11,17 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
     },
 
+    /**
+     * Invisible full-height measurement text. Must stay in the layout width of
+     * the visible description so line wrapping matches, but must not affect
+     * visual layout or accessibility.
+     */
+    measureText: {
+      position: 'absolute',
+      opacity: 0,
+      width: '100%',
+    } as TextStyle,
+
     disclaimer: {
       paddingTop: 16,
     } as TextStyle,
