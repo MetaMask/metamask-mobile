@@ -19,11 +19,11 @@ import {
 } from './vbaScreenPerformance';
 
 jest.mock('../../../KYC/Views/EmailAdapter', () => () => null);
-jest.mock('../../../KYC/Views/Status/IdentityVerified', () => () => null);
 jest.mock('../../../KYC/Views/SumSub/IdentityVerification', () => () => null);
 jest.mock('./modules/VbaStatusAdapters', () => ({
   VbaAccountProvisioningErrorAdapter: () => null,
   VbaErrorAdapter: () => null,
+  VbaIdentityVerifiedAdapter: () => null,
   VbaKycPendingAdapter: () => null,
   VbaKycRejectedAdapter: () => null,
 }));
