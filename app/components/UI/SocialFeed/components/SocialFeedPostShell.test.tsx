@@ -159,6 +159,7 @@ const renderShell = (
   const shell = (
     <SocialFeedPostShell
       post={post}
+      requireSocialTerms
       onAuthorPress={options?.onAuthorPress}
       onPositionPress={options?.onPositionPress}
       onCopyTrade={options?.onCopyTrade}

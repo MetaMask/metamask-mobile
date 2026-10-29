@@ -71,6 +71,7 @@ describe('handleSocialTraderPositionUrl', () => {
   });
 
   it('tracks the notification click but does not open the position when the Social terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
     jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
 
     handleSocialTraderPositionUrl({
@@ -84,6 +85,7 @@ describe('handleSocialTraderPositionUrl', () => {
   });
 
   it('does not open the fallback when the Social terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
     jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
 
     handleSocialTraderPositionUrl({ actionPath: '?traderId=trader-1' });

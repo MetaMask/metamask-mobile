@@ -51,12 +51,6 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { LEADERBOARD_LANDING_FEED_AB_KEY } from '../../../SocialLeaderboard/SocialV0View/abTestConfig';
 // eslint-disable-next-line import-x/no-restricted-paths -- test-only: drives the A/B assignments this entry point forwards
 import { SOCIAL_V1_AB_KEY } from '../../../SocialLeaderboard/SocialV1View/abTestConfig';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
-import {
-  acceptSocialTerms,
-  resetSocialTermsAcceptance,
-} from '../../../SocialLeaderboard/terms/socialTermsAcceptance';
-/* eslint-enable import-x/no-restricted-paths */
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -89,14 +83,6 @@ const readRouteParams = async (routeName: string) => {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-
-beforeEach(async () => {
-  await acceptSocialTerms();
-});
-
-afterEach(async () => {
-  await resetSocialTermsAcceptance();
-});
 
 describeForPlatforms('Homepage TopTradersSection', () => {
   let measurementSpy: jest.SpyInstance;

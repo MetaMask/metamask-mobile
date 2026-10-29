@@ -43,7 +43,10 @@ const parseSocialTraderPositionNavigationParams = (
 };
 
 const navigateToFallback = () => {
-  if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+  ) {
     return;
   }
   NavigationService.navigation.navigate(
@@ -135,7 +138,11 @@ export const handleSocialTraderPositionUrl = ({
 
     const openedFromNotification = notificationSubtype !== undefined;
 
-    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+    const isV1Treatment = isSocialV1Treatment();
+    if (
+      isV1Treatment &&
+      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+    ) {
       return;
     }
     NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
@@ -145,7 +152,7 @@ export const handleSocialTraderPositionUrl = ({
       originalEntryPoint: openedFromNotification ? 'notification' : 'deep_link',
       notificationSubtype,
       notificationTemplateVariant,
-      isSocialV1: isSocialV1Treatment(),
+      isSocialV1: isV1Treatment,
     });
   } catch (error) {
     DevLogger.log(

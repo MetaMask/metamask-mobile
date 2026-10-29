@@ -41,7 +41,6 @@ import {
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
 import { areTradingSignalsChannelsDisabled } from '../../SocialLeaderboard/NotificationPreferences/hooks/tradingSignalsChannels';
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
-import { useSocialTermsGate } from '../../SocialLeaderboard/terms/useSocialTermsGate';
 
 const AVATAR_SIZE = 40;
 
@@ -159,19 +158,14 @@ const SocialAINotificationPreferencesContent = ({
     isTraderNotificationEnabled,
   } = useNotificationPreferences();
 
-  const { ensureSocialTermsAccepted } = useSocialTermsGate();
-
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
-      if (!ensureSocialTermsAccepted()) {
-        return;
-      }
       navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
       });
     },
-    [ensureSocialTermsAccepted, navigation],
+    [navigation],
   );
 
   const showPreferencesSkeleton = isLoadingPreferences;

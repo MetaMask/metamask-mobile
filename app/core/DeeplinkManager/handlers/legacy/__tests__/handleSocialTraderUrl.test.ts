@@ -47,6 +47,7 @@ describe('handleSocialTraderUrl', () => {
   });
 
   it('stops before opening a profile when the Social terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
     mockEnsureSocialTermsAccepted.mockReturnValue(false);
 
     handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });

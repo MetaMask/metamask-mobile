@@ -5,6 +5,10 @@ import { useSocialTermsGate } from '../terms/useSocialTermsGate';
 /** The follow or unfollow write. A follow runs before notification setup. */
 type PerformFollow = () => void | Promise<void>;
 
+export interface UseFollowWithNotificationSetupOptions {
+  requireSocialTerms?: boolean;
+}
+
 export interface UseFollowWithNotificationSetupResult {
   /**
    * Runs `performFollow` immediately. When the action is a *follow* (not an
@@ -35,27 +39,28 @@ export interface UseFollowWithNotificationSetupResult {
  * Shared by the leaderboard, the trader profile, and the home carousel, which
  * all wrap their own `toggleFollow` call in this same prompt.
  */
-export const useFollowWithNotificationSetup =
-  (): UseFollowWithNotificationSetupResult => {
-    const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
-    const { ensureSocialTermsAccepted } = useSocialTermsGate();
+export const useFollowWithNotificationSetup = ({
+  requireSocialTerms = false,
+}: UseFollowWithNotificationSetupOptions = {}): UseFollowWithNotificationSetupResult => {
+  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+  const { ensureSocialTermsAccepted } = useSocialTermsGate();
 
-    const followWithSetup = useCallback(
-      async (isFollowing: boolean, performFollow: PerformFollow) => {
-        if (!ensureSocialTermsAccepted()) {
-          return;
-        }
-        await performFollow();
-        // Setup has no deferred follow. Passing `performFollow` would toggle
-        // again once a channel is enabled and unfollow the trader.
-        if (!isFollowing) {
-          openSetupIfNeeded();
-        }
-      },
-      [ensureSocialTermsAccepted, openSetupIfNeeded],
-    );
+  const followWithSetup = useCallback(
+    async (isFollowing: boolean, performFollow: PerformFollow) => {
+      if (requireSocialTerms && !ensureSocialTermsAccepted()) {
+        return;
+      }
+      await performFollow();
+      // Setup has no deferred follow. Passing `performFollow` would toggle
+      // again once a channel is enabled and unfollow the trader.
+      if (!isFollowing) {
+        openSetupIfNeeded();
+      }
+    },
+    [ensureSocialTermsAccepted, openSetupIfNeeded, requireSocialTerms],
+  );
 
-    return { followWithSetup };
-  };
+  return { followWithSetup };
+};
 
 export default useFollowWithNotificationSetup;

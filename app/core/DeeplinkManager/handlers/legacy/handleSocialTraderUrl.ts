@@ -20,6 +20,12 @@ const parseTraderId = (actionPath: string): string | undefined => {
 };
 
 const navigateToFallback = () => {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+  ) {
+    return;
+  }
   NavigationService.navigation.navigate(
     getFollowTradingHomeRoute(),
     undefined,
@@ -44,9 +50,6 @@ export const handleSocialTraderUrl = ({
   );
 
   try {
-    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
-      return;
-    }
     const traderId = parseTraderId(actionPath);
     DevLogger.log('[handleSocialTraderUrl] Parsed navigation parameters:', {
       traderId,
@@ -60,7 +63,15 @@ export const handleSocialTraderUrl = ({
       return;
     }
 
-    if (isSocialV1Treatment()) {
+    const isV1Treatment = isSocialV1Treatment();
+    if (
+      isV1Treatment &&
+      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+    ) {
+      return;
+    }
+
+    if (isV1Treatment) {
       navigateToSocialV1Profile(NavigationService.navigation, {
         traderId,
         source: 'deep_link',

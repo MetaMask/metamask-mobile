@@ -101,7 +101,7 @@ export const pushSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  if (!ensureSocialTermsAccepted(navigate)) {
+  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
     return;
   }
   if (shouldShowSocialLeaderboardOnboarding()) {
@@ -153,7 +153,7 @@ export const navigateToSocialTab = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  if (!ensureSocialTermsAccepted(navigate)) {
+  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
     return;
   }
   if (shouldShowSocialLeaderboardOnboarding()) {

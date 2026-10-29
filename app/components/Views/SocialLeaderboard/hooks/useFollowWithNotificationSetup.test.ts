@@ -33,7 +33,9 @@ describe('useFollowWithNotificationSetup', () => {
     const openSetupIfNeeded = setGate(true);
     const performFollow = jest.fn();
 
-    const { result } = renderHook(() => useFollowWithNotificationSetup());
+    const { result } = renderHook(() =>
+      useFollowWithNotificationSetup({ requireSocialTerms: true }),
+    );
     await result.current.followWithSetup(false, performFollow);
 
     expect(performFollow).not.toHaveBeenCalled();
