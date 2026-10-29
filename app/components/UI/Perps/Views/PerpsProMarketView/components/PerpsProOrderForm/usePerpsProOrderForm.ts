@@ -64,6 +64,7 @@ import {
   resolvePerpsMaxSlippageBps,
 } from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
+import type { PerpsOrderPriceField } from '../../../../hooks/usePerpsOrderForm';
 import { usePerpsSavePendingConfig } from '../../../../hooks/usePerpsSavePendingConfig';
 import {
   useHasExistingPosition,
@@ -72,6 +73,7 @@ import {
   usePerpsNetwork,
   usePerpsOrderExecution,
   usePerpsOrderFees,
+  usePerpsQuotedFeeReservation,
   usePerpsOrderValidation,
   usePerpsToasts,
   usePerpsTrading,
@@ -717,6 +719,8 @@ export const usePerpsProOrderForm = ({
     maxPossibleAmount,
     setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
+    orderBookSizeFill,
+    clearOrderBookSizeFill,
   } = usePerpsOrderContext();
 
   // Restore reduce-only from the 30s pending draft.
@@ -752,6 +756,12 @@ export const usePerpsProOrderForm = ({
   const [chaseMaxDistanceUnit, setChaseMaxDistanceUnit] = useState<
     'usd' | 'percent'
   >('usd');
+  // The distance the last order-book tap wrote to Chase max distance, and the
+  // tapped price it came from.
+  const [orderBookChaseEntry, setOrderBookChaseEntry] = useState<{
+    price: string;
+    distance: string;
+  }>();
   const activeChaseCount = useMemo(
     () => chaseOrders.filter(occupiesChasePlacementSlot).length,
     [chaseOrders],
@@ -1191,6 +1201,45 @@ export const usePerpsProOrderForm = ({
     orderForm.limitPrice,
     szDecimals,
   );
+  // An order-book row fill sizes the order by the row's exact base size until
+  // the amount or the field it filled changes. A field the order type does not
+  // use holds no price.
+  const orderBookFillFieldPrices: Record<
+    PerpsOrderPriceField,
+    string | undefined
+  > = {
+    limit: isLimitExecutionOrderType(orderForm.type)
+      ? normalizedLimitPrice
+      : undefined,
+    trigger: isTriggerOrderType(orderForm.type)
+      ? normalizedTriggerPrice
+      : undefined,
+    scaleStart: isScaleOrder ? scaleStartPrice : undefined,
+    scaleEnd: isScaleOrder ? scaleEndPrice : undefined,
+    // Chase keeps a distance from the live price, so the tapped price stands
+    // while the distance the tap wrote does.
+    chaseMaxDistance:
+      orderForm.type === 'chase' &&
+      orderBookChaseEntry?.distance === chaseMaxDistance
+        ? orderBookChaseEntry.price
+        : undefined,
+  };
+  const orderBookFillPrice =
+    orderBookSizeFill && orderBookFillFieldPrices[orderBookSizeFill.field];
+  const orderBookFillSize =
+    orderBookSizeFill !== undefined &&
+    orderBookFillPrice !== undefined &&
+    orderBookSizeFill.amount === orderForm.amount &&
+    new BigNumber(orderBookSizeFill.price).eq(orderBookFillPrice)
+      ? orderBookSizeFill.size
+      : undefined;
+  // Once the amount or price moves off the fill, drop it: setting them back
+  // is a new entry and sizes from the amount.
+  useEffect(() => {
+    if (orderBookSizeFill !== undefined && orderBookFillSize === undefined) {
+      clearOrderBookSizeFill();
+    }
+  }, [clearOrderBookSizeFill, orderBookFillSize, orderBookSizeFill]);
 
   const effectiveInputPrice = useMemo(
     () =>
@@ -1261,7 +1310,16 @@ export const usePerpsProOrderForm = ({
     keepSizeEmpty: keepReduceOnlySizeEmpty,
     preserveMaxIntent: orderForm.type === 'chase',
     preserveAssetIntent: isVenueSizedScale,
+    fillAssetAmount: orderBookFillSize,
   });
+  // A slider preview or typed draft is a new size intent, so the row size only
+  // sizes, validates and places the order while the amount in use is the
+  // filled one.
+  const exactOrderBookFillSize =
+    orderBookSizeFill !== undefined &&
+    new BigNumber(effectiveUsdAmount).eq(orderBookSizeFill.amount)
+      ? orderBookFillSize
+      : undefined;
   const isTwapOrder = orderForm.type === 'twap';
   const isChaseOrder = orderForm.type === 'chase';
   const orderProviderId = isTwapOrder
@@ -1328,7 +1386,8 @@ export const usePerpsProOrderForm = ({
   ]);
   const isExactFullClose = exactFullCloseSize !== undefined;
 
-  const scaleBaseSize = exactFullCloseSize ?? exactAssetAmount;
+  const scaleBaseSize =
+    exactFullCloseSize ?? exactAssetAmount ?? exactOrderBookFillSize;
   // A live USD projection is display-only when the trader chose asset units.
   const scaleUsdAmount =
     scaleBaseSize === undefined ? effectiveUsdAmount : undefined;
@@ -1411,9 +1470,10 @@ export const usePerpsProOrderForm = ({
     const orderCount = Number(scaleTotalOrders);
     const skew = Number(scaleSizeSkew);
     const targetOrderValue = new BigNumber(effectiveUsdAmount);
-    const targetExposure = new BigNumber(
-      exactFullCloseSize ?? exactAssetAmount ?? effectiveUsdAmount,
-    );
+    const targetExposure = new BigNumber(scaleBaseSize ?? effectiveUsdAmount);
+    // A full close or an order-book row size is split as given rather than
+    // grown to the USD target.
+    const exactTotalSize = exactFullCloseSize ?? exactOrderBookFillSize;
 
     if (
       !Number.isFinite(minPrice) ||
@@ -1489,7 +1549,7 @@ export const usePerpsProOrderForm = ({
         )
         .div(weightTotal);
       let totalSize =
-        exactFullCloseSize ??
+        exactTotalSize ??
         targetOrderValue
           .div(weightedAveragePrice)
           .decimalPlaces(szDecimals, BigNumber.ROUND_CEIL)
@@ -1517,7 +1577,7 @@ export const usePerpsProOrderForm = ({
 
       let rungs = buildRungs(totalSize);
       let orderValue = getOrderValue(rungs);
-      if (exactFullCloseSize === undefined && orderValue.lt(targetOrderValue)) {
+      if (exactTotalSize === undefined && orderValue.lt(targetOrderValue)) {
         const sizeMultiplier = new BigNumber(10).pow(szDecimals);
         const initialSizeUnits = new BigNumber(totalSize)
           .times(sizeMultiplier)
@@ -1653,8 +1713,9 @@ export const usePerpsProOrderForm = ({
     }
   }, [
     effectiveUsdAmount,
-    exactAssetAmount,
     exactFullCloseSize,
+    exactOrderBookFillSize,
+    scaleBaseSize,
     scaleMinimumOrderAmount,
     scaleEndPrice,
     scaleSizeSkew,
@@ -1708,6 +1769,8 @@ export const usePerpsProOrderForm = ({
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
+  // Size the max off the same resolved quote that drives the displayed fee.
+  usePerpsQuotedFeeReservation(feeResults.totalFeeRate);
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
   // Scale endpoints are compared against the side of the book they would hit:
@@ -1837,6 +1900,7 @@ export const usePerpsProOrderForm = ({
         isBuy: orderForm.direction === 'long',
         maxSlippageBps: resolvedMaxSlippageBps,
         isLoadingMarketData,
+        size: exactOrderBookFillSize,
       }),
     [
       calculationUsdAmount,
@@ -1850,6 +1914,7 @@ export const usePerpsProOrderForm = ({
       szDecimals,
       isLoadingMarketData,
       resolvedMaxSlippageBps,
+      exactOrderBookFillSize,
     ],
   );
   const submissionPositionSize =
@@ -2080,8 +2145,11 @@ export const usePerpsProOrderForm = ({
       isReduceOnlyPositionLoading ||
       (orderForm.type === 'chase' &&
         (!isChaseEnabled || chaseProviderId === null)),
+    // Providers re-derive the size from a USD amount, so exact sizes omit it.
     originalUsdAmount:
-      isExactFullClose || isScaleOrder ? undefined : effectiveUsdAmount,
+      isExactFullClose || isScaleOrder || exactOrderBookFillSize !== undefined
+        ? undefined
+        : effectiveUsdAmount,
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
     providerId:
@@ -2172,7 +2240,7 @@ export const usePerpsProOrderForm = ({
         maxPrice: scaleEndPrice,
         count: scaleTotalOrders,
         skew: scaleSizeSkew,
-        size: exactFullCloseSize ?? exactAssetAmount,
+        size: scaleBaseSize,
         usdAmount: effectiveUsdAmount,
         isBuy: orderForm.direction === 'long',
         reduceOnly,
@@ -2230,8 +2298,7 @@ export const usePerpsProOrderForm = ({
     scaleEndPrice,
     scaleTotalOrders,
     scaleSizeSkew,
-    exactFullCloseSize,
-    exactAssetAmount,
+    scaleBaseSize,
     effectiveUsdAmount,
     reduceOnly,
     scalePreview.observationGeneration,
@@ -3317,7 +3384,10 @@ export const usePerpsProOrderForm = ({
         orderType: placementOrderForm.type,
         effectivePrice: placementEffectivePrice,
         leverage: placementOrderForm.leverage,
-        usdAmount: placementIsExactFullClose ? undefined : placementUsdAmount,
+        usdAmount:
+          placementIsExactFullClose || exactOrderBookFillSize !== undefined
+            ? undefined
+            : placementUsdAmount,
         maxSlippageBps: resolvedMaxSlippageBps,
         limitPrice: finalizedLimitPrice,
         chaseMaxDistanceBps: latestChaseMaxDistanceBps,
@@ -4133,6 +4203,10 @@ export const usePerpsProOrderForm = ({
                 )
               : formatChaseDistanceValue(distance);
           setChaseMaxDistance(nextValue);
+          setOrderBookChaseEntry({
+            price: tappedPrice.toFixed(),
+            distance: nextValue,
+          });
         }),
     });
 

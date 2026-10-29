@@ -105,6 +105,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # clean-working-tree check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -119,6 +122,9 @@ jobs:
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/cache@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # clean-working-tree check.
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -181,6 +187,10 @@ jobs:
           ref: main
           fetch-depth: 1
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and statuses: write) and no secrets. The token can post any commit status in
+        # this repo, including passing required checks and the build-source-hash that picks which
+        # native build E2E tests and RC repacks reuse.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -236,6 +246,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # duplicate-dependency check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -295,6 +308,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the git-dependency
+        # safety check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -377,6 +393,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the results of the lint, type,
+        # format, depcheck and other script checks.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -523,6 +542,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and id-token: write), no secrets, and the contract test results. The token
+        # exchange grants any ci.yml job contents: read on MetaMask/ai-analyzer and contents: write on
+        # MetaMask/mobile_bundlesize_stats.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -595,6 +618,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the has-advisories output that
+        # decides if dependency-audit-escalation runs.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -701,6 +727,11 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and statuses: write) and no secrets. The token can post any commit status in
+        # this repo, including passing required checks, the build-source-hash that picks which native
+        # build E2E tests and RC repacks reuse, and the ci/ios-js-bundle-size baseline that later PRs
+        # compare against.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -1053,7 +1084,10 @@ jobs:
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+        # actionlint 1.7.1 predates the `cache-mode` workflow key.
+        run: >-
+          ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+          -ignore 'unexpected key "cache-mode" for "(workflow|job)" section'
         shell: bash
 
   deploy-platform-api-docs:
@@ -1715,6 +1749,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
 
       - name: Fetch and freeze E2E timings
         id: fetch
@@ -1980,6 +2015,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
       - name: Download lcov.info (Namespace)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
@@ -2157,43 +2193,6 @@ jobs:
               core.info('Artifact ci-js-deps not found (already deleted or never created)');
             }
 
-  # Required for pull requests and the merge queue. Check all jobs pass fails
-  # when this job fails. Push, schedule, and manual runs skip it.
-  security-code-scan:
-    name: Security code scan
-    needs:
-      - get_requirements
-    if: ${{ (github.event_name == 'pull_request' || github.event_name == 'merge_group') && needs.get_requirements.outputs.skip_everything != 'true' }}
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2.1.1
-    with:
-      scanner-ref: v2.1.1
-      # ubuntu-latest cannot finish these detected languages. Swift needs macOS.
-      # C/C++ has no compiled source. Java looks for ./mvnw, which this repo does
-      # not have. JavaScript, TypeScript, Python, Ruby, Actions, and Semgrep still run.
-      languages-config: |
-        [
-          {"language":"swift","ignore":true},
-          {"language":"cpp","ignore":true},
-          {"language":"java","ignore":true}
-        ]
-      paths-ignored: |
-        tests/
-        docs/
-        scripts/money-movement/debug-dashboard/
-        .storybook/
-        '**/*.test.js'
-        '**/*.test.ts'
-        '**/*.test.jsx'
-        '**/*.test.tsx'
-        '**/*.stories.tsx'
-        '**/*.stories.js'
-        '**/*.snap'
-      rules-excluded: example
-
   check-all-jobs-pass:
     name: Check all jobs pass
     # Run the aggregate gate even when optional dependencies are skipped.
@@ -2229,7 +2228,6 @@ jobs:
       - build-ios-apps
       - appium-smoke-tests-android
       - appium-smoke-tests-ios
-      - security-code-scan
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}

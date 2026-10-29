@@ -14,7 +14,7 @@ import renderWithProvider, {
 import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
-import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
+import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
 import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
@@ -195,7 +195,7 @@ const hydratedSnapshot = (
 });
 
 const buildKycState = (session: KycSession) =>
-  initialStateWallet()
+  initialStateVba()
     .withOverrides({
       engine: {
         backgroundState: {

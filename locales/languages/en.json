@@ -545,14 +545,12 @@
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
     "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
     "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_1_1": "(like Face ID), reset your password there.",
     "forgot_password_point_2": "If you have your",
     "forgot_password_point_2_bold": "Secret Recovery Phrase,",
     "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
     "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc": "Your wallet data will be erased from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
@@ -1172,8 +1170,6 @@
       "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "verify_description": "placeholder for verify description",
-      "enroll_description": "placeholder for enroll description",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening email verification. Please try again."
     },
@@ -1204,14 +1200,16 @@
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
-      "description": "A few details need your attention. Review each item below, then try again.",
+      "description": "A few details need your attention. Review each item below, then contact support.",
+      "retry_description": "A few details need your attention. Review each item below, then try again.",
       "identity_document_title": "Check your identity document",
       "identity_document_description": "Make sure it is valid, clear, and fully visible",
       "selfie_title": "Retake your selfie",
       "selfie_description": "Use good lighting and show your face clearly",
       "details_title": "Review your details",
       "details_description": "Make sure your information matches your documents",
-      "button": "Try again"
+      "button": "Contact support",
+      "retry_button": "Try again"
     },
     "account_provisioning_error": {
       "title": "Couldn't create your account",
@@ -1250,10 +1248,10 @@
     },
     "vba_details": {
       "title": "Add money with Pix",
-      "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
+      "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
       "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
-      "copia_cola_label": "PIX Copia e Cola",
-      "pix_key_label": "PIX key",
+      "copia_cola_label": "Pix Copia e Cola",
+      "pix_key_label": "Pix key",
       "bank_transfer_title": "Add money by bank transfer",
       "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
       "account_holder_label": "Account holder",
@@ -1268,6 +1266,11 @@
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
       "retry": "Try again"
+    }
+  },
+  "social": {
+    "profile": {
+      "share_position": "Share position"
     }
   },
   "social_leaderboard": {
@@ -1287,7 +1290,8 @@
       "submit_report": "Submit",
       "post_hidden_confirmation": "Post hidden",
       "user_blocked_confirmation": "{{username}} has been blocked",
-      "report_confirmation": "Report submitted"
+      "report_confirmation": "Report submitted",
+      "action_failed": "Something went wrong. Try again."
     },
     "feed_sort": {
       "title": "Sort",
@@ -1385,6 +1389,11 @@
           "description": "Live activity will show up here."
         }
       },
+      "filter_empty": {
+        "title": "No matches",
+        "description": "Try fewer filters, or clear them all.",
+        "clear": "Clear filters"
+      },
       "empty_type": {
         "tokens": {
           "title": "No token activity"
@@ -1399,7 +1408,8 @@
       },
       "load_more": "Load more",
       "error": {
-        "title": "Couldn't load the feed",
+        "title": "The feed didn't load",
+        "description": "Give it a moment, then try again.",
         "retry": "Try again"
       },
       "sub_header": {
@@ -1425,17 +1435,25 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
-        "closed_ago": "Closed {{age}}"
+        "closed_ago": "Closed · {{age}}",
+        "sold_ago": "Sold · {{age}}"
       }
     },
+    "translation": {
+      "see_translation": "See translation",
+      "translating": "Translating...",
+      "translated_to_english": "Translated to English",
+      "failed": "Couldn't translate.",
+      "try_again": "Try again"
+    },
     "composer": {
-      "placeholder": "Share your thoughts about a position",
+      "placeholder": "Add a position and a few words to post",
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Position",
       "chip_gif": "GIF",
-      "gifs_title": "GIFs",
+      "gifs_title": "Add a GIF",
       "gifs_close": "Close GIFs",
       "gifs_search_placeholder": "Search GIFs",
       "gifs_empty": "No GIFs found",
@@ -1444,12 +1462,15 @@
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "hide_keyboard": "Hide keyboard",
-      "share_position_title": "Share a position",
+      "add_position_title": "Add a position",
       "tab_open": "Open",
       "tab_closed": "Closed",
       "section_tokens": "Tokens",
       "section_perps": "Perps",
-      "empty_title": "No positions to share",
+      "empty_title": "No positions to post yet",
+      "empty_help": "Why don't I see a position?",
+      "hidden_position_body": "Positions only appear here if they include at least one trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
+      "got_it": "Got it",
       "empty_description": "Create a position to share it here.",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
@@ -1462,16 +1483,22 @@
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
     "post_trade_share": {
-      "in_progress": "In progress...",
+      "swap_in_progress": "Swap in progress",
       "complete": "Swap complete",
       "failed": "Swap failed",
+      "order_in_progress": "Order in progress",
       "order_complete": "Order complete",
       "order_failed": "Order failed",
-      "share_and_earn_title": "Share and earn",
-      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
-      "share_this_trade": "Share this trade",
+      "post_and_earn_title": "Post and earn",
+      "post_and_earn_body": "You earn 15% on fees every time someone copies your trade",
+      "create_post": "Create post",
+      "create_profile_title": "MetaMask is now social",
+      "create_profile_body": "Create your profile and earn when others copy your trades",
+      "create_profile": "Create profile",
+      "view_activity": "View activity",
       "try_again": "Try again",
-      "close": "Close"
+      "close": "Close",
+      "post_to_feed": "Post to feed"
     },
     "shell": {
       "subnav": {
@@ -1497,7 +1524,12 @@
           "timeframe": "Time frame",
           "network": "Network",
           "market_cap": "Market cap",
-          "volume_24h": "24h volume"
+          "volume_24h": "24h volume",
+          "positions": "Positions"
+        },
+        "position_status": {
+          "open": "Open",
+          "closed": "Closed"
         },
         "type": {
           "all": "All",
@@ -1619,6 +1651,13 @@
       "closed": "Closed",
       "no_positions": "No positions yet",
       "error_loading_profile": "Couldn't load profile",
+      "more_options": "More options",
+      "profile_options": "Profile options",
+      "profile_options_description": "Blocking hides this profile's posts and positions on this device for this session. It also unfollows them.",
+      "block_user": "Block @{{name}}",
+      "unblock": "Unblock",
+      "blocked_title": "You blocked @{{name}}",
+      "blocked_description": "Their posts and positions are hidden on this device for this session.",
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
@@ -1650,7 +1689,6 @@
       "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
-      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
       "section_tokens": "Tokens",
       "section_perpetuals": "Perpetuals",
@@ -1660,13 +1698,7 @@
       "empty_closed_tokens": "No closed tokens",
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
-      "first_trade_prompt": "First trade?",
-      "empty_title": "Make your first post",
-      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
-      "other_empty_title": "No posts yet",
-      "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Create MetaMask post",
-      "debug_reset_profile": "debug: reset profile",
+      "empty_title": "No posts yet",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
@@ -1693,13 +1725,17 @@
       "username_label": "Username",
       "display_name_label": "Display name",
       "username_available": "Username available",
-      "username_invalid": "Use letters, numbers, and hyphens.",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
+      "username_invalid": "Use letters, numbers, and underscores.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_check_error": "Couldn't check that username. Check your connection and try again.",
       "connect_x_error": "Couldn't connect X. Check your connection and try again.",
       "save_error": "Couldn't create your profile. Check your connection and try again.",
+      "try_again": "Try again",
       "shuffle_username": "Suggest a username",
       "customize_avatar": "Choose an avatar",
+      "avatar_option_accessibility_label": "Avatar {{number}} of {{total}}",
       "avatar_background_peach": "Peach background",
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
@@ -1738,6 +1774,9 @@
       "save": "Save",
       "save_error": "Couldn't save changes. Check your connection and try again.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
+      "username_invalid": "Use letters, numbers, and underscores.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -1868,6 +1907,12 @@
       "order_summary": "Order summary",
       "includes_fee": "Includes {{feePercentage}}% fee",
       "includes_fee_with_bridge": "Includes {{feePercentage}}% fee + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_with_bridge": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_discounted": "Includes {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_discounted_with_bridge": "Includes {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_a11y": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%",
+      "includes_fee_after_promo_a11y_with_bridge": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, plus {{bridgeFee}} bridge fee",
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
@@ -2904,6 +2949,7 @@
       "no_positions": "No open positions",
       "card": {
         "position_title": "Position",
+        "post_to_feed": "Post to feed",
         "pnl_label": "P&L",
         "return_label": "Return",
         "size_label": "Size",
@@ -3069,8 +3115,9 @@
         "discount_message": "You're saving {{percentage}}% on fees as a VIP.",
         "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
         "promotional_discount": "Promotional discount",
+        "original_fee_value": "was {{fee}}",
         "fee_discount": "Fee discount",
-        "promotional_discount_message": "Promotional discount: {{percentage}}% off the MetaMask fee.",
+        "promotional_discount_message": "{{percentage}}% off the MetaMask fee.",
         "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."
       },
       "size_skew": {
@@ -3506,6 +3553,7 @@
       "layout": "Order book layout",
       "layout_left": "Left",
       "layout_right": "Right",
+      "size_on_click": "Set order book size on click",
       "apply": "Apply",
       "save": "Save",
       "collapse": "Hide order book",
@@ -3570,18 +3618,14 @@
       "title": "PnL Hero Card",
       "header_title": "Share your trade",
       "share_button": "Share",
-      "share_message_with_referral_code": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
       "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
       "share_failed": "Failed to export image",
-      "export_success": "Exported image",
-      "referral_code_text": "Use my referral code to earn extra rewards."
+      "export_success": "Exported image"
     },
     "share_position": {
       "title": "Share position",
       "post_to_metamask": "Post to MetaMask",
       "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
-      "post_not_ready": "This position isn't ready to post yet",
-      "post_other_account": "Only positions from your profile's wallet can be posted",
       "new_badge": "New",
       "share_externally": "Share externally"
     },
@@ -3643,9 +3687,17 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
+    "home_sections": {
+      "error": "Markets couldn’t be loaded.",
+      "retry": "Retry",
+      "unavailable": "No markets are available right now."
+    },
     "event": {
-      "your_positions": "Your positions"
+      "your_positions": "Your positions",
+      "game_lines": "Game Lines",
+      "outcome": "Outcome"
     },
     "search": {
       "placeholder": "Search markets",
@@ -3659,12 +3711,11 @@
       "positions": "Positions",
       "activity_empty": {
         "title": "No activity yet",
-        "description": "Your fills and settlements will appear here."
+        "description": "Your trades and settlements will appear here."
       },
       "load_failed": "Couldn't load.",
       "load_failed_retry": "Try again",
       "outcome_shares": "{{outcome}} · {{shares}} shares",
-      "active_positions": "Active positions",
       "cash_out": "Cash Out",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
@@ -3675,9 +3726,29 @@
       },
       "activity": "History",
       "activity_rows": {
-        "settled": "Settled",
-        "shares_at_price": "{{shares}} @ {{price}}"
-      }
+        "shares_at_price": "{{shares}} @ {{price}}",
+        "bought": "Bought {{outcome}}",
+        "sold": "Sold {{outcome}}",
+        "settled_outcome": "Settled · {{outcome}}"
+      },
+      "total_value": "Total value",
+      "positions_value": "Positions",
+      "claimable_value": "Claimable",
+      "unrealized_pnl": "Unrealized P&L",
+      "summary_incomplete": "Partial total: some positions couldn't be valued right now.",
+      "summary_unavailable": "Portfolio value unavailable",
+      "value_unavailable": "No price",
+      "unknown_market": "Market details unavailable",
+      "outcome_side": {
+        "yes": "Yes",
+        "no": "No"
+      },
+      "position_status": {
+        "claimable": "Claimable",
+        "settled": "Settled"
+      },
+      "pnl_with_percent": "{{amount}} ({{percent}})",
+      "settlements_complete_from": "Settlements are complete from {{date}}. Earlier ones may be missing."
     },
     "order_preview": {
       "amount": "USD amount",
@@ -4171,6 +4242,7 @@
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
+      "settled_title": "Settled",
       "claim_pending": "Claim pending",
       "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, opens market details",
       "prediction_lost_title": "Prediction lost",
@@ -4186,6 +4258,11 @@
       "predicted_amount": "Predicted amount",
       "shares_bought": "Shares bought",
       "shares_sold": "Shares sold",
+      "shares_settled": "Shares settled",
+      "settlement_result": "Result",
+      "settlement_result_won": "Won",
+      "settlement_result_lost": "Lost",
+      "settlement_result_partial": "Partial payout",
       "price_per_share": "Price per share",
       "price_impact": "Price impact",
       "net_pnl": "Net P&L",
@@ -4268,8 +4345,12 @@
       "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
       "no_match_title": "No match",
       "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
+      "market_timeout_title": "Market timed out",
+      "market_timeout_body": "The market took too long to respond. Nothing was sold. Try again to get the latest price.",
       "try_later": "Try later",
       "retry_price_label": "Price",
+      "retry_expected_fill_label": "Expected fill",
+      "retry_expected_fill_value": "{{shares}} shares",
       "retry_proceeds_label": "You receive",
       "retry_payout_label": "To win",
       "retry_worst_case_label": "Worst case ({{band}} band)",
@@ -5083,7 +5164,13 @@
     "trading_activity_private": "Private and unavailable to copy",
     "trading_activity_info": "More information about trading activity",
     "trading_activity_info_description": "When this is on, other traders can see and copy your trades. You earn 15% of the fees from those copy trades. Turn it off to keep your positions, performance, and stats private.",
-    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
+    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+    "x_account_disconnect_body": "Disconnecting removes your X handle from your MetaMask profile. You can reconnect at any time.",
+    "x_account_disconnect_sheet_title": "Disconnect X account?",
+    "x_account_disconnect_sheet_body": "{{handle}} will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
+    "x_account_disconnect_success": "X account has been disconnected"
   },
   "profile_drawer": {
     "close": "Close",
@@ -5593,7 +5680,9 @@
         "unlink_money_account_button": "Unlink Money Account from Card",
         "unlink_money_account_disabled_hint": "No active linkage to remove.",
         "reset_card_arrival_description": "Clear the card arrival animation state so the reveal plays again the next time you open the Card dashboard.",
-        "reset_card_arrival_button": "Reset arrival animation"
+        "reset_card_arrival_button": "Reset arrival animation",
+        "reset_apple_pay_splash_description": "Show the Apple Pay availability splash again the next time you open Card Home while signed in.",
+        "reset_apple_pay_splash_button": "Reset Apple Pay splash"
       },
       "identity": {
         "title": "Identity",
@@ -6207,10 +6296,10 @@
           "title": "Market capitalization",
           "description": "Current market capitalization of the circulating token supply."
         },
-          "liquidity": {
-            "title": "Total liquidity",
-            "description": "Value currently available in the token's trading pools."
-          },
+        "liquidity": {
+          "title": "Total liquidity",
+          "description": "Value currently available in the token's trading pools."
+        },
         "volume_24h": {
           "title": "24-hour trading volume",
           "description": "Value traded over the last 24 hours."
@@ -6227,38 +6316,38 @@
           "title": "Liquidity to market capitalization",
           "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
         },
-          "tax": {
-            "title": "Buy and sell tax",
-            "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
-          },
-          "high_low_24h": {
-            "title": "24-hour high and low",
-            "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
-          },
-          "circulating_supply": {
-            "title": "Circulating supply",
-            "description": "Amount of this token currently circulating."
-          },
-          "lp_burned_locked": {
-            "title": "Liquidity pool tokens burned or locked",
-            "description": "Share of the primary pool liquidity that is burned or locked."
-          },
-          "primary_pool": {
-            "title": "Primary pool",
-            "description": "The main trading pool reported for this token."
-          },
-          "volume_flags": {
-            "title": "Volume flags",
-            "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
-          },
-          "listed_on_exchange": {
-            "title": "Listed on exchange",
-            "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
-          },
-          "created": {
-            "title": "Created",
-            "description": "Date the token contract was created, when reported by its source."
-          }
+        "tax": {
+          "title": "Buy and sell tax",
+          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+        },
+        "high_low_24h": {
+          "title": "24-hour high and low",
+          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+        },
+        "circulating_supply": {
+          "title": "Circulating supply",
+          "description": "Amount of this token currently circulating."
+        },
+        "lp_burned_locked": {
+          "title": "Liquidity pool tokens burned or locked",
+          "description": "Share of the primary pool liquidity that is burned or locked."
+        },
+        "primary_pool": {
+          "title": "Primary pool",
+          "description": "The main trading pool reported for this token."
+        },
+        "volume_flags": {
+          "title": "Volume flags",
+          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+        },
+        "listed_on_exchange": {
+          "title": "Listed on exchange",
+          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+        },
+        "created": {
+          "title": "Created",
+          "description": "Date the token contract was created, when reported by its source."
+        }
       }
     },
     "tabs": {
@@ -6266,6 +6355,14 @@
       "security": "Security",
       "feed": "Feed",
       "holders": "Holders"
+    },
+    "feed_tab": {
+      "empty": {
+        "no_balance_title": "Post your trade",
+        "has_balance_title": "Start your first post",
+        "description": "You'll get 15% of the fees every time someone copies your moves.",
+        "create_post": "Create MetaMask Post"
+      }
     },
     "holders_tab": {
       "empty": "No holders to show yet",
@@ -6454,6 +6551,7 @@
     "view_account": "View account on Etherscan",
     "show_private_key": "Show private key",
     "account_copied_to_clipboard": "Public address copied to clipboard",
+    "token_contract_address_copied_to_clipboard": "Token contract address copied to clipboard",
     "share_public_key": "Sharing my public key: "
   },
   "enable_nft-auto-detection": {
@@ -7210,6 +7308,11 @@
   },
   "balance_breakdown": {
     "allocation": "Allocation",
+    "error": {
+      "accessibility_label": "Balance data unavailable",
+      "description": "There was an error fetching data for {{primitive}}. Please try again later.",
+      "title": "Unable to load balance"
+    },
     "hide_balance": "Hide total balance",
     "show_balance": "Show total balance"
   },
@@ -7568,6 +7671,7 @@
           "timestamp": "now"
         }
       },
+      "error": "Couldn't turn on notifications. Try again.",
       "cta": "Turn on notifications"
     },
     "received_payment_title": "Instant payment received",
@@ -8153,7 +8257,10 @@
       "next": "Next",
       "hold_to_send": "Hold to send",
       "send": "Send",
-      "sent": "Sent!"
+      "sent": "Sent!",
+      "insufficient_tron_resources": "This account needs more TRX or network resources to complete the transaction.",
+      "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
+      "retry_validation": "Try again"
     },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
@@ -8534,7 +8641,6 @@
       "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
       "description": "We sent a 6-digit code to your email. Enter it below to verify your email.",
       "description_totp": "Open your authenticator app and enter the 6-digit code.",
-      "verify": "Verify",
       "retry": "Try again",
       "retry_in": "Try again in {{seconds}}s",
       "sending": "Sending code...",
@@ -8543,18 +8649,18 @@
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
       "paste": "Paste",
+      "verifying": "Verifying code",
       "get_new_code": "Get new code"
     },
     "totp_setup": {
       "title": "Set up authenticator app",
-      "description": "Add MetaMask to your authenticator app, then enter the 6-digit code it shows.",
-      "open_app": "Open authenticator app",
-      "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
+      "description": "In your authenticator app, add a new account and enter the setup key or scan the QR code.",
       "setup_key": "Setup key",
       "copy": "Copy setup key",
-      "other_device": "Set up on another device",
+      "copied": "Setup key copied",
+      "show_qr": "Show QR code",
       "qr_title": "Scan QR code",
-      "qr_description": "Scan this code with the authenticator app on your other device, then enter the 6-digit code it shows.",
+      "qr_description": "Scan this code with your authenticator app to add your account. Then enter the 6-digit code it shows.",
       "restarted": "That took too long, so we made a new setup key. Remove the earlier MetaMask entry from your authenticator app, then add this one.",
       "continue": "Continue"
     },
@@ -8565,30 +8671,34 @@
     "failure": {
       "title": "Something went wrong",
       "retry": "Try again",
-      "close": "Close"
+      "close": "Close",
+      "support_title": "We couldn't verify your details",
+      "support_description": "Contact support to continue.",
+      "contact_support": "Contact support",
+      "done": "Done"
     },
     "errors": {
-      "invalid_code": "That code isn’t right. Check it and try again.",
+      "invalid_code": "This code isn’t correct. Try again",
       "too_many_attempts": "Too many attempts. Request a new code.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
+      "learn_more": "Learn more",
       "cooldown": "Too many requests. Wait a moment and try again.",
       "limit_reached": "You've reached the limit for this method.",
-      "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
       "signed_out": "Sign in to continue.",
       "unsupported": "This method isn't supported on this device.",
       "flow_in_progress": "Another verification is already in progress.",
       "generic": "Something went wrong. Try again.",
       "code_expired": "Your verification code expired, get a new code.",
-      "invalid_totp_code": "That code isn’t right. Check that your phone’s time is set automatically, then enter the current code.",
+      "invalid_totp_code": "This code isn’t correct. Try again",
       "totp_expired": "That took too long. Enter the current code from your app.",
       "totp_too_many_attempts": "Too many attempts. Wait for a new code in your app and try again.",
       "totp_taken": "An authenticator app is already set up for this account."
     },
     "settings": {
       "title": "2-step verification",
-      "description": "Used to confirm it's you before sensitive actions.",
+      "description": "Adds protection to Money account transactions.",
       "manage": "Manage",
       "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
       "add": "Add",
@@ -8616,9 +8726,13 @@
       "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
       "last_totp_title": "Authenticator app can’t be removed",
       "last_totp_description": "This authenticator app is the only security method for this account. Add a second method before removing it.",
+      "only_passkeys_description": "Passkeys can only be removed after verifying with another type of method. Add an email or authenticator app first.",
       "got_it": "Got it",
+      "passkey_added": "Passkey added",
       "passkey_removed": "Passkey removed",
+      "email_verified": "Email verified",
       "email_removed": "Email verification removed",
+      "totp_added": "Authenticator app added",
       "totp_removed": "Authenticator app removed",
       "remove_failed": "Couldn’t remove this method. Try again later."
     }
@@ -9634,6 +9748,9 @@
       "date": "Date",
       "paid_with": "Paid with",
       "you_deposited": "You deposited",
+      "transaction_fees": "Transaction fees",
+      "paid_by_metamask": "Paid by MetaMask",
+      "total": "Total",
       "pending": "Pending"
     },
     "convert_stablecoins": {
@@ -10237,16 +10354,16 @@
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Not enough gas",
       "filled": "Filled",
-      "filled_at": "Filled at {{date}}",
+      "filled_at": "Filled on {{date}}",
       "expired": "Expired",
       "expired_after": "Expired after {{duration}}",
       "duration_days": "{{count}}d",
       "duration_hours": "{{count}}h",
       "duration_minutes": "{{count}}m",
       "canceled": "Canceled",
-      "canceled_at": "Canceled at {{date}}",
+      "canceled_at": "Canceled on {{date}}",
       "failed": "Failed",
-      "failed_at": "Failed at {{date}}",
+      "failed_at": "Failed on {{date}}",
       "buy_when": "Buy when",
       "sell_when": "Sell when",
       "is_at_or_below": "is at or below",
@@ -10286,6 +10403,7 @@
       "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
+      "open": "Open",
       "in_progress": "In progress",
       "submitted": "Submitted",
       "cancel_order": "Cancel order",
@@ -10610,7 +10728,7 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cost_tolerance": "Price Tolerance",
+    "cost_tolerance": "Price tolerance",
     "cost_tolerance_tooltip_content": "Includes slippage, price impact, and network fees.",
     "default_cost_tolerance_description": "Your limit order won't go through if we can't execute within {{costTolerance}}% of the displayed output amount.",
     "exceeding_lower_cost_tolerance_error": "Enter a price tolerance greater than {{value}}%",
@@ -10829,11 +10947,11 @@
     "add_wallet": "Add wallet",
     "add_wallet_srp_description": "Using a 12, 18 or 24-word seed phrase",
     "add_wallet_private_key_description": "Via a private key",
-    "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
+    "add_wallet_hardware_description": "Using Bluetooth or a QR code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
-    "link_metamask_extension": "Import accounts from MetaMask extension",
-    "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
+    "link_metamask_extension": "Import from MetaMask extension",
+    "link_metamask_extension_description": "Scan a QR code to add your accounts",
     "account_details": {
       "header_title": "Account details",
       "account_name": "Account name",
@@ -11679,7 +11797,7 @@
       "description_resolving": "Checking how your card was set up.",
       "description_resume": "Continue where you left off. This account stays linked to your card.",
       "auth_prompt_info": "Log in to your card account to access this feature.",
-      "country_label": "Country",
+      "country_label": "Country of residence",
       "location_button_text": "International",
       "location_button_text_us": "United States",
       "location_button_text_uk": "United Kingdom",
@@ -11752,6 +11870,28 @@
       "try_again": "Try again",
       "reset_success": "Password reset successful"
     },
+    "mfa": {
+      "method_title": "Verify it's you",
+      "method_description": "Choose where to send a code, then enter the full phone number or email.",
+      "method_phone": "Text message",
+      "method_email": "Email",
+      "phone_label": "Phone number",
+      "email_label": "Email",
+      "country_code": "Country code",
+      "country_code_label": "Country code, +{{code}}",
+      "continue": "Continue",
+      "code_title": "Enter your code",
+      "code_description": "Enter the code sent to {{destination}}.",
+      "start_over": "Start over",
+      "errors": {
+        "destination_mismatch": "That doesn't match the contact on your account. Check it and try again.",
+        "invalid_code": "That code is incorrect. Try again.",
+        "code_expired": "That code expired. Start over to get a new one.",
+        "attempts_exceeded": "Too many incorrect codes. Start over to try again.",
+        "restart_required": "Verification needs to start over.",
+        "no_verified_contact": "This account has no verified phone number or email to send a code to."
+      }
+    },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
@@ -11762,6 +11902,29 @@
       "didnt_receive_code": "Didn't receive the code? ",
       "resend_verification": "Resend it",
       "resend_cooldown": "Resend available in {{seconds}} seconds"
+    },
+    "apple_pay_splash": {
+      "title": "MetaMask with Apple Pay",
+      "description": "Apple Pay is an easy, secure, and private way to pay with your iPhone and Apple Watch.",
+      "no_downloads": "There are no additional app downloads, sign ups, or fees.",
+      "setup": "Get set up in seconds.",
+      "close": "Close"
+    },
+    "apple_pay_usage": {
+      "learn_more": "Learn more about Apple Pay",
+      "row_title": "How to use Apple Pay",
+      "title": "Using Apple Pay",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "got_it": "Got it"
+    },
+    "apple_pay_confirmation": {
+      "title": "Card Added Successfully",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "done": "Done"
     },
     "push_provisioning": {
       "add_to_wallet": "Add to {{walletName}}",
@@ -11881,10 +12044,6 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
-    "referral_validation_unknown_error": {
-      "title": "Referral code couldn’t be validated",
-      "description": "Check your connection and try again."
-    },
     "active_activity_error": {
       "error_fetching_title": "Activity couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -11935,7 +12094,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -11991,9 +12149,7 @@
       "retry_button": "Retry",
       "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
-    "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
-    "referral_stats_referrals": "Referrals",
     "loading_activity": "Loading activity...",
     "error_loading_activity": "Error loading activity",
     "activity_empty_title": "No recent activity.",
@@ -12058,8 +12214,6 @@
       "step_confirm": "Next",
       "step_finish": "Let's go",
       "step_skip": "Skip",
-      "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_input_error": "Invalid referral code",
       "title": "Start earning rewards",
       "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "Join Rewards",
@@ -12068,9 +12222,6 @@
       "legal_disclaimer_2": "Terms of Use",
       "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "Learn more",
-      "referral_prompt": "Have a referral code?",
-      "referral_hide": "Hide code",
-      "referral_placeholder": "Referral code (optional)",
       "referral_label": "Referral code"
     },
     "settings": {
@@ -12102,13 +12253,6 @@
       "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
       "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
       "off_device_accounts_sheet_let_us_know": "Let us know"
-    },
-    "referred_by_code": {
-      "title": "Referral Code",
-      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
-      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
-      "input_placeholder": "Enter referral code",
-      "invalid_code": "Invalid referral code"
     },
     "bonus_code": {
       "input_placeholder": "Enter bonus code",
@@ -12155,22 +12299,6 @@
     },
     "ways_to_earn": {
       "title": "Ways to earn"
-    },
-    "referral": {
-      "referral_code": "Referral code",
-      "referral_link": "Referral link",
-      "actions": {
-        "share_referral_link": "Refer a friend",
-        "share_referral_subject": "Join MetaMask Rewards"
-      },
-      "info": {
-        "title": "Share your code with friends",
-        "description": "Referral bonuses vary by campaign. Check each one for details.",
-        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
-        "vip_referrals_label": "Referrals",
-        "vip_revenue_share_label": "Revenue share"
-      },
-      "referral_code_copied": "Referral code copied to clipboard"
     },
     "link_account_group": {
       "link_account": "Add account",

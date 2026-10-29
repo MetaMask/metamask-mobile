@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   useFocusEffect,
   useNavigation,
@@ -22,7 +28,7 @@ import {
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
-import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { useFeatureNotificationsStatus } from './hooks/useFeatureNotificationsStatus';
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import {
@@ -33,6 +39,10 @@ import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView
 import { strings } from '../../../../../locales/i18n';
 import NotifCard from '../../../UI/Notification/NotifCard';
 import Logger from '../../../../util/Logger';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 
 export interface FeatureNotificationsGateSheetParams {
   feature: FeatureNotificationsGateFeature;
@@ -69,10 +79,15 @@ export const FeatureNotificationsGateSheet = () => {
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
-  const { switchNotifications } = useNotificationsToggle();
-  const { updatePreferencesSection } = useNotificationStoragePreferences();
+  const { enableNotifications } = useEnableNotifications({
+    nudgeEnablePush: true,
+    throwOnError: true,
+  });
+  const { refetch, updatePreferencesSection } =
+    useNotificationStoragePreferences();
   const { isMasterEnabled, isPushEnabled, isInAppEnabled } =
     useFeatureNotificationsStatus(feature);
+  const { toastRef } = useContext(ToastContext);
 
   const isGateSatisfied = isMasterEnabled && (isPushEnabled || isInAppEnabled);
 
@@ -104,6 +119,19 @@ export const FeatureNotificationsGateSheet = () => {
     navigation.goBack();
   };
 
+  const showEnableErrorToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings('notifications.feature_gate.error'),
+          isBold: true,
+        },
+      ],
+      hasNoTimeout: false,
+    });
+  }, [toastRef]);
+
   const handleTurnOn = useCallback(async () => {
     if (!basicFunctionalityEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -118,10 +146,22 @@ export const FeatureNotificationsGateSheet = () => {
     setIsEnabling(true);
     try {
       if (!isMasterEnabled) {
-        await switchNotifications(true);
+        await enableNotifications();
       }
 
-      if (!isPushEnabled || !isInAppEnabled) {
+      const { data: refreshedPreferences } = await refetch();
+      const refreshedFeaturePreferences = refreshedPreferences?.[feature];
+
+      if (!refreshedFeaturePreferences) {
+        throw new Error(
+          `No notification preferences found after enabling ${feature}`,
+        );
+      }
+
+      if (
+        !refreshedFeaturePreferences.pushNotificationsEnabled ||
+        !refreshedFeaturePreferences.inAppNotificationsEnabled
+      ) {
         await updatePreferencesSection(feature, (section) => ({
           ...section,
           pushNotificationsEnabled: true,
@@ -134,17 +174,18 @@ export const FeatureNotificationsGateSheet = () => {
           'FeatureNotificationsGateSheet: failed to enable notifications',
         feature,
       });
+      showEnableErrorToast();
     } finally {
       setIsEnabling(false);
     }
   }, [
+    enableNotifications,
     basicFunctionalityEnabled,
     feature,
-    isInAppEnabled,
     isMasterEnabled,
-    isPushEnabled,
     navigation,
-    switchNotifications,
+    refetch,
+    showEnableErrorToast,
     updatePreferencesSection,
   ]);
 

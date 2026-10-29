@@ -16,6 +16,7 @@ import ReduxService, { ReduxStore } from './redux';
 import { RootState } from '../reducers';
 import { RecursivePartial } from './Authentication/Authentication.test';
 import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import Logger from '../util/Logger';
 
 const mockAddNewKeyring = jest.fn();
 const mockWithKeyring = jest.fn();
@@ -190,6 +191,9 @@ jest.mock('./Engine', () => ({
       markPasswordChangeKeySyncPending: jest.fn(),
       completePasswordChange: jest.fn(),
     },
+    CardController: {
+      logout: jest.fn(),
+    },
   },
   setSelectedAddress: jest.fn(),
 }));
@@ -269,7 +273,41 @@ describe('Vault', () => {
       expect(
         mockEngine.context.KeyringController.changePassword,
       ).toHaveBeenCalledWith('new-password');
+      expect(mockEngine.context.CardController.logout).toHaveBeenCalledTimes(1);
       expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith('0x123');
+    });
+
+    it('still changes the password when signing out of Card fails', async () => {
+      const mockReduxState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: undefined,
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockReduxState),
+      } as unknown as ReduxStore);
+
+      mockEngine.context.CardController.logout.mockRejectedValue(
+        new Error('logout failed'),
+      );
+
+      await expect(
+        recreateVaultsWithNewPassword('old-password', 'new-password', '0x123'),
+      ).resolves.toBeUndefined();
+
+      expect(
+        mockEngine.context.KeyringController.changePassword,
+      ).toHaveBeenCalledWith('new-password');
+      expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith('0x123');
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(Logger.error).toHaveBeenCalled();
     });
 
     it('calls seedless changePassword then marks, stores, and completes key sync', async () => {
@@ -317,6 +355,44 @@ describe('Vault', () => {
       expect(
         mockEngine.context.SeedlessOnboardingController.completePasswordChange,
       ).toHaveBeenCalledTimes(1);
+      expect(
+        (
+          mockEngine.context.SeedlessOnboardingController
+            .storeKeyringEncryptionKey as jest.Mock
+        ).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        (mockEngine.context.CardController.logout as jest.Mock).mock
+          .invocationCallOrder[0],
+      );
+    });
+
+    it('finishes the password change when the Card sign-out never resolves', async () => {
+      const mockReduxState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: undefined,
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockReduxState),
+      } as unknown as ReduxStore);
+
+      mockEngine.context.CardController.logout.mockReturnValue(
+        new Promise(() => undefined),
+      );
+
+      await expect(
+        recreateVaultsWithNewPassword('old-password', 'new-password', '0x123'),
+      ).resolves.toBeUndefined();
+
+      expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith('0x123');
+      expect(mockEngine.context.CardController.logout).toHaveBeenCalledTimes(1);
     });
 
     it('leaves the keyring password unchanged when seedless changePassword throws', async () => {
@@ -351,6 +427,7 @@ describe('Vault', () => {
       expect(
         mockEngine.context.KeyringController.changePassword,
       ).not.toHaveBeenCalledWith('new-password');
+      expect(mockEngine.context.CardController.logout).not.toHaveBeenCalled();
       expect(
         mockEngine.context.SeedlessOnboardingController.changePassword,
       ).toHaveBeenCalled();

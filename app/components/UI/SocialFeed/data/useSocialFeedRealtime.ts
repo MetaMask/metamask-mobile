@@ -4,7 +4,14 @@ import type {
   SocialFeedRealtimeScope,
 } from '@metamask/social-controllers';
 import isEqual from 'lodash/isEqual';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Engine from '../../../../core/Engine';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
@@ -160,6 +167,17 @@ export const useSocialFeedRealtime = (
     catchUpPendingRef.current = true;
     setCatchUpVersion((version) => version + 1);
   }, []);
+
+  // Events the old filter rejected were dropped, so widening it needs the
+  // server rows again.
+  const previousFilterPostRef = useRef(filterPost);
+  useEffect(() => {
+    if (previousFilterPostRef.current === filterPost) {
+      return;
+    }
+    previousFilterPostRef.current = filterPost;
+    markCatchUp();
+  }, [filterPost, markCatchUp]);
 
   /** Applies one event to the store. Returns whether the rows changed. */
   const applyEvent = useCallback(
@@ -452,12 +470,17 @@ export const useSocialFeedRealtime = (
       );
       pending.delete(feedItemId);
     });
-    publish();
 
     if (revealRequested) {
-      setRevealRequested(false);
+      // Both updates share the transition: clearing the request before the
+      // view lands would count the revealed posts behind the pill again.
+      startTransition(() => {
+        publish();
+        setRevealRequested(false);
+      });
       return undefined;
     }
+    publish();
     if (drainable.length <= batch.length) {
       return undefined;
     }

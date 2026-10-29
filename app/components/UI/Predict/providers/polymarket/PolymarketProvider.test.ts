@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import {
   CHAIN_IDS,
   TransactionType,
@@ -20,6 +19,7 @@ import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import type { OrderPreview } from '../types';
 import {
   PredictPositionStatus,
+  PredictPriceHistoryInterval,
   Side,
   type PredictActivity,
   type PredictPosition,
@@ -1992,7 +1992,6 @@ describe('PolymarketProvider', () => {
       preview: {
         ...preview,
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: membershipBuilderCode,
         },
       },
@@ -2062,7 +2061,6 @@ describe('PolymarketProvider', () => {
       preview: {
         ...preview,
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: membershipBuilderCode,
         },
       },
@@ -3016,7 +3014,6 @@ describe('PolymarketProvider', () => {
           permit2Enabled: true,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode:
             '0x4444444444444444444444444444444444444444444444444444444444444444',
         },
@@ -3142,6 +3139,84 @@ describe('PolymarketProvider', () => {
 
     expect(mockGetBalance).toHaveBeenCalledTimes(2);
     expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads deposit-wallet collateral while checking whether the legacy Safe exists', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const provider = createProvider();
+    await provider.getAccountState({ ownerAddress: signer.address });
+    mockIsSmartContractAddress.mockClear();
+    mockGetRawBalance.mockClear();
+
+    let resolveDeployment: (deployed: boolean) => void = () => undefined;
+    let resolveDepositBalance: (balance: bigint) => void = () => undefined;
+    mockIsSmartContractAddress.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDeployment = resolve;
+      }),
+    );
+    mockGetRawBalance.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDepositBalance = resolve;
+      }),
+    );
+
+    const pendingBalance = provider.getBalance({ address: signer.address });
+    await flushPromises();
+
+    expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: depositWalletAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(1);
+    expect(mockIsSmartContractAddress).toHaveBeenCalledWith(
+      legacySafeAddress,
+      '0x89',
+    );
+
+    resolveDeployment(false);
+    resolveDepositBalance(1_500_000n);
+
+    await expect(pendingBalance).resolves.toBe(1.5);
+    expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds deployed legacy Safe collateral to the deposit-wallet balance', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false);
+    const provider = createProvider();
+    await provider.getAccountState({ ownerAddress: signer.address });
+
+    mockIsSmartContractAddress.mockResolvedValue(true);
+    mockGetRawBalance.mockImplementation(async ({ address, tokenAddress }) => {
+      if (address === depositWalletAddress) {
+        return 1_000_000n;
+      }
+      if (tokenAddress === USDC_E_ADDRESS) {
+        return 3_000_000n;
+      }
+      return 2_000_000n;
+    });
+
+    const balance = await provider.getBalance({ address: signer.address });
+
+    expect(balance).toBe(6);
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: depositWalletAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: legacySafeAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: legacySafeAddress,
+      tokenAddress: USDC_E_ADDRESS,
+    });
   });
 
   it('runs deposit-wallet beforePublish deployment and allowance preflight', async () => {
@@ -3368,7 +3443,7 @@ describe('PolymarketProvider', () => {
       } as never);
       const provider = createProvider();
 
-      await provider.prepareClaim({
+      const result = await provider.prepareClaim({
         positions: [createClaimPosition()],
         signer,
       });
@@ -3381,6 +3456,7 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: 'v2' },
         }),
       );
+      expect(result.marketVersions).toEqual({ [gammaConditionId]: 'v2' });
     });
 
     it('keeps the CTF claim when the gamma market has no v2 version', async () => {
@@ -3411,7 +3487,7 @@ describe('PolymarketProvider', () => {
       );
       const provider = createProvider();
 
-      await provider.prepareClaim({
+      const result = await provider.prepareClaim({
         positions: [createClaimPosition()],
         signer,
       });
@@ -3421,6 +3497,7 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: undefined },
         }),
       );
+      expect(result.marketVersions).toEqual({ [gammaConditionId]: undefined });
     });
 
     describe('Protocol V2 markets kill switch', () => {
@@ -3457,6 +3534,10 @@ describe('PolymarketProvider', () => {
           expect.objectContaining({ positions: [v1Position] }),
         );
         expect(result.positions).toEqual([v1Position]);
+        expect(result.marketVersions).toEqual({
+          [v1ConditionId]: undefined,
+          [v2ConditionId]: 'v2',
+        });
       });
 
       it('throws MARKET_UNAVAILABLE when every position is v2 and the kill switch is on', async () => {
@@ -3986,6 +4067,393 @@ describe('PolymarketProvider', () => {
       unexpectedError,
       expect.any(Object),
     );
+  });
+
+  describe('getPriceHistory (Data API v2)', () => {
+    const PRICES_HISTORY_URL =
+      'https://data-api.polymarket.com/v2/prices-history';
+
+    const createPriceHistoryPage = (
+      data: unknown[],
+      nextCursor: string | null = null,
+    ) => ({
+      ok: true,
+      status: 200,
+      headers: new Headers(),
+      json: jest.fn().mockResolvedValue({
+        data,
+        pagination: {
+          limit: 10000,
+          offset: 0,
+          has_more: nextCursor !== null,
+          next_cursor: nextCursor,
+        },
+      }),
+    });
+
+    const createErrorResponse = (
+      status: number,
+      headers: Record<string, string> = {},
+    ) => ({
+      ok: false,
+      status,
+      headers: new Headers(headers),
+      json: jest.fn().mockResolvedValue({
+        error: 'error',
+        code: 'invalid_request',
+      }),
+    });
+
+    const getRequestedUrl = (callIndex = 0): URL =>
+      new URL((global.fetch as jest.Mock).mock.calls[callIndex][0]);
+
+    let Logger: { error: jest.Mock; log: jest.Mock };
+
+    beforeEach(() => {
+      Logger = jest.requireMock('../../../../../util/Logger').default;
+      Logger.error.mockClear();
+    });
+
+    it('requests the Data API v2 route with token_id, interval and bucket_seconds', async () => {
+      global.fetch = jest.fn().mockResolvedValue(createPriceHistoryPage([]));
+
+      await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_HOUR,
+        fidelity: 5,
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const url = getRequestedUrl();
+      expect(`${url.origin}${url.pathname}`).toBe(PRICES_HISTORY_URL);
+      expect(Object.fromEntries(url.searchParams)).toEqual({
+        token_id: 'token-123',
+        interval: '1h',
+        bucket_seconds: '300',
+      });
+    });
+
+    it('never calls the deprecated CLOB prices-history route', async () => {
+      global.fetch = jest.fn().mockResolvedValue(createPriceHistoryPage([]));
+
+      await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_DAY,
+        fidelity: 60,
+      });
+
+      expect(
+        String((global.fetch as jest.Mock).mock.calls[0][0]),
+      ).not.toContain('clob.polymarket.com');
+    });
+
+    it.each([
+      [PredictPriceHistoryInterval.ONE_HOUR, 5, '300'],
+      [PredictPriceHistoryInterval.SIX_HOUR, 15, '900'],
+      [PredictPriceHistoryInterval.ONE_DAY, 60, '3600'],
+      [PredictPriceHistoryInterval.ONE_WEEK, 240, '14400'],
+      [PredictPriceHistoryInterval.ONE_MONTH, 720, '43200'],
+      [PredictPriceHistoryInterval.MAX, 1440, '86400'],
+    ])(
+      'converts %s fidelity %i minutes to bucket_seconds %s',
+      async (interval, fidelity, bucketSeconds) => {
+        global.fetch = jest.fn().mockResolvedValue(createPriceHistoryPage([]));
+
+        await createProvider().getPriceHistory({
+          marketId: 'token-123',
+          interval,
+          fidelity,
+        });
+
+        expect(getRequestedUrl().searchParams.get('interval')).toBe(interval);
+        expect(getRequestedUrl().searchParams.get('bucket_seconds')).toBe(
+          bucketSeconds,
+        );
+      },
+    );
+
+    it.each([
+      [0.5, '60'],
+      [2880, '86400'],
+    ])(
+      'clamps fidelity %d minutes to bucket_seconds %s',
+      async (fidelity, bucketSeconds) => {
+        global.fetch = jest.fn().mockResolvedValue(createPriceHistoryPage([]));
+
+        await createProvider().getPriceHistory({
+          marketId: 'token-123',
+          interval: PredictPriceHistoryInterval.ONE_DAY,
+          fidelity,
+        });
+
+        expect(getRequestedUrl().searchParams.get('bucket_seconds')).toBe(
+          bucketSeconds,
+        );
+      },
+    );
+
+    it('omits bucket_seconds when no fidelity is given', async () => {
+      global.fetch = jest.fn().mockResolvedValue(createPriceHistoryPage([]));
+
+      await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_DAY,
+      });
+
+      expect(getRequestedUrl().searchParams.has('bucket_seconds')).toBe(false);
+    });
+
+    it('sends start/end instead of interval for an explicit window', async () => {
+      global.fetch = jest.fn().mockResolvedValue(createPriceHistoryPage([]));
+
+      await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_HOUR,
+        startTs: 1_700_000_000,
+        endTs: 1_700_010_800,
+      });
+
+      expect(Object.fromEntries(getRequestedUrl().searchParams)).toEqual({
+        token_id: 'token-123',
+        start: '1700000000',
+        end: '1700010800',
+      });
+    });
+
+    it('falls back to interval when only one end of the window is set', async () => {
+      global.fetch = jest.fn().mockResolvedValue(createPriceHistoryPage([]));
+
+      await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_HOUR,
+        startTs: 1_700_000_000,
+      });
+
+      const params = getRequestedUrl().searchParams;
+      expect(params.get('interval')).toBe('1h');
+      expect(params.has('start')).toBe(false);
+    });
+
+    it('returns an empty series without a request when no window is given', async () => {
+      global.fetch = jest.fn();
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        fidelity: 2,
+      });
+
+      expect(result).toEqual([]);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('throws when marketId is missing', async () => {
+      await expect(
+        createProvider().getPriceHistory({ marketId: '' }),
+      ).rejects.toThrow('marketId parameter is required');
+    });
+
+    it('maps data points to timestamp and price, dropping malformed rows', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(
+          createPriceHistoryPage([
+            { timestamp: 1_700_000_000, price: 0.42, resolution_seconds: 300 },
+            { timestamp: 1_700_000_300, price: 0.45, resolution_seconds: 300 },
+            { timestamp: '1700000600', price: 0.5, resolution_seconds: 300 },
+            { timestamp: 1_700_000_900, price: null, resolution_seconds: 300 },
+            null,
+            { timestamp: 1_700_000_973, price: 0.47, resolution_seconds: 0 },
+          ]),
+        );
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_HOUR,
+        fidelity: 5,
+      });
+
+      expect(result).toEqual([
+        { timestamp: 1_700_000_000, price: 0.42 },
+        { timestamp: 1_700_000_300, price: 0.45 },
+        { timestamp: 1_700_000_973, price: 0.47 },
+      ]);
+    });
+
+    it('returns an empty series when the response has no data array', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers(),
+        json: jest.fn().mockResolvedValue({ history: [{ t: 1, p: 0.5 }] }),
+      });
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_HOUR,
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('follows next_cursor with the original query until it is null', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(
+          createPriceHistoryPage(
+            [{ timestamp: 100, price: 0.1, resolution_seconds: 43200 }],
+            'cursor-2',
+          ),
+        )
+        .mockResolvedValueOnce(
+          createPriceHistoryPage([
+            { timestamp: 200, price: 0.2, resolution_seconds: 0 },
+          ]),
+        );
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.MAX,
+        fidelity: 1440,
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(getRequestedUrl(0).searchParams.has('cursor')).toBe(false);
+      expect(Object.fromEntries(getRequestedUrl(1).searchParams)).toEqual({
+        token_id: 'token-123',
+        interval: 'max',
+        bucket_seconds: '86400',
+        cursor: 'cursor-2',
+      });
+      expect(result).toEqual([
+        { timestamp: 100, price: 0.1 },
+        { timestamp: 200, price: 0.2 },
+      ]);
+    });
+
+    it('stops following cursors after the page cap', async () => {
+      global.fetch = jest
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve(
+            createPriceHistoryPage(
+              [{ timestamp: 100, price: 0.1, resolution_seconds: 60 }],
+              'cursor-next',
+            ),
+          ),
+        );
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.MAX,
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(5);
+      expect(result).toHaveLength(5);
+    });
+
+    it('returns an empty series on 429 without retrying, logging status and Retry-After', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(createErrorResponse(429, { 'Retry-After': '30' }));
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_DAY,
+        fidelity: 60,
+      });
+
+      expect(result).toEqual([]);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Failed to get price history (HTTP 429)',
+        }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'getPriceHistory',
+              marketId: 'token-123',
+              status: 429,
+              retryAfter: '30',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('stops the cursor walk and discards partial pages on 503', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(
+          createPriceHistoryPage(
+            [{ timestamp: 100, price: 0.1, resolution_seconds: 43200 }],
+            'cursor-2',
+          ),
+        )
+        .mockResolvedValueOnce(
+          createErrorResponse(503, { 'Retry-After': '5' }),
+        );
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.MAX,
+      });
+
+      expect(result).toEqual([]);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Failed to get price history (HTTP 503)',
+        }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({ status: 503, retryAfter: '5' }),
+          }),
+        }),
+      );
+    });
+
+    it('returns an empty series on 400 and logs a null Retry-After', async () => {
+      global.fetch = jest.fn().mockResolvedValue(createErrorResponse(400));
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        startTs: 1_700_000_000,
+        endTs: 1_702_000_000,
+      });
+
+      expect(result).toEqual([]);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Failed to get price history (HTTP 400)',
+        }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({ status: 400, retryAfter: null }),
+          }),
+        }),
+      );
+    });
+
+    it('returns an empty series when the request fails', async () => {
+      const networkError = new Error('Network request failed');
+      global.fetch = jest.fn().mockRejectedValue(networkError);
+
+      const result = await createProvider().getPriceHistory({
+        marketId: 'token-123',
+        interval: PredictPriceHistoryInterval.ONE_HOUR,
+      });
+
+      expect(result).toEqual([]);
+      expect(Logger.error).toHaveBeenCalledWith(
+        networkError,
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.not.objectContaining({ status: expect.anything() }),
+          }),
+        }),
+      );
+    });
   });
 
   describe('getPositions (Data API v2)', () => {

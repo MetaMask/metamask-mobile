@@ -25,12 +25,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import {
   SafeAreaInsetsContext,
   SafeAreaView,
@@ -40,11 +35,15 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../util/haptics';
+import {
+  connectX,
+  XAuthError,
+  XAuthErrorType,
+} from '../../../../core/XAuthService';
 import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import MarketingMoment from '../../../UI/MarketingMoment';
+import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
-import Foxicon from '../../../../component-library/components-temp/Foxicon';
-import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -58,27 +57,32 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
+  isUneditedXUsername,
   normalizeUsername,
+  onboardingProfileFingerprint,
   type ProfileOnboardingDraft,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import { getUsernameLocalError } from './utils/getUsernameLocalError';
+import { getUsernameFeedback } from './utils/getUsernameFeedback';
+import UsernameStatusLine from './UsernameStatusLine';
 import OnboardingProgress from './OnboardingProgress';
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
-import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
+import ProfileAvatarPicker from './ProfileAvatarPicker';
 import {
   generateUsername,
   generateUsernameWithNumber,
+  MAX_USERNAME_LENGTH,
 } from './generateUsername';
 import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
 import XProfileIdentityStep from './XProfileIdentityStep';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
-const AVATAR_TILE_SIZE = 60;
-/** Four 60pt tiles with 20pt gaps. */
-const AVATAR_GRID_WIDTH = 300;
+const { Interaction, Outcome, Screen, Step } = SocialEvent;
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
 
@@ -116,20 +120,23 @@ const LIVE_ACTIVITY = [
 ];
 
 /**
- * Step title: Display Md size on the 32px heading line height, medium weight,
- * centered.
+ * Step title. Grotzec Cond Bold via the marketing-moment title, which is the
+ * design-system hero face and falls back when the language is not in the font.
+ * Spacing stays on the wrapper. The title paints its metrics as a style, so a
+ * padding class on the text would lose to that style.
  */
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
 }> = ({ children, twClassName }) => (
-  <Text
-    variant={TextVariant.DisplayMd}
-    fontWeight={FontWeight.Medium}
-    twClassName={`text-center leading-heading-lg ${twClassName ?? ''}`}
-  >
-    {children}
-  </Text>
+  <Box twClassName={twClassName}>
+    <MarketingMomentTitle
+      variant={TextVariant.DisplayLg}
+      twClassName="w-full text-center"
+    >
+      {children}
+    </MarketingMomentTitle>
+  </Box>
 );
 
 const LiveActivityFallback: React.FC = () => (
@@ -247,7 +254,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile } = useProfileController();
+  const { checkUsernameAvailability, createProfile, updateProfile } =
+    useProfileController();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
@@ -257,8 +265,34 @@ const SocialProfileOnboardingView: React.FC = () => {
     null,
   );
   const [finishError, setFinishError] = useState<string | null>(null);
+  const [connectXError, setConnectXError] = useState<string | null>(null);
+  const [isConnectingX, setIsConnectingX] = useState(false);
+  const [profileCreated, setProfileCreated] = useState(false);
+  const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
+  const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
+    step: analyticsStep,
+  });
   const usernameCheckId = useRef(0);
   const usernameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profileCreatedRef = useRef(false);
+  /** Fingerprint of the profile already stored on the server. */
+  const serverProfileFingerprintRef = useRef<string | null>(null);
+  const syncPromiseRef = useRef<Promise<void> | null>(null);
+  const startSyncRef = useRef<() => Promise<void>>(async () => undefined);
+  const connectAbortRef = useRef<AbortController | null>(null);
+  const draftRef = useRef(draft);
+  const accountsRef = useRef(accounts);
+  const stepRef = useRef(step);
+  const previousStepRef = useRef(step);
+  const createProfileRef = useRef(createProfile);
+  const updateProfileRef = useRef(updateProfile);
+  const trackInteractionRef = useRef(trackInteraction);
+  draftRef.current = draft;
+  accountsRef.current = accounts;
+  stepRef.current = step;
+  createProfileRef.current = createProfile;
+  updateProfileRef.current = updateProfile;
+  trackInteractionRef.current = trackInteraction;
 
   const clearUsernameCheckTimer = useCallback(() => {
     if (usernameCheckTimer.current) {
@@ -268,6 +302,10 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, []);
 
   useEffect(() => clearUsernameCheckTimer, [clearUsernameCheckTimer]);
+
+  useEffect(() => {
+    trackInteraction(Interaction.STEP_VIEWED);
+  }, [analyticsStep, trackInteraction]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -285,9 +323,19 @@ const SocialProfileOnboardingView: React.FC = () => {
     });
   }, [accounts]);
 
+  const cancelConnectX = useCallback(() => {
+    connectAbortRef.current?.abort();
+    connectAbortRef.current = null;
+  }, []);
+
+  useEffect(() => cancelConnectX, [cancelConnectX]);
+
   const handleClose = useCallback(() => {
+    cancelConnectX();
+    setIsConnectingX(false);
+    trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
-  }, [navigation]);
+  }, [cancelConnectX, navigation, trackInteraction]);
 
   const handleBack = useCallback(() => {
     setStep((current) => {
@@ -326,7 +374,13 @@ const SocialProfileOnboardingView: React.FC = () => {
         if (requestId !== usernameCheckId.current) {
           return 'superseded';
         }
-        if (!availability.available || !availability.valid) {
+        if (!availability.valid) {
+          setUsernameClaimError(
+            strings('social_leaderboard.profile_onboarding.username_invalid'),
+          );
+          return 'unavailable';
+        }
+        if (!availability.available) {
           setUsernameClaimError(
             strings(
               'social_leaderboard.profile_onboarding.username_unavailable',
@@ -353,6 +407,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     (username: string) => {
       clearUsernameCheckTimer();
       if (getUsernameStatus(username) !== 'available') {
+        setUsernameClaimError(null);
         usernameCheckId.current += 1;
         return;
       }
@@ -374,6 +429,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleShuffleUsername = useCallback(() => {
     clearUsernameCheckTimer();
+    trackInteraction(Interaction.USERNAME_SHUFFLED);
     const claimGeneratedUsername = async () => {
       let username = generateUsername();
       applyUsername(username);
@@ -387,7 +443,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       await checkHandle(username);
     };
     claimGeneratedUsername().catch(() => undefined);
-  }, [applyUsername, checkHandle, clearUsernameCheckTimer]);
+  }, [applyUsername, checkHandle, clearUsernameCheckTimer, trackInteraction]);
 
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
@@ -399,31 +455,72 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleAvatarSelect = useCallback(
     (presetId: string) => {
-      if (presetId === draft.avatarPresetId) {
-        return;
-      }
-      playSelection().catch(() => undefined);
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, avatarPresetId: presetId }));
     },
-    [draft.avatarPresetId, playSelection],
+    [trackInteraction],
   );
 
-  const handleAvatarBackgroundSelect = useCallback((backgroundId: string) => {
-    setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
-  }, []);
+  const handleAvatarBackgroundSelect = useCallback(
+    (backgroundId: string) => {
+      trackInteraction(Interaction.AVATAR_CHANGED);
+      setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
+    },
+    [trackInteraction],
+  );
 
   const handleConnectX = useCallback(() => {
     playSelection().catch(() => undefined);
-    setDraft((current) => applyXOnboardingProfile(current));
-    setStep('x-identity');
-  }, [playSelection]);
+    cancelConnectX();
+    const controller = new AbortController();
+    connectAbortRef.current = controller;
+    setConnectXError(null);
+    setIsConnectingX(true);
+    const connect = async () => {
+      try {
+        const xProfile = await connectX({ signal: controller.signal });
+        if (controller.signal.aborted) {
+          return;
+        }
+        setDraft((current) =>
+          applyXOnboardingProfile(current, {
+            username: xProfile.username,
+            displayName: xProfile.displayName,
+            avatarUrl: xProfile.avatarUrl || null,
+          }),
+        );
+        setStep('x-identity');
+      } catch (error) {
+        if (
+          controller.signal.aborted ||
+          (error instanceof XAuthError &&
+            error.type === XAuthErrorType.UserCancelled)
+        ) {
+          return;
+        }
+        setConnectXError(
+          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        );
+      } finally {
+        if (connectAbortRef.current === controller) {
+          connectAbortRef.current = null;
+        }
+        if (!controller.signal.aborted) {
+          setIsConnectingX(false);
+        }
+      }
+    };
+    connect().catch(() => undefined);
+  }, [cancelConnectX, playSelection]);
 
   const handleCreateManually = useCallback(() => {
+    cancelConnectX();
+    setIsConnectingX(false);
     playSelection().catch(() => undefined);
     setUsernameClaimError(null);
     setDraft((current) => startManualOnboarding(current));
     setStep('username');
-  }, [playSelection]);
+  }, [cancelConnectX, playSelection]);
 
   const handleToggleXUsername = useCallback(
     (enabled: boolean) => {
@@ -455,9 +552,13 @@ const SocialProfileOnboardingView: React.FC = () => {
   const handleToggleXAvatar = useCallback(
     (enabled: boolean) => {
       playSelection().catch(() => undefined);
+      if (enabled === draft.useXAvatar) {
+        return;
+      }
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, useXAvatar: enabled }));
     },
-    [playSelection],
+    [draft.useXAvatar, playSelection, trackInteraction],
   );
 
   const handleContinue = useCallback(async () => {
@@ -477,6 +578,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     }
 
     clearUsernameCheckTimer();
+    if (!canContinueUsernameStep(draft)) {
+      return;
+    }
     setUsernameClaimError(null);
     setIsSubmitting(true);
     try {
@@ -488,46 +592,195 @@ const SocialProfileOnboardingView: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [
-    checkHandle,
-    clearUsernameCheckTimer,
-    draft.path,
-    draft.username,
-    playSelection,
-    step,
-  ]);
+  }, [checkHandle, clearUsernameCheckTimer, draft, playSelection, step]);
 
-  const handleFinish = useCallback(async () => {
-    setFinishError(null);
-    setIsSubmitting(true);
-    try {
-      const profileId =
-        (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
-      const linkedAccount = accounts.find(
-        (account) => account.id === draft.linkedAccountId,
-      );
-      await createProfile(
-        buildCreateProfileParams(
-          draft,
-          profileId,
-          linkedAccount?.linkedAddresses,
-        ),
-      );
-      saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
-      navigation.navigate(
-        draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
-      );
-    } catch {
-      setFinishError(
-        strings('social_leaderboard.profile_onboarding.save_error'),
-      );
-    } finally {
-      setIsSubmitting(false);
+  const fingerprintForDraft = (
+    current: ProfileOnboardingDraft,
+  ): string | null => {
+    const linkedAccount = accountsRef.current.find(
+      (account) => account.id === current.linkedAccountId,
+    );
+    return onboardingProfileFingerprint(
+      current,
+      linkedAccount?.linkedAddresses,
+    );
+  };
+
+  const writeOnboardingProfile = async (current: ProfileOnboardingDraft) => {
+    const linkedAccount = accountsRef.current.find(
+      (account) => account.id === current.linkedAccountId,
+    );
+    const profileId =
+      (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+    const params = buildCreateProfileParams(
+      current,
+      profileId,
+      linkedAccount?.linkedAddresses,
+    );
+    // createProfile has no abort signal. Keep a successful in-flight create
+    // and patch it when the draft changes, instead of issuing a second create
+    // that fails because the username or profile already exists.
+    if (serverProfileFingerprintRef.current) {
+      await updateProfileRef.current({
+        username: params.username,
+        display_name: params.display_name,
+        bio: params.bio,
+        linked_addresses: params.linked_addresses,
+        avatar_url: params.avatar_url,
+        trading_privacy: params.trading_privacy,
+      });
+      return;
     }
-  }, [accounts, createProfile, draft, navigation]);
+    await createProfileRef.current(params);
+  };
+
+  const publishCreatedProfile = (current: ProfileOnboardingDraft) => {
+    saveLocalSocialProfile(buildOnboardedSocialProfile(current));
+    profileCreatedRef.current = true;
+    setProfileCreated(true);
+    setIsSubmitting(false);
+  };
+
+  const runSync = async (): Promise<void> => {
+    while (stepRef.current === 'ready') {
+      const currentDraft = draftRef.current;
+      const fingerprint = fingerprintForDraft(currentDraft);
+      if (!fingerprint) {
+        setIsSubmitting(false);
+        return;
+      }
+      if (serverProfileFingerprintRef.current === fingerprint) {
+        publishCreatedProfile(currentDraft);
+        return;
+      }
+      profileCreatedRef.current = false;
+      setProfileCreated(false);
+      setFinishError(null);
+      setIsSubmitting(true);
+      const hadProfile = serverProfileFingerprintRef.current !== null;
+      try {
+        await writeOnboardingProfile(currentDraft);
+      } catch {
+        if (stepRef.current === 'ready') {
+          setFinishError(
+            strings('social_leaderboard.profile_onboarding.save_error'),
+          );
+        }
+        setIsSubmitting(false);
+        return;
+      }
+      serverProfileFingerprintRef.current = fingerprint;
+      if (!hadProfile) {
+        trackInteractionRef.current(Interaction.USERNAME_CLAIMED, {
+          outcome: Outcome.SUCCESS,
+          step: currentDraft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
+        });
+      }
+      if (stepRef.current !== 'ready') {
+        setIsSubmitting(false);
+        return;
+      }
+      if (fingerprintForDraft(draftRef.current) !== fingerprint) {
+        continue;
+      }
+      publishCreatedProfile(currentDraft);
+      return;
+    }
+    setIsSubmitting(false);
+  };
+
+  const startSync = (): Promise<void> => {
+    const inFlight = syncPromiseRef.current;
+    if (inFlight) {
+      return inFlight.then(() => {
+        if (stepRef.current !== 'ready') {
+          return undefined;
+        }
+        const latest = fingerprintForDraft(draftRef.current);
+        if (latest && serverProfileFingerprintRef.current === latest) {
+          publishCreatedProfile(draftRef.current);
+          return undefined;
+        }
+        if (
+          latest &&
+          serverProfileFingerprintRef.current &&
+          serverProfileFingerprintRef.current !== latest
+        ) {
+          return startSync();
+        }
+        return undefined;
+      });
+    }
+
+    const run = runSync().finally(() => {
+      if (syncPromiseRef.current === run) {
+        syncPromiseRef.current = null;
+      }
+    });
+    syncPromiseRef.current = run;
+    return run;
+  };
+  startSyncRef.current = startSync;
+
+  const profileFingerprint = useMemo(() => {
+    const linkedAccount = accounts.find(
+      (account) => account.id === draft.linkedAccountId,
+    );
+    return onboardingProfileFingerprint(draft, linkedAccount?.linkedAddresses);
+  }, [accounts, draft]);
+
+  useEffect(() => {
+    const previousStep = previousStepRef.current;
+    previousStepRef.current = step;
+    if (step !== 'ready') {
+      if (previousStep === 'ready') {
+        setIsSubmitting(false);
+      }
+      if (
+        serverProfileFingerprintRef.current &&
+        profileFingerprint &&
+        serverProfileFingerprintRef.current !== profileFingerprint
+      ) {
+        profileCreatedRef.current = false;
+        setProfileCreated(false);
+        setFinishError(null);
+      }
+      return;
+    }
+    if (
+      profileCreatedRef.current &&
+      serverProfileFingerprintRef.current === profileFingerprint
+    ) {
+      return;
+    }
+    if (serverProfileFingerprintRef.current !== profileFingerprint) {
+      profileCreatedRef.current = false;
+      setProfileCreated(false);
+    }
+    setFinishError(null);
+    startSyncRef.current().catch(() => undefined);
+  }, [profileFingerprint, step]);
+
+  const createOnboardingProfile = useCallback(() => startSyncRef.current(), []);
+
+  const handleFinish = useCallback(() => {
+    if (!profileCreatedRef.current) {
+      return;
+    }
+    navigation.navigate(
+      draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
+    );
+  }, [draft.path, navigation]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
+  const usernameLocalError = getUsernameLocalError(draft, usernameStatus);
+  const usernameFeedback = getUsernameFeedback({
+    localError: usernameLocalError,
+    claimError: usernameClaimError,
+    status: usernameStatus,
+    showAvailable: !isUneditedXUsername(draft),
+  });
   const continueDisabled =
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
@@ -554,9 +807,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}
-        backButtonProps={{
-          testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
-        }}
+        backButtonProps={
+          step === 'intro'
+            ? undefined
+            : { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+        }
         closeButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON,
         }}
@@ -578,6 +833,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                 titleProps={{
                   testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
                   twClassName: 'px-1',
+                  variant: TextVariant.DisplayLg,
                 }}
                 artwork={
                   <ProfileOnboardingIntroAnimation
@@ -591,12 +847,24 @@ const SocialProfileOnboardingView: React.FC = () => {
                 artworkWrapperAnimatedViewProps={{
                   entering: undefined,
                 }}
+                description={connectXError ?? undefined}
+                descriptionProps={
+                  connectXError
+                    ? {
+                        color: TextColor.ErrorDefault,
+                        testID:
+                          SocialProfileOnboardingSelectorsIDs.CONNECT_X_ERROR,
+                      }
+                    : undefined
+                }
                 primaryAction={{
                   label: strings(
                     'social_leaderboard.profile_onboarding.connect_x',
                   ),
                   startIconName: IconName.X,
                   onPress: handleConnectX,
+                  isLoading: isConnectingX,
+                  isDisabled: isConnectingX,
                   testID: SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
                 }}
                 secondaryAction={{
@@ -604,6 +872,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     'social_leaderboard.profile_onboarding.create_manually',
                   ),
                   onPress: handleCreateManually,
+                  isDisabled: isConnectingX,
                   testID:
                     SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
                 }}
@@ -618,8 +887,7 @@ const SocialProfileOnboardingView: React.FC = () => {
               {step === 'x-identity' ? (
                 <XProfileIdentityStep
                   draft={draft}
-                  usernameStatus={usernameStatus}
-                  usernameClaimError={usernameClaimError}
+                  usernameFeedback={usernameFeedback}
                   onToggleUsername={handleToggleXUsername}
                   onToggleAvatar={handleToggleXAvatar}
                   onUsernameChange={handleUsernameChange}
@@ -653,10 +921,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.username}
                       onChangeText={handleUsernameChange}
-                      isError={
-                        usernameStatus === 'invalid' ||
-                        Boolean(usernameClaimError)
-                      }
+                      isError={usernameFeedback?.tone === 'error'}
                       startAccessory={
                         <Text
                           variant={TextVariant.BodyMd}
@@ -679,47 +944,12 @@ const SocialProfileOnboardingView: React.FC = () => {
                       inputProps={{
                         autoCapitalize: 'none',
                         autoCorrect: false,
+                        maxLength: MAX_USERNAME_LENGTH,
                         testID:
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
                     />
-                    {usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {usernameClaimError}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'available' && !usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.SuccessDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_available',
-                        )}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'invalid' ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_invalid',
-                        )}
-                      </Text>
-                    ) : null}
+                    <UsernameStatusLine feedback={usernameFeedback} />
                   </Box>
                   <Box gap={2}>
                     <Text
@@ -753,50 +983,18 @@ const SocialProfileOnboardingView: React.FC = () => {
               ) : null}
 
               {step === 'avatar' ? (
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  testID={SocialProfileOnboardingSelectorsIDs.AVATAR_STEP}
-                >
+                <Box alignItems={BoxAlignItems.Center}>
                   <OnboardingTitle twClassName="pb-14">
                     {strings(
                       'social_leaderboard.profile_onboarding.customize_avatar',
                     )}
                   </OnboardingTitle>
-                  <AvatarBackgroundCarousel
+                  <ProfileAvatarPicker
                     avatarPresetId={draft.avatarPresetId}
-                    selectedBackgroundId={draft.avatarBackgroundId}
-                    onSelect={handleAvatarBackgroundSelect}
+                    avatarBackgroundId={draft.avatarBackgroundId}
+                    onSelectPreset={handleAvatarSelect}
+                    onSelectBackground={handleAvatarBackgroundSelect}
                   />
-                  <Box
-                    twClassName="flex-row flex-wrap justify-center gap-5 mt-11"
-                    style={tw.style({ width: AVATAR_GRID_WIDTH })}
-                  >
-                    {PROFILE_AVATAR_PRESETS.map((preset) => {
-                      const isSelected = draft.avatarPresetId === preset.id;
-                      return (
-                        <Pressable
-                          key={preset.id}
-                          accessibilityRole="button"
-                          accessibilityState={{ selected: isSelected }}
-                          onPress={() => handleAvatarSelect(preset.id)}
-                          testID={`${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-${preset.id}`}
-                          style={tw.style(
-                            'items-center justify-center rounded-full border',
-                            isSelected ? 'border-icon-default' : 'border-muted',
-                            {
-                              width: AVATAR_TILE_SIZE,
-                              height: AVATAR_TILE_SIZE,
-                            },
-                          )}
-                        >
-                          <Foxicon
-                            variant={preset.id}
-                            size={AVATAR_TILE_SIZE * 0.85}
-                          />
-                        </Pressable>
-                      );
-                    })}
-                  </Box>
                 </Box>
               ) : null}
 
@@ -814,7 +1012,16 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <LinkedAccountPicker
                     accounts={accounts}
                     selectedAccountId={draft.linkedAccountId}
+                    shareTradingActivity={draft.shareTradingActivity}
+                    onShareTradingActivityChange={(enabled) => {
+                      playSelection().catch(() => undefined);
+                      setDraft((current) => ({
+                        ...current,
+                        shareTradingActivity: enabled,
+                      }));
+                    }}
                     onSelect={(account) => {
+                      trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED);
                       playSelection().catch(() => undefined);
                       setDraft((current) => ({
                         ...current,
@@ -878,21 +1085,40 @@ const SocialProfileOnboardingView: React.FC = () => {
                 </Text>
               ) : null}
               {step === 'ready' ? (
-                <Button
-                  variant={ButtonVariant.Primary}
-                  isFullWidth
-                  isLoading={isSubmitting}
-                  onPress={() => {
-                    handleFinish().catch(() => undefined);
-                  }}
-                  testID={SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON}
-                >
-                  {strings(
-                    draft.path === 'x'
-                      ? 'social_leaderboard.profile_onboarding.view_profile'
-                      : 'social_leaderboard.profile_onboarding.lets_go',
-                  )}
-                </Button>
+                <Box gap={3}>
+                  {finishError ? (
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      isFullWidth
+                      isLoading={isSubmitting}
+                      isDisabled={isSubmitting}
+                      onPress={() => {
+                        createOnboardingProfile().catch(() => undefined);
+                      }}
+                      testID={
+                        SocialProfileOnboardingSelectorsIDs.RETRY_CREATE_BUTTON
+                      }
+                    >
+                      {strings(
+                        'social_leaderboard.profile_onboarding.try_again',
+                      )}
+                    </Button>
+                  ) : null}
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    isFullWidth
+                    isLoading={!profileCreated && isSubmitting}
+                    isDisabled={!profileCreated || isSubmitting}
+                    onPress={handleFinish}
+                    testID={SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON}
+                  >
+                    {strings(
+                      draft.path === 'x'
+                        ? 'social_leaderboard.profile_onboarding.view_profile'
+                        : 'social_leaderboard.profile_onboarding.lets_go',
+                    )}
+                  </Button>
+                </Box>
               ) : (
                 <Button
                   variant={ButtonVariant.Primary}

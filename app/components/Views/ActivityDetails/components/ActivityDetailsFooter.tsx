@@ -11,10 +11,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { ActivityDetailFooter } from './ActivityDetailsLayout';
-import {
-  useActivityBlockExplorer,
-  type ActivityExplorerLink,
-} from '../hooks/useActivityBlockExplorer';
+import { useActivityBlockExplorer } from '../hooks/useActivityBlockExplorer';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
 function useOpenWebview() {

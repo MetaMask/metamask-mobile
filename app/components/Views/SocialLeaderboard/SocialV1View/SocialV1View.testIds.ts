@@ -14,6 +14,8 @@ export const SocialV1ViewSelectorsIDs = {
   ACCOUNT_AVATAR: 'social-v1-view-account-avatar',
   PLUS_BUTTON: 'social-v1-view-plus-button',
   REWARDS_BUTTON: 'social-v1-view-rewards-button',
+  TRENDING_FILTER_BUTTON: 'social-v1-trending-filter-button',
   FOLLOWING_FILTER_BUTTON: 'social-v1-following-filter-button',
+  FOLLOWING_FILTER_BAR: 'social-v1-following-filter-bar',
   COPY_TRADE_GEO_BLOCK: 'social-v1-feed-copy-trade-geo-block',
 } as const;

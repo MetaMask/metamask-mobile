@@ -26,7 +26,9 @@ import { usePopularTraders } from '../SocialV1View/feed/hooks/usePopularTraders'
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { ProfilesToFollowViewSelectorsIDs } from './ProfilesToFollowView.testIds';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Screen, Source } = SocialEvent;
 /**
  * Full-screen list of the same leaderboard top 10 shown in the Trending
  * Popular traders carousel. Follow and profile navigation match the rail.
@@ -48,6 +50,10 @@ const ProfilesToFollowView: React.FC = () => {
   const isInFlight = isLoading || isFetching;
   const showLoading = isInFlight && traders.length === 0 && !hasFetched;
   const showError = Boolean(error) && traders.length === 0 && !isInFlight;
+  const trackInteraction = useSocialScreenAnalytics(Screen.PROFILES_TO_FOLLOW, {
+    source: Source.PROFILES_TO_FOLLOW,
+    state: [showLoading, showError, traders.length > 0],
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -55,6 +61,7 @@ const ProfilesToFollowView: React.FC = () => {
 
   const handleRowPress = useCallback(
     (trader: TopTrader) => {
+      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: trader.id,
         traderName: trader.username,
@@ -64,7 +71,7 @@ const ProfilesToFollowView: React.FC = () => {
         traderRank: trader.rank,
       });
     },
-    [navigation],
+    [navigation, trackInteraction],
   );
 
   const handleFollowPress = useCallback(

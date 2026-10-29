@@ -57,6 +57,8 @@ export type SessionSnapshot = Pick<VerificationToken, 'obtainedAt'> & {
  * - `cooldown`: the server is rate limiting; wait before the next request.
  * - `failure`: the flow ends on the failure screen, or rejects upfront if
  * nothing was shown.
+ * - `support`: only support can help; the flow always ends on the failure
+ * screen, which offers to contact support.
  * - `transient`: a server or network error; the user can try again.
  */
 export type MfaErrorHandling =
@@ -65,6 +67,7 @@ export type MfaErrorHandling =
   | 'restart'
   | 'cooldown'
   | 'failure'
+  | 'support'
   | 'transient';
 
 /**
@@ -247,7 +250,8 @@ export type MfaFlowAction =
   | { type: 'resend' }
   | { type: 'retry' }
   | { type: 'dismiss' }
-  | { type: 'cancel' };
+  | { type: 'cancel' }
+  | { type: 'back' };
 
 export interface MfaFlowResult {
   credentials: EnrolledCredential[];

@@ -468,6 +468,8 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
       [ACTIONS.WHATS_HAPPENING, DeepLinkRoute.WHATS_HAPPENING],
       [ACTIONS.TOP_TRADERS, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL_TRADER, DeepLinkRoute.SOCIAL_TRADER],
       [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
       'maps action %s to its corresponding route',
@@ -578,6 +580,30 @@ describe('deepLinkAnalytics', () => {
     it('extract shield route', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/shield');
       expect(result).toBe(DeepLinkRoute.SHIELD);
+    });
+
+    it('extract social trader profile route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social-trader?traderId=trader-1',
+      );
+      expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER);
+    });
+
+    it.each([
+      [
+        'https://link.metamask.io/social?tab=trending',
+        DeepLinkRoute.TOP_TRADERS,
+      ],
+      [
+        'https://link.metamask.io/social/profile?traderId=trader-1',
+        DeepLinkRoute.SOCIAL_TRADER,
+      ],
+      [
+        'https://link.metamask.io/social/profile/position?positionId=position-1',
+        DeepLinkRoute.SOCIAL_TRADER_POSITION,
+      ],
+    ])('extracts the nested social route from %s', (url, route) => {
+      expect(extractRouteFromUrl(url)).toBe(route);
     });
 
     it('extract social trader position route', () => {

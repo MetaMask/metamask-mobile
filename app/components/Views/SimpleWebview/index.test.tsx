@@ -153,4 +153,15 @@ describe('SimpleWebview', () => {
       );
     });
   });
+
+  it('allows http, https, about:blank, and about:srcdoc for Cloudflare Turnstile', () => {
+    const { getByTestId } = render(<SimpleWebview />);
+
+    expect(getByTestId('simple-webview').props.originWhitelist).toEqual([
+      'https://*',
+      'http://*',
+      'about:blank',
+      'about:srcdoc',
+    ]);
+  });
 });

@@ -2,7 +2,7 @@
 
 This ledger records the implemented mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
 
-The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). The account-scoped Position, Portfolio Summary, Activity, and Venue catalog direction is documented in [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md). Neither is executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
+The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). The account-scoped Position, Portfolio Summary, Activity, and Venue catalog contract is [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md); PRED-1404 made it executable. The read-model direction is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
 
 This ledger covers PredictNext's internal canonical contract. The interface exposed to code outside Predict is described in [the public API contract](./public-api-contract.md). It does not expose these types yet.
 
@@ -52,15 +52,22 @@ marketDataQueries.getFeed(venueId, feedId, params);
 marketDataQueries.getEvent(venueId, eventId);
 marketDataQueries.getMarketHistory(venueId, marketId, range);
 marketDataQueries.searchEvents(venueId, { q, limit });
+marketDataQueries.getVenueCatalog(venueId);
 ```
 
-All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling.
+All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling. The Venue catalog is fresh for five minutes, matching the catalog route's `Cache-Control: max-age=300`.
 
 ## Portfolio
 
 `portfolioQueries.getBalance(venueId)` is owned by `PredictPortfolioService`. Its query key and invalidation family are `['PredictPortfolioService:getBalance', venueId]`, its stale time is 60 seconds, and its scope is `venue`. Portfolio and public market-data reads use separate service policies and circuits, so a Balance outage cannot open the market-data circuit and a Feed outage cannot open the portfolio circuit.
 
-`portfolioQueries.getPositions` and `getActivity` currently return Kalshi-native shapes: Positions with `marketExposure` and no valuation, and directionless `fill` Activity entries. They are superseded by [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md), which adds Position valuation fields, a Portfolio Summary read, `trade` entries with an authoritative buy or sell Action, and the Venue catalog. PRED-1404 adopts it.
+`portfolioQueries.getPositions`, `getActivity`, and `getPortfolioSummary` follow [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md), parsed by `contracts/v1/portfolio.ts` and checked against the contract's examples in `contracts/v1/fixtures/portfolio-contract/`:
+
+- **Positions** carry `status` and the backend's valuation (`averagePrice`, `costBasis`, `currentValue`, `unrealizedPnl`, `unrealizedPnlPercent`). Each valuation field is absent, never zero, without an authoritative source; the parser rejects PnL without the value and cost basis it comes from, and zero `shares`. The params add a `status` filter and `sort` (`opened` or the unpaginated `value`), both part of the cursor-free key. Lists de-duplicate by Market and side, keeping the latest copy (`utils/positions.ts`).
+- **Activity** is `trade` entries with an authoritative `action` and Settlements of the net held side. The parser rejects a page out of the pinned order (timestamp descending, `trade` before `settlement`, `id` ascending) instead of re-sorting it, and keeps `settlementsCompleteFrom`, which the Portfolio Activity tab shows as the date Settlements are complete from.
+- **Summary** (`['PredictPortfolioService:getPortfolioSummary', venueId]`, 30-second stale time, own retry policy, `usePortfolioSummary`) is the only source of portfolio totals. The parser rejects a Summary whose `totalValue` is not exactly `availableBalance + positionsValue + claimableValue`. The Portfolio screen renders it as served and flags `complete: false` next to the total.
+
+Balance, Positions, Activity, and the Summary are account data: they belong to the authenticated Predict User, not to the wallet. Keys stay Venue-only, and the platform reset — the only event that replaces a Predict User, because a wallet reset or a new wallet runs in process — purges them. `PredictPortfolioService.clearAccountData()` cancels in-flight reads so their callers fail and late responses are discarded, removes the cached entries, and drops the remembered reads so a later invalidation cannot refresh them. The next read refetches. Lock/unlock, account switches, and sign-out/sign-in keep the cache, and the shared app query client that mirrors it is cleared only on that same reset.
 
 ## Order commit (write contract, PRED-1194)
 
@@ -71,7 +78,8 @@ The implemented write contract is one authenticated route: `POST /v1/venues/{ven
 - Receipt statuses: `pending` and `submitted` are in-progress; the mobile `PredictOrderService` observes them with a small bounded number of re-POSTs. `filled`, `partially_filled`, `not_filled`, and `rejected` are terminal; `partially_filled` is a success with honest partial copy, and `not_filled` reuses the Order-not-filled treatment.
 - `reconciliation_required` means the submission outcome is ambiguous and the backend resolves it by looking up the stable `client_order_id` or the resulting Venue Order; the UI renders it as in-progress and the keep-checking affordance re-POSTs the same Commit. A verified venue absence re-arms exactly one submission; there is never a blind second Order.
 - Pre-operation failures (expired Preview, untradeable Market, insufficient Balance, unavailable venue) are canonical error codes and never create an operation; once an operation exists, every outcome — including rejection and zero Fill — is a receipt, never an error.
-- A terminal receipt invalidates the authoritative Balance, Positions, and Activity reads. Mobile persists nothing about the operation: after a screen closure or app restart the outcome surfaces through those authoritative reads (restart-observation persistence is descoped on PRED-1194).
+- A terminal receipt invalidates the authoritative Balance, Positions, Activity, and Summary reads. Mobile persists nothing about the operation: after a screen closure or app restart the outcome surfaces through those authoritative reads (restart-observation persistence is descoped on PRED-1194).
+- A platform reset abandons observation. `PredictOrderService.abandonCommits()` rejects the in-flight Commit with `UNAUTHENTICATED` immediately, never re-POSTs that Preview again, and ignores a receipt that arrives afterwards instead of invalidating the portfolio reads. A Commit started after the reset is observed normally.
 
 ## Order preview and commit (action contract, PRED-1195)
 

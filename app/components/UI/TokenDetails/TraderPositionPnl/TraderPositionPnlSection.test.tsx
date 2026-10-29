@@ -97,6 +97,7 @@ describe('TraderPositionPnlSection', () => {
       pnl: { amount: '+$50.00', percentage: '+50.00%', isProfit: true },
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
 
     renderSection();
@@ -149,6 +150,7 @@ describe('TraderPositionPnlSection', () => {
         expandedDetails,
         sharePosition,
         isLoading: false,
+        isPositionLoading: false,
       });
     });
 
@@ -174,6 +176,7 @@ describe('TraderPositionPnlSection', () => {
         expandedDetails,
         sharePosition: null,
         isLoading: false,
+        isPositionLoading: false,
       });
 
       renderSection();
@@ -206,6 +209,7 @@ describe('TraderPositionPnlSection', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: true,
+      isPositionLoading: true,
     });
 
     renderSection();
@@ -217,6 +221,7 @@ describe('TraderPositionPnlSection', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
 
     renderSection();
@@ -228,6 +233,7 @@ describe('TraderPositionPnlSection', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: false,
+      isPositionLoading: false,
     });
     mockUseTokenBalance.mockReturnValue({
       balance: '0',

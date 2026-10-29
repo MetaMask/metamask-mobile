@@ -7,7 +7,7 @@ import type {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { useCommissions } from '../hooks/useCommissions';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows.testIds';
 import RewardsTradingCommissionsView, {
   REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS,
 } from './RewardsTradingCommissionsView';
@@ -129,17 +129,6 @@ describe('RewardsTradingCommissionsView', () => {
     );
 
     expect(loadMore).toHaveBeenCalledTimes(1);
-  });
-
-  it('falls back to the trade commissions label when the section title is missing', () => {
-    const { tradingCommissionsSection: _omitted, ...rest } = LOCALIZED_TEXT;
-
-    const { getByText } = renderWithProvider(
-      <RewardsTradingCommissionsView />,
-      { state: stateWith(rest) },
-    );
-
-    expect(getByText('Trade commissions')).toBeOnTheScreen();
   });
 
   it('renders no rows until localized text is available', () => {

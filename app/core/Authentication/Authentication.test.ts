@@ -250,6 +250,10 @@ jest.mock('../Engine', () => ({
       state: { vault: null },
     },
 
+    CardController: {
+      logout: jest.fn(),
+    },
+
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
       resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
@@ -405,6 +409,11 @@ jest.mock('../../util/mnemonic', () => ({
 jest.mock('../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
+}));
+
+jest.mock('../ReactQueryService', () => ({
+  __esModule: true,
+  default: { queryClient: { clear: jest.fn() } },
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -1621,6 +1630,83 @@ describe('Authentication', () => {
           mockAttemptMultichainAccountWalletDiscovery,
         ).toHaveBeenNthCalledWith(2, 'test-keyring-2');
       });
+    });
+  });
+
+  describe('wallet reset and the shared query cache', () => {
+    const engineMock = () => jest.requireMock('../Engine');
+    const clearQueryCache = () =>
+      (
+        jest.requireMock('../ReactQueryService') as {
+          default: { queryClient: { clear: jest.Mock } };
+        }
+      ).default.queryClient.clear;
+
+    beforeEach(() => {
+      const Engine = engineMock();
+      Engine.resetState = jest.fn().mockResolvedValue(undefined);
+      clearQueryCache().mockClear();
+    });
+
+    const mockReduxStore = () =>
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+    it('clears the app query client after resetting Engine state when creating a wallet', async () => {
+      mockReduxStore();
+
+      await Authentication.newWalletAndKeychain('password', {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      });
+
+      const Engine = engineMock();
+      expect(Engine.resetState).toHaveBeenCalledTimes(1);
+      expect(clearQueryCache()).toHaveBeenCalledTimes(1);
+      // After the reset: the reset's own Predict purge republishes the state
+      // it drops, and clearing last removes that copy too.
+      expect(Engine.resetState.mock.invocationCallOrder[0]).toBeLessThan(
+        clearQueryCache().mock.invocationCallOrder[0],
+      );
+    });
+
+    it('clears the app query client after resetting Engine state when restoring a wallet', async () => {
+      mockReduxStore();
+
+      await Authentication.newWalletAndRestore(
+        'password',
+        { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+        'test seed phrase',
+        true,
+      );
+
+      expect(engineMock().resetState).toHaveBeenCalledTimes(1);
+      expect(clearQueryCache()).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the app query cache when restoring a wallet keeps Engine state', async () => {
+      mockReduxStore();
+
+      await Authentication.newWalletAndRestore(
+        'password',
+        { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+        'test seed phrase',
+        false,
+      );
+
+      expect(engineMock().resetState).not.toHaveBeenCalled();
+      expect(clearQueryCache()).not.toHaveBeenCalled();
+    });
+
+    it('does not clear the app query cache when locking the app', async () => {
+      mockReduxStore();
+
+      await Authentication.lockApp({ navigateToLogin: false });
+
+      // Locking does not replace the person: their cached reads stay.
+      expect(engineMock().resetState).not.toHaveBeenCalled();
+      expect(clearQueryCache()).not.toHaveBeenCalled();
     });
   });
 

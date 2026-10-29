@@ -1201,6 +1201,23 @@ describe('usePerpsOrderForm', () => {
       expect(at100).toBe(result.current.maxPossibleAmount);
     });
 
+    it('caps an amount set above the margin max at that max', () => {
+      // The Pro order-book size fill (TAT-4085) relies on this cap.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const marginMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setAmount(String(marginMax * 10));
+      });
+
+      expect(marginMax).toBeGreaterThan(0);
+      expect(result.current.orderForm.amount).toBe(
+        String(Math.floor(marginMax)),
+      );
+    });
+
     it('does not clamp typed amounts while a max override is set', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
@@ -1254,6 +1271,70 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.orderForm.amount).toBe(initialAmount);
+    });
+  });
+
+  describe('fee-adjusted max amount', () => {
+    const feeRate = 0.0045;
+
+    it('reserves the trading fee so margin plus fee fits the balance at 100%', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const unreservedMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const notional = Number(result.current.orderForm.amount);
+      const { leverage } = result.current.orderForm;
+      expect(result.current.maxPossibleAmount).toBeLessThan(unreservedMax);
+      expect(notional).toBe(result.current.maxPossibleAmount);
+      expect(notional / leverage + notional * feeRate).toBeLessThanOrEqual(
+        1000,
+      );
+    });
+
+    it('lowers an amount held at max when the quoted fee rate rises', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      act(() => {
+        result.current.setEstimatedFeeRate(0.001);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+      const lowFeeMax = Number(result.current.orderForm.amount);
+
+      act(() => {
+        result.current.setEstimatedFeeRate(0.02);
+      });
+
+      expect(result.current.maxPossibleAmount).toBeLessThan(lowFeeMax);
+      expect(Number(result.current.orderForm.amount)).toBe(
+        result.current.maxPossibleAmount,
+      );
+    });
+
+    it('restores the unreserved max when the quote is cleared', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const unreservedMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.setEstimatedFeeRate(0);
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(unreservedMax);
     });
   });
 

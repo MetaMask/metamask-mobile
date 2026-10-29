@@ -48,7 +48,7 @@ describe('PostTradeShareBottomSheet', () => {
     ).toBeNull();
   });
 
-  it('disables Share while the swap is in progress', () => {
+  it('disables Create post while the swap is in progress', () => {
     beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
@@ -66,10 +66,150 @@ describe('PostTradeShareBottomSheet', () => {
 
     expect(
       screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
-    ).toHaveTextContent('social_leaderboard.post_trade_share.in_progress');
+    ).toHaveTextContent('social_leaderboard.post_trade_share.swap_in_progress');
     expect(
-      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
-    ).toBeDisabled();
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE),
+    ).toHaveTextContent(
+      'social_leaderboard.post_trade_share.post_and_earn_title',
+    );
+    const primary = screen.getByTestId(
+      PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON,
+    );
+    expect(primary).toHaveTextContent(
+      'social_leaderboard.post_trade_share.create_post',
+    );
+    expect(primary).toBeDisabled();
+  });
+
+  it('shows the perps in-progress title', () => {
+    beginPostTradeShareSession({
+      product: 'perps',
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+      },
+    });
+
+    renderWithProvider(<PostTradeShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent(
+      'social_leaderboard.post_trade_share.order_in_progress',
+    );
+  });
+
+  describe('View activity', () => {
+    it('opens wallet activity for a swap', () => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'buy',
+        preview: {
+          tokenSymbol: 'PUMP',
+          tokenAddress: '0xpump',
+          chain: 'base',
+          side: 'buy',
+        },
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          PostTradeShareBottomSheetSelectorsIDs.VIEW_ACTIVITY_BUTTON,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('TransactionsView');
+      expect(getPostTradeShareSession()).toBeNull();
+    });
+
+    it('opens perps activity for a perps order', () => {
+      beginPostTradeShareSession({
+        product: 'perps',
+        status: 'failed',
+        preview: {
+          product: 'perps',
+          tokenSymbol: 'ETH',
+          tradeSymbol: 'ETH',
+          tokenAddress: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          PostTradeShareBottomSheetSelectorsIDs.VIEW_ACTIVITY_BUTTON,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Perps', {
+        screen: 'PerpsActivity',
+        params: { redirectToPerpsTransactions: true, showBackButton: true },
+      });
+      expect(getPostTradeShareSession()).toBeNull();
+    });
+  });
+
+  describe('create profile variant', () => {
+    it('enables Create profile while the trade is in progress', () => {
+      beginPostTradeShareSession({
+        variant: 'create_profile',
+        target,
+        tradeMode: 'buy',
+        preview: {
+          tokenSymbol: 'PUMP',
+          tokenAddress: '0xpump',
+          chain: 'base',
+          side: 'buy',
+        },
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE),
+      ).toHaveTextContent(
+        'social_leaderboard.post_trade_share.create_profile_title',
+      );
+      const primary = screen.getByTestId(
+        PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON,
+      );
+      expect(primary).toHaveTextContent(
+        'social_leaderboard.post_trade_share.create_profile',
+      );
+      expect(primary).not.toBeDisabled();
+    });
+
+    it('opens profile onboarding and clears the session', () => {
+      beginPostTradeShareSession({
+        variant: 'create_profile',
+        product: 'perps',
+        status: 'complete',
+        orderId: '42',
+        preview: {
+          product: 'perps',
+          tokenSymbol: 'ETH',
+          tradeSymbol: 'ETH',
+          tokenAddress: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
+      expect(getPostTradeShareSession()).toBeNull();
+    });
   });
 
   it('navigates to the composer with tradeInFlight on Share', () => {
@@ -113,6 +253,7 @@ describe('PostTradeShareBottomSheet', () => {
       target,
       tradeMode: 'buy',
       status: 'failed',
+      owner: 'social-v1-feed',
       preview: {
         tokenSymbol: 'PUMP',
         tokenAddress: '0xpump',
@@ -135,6 +276,32 @@ describe('PostTradeShareBottomSheet', () => {
     );
 
     expect(getPostTradeShareSession()?.reopenRequested).toBe(true);
+  });
+
+  it('closes a failed swap with no owner screen to retry from', () => {
+    beginPostTradeShareSession({
+      target,
+      tradeMode: 'buy',
+      status: 'failed',
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+      },
+    });
+
+    renderWithProvider(<PostTradeShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    ).toHaveTextContent('social_leaderboard.post_trade_share.close');
+
+    fireEvent.press(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(getPostTradeShareSession()).toBeNull();
   });
 
   it('disables Share when a completed session has no transaction hash', () => {

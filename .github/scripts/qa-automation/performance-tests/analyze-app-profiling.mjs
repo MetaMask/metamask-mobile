@@ -50,6 +50,7 @@ import {
 } from './profiling-regression-issues.mjs';
 import {
   SCHEDULED_BASELINE_HOURS,
+  buildIssueVerdictDm,
   buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
@@ -273,7 +274,7 @@ Options:
   --max-runs-per-week <n>  Cap uncollected runs re-analyzed per week (default: every run)
   --max-analysis-minutes <n>  Wall clock spent rebuilding uncollected runs (default: ${DEFAULT_ANALYSIS_BUDGET_MINUTES})
   --collect-only         Analyze one run without Slack-sized scenario zips
-  --scheduled-exception  Collect one run and compare it with the previous two scheduled runs
+  --scheduled-exception  Collect one run and compare it with the average of the previous clean scheduled runs
   --skip-scenario-artifacts  Skip per-scenario profile bundles
   --github-issues        With --scheduled-exception: open or reference one GitHub issue per finding.
                          With --weekly: list the issues opened during the reported week
@@ -2652,7 +2653,12 @@ async function runScheduledExceptionAnalysis({
     },
   );
   const baselineReports = selectBaselineReports(scheduledRuns, collected);
-  const exception = buildScheduledException(currentReport, baselineReports);
+  const previousReport = scheduledRuns[0]
+    ? collected.get(String(scheduledRuns[0].databaseId)) || null
+    : null;
+  const exception = buildScheduledException(currentReport, baselineReports, {
+    previousReport,
+  });
   writeScheduledExceptionOutputs(outputDirectory, currentReport, exception);
   let aiText = null;
   if (exception.meta.hasFindings && !args.skipAi && !args.dryRun) {
@@ -2669,8 +2675,17 @@ async function runScheduledExceptionAnalysis({
       callClaude,
     });
   }
-  // The issue carries the proposal, so it is opened after that pass. Slack
-  // then links the issue next to the finding it tracks.
+  // Findings would have opened or commented a GitHub issue. Filing stays
+  // off unless --github-issues is passed. The verdict file is the DM body.
+  const issueDmPath = path.join(outputDirectory, 'issue-dm.md');
+  if (exception.meta.hasFindings && !args.dryRun && !args.githubIssues) {
+    fs.writeFileSync(
+      issueDmPath,
+      `${buildIssueVerdictDm(exception, aiText)}\n`,
+    );
+  } else if (fs.existsSync(issueDmPath)) {
+    fs.unlinkSync(issueDmPath);
+  }
   if (exception.meta.hasFindings && args.githubIssues && !args.dryRun) {
     const synced = syncProfilingRegressionIssues({
       exception,

@@ -38,6 +38,7 @@ describe('mapMoneyVbaTransfers', () => {
         },
         amount: '1000000000',
         receivedFrom: '0x1111111111111111111111111111111111111111',
+        status: 'confirmed',
       },
     ]);
     expect(result.pending).toEqual([]);

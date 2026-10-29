@@ -4,7 +4,8 @@ import {
   type PredictNextIntegrationHarness,
 } from '../../../../../tests/integration/harnesses/predict-next';
 import { PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS } from '../adapters/remote/PredictLiveDataClient';
-import { KALSHI_VENUE_ID, type PredictEntityId } from '../types';
+import { type PredictEntityId } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const id = (value: string) => value as PredictEntityId;
 

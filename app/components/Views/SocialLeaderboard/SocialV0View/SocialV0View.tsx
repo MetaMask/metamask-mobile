@@ -270,8 +270,9 @@ const SocialV0View: React.FC = () => {
   });
 
   // The spot Buy orchestrator (QuickBuy sheet / swaps A/B) is hosted here,
-  // outside the PagerView, so its QuickBuy sheet isn't clipped by the pager page
-  // and the content behind it stays interactive (no backdrop, tap/swipe-through).
+  // outside the PagerView, so an inline QuickBuy sheet isn't clipped by the pager
+  // page and the content behind it stays interactive (no backdrop, tap/swipe-through).
+  // In the home tabs the sheet renders in MainNavigator's host instead.
   // FeedView reports spot availability and triggers the buy via this ref.
   const buyActionRef = useRef<FeedSpotBuyActionHandle | null>(null);
   const [feedHasSpotItem, setFeedHasSpotItem] = useState(false);

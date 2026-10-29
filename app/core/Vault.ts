@@ -9,6 +9,7 @@ import {
   haltIfSeedlessPasswordChangeKillAfter,
   registerSeedlessPasswordChangeKillDeepLinkHandler,
 } from './Authentication/seedlessPasswordChangeKillSwitch';
+import { signOutCardAfterPasswordChange } from './signOutCardAfterPasswordChange';
 
 registerSeedlessPasswordChangeKillDeepLinkHandler();
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
@@ -106,4 +107,7 @@ export const recreateVaultsWithNewPassword = async (
     await completeSeedlessPasswordChangeKeySync();
   }
   Engine.setSelectedAddress(selectedAddress);
+  // Card logout is a remote call with no timeout. It must not delay the
+  // password change or sit before the seedless key sync.
+  signOutCardAfterPasswordChange().catch(() => undefined);
 };

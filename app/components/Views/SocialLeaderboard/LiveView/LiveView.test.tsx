@@ -1,7 +1,9 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { SocialFeedRealtimeSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedRealtime';
 import { mockPerpFeedItem } from '../../../UI/SocialFeed/mocks/coreFeed.mock';
 import {
   mockOpenPerpsFeedItem,
@@ -11,6 +13,7 @@ import type {
   SocialFeedPageHandle,
   SocialV1FeedPost,
 } from '../../../UI/SocialFeed/types';
+import { SocialEvent } from '../analytics/socialEvents';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../shell/filters/types';
@@ -18,16 +21,13 @@ import LiveView from './LiveView';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 
 interface MockSocialFeedProps {
-  source: unknown;
+  scope: string;
   location: string;
   scrollMode: string;
   realtime?: boolean;
   paused?: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
-  renderHeader?: (props: {
-    pendingNewCount: number;
-    onRevealPending: () => void;
-  }) => React.ReactNode;
+  renderHeader?: () => React.ReactNode;
   pageRef?: React.Ref<SocialFeedPageHandle>;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onPositionPress?: (post: SocialV1FeedPost) => void;
@@ -37,14 +37,14 @@ interface MockSocialFeedProps {
 
 const mockSocialFeed = jest.fn<null, [MockSocialFeedProps]>();
 const mockFeedScrollToOffset = jest.fn();
-const mockRevealPending = jest.fn();
-let mockPendingNewCount = 0;
-
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
   const { View } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
+  const { SocialFeedRealtimeContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedRealtime/SocialFeedRealtimeContext',
+  );
 
   const MockSocialFeed = (props: MockSocialFeedProps) => {
     mockSocialFeed(props);
@@ -52,12 +52,18 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
       scrollToOffset: mockFeedScrollToOffset,
     }));
     return ReactActual.createElement(
-      View,
-      { testID: props.testID },
-      props.renderHeader?.({
-        pendingNewCount: mockPendingNewCount,
-        onRevealPending: mockRevealPending,
-      }),
+      SocialFeedRealtimeContext.Provider,
+      {
+        value: {
+          paused: props.paused ?? false,
+          pendingNewCount: 0,
+        },
+      },
+      ReactActual.createElement(
+        View,
+        { testID: props.testID },
+        props.renderHeader?.(),
+      ),
     );
   };
 
@@ -81,8 +87,18 @@ jest.mock('../navigation/navigateToSocialV1Profile', () => ({
 }));
 
 jest.mock('../../../../util/haptics', () => ({
+  ImpactMoment: { PullToRefresh: 'pullToRefresh' },
+  playImpact: jest.fn(() => Promise.resolve()),
   playSelection: jest.fn(() => Promise.resolve()),
 }));
+
+const mockTrackInteraction = jest.fn();
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics/socialEvents'),
+  useSocialInteraction: () => mockTrackInteraction,
+}));
+
+const { Filter, Interaction, StreamState } = SocialEvent;
 
 const post = (
   overrides: Partial<SocialV1FeedPost> & Pick<SocialV1FeedPost, 'id' | 'item'>,
@@ -138,10 +154,24 @@ const filters = (patch: Partial<SocialShellFilters>): SocialShellFilters => ({
   ...patch,
 });
 
+const pressStreamButton = () =>
+  fireEvent.press(
+    screen.getByTestId(SocialFeedRealtimeSelectorsIDs.LIVE_BUTTON),
+  );
+
 describe('LiveView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPendingNewCount = 0;
+  });
+
+  it('pads the Live filter bar 16px below the tabs and 8px above the feed', () => {
+    renderWithProvider(<LiveView />, { state });
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(LiveViewSelectorsIDs.FILTER_BAR).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ paddingTop: 16, paddingBottom: 8 }));
   });
 
   it('renders the all-traders feed in virtualized realtime mode', () => {
@@ -149,7 +179,7 @@ describe('LiveView', () => {
 
     expect(lastFeedProps()).toEqual(
       expect.objectContaining({
-        source: { kind: 'all', audience: 'all', scope: 'all' },
+        scope: 'all',
         location: 'social_live',
         scrollMode: 'virtualized',
         realtime: true,
@@ -233,31 +263,41 @@ describe('LiveView', () => {
     expect(mockFeedScrollToOffset).toHaveBeenCalledWith(0, true);
   });
 
-  it('pauses the feed, then reveals held posts when resumed', () => {
+  it('pauses the feed, then resumes it', () => {
     renderWithProvider(<LiveView />, { state });
 
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+    pressStreamButton();
     const pausedProps = lastFeedProps();
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+    pressStreamButton();
 
     expect(pausedProps.paused).toBe(true);
     expect(lastFeedProps().paused).toBe(false);
-    expect(mockRevealPending).toHaveBeenCalledTimes(1);
   });
 
-  it('reveals pending posts from the pill', () => {
-    mockPendingNewCount = 3;
+  it('tracks each stream toggle with the previous state', () => {
     renderWithProvider(<LiveView />, { state });
 
-    fireEvent.press(screen.getByLabelText('3 new posts'));
+    pressStreamButton();
+    pressStreamButton();
 
-    expect(mockRevealPending).toHaveBeenCalledTimes(1);
-  });
-
-  it('hides the pill without pending posts', () => {
-    renderWithProvider(<LiveView />, { state });
-
-    expect(screen.queryByLabelText(/new post/)).toBeNull();
+    expect(mockTrackInteraction).toHaveBeenNthCalledWith(
+      1,
+      Interaction.STREAM_TOGGLED,
+      {
+        filter_name: Filter.STREAM_STATE,
+        filter_value: StreamState.PAUSED,
+        previous_filter_value: StreamState.LIVE,
+      },
+    );
+    expect(mockTrackInteraction).toHaveBeenNthCalledWith(
+      2,
+      Interaction.STREAM_TOGGLED,
+      {
+        filter_name: Filter.STREAM_STATE,
+        filter_value: StreamState.LIVE,
+        previous_filter_value: StreamState.PAUSED,
+      },
+    );
   });
 
   it('opens the author profile', () => {

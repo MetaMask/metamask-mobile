@@ -2,6 +2,7 @@ import { PasswordSyncInstruction } from '@metamask/seedless-onboarding-controlle
 import Engine from '../Engine';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import ReduxService from '../redux';
+import { signOutCardAfterPasswordChange } from '../signOutCardAfterPasswordChange';
 import {
   SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
   haltIfSeedlessPasswordChangeKillAfter,
@@ -104,5 +105,7 @@ export const applySeedlessUnlockRecovery = async (
       );
     }
   }
+  // Card logout is a remote call with no timeout. It must not delay the unlock.
+  signOutCardAfterPasswordChange().catch(() => undefined);
   return true;
 };

@@ -22,6 +22,9 @@ jest.mock('../Engine', () => ({
       changePassword: jest.fn(),
     },
     SeedlessOnboardingController: {},
+    CardController: {
+      logout: jest.fn(),
+    },
   },
 }));
 
@@ -63,6 +66,9 @@ describe('seedlessPasswordChangeCoordinator', () => {
       .fn()
       .mockResolvedValue(undefined);
     mockEngine.context.KeyringController.changePassword = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    mockEngine.context.CardController.logout = jest
       .fn()
       .mockResolvedValue(undefined);
 
@@ -188,6 +194,7 @@ describe('seedlessPasswordChangeCoordinator', () => {
       expect(
         mockEngine.context.KeyringController.changePassword,
       ).not.toHaveBeenCalled();
+      expect(mockEngine.context.CardController.logout).not.toHaveBeenCalled();
     });
 
     it('reconciles then finishes key sync when instruction is password-outdated', async () => {
@@ -213,6 +220,37 @@ describe('seedlessPasswordChangeCoordinator', () => {
         globalPassword: 'new-password',
       });
       expect(controller.completePasswordChange).toHaveBeenCalledTimes(1);
+      expect(
+        controller.completePasswordChange.mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        jest.mocked(mockEngine.context.CardController.logout).mock
+          .invocationCallOrder[0],
+      );
+    });
+
+    it('finishes recovery when the Card sign-out never resolves', async () => {
+      setSeedlessController({
+        storeKeyringEncryptionKey: jest.fn().mockResolvedValue(undefined),
+        loadKeyringEncryptionKey: jest.fn().mockResolvedValue('enc-key'),
+        resolvePasswordSyncState: jest
+          .fn()
+          .mockResolvedValue(PasswordSyncInstruction.PasswordOutdated),
+        reconcilePassword: jest
+          .fn()
+          .mockResolvedValue(PasswordSyncInstruction.ReconcileKeyring),
+        markPasswordChangeKeySyncPending: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        completePasswordChange: jest.fn().mockResolvedValue(undefined),
+      });
+      mockEngine.context.CardController.logout = jest
+        .fn()
+        .mockReturnValue(new Promise(() => undefined));
+
+      const recovered = await applySeedlessUnlockRecovery('new-password');
+
+      expect(recovered).toBe(true);
+      expect(mockEngine.context.CardController.logout).toHaveBeenCalledTimes(1);
     });
 
     it('unlocks the keyring before exporting its key when instruction is sync-key', async () => {

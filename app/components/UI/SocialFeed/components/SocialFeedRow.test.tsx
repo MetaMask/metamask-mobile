@@ -131,4 +131,15 @@ describe('areSocialFeedRowPropsEqual', () => {
     expect(dividerEqual).toBe(false);
     expect(motionEqual).toBe(false);
   });
+
+  it('rerenders when the clock moves so relative ages stay current', () => {
+    const previous = { ...rowProps(), now: 1_000 };
+
+    const equal = areSocialFeedRowPropsEqual(previous, {
+      ...previous,
+      now: 61_000,
+    });
+
+    expect(equal).toBe(false);
+  });
 });

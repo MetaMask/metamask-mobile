@@ -95,7 +95,17 @@ const SimpleWebView = () => {
       ) : (
         <HeaderStandard {...headerProps} />
       )}
-      <WebView containerStyle={tw.style('flex-1')} source={{ uri: url }} />
+      <WebView
+        containerStyle={tw.style('flex-1')}
+        source={{ uri: url }}
+        testID="simple-webview"
+        originWhitelist={[
+          'https://*',
+          'http://*',
+          'about:blank',
+          'about:srcdoc',
+        ]}
+      />
     </View>
   );
 };

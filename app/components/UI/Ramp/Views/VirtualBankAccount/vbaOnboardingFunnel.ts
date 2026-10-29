@@ -55,6 +55,13 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
  * autoramp opens the account screen. Approved KYC without one opens Identity
  * verified. Account setup runs later, on that account screen.
  *
+ * A rejected applicant opens the failure screen. Rejection is terminal, so
+ * that screen contacts support instead of requesting another SumSub token.
+ * An applicant UKYC asked to retry before the provider flow was (re)submitted
+ * opens the same screen, and Try again relaunches Sumsub. Routing that retry
+ * straight into identity verification from every entry point dropped the user
+ * back into the provider, so closing Sumsub looked like it had done nothing.
+ *
  * @param snapshot - Facts from hydrate.
  * @returns The next module or status destination.
  */
@@ -64,7 +71,11 @@ export const getVbaDestinationForSnapshot = (
   if (!snapshot) {
     return 'error';
   }
-  if (snapshot.kycStatus === 'rejected') {
+  if (
+    snapshot.kycStatus === 'rejected' ||
+    (snapshot.kycStatus === 'retry' &&
+      snapshot.providerFlowStatus !== 'submitted')
+  ) {
     return 'kycRejected';
   }
 
