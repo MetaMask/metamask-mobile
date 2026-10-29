@@ -86,7 +86,6 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
-import { deleteKalshiTradingSession } from '../../components/UI/PredictNext/auth/a2tSessionInstance';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -2037,7 +2036,16 @@ class AuthenticationService {
         // Cancel any running bulk link saga before resetting rewards state
         ReduxService.store.dispatch(cancelBulkLink());
 
-        await deleteKalshiTradingSession();
+        try {
+          await Engine.controllerMessenger.call(
+            'PredictDeviceAuthService:reset',
+          );
+        } catch (error) {
+          Logger.error(
+            ensureError(error, 'Failed to reset Predict device authentication'),
+            'Failed to reset Predict device authentication',
+          );
+        }
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 

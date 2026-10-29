@@ -1,8 +1,8 @@
 import {
-  kalshiDeviceKeyCommitment,
-  KalshiDeviceKeyUnavailableError,
-  type KalshiDevicePublicMaterial,
-} from './kalshiDeviceKey';
+  P256DeviceKeyUnavailableError,
+  type P256DevicePublicMaterial,
+} from './p256DeviceKey';
+import { KALSHI_AUTHENTICATION_PROFILE } from './venueAuthProfiles';
 import {
   A2tSession,
   a2tPopMessage,
@@ -19,36 +19,16 @@ const PUBLIC_RAW = Uint8Array.from({ length: 65 }, (_, index) =>
   index === 0 ? 0x04 : (index % 200) + 1,
 );
 const SALT_RAW = Uint8Array.from({ length: 16 }, (_, index) => index + 1);
-const DEVICE_NONCE = kalshiDeviceKeyCommitment(PUBLIC_RAW, SALT_RAW);
-
 const material = (
   publicKey = 'device-public-key',
-): KalshiDevicePublicMaterial => ({
+): P256DevicePublicMaterial => ({
   publicRaw: PUBLIC_RAW,
   publicKey,
   saltRaw: SALT_RAW,
   salt: 'device-salt',
 });
 
-const jwtPart = (value: unknown): string =>
-  Buffer.from(JSON.stringify(value))
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/[=]+$/u, '');
-
-const issuedToken =
-  jwtPart({ alg: 'ES256', typ: 'JWT', kid: 'a2t-issuer-1' }) +
-  '.' +
-  jwtPart({
-    iss: 'https://poc-issuer.metamask.local',
-    sub: PROFILE_ID,
-    aud: 'kalshi-demo-audience-placeholder',
-    iat: NOW_SEC,
-    exp: NOW_SEC + 900,
-    nonce: DEVICE_NONCE,
-  }) +
-  '.sig';
+const issuedToken = 'opaque-a2t';
 
 const challengeBody = {
   challengeId: CHALLENGE_ID,
@@ -58,8 +38,7 @@ const challengeBody = {
 
 const issuedBody = {
   a2t: issuedToken,
-  exp: NOW_SEC + 900,
-  profileId: PROFILE_ID,
+  expiresIn: 900,
 };
 
 const jsonResponse = (status: number, body: unknown): Response =>
@@ -73,7 +52,7 @@ interface Harness {
   session: A2tSession;
   deps: A2tSessionDependencies;
   fetchMock: jest.MockedFunction<typeof fetch>;
-  device: KalshiDevicePublicMaterial;
+  device: P256DevicePublicMaterial;
   nowSec: { value: number };
   nowMs: { value: number };
 }
@@ -89,6 +68,7 @@ const createHarness = (
   const nowSec = { value: NOW_SEC };
   const nowMs = { value: 0 };
   const deps: A2tSessionDependencies = {
+    profile: KALSHI_AUTHENTICATION_PROFILE,
     getIssuerUrl: () => 'http://127.0.0.1:3333',
     getAccessToken: async () => 'mm-token',
     getCanonicalProfileId: () => PROFILE_ID,
@@ -185,13 +165,18 @@ describe('A2tSession', () => {
       `metamask:nonce-1:${SRP_IDENTIFIER}`,
     );
     expect(signDeviceProof).toHaveBeenCalledWith(
-      a2tPopMessage(CHALLENGE_ID, 'device-public-key', 'device-salt'),
+      a2tPopMessage(
+        KALSHI_AUTHENTICATION_PROFILE,
+        CHALLENGE_ID,
+        'device-public-key',
+        'device-salt',
+      ),
     );
   });
 
   it('reuses a cached A2T when the device key is loaded again', async () => {
     const key = material();
-    let visible: KalshiDevicePublicMaterial | null = key;
+    let visible: P256DevicePublicMaterial | null = key;
     const harness = createHarness({
       getDeviceKey: async () => key,
       peekDeviceKey: () => visible,
@@ -413,78 +398,51 @@ describe('A2tSession', () => {
     expect(harness.fetchMock).toHaveBeenCalledTimes(4);
   });
 
-  it('rejects an A2T issued for a different profile', async () => {
+  it.each([
+    'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjF9.es256-signature',
+    'eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjJ9.rs256-signature',
+    'not-a-jwt',
+  ])('treats issuer token %s as opaque', async (a2t) => {
+    const harness = createHarness();
+    harness.fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, challengeBody))
+      .mockResolvedValueOnce(jsonResponse(200, { ...issuedBody, a2t }));
+
+    await expect(harness.session.ensureA2T()).resolves.toBe(a2t);
+  });
+
+  it('prefers expiresIn when temporary exp is also present', async () => {
     const harness = createHarness();
     harness.fetchMock
       .mockResolvedValueOnce(jsonResponse(200, challengeBody))
       .mockResolvedValueOnce(
-        jsonResponse(200, { ...issuedBody, profileId: 'profile-2' }),
+        jsonResponse(200, {
+          a2t: issuedToken,
+          expiresIn: 900,
+          exp: NOW_SEC + 1,
+        }),
       );
 
-    await expect(harness.session.ensureA2T()).rejects.toThrow(
-      'A2T profile does not match the requested profile',
-    );
-
-    harness.fetchMock.mockClear();
-    mockIssue(harness.fetchMock);
     await harness.session.ensureA2T();
+    harness.nowSec.value += 2;
+
+    await expect(harness.session.ensureA2T()).resolves.toBe(issuedToken);
     expect(harness.fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it('rejects an A2T whose nonce does not match the device key', async () => {
-    const harness = createHarness();
-    const mismatched =
-      jwtPart({ alg: 'ES256', typ: 'JWT', kid: 'a2t-issuer-1' }) +
-      '.' +
-      jwtPart({
-        iat: NOW_SEC,
-        exp: NOW_SEC + 900,
-        nonce: 'other-nonce',
-      }) +
-      '.sig';
-    harness.fetchMock
-      .mockResolvedValueOnce(jsonResponse(200, challengeBody))
-      .mockResolvedValueOnce(
-        jsonResponse(200, { ...issuedBody, a2t: mismatched }),
-      );
-
-    await expect(harness.session.ensureA2T()).rejects.toThrow(
-      'A2T nonce does not match the device key',
-    );
-  });
-
-  it('rejects an A2T whose claim exp differs from the body exp', async () => {
+  it('accepts the temporary absolute expiry response', async () => {
     const harness = createHarness();
     harness.fetchMock
       .mockResolvedValueOnce(jsonResponse(200, challengeBody))
       .mockResolvedValueOnce(
-        jsonResponse(200, { ...issuedBody, exp: NOW_SEC + 901 }),
+        jsonResponse(200, {
+          a2t: issuedToken,
+          exp: NOW_SEC + 900,
+          profileId: PROFILE_ID,
+        }),
       );
 
-    await expect(harness.session.ensureA2T()).rejects.toThrow(
-      'A2T expiry does not match the token',
-    );
-  });
-
-  it('rejects an A2T that has no iat claim', async () => {
-    const harness = createHarness();
-    const missingIat =
-      jwtPart({ alg: 'ES256', typ: 'JWT', kid: 'a2t-issuer-1' }) +
-      '.' +
-      jwtPart({
-        exp: NOW_SEC + 900,
-        nonce: DEVICE_NONCE,
-      }) +
-      '.sig';
-    harness.fetchMock
-      .mockResolvedValueOnce(jsonResponse(200, challengeBody))
-      .mockResolvedValueOnce(
-        jsonResponse(200, { ...issuedBody, a2t: missingIat }),
-      );
-
-    await expect(harness.session.ensureA2T()).rejects.toThrow(
-      'A2T expiry does not match the token',
-    );
+    await expect(harness.session.ensureA2T()).resolves.toBe(issuedToken);
   });
 
   it('reloads the device key once when signing finds it missing', async () => {
@@ -493,7 +451,7 @@ describe('A2tSession', () => {
       signDeviceProof: async () => {
         signs += 1;
         if (signs === 1) {
-          throw new KalshiDeviceKeyUnavailableError();
+          throw new P256DeviceKeyUnavailableError();
         }
         return Uint8Array.from({ length: 64 }, () => 7);
       },
@@ -516,13 +474,13 @@ describe('A2tSession', () => {
       },
       peekDeviceKey: () => material(),
       signDeviceProof: async () => {
-        throw new KalshiDeviceKeyUnavailableError();
+        throw new P256DeviceKeyUnavailableError();
       },
     });
     harness.fetchMock.mockResolvedValueOnce(jsonResponse(200, challengeBody));
 
     await expect(harness.session.ensureA2T()).rejects.toThrow(
-      'Kalshi device key is not available',
+      'P-256 device key is not available',
     );
 
     expect(reads).toBe(3);
@@ -538,13 +496,13 @@ describe('A2tSession', () => {
       },
       peekDeviceKey: () => material('device-a'),
       signDeviceProof: async () => {
-        throw new KalshiDeviceKeyUnavailableError();
+        throw new P256DeviceKeyUnavailableError();
       },
     });
     harness.fetchMock.mockResolvedValueOnce(jsonResponse(200, challengeBody));
 
     await expect(harness.session.ensureA2T()).rejects.toThrow(
-      'Kalshi device key is not available',
+      'P-256 device key is not available',
     );
 
     expect(harness.fetchMock).toHaveBeenCalledTimes(1);

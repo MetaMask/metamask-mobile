@@ -1,7 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { KalshiA2tSessionBootstrap } from '../auth/KalshiA2tSessionBootstrap';
-import { KalshiDeviceKeyBootstrap } from '../auth/KalshiDeviceKeyBootstrap';
+import { PredictDeviceAuthBootstrap } from '../auth/PredictDeviceAuthBootstrap';
 import { PredictHome } from '../views/PredictHome/PredictHome';
 import { PredictOrderFlowProvider } from '../views/PredictOrderFlow';
 import { PredictEventScreen } from '../views/PredictEvent/PredictEventScreen';
@@ -14,34 +13,32 @@ import { PredictNextRoutes } from './routes';
 const Stack = createNativeStackNavigator<PredictNextStackParamList>();
 
 const PredictNextStack = () => (
-  <KalshiDeviceKeyBootstrap>
-    <KalshiA2tSessionBootstrap>
-      <PredictOrderFlowProvider>
-        <Stack.Navigator
-          initialRouteName={PredictNextRoutes.HOME}
-          screenOptions={{ headerShown: false }}
-        >
-          <Stack.Screen name={PredictNextRoutes.HOME} component={PredictHome} />
-          <Stack.Screen
-            name={PredictNextRoutes.FEED}
-            component={PredictFeedScreen}
-          />
-          <Stack.Screen
-            name={PredictNextRoutes.EVENT}
-            component={PredictEventScreen}
-          />
-          <Stack.Screen
-            name={PredictNextRoutes.PORTFOLIO}
-            component={PredictPortfolioScreen}
-          />
-          <Stack.Screen
-            name={PredictNextRoutes.SEARCH}
-            component={PredictSearchScreen}
-          />
-        </Stack.Navigator>
-      </PredictOrderFlowProvider>
-    </KalshiA2tSessionBootstrap>
-  </KalshiDeviceKeyBootstrap>
+  <PredictDeviceAuthBootstrap>
+    <PredictOrderFlowProvider>
+      <Stack.Navigator
+        initialRouteName={PredictNextRoutes.HOME}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name={PredictNextRoutes.HOME} component={PredictHome} />
+        <Stack.Screen
+          name={PredictNextRoutes.FEED}
+          component={PredictFeedScreen}
+        />
+        <Stack.Screen
+          name={PredictNextRoutes.EVENT}
+          component={PredictEventScreen}
+        />
+        <Stack.Screen
+          name={PredictNextRoutes.PORTFOLIO}
+          component={PredictPortfolioScreen}
+        />
+        <Stack.Screen
+          name={PredictNextRoutes.SEARCH}
+          component={PredictSearchScreen}
+        />
+      </Stack.Navigator>
+    </PredictOrderFlowProvider>
+  </PredictDeviceAuthBootstrap>
 );
 
 export default PredictNextStack;

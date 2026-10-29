@@ -1,21 +1,15 @@
 import {
-  kalshiDeviceKeyCommitment,
-  KalshiDeviceKeyUnavailableError,
-  type KalshiDevicePublicMaterial,
-} from './kalshiDeviceKey';
-
-/** Refresh this many seconds before `exp`, matching the issuer PoC. */
-const A2T_REFRESH_MARGIN_SEC = 60;
-
-const READY_TIMEOUT_MS = 15_000;
-const READY_POLL_MS = 200;
-const CHALLENGE_ATTEMPTS = 2;
+  P256DeviceKeyUnavailableError,
+  type P256DevicePublicMaterial,
+} from './p256DeviceKey';
+import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
 const SRP_MESSAGE = /^metamask:[^\s:]+:[^\s:]+(?::(?:primary|secondary))?$/u;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 export interface A2tSessionDependencies {
+  profile: VenueAuthenticationProfile;
   /** Undefined when this build has no issuer URL. Issuance is skipped. */
   getIssuerUrl: () => string | undefined;
   getAccessToken: () => Promise<string>;
@@ -28,8 +22,8 @@ export interface A2tSessionDependencies {
    * Key already held by the device-key owner, or null. Must not load or
    * create one: a flight that outlives a clear would bring plaintext back.
    */
-  getDeviceKey: () => Promise<KalshiDevicePublicMaterial | null>;
-  peekDeviceKey: () => KalshiDevicePublicMaterial | null;
+  getDeviceKey: () => Promise<P256DevicePublicMaterial | null>;
+  peekDeviceKey: () => P256DevicePublicMaterial | null;
   signDeviceProof: (message: Uint8Array) => Promise<Uint8Array>;
   fetch: typeof fetch;
   /** Unix time in seconds. */
@@ -42,14 +36,13 @@ interface ReadyA2t {
   accessToken: string;
   canonicalProfileId: string;
   srpIdentifier: string;
-  device: KalshiDevicePublicMaterial;
+  device: P256DevicePublicMaterial;
 }
 
 interface CachedA2t {
   a2t: string;
-  /** Local unix seconds: arrival time plus the issuer lifetime `exp - iat`. */
+  /** Local unix seconds: response arrival plus the issuer lifetime. */
   expiresAt: number;
-  profileId: string;
   canonicalProfileId: string;
   devicePublicKey: string;
 }
@@ -62,19 +55,16 @@ interface A2tChallenge {
 
 interface A2tIssued {
   a2t: string;
-  exp: number;
-  profileId: string;
+  expiresIn: number;
 }
 
 class A2tHttpError extends Error {
   readonly status: number;
-  readonly bodyMessage: string;
 
-  constructor(status: number, bodyMessage: string) {
-    super(bodyMessage || `A2T request failed with status ${status}`);
+  constructor(status: number) {
+    super(`A2T request failed with status ${status}`);
     this.name = 'A2tHttpError';
     this.status = status;
-    this.bodyMessage = bodyMessage;
   }
 }
 
@@ -98,12 +88,13 @@ export const isA2tSessionCleared = (error: unknown): boolean =>
 
 /** Device proof of possession. The issuer verifies this exact UTF-8 string. */
 export const a2tPopMessage = (
+  profile: VenueAuthenticationProfile,
   challengeId: string,
   devicePublicKey: string,
   salt: string,
 ): Uint8Array =>
   new TextEncoder().encode(
-    `kalshi-a2t-request-v1\n${challengeId}\n${devicePublicKey}\n${salt}`,
+    `${profile.a2t.proofMessagePrefix}\n${challengeId}\n${devicePublicKey}\n${salt}`,
   );
 
 const isExpiredChallenge = (error: unknown): boolean =>
@@ -144,21 +135,30 @@ const parseChallenge = (
   };
 };
 
-const parseIssued = (value: unknown): A2tIssued => {
+const parseIssued = (value: unknown, receivedAtSec: number): A2tIssued => {
   if (typeof value !== 'object' || value === null) {
     throw new Error('A2T response was empty');
   }
-  const body = value as { a2t?: unknown; exp?: unknown; profileId?: unknown };
-  if (
-    typeof body.a2t !== 'string' ||
-    body.a2t.length === 0 ||
-    typeof body.exp !== 'number' ||
-    typeof body.profileId !== 'string' ||
-    body.profileId.length === 0
-  ) {
+  const body = value as {
+    a2t?: unknown;
+    expiresIn?: unknown;
+    exp?: unknown;
+  };
+  if (typeof body.a2t !== 'string' || body.a2t.length === 0) {
     throw new Error('A2T response was malformed');
   }
-  return { a2t: body.a2t, exp: body.exp, profileId: body.profileId };
+
+  const expiresIn =
+    typeof body.expiresIn === 'number'
+      ? body.expiresIn
+      : typeof body.exp === 'number'
+        ? body.exp - receivedAtSec
+        : Number.NaN;
+  if (!Number.isFinite(expiresIn) || expiresIn <= 0) {
+    throw new Error('A2T response lifetime was malformed');
+  }
+
+  return { a2t: body.a2t, expiresIn };
 };
 
 const messageFromBody = (value: unknown): string => {
@@ -175,83 +175,16 @@ const messageFromBody = (value: unknown): string => {
   return '';
 };
 
-const fromBase64Url = (value: string): string => {
-  const padded = value + '='.repeat((4 - (value.length % 4)) % 4);
-  return Buffer.from(
-    padded.replaceAll('-', '+').replaceAll('_', '/'),
-    'base64',
-  ).toString('utf8');
-};
-
-const readJwtObject = (
-  part: string | undefined,
-): Record<string, unknown> | undefined => {
-  if (!part) {
-    return undefined;
-  }
-  try {
-    const parsed: unknown = JSON.parse(fromBase64Url(part));
-    if (typeof parsed === 'object' && parsed !== null) {
-      return parsed as Record<string, unknown>;
-    }
-  } catch {
-    return undefined;
-  }
-  return undefined;
-};
-
-const readString = (
-  record: Record<string, unknown> | undefined,
-  key: string,
-): string | undefined => {
-  const value = record?.[key];
-  return typeof value === 'string' ? value : undefined;
-};
-
-const readNumber = (
-  record: Record<string, unknown> | undefined,
-  key: string,
-): number | undefined => {
-  const value = record?.[key];
-  return typeof value === 'number' ? value : undefined;
-};
-
-/**
- * Accepts an issuance only when it is the profile and device key we asked
- * for, and only for the issuer's own lifetime. `exp` is an absolute time on
- * the issuer clock, so the cache uses `receivedAt + (exp - iat)`.
- */
+/** Accepts an opaque A2T for the lifetime returned by the issuer. */
 const acceptIssued = (
   value: unknown,
-  ready: ReadyA2t,
   receivedAtSec: number,
 ): A2tIssued & { expiresAt: number } => {
-  const issued = parseIssued(value);
-  if (issued.profileId !== ready.canonicalProfileId) {
-    throw new Error('A2T profile does not match the requested profile');
-  }
-
-  const claims = readJwtObject(issued.a2t.split('.')[1]);
-  const exp = readNumber(claims, 'exp');
-  const iat = readNumber(claims, 'iat');
-  const lifetime =
-    exp !== undefined && iat !== undefined ? exp - iat : Number.NaN;
-  if (exp !== issued.exp || !Number.isFinite(lifetime) || lifetime <= 0) {
-    throw new Error('A2T expiry does not match the token');
-  }
-
-  const nonce = readString(claims, 'nonce');
-  const commitment = kalshiDeviceKeyCommitment(
-    ready.device.publicRaw,
-    ready.device.saltRaw,
-  );
-  if (nonce !== commitment) {
-    throw new Error('A2T nonce does not match the device key');
-  }
+  const issued = parseIssued(value, receivedAtSec);
 
   return {
     ...issued,
-    expiresAt: receivedAtSec + lifetime,
+    expiresAt: receivedAtSec + issued.expiresIn,
   };
 };
 
@@ -266,9 +199,9 @@ const bytesToBase64Url = (bytes: Uint8Array): string =>
  * One in-memory A2T session. `ensureA2T` waits until the MetaMask access
  * token, the SRP identifier, and the Kalshi device key are all available,
  * then runs the issuer challenge. Concurrent callers share one flight.
- * The token stays here until shortly before the issuer lifetime
- * (`exp - iat`) elapses, measured from when the response arrived. It is
- * not written to Redux or component state.
+ * The token stays here until shortly before the issuer-provided lifetime
+ * elapses, measured from when the response arrived. It is not written to
+ * Redux or component state.
  */
 export class A2tSession {
   readonly #deps: A2tSessionDependencies;
@@ -346,7 +279,7 @@ export class A2tSession {
         if (
           isA2tSessionCleared(error) ||
           !isExpiredChallenge(error) ||
-          attempt === CHALLENGE_ATTEMPTS - 1
+          attempt === this.#deps.profile.a2t.challengeAttempts - 1
         ) {
           throw error;
         }
@@ -358,7 +291,8 @@ export class A2tSession {
   }
 
   async #waitUntilReady(generation: number): Promise<ReadyA2t> {
-    const deadline = this.#deps.nowMs() + READY_TIMEOUT_MS;
+    const deadline =
+      this.#deps.nowMs() + this.#deps.profile.a2t.readinessTimeoutMs;
     let lastError: unknown;
     let accessToken = '';
     let srpIdentifier = '';
@@ -399,10 +333,13 @@ export class A2tSession {
         lastError = error;
       }
 
-      if (this.#deps.nowMs() + READY_POLL_MS > deadline) {
+      if (
+        this.#deps.nowMs() + this.#deps.profile.a2t.readinessPollMs >
+        deadline
+      ) {
         throwNotReady();
       }
-      await this.#deps.sleep(READY_POLL_MS);
+      await this.#deps.sleep(this.#deps.profile.a2t.readinessPollMs);
       return poll();
     };
 
@@ -417,7 +354,7 @@ export class A2tSession {
     this.#assertCurrent(generation);
     const challenge = await this.#postJson<unknown>(
       issuerUrl,
-      '/venues/kalshi/a2t/challenge',
+      this.#deps.profile.a2t.challengePath,
       ready.accessToken,
       {
         srpIdentifier: ready.srpIdentifier,
@@ -429,6 +366,7 @@ export class A2tSession {
     const receivedAt = this.#deps.now();
     const srpSignature = await this.#deps.signSrpMessage(parsed.srpMessage);
     const proof = a2tPopMessage(
+      this.#deps.profile,
       parsed.challengeId,
       ready.device.publicKey,
       ready.device.salt,
@@ -443,7 +381,7 @@ export class A2tSession {
     this.#assertCurrent(generation);
     const payload = await this.#postJson<unknown>(
       issuerUrl,
-      '/venues/kalshi/a2t',
+      this.#deps.profile.a2t.issuancePath,
       ready.accessToken,
       {
         challengeId: parsed.challengeId,
@@ -451,12 +389,11 @@ export class A2tSession {
         devicePop,
       },
     );
-    const issued = acceptIssued(payload, ready, this.#deps.now());
+    const issued = acceptIssued(payload, this.#deps.now());
     this.#assertCurrent(generation);
     this.#cached = {
       a2t: issued.a2t,
       expiresAt: issued.expiresAt,
-      profileId: issued.profileId,
       canonicalProfileId: ready.canonicalProfileId,
       devicePublicKey: ready.device.publicKey,
     };
@@ -477,7 +414,7 @@ export class A2tSession {
     try {
       return await this.#deps.signDeviceProof(proof);
     } catch (error) {
-      if (!(error instanceof KalshiDeviceKeyUnavailableError)) {
+      if (!(error instanceof P256DeviceKeyUnavailableError)) {
         throw error;
       }
       const reloaded = await this.#deps.getDeviceKey();
@@ -514,7 +451,7 @@ export class A2tSession {
       ) {
         throw new A2tChallengeExpiredError();
       }
-      throw new A2tHttpError(response.status, bodyMessage);
+      throw new A2tHttpError(response.status);
     }
     return payload as T;
   }
@@ -533,7 +470,10 @@ export class A2tSession {
     ) {
       return undefined;
     }
-    if (cached.expiresAt - this.#deps.now() <= A2T_REFRESH_MARGIN_SEC) {
+    if (
+      cached.expiresAt - this.#deps.now() <=
+      this.#deps.profile.a2t.refreshMarginSeconds
+    ) {
       return undefined;
     }
     return cached.a2t;

@@ -6,25 +6,15 @@ import { p256 } from '@noble/curves/nist';
 
 import SecureKeychain from '../../../../core/SecureKeychain';
 import Logger from '../../../../util/Logger';
+import type { PredictConfig } from '../config/predictConfig';
 import {
-  DEFAULT_PREDICT_CONFIG,
-  type PredictConfig,
-} from '../config/predictConfig';
-import {
-  KALSHI_DEVICE_KEY_SCOPE,
-  KALSHI_DEVICE_PUBLIC_KEY_LENGTH,
-  KALSHI_DEVICE_SALT_LENGTH,
-  KALSHI_DEVICE_SIGNATURE_LENGTH,
-  clearKalshiDeviceKey,
-  deleteKalshiDeviceKey,
-  ensureKalshiDeviceKey,
-  getKalshiDeviceKey,
-  isKalshiDeviceKeyEnabled,
-  kalshiDeviceKeyCommitment,
-  signWithKalshiDeviceKey,
-  waitForKalshiDeviceKey,
-  type KalshiDevicePublicMaterial,
-} from './kalshiDeviceKey';
+  P256_DEVICE_PUBLIC_KEY_LENGTH,
+  P256_DEVICE_SALT_LENGTH,
+  P256_DEVICE_SIGNATURE_LENGTH,
+  createP256DeviceKey,
+  type P256DevicePublicMaterial,
+} from './p256DeviceKey';
+import { KALSHI_AUTHENTICATION_PROFILE } from './venueAuthProfiles';
 
 jest.mock('../../../../core/SecureKeychain', () => ({
   setSecureItem: jest.fn(),
@@ -44,29 +34,31 @@ const enabledConfig: PredictConfig = {
   venueSelection: { enabled: false },
 };
 
-const kalshiDisabledConfig: PredictConfig = {
-  enabled: true,
-  venues: {
-    polymarket: { enabled: true },
-    kalshi: { enabled: false },
-  },
-  venueSelection: { enabled: false },
+const deviceKey = createP256DeviceKey(KALSHI_AUTHENTICATION_PROFILE.deviceKey);
+const DEVICE_KEY_SCOPE = {
+  service: 'com.metamask.predict.device-key.kalshi-v1',
+  accessible: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
 };
-
-const bothVenuesConfig: PredictConfig = {
-  enabled: true,
-  venues: {
-    polymarket: { enabled: true },
-    kalshi: { enabled: true },
-  },
-  venueSelection: { enabled: true },
+const LEGACY_DEVICE_KEY_SCOPE = {
+  service: 'com.metamask.predict.kalshi.device-key',
+  accessible: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
 };
+const ensureKalshiDeviceKey = (
+  _config: PredictConfig,
+  walletUnlocked: boolean,
+) => deviceKey.ensure(walletUnlocked);
+const getKalshiDeviceKey = deviceKey.get;
+const waitForKalshiDeviceKey = deviceKey.wait;
+const clearKalshiDeviceKey = deviceKey.clear;
+const deleteKalshiDeviceKey = deviceKey.delete;
+const signWithKalshiDeviceKey = deviceKey.sign;
+const kalshiDeviceKeyCommitment = deviceKey.commitment;
 
 const requireDeviceMaterial = (
-  material: KalshiDevicePublicMaterial | null,
-): KalshiDevicePublicMaterial => {
+  material: P256DevicePublicMaterial | null,
+): P256DevicePublicMaterial => {
   if (!material) {
-    throw new Error('expected Kalshi device key material');
+    throw new Error('expected P-256 device key material');
   }
   return material;
 };
@@ -96,14 +88,22 @@ const publicKeyFromRaw = (raw: Uint8Array) =>
     format: 'jwk',
   });
 
-describe('kalshiDeviceKey', () => {
+describe('p256DeviceKey', () => {
   let saved: string | null;
+  let legacySaved: string | null;
 
   beforeEach(() => {
     jest.clearAllMocks();
     saved = null;
-    (SecureKeychain.getSecureItem as jest.Mock).mockImplementation(async () =>
-      saved === null ? null : { key: 'kalshi-device-key', value: saved },
+    legacySaved = null;
+    (SecureKeychain.getSecureItem as jest.Mock).mockImplementation(
+      async (scope: { service: string }) => {
+        const value =
+          scope.service === LEGACY_DEVICE_KEY_SCOPE.service
+            ? legacySaved
+            : saved;
+        return value === null ? null : { key: 'device-key', value };
+      },
     );
     (SecureKeychain.setSecureItem as jest.Mock).mockImplementation(
       async (_key: string, value: string) => {
@@ -112,8 +112,12 @@ describe('kalshiDeviceKey', () => {
       },
     );
     (SecureKeychain.clearSecureScope as jest.Mock).mockImplementation(
-      async () => {
-        saved = null;
+      async (scope: { service: string }) => {
+        if (scope.service === LEGACY_DEVICE_KEY_SCOPE.service) {
+          legacySaved = null;
+        } else {
+          saved = null;
+        }
         return true;
       },
     );
@@ -123,11 +127,31 @@ describe('kalshiDeviceKey', () => {
     clearKalshiDeviceKey();
   });
 
-  it('reports Kalshi enabled only when Predict and the Kalshi venue are on', () => {
-    expect(isKalshiDeviceKeyEnabled(enabledConfig)).toBe(true);
-    expect(isKalshiDeviceKeyEnabled(bothVenuesConfig)).toBe(true);
-    expect(isKalshiDeviceKeyEnabled(kalshiDisabledConfig)).toBe(false);
-    expect(isKalshiDeviceKeyEnabled(DEFAULT_PREDICT_CONFIG)).toBe(false);
+  it('rejects a profile outside the allowlisted P-256 contract', () => {
+    expect(() =>
+      createP256DeviceKey({
+        ...KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+        signatureFormat: 'DER',
+      } as never),
+    ).toThrow('Unsupported P-256 device key profile');
+  });
+
+  it('derives isolated generic storage from another provider key slot', async () => {
+    const providerDeviceKey = createP256DeviceKey({
+      ...KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+      keySlot: 'provider-b-v1',
+    });
+
+    await providerDeviceKey.ensure(true);
+
+    expect(SecureKeychain.setSecureItem).toHaveBeenCalledWith(
+      'device-key',
+      expect.any(String),
+      {
+        service: 'com.metamask.predict.device-key.provider-b-v1',
+        accessible: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
+      },
+    );
   });
 
   it('creates an uncompressed P-256 public key and stores the secret with the salt', async () => {
@@ -135,9 +159,9 @@ describe('kalshiDeviceKey', () => {
       await ensureKalshiDeviceKey(enabledConfig, true),
     );
 
-    expect(material.publicRaw).toHaveLength(KALSHI_DEVICE_PUBLIC_KEY_LENGTH);
+    expect(material.publicRaw).toHaveLength(P256_DEVICE_PUBLIC_KEY_LENGTH);
     expect(material.publicRaw[0]).toBe(0x04);
-    expect(material.saltRaw).toHaveLength(KALSHI_DEVICE_SALT_LENGTH);
+    expect(material.saltRaw).toHaveLength(P256_DEVICE_SALT_LENGTH);
     expect(p256.utils.isValidPublicKey(material.publicRaw, false)).toBe(true);
     expect(material.publicKey).toBe(bytesToBase64Url(material.publicRaw));
     expect(material.salt).toBe(bytesToBase64Url(material.saltRaw));
@@ -150,16 +174,23 @@ describe('kalshiDeviceKey', () => {
 
     const persisted = JSON.parse(saved ?? '{}') as {
       v: number;
+      keySlot: string;
       secretKey: string;
       salt: string;
     };
     expect(SecureKeychain.setSecureItem).toHaveBeenCalledWith(
-      'kalshi-device-key',
+      'device-key',
       saved,
-      KALSHI_DEVICE_KEY_SCOPE,
+      DEVICE_KEY_SCOPE,
     );
-    expect(Object.keys(persisted).sort()).toEqual(['salt', 'secretKey', 'v']);
-    expect(persisted.v).toBe(1);
+    expect(Object.keys(persisted).sort()).toEqual([
+      'keySlot',
+      'salt',
+      'secretKey',
+      'v',
+    ]);
+    expect(persisted.v).toBe(2);
+    expect(persisted.keySlot).toBe('kalshi-v1');
     expect(persisted.salt).toBe(material.salt);
     expect(
       p256.utils.isValidSecretKey(fromBase64Url(persisted.secretKey)),
@@ -192,28 +223,50 @@ describe('kalshiDeviceKey', () => {
     expect(SecureKeychain.setSecureItem).toHaveBeenCalledTimes(1);
   });
 
-  it('returns null and keeps the encrypted key when Kalshi is disabled', async () => {
-    const first = await ensureKalshiDeviceKey(enabledConfig, true);
+  it('migrates the version 1 Kalshi key to generic profile storage', async () => {
+    const secretKey = new Uint8Array(32);
+    secretKey[31] = 1;
+    const salt = Uint8Array.from({ length: 16 }, (_, index) => index + 1);
+    legacySaved = JSON.stringify({
+      v: 1,
+      secretKey: bytesToBase64Url(secretKey),
+      salt: bytesToBase64Url(salt),
+    });
 
-    const material = await ensureKalshiDeviceKey(kalshiDisabledConfig, true);
-
-    expect(material).toBeNull();
-    expect(getKalshiDeviceKey()).toBeNull();
-    expect(SecureKeychain.clearSecureScope).not.toHaveBeenCalled();
-
-    const restored = await ensureKalshiDeviceKey(enabledConfig, true);
-    expect(restored?.publicKey).toBe(first?.publicKey);
-  });
-
-  it('returns null when Predict is disabled', async () => {
-    const material = await ensureKalshiDeviceKey(
-      { ...enabledConfig, enabled: false },
-      true,
+    const material = requireDeviceMaterial(
+      await ensureKalshiDeviceKey(enabledConfig, true),
     );
 
-    expect(material).toBeNull();
-    expect(getKalshiDeviceKey()).toBeNull();
-    expect(SecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    expect(material.publicRaw).toEqual(p256.getPublicKey(secretKey, false));
+    expect(material.saltRaw).toEqual(salt);
+    expect(JSON.parse(saved ?? '{}')).toEqual(
+      expect.objectContaining({ v: 2, keySlot: 'kalshi-v1' }),
+    );
+    expect(legacySaved).toBeNull();
+    expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
+      LEGACY_DEVICE_KEY_SCOPE,
+    );
+  });
+
+  it('keeps the legacy key when migration storage fails', async () => {
+    const secretKey = new Uint8Array(32);
+    secretKey[31] = 1;
+    legacySaved = JSON.stringify({
+      v: 1,
+      secretKey: bytesToBase64Url(secretKey),
+      salt: bytesToBase64Url(new Uint8Array(16)),
+    });
+    (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(false);
+
+    await expect(ensureKalshiDeviceKey(enabledConfig, true)).rejects.toThrow(
+      'Predict device key was not stored',
+    );
+
+    expect(legacySaved).not.toBeNull();
+    expect(saved).toBeNull();
+    expect(SecureKeychain.clearSecureScope).not.toHaveBeenCalledWith(
+      LEGACY_DEVICE_KEY_SCOPE,
+    );
   });
 
   it('returns null and does not read the keychain when the wallet is locked', async () => {
@@ -235,12 +288,6 @@ describe('kalshiDeviceKey', () => {
     expect(SecureKeychain.clearSecureScope).not.toHaveBeenCalled();
   });
 
-  it('creates a key when Kalshi is enabled alongside Polymarket', async () => {
-    const material = await ensureKalshiDeviceKey(bothVenuesConfig, true);
-
-    expect(material?.publicRaw[0]).toBe(0x04);
-  });
-
   it('replaces a corrupt stored record with a new key', async () => {
     saved = 'not-a-key';
 
@@ -249,7 +296,7 @@ describe('kalshiDeviceKey', () => {
     expect(material?.publicRaw[0]).toBe(0x04);
     expect(saved).not.toBe('not-a-key');
     expect(JSON.parse(saved ?? '{}')).toEqual(
-      expect.objectContaining({ v: 1 }),
+      expect.objectContaining({ v: 2, keySlot: 'kalshi-v1' }),
     );
   });
 
@@ -257,7 +304,7 @@ describe('kalshiDeviceKey', () => {
     (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(false);
 
     await expect(ensureKalshiDeviceKey(enabledConfig, true)).rejects.toThrow(
-      'Kalshi device key was not stored',
+      'Predict device key was not stored',
     );
     expect(getKalshiDeviceKey()).toBeNull();
   });
@@ -315,7 +362,7 @@ describe('kalshiDeviceKey', () => {
 
     expect(saved).toBeNull();
     expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
-      KALSHI_DEVICE_KEY_SCOPE,
+      DEVICE_KEY_SCOPE,
     );
 
     (SecureKeychain.setSecureItem as jest.Mock).mockImplementation(
@@ -343,7 +390,7 @@ describe('kalshiDeviceKey', () => {
     expect(getKalshiDeviceKey()).toBeNull();
     expect(errorSpy).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'keychain failed' }),
-      'Failed to delete Kalshi device key',
+      'Failed to delete Predict device key',
     );
     errorSpy.mockRestore();
   });
@@ -354,7 +401,7 @@ describe('kalshiDeviceKey', () => {
     const waited = await waitForKalshiDeviceKey();
 
     expect(waited?.publicKey).toBe((await pending)?.publicKey);
-    expect(SecureKeychain.getSecureItem).toHaveBeenCalledTimes(1);
+    expect(SecureKeychain.getSecureItem).toHaveBeenCalledTimes(2);
   });
 
   it('returns null and touches no storage when no key is held', async () => {
@@ -391,7 +438,7 @@ describe('kalshiDeviceKey', () => {
 
     const signature = await signWithKalshiDeviceKey(message);
 
-    expect(signature).toHaveLength(KALSHI_DEVICE_SIGNATURE_LENGTH);
+    expect(signature).toHaveLength(P256_DEVICE_SIGNATURE_LENGTH);
     expect(
       verify(
         'sha256',
@@ -418,7 +465,7 @@ describe('kalshiDeviceKey', () => {
 
   it('throws when asked to sign with no device key', async () => {
     await expect(signWithKalshiDeviceKey(Uint8Array.of(1))).rejects.toThrow(
-      'Kalshi device key is not available',
+      'P-256 device key is not available',
     );
   });
 

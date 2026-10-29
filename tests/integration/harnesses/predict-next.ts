@@ -1,5 +1,9 @@
 import { ConstantBackoff } from '@metamask/controller-utils';
-import { Messenger } from '@metamask/messenger';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { AppStateStatus } from 'react-native';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
@@ -27,11 +31,18 @@ import {
   type PredictPortfolioServiceMessenger,
 } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import {
+  PredictDeviceAuthService,
+  type PredictDeviceAuthServiceActions,
+  type PredictDeviceAuthServiceMessenger,
+} from '../../../app/components/UI/PredictNext/services/PredictDeviceAuthService';
+import { KALSHI_AUTHENTICATION_PROFILE } from '../../../app/components/UI/PredictNext/auth/venueAuthProfiles';
+import {
   getPredictLiveDataServiceInitMessenger,
   getPredictLiveDataServiceMessenger,
 } from '../../../app/core/Engine/messengers/predict-live-data-service-messenger';
 import { getPredictMarketDataServiceMessenger } from '../../../app/core/Engine/messengers/predict-market-data-service-messenger';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
+import { getPredictDeviceAuthServiceMessenger } from '../../../app/core/Engine/messengers/predict-device-auth-service-messenger';
 
 /**
  * PredictNext integration-test harness.
@@ -269,5 +280,150 @@ export const buildPredictNextIntegrationHarness = (
       marketDataService.destroy();
       portfolioService.destroy();
     },
+  };
+};
+
+type PredictDeviceAuthRootMessenger = Messenger<
+  MockAnyNamespace,
+  PredictDeviceAuthServiceActions,
+  never
+>;
+
+type PredictDeviceAuthLifecycleEvent =
+  | 'KeyringController:lock'
+  | 'AuthenticationController:stateChange'
+  | 'RemoteFeatureFlagController:stateChange';
+
+export interface PredictDeviceAuthIntegrationHarness {
+  messenger: PredictDeviceAuthRootMessenger;
+  service: PredictDeviceAuthService;
+  authenticationState: {
+    isSignedIn: boolean;
+    srpSessionData: Record<string, { profile: { canonicalProfileId: string } }>;
+  };
+  featureFlagState: {
+    remoteFeatureFlags: {
+      predictConfig: {
+        enabled: boolean;
+        venues: {
+          kalshi: { enabled: boolean };
+          polymarket: { enabled: boolean };
+        };
+        venueSelection: { enabled: boolean };
+      };
+    };
+  };
+  keyringState: {
+    isUnlocked: boolean;
+    keyrings: {
+      type: string;
+      metadata: { id: string };
+    }[];
+  };
+  emit: (event: PredictDeviceAuthLifecycleEvent) => void;
+}
+
+interface PredictDeviceAuthIntegrationHarnessOptions {
+  now?: () => number;
+  nowMs?: () => number;
+}
+
+/**
+ * Real Predict device-auth service and root messenger. Only controller state,
+ * Snap, network, clock, and SecureKeychain boundaries are mocked by callers.
+ */
+export const buildPredictDeviceAuthIntegrationHarness = (
+  options: PredictDeviceAuthIntegrationHarnessOptions = {},
+): PredictDeviceAuthIntegrationHarness => {
+  const messenger: PredictDeviceAuthRootMessenger = new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const controllerMessenger: PredictDeviceAuthServiceMessenger =
+    getPredictDeviceAuthServiceMessenger(messenger);
+  const authenticationState = {
+    isSignedIn: true,
+    srpSessionData: {
+      'entropy-source-id': {
+        profile: { canonicalProfileId: 'canonical-profile-id' },
+      },
+    },
+  };
+  const keyringState = {
+    isUnlocked: true,
+    keyrings: [
+      {
+        type: 'HD Key Tree',
+        metadata: { id: 'entropy-source-id' },
+      },
+    ],
+  };
+  const featureFlagState = {
+    remoteFeatureFlags: {
+      predictConfig: {
+        enabled: true,
+        venues: {
+          kalshi: { enabled: true },
+          polymarket: { enabled: false },
+        },
+        venueSelection: { enabled: false },
+      },
+    },
+  };
+  const subscribers = new Map<PredictDeviceAuthLifecycleEvent, () => void>();
+  const controller = new PredictDeviceAuthService(controllerMessenger, {
+    profile: KALSHI_AUTHENTICATION_PROFILE,
+    getIssuerUrl: () => 'https://issuer.example',
+    getAccessToken: async () => 'access-token',
+    getCanonicalProfileId: () =>
+      authenticationState.srpSessionData['entropy-source-id']?.profile
+        .canonicalProfileId,
+    getSrpIdentifier: async () => '0xabc',
+    signSrpMessage: async () => 'srp-signature',
+    isEnabled: () => {
+      const config = featureFlagState.remoteFeatureFlags.predictConfig;
+      return config.enabled && config.venues.kalshi.enabled;
+    },
+    isUnlocked: () => keyringState.isUnlocked,
+    isSignedIn: () => authenticationState.isSignedIn,
+    fetch: (input, init) => global.fetch(input, init),
+    now: options.now ?? (() => Math.floor(Date.now() / 1000)),
+    nowMs: options.nowMs ?? Date.now,
+    sleep: async (ms) => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    },
+  });
+  subscribers.set('KeyringController:lock', () => controller.clear());
+  let wasSignedIn = authenticationState.isSignedIn;
+  let canonicalProfileId =
+    authenticationState.srpSessionData['entropy-source-id']?.profile
+      .canonicalProfileId;
+  subscribers.set('AuthenticationController:stateChange', () => {
+    const nextCanonicalProfileId =
+      authenticationState.srpSessionData['entropy-source-id']?.profile
+        .canonicalProfileId;
+    if (
+      (wasSignedIn && !authenticationState.isSignedIn) ||
+      nextCanonicalProfileId !== canonicalProfileId
+    ) {
+      controller.clear();
+    }
+    wasSignedIn = authenticationState.isSignedIn;
+    canonicalProfileId = nextCanonicalProfileId;
+  });
+  subscribers.set('RemoteFeatureFlagController:stateChange', () => {
+    if (!featureFlagState.remoteFeatureFlags.predictConfig.enabled) {
+      controller.clear();
+    }
+  });
+
+  return {
+    messenger,
+    service: controller,
+    authenticationState,
+    featureFlagState,
+    keyringState,
+    emit: (event) => subscribers.get(event)?.(),
   };
 };

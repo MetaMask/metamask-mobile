@@ -6,6 +6,7 @@ import {
 } from '@metamask/profile-sync-controller';
 import { selectPrimaryHDKeyring } from '../keyringController';
 import { createDeepEqualSelector } from '../util';
+import { resolveCanonicalProfileId } from '../../util/identity/resolveCanonicalProfileId';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
@@ -43,20 +44,15 @@ export const selectIsSignedIn = createSelector(
  */
 export const selectCanonicalProfileId = createSelector(
   selectAuthenticationControllerState,
-  selectPrimaryHDKeyring,
+  (state: RootState) => state.engine.backgroundState.KeyringController,
   (
     authenticationControllerState: AuthenticationState,
-    primaryHdKeyring,
-  ): string | undefined => {
-    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
-    if (!primaryEntropySourceId) {
-      return undefined;
-    }
-    return (
-      authenticationControllerState.srpSessionData?.[primaryEntropySourceId]
-        ?.profile?.canonicalProfileId || undefined
-    );
-  },
+    keyringControllerState,
+  ): string | undefined =>
+    resolveCanonicalProfileId(
+      authenticationControllerState,
+      keyringControllerState,
+    ),
 );
 
 /**

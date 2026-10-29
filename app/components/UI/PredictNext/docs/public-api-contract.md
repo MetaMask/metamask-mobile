@@ -37,7 +37,9 @@ Code outside PredictNext imports only from one curated entry point, `app/compone
 
 The entry point's first export is `PredictRoot`, the root router that `MainNavigator` registers for the `Predict` route (PRED-1375). It is a permanent, Venue-neutral component: after PRED-1356 it renders only the PredictNext stack, so that import does not change. `MainNavigator`'s legacy imports (`PredictModalStack`, `PredictPreviewSheetProvider`) stay named composition wiring.
 
-Wallet reset is also named composition wiring. `app/core/Authentication/Authentication.ts` imports `deleteKalshiTradingSession` from `PredictNext/auth/a2tSessionInstance`, and its test imports `KALSHI_DEVICE_KEY_SCOPE` from `PredictNext/auth/kalshiDeviceKey`. It does not go through the entry point because `index.ts` exports `PredictRoot`, which would pull the PredictNext UI tree into `Authentication`. The entry is temporary: once the A2T session is an Engine service ([plan](./plans/a2t-engine-service.md)), reset reaches it through Engine and this import goes away.
+Wallet reset is named composition wiring. It calls
+`PredictDeviceAuthService:reset` through the Engine messenger; Authentication
+does not import PredictNext key or session internals.
 
 Names are proposals. The implementing ticket finalizes each name and adds its export only when it migrates a real caller. Do not create empty modules.
 

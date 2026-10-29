@@ -43,13 +43,13 @@ PredictNext/
   navigation/
     root/                      # Predict root router (legacy or PredictNext stack)
 
-  auth/                        # Kalshi P-256 device key and in-memory A2T session
-    kalshiDeviceKey.ts
-    KalshiDeviceKeyBootstrap.tsx
+  auth/                        # Internal P-256, A2T, and bundled profile primitives
+    p256DeviceKey.ts           # Profile-bound P-256 implementation
+    p256DeviceKeyStorage.ts    # Versioned SecureKeychain persistence
     a2tSession.ts
-    a2tSessionInstance.ts
     a2tIssuerUrl.ts
-    KalshiA2tSessionBootstrap.tsx
+    venueAuthProfiles.ts
+    PredictDeviceAuthBootstrap.tsx
 
   capabilities/
     index.ts                   # Venue descriptors, capability hooks and selectors
@@ -58,7 +58,8 @@ PredictNext/
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
   queries/                     # Query descriptors and cache policy
-  services/                    # Product services
+  services/                    # Product and Engine-owned capability services
+    PredictDeviceAuthService.ts
   adapters/                    # Venue capability implementations
   config/
   selectors/

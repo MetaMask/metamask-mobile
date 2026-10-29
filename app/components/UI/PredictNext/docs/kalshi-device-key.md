@@ -2,15 +2,48 @@
 
 Phase 1 of the Kalshi ISV flow, after the existing SRP login. The mobile app holds a P-256 device key and a 16-byte salt. The A2T `nonce` is `base64url(SHA-256(public key || salt))`. `a2tSession.ensureA2T` sends the public key and salt to the A2T issuer, signs `srpMessage` with the SRP key, and signs the proof of possession with this key.
 
-`auth/kalshiDeviceKey.ts` creates that key when `predictConfig.enabled` and `predictConfig.venues.kalshi.enabled` are both true and the wallet is unlocked. `KalshiDeviceKeyBootstrap` runs that check when the Kalshi stack mounts, and again when the unlock state changes. Locking the wallet, turning Kalshi off, or leaving the stack drops the plaintext key. The encrypted copy remains until the wallet is reset.
+`auth/p256DeviceKey.ts` implements the allowlisted `device-p256-v1` key
+strategy. It does not choose Kalshi behavior itself. The Engine-owned
+`PredictDeviceAuthService` binds it once to the bundled authentication profile,
+which supplies the stable key slot, formats, salt length, and commitment
+strategy. The implementation derives keychain storage from the slot; profiles
+cannot provide raw keychain identifiers. The service separately applies the
+Predict and Kalshi feature gates and owns the in-memory A2T session.
 
-The private key never leaves the module. Callers receive the 65-byte uncompressed public point (`0x04 || X || Y`), the 16-byte salt, and the unpadded base64url forms of both. `signWithKalshiDeviceKey` returns a promise of a 64-byte `r || s` signature over SHA-256, which is the encoding Kalshi verifies.
+The authentication profile ID and device-key slot are intentionally separate.
+An A2T protocol revision can select a new profile while retaining
+`kalshi-v1`; changing the key slot is the explicit key-rotation boundary.
+Remote configuration may select a bundled profile ID, but cannot provide or
+override cryptographic instructions.
+
+Locking the wallet or turning Kalshi off drops the plaintext key and A2T;
+leaving the Predict stack does not discard the Engine session. The encrypted
+copy remains until wallet reset calls `PredictDeviceAuthService:reset`.
+
+The private key never leaves the module. Callers receive the 65-byte
+uncompressed public point (`0x04 || X || Y`), the 16-byte salt, and the
+unpadded base64url forms of both. The profile-bound implementation returns a
+64-byte `r || s` signature over SHA-256, which is the encoding Kalshi verifies.
 
 ## What this build does
 
-The key is a software key from `@noble/curves` (`p256`, secp256r1 / prime256v1). `SecureKeychain.setSecureItem` encrypts the private key and salt together and writes them under `com.metamask.predict.kalshi.device-key`, with `WHEN_UNLOCKED_THIS_DEVICE_ONLY`. That is the same helper and accessibility used for other app secrets such as Card and Ramp tokens. The record is `{ v, secretKey, salt }`. The public key is derived on load, so a stored public key cannot drift from the private key.
+The key is a software key from `@noble/curves` (`p256`, secp256r1 /
+prime256v1). `SecureKeychain.setSecureItem` encrypts the private key and salt
+together and writes them under the slot-derived keychain service, currently
+`com.metamask.predict.device-key.kalshi-v1`, with
+`WHEN_UNLOCKED_THIS_DEVICE_ONLY`. That is the same helper and accessibility
+used for other app secrets such as Card and Ramp tokens. The current record is
+`{ v: 2, keySlot, secretKey, salt }`. Version 1 records from the original
+Kalshi implementation are read from
+`com.metamask.predict.kalshi.device-key`, written to the generic scope, and
+deleted from the legacy scope only after the new write succeeds. The public key
+is derived on load, so a stored public key cannot drift from the private key.
 
-`SecureKeychain` encrypts with the app fox code before the value reaches the OS keychain. Reading it back does not require the wallet password. The module still refuses to load the plaintext until `KeyringController` is unlocked, and it zeros that plaintext on lock. Wallet reset calls `deleteKalshiDeviceKey`, which removes the keychain item as well.
+`SecureKeychain` encrypts with the app fox code before the value reaches the OS
+keychain. Reading it back does not require the wallet password. The module
+still refuses to load the plaintext until `KeyringController` is unlocked, and
+it zeros that plaintext on lock. Wallet reset calls the profile-bound delete
+operation, which removes the keychain item as well.
 
 An app kill keeps the encrypted key. The next unlock loads the same key and salt, so the A2T nonce stays stable. A corrupt record is discarded and replaced.
 
@@ -18,13 +51,19 @@ This is the same algorithm and the same wire format as the localhost POC. Once l
 
 Do not copy the private key into AsyncStorage, MMKV, Redux, logs, or the KeyringController vault. PredictNext still forbids credentials in Redux and general persisted product state.
 
-Account-scoped Kalshi requests are signed with this key. Mobile sends the payload and the signature to predict-api, which delivers both to Kalshi. See `docs/remote-adapters.md`.
+The service does not expose generic signing. A later request-signing capability
+must accept a validated operation/profile, construct the permitted payload
+internally, and send the payload and signature to predict-api. See
+`docs/remote-adapters.md`.
 
 ## What a production key requires
 
 A non-exportable key has to be created by a new native module. `react-native-keychain` stores passwords. `expo-secure-store` stores strings. `react-native-quick-crypto` and `@noble/curves` generate software keys. None of them create a Secure Enclave or Android Keystore key, and none of them return the 64-byte `r || s` signature Kalshi requires. Adding the native module means a native rebuild (`yarn setup`, then an iOS and Android build). It cannot be done from JavaScript alone.
 
-Replace the body of `createDeviceKey` and `signWithKalshiDeviceKey` with that module. Keep the public types in `kalshiDeviceKey.ts`. The JS layer should still refuse to run when Kalshi is off, and it should still be unable to read the private key.
+Replace the `device-p256-v1` implementation behind `createP256DeviceKey` with
+that module. Keep the profile and public-material contracts stable. The Engine
+service should still refuse to run when the selected Venue is off, and the JS
+layer should still be unable to read the private key.
 
 Production builds must fail closed when the native module is missing. Do not fall back to the software key in a release build.
 
@@ -69,4 +108,5 @@ Kotlin module.
 - A signature over a known message is 64 bytes and verifies with Node `crypto.verify('sha256', message, { key, dsaEncoding: 'ieee-p1363' }, signature)`.
 - Exporting the private key throws.
 - A second call returns the same public key and salt until the app is reinstalled or the key is explicitly deleted.
-- `kalshiDeviceKeyCommitment(publicRaw, salt)` matches `base64url(SHA-256(publicRaw || salt))` with no padding.
+- The profile-bound commitment operation matches
+  `base64url(SHA-256(publicRaw || salt))` with no padding.

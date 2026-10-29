@@ -42,8 +42,6 @@ import { TraceName, TraceOperation, type TraceContext } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../Analytics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
-import { a2tSession } from '../../components/UI/PredictNext/auth/a2tSessionInstance';
-import { KALSHI_DEVICE_KEY_SCOPE } from '../../components/UI/PredictNext/auth/kalshiDeviceKey';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -304,20 +302,6 @@ jest.mock('../Performance/unlockTraces', () => ({
   resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
     mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
 }));
-
-jest.mock('../../components/UI/PredictNext/auth/a2tSessionInstance', () => {
-  const { deleteKalshiDeviceKey } = jest.requireActual(
-    '../../components/UI/PredictNext/auth/kalshiDeviceKey',
-  );
-  const clear = jest.fn();
-  return {
-    a2tSession: { clear },
-    deleteKalshiTradingSession: async () => {
-      clear();
-      await deleteKalshiDeviceKey();
-    },
-  };
-});
 
 jest.mock('../SecureKeychain', () => ({
   getSupportedBiometryType: jest.fn(),
@@ -5239,7 +5223,7 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController,
         'clearState',
       );
-      const resetRewardsSpy = jest.spyOn(Engine.controllerMessenger, 'call');
+      const engineCallSpy = jest.spyOn(Engine.controllerMessenger, 'call');
       const loggerSpy = jest.spyOn(Logger, 'log');
       const resetProviderTokenSpy = jest.mocked(depositResetProviderToken);
 
@@ -5260,10 +5244,11 @@ describe('Authentication', () => {
         (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
       );
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
-      expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
-      expect(resetRewardsSpy).toHaveBeenCalledWith(
-        'RewardsController:resetAll',
+      expect(engineCallSpy).toHaveBeenCalledTimes(2);
+      expect(engineCallSpy).toHaveBeenCalledWith(
+        'PredictDeviceAuthService:reset',
       );
+      expect(engineCallSpy).toHaveBeenCalledWith('RewardsController:resetAll');
       expect(Engine.context.CardController.resetAll).toHaveBeenCalledTimes(1);
       const setResetSpy = Engine.context.CardController
         .setResetInProgress as jest.Mock;
@@ -5278,23 +5263,15 @@ describe('Authentication', () => {
       expect(Authentication.lockApp).toHaveBeenCalledWith({
         navigateToLogin: false,
       });
-      expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
-        KALSHI_DEVICE_KEY_SCOPE,
-      );
-      expect(a2tSession.clear).toHaveBeenCalledTimes(1);
-      const clearKeyOrder = jest.mocked(SecureKeychain.clearSecureScope).mock
-        .invocationCallOrder[0];
-      const clearSessionOrder = jest.mocked(a2tSession.clear).mock
-        .invocationCallOrder[0];
-      expect(clearSessionOrder).toBeGreaterThan(
+      const resetAuthOrder = engineCallSpy.mock.invocationCallOrder[0];
+      expect(resetAuthOrder).toBeGreaterThan(
         newWalletAndKeychain.mock.invocationCallOrder[0],
       );
-      expect(clearSessionOrder).toBeLessThan(clearKeyOrder);
-      expect(clearKeyOrder).toBeLessThan(
+      expect(resetAuthOrder).toBeLessThan(
         (Engine.context.CardController.resetAll as jest.Mock).mock
           .invocationCallOrder[0],
       );
-      expect(clearKeyOrder).toBeLessThan(
+      expect(resetAuthOrder).toBeLessThan(
         (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
       );
     });
@@ -5338,11 +5315,12 @@ describe('Authentication', () => {
         expect.any(Error),
         expect.stringContaining('Failed to createNewVaultAndKeychain'),
       );
-      expect(SecureKeychain.clearSecureScope).not.toHaveBeenCalled();
-      expect(a2tSession.clear).not.toHaveBeenCalled();
+      expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+        'PredictDeviceAuthService:reset',
+      );
     });
 
-    it('deletes the Kalshi device key when a later reset step throws', async () => {
+    it('resets Predict device authentication before a later step throws', async () => {
       jest
         .mocked(Engine.context.CardController.resetAll)
         .mockRejectedValueOnce(new Error('card reset failed'));
@@ -5351,16 +5329,15 @@ describe('Authentication', () => {
         Authentication as unknown as { resetWalletState: () => Promise<void> }
       ).resetWalletState();
 
-      expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
-        KALSHI_DEVICE_KEY_SCOPE,
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'PredictDeviceAuthService:reset',
       );
-      expect(a2tSession.clear).toHaveBeenCalledTimes(1);
     });
 
-    it('locks the app when deleting the Kalshi device key fails', async () => {
+    it('locks the app when resetting Predict device authentication fails', async () => {
       jest
-        .mocked(SecureKeychain.clearSecureScope)
-        .mockRejectedValueOnce(new Error('keychain failed'));
+        .mocked(Engine.controllerMessenger.call)
+        .mockRejectedValueOnce(new Error('auth reset failed'));
       const loggerSpy = jest.spyOn(Logger, 'log');
 
       await (
@@ -5371,8 +5348,8 @@ describe('Authentication', () => {
         navigateToLogin: false,
       });
       expect(Logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'keychain failed' }),
-        'Failed to delete Kalshi device key',
+        expect.objectContaining({ message: 'auth reset failed' }),
+        'Failed to reset Predict device authentication',
       );
       expect(loggerSpy).not.toHaveBeenCalled();
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
