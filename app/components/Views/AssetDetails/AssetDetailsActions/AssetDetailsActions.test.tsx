@@ -14,6 +14,11 @@ import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import { SwapBridgeNavigationLocation } from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import {
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../util/analytics/actionButtonTracking';
 
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
@@ -214,12 +219,36 @@ describe('AssetDetailsActions', () => {
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
       location: SwapBridgeNavigationLocation.MainView,
       sourcePage: 'MainView',
+      skipActionButtonClickTracking: true,
     });
 
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
 
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
     expect(mockGoToSwaps).toHaveBeenCalledWith();
+  });
+
+  it('tracks home location when the swap button is pressed', () => {
+    jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: createStateWithSigningCapability() },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.SWAP,
+      action_position: ActionPosition.SECOND_POSITION,
+      button_label: strings('asset_overview.swap'),
+      location: ActionLocation.HOME,
+    });
+    expect(mockEventBuilder.build).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('calls onSend when the send button is pressed', () => {
