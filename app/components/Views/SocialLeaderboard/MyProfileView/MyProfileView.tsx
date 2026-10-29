@@ -516,18 +516,6 @@ const MyProfileView: React.FC = () => {
             !isOwner && traderId
               ? [
                   {
-                    iconName: IconName.Share,
-                    iconProps: { color: IconColor.IconDefault },
-                    size: ButtonIconSize.Md,
-                    onPress: handleShareTraderDeeplink,
-                    accessibilityLabel: strings(
-                      'social_leaderboard.my_profile.share_profile',
-                    ),
-                    testID: MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON,
-                    hitSlop: HEADER_ICON_HIT_SLOP,
-                    twClassName: HEADER_ICON_BUTTON_CLASS,
-                  },
-                  {
                     iconName: IconName.MoreHorizontal,
                     iconProps: { color: IconColor.IconDefault },
                     size: ButtonIconSize.Md,
@@ -537,6 +525,18 @@ const MyProfileView: React.FC = () => {
                       'social_leaderboard.trader_profile.more_options',
                     ),
                     testID: MyProfileViewSelectorsIDs.MORE_BUTTON,
+                    hitSlop: HEADER_ICON_HIT_SLOP,
+                    twClassName: HEADER_ICON_BUTTON_CLASS,
+                  },
+                  {
+                    iconName: IconName.Share,
+                    iconProps: { color: IconColor.IconDefault },
+                    size: ButtonIconSize.Md,
+                    onPress: handleShareTraderDeeplink,
+                    accessibilityLabel: strings(
+                      'social_leaderboard.my_profile.share_profile',
+                    ),
+                    testID: MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON,
                     hitSlop: HEADER_ICON_HIT_SLOP,
                     twClassName: HEADER_ICON_BUTTON_CLASS,
                   },
