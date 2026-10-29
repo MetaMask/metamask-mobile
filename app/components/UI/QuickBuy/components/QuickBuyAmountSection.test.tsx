@@ -1,9 +1,11 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 import QuickBuyAmountSection, {
   formatAmountDigitsForDisplay,
 } from './QuickBuyAmountSection';
+import { getFontSizeForInputLength } from '../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { mockTheme } from '../../../../util/theme';
 
 jest.mock('../../Bridge/utils/currencyUtils', () => ({
   formatCurrency: jest.fn((amount: number, currency: string) => {
@@ -43,22 +45,44 @@ describe('QuickBuyAmountSection', () => {
     isQuoteLoading: false,
   };
 
-  it('renders the primary amount with DisplayLg', () => {
-    const { UNSAFE_getAllByType } = render(
-      <QuickBuyAmountSection {...baseProps} />,
+  it('sizes the primary amount with the send length scale', () => {
+    render(<QuickBuyAmountSection {...baseProps} />);
+
+    const fontSize = getFontSizeForInputLength('$2.55'.length + 2);
+
+    expect(screen.getByTestId('quick-buy-amount-value')).toHaveTextContent(
+      '$2.55',
+    );
+    expect(StyleSheet.flatten(screen.getByText('$').props.style)).toMatchObject(
+      {
+        fontFamily: 'GrotzecCond-Bold',
+        fontSize,
+        lineHeight: fontSize,
+      },
+    );
+  });
+
+  it('holds the amount row at the largest font step for long amounts', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        showCursor
+        fiatAmount="123456789012.5"
+        currency="USD"
+      />,
     );
 
-    const primaryAmount = UNSAFE_getAllByType(Text).find(
-      (el) => el.props.children === '$2.55',
-    );
-
-    expect(primaryAmount?.props.variant).toBe(TextVariant.DisplayLg);
+    expect(screen.getByTestId('quick-buy-amount-row')).toHaveStyle({
+      minHeight: getFontSizeForInputLength(0),
+    });
   });
 
   it('renders the secondary amount label when not loading', () => {
     render(<QuickBuyAmountSection {...baseProps} />);
 
-    expect(screen.getByText('$2.55')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-amount-value')).toHaveTextContent(
+      '$2.55',
+    );
     expect(screen.getByText('≈ 56.52037 GIGA')).toBeOnTheScreen();
     expect(
       screen.queryByTestId('quick-buy-amount-loading'),
@@ -68,7 +92,9 @@ describe('QuickBuyAmountSection', () => {
   it('shows skeleton and token symbol while quote is loading', () => {
     render(<QuickBuyAmountSection {...baseProps} isQuoteLoading />);
 
-    expect(screen.getByText('$2.55')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-amount-value')).toHaveTextContent(
+      '$2.55',
+    );
     expect(screen.getByTestId('quick-buy-amount-loading')).toBeOnTheScreen();
     expect(
       screen.getByTestId('quick-buy-amount-loading-skeleton'),
@@ -115,8 +141,34 @@ describe('QuickBuyAmountSection', () => {
     );
 
     expect(screen.getByText('$')).toBeOnTheScreen();
-    expect(screen.getByText('12.5')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-amount-value')).toHaveTextContent(
+      '12.5',
+    );
     expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
+  });
+
+  it('sizes the caret to the confirmation cursor scale', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        showCursor
+        fiatAmount="12.5"
+        currency="USD"
+      />,
+    );
+
+    const fontSize = getFontSizeForInputLength('$'.length + '12.5'.length + 2);
+    const cursorStyle = StyleSheet.flatten(
+      screen.getByTestId('quick-buy-amount-cursor').props.style,
+    );
+
+    expect(cursorStyle).toMatchObject({
+      width: 1,
+      height: Math.round(fontSize * 0.95),
+      backgroundColor: mockTheme.colors.text.muted,
+      transform: [{ translateY: Math.round(fontSize * -0.04) }],
+    });
+    expect(cursorStyle.marginHorizontal).toBeUndefined();
   });
 
   it('places the caret before a suffix currency and uses its decimal separator', () => {
@@ -130,7 +182,9 @@ describe('QuickBuyAmountSection', () => {
       />,
     );
 
-    expect(screen.getByText('12,5')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-amount-value')).toHaveTextContent(
+      '12,5',
+    );
     expect(screen.getByText(' €')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
   });
@@ -146,7 +200,9 @@ describe('QuickBuyAmountSection', () => {
       />,
     );
 
-    expect(screen.getByText('1.25')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-amount-value')).toHaveTextContent(
+      '1.25',
+    );
     expect(screen.getByText(' CAKE')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
   });
