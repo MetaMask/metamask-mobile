@@ -48,6 +48,7 @@ describe('FeedSortFilterSheet', () => {
     );
 
     expect(selected).toHaveProp('accessibilityState', { selected: true });
+    expect(selected).toHaveStyle({ minHeight: 48 });
     expect(unselected).toHaveProp('accessibilityState', { selected: false });
     expect(
       within(selected).UNSAFE_getAllByProps({ name: IconName.Check }).length,

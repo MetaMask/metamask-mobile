@@ -3,6 +3,7 @@ import {
   BottomSheetHeader,
   Box,
   ListItemSelect,
+  ListItemVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
@@ -115,6 +116,7 @@ function FilterOptionSheetInner<T extends string>({
                     <ListItemSelect
                       key={option}
                       title={getLabel(option)}
+                      variant={ListItemVariant.OneLine}
                       isSelected={isSelected}
                       showSelectedIcon
                       onPress={() => handleSelect(option)}
