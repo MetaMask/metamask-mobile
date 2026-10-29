@@ -11870,6 +11870,28 @@
       "try_again": "Try again",
       "reset_success": "Password reset successful"
     },
+    "mfa": {
+      "method_title": "Verify it's you",
+      "method_description": "Choose where to send a code, then enter the full phone number or email.",
+      "method_phone": "Text message",
+      "method_email": "Email",
+      "phone_label": "Phone number",
+      "email_label": "Email",
+      "country_code": "Country code",
+      "country_code_label": "Country code, +{{code}}",
+      "continue": "Continue",
+      "code_title": "Enter your code",
+      "code_description": "Enter the code sent to {{destination}}.",
+      "start_over": "Start over",
+      "errors": {
+        "destination_mismatch": "That doesn't match the contact on your account. Check it and try again.",
+        "invalid_code": "That code is incorrect. Try again.",
+        "code_expired": "That code expired. Start over to get a new one.",
+        "attempts_exceeded": "Too many incorrect codes. Start over to try again.",
+        "restart_required": "Verification needs to start over.",
+        "no_verified_contact": "This account has no verified phone number or email to send a code to."
+      }
+    },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
