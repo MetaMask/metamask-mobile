@@ -400,7 +400,7 @@ export const buildPredictDeviceAuthIntegrationHarness = (
     },
   };
   const subscribers = new Map<PredictDeviceAuthLifecycleEvent, () => void>();
-  let canonicalProfileId =
+  let canonicalProfileId: string | undefined =
     authenticationState.srpSessionData['entropy-source-id']?.profile
       .canonicalProfileId;
   const controller = new PredictDeviceAuthService(controllerMessenger, {
