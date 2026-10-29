@@ -8,6 +8,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import {
+  FeatureId,
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+  type MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -37,6 +43,7 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
+import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -49,13 +56,12 @@ import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { createRecurringOrdersTab } from './RecurringOrderRow';
+import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import {
-  FeatureId,
-  type MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
 import { getOrderTypeFromDraftPriceRange } from '../../../utils/recurringOrders';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 
 const OPEN_ORDER_STATES = [RecurringOrderState.Open];
 const HISTORY_ORDER_STATES = [
@@ -64,6 +70,12 @@ const HISTORY_ORDER_STATES = [
   RecurringOrderState.Expired,
 ];
 const LOAD_MORE_SCROLL_THRESHOLD = 200;
+const FEE_TOKEN_ERROR_BANNER_TEST_IDS = {
+  unsupportedPair:
+    BridgeViewSelectorsIDs.RECURRING_FEE_TOKEN_UNSUPPORTED_BANNER,
+  unavailable: BridgeViewSelectorsIDs.RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER,
+  retryButton: BridgeViewSelectorsIDs.RECURRING_FEE_TOKEN_RETRY_BUTTON,
+};
 
 const BridgeRecurringBuyViewContent = ({
   location,
@@ -97,6 +109,29 @@ const BridgeRecurringBuyViewContent = ({
     sourceAmount,
   } = useRecurringBuySwapInputs();
 
+  const orderChainId = sourceToken
+    ? formatChainIdToCaip(sourceToken.chainId)
+    : undefined;
+  const sourceAssetId = sourceToken
+    ? (formatAddressToAssetId(sourceToken.address, sourceToken.chainId) ??
+      undefined)
+    : undefined;
+  const destinationAssetId = destToken
+    ? (formatAddressToAssetId(destToken.address, destToken.chainId) ??
+      undefined)
+    : undefined;
+  // The recurring form adds no hardware-sensitive work. Its existing
+  // 20-item pagination is the short-list path for every hardware tier.
+  getHardwareTier();
+  const networkTier = useNetworkTier();
+  const isRemoteDataEnabled = networkTier !== 'NONE';
+  const feeTokenValidation = useSentinelFeeTokenValidation({
+    chainId: orderChainId,
+    sourceAssetId,
+    destinationAssetId,
+    enabled: isRemoteDataEnabled,
+  });
+
   const priceRange = useSelector(selectRecurringPriceRange);
   const walletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -108,13 +143,14 @@ const BridgeRecurringBuyViewContent = ({
     walletAddress,
     orderStates: OPEN_ORDER_STATES,
     chainId: ordersNetworkFilter,
-    enabled: recurringOrdersTab === OrdersTabKey.OpenOrders,
+    enabled:
+      isRemoteDataEnabled && recurringOrdersTab === OrdersTabKey.OpenOrders,
   });
   const historyQuery = useRecurringOrders({
     walletAddress,
     orderStates: HISTORY_ORDER_STATES,
     chainId: ordersNetworkFilter,
-    enabled: recurringOrdersTab === OrdersTabKey.History,
+    enabled: isRemoteDataEnabled && recurringOrdersTab === OrdersTabKey.History,
   });
 
   const {
@@ -141,9 +177,16 @@ const BridgeRecurringBuyViewContent = ({
   }, []);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const canPreviewOrder = Boolean(activeQuote) && scheduleValidation.isValid;
+  const canPreviewOrder =
+    Boolean(activeQuote) &&
+    scheduleValidation.isValid &&
+    feeTokenValidation.isValid;
 
   const handlePreviewOrder = useCallback(() => {
+    if (!feeTokenValidation.isValid) {
+      return;
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED)
         .addProperties({
@@ -163,6 +206,7 @@ const BridgeRecurringBuyViewContent = ({
     priceRange,
     trackEvent,
     createEventBuilder,
+    feeTokenValidation.isValid,
     location,
   ]);
 
@@ -322,6 +366,24 @@ const BridgeRecurringBuyViewContent = ({
                 <DestAssetRequireActivateBanner />
                 <InsufficientNativeReserveBanner />
                 <MissingQuoteAndAssetsPriceDataBanner />
+                <SentinelFeeTokenErrorBanner
+                  reason={feeTokenValidation.reason}
+                  unsupportedPairMessage={strings(
+                    'bridge.recurring.unsupported_fee_token_pair',
+                    {
+                      supportedTokens:
+                        feeTokenValidation.reason === 'unsupported-pair'
+                          ? feeTokenValidation.supportedTokenSymbols.join(', ')
+                          : '',
+                    },
+                  )}
+                  unavailableMessage={strings(
+                    'bridge.recurring.fee_tokens_unavailable',
+                  )}
+                  retryLabel={strings('bridge.recurring.try_again')}
+                  onRetry={feeTokenValidation.retry}
+                  testIDs={FEE_TOKEN_ERROR_BANNER_TEST_IDS}
+                />
               </SwapsBanners>
             </Box>
 
@@ -354,7 +416,9 @@ const BridgeRecurringBuyViewContent = ({
 
         <BridgeRecurringBuyFooterView
           onPreviewOrder={handlePreviewOrder}
-          isPreviewDisabled={!scheduleValidation.isValid}
+          isPreviewDisabled={
+            !scheduleValidation.isValid || !feeTokenValidation.isValid
+          }
         />
 
         <SwapsKeypad

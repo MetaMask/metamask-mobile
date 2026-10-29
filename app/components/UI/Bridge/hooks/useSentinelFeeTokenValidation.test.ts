@@ -113,6 +113,24 @@ describe('useSentinelFeeTokenValidation', () => {
     });
   });
 
+  it('does not fetch while validation is disabled', () => {
+    const { result } = renderHook(() =>
+      useSentinelFeeTokenValidation({
+        ...COMPLETE_INPUTS,
+        enabled: false,
+      }),
+    );
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockRefetch).not.toHaveBeenCalled();
+    expect(result.current).toMatchObject({
+      isValid: false,
+      reason: 'loading',
+    });
+  });
+
   it('returns unavailable when the cold fetch fails', () => {
     setQueryResult({ isError: true });
 

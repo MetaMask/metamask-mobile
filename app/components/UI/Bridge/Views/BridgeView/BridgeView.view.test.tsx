@@ -64,8 +64,11 @@ import {
   setupSentinelFeeTokensDataServiceMock,
 } from '../../../../../../tests/component-view/api-mocking/sentinelFeeTokens';
 import { merge } from 'lodash';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 
 const HOUR_MS = 60 * 60 * 1000;
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 const createStockRwaToken = ({
   nowMs,
@@ -132,6 +135,7 @@ describeForPlatforms('BridgeView', () => {
     clearRecurringOrdersDataServiceMock();
     clearLimitOrdersDataServiceMock();
     clearSentinelFeeTokensDataServiceMock();
+    netInfoMock.__resetMockNetInfo();
     jest.restoreAllMocks();
   });
 
@@ -292,6 +296,93 @@ describeForPlatforms('BridgeView', () => {
         ),
       ).toBeOnTheScreen();
       expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeDisabled();
+    });
+
+    it('revalidates the recurring order after selecting a Sentinel fee token', async () => {
+      netInfoMock.__setMockNetInfo({
+        type: 'wifi',
+        isInternetReachable: true,
+      });
+      setupSentinelFeeTokensDataServiceMock({
+        'eip155:1': [
+          {
+            assetId:
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'USDC',
+            decimals: 6,
+          },
+          {
+            assetId:
+              'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+            address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+            symbol: 'WBTC',
+            decimals: 8,
+          },
+        ],
+      });
+      const { getByTestId, getByText, queryByTestId, store } =
+        defaultBridgeWithTokens();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      act(() => {
+        store.dispatch(setDestToken(USDT_DEST));
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            BridgeViewSelectorsIDs.RECURRING_FEE_TOKEN_UNSUPPORTED_BANNER,
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByText(
+          strings('bridge.recurring.unsupported_fee_token_pair', {
+            supportedTokens: 'USDC, WBTC',
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(USDC_DEST));
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            BridgeViewSelectorsIDs.RECURRING_FEE_TOKEN_UNSUPPORTED_BANNER,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    it('blocks recurring order preview when Sentinel fee tokens cannot be loaded', async () => {
+      netInfoMock.__setMockNetInfo({
+        type: 'wifi',
+        isInternetReachable: true,
+      });
+      setupSentinelFeeTokensDataServiceMock(
+        new Error('Sentinel fee tokens unavailable'),
+      );
+      const { findByTestId, getByTestId, queryByTestId } =
+        defaultBridgeWithTokens();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+      expect(
+        await findByTestId(
+          BridgeViewSelectorsIDs.RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
