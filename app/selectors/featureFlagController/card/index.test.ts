@@ -2,6 +2,8 @@ import {
   CardFeatureFlag,
   SupportedChain,
   SupportedToken,
+  DEFAULT_APPLE_PAY_LEARN_MORE_URL,
+  selectApplePayLearnMoreUrl,
   selectCardFeatureFlag,
   selectMetalCardCheckoutFeatureFlag,
   selectGalileoAppleWalletProvisioningEnabled,
@@ -1183,5 +1185,59 @@ describe('selectPushProvisioningEnabled', () => {
     expect(
       selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet'),
     ).toBe(false);
+  });
+});
+
+describe('selectApplePayLearnMoreUrl', () => {
+  it('returns the built-in URL when cardFeature does not set one', () => {
+    expect(selectApplePayLearnMoreUrl(mockedEmptyFlagsState)).toBe(
+      DEFAULT_APPLE_PAY_LEARN_MORE_URL,
+    );
+  });
+
+  it('returns the cardFeature constant when it is set', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {
+                constants: {
+                  applePayLearnMoreUrl: 'https://example.com/apple-pay',
+                },
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    expect(selectApplePayLearnMoreUrl(state as never)).toBe(
+      'https://example.com/apple-pay',
+    );
+  });
+
+  it('returns the built-in URL when the constant is blank', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {
+                constants: {
+                  applePayLearnMoreUrl: '   ',
+                },
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    expect(selectApplePayLearnMoreUrl(state as never)).toBe(
+      DEFAULT_APPLE_PAY_LEARN_MORE_URL,
+    );
   });
 });

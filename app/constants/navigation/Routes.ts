@@ -605,6 +605,8 @@ const Routes = {
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
+    APPLE_PAY_SPLASH: 'CardApplePaySplash',
+    APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'CardSpendingLimit',
@@ -655,6 +657,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      APPLE_PAY_USAGE: 'CardApplePayUsageSheet',
       SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },
