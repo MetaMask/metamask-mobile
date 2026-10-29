@@ -587,12 +587,13 @@ describe('RewardsDashboard', () => {
 
     it('renders settings button in header', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      const { getByLabelText, getByTestId } = render(<RewardsDashboard />);
 
       // Assert
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
       ).toBeOnTheScreen();
+      expect(getByLabelText('rewards.settings.title')).toBeOnTheScreen();
     });
   });
 

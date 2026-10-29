@@ -385,6 +385,7 @@ const RewardsDashboard: React.FC = () => {
             navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
           }
           size={ButtonIconSize.Md}
+          accessibilityLabel={strings('rewards.settings.title')}
           testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
         />
       )}

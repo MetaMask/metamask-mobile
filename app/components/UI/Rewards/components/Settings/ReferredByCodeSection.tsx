@@ -226,6 +226,8 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-error-default mt-1"
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
               testID="referred-by-code-error"
             >
               {errorMessage}

@@ -1439,9 +1439,9 @@ describe('RewardSettingsAccountGroupList', () => {
                 optedInAccounts: [
                   ...mockWalletData[0].groups[0].optedInAccounts,
                   {
+                    ...mockWalletData[0].groups[0].optedInAccounts[0],
                     id: 'account-extra',
                     address: '0x2222222222222222222222222222222222222222',
-                    hasOptedIn: true,
                   },
                 ],
               },

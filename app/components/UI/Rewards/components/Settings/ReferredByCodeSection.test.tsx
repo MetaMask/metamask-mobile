@@ -228,6 +228,14 @@ describe('ReferredByCodeSection', () => {
     expect(getByTestId('referred-by-code-error')).toHaveTextContent(
       'rewards.error_messages.invalid_referral_code',
     );
+    expect(getByTestId('referred-by-code-error')).toHaveProp(
+      'accessibilityRole',
+      'alert',
+    );
+    expect(getByTestId('referred-by-code-error')).toHaveProp(
+      'accessibilityLiveRegion',
+      'polite',
+    );
     expect(getByTestId('referred-by-code-apply')).toBeDisabled();
   });
 
