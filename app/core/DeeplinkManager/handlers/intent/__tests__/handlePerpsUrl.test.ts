@@ -701,6 +701,23 @@ describe('handlePerpsUrl', () => {
       );
     });
 
+    it('opens BTC without changing mode when the Pro flag is disabled and no symbol is given', async () => {
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(false);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&mode=pro' });
+
+      expect(mockSetPerpsMode()).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'BTC' }),
+          }),
+        }),
+      );
+    });
+
     it('sends first-time users to the tutorial after enabling Pro mode', async () => {
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
       jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
@@ -721,6 +738,25 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=ETH' });
 
       expect(mockSetPerpsMode()).not.toHaveBeenCalled();
+    });
+
+    it('attaches prepare only when mode=pro is requested and the flag is on', () => {
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
+      const assetIntent = createPerpsDeeplinkIntent({
+        perpsPath: 'perps?screen=asset&symbol=ETH',
+      });
+      const proIntent = createPerpsDeeplinkIntent({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
+      });
+
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(false);
+      const proIntentWithFlagOff = createPerpsDeeplinkIntent({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
+      });
+
+      expect(assetIntent.prepare).toBeUndefined();
+      expect(proIntent.prepare).toEqual(expect.any(Function));
+      expect(proIntentWithFlagOff.prepare).toBeUndefined();
     });
 
     it.each(['home', 'markets'] as const)(
