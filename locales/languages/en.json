@@ -1700,6 +1700,7 @@
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
       "joined": "Joined {{time}}",
+      "x_link": "X",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
