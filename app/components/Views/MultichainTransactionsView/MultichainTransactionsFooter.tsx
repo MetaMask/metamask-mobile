@@ -6,7 +6,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import Text from '../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { getBlockExplorerName } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 
@@ -83,7 +83,7 @@ const MultichainTransactionsFooter = ({
       )}
       {showDisclaimer && (
         <View style={styles.disclaimerWrapper}>
-          <Text style={styles.disclaimerText}>
+          <Text variant={TextVariant.BodyMd} style={styles.disclaimerText}>
             {strings('asset_overview.disclaimer')}
           </Text>
         </View>

@@ -10,7 +10,10 @@ import {
   selectPerpsMode,
 } from '../../../../../components/UI/Perps/selectors/perpsController';
 import { shouldPopPerpsRoute } from '../../../../../components/UI/Perps/utils/perpsModeSwitch';
-import { selectPerpsProModeEnabledFlag } from '../../../../../components/UI/Perps/selectors/featureFlags';
+import {
+  selectPerpsProModeEnabledFlag,
+  selectPerpsTerminalBackendEnabledFlag,
+} from '../../../../../components/UI/Perps/selectors/featureFlags';
 import { PerpsMode } from '@metamask/perps-controller';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { PriceAlertAnalytics } from '../../../../../components/UI/Assets/PriceAlerts/constants';
@@ -29,7 +32,10 @@ jest.mock('../../../../redux', () => ({
 jest.mock('../../../../../components/UI/Perps/selectors/perpsController');
 jest.mock('../../../../../components/UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(),
+  selectPerpsTerminalBackendEnabledFlag: jest.fn(),
 }));
+const mockGetCachedMarketDataForActiveProvider = jest.fn();
+const mockGetMarkets = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -39,6 +45,9 @@ jest.mock('../../../../../core/Engine', () => ({
         getAttributionContext: jest.fn(() => ({})),
         clearAttributionContext: jest.fn(),
         mergeAttributionContext: jest.fn((props = {}) => props),
+        getCachedMarketDataForActiveProvider: (...args: unknown[]) =>
+          mockGetCachedMarketDataForActiveProvider(...args),
+        getMarkets: (...args: unknown[]) => mockGetMarkets(...args),
         setPerpsMode: jest.fn(),
       },
     },
@@ -74,6 +83,11 @@ describe('handlePerpsUrl', () => {
     // Pro mode inactive by default, matching existing PERPS_HOME assertions.
     jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(false);
     jest.mocked(selectPerpsMode).mockReturnValue(PerpsMode.Lite);
+
+    // No market list by default: symbols keep the uppercase normalization.
+    jest.mocked(selectPerpsTerminalBackendEnabledFlag).mockReturnValue(false);
+    mockGetCachedMarketDataForActiveProvider.mockReturnValue(null);
+    mockGetMarkets.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -558,6 +572,174 @@ describe('handlePerpsUrl', () => {
     });
   });
 
+  describe('handlePerpsUrl - canonical symbol resolution', () => {
+    const getNavigatedMarket = () =>
+      mockNavigate.mock.calls[0][1].params.market;
+
+    beforeEach(() => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+    });
+
+    it.each([
+      ['kpepe', 'kPEPE'],
+      ['kPEPE', 'kPEPE'],
+      ['KPEPE', 'kPEPE'],
+      ['klunc', 'kLUNC'],
+      ['btc', 'BTC'],
+    ])(
+      'opens the cached market symbol for %s as %s',
+      async (rawSymbol, expectedSymbol) => {
+        mockGetCachedMarketDataForActiveProvider.mockReturnValue([
+          { symbol: 'BTC' },
+          { symbol: 'kPEPE' },
+          { symbol: 'kLUNC' },
+        ]);
+
+        await handlePerpsUrl({
+          perpsPath: `perps?screen=asset&symbol=${rawSymbol}`,
+        });
+
+        expect(getNavigatedMarket()).toEqual(
+          expect.objectContaining({
+            symbol: expectedSymbol,
+            name: expectedSymbol,
+          }),
+        );
+        expect(mockGetCachedMarketDataForActiveProvider).toHaveBeenCalledWith({
+          skipTTL: true,
+        });
+        expect(mockGetMarkets).not.toHaveBeenCalled();
+      },
+    );
+
+    it('fetches standalone markets when the market cache is empty', async () => {
+      jest.mocked(selectPerpsTerminalBackendEnabledFlag).mockReturnValue(true);
+      mockGetMarkets.mockResolvedValue([{ name: 'BTC' }, { name: 'kPEPE' }]);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=kpepe' });
+
+      expect(mockGetMarkets).toHaveBeenCalledWith({
+        standalone: true,
+        useTerminalApi: true,
+      });
+      expect(getNavigatedMarket().symbol).toBe('kPEPE');
+    });
+
+    it('fetches standalone markets when the market cache has no match', async () => {
+      mockGetCachedMarketDataForActiveProvider.mockReturnValue([
+        { symbol: 'BTC' },
+      ]);
+      mockGetMarkets.mockResolvedValue([{ name: 'BTC' }, { name: 'kPEPE' }]);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=kpepe' });
+
+      expect(mockGetMarkets).toHaveBeenCalled();
+      expect(getNavigatedMarket().symbol).toBe('kPEPE');
+    });
+
+    it.each(['BTC', 'xyz:TSLA'])(
+      'opens %s without fetching markets when the cache is empty',
+      async (rawSymbol) => {
+        await handlePerpsUrl({
+          perpsPath: `perps?screen=asset&symbol=${rawSymbol}`,
+        });
+
+        expect(mockGetMarkets).not.toHaveBeenCalled();
+        expect(getNavigatedMarket().symbol).toBe(rawSymbol);
+      },
+    );
+
+    it('opens the canonical HIP-3 symbol for a differently cased dex and asset', async () => {
+      mockGetCachedMarketDataForActiveProvider.mockReturnValue([
+        { symbol: 'xyz:TSLA' },
+      ]);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=XYZ:tsla' });
+
+      expect(getNavigatedMarket()).toEqual(
+        expect.objectContaining({
+          symbol: 'xyz:TSLA',
+          name: 'TSLA',
+          marketSource: 'xyz',
+        }),
+      );
+    });
+
+    it('opens the uppercase symbol when the market list has no match', async () => {
+      mockGetCachedMarketDataForActiveProvider.mockReturnValue([
+        { symbol: 'BTC' },
+      ]);
+
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=asset&symbol=notarealmkt',
+      });
+
+      expect(getNavigatedMarket()).toEqual(
+        expect.objectContaining({ symbol: 'NOTAREALMKT', name: 'NOTAREALMKT' }),
+      );
+    });
+
+    it('opens the uppercase symbol when the market fetch fails', async () => {
+      const fetchError = new Error('Network error');
+      mockGetMarkets.mockRejectedValue(fetchError);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=kpepe' });
+
+      expect(getNavigatedMarket().symbol).toBe('KPEPE');
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handlePerpsUrl] Failed to resolve market symbol:',
+        fetchError,
+      );
+    });
+
+    it('resolves the startup intent at the fetch deadline when getMarkets stalls', async () => {
+      mockGetMarkets.mockReturnValue(new Promise(() => undefined));
+      const onIntent = jest.fn();
+
+      const pendingIntent = createPerpsDeeplinkIntent({
+        perpsPath: 'perps?screen=asset&symbol=kpepe',
+      }).then(onIntent);
+      await jest.advanceTimersByTimeAsync(1_999);
+
+      expect(onIntent).not.toHaveBeenCalled();
+
+      await jest.advanceTimersByTimeAsync(1);
+      await pendingIntent;
+
+      expect(onIntent).toHaveBeenCalledWith({
+        target: expect.objectContaining({
+          params: expect.objectContaining({
+            params: expect.objectContaining({
+              market: expect.objectContaining({ symbol: 'KPEPE' }),
+            }),
+          }),
+        }),
+      });
+    });
+
+    it('returns the canonical market in the startup intent', async () => {
+      mockGetCachedMarketDataForActiveProvider.mockReturnValue([
+        { symbol: 'kPEPE' },
+      ]);
+
+      const intent = await createPerpsDeeplinkIntent({
+        perpsPath: 'perps?screen=asset&symbol=kpepe',
+      });
+
+      expect(intent.target).toEqual({
+        type: 'main-stack',
+        routeName: Routes.PERPS.ROOT,
+        params: {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            source: 'deeplink',
+            market: expect.objectContaining({ symbol: 'kPEPE' }),
+          }),
+        },
+      });
+    });
+  });
+
   describe('price alert notification tracking', () => {
     it('fires PRICE_ALERT_NOTIFICATION_OPENED exactly once when source=price_alert_notification and screen=asset (warm path)', async () => {
       const perpsPath =
@@ -579,11 +761,11 @@ describe('handlePerpsUrl', () => {
       );
     });
 
-    it('fires PRICE_ALERT_NOTIFICATION_OPENED via createPerpsDeeplinkIntent (cold/startup path)', () => {
+    it('fires PRICE_ALERT_NOTIFICATION_OPENED via createPerpsDeeplinkIntent (cold/startup path)', async () => {
       const perpsPath =
         'perps?screen=asset&symbol=BTC&source=price_alert_notification&alert_type=threshold&price_at_trigger=95000&triggered_at=1758624000000';
 
-      createPerpsDeeplinkIntent({ perpsPath });
+      await createPerpsDeeplinkIntent({ perpsPath });
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -740,17 +922,17 @@ describe('handlePerpsUrl', () => {
       expect(mockSetPerpsMode()).not.toHaveBeenCalled();
     });
 
-    it('attaches prepare only when mode=pro is requested and the flag is on', () => {
+    it('attaches prepare only when mode=pro is requested and the flag is on', async () => {
       jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
-      const assetIntent = createPerpsDeeplinkIntent({
+      const assetIntent = await createPerpsDeeplinkIntent({
         perpsPath: 'perps?screen=asset&symbol=ETH',
       });
-      const proIntent = createPerpsDeeplinkIntent({
+      const proIntent = await createPerpsDeeplinkIntent({
         perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
       });
 
       jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(false);
-      const proIntentWithFlagOff = createPerpsDeeplinkIntent({
+      const proIntentWithFlagOff = await createPerpsDeeplinkIntent({
         perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
       });
 

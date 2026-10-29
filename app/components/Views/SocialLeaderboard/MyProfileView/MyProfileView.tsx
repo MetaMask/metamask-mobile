@@ -4,15 +4,12 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandardAnimated,
   IconColor,
   IconName,
-  SectionDivider,
   Spinner,
   Text,
   TextColor,
@@ -27,17 +24,17 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { Fragment, useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
-  Share,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import {
   TabsBar,
   type TabItem,
@@ -52,7 +49,6 @@ import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
@@ -65,9 +61,8 @@ import {
 } from '../TraderProfileView/hooks';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
-import SocialFeedPostSkeleton from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton';
+import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
-import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
@@ -80,12 +75,17 @@ import ProfileAvatar from './components/ProfileAvatar';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 
 import { useMyProfile, useMyProfileAddress, useMyProfilePosts } from './hooks';
-import { resetLocalSocialProfile } from './hooks/localSocialProfileStore';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
 import type { ProfileAssetFilter } from './utils/splitPositionsByType';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+
+/** Same 12px slop the home header uses so each icon stays a comfortable tap. */
+const HEADER_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
+/** Icons sit on glass capsules; the default press fill would cover the material. */
+const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
 
 const { Filter, Interaction, Screen, Trade } = SocialEvent;
 const PROFILE_CONTENT_TABS = ['open', 'closed', 'posts'] as const;
@@ -93,11 +93,6 @@ type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
-const INITIAL_POST_SKELETON_COUNT = 4;
-const INITIAL_POST_SKELETON_KEYS = Array.from(
-  { length: INITIAL_POST_SKELETON_COUNT },
-  (_, index) => `my-profile-post-skeleton-${index}`,
-);
 
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -150,7 +145,6 @@ const MyProfileView: React.FC = () => {
       profileId: traderId,
       displayName: traderName ?? traderId,
       handle: traderName ?? traderId,
-      shareUrl: '',
       linkedAccountAddress: traderAddress,
       imageUrl: traderAvatarUri,
     };
@@ -277,16 +271,8 @@ const MyProfileView: React.FC = () => {
     playSelection().catch(() => undefined);
     openComposer();
   }, [openComposer]);
-  const handleShareFirstTrade = useCallback(() => {
-    openComposer();
-  }, [openComposer]);
 
   const handleCreateProfile = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-  }, [navigation]);
-
-  const handleResetProfile = useCallback(() => {
-    resetLocalSocialProfile();
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
@@ -298,19 +284,11 @@ const MyProfileView: React.FC = () => {
   }, [traderId]);
 
   const handleShareProfile = useCallback(() => {
-    if (!displayProfile?.shareUrl) {
+    if (!myProfile?.profileId) {
       return;
     }
-
-    const message = strings(
-      'social_leaderboard.my_profile.share_profile_message',
-      {
-        displayName: displayProfile.displayName,
-        profileUrl: displayProfile.shareUrl,
-      },
-    );
-    Share.share({ message }).catch(() => undefined);
-  }, [displayProfile]);
+    shareSocialProfile(myProfile.profileId);
+  }, [myProfile?.profileId]);
 
   const handleFollowPress = useCallback(async () => {
     await followWithSetup(isFollowing, () =>
@@ -444,7 +422,9 @@ const MyProfileView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={MyProfileViewSelectorsIDs.CONTAINER}
       >
-        <HeaderStandardAnimated
+        <HeaderStandardAnimatedGlass
+          isFloating={false}
+          backdrop="none"
           includesTopInset
           scrollY={scrollYShared}
           titleSectionHeight={titleSectionHeightSv}
@@ -482,45 +462,43 @@ const MyProfileView: React.FC = () => {
             ) : undefined
           }
           onBack={handleBack}
-          backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
-          endAccessory={
-            !isOwner && traderId ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
-                <ButtonIcon
-                  iconName={IconName.Share}
-                  iconProps={{ color: IconColor.IconDefault }}
-                  size={ButtonIconSize.Md}
-                  onPress={handleShareTraderDeeplink}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.my_profile.share_profile',
-                  )}
-                  testID={MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON}
-                />
-              </SocialHeaderGlassSurface>
-            ) : isOwner && displayProfile ? (
-              <SocialHeaderGlassSurface twClassName="gap-1 px-1">
-                <ButtonIcon
-                  iconName={IconName.Refresh}
-                  iconProps={{ color: IconColor.IconDefault }}
-                  size={ButtonIconSize.Md}
-                  onPress={handleResetProfile}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.my_profile.debug_reset_profile',
-                  )}
-                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
-                />
-                <ButtonIcon
-                  iconName={IconName.Edit}
-                  iconProps={{ color: IconColor.IconDefault }}
-                  size={ButtonIconSize.Md}
-                  onPress={handleOpenComposer}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.my_profile.create_post',
-                  )}
-                  testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
-                />
-              </SocialHeaderGlassSurface>
-            ) : undefined
+          backButtonProps={{
+            testID: MyProfileViewSelectorsIDs.BACK_BUTTON,
+            hitSlop: HEADER_ICON_HIT_SLOP,
+            twClassName: HEADER_ICON_BUTTON_CLASS,
+          }}
+          endButtonIconProps={
+            !isOwner && traderId
+              ? [
+                  {
+                    iconName: IconName.Share,
+                    iconProps: { color: IconColor.IconDefault },
+                    size: ButtonIconSize.Md,
+                    onPress: handleShareTraderDeeplink,
+                    accessibilityLabel: strings(
+                      'social_leaderboard.my_profile.share_profile',
+                    ),
+                    testID: MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON,
+                    hitSlop: HEADER_ICON_HIT_SLOP,
+                    twClassName: HEADER_ICON_BUTTON_CLASS,
+                  },
+                ]
+              : isOwner && displayProfile
+                ? [
+                    {
+                      iconName: IconName.Share,
+                      iconProps: { color: IconColor.IconDefault },
+                      size: ButtonIconSize.Md,
+                      onPress: handleShareProfile,
+                      accessibilityLabel: strings(
+                        'social_leaderboard.my_profile.share_profile',
+                      ),
+                      testID: MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON,
+                      hitSlop: HEADER_ICON_HIT_SLOP,
+                      twClassName: HEADER_ICON_BUTTON_CLASS,
+                    },
+                  ]
+                : undefined
           }
           testID={MyProfileViewSelectorsIDs.HEADER}
         />
@@ -608,10 +586,13 @@ const MyProfileView: React.FC = () => {
                     <Button
                       variant={ButtonVariant.Secondary}
                       isFullWidth
-                      onPress={handleShareProfile}
-                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                      onPress={handleOpenComposer}
+                      accessibilityLabel={strings(
+                        'social_leaderboard.my_profile.create_post',
+                      )}
+                      testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
                     >
-                      {strings('social_leaderboard.my_profile.share_profile')}
+                      {strings('social_leaderboard.my_profile.create_post')}
                     </Button>
                   </Box>
                   <Box twClassName="flex-1">
@@ -691,31 +672,9 @@ const MyProfileView: React.FC = () => {
                 onRetry={handlePositionsRetry}
               />
             ) : showInitialPostSkeletons ? (
-              <Box paddingTop={4}>
-                {INITIAL_POST_SKELETON_KEYS.map((key, index) => (
-                  <Fragment key={key}>
-                    {index > 0 ? (
-                      <SectionDivider
-                        marginVertical={1}
-                        testID={getSocialV1FeedEntryDividerTestId(
-                          `loading-${index}`,
-                        )}
-                      />
-                    ) : null}
-                    <Box twClassName="px-4">
-                      <SocialFeedPostSkeleton index={index} />
-                    </Box>
-                  </Fragment>
-                ))}
-              </Box>
+              <ProfilePostsLoadingState />
             ) : showPostsEmptyState ? (
-              <ProfilePostsEmptyState
-                isOwner={isOwner}
-                onShareFirstTrade={handleShareFirstTrade}
-                imageUrl={displayProfile.imageUrl}
-                avatarPresetId={displayProfile.avatarPresetId}
-                avatarBackgroundId={displayProfile.avatarBackgroundId}
-              />
+              <ProfilePostsEmptyState />
             ) : postsError && posts.length === 0 ? (
               <Box
                 alignItems={BoxAlignItems.Center}
