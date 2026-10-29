@@ -259,7 +259,7 @@ describe('BrowserTab', () => {
       );
     });
 
-    it('returns to the home tabs when close button is pressed and opened from explore search', async () => {
+    it('returns to Explore search when close button is pressed and opened from explore search', async () => {
       renderWithProvider(<BrowserTab {...mockProps} fromExploreSearch />, {
         state: mockInitialState,
       });
@@ -270,8 +270,9 @@ describe('BrowserTab', () => {
 
       fireEvent.press(screen.getByTestId('browser-tab-close-button'));
 
-      // Pops the Explore search screen too, so the last visited tab is shown.
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      // Search is the previous root-stack screen; goBack restores it.
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
         Routes.HOME_TABS,
         undefined,
         { pop: true },

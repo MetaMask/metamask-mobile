@@ -1590,7 +1590,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const handleClosePress = useCallback(() => {
       if (fromExploreSearch) {
-        navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
+        // ExploreSearch is the previous screen on the root stack; goBack keeps
+        // the user on Search instead of dismissing it to Home or Explore.
+        navigation.goBack();
       } else if (fromPerps) {
         navigateToPerpsHome();
       } else if (fromBenefit) {
