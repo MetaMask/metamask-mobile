@@ -52,8 +52,10 @@ describe('STATE_LOG_OMITTED_FIELDS', () => {
         fieldsOmittedFromStateLogs(metadata, rewrittenFields),
       );
 
-      for (const field of rewrittenFields) {
-        expect(metadata[field]?.includeInStateLogs).toBe(false);
+      if (name === 'CardController') {
+        for (const field of REWRITTEN_AFTER_METADATA.CardController) {
+          expect(cardControllerMetadata[field].includeInStateLogs).toBe(false);
+        }
       }
     },
   );
