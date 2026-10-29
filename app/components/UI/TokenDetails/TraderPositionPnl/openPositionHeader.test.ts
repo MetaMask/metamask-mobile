@@ -146,7 +146,7 @@ describe('toOpenPositionHeader', () => {
     expect(result.pnl).toBeUndefined();
   });
 
-  it('stays loading when there is no wallet balance yet', () => {
+  it('stays hidden while the request is in flight and the wallet has no balance', () => {
     const result = toOpenPositionHeader({
       position: null,
       isLoading: true,
@@ -154,6 +154,6 @@ describe('toOpenPositionHeader', () => {
       conversion: usd,
     });
 
-    expect(result).toEqual({ isLoading: true });
+    expect(result).toEqual({ isLoading: false });
   });
 });

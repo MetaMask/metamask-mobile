@@ -335,6 +335,15 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
     });
 
+    it('forwards Chase max distance focus to onChaseMaxDistanceFocus', () => {
+      const onChaseMaxDistanceFocus = jest.fn();
+      renderForm({ orderType: 'chase', onChaseMaxDistanceFocus });
+
+      fireEvent(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+      expect(onChaseMaxDistanceFocus).toHaveBeenCalledTimes(1);
+    });
+
     it('formats an empty Chase percentage distance with its unit', () => {
       renderForm({
         orderType: 'chase',

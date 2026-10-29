@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { Modal } from 'react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import PredictOrderRetrySheet from './PredictOrderRetrySheet';
 import { Side, type OrderPreview } from '../../types';
 import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
@@ -33,10 +34,13 @@ jest.mock(
     const ReactActual = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
     return ReactActual.forwardRef(
-      (props: { children?: React.ReactNode }, _ref: React.Ref<unknown>) =>
+      (
+        props: { children?: React.ReactNode; isInteractable?: boolean },
+        _ref: React.Ref<unknown>,
+      ) =>
         ReactActual.createElement(
           View,
-          { testID: 'bottom-sheet' },
+          { testID: 'bottom-sheet', isInteractable: props.isInteractable },
           props.children,
         ),
     );
@@ -91,6 +95,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
         "Here's the latest price. Confirm to try again:",
       'predict.order.retry_price_label': 'Price',
       'predict.order.retry_proceeds_label': 'You receive',
+      'predict.order.retry_expected_fill_label': 'Expected fill',
+      'predict.order.retry_expected_fill_value': `${params?.shares ?? ''} shares`,
+      'predict.order.market_timeout_title': 'Market timed out',
+      'predict.order.market_timeout_body':
+        'The market took too long to respond. Nothing was sold.',
       'predict.order.retry_payout_label': 'To win',
       'predict.order.retry_worst_case_label': `Worst case (${params?.band ?? ''} band)`,
       'predict.order.retry_fees_label': 'Fees',
@@ -117,6 +126,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../utils/format', () => ({
   formatCents: (value: number) => `${Math.round(value * 100)}¢`,
   formatPrice: (value: number) => `$${value.toFixed(2)}`,
+  formatPositionSize: (value: number) => value.toFixed(2),
 }));
 
 function createMockPreview(overrides?: Partial<OrderPreview>): OrderPreview {
@@ -178,6 +188,26 @@ describe('PredictOrderRetrySheet', () => {
       );
 
       expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('renders the sheet in a full-window modal so a parent sheet cannot clip it', () => {
+      const { UNSAFE_getByType } = render(
+        <PredictOrderRetrySheet {...defaultProps} />,
+      );
+
+      const modal = UNSAFE_getByType(Modal);
+      expect(modal.props.transparent).toBe(true);
+      expect(within(modal).getByTestId('bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('closes the sheet on Android back', () => {
+      const { UNSAFE_getByType } = render(
+        <PredictOrderRetrySheet {...defaultProps} />,
+      );
+
+      UNSAFE_getByType(Modal).props.onRequestClose();
+
+      expect(mockCloseSheet).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -243,6 +273,8 @@ describe('PredictOrderRetrySheet', () => {
 
       expect(getByText('You receive')).toBeOnTheScreen();
       expect(getByText('$6.00')).toBeOnTheScreen();
+      expect(getByText('Expected fill')).toBeOnTheScreen();
+      expect(getByText('9.50 shares')).toBeOnTheScreen();
       expect(getByText('Worst case (5% band)')).toBeOnTheScreen();
       expect(getByText('$5.69')).toBeOnTheScreen();
       expect(getByText('Fees')).toBeOnTheScreen();
@@ -391,6 +423,35 @@ describe('PredictOrderRetrySheet', () => {
     });
   });
 
+  describe('timeout variant', () => {
+    it('renders the timeout copy without quote rows', () => {
+      const { getByText, queryByText } = render(
+        <PredictOrderRetrySheet {...defaultProps} variant="timeout" />,
+      );
+
+      expect(getByText('Market timed out')).toBeOnTheScreen();
+      expect(getByText(/took too long to respond/)).toBeOnTheScreen();
+      expect(queryByText('Price')).not.toBeOnTheScreen();
+    });
+
+    it('calls onRetry when Try again is pressed', () => {
+      const onRetry = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="timeout"
+          onRetry={onRetry}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
+
+      expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('price_moved variant', () => {
     const movedPreview = createMockPreview({
       side: Side.SELL,
@@ -516,5 +577,61 @@ describe('PredictOrderRetrySheet', () => {
 
       expect(mockCloseSheet).toHaveBeenCalledTimes(1);
     });
+
+    it.each([
+      [
+        'the close button',
+        (view: ReturnType<typeof render>) =>
+          fireEvent.press(
+            view.getByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+          ),
+      ],
+      [
+        'Try later',
+        (view: ReturnType<typeof render>) =>
+          fireEvent.press(
+            view.getByTestId(
+              PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
+            ),
+          ),
+      ],
+      [
+        'Android back',
+        (view: ReturnType<typeof render>) =>
+          view.UNSAFE_getByType(Modal).props.onRequestClose(),
+      ],
+    ])('cancels before the close animation on %s', (_, close) => {
+      const onCancel = jest.fn();
+      const view = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="no_match"
+          onCancel={onCancel}
+        />,
+      );
+
+      close(view);
+
+      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onCancel.mock.invocationCallOrder[0]).toBeLessThan(
+        mockCloseSheet.mock.invocationCallOrder[0],
+      );
+    });
+
+    it.each([
+      [false, true],
+      [true, false],
+    ])(
+      'when isRetrying is %s, swipe and backdrop close are enabled: %s',
+      (isRetrying, isInteractable) => {
+        const { getByTestId } = render(
+          <PredictOrderRetrySheet {...defaultProps} isRetrying={isRetrying} />,
+        );
+
+        expect(getByTestId('bottom-sheet').props.isInteractable).toBe(
+          isInteractable,
+        );
+      },
+    );
   });
 });

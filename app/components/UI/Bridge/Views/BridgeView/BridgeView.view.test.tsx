@@ -648,6 +648,30 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText('$19,000.00')).toBeOnTheScreen();
   });
 
+  it('renders the market keypad outside the responder-based content wrapper', async () => {
+    const { getByTestId } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: '0',
+        sourceToken: ETH_SOURCE,
+        destToken: undefined,
+      },
+    } as unknown as Record<string, unknown>);
+
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
+      'pressIn',
+    );
+    const keypadDeleteButton = await waitFor(() =>
+      getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+
+    let ancestor = keypadDeleteButton.parent;
+    while (ancestor) {
+      expect(ancestor.props.onStartShouldSetResponder).toBeUndefined();
+      ancestor = ancestor.parent;
+    }
+  });
+
   it('tracks source input denomination toggle', () => {
     jest.clearAllMocks();
     const { getByTestId } = defaultBridgeWithTokens({

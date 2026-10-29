@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from 'react';
-import { DiscountType } from '@metamask/bridge-controller';
 import { render, act } from '@testing-library/react-native';
 import PredictFeeBreakdownSheet from './PredictFeeBreakdownSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -317,8 +316,8 @@ describe('PredictFeeBreakdownSheet', () => {
           <PredictFeeBreakdownSheet
             ref={ref}
             {...defaultProps}
-            feePolicyDiscountType={DiscountType.SUBSCRIPTION}
             originalTotal={10.2}
+            feePolicy={{ builderCode: 'predict-pro-builder' }}
           />
         );
       };

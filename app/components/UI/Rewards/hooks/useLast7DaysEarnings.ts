@@ -9,6 +9,7 @@ import {
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { RootState } from '../../../../reducers';
 import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
+import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
 export interface Last7DaysEarningsState {
   data: EarningsSummaryDto | null;
@@ -67,10 +68,19 @@ export const useLast7DaysEarnings = (
   const isLoadingRef = useRef(false);
   const inFlightProfileIdRef = useRef<string | undefined>(undefined);
   const requestIdRef = useRef(0);
+  const { cancel: cancelBusyRefetch, arm: armBusyRefetch } =
+    useOneShotBusyRefetch();
+  const fetchRef = useRef<
+    (options?: { forceFresh?: boolean; followUp?: boolean }) => Promise<void>
+  >(async () => undefined);
 
   const fetchLast7Days = useCallback(
-    async ({ forceFresh }: { forceFresh?: boolean } = {}): Promise<void> => {
+    async ({
+      forceFresh,
+      followUp = false,
+    }: { forceFresh?: boolean; followUp?: boolean } = {}): Promise<void> => {
       if (!profileId) {
+        cancelBusyRefetch();
         requestIdRef.current += 1;
         isLoadingRef.current = false;
         inFlightProfileIdRef.current = undefined;
@@ -85,6 +95,7 @@ export const useLast7DaysEarnings = (
       if (isLoadingRef.current && inFlightProfileIdRef.current === profileId) {
         return;
       }
+      cancelBusyRefetch();
       const requestId = ++requestIdRef.current;
       const requestedProfileId = profileId;
       const switchingProfile =
@@ -114,16 +125,20 @@ export const useLast7DaysEarnings = (
         if (requestId !== requestIdRef.current) {
           return;
         }
-        // This hook does not retry a busy read, so the failure is reported now.
         reportRewardsMoneyReadFailure(
           fetchError,
           'last7DaysEarnings.fetch_failed',
-          true,
+          followUp,
           'rewards-money',
         );
         // Leave the previous total in place. The banner shows only when this
         // failure also left no total.
         setError(true);
+        if (!followUp) {
+          armBusyRefetch(fetchError, () => {
+            void fetchRef.current({ forceFresh: true, followUp: true });
+          });
+        }
       } finally {
         if (requestId === requestIdRef.current) {
           isLoadingRef.current = false;
@@ -131,8 +146,9 @@ export const useLast7DaysEarnings = (
         }
       }
     },
-    [profileId],
+    [armBusyRefetch, cancelBusyRefetch, profileId],
   );
+  fetchRef.current = fetchLast7Days;
 
   useFocusEffect(
     useCallback(() => {

@@ -360,7 +360,9 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
     );
   }
 
-  if (!canOrder) {
+  // Without an order handler (the Venue does not support buy) the price is
+  // shown, never offered as a button.
+  if (!canOrder || !actions.order) {
     return (
       <Box
         testID={testID}

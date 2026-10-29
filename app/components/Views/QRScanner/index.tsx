@@ -7,9 +7,6 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, DeviceEventEmitter, Image, View, Linking } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import {
   Camera,
   useCameraDevice,
@@ -17,8 +14,11 @@ import {
   Code,
 } from 'react-native-vision-camera';
 import {
+  FontWeight,
   HeaderStandard,
   IconColor,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -891,7 +891,8 @@ const QRScanner = ({
           }}
         />
         <Text
-          variant={TextVariant.BodyLGMedium}
+          variant={TextVariant.BodyLg}
+          fontWeight={FontWeight.Medium}
           style={styles.cameraNotAvailableText}
         >
           {strings('qr_scanner.camera_not_available')}
@@ -927,7 +928,11 @@ const QRScanner = ({
       <View style={styles.overlayContainerColumn}>
         <View style={styles.overlay} />
         <View style={styles.overlayContainerRow}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
+          <Text
+            variant={TextVariant.BodyLg}
+            fontWeight={FontWeight.Medium}
+            style={styles.overlayText}
+          >
             {getScannerOverlayLabel()}
           </Text>
           <View style={styles.overlay} />

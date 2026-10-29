@@ -584,10 +584,14 @@ class TestSnaps {
       hideKeyboard: !PlatformDetector.isIOSAppium(),
     });
     if (PlatformDetector.isIOSAppium()) {
-      await Gestures.tap(Matchers.getElementByText(/^Custom Dialog$/i), {
-        checkEnabled: false,
-        elemDescription: 'Custom Dialog heading — dismiss keyboard',
-      });
+      // Heading often reports displayed=false while the keyboard is up — same
+      // Snap UI visible=false path as OK / Confirm (snapUiTapOptions).
+      await Gestures.tap(
+        Matchers.getElementByText(/^Custom Dialog$/i),
+        this.snapUiTapOptions({
+          elemDescription: 'Custom Dialog heading — dismiss keyboard',
+        }),
+      );
     }
   }
 

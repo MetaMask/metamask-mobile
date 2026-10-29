@@ -10,7 +10,7 @@ import {
   MOCK_RECURRING_OPEN_ORDER_2,
 } from '../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../api/recurringSwaps.mock';
-import { RecurringOrderStatus } from '../api/recurringOrders.types';
+import { RecurringOrderState } from '../api/recurringOrders.types';
 import type {
   RecurringOrdersByAssetQueryParams,
   RecurringOrdersQueryParams,
@@ -34,7 +34,7 @@ const mockGetRecurringOrdersByAsset = jest.mocked(getRecurringOrdersByAsset);
 const mockGetRecurringSwaps = jest.mocked(getRecurringSwaps);
 const PARAMS: RecurringOrdersQueryParams = {
   walletAddress: '0x1234567890123456789012345678901234567890',
-  status: [RecurringOrderStatus.Open],
+  orderStates: [RecurringOrderState.Open],
   chainId: 'eip155:1',
   limit: 20,
 };
@@ -94,13 +94,22 @@ describe('RecurringOrdersDataService', () => {
   });
 
   it('forwards cancellation to the recurring-orders transport', async () => {
-    mockCancelRecurringOrder.mockResolvedValue(undefined);
+    mockCancelRecurringOrder.mockResolvedValue({
+      order: {
+        ...MOCK_RECURRING_OPEN_ORDER,
+        state: RecurringOrderState.Cancelled,
+      },
+    });
     const service = buildService();
 
-    await service.cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId);
+    await service.cancelRecurringOrder(
+      MOCK_RECURRING_OPEN_ORDER.id,
+      MOCK_RECURRING_OPEN_ORDER.account,
+    );
 
     expect(mockCancelRecurringOrder).toHaveBeenCalledWith(
-      MOCK_RECURRING_OPEN_ORDER.orderId,
+      MOCK_RECURRING_OPEN_ORDER.id,
+      MOCK_RECURRING_OPEN_ORDER.account,
     );
   });
 
@@ -109,7 +118,10 @@ describe('RecurringOrdersDataService', () => {
     const service = buildService();
 
     await expect(
-      service.cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId),
+      service.cancelRecurringOrder(
+        MOCK_RECURRING_OPEN_ORDER.id,
+        MOCK_RECURRING_OPEN_ORDER.account,
+      ),
     ).rejects.toThrow('cancel failed');
   });
 
@@ -142,7 +154,7 @@ describe('RecurringOrdersDataService', () => {
   });
 
   it('forwards order, query, and cursor parameters to the recurring-swaps transport', async () => {
-    const orderId = MOCK_RECURRING_OPEN_ORDER.orderId;
+    const orderId = MOCK_RECURRING_OPEN_ORDER.id;
     mockGetRecurringSwaps.mockResolvedValue({
       swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
     });
@@ -162,7 +174,7 @@ describe('RecurringOrdersDataService', () => {
   });
 
   it('fetches the recurring-swaps page identified by the previous cursor', async () => {
-    const orderId = MOCK_RECURRING_OPEN_ORDER.orderId;
+    const orderId = MOCK_RECURRING_OPEN_ORDER.id;
     mockGetRecurringSwaps
       .mockResolvedValueOnce({
         swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],

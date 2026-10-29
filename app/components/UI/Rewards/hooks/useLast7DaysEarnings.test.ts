@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { captureException } from '@sentry/react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
@@ -80,7 +81,19 @@ describe('useLast7DaysEarnings', () => {
     typeof useSelector
   >;
   const flushPromises = () => new Promise(process.nextTick);
+  const pendingFocusEffects: (() => void)[] = [];
   let focusEffect: (() => void) | undefined;
+
+  function zeroJitter(): void {
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 0;
+        }
+        return array;
+      });
+  }
 
   const stateWithCachedWindow = (
     profileId: string,
@@ -105,9 +118,20 @@ describe('useLast7DaysEarnings', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    focusEffect = undefined;
+    pendingFocusEffects.length = 0;
+    focusEffect = () => {
+      pendingFocusEffects.slice().forEach((effect) => {
+        effect();
+      });
+    };
     mockUseFocusEffect.mockImplementation((effect) => {
-      focusEffect = effect;
+      pendingFocusEffects.push(effect);
+      // The busy refetch and the focus fetch each register one effect. A
+      // later render replaces both, so a focus runs this render's pair.
+      pendingFocusEffects.splice(
+        0,
+        Math.max(0, pendingFocusEffects.length - 2),
+      );
     });
     mockUseSelector.mockReturnValue(null);
     mockEngineCall.mockResolvedValue(mockSummary);
@@ -290,5 +314,78 @@ describe('useLast7DaysEarnings', () => {
 
     expect(result.current.data).toBeNull();
     expect(result.current.error).toBe(true);
+  });
+
+  it('refetches once after Retry-After and does not schedule another', async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
+    zeroJitter();
+    try {
+      mockEngineCall.mockRejectedValue(
+        new RewardsMoneyHttpError('busy', 503, undefined, 2),
+      );
+
+      renderHook(() => useLast7DaysEarnings(PROFILE_A));
+      await act(async () => {
+        focusEffect?.();
+        await flushPromises();
+      });
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+      expect(captureException).not.toHaveBeenCalled();
+
+      mockEngineCall.mockResolvedValue(mockSummary);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+
+      expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      expect(mockEngineCall).toHaveBeenLastCalledWith(
+        'RewardsMoneyController:getEarningsSummary',
+        expect.objectContaining({ forceFresh: true, includeClaimable: false }),
+      );
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+      expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      expect(captureException).not.toHaveBeenCalled();
+    } finally {
+      jest.restoreAllMocks();
+      jest.useRealTimers();
+    }
+  });
+
+  it('reports a short busy read only when the refetch fails', async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
+    zeroJitter();
+    try {
+      const busy = new RewardsMoneyHttpError('busy', 503, undefined, 2);
+      mockEngineCall.mockRejectedValue(busy);
+
+      renderHook(() => useLast7DaysEarnings(PROFILE_A));
+      await act(async () => {
+        focusEffect?.();
+        await flushPromises();
+      });
+
+      expect(captureException).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(captureException).toHaveBeenCalledWith(busy, {
+        tags: {
+          feature: 'rewards-money',
+          context: 'last7DaysEarnings.fetch_failed',
+        },
+      });
+    } finally {
+      jest.restoreAllMocks();
+      jest.useRealTimers();
+    }
   });
 });

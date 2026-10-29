@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import type {
   EarningsSummaryDto,
   LedgerEntryDto,
@@ -12,10 +12,12 @@ import { navigateToRewardsRoute } from '../../../utils';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
-import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton';
-import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard';
-import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows';
-import EarningsTab, { EARNINGS_TAB_TEST_IDS } from './EarningsTab';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton.testIds';
+import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
+import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows.testIds';
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner.testIds';
+import EarningsTab from './EarningsTab';
+import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
 
 const mockNavigate = jest.fn();
 
@@ -37,14 +39,47 @@ jest.mock('../../../utils', () => ({
 jest.mock('../../../hooks/useEarningsSummary');
 jest.mock('../../../hooks/useLast7DaysEarnings');
 jest.mock('../../../hooks/useEarningsHistory');
+const mockClaimEarningsHandlers: { onClaimsPaused?: () => void } = {};
+
+jest.mock('../../../hooks/useClaimEarnings', () => ({
+  useClaimEarnings: (
+    _profileId: string,
+    options: { onClaimsPaused?: () => void },
+  ) => {
+    mockClaimEarningsHandlers.onClaimsPaused = options.onClaimsPaused;
+    return {
+      claim: jest.fn(),
+      isClaiming: false,
+      isClaimWaiting: false,
+    };
+  },
+}));
+jest.mock('../../../hooks/useInFlightClaims', () => ({
+  useInFlightClaims: () => ({ claims: [], refresh: jest.fn() }),
+}));
 
 const PROFILE_ID = 'profile-a';
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
+  balance: 'Balance',
+  mUSD: 'mUSD',
   claim: 'Claim',
+  paused: 'Paused',
   claimed: 'Claimed',
+  held: 'Held',
+  blocked: 'Blocked',
+  voided: 'Voided',
+  pending: 'Pending',
+  claimsPausedTitle: 'Claims paused',
+  claimsPausedDescription: 'You cannot claim rewards right now.',
+  rewardsPausedTitle: 'Rewards paused',
+  rewardsPausedDescription:
+    "We've paused these rewards while we review them. Your other rewards aren't affected, and you can still claim them as usual. You don't need to do anything.",
+  rewardsPausedBanner: '{amount} of rewards paused.',
+  rewardsPausedLearnMore: 'Learn more',
   last7Days: 'Last 7 days',
+  recordedEarnings: 'Recorded earnings',
   totalEarningsLabel: 'Total earnings',
   breakdown: 'Breakdown',
   referrals: 'Referrals',
@@ -223,22 +258,52 @@ describe('EarningsTab', () => {
     jest.clearAllMocks();
   });
 
-  it('hides the breakdown for a referrer and keeps the claim card', () => {
-    const { getByText, queryByText, queryByTestId } = renderTab('referrer');
+  it('shows the breakdown for a referrer and hides the claimable amount row', () => {
+    const { getByText, getByTestId, queryByTestId, queryByText } =
+      renderTab('referrer');
 
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
-    expect(queryByText('Referrals')).toBeNull();
-    expect(queryByText('Trade commissions')).toBeNull();
+    expect(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-referrals`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
+    ).toBeNull();
+    expect(getByText('Referrals')).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(getByText('$41.75')).toBeOnTheScreen();
+    expect(getByText('$9.15')).toBeOnTheScreen();
+    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
+    expect(queryByText('Available to claim')).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
+    ).toBeOnTheScreen();
     expect(getByText('$2.00')).toBeOnTheScreen();
     expect(getByText('$58.50')).toBeOnTheScreen();
   });
 
-  it('hides the breakdown for a referee', () => {
-    const { queryByText, queryByTestId } = renderTab('referee');
+  it('shows the breakdown for a referee and keeps the claimable amount', () => {
+    const { getByText, getByTestId, queryByText } = renderTab('referee');
 
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
-    expect(queryByText('Trading commissions')).toBeNull();
+    expect(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
+    ).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(queryByText('Trading rebates')).toBeNull();
+    expect(queryByText('Referrals')).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toBeOnTheScreen();
   });
 
   it('omits the breakdown for a plain persona', () => {
@@ -248,30 +313,274 @@ describe('EarningsTab', () => {
     expect(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeOnTheScreen();
   });
 
-  it('renders Claim when claimable is positive', () => {
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
-      summary: { ...SUMMARY, claimable: '50', claimed: '50' },
+  it('shows Balance from lifetime and Paused for a referee whose claims are held', () => {
+    const summary = {
+      ...SUMMARY,
+      claimable: '0',
+      held: '100000000',
+      claimed: '0',
+    };
+    const { getByTestId, getByText, queryByTestId } = renderTab('referee', {
+      summary,
+    });
+
+    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$58.50');
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON));
+    expect(fetchEarningsSummary).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+      {
+        title: 'Claims paused',
+        description: 'You cannot claim rewards right now.',
+        totals: {
+          lifetime_total: '58500000',
+          claimable: '0',
+          held: '100000000',
+          blocked: '0',
+          voided: undefined,
+          pending: '0',
+          claimed: '0',
+        },
+        labels: {
+          breakdown: 'Breakdown',
+          recordedEarningsLabel: 'Total earnings',
+          availableToClaim: 'Available to claim',
+          held: 'Held',
+          blocked: 'Blocked',
+          voided: 'Voided',
+          pending: 'Pending',
+          claimed: 'Claimed',
+        },
+      },
+    );
+  });
+
+  it('keeps Claim when cashback is claimable and held and blocked are positive', () => {
+    const { getByTestId, queryByTestId } = renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        lifetime_total: '132000000',
+        claimable: '1000000',
+        held: '100000000',
+        blocked: '12000000',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          blocking_reason: 'SUSPENDED',
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+      },
     });
 
     expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+    expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeNull();
   });
 
-  it('renders a disabled Claimed button when only claimed is positive', () => {
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
-      summary: { ...SUMMARY, claimable: '0', claimed: '50' },
+  it('opens the balance breakdown from the info button while Claim is shown', () => {
+    const { getByTestId } = renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        lifetime_total: '132000000',
+        claimable: '1000000',
+        held: '100000000',
+        blocked: '12000000',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          blocking_reason: 'SUSPENDED',
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+      },
     });
 
+    fireEvent.press(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+      {
+        variant: 'breakdown',
+        title: 'Breakdown',
+        totals: {
+          lifetime_total: '132000000',
+          claimable: '1000000',
+          held: '100000000',
+          blocked: '12000000',
+          voided: undefined,
+          pending: '0',
+          claimed: '0',
+        },
+        labels: {
+          breakdown: 'Breakdown',
+          recordedEarningsLabel: 'Total earnings',
+          availableToClaim: 'Available to claim',
+          held: 'Held',
+          blocked: 'Blocked',
+          voided: 'Voided',
+          pending: 'Pending',
+          claimed: 'Claimed',
+        },
+      },
+    );
+  });
+
+  it('shows Paused for blocked cashback with nothing held', () => {
+    const { getByTestId, queryByTestId } = renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        claimable: '0',
+        held: '0',
+        blocked: '12000000',
+      },
+    });
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$58.50');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+  });
+
+  it('opens the paused sheet with the summary the refresh returns', async () => {
+    const refreshed = {
+      ...SUMMARY,
+      claimable: '0',
+      held: '12000000',
+      blocked: '0',
+    };
+    fetchEarningsSummary.mockResolvedValue(refreshed);
+    renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        claimable: '12000000',
+        held: '0',
+        blocked: '0',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '12000000',
+            },
+          },
+        },
+      },
+    });
+
+    mockClaimEarningsHandlers.onClaimsPaused?.();
+
+    expect(fetchEarningsSummary).toHaveBeenCalledWith({ forceFresh: true });
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        expect.objectContaining({
+          title: 'Claims paused',
+          totals: expect.objectContaining({
+            lifetime_total: '58500000',
+            claimable: '0',
+            held: '12000000',
+            blocked: '0',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('leaves the paused sheet closed when the refresh returns no summary', async () => {
+    fetchEarningsSummary.mockResolvedValue(undefined);
+    renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        claimable: '12000000',
+        held: '0',
+        blocked: '0',
+      },
+    });
+
+    mockClaimEarningsHandlers.onClaimsPaused?.();
+    await waitFor(() => {
+      expect(fetchEarningsSummary).toHaveBeenCalledWith({ forceFresh: true });
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the paused sheet with the on-screen summary when the refresh fails', async () => {
+    fetchEarningsSummary.mockRejectedValue(new Error('network'));
+    renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        claimable: '12000000',
+        held: '0',
+        blocked: '0',
+      },
+    });
+
+    mockClaimEarningsHandlers.onClaimsPaused?.();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        expect.objectContaining({
+          totals: expect.objectContaining({
+            lifetime_total: '58500000',
+            claimable: '12000000',
+            held: '0',
+            blocked: '0',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('does not show Paused for a referrer with a positive hold', () => {
+    const { queryByTestId } = renderTab('referrer', {
+      summary: { ...SUMMARY, claimable: '0', held: '100000000', claimed: '50' },
+    });
+
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
     expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).toBeDisabled();
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+    ).toBeNull();
   });
 
   it('hides the button when nothing is claimable or claimed', () => {
@@ -327,16 +636,19 @@ describe('EarningsTab', () => {
     });
   });
 
-  it('opens history from its header while the breakdown stays hidden', () => {
+  it('opens performance from the breakdown and history from its header', () => {
     const onViewPerformance = jest.fn();
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
+    const { getByTestId } = renderTab('referrer', {
       onViewPerformance,
     });
 
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER)).toBeNull();
+    fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER));
+
+    expect(onViewPerformance).toHaveBeenCalledTimes(1);
+    expect(navigateToRewardsRoute).not.toHaveBeenCalled();
+
     fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_HEADER));
 
-    expect(onViewPerformance).not.toHaveBeenCalled();
     expect(navigateToRewardsRoute).toHaveBeenCalledWith(
       expect.anything(),
       Routes.REWARDS_EARNINGS_HISTORY_VIEW,
@@ -344,7 +656,7 @@ describe('EarningsTab', () => {
   });
 
   it('skeletons the card and history while each is loading', () => {
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
+    const { getByTestId, queryByTestId, queryByText } = renderTab('referrer', {
       summary: null,
       summaryLoading: true,
       last7: null,
@@ -356,12 +668,42 @@ describe('EarningsTab', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
     ).toBeOnTheScreen();
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_SKELETON)).toBeNull();
+    expect(queryByText('Available to claim')).toBeNull();
+    expect(
+      getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_SKELETON),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
     expect(queryByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeNull();
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+  });
+
+  it('hides the paused banner while history is still a skeleton', () => {
+    const { getByTestId, queryByTestId } = renderTab('referrer', {
+      summary: {
+        ...SUMMARY,
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              blocked: '9150000',
+              blocking_reason: 'UNDER_REVIEW',
+            },
+          },
+        },
+      },
+      historyItems: null,
+      historyLoading: true,
+    });
+
+    expect(
+      getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
   });
 
   it('keeps cached earnings without an error banner', () => {
@@ -440,5 +782,70 @@ describe('EarningsTab', () => {
       getByRole('button', { name: 'Retry', busy: true }),
     ).toBeOnTheScreen();
     expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON)).toBeNull();
+  });
+
+  it('hides the paused banner when no family is under review', () => {
+    const { queryByTestId } = renderTab('referrer');
+
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+  });
+
+  it('shows the paused banner for blocked money under review, not held', () => {
+    const { getByTestId } = renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              held: '100000000',
+              blocked: '12000000',
+              blocking_reason: 'UNDER_REVIEW',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER),
+    ).toHaveTextContent('$12.00 of rewards paused.Learn more');
+  });
+
+  it('shows the under-review total above history and opens the paused sheet', () => {
+    const { getByTestId, getByText } = renderTab('referrer', {
+      summary: {
+        ...SUMMARY,
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              blocked: '9150000',
+              blocking_reason: 'UNDER_REVIEW',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER),
+    ).toHaveTextContent('$9.15 of rewards paused.Learn more');
+    expect(getByText('Learn more')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: 'Rewards paused',
+        description:
+          "We've paused these rewards while we review them. Your other rewards aren't affected, and you can still claim them as usual. You don't need to do anything.",
+      },
+    );
   });
 });

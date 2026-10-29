@@ -20,6 +20,49 @@ describe('postTradeShareSession', () => {
     clearPostTradeShareSession();
   });
 
+  describe('variant', () => {
+    it('defaults to share', () => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'buy',
+        preview: {
+          tokenSymbol: 'PUMP',
+          tokenAddress: '0xpump',
+          chain: 'base',
+          side: 'buy',
+        },
+      });
+
+      expect(getPostTradeShareSession()?.variant).toBe('share');
+    });
+
+    it('keeps create_profile across patches', () => {
+      const sessionId = beginPostTradeShareSession({
+        variant: 'create_profile',
+        product: 'perps',
+        preview: {
+          product: 'perps',
+          tokenSymbol: 'ETH',
+          tradeSymbol: 'ETH',
+          tokenAddress: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      patchPostTradeShareSession(sessionId, {
+        status: 'complete',
+        orderId: '42',
+      });
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'complete',
+        }),
+      );
+    });
+  });
+
   it('begins a pending session', () => {
     beginPostTradeShareSession({
       target,

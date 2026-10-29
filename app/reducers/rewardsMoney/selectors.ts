@@ -1,5 +1,6 @@
 import type { RootState } from '..';
 import type {
+  ClaimDto,
   CommissionEntryView,
   LedgerEarningEntryDto,
   LedgerEntryDto,
@@ -9,6 +10,7 @@ import type {
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 import { selectGeoLocation } from '../rewards/selectors';
 import type {
+  ClaimLock,
   EarningsSummaryEntry,
   ReferralFunnelEntry,
   ReferralMeEntry,
@@ -90,7 +92,7 @@ export function selectReferralMeEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.referralMe[profileId];
+  return state.rewardsMoney.referralMe?.[profileId];
 }
 
 /**
@@ -144,7 +146,7 @@ export function selectEarningsSummaryEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.earningsSummary[profileId];
+  return state.rewardsMoney.earningsSummary?.[profileId];
 }
 
 export function selectReferralFunnelEntry(
@@ -154,7 +156,7 @@ export function selectReferralFunnelEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.referralFunnel[profileId];
+  return state.rewardsMoney.referralFunnel?.[profileId];
 }
 
 export function selectCommissions(
@@ -164,7 +166,7 @@ export function selectCommissions(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.commissions[profileId];
+  return state.rewardsMoney.commissions?.[profileId];
 }
 
 export function selectCashbackLedger(
@@ -174,7 +176,7 @@ export function selectCashbackLedger(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.cashbackLedger[profileId];
+  return state.rewardsMoney.cashbackLedger?.[profileId];
 }
 
 /** First page of the unified earnings ledger for one Hydra profile. */
@@ -185,5 +187,38 @@ export function selectEarningsHistory(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.earningsHistory[profileId];
+  return state.rewardsMoney.earningsHistory?.[profileId];
+}
+
+/** First page of open claims for one Hydra profile. */
+export function selectInFlightClaims(
+  state: RootState,
+  profileId: string | undefined,
+): ClaimDto[] | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.inFlightClaims?.[profileId];
+}
+
+/** Epoch ms until Claim is enabled again, after a refusal's `Retry-After`. */
+export function selectClaimWaitingUntil(
+  state: RootState,
+  profileId: string | undefined,
+): number | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.claimWaitingUntil?.[profileId];
+}
+
+/** Session lock that keeps Claim disabled after the Earnings tab unmounts. */
+export function selectClaimLock(
+  state: RootState,
+  profileId: string | undefined,
+): ClaimLock | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.claimLocks?.[profileId];
 }

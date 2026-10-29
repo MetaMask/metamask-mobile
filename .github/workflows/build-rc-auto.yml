@@ -92,6 +92,10 @@ concurrency:
 permissions:
   contents: read
 
+# RC builds are signed with the RC signer and shipped to testers, so nothing on this path,
+# including the build.yml and build-rc-repack.yml calls, may restore a cache.
+cache-mode: none
+
 jobs:
   validate-and-find-pr:
     name: Validate branch and find PR
@@ -235,7 +239,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          package-manager-cache: false
 
       # fingerprint.config.js shells out to expo-modules-autolinking, so a full install
       # is required before the hash can be computed.
@@ -503,6 +507,8 @@ jobs:
       build_attribution: official
     secrets: inherit
 
+  # TODO: In a follow-up PR, move AI test plan generation into its own workflow, so the AI keys
+  # and the write token no longer share a job.
   post-rc-build-comment:
     name: Post RC Build Comment with Test Plan
     runs-on: ubuntu-latest
@@ -531,7 +537,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          package-manager-cache: false
       - name: Install dependencies
         run: yarn install --immutable
 

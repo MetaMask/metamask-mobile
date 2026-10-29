@@ -16,8 +16,18 @@ import {
   navigateToVbaOnboardingDestination,
   resolveVbaOnboarding,
 } from './hooks/useVbaOnboardingRouting';
+import type { VbaOnboardingParamList } from './routes';
+import { endVbaCufJourney, startVbaCufJourney } from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
 
 const VBA_LOADING_SOURCE = 'money-add-money-bank-account';
+
+interface VbaOnboardingLoadingProps {
+  /** Optional so tests can render the screen without a navigator. */
+  route?: {
+    params?: NonNullable<VbaOnboardingParamList['VbaOnboardingLoading']>;
+  };
+}
 
 export const VbaOnboardingLoadingSelectorsIDs = {
   CONTAINER: 'vba-onboarding-loading-container',
@@ -29,24 +39,36 @@ export const VbaOnboardingLoadingSelectorsIDs = {
  * Cold-entry screen for VBA onboarding. It is shown before hydrate so the
  * user is not left on the previous screen while status loads. Success
  * replaces this route with the resolved destination. Failure stays here.
+ *
+ * `source` is the calling surface, used for error telemetry.
  */
-const VbaOnboardingLoading = () => {
+const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const source = route?.params?.source ?? VBA_LOADING_SOURCE;
   const [attempt, setAttempt] = useState(0);
   const [hasError, setHasError] = useState(false);
 
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  const handleBack = useCallback(() => {
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
+    navigation.goBack();
+  }, [navigation]);
 
   const handleRetry = useCallback(() => {
+    const entrySurface = source.startsWith('vba-home-card-')
+      ? 'home_card'
+      : source === 'vba-action-row-details'
+        ? 'money_action_row'
+        : 'add_money_sheet';
+    startVbaCufJourney(entrySurface);
     setHasError(false);
     setAttempt((count) => count + 1);
-  }, []);
+  }, [source]);
 
   useEffect(() => {
     let active = true;
 
-    resolveVbaOnboarding(VBA_LOADING_SOURCE)
+    resolveVbaOnboarding(source)
       .then((resolved) => {
         if (!active) {
           return;
@@ -57,7 +79,7 @@ const VbaOnboardingLoading = () => {
         }
 
         Logger.log('[vba-onboarding] resume', {
-          source: VBA_LOADING_SOURCE,
+          source,
           snapshot: resolved.snapshot,
           destinationId: resolved.destinationId,
         });
@@ -72,7 +94,7 @@ const VbaOnboardingLoading = () => {
           tags: { feature: 'vba-onboarding' },
           context: {
             name: 'VbaOnboardingLoading',
-            data: { source: VBA_LOADING_SOURCE },
+            data: { source },
           },
         });
         if (active) {
@@ -83,7 +105,13 @@ const VbaOnboardingLoading = () => {
     return () => {
       active = false;
     };
-  }, [attempt, navigation]);
+  }, [attempt, navigation, source]);
+
+  useEffect(() => {
+    if (hasError) {
+      endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
+    }
+  }, [hasError]);
 
   if (hasError) {
     return <VbaOnboardingStub variant="error" onContinue={handleRetry} />;

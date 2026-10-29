@@ -7,6 +7,163 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Spam NFTs already in your wallet are now removed automatically when detected
+
+## [8.17.0]
+
+### Added
+
+- Added token-specific Social feeds and position sharing from token details when Social is available (#37516)
+- Added support for showing Robinhood tokenized stocks in Explore when enabled (#37453)
+- Added a Perps home Explore section for A/B test treatment groups (#37454)
+- Added email verification by one-time passcode to virtual bank account onboarding (#37541)
+- Added sharing of open positions from the token details footer (#37622)
+- Added percent-change price alerts for perpetual markets (#37532)
+- Added an open-orders count to the Bridge orders tab that respects the selected network filter (#37456)
+- Added haptic feedback when opening perpetual long, short, or close flows, placing orders, or saving take profit and stop loss settings (#37017)
+- Added a Security tab to token details with contract checks, holder distribution, liquidity, trading, origin, and detected contract risks (#37410)
+- Added bridge fees to the perpetual trade sheet when paying with a token (#37512)
+- Added Pix deposit details when a virtual bank account is ready (#37424)
+- Added an identity-verification introduction and provider-terms confirmation sheet (#37475)
+- Added expanded position details to token details, including average cost, realized and unrealized P&L, and hold time (#37494)
+- Added a position value and P&L line to the token details footer (#37455)
+- Added unrealized P&L for open positions in the token details footer (#37495)
+- Added the ability to start MetaMask Pro subscriptions with a Money Account, including funding the account when its balance is below the plan price, and directed paused subscribers to the Pro Hub (#36743, #37155)
+- Added the ability to send unconverted mUSD from a Money Account to an external address (#37216)
+- Added a screen for resuming abandoned virtual bank account identity verification (#37422)
+- Added Cash Out from the Event Screen and refreshed Balance, Positions, and History after trades (#37292)
+- Added PIX deposit instructions and status updates for Brazilian real-to-mUSD Money Account deposits (#37021)
+- Added Cross margin selection to the Perps Pro order form when enabled (#36881)
+- Added a No fee tag for eligible sponsored Money Account deposits to Perps (#37279)
+- Added minimum limit-order amounts of $50 on Ethereum and $1 on other networks, plus a Create new order button for expired, canceled, and failed orders (#37124)
+- Added animated amount entry and keypad feedback to Send (#37067)
+- Added support for provider-supported advanced Perps orders, improved Lighter trading-key recovery and order-loading retries, and displayed unavailable fill PnL as Unknown (#37161)
+- Added a success screen after Pro checkout before opening Pro Hub (#37026)
+- Added suggested markets to the Perps Explore watchlist when fewer than five markets are saved (#37730)
+- Added a reserve banner to swap and bridge quotes that require a native or non-native token reserve (#37821)
+- Added memo-required detection for Stellar addresses listed in the StellarExpert SEP-37 directory (#37809)
+
+### Changed
+
+- Updated the Tempo network's native currency placeholder to USD (#37560)
+- Updated the Swaps orders network filter to appear only when orders span multiple networks and to list only networks with orders (#37323)
+- Split the membership cancellation survey into reason and stay-question steps and returned users to Pro Hub after cancellation (#37117)
+- Grouped Swaps limit orders by day under date headers (#37318)
+- Updated limit order minimum amounts, fiat formatting, and the option to create a new order after failed, expired, or canceled orders (#37200)
+- Updated Tron and Solana Snap dependencies (#37503)
+- Updated search asset-row subtitles to show token symbols and market capitalization instead of total volume (#37510)
+- Updated Money Account Plus trial messaging based on eligibility and limited Pro Hub cashback and physical-card access only while a trial is active (#36796)
+- Clarified that perpetual price changes and market-list volume and price-change sorting use 24-hour figures (#37566)
+- Updated the pending virtual bank account identity-verification flow with a verification screen that automatically continues when the check finishes (#37518)
+- Updated Quick Buy quote polling (#36384)
+- Updated Tron, Solana, and Bitcoin Snap dependencies (#37508)
+- Improved Token Details loading by prefetching price and chart data (#37372)
+- Updated meme token details with a token-age explanation, a stats scroll hint, section dividers, and a price header without the Today label (#37443)
+- Updated Money home logic to select virtual bank account identity-status cards for future display (#37412)
+- Updated the Virtual Bank Account intro screen with new copy, feature highlights, and MoonPay attribution (#37430)
+- Updated the Token Details balance deposit call to action for an A/B test (#37094)
+- Updated Token Details to show the meme token page for tokens with launchpad data when enabled (#37370)
+- Updated swap price-range presets to fully rounded buttons (#37511)
+- Updated Batch Sell network pills to fully rounded corners and increased token balance contrast (#37509)
+- Updated Add to Apple Wallet to remain available until every paired device has the card, and added a link to open pending passes in Apple Wallet (#37593)
+- Updated the Stellar wallet integration dependency to version 1.2.0 (#37568)
+- Updated limit order confirmation to show the Account upgrade fee, an info tooltip, and the fee token symbol when the estimate is ready (#37467)
+- Updated the trader profile Open and Closed tabs to use the shared tab bar (#37364)
+- Migrated Predict portfolio, activity, and P&L data reads to Polymarket's Data API v2 (#37274)
+- Updated the Perps intro Get started button to a pill shape (#37428)
+- Updated limit order expiry to apply on selection and clarified price tolerance and account upgrade fees (#37273)
+- Updated token selector network filter chips to fully rounded pills (#37367)
+- Updated Perps Lite chart period chips to match Pro (1m, 5m, 15m, 1h, 1d) (#37368)
+- Updated the homepage balance breakdown Money row to always show a secondary Add button instead of Buy (#37920)
+- Updated the Perps outage banner contact support link to open the MetaMask help center (#37879)
+- Updated the Perps outage banner FAQ link to open the troubleshoot article (#38045)
+
+### Removed
+
+- Removed Bitcoin account type labels except in multichain account address lists (#37570)
+
+### Fixed
+
+- Fixed Close Position totals to show Total receive and Included P&L with its percentage (#37377)
+- Fixed lifetime earnings to remain hidden when data could not be fetched (#37579)
+- Fixed spacing around the divider beneath a limit order's sent amount (#37608)
+- Fixed text weight consistency for trigger prices and transaction IDs in limit order details (#37611)
+- Prevented Perps market orders from being submitted when visible liquidity or slippage limits could not fulfill them, and provided recovery guidance (#37408)
+- Fixed Explore Search to show the unavailable screen when basic functionality is turned off (#37497)
+- Fixed spacing between recurring swap fields and error messages (#37465)
+- Fixed spacing above the limit price card (#37462)
+- Fixed bank account onboarding to show a loading screen while setup status loads (#37342)
+- Refreshed Tron asset data when opening token details and after confirmed Tron transactions (#37031)
+- Fixed the limit-order quote chip to show the quoted token’s logo (#37607)
+- Fixed the virtual bank account intro screen to show regional bank-transfer arrival times or fallback arrival copy when unavailable (#37571)
+- Fixed spacing around the limit-order confirmation button and fee line (#37605)
+- Fixed the recurring price range row to match swap quote rows (#37464)
+- Updated the virtual bank account identity verification failure screen to the finalized design (#37524)
+- Fixed the recurring purchase interval sheet to apply selections immediately and match the limit order expiration sheet (#37469)
+- Fixed the recurring Repeat info icon size and spacing (#37466)
+- Fixed Perps Pro to display and accept numbers using the app's locale (#36766)
+- Fixed the Predictions deposit failure toast to use error styling and retain the retry action (#37361)
+- Fixed Secret Recovery Phrase imports to confirm the password warning in a bottom sheet (#37398)
+- Fixed limit order detail rows to match swap quote rows (#37459)
+- Fixed in-app browser connections when navigating between sites (#36281)
+- Fixed Stellar contract-token transfers incorrectly displaying memo fields (#37404)
+- Fixed Card sign-up country prefill for US and Canada locations (#37522)
+- Fixed Perps outreach banner colors, Android trade buttons covering the outreach sheet, and clipped chart interval labels (#37637)
+- Fixed limit order forms remaining populated after an order was created (#37594)
+- Fixed grammar in the Arc usage notice (#35976)
+- Fixed non-EVM send amount validation getting stuck after correcting the amount (#37549)
+- Fixed the Activity back button returning to the Send flow after completing a non-EVM transaction (#37590)
+- Fixed virtual bank account onboarding by resuming existing identity sessions before loading onboarding (#37540)
+- Fixed transaction nonce selection when the network transaction count lagged behind a confirmed transaction (#37577)
+- Fixed network selector pills being misaligned with larger text sizes (#37163)
+- Fixed iOS card identity verification loading Android-specific error handling (#37439)
+- Fixed Quick Buy quote screens closing the entire sheet and losing the entered amount, and stopped preselecting tokenized stock tokens as payment tokens (#37194)
+- Fixed limit orders by upgrading eligible accounts before creating an order (#37542)
+- Fixed Bridge limit order rows to show the limit price instead of the staked amount (#37461)
+- Fixed Add to Apple Wallet remaining hidden after a card was removed from Wallet (#37438)
+- Fixed account list balances to include Money Account funds (#37413)
+- Fixed incorrect recipient, spender, and token addresses on the hardware wallet swap progress screen, and corrected same-chain swap step titles (#37183)
+- Fixed Add to Apple Wallet appearing for frozen cards (#37437)
+- Fixed Robinhood Chain explorer links for existing users (#37449)
+- Fixed one-finger scrolling in the Activity network filter on Android (#37400)
+- Fixed the onboarding cream background appearing on screens that should use the theme background (#37481)
+- Fixed the Card section on Money home loading indefinitely during Immersve sessions (#37476)
+- Fixed gaps above and below fullscreen HTML in-app messages on Android (#37472)
+- Fixed spacing in the limit price card (#37458)
+- Fixed native-asset Max sends to reserve gas based on the actual transaction (#36571)
+- Restored the compact trader header on social profiles (#37441)
+- Fixed undersized buttons in the identity verification flow on Android (#37131)
+- Fixed Pay With token balances displaying the wallet currency with a dollar sign (#37203)
+- Fixed Perps Pro order form inputs flashing or losing focus on Android (#36969)
+- Fixed extra horizontal padding on Explore perps market rows (#37360)
+- Fixed Pro position cards to display liquidation distance with the same price, percentage, and trend indicator as Lite mode (#36768)
+- Fixed the limit order keypad covering the custom percentage field and removed the 99% cap (#37225)
+- Fixed the app update prompt sometimes not appearing after unlocking the wallet (#37090)
+- Fixed the add-to-wallet option appearing after a card was already added (#36678)
+- Fixed Money Account withdrawal refunds being sent to the wallet instead of the Money Account (#37121)
+- Fixed duplicate transaction links in Money Account deposit details (#37045)
+- Fixed Money Account deposits getting stuck loading a quote for some users who previously used an older app version (#37891)
+- Fixed missing Perps balances on the homepage for geo-blocked users (#37728)
+- Fixed tapping a transaction toast opening an outdated details modal instead of the Activity details screen (#37762)
+- Fixed the keyboard not opening on the Transak OTP code screen on Android (#37916)
+- Fixed the Back to account option appearing when users could not use it (#37928)
+- Fixed the Perps Trade sheet pay-with row to show the available balance (#37990)
+- Fixed keypad buttons not responding on Android in flows that use the custom amount keypad (#38020)
+- Fixed spacing between Explore category pills and the market list (#37676)
+
+### Security
+
+- Strengthened keyring vault encryption by increasing password-based key derivation iterations to 600,000 (#37433)
+- Fixed malicious and suspicious token warnings not appearing in Swaps when destination tokens were opened from deeplinks, Watchlist, Token Details, and other entry points (#37554)
+
+## [8.16.1]
+
+### Fixed
+
+- Fixed Money Account deposits getting stuck loading a quote for some users who previously used an older app version (#38110)
+
 ## [8.16.0]
 
 ### Added
@@ -81,6 +238,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Money Account withdraw refunds returning to the wallet instead of the Money Account (#37121)
 - Fixed duplicate transaction links on Money Account deposit details (#37045)
 - Fixed Swap to clear previously saved details before opening a new swap (#37243)
+
+## [8.15.1]
+
+### Fixed
+
+- Fixed Money Account deposits getting stuck loading a quote for some users who previously used an older app version (#38109)
 
 ## [8.15.0]
 
@@ -14452,8 +14615,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.0...HEAD
-[8.16.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.0...v8.16.0
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.17.0...HEAD
+[8.17.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.1...v8.17.0
+[8.16.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.0...v8.16.1
+[8.16.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.1...v8.16.0
+[8.15.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.0...v8.15.1
 [8.15.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.14.0...v8.15.0
 [8.14.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.1...v8.14.0
 [8.13.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.13.1

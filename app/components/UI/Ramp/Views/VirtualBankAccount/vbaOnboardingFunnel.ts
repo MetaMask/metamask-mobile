@@ -1,3 +1,4 @@
+import type { AccountCreateErrorDestinationId } from './accountCreateError';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
@@ -11,6 +12,7 @@ export type VbaOnboardingDestinationId =
   | 'kycPending'
   | 'kycRejected'
   | 'accountProvisioningError'
+  | AccountCreateErrorDestinationId
   | 'error'
   | 'complete';
 
@@ -53,6 +55,12 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
  * autoramp opens the account screen. Approved KYC without one opens Identity
  * verified. Account setup runs later, on that account screen.
  *
+ * A rejected applicant, or one UKYC asked to retry before the provider flow was
+ * (re)submitted, opens the retry guidance screen: its Try again relaunches
+ * Sumsub explicitly. Routing that state into identity verification instead
+ * dropped the user straight back into the provider from every entry point, so
+ * closing Sumsub looked like it had done nothing.
+ *
  * @param snapshot - Facts from hydrate.
  * @returns The next module or status destination.
  */
@@ -62,7 +70,11 @@ export const getVbaDestinationForSnapshot = (
   if (!snapshot) {
     return 'error';
   }
-  if (snapshot.kycStatus === 'rejected') {
+  if (
+    snapshot.kycStatus === 'rejected' ||
+    (snapshot.kycStatus === 'retry' &&
+      snapshot.providerFlowStatus !== 'submitted')
+  ) {
     return 'kycRejected';
   }
 

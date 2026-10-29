@@ -87,6 +87,20 @@ describe('buildPendingPost', () => {
     });
   });
 
+  it('falls back to a local card when a trade in flight has no feed item yet', () => {
+    const post = buildPendingPost(
+      { ...created, positionUid: null, feedItem: null },
+      () => fallbackPost,
+      { isTradeInFlight: true },
+    );
+
+    expect(post).toMatchObject({
+      authorHandle: 'Local Name',
+      id: 'pending-comment-1',
+      commentId: 'comment-1',
+    });
+  });
+
   it('adds nothing when the fallback has no card either', () => {
     expect(buildPendingPost(created, () => null)).toBeNull();
   });

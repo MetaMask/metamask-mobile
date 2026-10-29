@@ -468,6 +468,8 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
       [ACTIONS.WHATS_HAPPENING, DeepLinkRoute.WHATS_HAPPENING],
       [ACTIONS.TOP_TRADERS, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL_TRADER, DeepLinkRoute.SOCIAL_TRADER],
       [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
       'maps action %s to its corresponding route',
@@ -496,6 +498,11 @@ describe('deepLinkAnalytics', () => {
     it('maps MONEY action to MONEY route', () => {
       const result = mapSupportedActionToRoute(ACTIONS.MONEY);
       expect(result).toBe(DeepLinkRoute.MONEY);
+    });
+
+    it('maps Money account deposit action to its dedicated route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.MONEY_ACCOUNT_DEPOSIT);
+      expect(result).toBe(DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT);
     });
 
     it('maps PRIVACY action to PRIVACY route', () => {
@@ -535,6 +542,13 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.INVALID);
     });
 
+    it('extracts Money account deposit route from URL', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/money-account-deposit',
+      );
+      expect(result).toBe(DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT);
+    });
+
     it('extract transaction route', () => {
       const result = extractRouteFromUrl(
         'https://link.metamask.io/transaction?gas=21000',
@@ -566,6 +580,30 @@ describe('deepLinkAnalytics', () => {
     it('extract shield route', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/shield');
       expect(result).toBe(DeepLinkRoute.SHIELD);
+    });
+
+    it('extract social trader profile route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social-trader?traderId=trader-1',
+      );
+      expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER);
+    });
+
+    it.each([
+      [
+        'https://link.metamask.io/social?tab=trending',
+        DeepLinkRoute.TOP_TRADERS,
+      ],
+      [
+        'https://link.metamask.io/social/profile?traderId=trader-1',
+        DeepLinkRoute.SOCIAL_TRADER,
+      ],
+      [
+        'https://link.metamask.io/social/profile/position?positionId=position-1',
+        DeepLinkRoute.SOCIAL_TRADER_POSITION,
+      ],
+    ])('extracts the nested social route from %s', (url, route) => {
+      expect(extractRouteFromUrl(url)).toBe(route);
     });
 
     it('extract social trader position route', () => {

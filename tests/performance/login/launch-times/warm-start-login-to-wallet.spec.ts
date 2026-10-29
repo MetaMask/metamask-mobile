@@ -10,6 +10,7 @@ import {
   PerformanceLogin,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Warm Start Login to Wallet Performance Test
@@ -42,6 +43,7 @@ perfTest.describe(
           },
         );
 
+        await enableHermesAppProfiling();
         await AppiumGestures.backgroundApp(35);
         await AppiumGestures.activateApp(currentDeviceDetails);
         await AppiumAssertions.expectElementToBeVisible(

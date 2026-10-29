@@ -16,6 +16,7 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import { createRecurringOrder } from '../../api/recurringOrders';
 import {
   convertPriceRangeToUsd,
   USD_PRICE_RANGE_CURRENCY,
@@ -24,12 +25,11 @@ import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import {
   showRecurringAutoUpgradeError,
   showRecurringOrderCreatedToast,
-  submitRecurringOrder,
 } from './RecurringConfirmOrderSheet.utils';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { getOrderTypeFromPriceRange } from '../../utils/recurringOrders';
+import { getOrderTypeFromDraftPriceRange } from '../../utils/recurringOrders';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -84,12 +84,12 @@ export const RecurringConfirmOrderSheetScreen = () => {
     try {
       await autoUpgradeEIP7702Account();
       isAccountUpgraded = true;
-      await submitRecurringOrder();
+      await createRecurringOrder();
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_COMPLETED)
           .addProperties({
             ...sharedAdvancedOrderProperties,
-            order_type: getOrderTypeFromPriceRange(priceRange),
+            order_type: getOrderTypeFromDraftPriceRange(priceRange),
           })
           .build(),
       );
@@ -104,7 +104,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
           .addProperties({
             ...sharedAdvancedOrderProperties,
-            order_type: getOrderTypeFromPriceRange(priceRange),
+            order_type: getOrderTypeFromDraftPriceRange(priceRange),
             error: isAccountUpgraded
               ? (error as Error).message
               : 'delegation_failed',

@@ -57,7 +57,6 @@ import {
 } from '@metamask/perps-controller/constants';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
@@ -73,6 +72,7 @@ import {
   CandlePeriodSelector,
 } from '../../../Charts/CandlePeriodSelector';
 import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
+import ChartCandleSkeleton from '../../../Charts/ChartCandleSkeleton';
 import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
@@ -372,9 +372,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         : PROVIDER_CONFIG.DefaultProvider;
     const preferredProvider =
       routeMarket?.providerId ?? defaultCandidateProvider;
+    // Case-insensitive: deeplinks can carry a differently cased symbol
+    // (e.g. 'KPEPE' for 'kPEPE') when the canonical lookup was unavailable.
+    const routeSymbol = routeMarket?.symbol?.toLowerCase();
     const fullMarket = markets.find(
       (candidate) =>
-        candidate.symbol === routeMarket?.symbol &&
+        candidate.symbol.toLowerCase() === routeSymbol &&
         (candidate.providerId ?? defaultCandidateProvider) ===
           preferredProvider,
     );
@@ -1948,9 +1951,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     shouldShowNewPositionActions && !shouldShowAddFundsCTASection;
 
   let detailChartContent: React.ReactNode = (
-    <Skeleton
+    <ChartCandleSkeleton
       height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-      width="100%"
       testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
     />
   );

@@ -21,6 +21,7 @@ import type { MoneyDashboardPersona } from '../../../reducers/rewardsMoney/selec
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
+import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -121,6 +122,10 @@ jest.mock('../../UI/Rewards/hooks/usePrefetchRewardsIdentity', () => ({
   usePrefetchRewardsIdentity: () => undefined,
 }));
 
+jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
+  useRewardsPendingDeeplink: jest.fn(),
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
@@ -136,7 +141,6 @@ jest.mock('../../UI/Perps', () => ({
 jest.mock('../../UI/Predict', () => {
   const { Fragment } = jest.requireActual('react');
   return {
-    PredictScreenStack: () => 'PredictScreenStack',
     PredictModalStack: () => 'PredictModalStack',
     PredictPreviewSheetProvider: ({
       children,
@@ -147,6 +151,10 @@ jest.mock('../../UI/Predict', () => {
       mockSelectPredictEnabledFlag(state),
   };
 });
+
+jest.mock('../../UI/PredictNext', () => ({
+  PredictRoot: () => 'PredictRoot',
+}));
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -288,6 +296,26 @@ describe('MainNavigator', () => {
       expect(result).not.toBeNull();
     });
 
+    it('hosts Quick Buy above the tab navigator', () => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
+
+      // When the tabs mount
+      const { UNSAFE_root } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+
+      // Then the Quick Buy host wraps the tab navigator
+      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
+      expect(
+        host.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        ),
+      ).toHaveLength(1);
+    });
+
     it('sets the wallet tab stack background to the theme background', () => {
       // Given HomeTabs is rendered
       const HomeTabs = getHomeTabsComponent();
@@ -424,6 +452,14 @@ describe('MainNavigator', () => {
 
     beforeEach(() => {
       mockIsNativeTabBar = true;
+    });
+
+    it('hosts Quick Buy above the native tab screens', () => {
+      const { UNSAFE_root } = renderHomeTabs();
+
+      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
+
+      expect(findNativeScreens(host).length).toBeGreaterThan(0);
     });
 
     it('renders native tab screens instead of the JS navigator', () => {
@@ -811,6 +847,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.EDIT_AVATAR,
         Routes.SOCIAL.PROFILE_ONBOARDING,
       ]);
       const v1Screen = (group?.children ?? []).find(
@@ -1876,6 +1913,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+    expect(screenNames).not.toContain(Routes.SOCIAL.EDIT_AVATAR);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
@@ -2509,6 +2547,9 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        );
+        expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
@@ -2689,6 +2730,7 @@ describe('MainNavigator', () => {
           expect.arrayContaining([
             Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+            Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
             Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
@@ -2730,6 +2772,7 @@ describe('MainNavigator', () => {
         expect(screenNamesIn(group)).toEqual([
           Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
