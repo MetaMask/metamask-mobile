@@ -188,6 +188,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/compliance-controller": {
+      "type": "breaking",
+      "previewVersion": "3.0.0-preview-6fbab7311"
+    }
+  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
