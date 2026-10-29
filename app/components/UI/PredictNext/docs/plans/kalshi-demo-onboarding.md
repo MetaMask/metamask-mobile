@@ -4,7 +4,7 @@
 - **Date:** 2026-10-26
 - **Scope:** Kalshi **demo** only. Unblocks balance and trading work until KYC designs and the real onboarding flow exist. Delete it then (§11).
 - **Server plan:** `va-mmcx-predict-api/docs/KALSHI_DEMO_ONBOARDING_PLAN.md`. Read §2 (why email alone isn't enough, why no mapping table), §3 (gotchas), §6 (routes) and §9 (error codes) there. Section numbers below prefixed **S** refer to it.
-- **Builds on:** [`kalshi-request-signing.md`](./kalshi-request-signing.md) (signer, envelope, allowlist, rules), `auth/kalshiDeviceKey.ts`, `auth/a2tSession.ts`.
+- **Builds on:** [`kalshi-request-signing.md`](./kalshi-request-signing.md) (signer, envelope, allowlist, rules), `auth/p256DeviceKey.ts`, `services/PredictDeviceAuthService.ts`.
 
 ## 1. What the user sees
 
@@ -28,7 +28,7 @@ In order. Each is a separate PR.
 2. **predict-api foundation PR and onboarding routes** (S§4, S§6).
 3. **This plan.**
 
-Already in place on `p-256-keys`: device key and salt (`KalshiDeviceKeyBootstrap`), A2T session (`KalshiA2tSessionBootstrap`).
+Already in place on `p-256-keys`: the profile-bound device key (`auth/p256DeviceKey.ts`) and the A2T session, both owned by the Engine `PredictDeviceAuthService`. The onboarding signs through `PredictDeviceAuthService:signOnboardingRequests`, which re-checks each request against `auth/signing/kalshiOnboardingTemplates.ts` before signing.
 
 ## 3. State machine
 
@@ -112,7 +112,7 @@ Follow `docs/module-structure.md`. A new feature owner, `onboarding/`, with a de
 | `onboarding/internal/useKalshiDemoOnboarding.ts`                                             | The §3 state machine (`useReducer`). Owns idempotency keys and the poll loop. Clears on unmount, wallet lock and A2T clear.                              |
 | `onboarding/internal/KalshiDemoOnboardingModal.tsx`                                          | The five steps in §1. Presentational.                                                                                                                    |
 | `queries/portfolioQueries.ts`                                                                | `portfolioQueryFamilies` already exports the prefixes. The gate invalidates balance, positions and activity after activation.                            |
-| `navigation/PredictNextStack.tsx`                                                            | Wrap the navigator in `<KalshiDemoOnboardingGate>` inside `KalshiA2tSessionBootstrap`.                                                                   |
+| `navigation/PredictNextStack.tsx`                                                            | Wrap the navigator in `<KalshiDemoOnboardingGate>` inside `PredictDeviceAuthBootstrap`.                                                                  |
 
 Status is read by the state machine on mount, not by a React Query cache. The flow is in memory and ends when the sheet closes.
 
@@ -171,7 +171,7 @@ Build env additions in `.js.env.example`:
 
 ## 9. Tests
 
-- **Templates and policy:** fixture-driven golden bytes for every §4.1 row, plus one mutation per field (other email, other code, other wallet, extra key, reordered keys, whitespace). Assert `signWithKalshiDeviceKey` is never called on a policy failure.
+- **Templates and policy:** fixture-driven golden bytes for every §4.1 row, plus one mutation per field (other email, other code, other wallet, extra key, reordered keys, whitespace). Assert `PredictDeviceAuthService:signOnboardingRequests` is never called on a policy failure.
 - **State machine:** reducer table test for every server `state` and every §6 code. Idempotency key reused on retry of the same action and fresh on a new action. Restart from `cancelled` creates a new `key₁`.
 - **Gate (component-view, `tests/component-view/renderers/predictNext.ts`):** no modal when status is `active`. Modal on `none`. _Not now_ hides it until remount. No status request when the env flag is off or the wallet is locked.
 - **Adapter:** each call carries exactly the §4.2 signatures. A `428` on an onboarding route surfaces as an error without re-signing.

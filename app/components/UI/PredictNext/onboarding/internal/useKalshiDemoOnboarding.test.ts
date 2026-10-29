@@ -68,7 +68,7 @@ describe('createOnboardingController', () => {
       ),
       runDemoKyc: jest.fn(async () => statusOf('approved')),
       activate: jest.fn(async () => ({ intentStatus: 'ACTIVATED' })),
-    };
+    } as unknown as jest.Mocked<KalshiOnboardingApi>;
   });
 
   it('reuses the intent and link keys when the same email action is retried', async () => {

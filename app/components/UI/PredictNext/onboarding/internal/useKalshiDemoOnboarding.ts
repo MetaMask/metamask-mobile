@@ -108,7 +108,8 @@ export const createOnboardingController = (
     while (inputs().now() < deadline) {
       await wait(inputs().pollIntervalMs);
       check();
-      if (inputs().canPoll && !inputs().canPoll()) {
+      const { canPoll } = inputs();
+      if (canPoll && !canPoll()) {
         throw new Error('Kalshi onboarding poll paused: no network');
       }
       if (AppState.currentState !== 'active') {

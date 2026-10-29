@@ -63,7 +63,9 @@ const json = (status: number, value: unknown, code?: string) =>
 
 const clientWith = (
   fetchImpl: jest.Mock,
-  sign = jest.fn(async () => new Uint8Array(64)),
+  signRequests: jest.Mock<Promise<string | undefined>> = jest.fn(
+    async () => 'kalshi-device-auth-header',
+  ),
 ) => {
   const invalidateSigningSession = jest.fn();
   const client = new KalshiOnboardingClient({
@@ -72,19 +74,10 @@ const clientWith = (
     fetch: fetchImpl,
     getBearerToken: async () => 'mm-token',
     authority: KALSHI_DEMO_AUTHORITY,
-    getSigningSession: async () => ({
-      a2t: 'a.b.c',
-      deviceKey: 'device',
-      salt: 'salt',
-    }),
+    signRequests,
     invalidateSigningSession,
-    signer: {
-      sign,
-      requestId: () => KEY,
-      now: () => 1_700_000_000,
-    },
   });
-  return { client, sign, invalidateSigningSession };
+  return { client, signRequests, invalidateSigningSession };
 };
 
 const sent = (fetchImpl: jest.Mock, index: number) => {
@@ -105,11 +98,15 @@ describe('KalshiOnboardingClient', () => {
         challenge([balanceRequest(), enrollmentCurrentRequest()]),
       )
       .mockResolvedValueOnce(json(200, { state: 'none' }));
-    const { client, sign } = clientWith(fetchImpl);
+    const { client, signRequests } = clientWith(fetchImpl);
 
     await expect(client.getStatus()).resolves.toEqual({ state: 'none' });
 
-    expect(sign).toHaveBeenCalledTimes(2);
+    expect(signRequests).toHaveBeenCalledTimes(1);
+    expect(signRequests).toHaveBeenCalledWith([
+      balanceRequest(),
+      enrollmentCurrentRequest(),
+    ]);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     expect(
       sent(fetchImpl, 0).headers[KALSHI_DEVICE_AUTH_HEADER],
@@ -124,12 +121,12 @@ describe('KalshiOnboardingClient', () => {
   it('signs nothing when the 428 names a different email', async () => {
     const other = linkRequest('other@example.com', KEY);
     const fetchImpl = jest.fn().mockResolvedValueOnce(challenge([other]));
-    const { client, sign } = clientWith(fetchImpl);
+    const { client, signRequests } = clientWith(fetchImpl);
 
     await expect(
       client.submitEmail('user@example.com', KEY),
     ).rejects.toBeInstanceOf(KalshiOnboardingPolicyError);
-    expect(sign).not.toHaveBeenCalled();
+    expect(signRequests).not.toHaveBeenCalled();
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(sent(fetchImpl, 0).body).toBe(
       JSON.stringify({ email: 'user@example.com', idempotencyKey: KEY }),
@@ -142,12 +139,12 @@ describe('KalshiOnboardingClient', () => {
       .fn()
       .mockResolvedValueOnce(challenge([request]))
       .mockResolvedValueOnce(challenge([request]));
-    const { client, sign } = clientWith(fetchImpl);
+    const { client, signRequests } = clientWith(fetchImpl);
 
     await expect(
       client.submitEmail('user@example.com', KEY),
     ).rejects.toMatchObject({ code: 'venue_signature_required' });
-    expect(sign).toHaveBeenCalledTimes(1);
+    expect(signRequests).toHaveBeenCalledTimes(1);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
@@ -158,12 +155,13 @@ describe('KalshiOnboardingClient', () => {
       .mockResolvedValueOnce(challenge([request]))
       .mockResolvedValueOnce(json(403, {}, 'venue_auth_invalid'))
       .mockResolvedValueOnce(response(204, ''));
-    const { client, sign, invalidateSigningSession } = clientWith(fetchImpl);
+    const { client, signRequests, invalidateSigningSession } =
+      clientWith(fetchImpl);
 
     await client.submitEmail('user@example.com', KEY);
 
     expect(invalidateSigningSession).toHaveBeenCalledTimes(1);
-    expect(sign).toHaveBeenCalledTimes(2);
+    expect(signRequests).toHaveBeenCalledTimes(2);
     expect(fetchImpl).toHaveBeenCalledTimes(3);
   });
 
@@ -171,16 +169,31 @@ describe('KalshiOnboardingClient', () => {
     const fetchImpl = jest
       .fn()
       .mockResolvedValueOnce(json(200, { state: 'approved' }));
-    const { client, sign } = clientWith(fetchImpl);
+    const { client, signRequests } = clientWith(fetchImpl);
 
     await expect(client.runDemoKyc()).resolves.toEqual({ state: 'approved' });
 
-    expect(sign).not.toHaveBeenCalled();
+    expect(signRequests).not.toHaveBeenCalled();
     expect(sent(fetchImpl, 0).method).toBe('POST');
     expect(sent(fetchImpl, 0).url).toContain('/demo-kyc');
     expect(
       sent(fetchImpl, 0).headers[KALSHI_DEVICE_AUTH_HEADER],
     ).toBeUndefined();
+  });
+
+  it('refuses to send when the service cannot sign', async () => {
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValueOnce(challenge([linkRequest('user@example.com', KEY)]));
+    const { client } = clientWith(
+      fetchImpl,
+      jest.fn(async (): Promise<string | undefined> => undefined),
+    );
+
+    await expect(
+      client.submitEmail('user@example.com', KEY),
+    ).rejects.toMatchObject({ rule: 'signing_unavailable' });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   it('throws the body code for a rejected link', async () => {

@@ -1,14 +1,6 @@
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
-import {
-  buildDeviceAuthHeader,
-  KALSHI_DEVICE_AUTH_HEADER,
-} from '../../auth/kalshiDeviceAuthEnvelope';
-import {
-  signVenueRequest,
-  type KalshiSignerDependencies,
-  type KalshiSigningContext,
-} from '../../auth/kalshiRequestSigner';
+import { KALSHI_DEVICE_AUTH_HEADER } from '../../auth/kalshiDeviceAuthEnvelope';
 import {
   checkOnboardingSigningRequest,
   type OnboardingPolicyRule,
@@ -71,13 +63,16 @@ export interface KalshiOnboardingClientOptions {
   getBearerToken: () => Promise<string | undefined>;
   /** `@authority` this build signs. A 428 naming another one is refused. */
   authority: string;
-  /** A2T and device key, or undefined when either is missing. */
-  getSigningSession: () => Promise<
-    Omit<KalshiSigningContext, 'authority'> | undefined
-  >;
+  /**
+   * Signs the phone-built requests in the Engine and returns the
+   * `Kalshi-Device-Auth` header, or undefined when signing is unavailable.
+   * The key and A2T never reach this client.
+   */
+  signRequests: (
+    requests: readonly VenueRequest[],
+  ) => Promise<string | undefined>;
   /** Drops the cached A2T after `venue_auth_invalid`. */
   invalidateSigningSession: () => void;
-  signer: KalshiSignerDependencies;
 }
 
 interface RawResponse {
@@ -241,20 +236,11 @@ export class KalshiOnboardingClient {
   }
 
   async #deviceAuth(requests: readonly VenueRequest[]): Promise<string> {
-    const session = await this.#options.getSigningSession();
-    if (!session) {
+    const header = await this.#options.signRequests(requests);
+    if (!header) {
       throw new KalshiOnboardingPolicyError('signing_unavailable');
     }
-    const context: KalshiSigningContext = {
-      ...session,
-      authority: this.#options.authority,
-    };
-    const signatures = await Promise.all(
-      requests.map((request) =>
-        signVenueRequest(request, context, this.#options.signer),
-      ),
-    );
-    return buildDeviceAuthHeader(context, signatures);
+    return header;
   }
 
   #accept(response: RawResponse): unknown {

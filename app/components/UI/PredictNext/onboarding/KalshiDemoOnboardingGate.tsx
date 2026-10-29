@@ -9,10 +9,10 @@ import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { ensureError } from '../../../../util/errorUtils';
 import Logger from '../../../../util/Logger';
-import { isKalshiDeviceKeyEnabled } from '../auth/kalshiDeviceKey';
+import { resolveVenueAuthProfile } from '../config/predictConfig';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 import { selectPredictConfig } from '../selectors/predictConfig';
-import { KALSHI_VENUE_ID } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
 import {
   isKalshiDemoOnboardingEnabled,
@@ -104,7 +104,7 @@ export const KalshiDemoOnboardingGate = ({
   const evmAddress = useSelector(selectEvmAddress);
   const enabled =
     isKalshiDemoOnboardingEnabled() &&
-    isKalshiDeviceKeyEnabled(config) &&
+    resolveVenueAuthProfile(config) !== undefined &&
     signedIn &&
     walletUnlocked;
   const client = useMemo(

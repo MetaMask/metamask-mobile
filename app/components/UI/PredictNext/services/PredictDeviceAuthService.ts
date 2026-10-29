@@ -1,15 +1,25 @@
 import type { Messenger } from '@metamask/messenger';
+import { v4 as uuidv4 } from 'uuid';
 
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { resolveA2tIssuerUrl } from '../auth/a2tIssuerUrl';
 import { A2tSession } from '../auth/a2tSession';
+import { KALSHI_DEMO_AUTHORITY } from '../auth/kalshiAuthority';
+import { buildDeviceAuthHeader } from '../auth/kalshiDeviceAuthEnvelope';
+import {
+  signVenueRequest,
+  type KalshiSigningContext,
+} from '../auth/kalshiRequestSigner';
 import {
   createP256DeviceKey,
   type P256DeviceKey,
   type P256DevicePublicMaterial,
 } from '../auth/p256DeviceKey';
+import { isKalshiOnboardingTemplateRequest } from '../auth/signing/kalshiOnboardingTemplates';
+import type { VenueRequest } from '../auth/signing/venueRequest';
 import {
+  KALSHI_AUTHENTICATION_PROFILE,
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
@@ -25,6 +35,11 @@ export interface PredictDeviceAuthServiceEnsureDeviceKeyAction {
 export interface PredictDeviceAuthServiceGetA2tAction {
   type: 'PredictDeviceAuthService:getA2t';
   handler: () => Promise<string | undefined>;
+}
+
+export interface PredictDeviceAuthServiceSignOnboardingRequestsAction {
+  type: 'PredictDeviceAuthService:signOnboardingRequests';
+  handler: (requests: readonly VenueRequest[]) => Promise<string | undefined>;
 }
 
 export interface PredictDeviceAuthServicePrefetchAction {
@@ -45,6 +60,7 @@ export interface PredictDeviceAuthServiceResetAction {
 export type PredictDeviceAuthServiceActions =
   | PredictDeviceAuthServiceEnsureDeviceKeyAction
   | PredictDeviceAuthServiceGetA2tAction
+  | PredictDeviceAuthServiceSignOnboardingRequestsAction
   | PredictDeviceAuthServicePrefetchAction
   | PredictDeviceAuthServiceClearAction
   | PredictDeviceAuthServiceResetAction;
@@ -110,6 +126,10 @@ export class PredictDeviceAuthService {
       this.getA2t.bind(this),
     );
     messenger.registerActionHandler(
+      'PredictDeviceAuthService:signOnboardingRequests',
+      this.signOnboardingRequests.bind(this),
+    );
+    messenger.registerActionHandler(
       'PredictDeviceAuthService:prefetch',
       this.prefetch.bind(this),
     );
@@ -142,6 +162,56 @@ export class PredictDeviceAuthService {
       return undefined;
     }
     return binding.session.ensureA2T();
+  }
+
+  /**
+   * Signs Kalshi onboarding requests and returns the `Kalshi-Device-Auth`
+   * header. The caller passes only request shapes; the service refuses any
+   * that are not onboarding templates, signs only with the Kalshi profile and
+   * the demo authority, and keeps the key and A2T inside this service.
+   * Returns undefined when signing is not available (disabled, locked,
+   * signed out, or no A2T).
+   */
+  async signOnboardingRequests(
+    requests: readonly VenueRequest[],
+  ): Promise<string | undefined> {
+    if (!requests.every(isKalshiOnboardingTemplateRequest)) {
+      throw new Error('Predict device request is not an onboarding template');
+    }
+    const enabled = this.#deps.isEnabled();
+    const unlocked = this.#deps.isUnlocked();
+    const binding = this.#resolveBinding();
+    if (binding?.profileId !== KALSHI_AUTHENTICATION_PROFILE.id) {
+      return undefined;
+    }
+    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
+    if (this.#stoppedDuringKeyLoad(binding, key) || !key) {
+      return undefined;
+    }
+    if (!this.#deps.isSignedIn()) {
+      binding.session.clear();
+      return undefined;
+    }
+    const a2t = await binding.session.ensureA2T();
+    if (!a2t) {
+      return undefined;
+    }
+    const context: KalshiSigningContext = {
+      authority: KALSHI_DEMO_AUTHORITY,
+      a2t,
+      deviceKey: key.publicKey,
+      salt: key.salt,
+    };
+    const signatures = await Promise.all(
+      requests.map((request) =>
+        signVenueRequest(request, context, {
+          sign: binding.deviceKey.sign,
+          requestId: () => uuidv4(),
+          now: this.#deps.now,
+        }),
+      ),
+    );
+    return buildDeviceAuthHeader(context, signatures);
   }
 
   async prefetch(includeA2t = true): Promise<void> {

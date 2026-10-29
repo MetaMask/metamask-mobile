@@ -21,6 +21,7 @@ const mockClearSession = jest.fn();
 const mockEnsureDeviceKey = jest.fn();
 const mockClearDeviceKey = jest.fn();
 const mockDeleteDeviceKey = jest.fn();
+const mockSignDeviceBytes = jest.fn();
 
 jest.mock('../auth/a2tSession', () => ({
   A2tSession: jest.fn().mockImplementation(() => ({
@@ -46,7 +47,7 @@ jest.mock('../auth/p256DeviceKey', () => ({
     wait: jest.fn(),
     clear: mockClearDeviceKey,
     delete: mockDeleteDeviceKey,
-    sign: jest.fn(),
+    sign: mockSignDeviceBytes,
     commitment: jest.fn(),
   })),
 }));
@@ -114,6 +115,7 @@ describe('PredictDeviceAuthService', () => {
       .mockReturnValue([KALSHI_AUTHENTICATION_PROFILE]);
     mockEnsureDeviceKey.mockResolvedValue(DEVICE_PUBLIC_MATERIAL);
     mockGetA2t.mockResolvedValue('opaque-a2t');
+    mockSignDeviceBytes.mockResolvedValue(new Uint8Array(64));
   });
 
   it('registers only capability-scoped actions', () => {
@@ -122,6 +124,7 @@ describe('PredictDeviceAuthService', () => {
     expect(registerActionHandler.mock.calls.map(([type]) => type)).toEqual([
       'PredictDeviceAuthService:ensureDeviceKey',
       'PredictDeviceAuthService:getA2t',
+      'PredictDeviceAuthService:signOnboardingRequests',
       'PredictDeviceAuthService:prefetch',
       'PredictDeviceAuthService:clear',
       'PredictDeviceAuthService:reset',
@@ -135,6 +138,86 @@ describe('PredictDeviceAuthService', () => {
 
     expect(mockEnsureDeviceKey).toHaveBeenCalledTimes(1);
     expect(mockGetA2t).toHaveBeenCalledTimes(1);
+  });
+
+  describe('signOnboardingRequests', () => {
+    const balance = {
+      ref: 'balance' as const,
+      method: 'GET' as const,
+      path: '/trade-api/v2/portfolio/balance',
+      query: '',
+    };
+
+    const decodeHeader = (header: string) =>
+      JSON.parse(Buffer.from(header, 'base64url').toString('utf8')) as {
+        a2t: string;
+        deviceKey: string;
+        salt: string;
+        signatures: { method: string; path: string }[];
+      };
+
+    it('signs template requests and returns the device-auth envelope', async () => {
+      const { service } = createService();
+
+      const header = await service.signOnboardingRequests([balance]);
+
+      expect(header).toEqual(expect.any(String));
+      expect(decodeHeader(header as string)).toMatchObject({
+        a2t: 'opaque-a2t',
+        deviceKey: 'public-key',
+        salt: 'salt',
+        signatures: [
+          { method: 'GET', path: '/trade-api/v2/portfolio/balance' },
+        ],
+      });
+      expect(mockSignDeviceBytes).toHaveBeenCalledTimes(1);
+    });
+
+    it('refuses a request that is not an onboarding template', async () => {
+      const { service } = createService();
+
+      await expect(
+        service.signOnboardingRequests([
+          { ...balance, path: '/trade-api/v2/orders' },
+        ]),
+      ).rejects.toThrow('not an onboarding template');
+
+      expect(mockSignDeviceBytes).not.toHaveBeenCalled();
+      expect(mockGetA2t).not.toHaveBeenCalled();
+    });
+
+    it('returns undefined and signs nothing when disabled', async () => {
+      const { service } = createService({ enabled: false });
+
+      await expect(service.signOnboardingRequests([balance])).resolves.toBe(
+        undefined,
+      );
+
+      expect(mockSignDeviceBytes).not.toHaveBeenCalled();
+    });
+
+    it('returns undefined and signs nothing while signed out', async () => {
+      const { service } = createService({ signedIn: false });
+
+      await expect(service.signOnboardingRequests([balance])).resolves.toBe(
+        undefined,
+      );
+
+      expect(mockSignDeviceBytes).not.toHaveBeenCalled();
+      expect(mockGetA2t).not.toHaveBeenCalled();
+    });
+
+    it('signs only with the Kalshi profile', async () => {
+      const { service } = createService({
+        getProfile: () => SECOND_AUTHENTICATION_PROFILE,
+      });
+
+      await expect(service.signOnboardingRequests([balance])).resolves.toBe(
+        undefined,
+      );
+
+      expect(mockSignDeviceBytes).not.toHaveBeenCalled();
+    });
   });
 
   it('clears plaintext and skips issuance when disabled', async () => {

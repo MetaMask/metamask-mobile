@@ -3,6 +3,7 @@ import {
   balanceRequest,
   enrollmentCurrentRequest,
   enrollmentIntentRequest,
+  isKalshiOnboardingTemplateRequest,
   linkRequest,
   linkVerifyRequest,
   walletRegisterRequest,
@@ -47,5 +48,62 @@ describe('Kalshi onboarding templates', () => {
     expect(linkRequest('User+Tag@Example.com', KEY).body).toBe(
       '{"email":"User+Tag@Example.com"}',
     );
+  });
+});
+
+describe('isKalshiOnboardingTemplateRequest', () => {
+  it('accepts every request the templates build', () => {
+    const requests: VenueRequest[] = [
+      balanceRequest(),
+      enrollmentCurrentRequest(),
+      enrollmentIntentRequest(KEY),
+      linkRequest('user@example.com', KEY),
+      linkVerifyRequest('123456', KEY),
+      walletRegisterRequest({
+        walletAddress: '0x0000000000000000000000000000000000000001',
+        network: 'base',
+        idempotencyKey: KEY,
+      }),
+    ];
+
+    expect(requests.every(isKalshiOnboardingTemplateRequest)).toBe(true);
+  });
+
+  it('rejects a route the templates do not define', () => {
+    expect(
+      isKalshiOnboardingTemplateRequest({
+        ...balanceRequest(),
+        path: '/trade-api/v2/portfolio/orders',
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects a method that does not match the ref', () => {
+    expect(
+      isKalshiOnboardingTemplateRequest({
+        ...balanceRequest(),
+        method: 'POST',
+        body: '',
+        idempotencyKey: KEY,
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects a query string on a template route', () => {
+    expect(
+      isKalshiOnboardingTemplateRequest({
+        ...balanceRequest(),
+        query: 'limit=1',
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects a mutation without an idempotency key', () => {
+    expect(
+      isKalshiOnboardingTemplateRequest({
+        ...linkRequest('user@example.com', KEY),
+        idempotencyKey: '',
+      }),
+    ).toBe(false);
   });
 });
