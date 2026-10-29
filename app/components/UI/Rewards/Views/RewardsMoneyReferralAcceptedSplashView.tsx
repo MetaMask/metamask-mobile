@@ -3,6 +3,7 @@ import {
   CommonActions,
   useNavigation,
   type NavigationState,
+  type PartialState,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -51,15 +52,23 @@ const eyebrowTrackingStyle = { letterSpacing: 0.8 };
  * above Home. Keeping those would make Back return to the old persona.
  */
 function routesAtOrBelowHome(
-  routes: NavigationState['routes'],
-): NavigationState['routes'] {
+  routes: NavigationState['routes'] | undefined,
+): PartialState<NavigationState>['routes'] {
+  if (routes == null) {
+    return [];
+  }
   const homeIndex = routes.findIndex(
     (route) => route.name === Routes.HOME_TABS,
   );
   if (homeIndex === -1) {
     return [];
   }
-  return routes.slice(0, homeIndex + 1);
+  // Home's nested state is a full NavigationState (`stale: false`). Reset
+  // accepts that at runtime, and its PartialState type only allows `stale: true`.
+  return routes.slice(
+    0,
+    homeIndex + 1,
+  ) as PartialState<NavigationState>['routes'];
 }
 
 /**
@@ -145,8 +154,8 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
   // rewards screen above Home, then open the Money dashboard. Back leaves
   // Rewards instead of returning to the pre-accept persona.
   const showMoneyDashboard = useCallback(() => {
-    const kept = routesAtOrBelowHome(navigation.getState().routes);
-    const routes = [
+    const kept = routesAtOrBelowHome(navigation.getState()?.routes);
+    const routes: PartialState<NavigationState>['routes'] = [
       ...kept,
       {
         name: Routes.REWARDS_VIEW,
