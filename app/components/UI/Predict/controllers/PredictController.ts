@@ -29,6 +29,7 @@ import type { SubscriptionControllerGetBenefitsAction } from '@metamask/subscrip
 import { errorCodes } from '@metamask/rpc-errors';
 import {
   TransactionControllerEstimateGasAction,
+  TransactionControllerGetGasFeeTokensAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
@@ -428,6 +429,7 @@ type AllowedActions =
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
   | TransactionControllerEstimateGasAction
+  | TransactionControllerGetGasFeeTokensAction
   | KeyringControllerSignTypedMessageAction
   | KeyringControllerSignPersonalMessageAction
   | RemoteFeatureFlagControllerGetStateAction
@@ -486,6 +488,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPrices',
   'getUnrealizedPnL',
   'initPayWithAnyToken',
+  'isWithdrawGasFeeTokenAvailable',
   'listFilterOptions',
   'listMarkets',
   'onPlaceOrderSuccess',
@@ -4552,6 +4555,47 @@ export class PredictController extends BaseController<
           `Predict balance request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
         );
       },
+    );
+  }
+
+  /**
+   * Checks whether the gas station can pay a withdraw of `amountRaw` in pUSD.
+   *
+   * The withdraw confirmation simulates an unsigned `pUSD.transfer` from the
+   * EOA, which holds no pUSD, so its gas fee token list is always empty before
+   * `beforeSign` swaps in the Safe call. This quotes gas fee tokens for the
+   * real Safe call instead. Deposit-wallet withdraws always return `true`
+   * because the relayer pays their gas.
+   *
+   * @param params - The parameters.
+   * @param params.address - The EOA that owns the Predict account.
+   * @param params.amountRaw - The pUSD amount to withdraw, in raw units.
+   * @returns `true` when pUSD can pay the withdraw gas.
+   */
+  public async isWithdrawGasFeeTokenAvailable({
+    address,
+    amountRaw,
+  }: {
+    address: string;
+    amountRaw: string;
+  }): Promise<boolean> {
+    const simulation = await this.provider.getWithdrawSimulation?.({
+      amountRaw: BigInt(amountRaw),
+      signer: this.getSigner(address),
+    });
+
+    if (!simulation) {
+      return true;
+    }
+
+    const gasFeeTokens = await this.messenger.call(
+      'TransactionController:getGasFeeTokens',
+      simulation,
+    );
+    const gasFeeToken = MATIC_CONTRACTS_V2.collateral.toLowerCase();
+
+    return gasFeeTokens.some(
+      (token) => token.tokenAddress.toLowerCase() === gasFeeToken,
     );
   }
 
