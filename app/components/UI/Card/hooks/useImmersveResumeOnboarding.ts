@@ -11,6 +11,7 @@ import { deriveNextImmersveAction } from '../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../util/immersveResume';
 import { CardActions, CardEntryPoint, withCardProvider } from '../util/metrics';
 import { getSiweErrorType, useImmersveSiweAuth } from './useImmersveSiweAuth';
+import { useImmersveMfaHandoff } from './useImmersveMfaHandoff';
 import { useImmersveOnboardingRouter } from './useImmersveOnboardingRouter';
 
 interface ResumeParams {
@@ -28,6 +29,7 @@ interface ResumeParams {
 export const useImmersveResumeOnboarding = () => {
   const dispatch = useDispatch();
   const { signIn } = useImmersveSiweAuth();
+  const handoffMfa = useImmersveMfaHandoff();
   const route = useImmersveOnboardingRouter();
   const immersveConfig = useSelector(selectCardImmersveConfig);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -60,10 +62,40 @@ export const useImmersveResumeOnboarding = () => {
         controller.setSelectedCountry(country);
 
         if (!alreadyAuthenticated) {
-          await signIn({ country, address });
+          const authResult = await signIn({ country, address });
+          if (
+            handoffMfa(authResult, {
+              country,
+              address,
+              continuation: {
+                entrypoint,
+                email,
+                phone,
+                showAccountExistsToast,
+                navigateFromRoot,
+              },
+            })
+          ) {
+            return;
+          }
         }
 
         const resume = await controller.getResumeCardInfo();
+        if (resume) {
+          controller
+            .recordCardActivated({
+              provider: CardProviderIds.Immersve,
+              address,
+            })
+            .catch(() => undefined);
+        } else if (!alreadyAuthenticated) {
+          controller
+            .recordProviderOnboardingStarted({
+              provider: CardProviderIds.Immersve,
+              address,
+            })
+            .catch(() => undefined);
+        }
 
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId: immersveConfig.fundingChannelId,
@@ -118,6 +150,14 @@ export const useImmersveResumeOnboarding = () => {
         throw error;
       }
     },
-    [dispatch, signIn, route, immersveConfig, trackEvent, createEventBuilder],
+    [
+      dispatch,
+      signIn,
+      handoffMfa,
+      route,
+      immersveConfig,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 };

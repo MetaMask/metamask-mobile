@@ -62,9 +62,9 @@ const createStyles = ({
       marginLeft: 12,
     },
     container: {
-      backgroundColor: vars.isSelected
-        ? theme.colors.primary.muted
-        : theme.colors.background.default,
+      ...(vars.isSelected && {
+        backgroundColor: theme.colors.primary.muted,
+      }),
       paddingVertical: 4,
       minHeight: 72,
       paddingLeft: 16,

@@ -237,11 +237,11 @@ describeForPlatforms('CancelLimitOrderModal — orders tabs', () => {
           await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
-        return {
-          orders: states?.some((state) => state === currentOrder.state)
-            ? [currentOrder]
-            : [],
-        };
+        const orders = states?.some((state) => state === currentOrder.state)
+          ? [currentOrder]
+          : [];
+
+        return { orders, total: orders.length };
       },
     });
   });
@@ -266,13 +266,13 @@ describeForPlatforms('CancelLimitOrderModal — orders tabs', () => {
       outcome: 'cancelled',
       status: 200,
       closedOrder: closeOrder(LimitOrderState.Cancelled),
-      historyStatus: strings('bridge.limit.canceled'),
+      historyStatus: strings('bridge.limit.canceled_at', { date: 'Sep 21' }),
     },
     {
       outcome: 'already filled',
       status: 409,
       closedOrder: closeOrder(LimitOrderState.Filled),
-      historyStatus: strings('bridge.limit.filled'),
+      historyStatus: strings('bridge.limit.filled_at', { date: 'Sep 21' }),
     },
   ])(
     'moves an order that is $outcome from the open orders to the history once the sheets close',

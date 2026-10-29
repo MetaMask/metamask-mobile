@@ -10,6 +10,7 @@ import {
   PerformanceLogin,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Warm Start Login to Wallet Performance Test
@@ -42,6 +43,7 @@ perfTest.describe(
           },
         );
 
+        await enableHermesAppProfiling();
         await AppiumGestures.backgroundApp(35);
         await AppiumGestures.activateApp(currentDeviceDetails);
         await AppiumAssertions.expectElementToBeVisible(
@@ -62,7 +64,7 @@ perfTest.describe(
         await LoginView.tapLoginButton();
         await timer1.measure(async () => {
           await AppiumAssertions.expectElementToBeVisible(
-            WalletView.hamburgerMenuButton,
+            WalletView.accountIcon,
             {
               description: 'Wallet balance should be visible',
               timeout: 30 * 1000, // 30 seconds

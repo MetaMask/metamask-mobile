@@ -5,6 +5,7 @@
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:existingUser": "true",
     "@MetaMask:predictGTMModalShown": "true",
+    "@MetaMask:socialTermsAccepted": "v1",
     "@MetaMask:solanaFeatureModalShownV2": "true"
   },
   "state": {
@@ -66,6 +67,7 @@
       "whitelist": []
     },
     "card": {
+      "applePaySplashSeen": false,
       "cardArrivalAnimationSeen": false,
       "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
@@ -88,20 +90,6 @@
     "cronjobController": {},
     "engine": {
       "backgroundState": {
-        "AccountTrackerController": {
-          "accountsByChainId": {
-            "1": {
-              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
-                "balance": "0x0"
-              }
-            },
-            "64": {
-              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
-                "balance": "0x0"
-              }
-            }
-          }
-        },
         "AccountTreeController": {
           "accountTree": {
             "wallets": {}
@@ -156,6 +144,10 @@
           "cardHomeDataError": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
+          "cardLinkApiBlocked": false,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
@@ -164,7 +156,11 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null
+          "signInLink": null,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
+          "cardLinkApiBlocked": false
         },
         "ClaimsController": {
           "claims": [],
@@ -194,16 +190,6 @@
         "CronJobController": {
           "events": {},
           "jobs": {}
-        },
-        "CurrencyRateController": {
-          "currencyRates": {
-            "ETH": {
-              "conversionDate": 1684232383.997,
-              "conversionRate": 1815.41,
-              "usdConversionRate": 1815.41
-            }
-          },
-          "currentCurrency": "usd"
         },
         "GasFeeController": {
           "estimatedGasFeeTimeBounds": {},
@@ -248,17 +234,11 @@
           }
         },
         "MoneyAccountController": {
-          "moneyAccounts": {}
+          "moneyAccounts": {},
+          "defaultMoneyAccountId": null
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
-        },
-        "MultichainAssetsController": {
-          "accountsAssets": {},
-          "assetsMetadata": {}
-        },
-        "MultichainAssetsRatesController": {
-          "conversionRates": {}
         },
         "MultichainNetworkController": {
           "isEvmSelected": true,
@@ -731,6 +711,11 @@
               "enabled": true,
               "featureVersion": null,
               "minimumVersion": null
+            },
+            "stellarAccounts": {
+              "enabled": true,
+              "featureVersion": null,
+              "minimumVersion": "0.0.0"
             }
           }
         },
@@ -747,12 +732,6 @@
         "SubscriptionController": {
           "subscriptions": [],
           "trialedProducts": []
-        },
-        "TokenBalancesController": {
-          "tokenBalances": {}
-        },
-        "TokenRatesController": {
-          "marketData": {}
         },
         "TokensController": {
           "allDetectedTokens": {},
@@ -936,7 +915,6 @@
       "moneyAccountSweepstakesStats": {},
       "moneyAccountSweepstakesVolumeStats": {},
       "onboardingActiveStep": "INTRO",
-      "onboardingReferralCode": null,
       "ondoCampaignActivity": {},
       "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},
@@ -979,6 +957,17 @@
       "vipSplashAccepted": {},
       "vipTransactions": {}
     },
+    "rewardsMoney": {
+      "cashbackLedger": {},
+      "claimLocks": {},
+      "claimWaitingUntil": {},
+      "commissions": {},
+      "earningsHistory": {},
+      "earningsSummary": {},
+      "inFlightClaims": {},
+      "referralFunnel": {},
+      "referralMe": {}
+    },
     "rpcEvents": {
       "signingEvent": {
         "eventStage": "idle",
@@ -995,7 +984,9 @@
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
       "isNFTAutoDetectionModalViewed": false,
-      "osAuthEnabled": false
+      "osAuthEnabled": false,
+      "shouldShowConsentSheet": true,
+      "dataSharingPreference": null
     },
     "securityAlerts": {
       "alerts": {}

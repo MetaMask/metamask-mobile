@@ -121,6 +121,39 @@ export interface MainnetUsdcFixtureOptions {
 }
 
 /**
+ * State of the removed legacy asset controllers. Kept out of
+ * `default-fixture.json` so the fixture schema matches the app, but builder
+ * methods and specs still write to these keys, so `withDefaultFixture()` adds
+ * them back in memory. The app ignores them.
+ */
+const LEGACY_ASSET_CONTROLLERS_STATE = {
+  AccountTrackerController: {
+    accountsByChainId: {
+      '1': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+      '64': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+    },
+  },
+  CurrencyRateController: {
+    currencyRates: {
+      ETH: {
+        conversionDate: 1684232383.997,
+        conversionRate: 1815.41,
+        usdConversionRate: 1815.41,
+      },
+    },
+    currentCurrency: 'usd',
+  },
+  MultichainAssetsController: { accountsAssets: {}, assetsMetadata: {} },
+  MultichainAssetsRatesController: { conversionRates: {} },
+  TokenBalancesController: { tokenBalances: {} },
+  TokenRatesController: { marketData: {} },
+};
+
+/**
  * FixtureBuilder class provides a fluent interface for building fixture data.
  */
 class FixtureBuilder {
@@ -208,6 +241,7 @@ class FixtureBuilder {
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:PUSH_PRE_PROMPT_SHOWN': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
+      '@MetaMask:socialTermsAccepted': 'v1',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;
@@ -230,6 +264,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     // Deep clone the JSON fixture to avoid mutations
     this.fixture = JSON.parse(JSON.stringify(defaultFixture));
+    merge(
+      this.fixture.state.engine.backgroundState,
+      LEGACY_ASSET_CONTROLLERS_STATE,
+    );
 
     // Inject dynamic values that can't be stored in static JSON
     // 1. Timestamp for legal notices
@@ -2377,6 +2415,8 @@ class FixtureBuilder {
         dataCollectionForMarketing: true,
         isNFTAutoDetectionModalViewed: false,
         osAuthEnabled: true,
+        shouldShowConsentSheet: true,
+        dataSharingPreference: null,
       },
       attribution: {
         attribution: {

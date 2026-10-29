@@ -1,0 +1,211 @@
+name: Nightly Build Slack Notification
+
+# Replaces the Slack Workflow Builder automation ("Nightly Builds from main
+# branch available", running daily since September 12th at 09:00 AM) with a
+# GitHub Action that posts real build metadata (version, build number, and
+# the exact commit each build was cut from) instead of a canned message.
+#
+# nightly-build.yml itself starts at 04:00 UTC and chains ios-exp -> ios-rc
+# and android-exp -> android-rc; its own `collect-metadata` job writes
+# nightly-build-metadata.json once all four builds finish (or fail). This
+# workflow runs later (07:00 UTC, matching the old automation's posting
+# time), finds that run, waits for it to complete if it's still going, then
+# downloads the metadata and posts it to #nightly-builds.
+#
+# A missing/failed Slack post is never treated as a hard failure here — see
+# scripts/slack-nightly-build-notification.ts's own fail-open behavior.
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'nightly-build.yml run id to report on (optional; defaults to the latest run on main)'
+        required: false
+        type: string
+        default: ''
+      dry_run:
+        description: 'Print the Slack payload instead of posting it'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: nightly-build-slack-notification
+  cancel-in-progress: false
+
+jobs:
+  notify-slack:
+    name: Post nightly build Slack notification
+    runs-on: ubuntu-latest
+    # Generous ceiling for `gh run watch` below: nightly-build.yml chains
+    # ios-exp -> ios-rc (TestFlight upload) and android-exp -> android-rc,
+    # so a run starting at 04:00 UTC can still be going by 07:00 UTC.
+    timeout-minutes: 120
+    env:
+      SLACK_CHANNEL_ID: 'C093JQSEPJL' # #nightly-builds
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Resolve nightly-build.yml run
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          INPUT_RUN_ID: ${{ inputs.run_id || '' }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${INPUT_RUN_ID}" ]; then
+            echo "run-id=${INPUT_RUN_ID}" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          RUN_JSON=$(gh run list \
+            --repo "$REPO" \
+            --workflow nightly-build.yml \
+            --branch main \
+            --limit 1 \
+            --json databaseId,createdAt \
+            --jq '.[0]')
+
+          RUN_ID=$(echo "$RUN_JSON" | jq -r '.databaseId // empty')
+          CREATED_AT=$(echo "$RUN_JSON" | jq -r '.createdAt // empty')
+
+          if [ -z "$RUN_ID" ]; then
+            echo "::warning::No nightly-build.yml run found on main; skipping Slack notification."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CREATED_EPOCH=$(date -u -d "$CREATED_AT" +%s)
+          NOW_EPOCH=$(date -u +%s)
+          AGE_SECONDS=$((NOW_EPOCH - CREATED_EPOCH))
+
+          if [ "$AGE_SECONDS" -gt 86400 ]; then
+            echo "::warning::Latest nightly-build.yml run ($RUN_ID, created $CREATED_AT) is older than 24h; skipping Slack notification."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for nightly-build.yml run to complete
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.resolve.outputs.run-id }}
+        run: |
+          echo "Watching run ${RUN_ID} (https://github.com/${REPO}/actions/runs/${RUN_ID})..."
+          # Best-effort: one platform build can fail while the others
+          # succeed, and we still want to post whatever collect-metadata
+          # wrote for the builds that did finish — see the fail-open note
+          # at the top of this workflow. `gh run watch --exit-status`
+          # mirrors the run's overall conclusion in its own exit code, so
+          # don't let a non-zero conclusion here fail this job.
+          # The default 3s interval would exhaust GITHUB_TOKEN's 1,000
+          # requests/hour budget over a wait that can last up to 2 hours.
+          gh run watch "$RUN_ID" --repo "$REPO" --exit-status --interval 60 || true
+
+      - name: Download nightly build metadata
+        if: steps.resolve.outputs.skip != 'true'
+        # Non-critical: if collect-metadata itself didn't run or failed,
+        # there's no artifact to download. The script below treats a
+        # missing metadata file as "skip, don't post" rather than an error.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.resolve.outputs.run-id }}
+        run: |
+          gh run download "$RUN_ID" --repo "$REPO" -n nightly-build-metadata -D .
+
+      - name: Download previous nightly build metadata
+        id: previous
+        if: steps.resolve.outputs.skip != 'true'
+        # Only feeds the optional "changes since last nightly" compare links.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.resolve.outputs.run-id }}
+        run: |
+          set -euo pipefail
+          mkdir -p previous-nightly-metadata
+
+          # Up to 7 earlier runs, so a build that failed last night can still be
+          # compared against the last nightly where it succeeded. The metadata
+          # artifact is kept for 7 days, so older runs would have none anyway.
+          PREVIOUS_RUNS=$(gh run list \
+            --repo "$REPO" \
+            --workflow nightly-build.yml \
+            --branch main \
+            --status completed \
+            --limit 20 \
+            --json databaseId,headSha \
+            | jq -r --argjson current "$RUN_ID" \
+              '[.[] | select(.databaseId < $current)] | .[:7][] | "\(.databaseId) \(.headSha)"')
+
+          FALLBACK_SHA=""
+          while read -r PREVIOUS_ID PREVIOUS_SHA; do
+            [ -n "$PREVIOUS_ID" ] || continue
+            if [ -z "$FALLBACK_SHA" ]; then
+              FALLBACK_SHA="$PREVIOUS_SHA"
+            fi
+            gh run download "$PREVIOUS_ID" --repo "$REPO" -n nightly-build-metadata \
+              -D "previous-nightly-metadata/$PREVIOUS_ID" \
+              || echo "No nightly-build-metadata artifact on run $PREVIOUS_ID"
+          done <<< "$PREVIOUS_RUNS"
+
+          if [[ "$FALLBACK_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "fallback-sha=$FALLBACK_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post Slack notification
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          # tsconfig.json sets `module: "preserve"`, so `ts-node --transpile-only`
+          # emits raw `import`/`export` syntax, which Node then reparses as ESM
+          # (no "type": "module" in package.json) — making `require` undefined
+          # and silently skipping this script's `require.main === module` entry
+          # guard. Forcing CommonJS output here keeps that guard meaningful; see
+          # the matching comment in dependency-audit-escalation.yml.
+          TS_NODE_COMPILER_OPTIONS: '{"module":"commonjs","moduleResolution":"node"}'
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_NIGHTLY_NOTIFICATION_DRY_RUN: ${{ inputs.dry_run || false }}
+          PREVIOUS_NIGHTLY_SHA: ${{ steps.previous.outputs.fallback-sha }}
+          RUNWAY_NIGHTLY_ANDROID_RC_URL: ${{ secrets.RUNWAY_NIGHTLY_ANDROID_RC_URL }}
+          RUNWAY_NIGHTLY_ANDROID_EXP_URL: ${{ secrets.RUNWAY_NIGHTLY_ANDROID_EXP_URL }}
+          RUNWAY_NIGHTLY_IOS_RC_URL: ${{ secrets.RUNWAY_NIGHTLY_IOS_RC_URL }}
+          RUNWAY_NIGHTLY_IOS_EXP_URL: ${{ secrets.RUNWAY_NIGHTLY_IOS_EXP_URL }}
+        run: |
+          if yarn ts-node --transpile-only scripts/slack-nightly-build-notification.ts; then
+            echo "Slack notification step finished"
+          else
+            echo "Slack notification failed, continuing (non-critical)"
+          fi

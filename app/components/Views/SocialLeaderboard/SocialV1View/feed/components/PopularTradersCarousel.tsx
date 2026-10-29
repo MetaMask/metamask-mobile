@@ -39,7 +39,9 @@ type PopularTradersCarouselItem =
 const PopularTradersCarousel: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+  });
   const title = strings('social_leaderboard.popular_traders');
 
   const { traders, isLoading, isFetching, hasFetched, toggleFollow } =
@@ -138,6 +140,7 @@ const PopularTradersCarousel: React.FC = () => {
         title={title}
         isInteractive
         onPress={handleViewAll}
+        twClassName="py-0"
         testID={PopularTradersCarouselSelectorsIDs.HEADER}
       />
       <Box paddingTop={3}>
@@ -145,7 +148,7 @@ const PopularTradersCarousel: React.FC = () => {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3')}
+            contentContainerStyle={tw.style('px-4 gap-2')}
             testID={PopularTradersCarouselSelectorsIDs.LIST}
           >
             {SKELETON_KEYS.map((key) => (
@@ -159,7 +162,7 @@ const PopularTradersCarousel: React.FC = () => {
             renderItem={renderCarouselItem}
             keyExtractor={keyExtractor}
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
+            contentContainerStyle={tw.style('px-4 gap-2 items-stretch')}
             testID={PopularTradersCarouselSelectorsIDs.LIST}
           />
         )}

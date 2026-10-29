@@ -1,6 +1,7 @@
 name: Run Performance E2E Tests Manually
 
-# Scheduled runs use the e2e build from main:
+# Scheduled and manual runs use the selected build and run on TestMu
+# HyperExecute:
 # - 00:00, 06:00, 12:00, 18:00 UTC
 on:
   schedule:
@@ -8,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       build_variant:
-        description: 'BrowserStack build profile'
+        description: 'App build profile'
         required: false
         type: choice
         options:
@@ -24,20 +25,12 @@ on:
           - test
           - real
         default: test
-      browserstack_app_url_android_onboarding:
-        description: 'BrowserStack Android Onboarding App URL (bs://...)'
+      testmu_app_url_android_onboarding:
+        description: 'TestMu AI Android onboarding app URL (lt://...). Leave empty to build and upload.'
         required: false
         type: string
-      browserstack_app_url_ios_onboarding:
-        description: 'BrowserStack iOS Onboarding App URL (bs://...)'
-        required: false
-        type: string
-      browserstack_app_url_android_imported_wallet:
-        description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
-        required: false
-        type: string
-      browserstack_app_url_ios_imported_wallet:
-        description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
+      testmu_app_url_android_imported_wallet:
+        description: 'TestMu AI Android imported-wallet app URL (lt://...). Leave empty to build and upload.'
         required: false
         type: string
       performance_tags:
@@ -86,6 +79,11 @@ jobs:
       build_variant: e2e
       sentry_target: test
       collect_hermes_cpuprofiles: true
+      # Ordinary PRs do not run performance tests. This stable project and
+      # build collect the six-hour runs. Manual dispatches and PRs with
+      # run-performance-tests keep their branch build name.
+      testmu_project_name: MetaMask Mobile Scheduled Performance
+      testmu_build_name: TestMu-Android-Performance-main-Scheduled
     secrets: inherit
 
   # Detect whether the current branch has app-affecting changes vs main.
@@ -156,10 +154,8 @@ jobs:
       source_ref: ${{ github.ref_name }}
       build_variant: ${{ inputs.build_variant }}
       sentry_target: ${{ inputs.sentry_target }}
-      browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
-      browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
-      browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
-      browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
+      testmu_app_url_android_onboarding: ${{ inputs.testmu_app_url_android_onboarding }}
+      testmu_app_url_android_imported_wallet: ${{ inputs.testmu_app_url_android_imported_wallet }}
       performance_tags: ${{ inputs.performance_tags }}
       # Latest-main APK reuse is e2e-only; exp/rc still need a fingerprint so
       # fingerprint-based reuse (and fresh-build fallback) can run.
@@ -167,3 +163,25 @@ jobs:
       source_fingerprint: ${{ inputs.source_fingerprint }}
       collect_hermes_cpuprofiles: true
     secrets: inherit
+
+  # Runs after a failed suite too, so a manual run can report that there is
+  # nothing to analyze.
+  analyze-app-profiling:
+    name: Analyze Hermes CPU profiles
+    needs: [scheduled-e2e, manual]
+    if: >-
+      always() &&
+      (needs.scheduled-e2e.result != 'skipped' || needs.manual.result != 'skipped')
+    permissions:
+      contents: read
+      actions: read # download this run's profile artifacts
+      pull-requests: read
+      issues: read # issue filing is paused; Monday report only lists existing issues
+    uses: ./.github/workflows/analyze-app-profiling.yml
+    with:
+      performance_run_id: ${{ github.run_id }}
+      performance_event: ${{ github.event_name }}
+      performance_result: ${{ github.event_name == 'schedule' && needs.scheduled-e2e.result || needs.manual.result }}
+    secrets:
+      E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

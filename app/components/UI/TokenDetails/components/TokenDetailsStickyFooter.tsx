@@ -41,6 +41,7 @@ import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import type { QuickBuyFooterLayout } from '../../QuickBuy/abTestConfig';
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   traderPositionFooter: {
-    paddingTop: 4,
+    paddingTop: 0,
     paddingBottom: 0,
   },
   iconButton: {
@@ -150,8 +151,16 @@ interface TokenStickyFooterProps {
   useAmbientColor?: boolean;
   /** Enables the updated button treatment used by the feature-flagged V1 page. */
   isTokenDetailsV1?: boolean;
+  /**
+   * Token Details page analytics version. `'v3'` for the new (V1) page, `'v2'`
+   * for the legacy page. Threaded into the footer `TOKEN_DETAILS_CTA_CLICKED`
+   * events and the shared security warning bottom-sheet events.
+   */
+  tdpVersion?: TdpVersion;
   /** Optional trader position header rendered above the footer actions. */
   traderPositionPnl?: TraderPositionPnlProps;
+  /** Reports the laid-out height of the sticky footer, including its safe-area inset. */
+  onFooterLayout?: (height: number) => void;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -175,7 +184,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   sourcePage,
   useAmbientColor = false,
   isTokenDetailsV1 = false,
+  tdpVersion = 'v2',
   traderPositionPnl,
+  onFooterLayout,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
@@ -454,6 +465,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           tokenSymbol: token.symbol || token.name,
           chainId: token.chainId,
           features: securityData?.features,
+          tdpVersion,
         },
       });
     },
@@ -465,6 +477,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       token.name,
       token.address,
       token.chainId,
+      tdpVersion,
     ],
   );
 
@@ -476,6 +489,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       tokenAddress: token.address ?? '',
       chainId: token.chainId ?? '',
       indicatorsActive,
+      tdp_version: tdpVersion,
     });
     handleFooterAction(
       () => onOpenQuickBuy(mode),
@@ -487,14 +501,26 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     );
   };
 
+  // The trader-position footer renders inside a design-system BottomSheetDialog
+  // whose surface fill is `elevated1`. When collapsed the footer blends into the
+  // page (`background.default`); when expanded it must match the sheet shell, so
+  // its inner surface is raised to `elevated1`. Otherwise the inner surface
+  // (`background.default`) sits on the `elevated1` shell and leaves a visible
+  // color seam at the top of the expanded sheet (ASSETS-4183).
   const footerStyle = useMemo(
     () => ({
-      backgroundColor: colors.background.default,
+      backgroundColor: traderPositionPnl?.isExpanded
+        ? colors.background.elevated1
+        : colors.background.default,
       paddingHorizontal: 16,
-      paddingTop: traderPositionPnl?.isExpanded ? 22 : 8,
+      paddingTop: traderPositionPnl?.isExpanded ? 22 : 0,
       paddingBottom: 0,
     }),
-    [colors.background.default, traderPositionPnl?.isExpanded],
+    [
+      colors.background.elevated1,
+      colors.background.default,
+      traderPositionPnl?.isExpanded,
+    ],
   );
   const legacyFooterStyle = useMemo(
     () => ({
@@ -507,10 +533,18 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
   const bottomSheetStyle = useMemo(
     () => ({
+      // Design spec: expanded sheet uses a 38px top corner radius (ASSETS-4183).
+      borderTopLeftRadius: traderPositionPnl?.isExpanded ? 38 : 0,
+      borderTopRightRadius: traderPositionPnl?.isExpanded ? 38 : 0,
+      // The design-system dialog paints a faint `border-muted` hairline on
+      // top/left/right. When collapsed the top edge is flat, so keep that top
+      // line as the divider shown in the design. When expanded, the large 38px
+      // corner + `overflow-hidden` renders the stroke unevenly around the curve
+      // (broken border), and the design has no border there — so drop it and
+      // rely on the shadow + overlay for separation (ASSETS-4183).
+      borderWidth: 0,
       borderTopColor: colors.border.muted,
-      borderTopLeftRadius: traderPositionPnl?.isExpanded ? 32 : 0,
-      borderTopRightRadius: traderPositionPnl?.isExpanded ? 32 : 0,
-      borderTopWidth: 1,
+      borderTopWidth: traderPositionPnl?.isExpanded ? 0 : 1,
       paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
     }),
     [
@@ -539,6 +573,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           tokenAddress: token.address ?? '',
           chainId: token.chainId ?? '',
           indicatorsActive,
+          tdp_version: tdpVersion,
         });
         handleFooterAction(moneyDepositCta.onPress, moneyDepositCta.label);
       }}
@@ -555,6 +590,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       </Text>
     </Button>
   ) : null;
+
+  const handleFooterLayout = (event: LayoutChangeEvent) => {
+    onFooterLayout?.(event.nativeEvent.layout.height);
+  };
 
   const positionContent = traderPositionPnl ? (
     <>
@@ -583,7 +622,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       <Box
         testID="bottomsheetfooter"
         style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
-        twClassName={traderPositionPnl ? 'mt-2' : undefined}
       >
         {showSwapButton && !isBuySellLayout && (
           <Button
@@ -611,6 +649,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(
                 onSwap,
@@ -645,6 +684,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(onBuy, buyButtonLabel, onBuyPress);
             }}
@@ -696,6 +736,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(
                 onQuickBuyPress,
@@ -728,6 +769,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       testID="token-details-sticky-footer"
       isInteractable={false}
       style={bottomSheetStyle}
+      onLayout={handleFooterLayout}
     >
       <GestureDetector gesture={sheetGesture}>
         <View testID="token-details-sticky-footer-surface" style={footerStyle}>
@@ -745,7 +787,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       </GestureDetector>
     </BottomSheetDialog>
   ) : (
-    <View style={legacyFooterStyle}>{footerActions}</View>
+    <View onLayout={handleFooterLayout} style={legacyFooterStyle}>
+      {footerActions}
+    </View>
   );
 
   return (

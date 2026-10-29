@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
+  BROWSER_HOME_PROBE_BACK_BUTTON,
   HeaderNavBarVariant,
   renderExploreSearchScreenWithBackStack,
   renderExploreSearchScreenWithRoutes,
@@ -44,6 +45,12 @@ const actButtonPress = async (elem: ReactTestInstance) => {
   } catch {
     act(() => fireEvent.press(elem));
   }
+};
+
+const waitForExploreSearchTransitionSettled = async (
+  findByTestId: (testId: string) => Promise<ReactTestInstance>,
+) => {
+  await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
 };
 
 describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
@@ -282,6 +289,8 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   it('pill row is visible after typing a search query', async () => {
     const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes();
 
+    await waitForExploreSearchTransitionSettled(findByTestId);
+
     // The search input is auto-focused on mount; find it by placeholder
     const searchInput = getByTestId(
       TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
@@ -490,6 +499,36 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('keeps the flat search field with the brand refresh on where the OS cannot draw glass', async () => {
+    const { findByTestId, queryByTestId } = renderExploreSearchScreenWithRoutes(
+      {
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  exploreBrandRefresh: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      await findByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+    ).not.toBeOnTheScreen();
+  });
+
   it('hides the open-tabs button when no browser tabs are open', async () => {
     const { findByTestId, queryByTestId } =
       renderExploreSearchScreenWithRoutes();
@@ -553,6 +592,8 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     try {
       const { findByTestId, getByTestId } =
         renderExploreSearchScreenWithRoutes();
+
+      await waitForExploreSearchTransitionSettled(findByTestId);
 
       await userEvent.type(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
@@ -637,6 +678,58 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     }
   });
 
+  it('starts a new search session and re-reports the query after returning from browser tabs', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+    const sessionIdsFor = (interactionType: string) =>
+      trackEventSpy.mock.calls
+        .filter(
+          ([event]) => event.properties?.interaction_type === interactionType,
+        )
+        .map(([event]) => event.properties?.search_session_id);
+
+    try {
+      const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes(
+        {
+          headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
+          initialParams: { entryPoint: 'deeplink' },
+          overrides: {
+            browser: {
+              tabs: [{ id: 1, url: 'https://app.uniswap.org' }],
+            },
+          },
+        },
+      );
+
+      await waitForExploreSearchTransitionSettled(findByTestId);
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      await waitFor(() => {
+        expect(sessionIdsFor('searched')).toHaveLength(1);
+      });
+
+      await actButtonPress(
+        await findByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
+      );
+      await actButtonPress(await findByTestId(BROWSER_HOME_PROBE_BACK_BUTTON));
+
+      await waitFor(() => {
+        expect(sessionIdsFor('searched')).toHaveLength(2);
+      });
+      const [openedSessionId] = sessionIdsFor('opened');
+      const [firstSearchSessionId, returnSearchSessionId] =
+        sessionIdsFor('searched');
+      expect(openedSessionId).toEqual(expect.any(String));
+      expect(firstSearchSessionId).toBe(openedSessionId);
+      expect(sessionIdsFor('abandoned')).toEqual([openedSessionId]);
+      expect(returnSearchSessionId).toEqual(expect.any(String));
+      expect(returnSearchSessionId).not.toBe(openedSessionId);
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
   it('does not track abandoned when the user leaves through a footer result click', async () => {
     const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
 
@@ -645,10 +738,13 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
         { initialParams: { entryPoint: 'deeplink' } },
       );
 
+      await waitForExploreSearchTransitionSettled(findByTestId);
+
       await userEvent.type(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
         'eth',
       );
+      await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
       trackEventSpy.mockClear();
 
       await actButtonPress(
@@ -668,14 +764,14 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   });
 
   it('"All" pill is selected by default and pill row is present on mount', async () => {
-    const { getByTestId } = renderExploreSearchScreenWithRoutes();
+    const { findByTestId } = renderExploreSearchScreenWithRoutes();
 
-    // The pill row is mounted immediately — it does not require
-    // a search query. The "All" pill must be selected (active) by default.
-    await waitFor(() => {
-      const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
-      expect(allPill).toBeOnTheScreen();
-      expect(allPill.props.accessibilityState?.selected).toBe(true);
-    });
+    // Pill row mounts after the screen transition settles (see transition test).
+    await waitForExploreSearchTransitionSettled(findByTestId);
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
+    expect(allPill).toBeOnTheScreen();
+    expect(allPill.props.accessibilityState?.selected).toBe(true);
   });
 });

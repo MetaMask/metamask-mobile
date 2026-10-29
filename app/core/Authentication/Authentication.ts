@@ -15,6 +15,7 @@ import {
   passwordSet,
   setExistingUser,
   setIsConnectionRemoved,
+  setMoneyOnboardingSeen,
 } from '../../actions/user';
 import {
   clearOnboarding,
@@ -50,6 +51,7 @@ import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
+import { signOutCardAfterPasswordChange } from '../signOutCardAfterPasswordChange';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -76,6 +78,7 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import ReactQueryService from '../ReactQueryService';
 import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
@@ -395,7 +398,7 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<EntropySourceId> => {
     // Restore vault with user entered password
-    if (clearEngine) await Engine.resetState();
+    if (clearEngine) await this.resetEngineState();
 
     const { MultichainAccountService } = Engine.context;
 
@@ -469,7 +472,7 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
-    await Engine.resetState();
+    await this.resetEngineState();
 
     const { MultichainAccountService } = Engine.context;
 
@@ -479,6 +482,21 @@ class AuthenticationService {
     });
 
     password = this.wipeSensitiveData();
+  };
+
+  /**
+   * Resets Engine state for a new wallet and drops every cached read the app
+   * query client hydrated from the previous one. A wallet reset replaces the
+   * person within one process, so no cached read may answer for the previous
+   * Predict User. The Predict services purge their own cache inside the
+   * reset; this clears the shared client that mirrors them, and nothing else
+   * (lock, account switch, sign-out) clears it.
+   */
+  private resetEngineState = async (): Promise<void> => {
+    await Engine.resetState();
+    // After the reset, never before: the reset's own teardown publishes cache
+    // events, so clearing last leaves no copy for them to restore.
+    ReactQueryService.queryClient.clear();
   };
 
   /**
@@ -928,6 +946,7 @@ class AuthenticationService {
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
    * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
+   * @param options.navigationBehavior - `preserve` leaves the current route in place. Resume uses it because the privacy cover is hiding that route. The default navigates to Home, a pending deeplink, or the metrics opt-in screen.
    * @returns - void
    */
   unlockWallet = async (
@@ -935,6 +954,7 @@ class AuthenticationService {
       password,
       authPreference,
       onBeforeNavigate,
+      navigationBehavior = 'default',
       // Optional onboarding trace context; forwarded to rehydrateSeedPhrase so the seedless
       // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
       // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
@@ -943,6 +963,7 @@ class AuthenticationService {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
+      navigationBehavior?: 'default' | 'preserve';
       parentContext?: TraceContext;
     } = {
       password: undefined,
@@ -1025,6 +1046,11 @@ class AuthenticationService {
 
           if (onBeforeNavigate) {
             await onBeforeNavigate();
+          }
+
+          // Resume already has a route under the privacy cover. Leave it.
+          if (navigationBehavior === 'preserve') {
+            return;
           }
 
           // TODO: Refactor this orchestration to sagas.
@@ -1696,6 +1722,9 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
+      // Card logout is a remote call with no timeout. It must not delay the
+      // unlock or sit between the password change and the key sync.
+      signOutCardAfterPasswordChange().catch(() => undefined);
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true, reset: false });
@@ -1739,6 +1768,39 @@ class AuthenticationService {
       }
       return false;
     }
+  };
+
+  /**
+   * Prompts biometric unlock after checking whether the seedless password is
+   * outdated. Shared by cold start and resume so both prompt identically.
+   * Rejects when unlock fails; callers decide the Login fallback.
+   */
+  tryBiometricUnlock = async (options?: {
+    navigationBehavior?: 'default' | 'preserve';
+  }): Promise<void> => {
+    if (
+      await this.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: false,
+      })
+    ) {
+      NavigationService.navigation?.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.REHYDRATE,
+            params: { isSeedlessPasswordOutdated: true },
+          },
+        ],
+      });
+      return;
+    }
+
+    if (options?.navigationBehavior === 'preserve') {
+      await this.unlockWallet({ navigationBehavior: 'preserve' });
+      return;
+    }
+
+    await this.unlockWallet();
   };
 
   /**
@@ -1902,6 +1964,9 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(clearOnboarding());
+    // `moneyOnboardingSeen` lives in persisted user state and is not wiped by
+    // Engine rebuild — without this, Money splash is skipped after reset.
+    ReduxService.store.dispatch(setMoneyOnboardingSeen(false));
   };
 
   /**
@@ -1955,6 +2020,20 @@ class AuthenticationService {
         Engine.context.SeedlessOnboardingController.clearState();
 
         Engine.context.KycController.clearState();
+
+        // Drop VBA autoramp cursors. They are not keyed by wallet profile and
+        // otherwise survive reset, so Money Activity can show another
+        // customer's Pending bank transfer before the new wallet KYCs.
+        const rampsController = Engine.context.RampsController as {
+          state?: { autoramps?: { id: string }[] };
+          removeAutoramp?: (autorampId: string) => void;
+        };
+        const staleAutorampIds = (rampsController.state?.autoramps ?? []).map(
+          (autoramp) => autoramp.id,
+        );
+        for (const autorampId of staleAutorampIds) {
+          rampsController.removeAutoramp?.(autorampId);
+        }
 
         await depositResetProviderToken();
 

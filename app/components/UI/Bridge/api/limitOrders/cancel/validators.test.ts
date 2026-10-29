@@ -45,6 +45,37 @@ describe('parseCancelLimitOrderResponse', () => {
     expect(parseCancelLimitOrderResponse(response)).toStrictEqual(response);
   });
 
+  it('accepts fields it has not seen before at every level', () => {
+    const response = {
+      newResponseField: true,
+      order: {
+        ...MINIMAL_RESPONSE.order,
+        newOrderField: 'new',
+        src: {
+          asset: { ...ASSET, coinLabel: 'badges:v1:stablecoin' },
+          amount: '1000000',
+          newLegField: 'new',
+        },
+        trigger: { ...MINIMAL_RESPONSE.order.trigger, newTriggerField: 'new' },
+        timingData: {
+          ...MINIMAL_RESPONSE.order.timingData,
+          updatedAt: '2026-09-03T12:00:00.000Z',
+        },
+      },
+      transactions: [
+        {
+          status: 'failed',
+          src: { asset: ASSET, amount: '1' },
+          dest: { asset: ASSET, amount: '1' },
+          timingData: { createdAt: '2026-09-03T11:02:13.000Z' },
+          newTransactionField: 'new',
+        },
+      ],
+    };
+
+    expect(parseCancelLimitOrderResponse(response)).toStrictEqual(response);
+  });
+
   it('rejects an order without an expiry, which every booked order has', () => {
     expect(() =>
       parseCancelLimitOrderResponse({

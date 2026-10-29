@@ -47,6 +47,8 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import {
   completePerpsTradeSheetInteractiveTrace,
   failPerpsTradeSheetInteractiveTrace,
@@ -82,6 +84,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
@@ -115,13 +118,11 @@ import {
 } from '@metamask/perps-controller/constants';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../constants/slippageConfig';
-import { FIXED_BOTTOM_CONTAINER_PADDING } from '../../constants/perpsUIConfig';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import {
-  useBottomSafeAreaInset,
   useHasExistingPosition,
   useMinimumOrderAmount,
   usePerpsLiquidationPrice,
@@ -130,6 +131,7 @@ import {
   usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
   usePerpsOrderFees,
+  usePerpsQuotedFeeReservation,
   usePerpsOrderValidation,
   usePerpsRewards,
   usePerpsToasts,
@@ -180,6 +182,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import {
+  formatCombinedFeePercentage,
+  formatOriginalCombinedFeePercentage,
+} from '../../utils/feeDiscount';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../../utils/orderToasts';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
@@ -212,6 +218,37 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectIsProfileTradingActivityPrivate } from '../../../../../selectors/profileController';
+import { selectPerpsProvider } from '../../selectors/perpsController';
+import {
+  postCopyTradeIntent,
+  type CopyTradeOrigin,
+} from '../../../../../util/social/copyTradeIntent';
+import {
+  buildPerpsCopyTradeIntent,
+  getCopyTradeOid,
+} from '../../utils/copyTradeIntent';
+import {
+  beginPerpsPostTradeShare,
+  buildPerpsPostTradePreview,
+  canPromptPerpsPostTrade,
+  completePerpsPostTradeShare,
+  failPerpsPostTradeShare,
+  openPerpsPostTradeShareSession,
+} from '../../utils/perpsPostTradeShare';
+import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
+import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import {
+  buildPerpsPostTradeComposerParams,
+  openPostTradeComposer,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
+import {
+  incrementShareSheetCount,
+  markClaimSheetSeen,
+} from '../../../../../util/social/postTradePromptStorage';
+import ToastService from '../../../../../core/ToastService';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -238,6 +275,8 @@ interface OrderRouteParams {
    * market details. The order still places and the same toasts still fire.
    */
   stayOnCurrentScreen?: boolean;
+  /** Social post being copied; a matching order records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section forwarded from market details */
@@ -255,6 +294,15 @@ interface PerpsOrderViewContentProps {
   defaultMaxLeverage?: number;
   useBottomSheet?: boolean;
 }
+
+/** Reports a rejected fire-and-forget promise from this view. */
+const logRejection = (operation: string) => (error: unknown) => {
+  const name = `PerpsOrderView.${operation}`;
+  Logger.error(ensureError(error, name), {
+    tags: { feature: PERPS_CONSTANTS.FeatureName },
+    context: { name, data: {} },
+  });
+};
 
 const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
@@ -310,8 +358,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
+  const copyTradeOrigin = route.params?.copyTradeOrigin;
+  const activePerpsProvider = useSelector(selectPerpsProvider);
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
   const { colors } = useTheme();
-  const bottomSafeAreaInset = useBottomSafeAreaInset();
 
   useAddToken({
     chainId: CHAIN_IDS.ARBITRUM,
@@ -325,7 +377,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { onReject } = useConfirmActions();
   useEffect(
     () => () => {
-      onReject(undefined, true);
+      onReject(undefined, true).catch(
+        logRejection('rejectConfirmationOnUnmount'),
+      );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -335,16 +389,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const styles = createStyles(colors);
-
-  // Dynamic bottom padding for fixed container: system navigation-bar inset plus
-  // the visual padding, so the CTA is never drawn under the navigation bar.
-  const fixedBottomContainerStyle = useMemo(
-    () => ({
-      ...styles.fixedBottomContainer,
-      paddingBottom: bottomSafeAreaInset + FIXED_BOTTOM_CONTAINER_PADDING,
-    }),
-    [styles.fixedBottomContainer, bottomSafeAreaInset],
-  );
 
   // Deferred loading: Load non-critical data after UI renders
   const [isDataReady, setIsDataReady] = useState(false);
@@ -431,6 +475,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // screen without one (back swipe, hardware back, tab switch) is emitted as an
   // abandon interaction via the focus-effect cleanup below.
   const hasPlacedOrderRef = useRef(false);
+  /** Share-sheet session for a Social V1 perps copy-trade, if one was opened. */
+  const perpsShareSessionIdRef = useRef<string | undefined>(undefined);
+  /** Post-trade prompt chosen at submit for a Lite market order that is not a copy-trade. */
+  const perpsPostTradePromptRef = useRef<PostTradePrompt | undefined>(
+    undefined,
+  );
+  const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isProfileTradingActivityPrivate = useSelector(
+    selectIsProfileTradingActivityPrivate,
+  );
+  const isPerpsProModeActive = useIsPerpsProModeActive();
   // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
   // stay-on-screen submit that already `goBack`'d is not popped again.
   const hasDismissedAfterSubmitRef = useRef(false);
@@ -781,9 +836,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       : undefined,
   });
 
+  // Size the max off the same resolved quote that drives the displayed fee.
+  usePerpsQuotedFeeReservation(feeResults.totalFeeRate);
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
-
   // Deposit/bridge fees from transaction pay (when paying with custom token)
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
@@ -1204,21 +1260,81 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // `stayOnCurrentScreen` is set.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
-      onSuccess: (_position) => {
-        showToast(
-          PerpsToastOptions.orderManagement[
+      onSuccess: (_position, result) => {
+        const orderId = getCopyTradeOid(orderForm.type, result);
+        const prompt = perpsPostTradePromptRef.current;
+        const shared = completePerpsPostTradeShare(
+          perpsShareSessionIdRef.current,
+          {
+            orderId,
+            entryPrice: result?.averagePrice,
+          },
+        );
+        if (orderId && prompt?.kind === 'share_sheet') {
+          incrementShareSheetCount(
+            prompt.countKey.address,
+            prompt.countKey.product,
+          );
+        }
+        if (orderId && prompt?.kind === 'claim_sheet') {
+          markClaimSheetSeen('perps');
+        }
+        if (!shared) {
+          const confirmedToast = PerpsToastOptions.orderManagement[
             getOrderManagementToastKey(orderForm.type)
-          ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+          ].confirmed(orderForm.direction, positionSize, orderForm.asset);
+          showToast(
+            orderId && prompt?.kind === 'post_to_feed_toast'
+              ? {
+                  ...confirmedToast,
+                  linkButtonOptions: {
+                    label: strings(
+                      'social_leaderboard.post_trade_share.post_to_feed',
+                    ),
+                    onPress: () => {
+                      ToastService.toastRef?.current?.closeToast();
+                      openPostTradeComposer(
+                        buildPerpsPostTradeComposerParams({
+                          orderId,
+                          preview: buildPerpsPostTradePreview({
+                            asset: orderForm.asset,
+                            direction: orderForm.direction,
+                            leverage: orderForm.leverage,
+                            amountUsd: orderForm.amount,
+                            entryPrice: result?.averagePrice,
+                          }),
+                        }),
+                      );
+                    },
+                  },
+                }
+              : confirmedToast,
+          );
+        }
+        postCopyTradeIntent(
+          () =>
+            buildPerpsCopyTradeIntent({
+              copyTradeOrigin,
+              asset: orderForm.asset,
+              orderType: orderForm.type,
+              result,
+              address: getSelectedAccountByScope('eip155:1')?.address,
+              activeProvider: activePerpsProvider,
+            }),
+          { surface: 'trader_feed', source: 'PerpsOrderView' },
         );
       },
       onError: (error) => {
         // Error is already captured in usePerpsOrderExecution hook
         // No need to capture again here to avoid duplicate Sentry reports
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].creationFailed(error),
-        );
+        const shared = failPerpsPostTradeShare(perpsShareSessionIdRef.current);
+        if (!shared) {
+          showToast(
+            PerpsToastOptions.orderManagement[
+              getOrderManagementToastKey(orderForm.type)
+            ].creationFailed(error),
+          );
+        }
       },
     });
 
@@ -1796,7 +1912,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         handleDepositConfirm(
           activeTransactionMeta,
           () => {
-            handlePlaceOrder(true);
+            handlePlaceOrder(true).catch(
+              logRejection('placeOrderAfterDeposit'),
+            );
           },
           marginRequired,
         );
@@ -1916,8 +2034,38 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Both the full-screen form and the Trade sheet leave as soon as the
         // order is submitted. Default is market details; `stayOnCurrentScreen`
-        // dismisses back to the presenting screen. The "submitted" /
-        // "confirmed" / "failed" toasts still report the outcome.
+        // dismisses back to the presenting screen. A Social V1 copy-trade that
+        // can return an order id shows the share sheet instead of these toasts.
+        perpsShareSessionIdRef.current = isProfileTradingActivityPrivate
+          ? undefined
+          : beginPerpsPostTradeShare({
+              copyTradeOrigin,
+              orderType: orderForm.type,
+              activeProvider: activePerpsProvider,
+              asset: orderForm.asset,
+              direction: orderForm.direction,
+              leverage: orderForm.leverage,
+              amountUsd: orderForm.amount,
+            });
+        perpsPostTradePromptRef.current =
+          !perpsShareSessionIdRef.current &&
+          !isPerpsProModeActive &&
+          canPromptPerpsPostTrade({
+            orderType: orderForm.type,
+            activeProvider: activePerpsProvider,
+          })
+            ? resolvePostTradePrompt('perps')
+            : undefined;
+        const promptKind = perpsPostTradePromptRef.current?.kind;
+        if (promptKind === 'share_sheet' || promptKind === 'claim_sheet') {
+          perpsShareSessionIdRef.current = openPerpsPostTradeShareSession({
+            asset: orderForm.asset,
+            direction: orderForm.direction,
+            leverage: orderForm.leverage,
+            amountUsd: orderForm.amount,
+            variant: promptKind === 'claim_sheet' ? 'create_profile' : 'share',
+          });
+        }
         navigateToMarketAfterOrder();
 
         // Execute order using the new hook
@@ -1945,6 +2093,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             feeResults,
             marketPrice: assetData.price,
             inputMethod: inputMethodRef.current,
+            orderType: orderForm.type,
             source,
             sourceSection,
             currentMarketPosition,
@@ -1953,14 +2102,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             vipTier,
             hasCustomTokenSelected,
             payToken,
+            maxSlippageBps,
+            maxSlippageSource,
+            estimatedSlippageBps:
+              typeof estimatedSlippageBps === 'number'
+                ? estimatedSlippageBps
+                : undefined,
           }),
         });
 
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].submitted(orderForm.direction, positionSize, orderForm.asset),
-        );
+        if (!perpsShareSessionIdRef.current) {
+          showToast(
+            PerpsToastOptions.orderManagement[
+              getOrderManagementToastKey(orderForm.type)
+            ].submitted(orderForm.direction, positionSize, orderForm.asset),
+          );
+        }
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =
@@ -1977,6 +2134,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           const orderResult = await executeOrder(orderWithoutTPSL);
           if (!orderResult?.success) {
+            failPerpsPostTradeShare(perpsShareSessionIdRef.current);
             return;
           }
 
@@ -1998,6 +2156,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         } else {
           const orderResult = await executeOrder(orderParams);
           if (!orderResult?.success) {
+            failPerpsPostTradeShare(perpsShareSessionIdRef.current);
             return;
           }
         }
@@ -2037,6 +2196,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderForm.takeProfitPrice,
       orderForm.stopLossPrice,
       orderForm.amount,
+      copyTradeOrigin,
+      activePerpsProvider,
+      isProfileTradingActivityPrivate,
+      isPerpsProModeActive,
+      resolvePostTradePrompt,
       positionSize,
       effectivePrice,
       assetData.price,
@@ -2105,7 +2269,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       depositAmount.trim() !== '' &&
       activeTransactionMeta
     ) {
-      updateTokenAmountCallback(amountHuman);
+      // useUpdateTokenAmount logs a failed update before rethrowing it.
+      updateTokenAmountCallback(amountHuman)?.catch(() => undefined);
     }
   }, [
     amountHuman,
@@ -2340,10 +2505,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, []);
 
   if (useBottomSheet) {
-    const totalFeeRate =
-      (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
-    const feePercentage =
-      totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+    const feePercentage = formatCombinedFeePercentage(
+      feeResults.protocolFeeRate,
+      feeResults.metamaskFeeRate,
+    );
+    const originalFeePercentage = formatOriginalCombinedFeePercentage(
+      feeResults.protocolFeeRate,
+      feeResults.metamaskFeeRate,
+      feeResults.originalMetamaskFeeRate,
+    );
     // Same formatter as the full-screen fees tooltip. Perps balance and the
     // Money Account have no bridge, and a missing or zero quote stays on the
     // trade-fee line.
@@ -2583,8 +2753,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 showPayWith={isPayRowVisible}
                 isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}
+                originalFeePercentage={originalFeePercentage}
                 bridgeFee={bridgeFee}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                feeDiscountKind={rewardsState.feeDiscountKind}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
                 submitLabel={placeOrderLabel}
@@ -2684,6 +2856,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={spendableBalance > 0 && !!filteredErrors.length}
           isLoading={isLoadingAccount}
+          twClassName="pt-4"
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -2927,6 +3100,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               ) : (
                 <PerpsFeesDisplay
                   feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                  feeDiscountKind={rewardsState.feeDiscountKind}
                   fee={hasValidAmount ? feesToDisplay : undefined}
                   originalFee={
                     hasValidAmount ? undiscountedFeesToDisplay : undefined
@@ -3049,7 +3223,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       )}
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
-        <View style={fixedBottomContainerStyle}>
+        <View
+          style={styles.fixedBottomContainer}
+          testID={PerpsOrderViewSelectorsIDs.FOOTER}
+        >
+          <PerpsRebateBanner
+            coin={orderForm.asset}
+            direction={orderForm.direction}
+            notionalUsd={orderForm.amount}
+            twClassName="mb-3"
+          />
+          <Box twClassName="-mx-4 mb-3 border-t border-muted" />
+
           {footerErrors.length > 0 &&
             !isLoadingMarketData &&
             currentPrice != null && (
@@ -3240,6 +3425,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   protocolFeeRate: feeResults.protocolFeeRate,
                   originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
                   feeDiscountPercentage: feeResults.feeDiscountPercentage,
+                  feeDiscountKind: feeResults.feeDiscountKind,
                   ...(hasCustomTokenSelected &&
                     depositFeeUsd > 0 && {
                       bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {

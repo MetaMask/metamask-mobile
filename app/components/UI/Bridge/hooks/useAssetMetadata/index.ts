@@ -1,4 +1,9 @@
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  isCaipAssetType,
+} from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { fetchAssetMetadata, getAssetImageUrl } from './utils';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
@@ -41,6 +46,7 @@ export const useAssetMetadata = (
   const { value: assetMetadata, pending } = useAsyncResult<
     | {
         address: Hex | CaipAssetType | string;
+        assetId: CaipAssetType;
         symbol: string;
         decimals: number;
         image: string;
@@ -58,7 +64,9 @@ export const useAssetMetadata = (
 
     const trimmedSearchQuery = searchQuery.trim();
     const isAddress =
-      isSolanaAddress(trimmedSearchQuery) || isEvmAddress(trimmedSearchQuery);
+      isCaipAssetType(trimmedSearchQuery) ||
+      isSolanaAddress(trimmedSearchQuery) ||
+      isEvmAddress(trimmedSearchQuery);
 
     if (isBasicFunctionalityEnabled && shouldFetchMetadata && isAddress) {
       const metadata = await fetchAssetMetadata(trimmedSearchQuery, chainId);

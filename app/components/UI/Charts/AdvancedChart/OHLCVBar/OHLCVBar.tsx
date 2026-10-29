@@ -9,7 +9,7 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { strings } from '../../../../../../locales/i18n';
 import type { CrosshairData } from '../AdvancedChart.types';
 import { formatOhlcvVolumeDisplay } from './ohlcvBarVolumeFormat';

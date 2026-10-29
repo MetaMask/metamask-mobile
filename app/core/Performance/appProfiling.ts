@@ -1,7 +1,7 @@
 /**
  * Programmatic Hermes CPU profiling for performance-test APKs only.
  *
- * BrowserStack performance builds bake `IS_PERFORMANCE_TEST=true` (see
+ * Performance-test builds bake `IS_PERFORMANCE_TEST=true` (see
  * `builds.yml` `main-e2e-bs-*`). Smoke e2e and production builds leave these
  * helpers as no-ops so profiling cannot be enabled outside that APK class.
  *
@@ -156,6 +156,45 @@ function dumpAndRearm(enabled: boolean): void {
     .catch(() => undefined);
 }
 
+let lastArmNonce: string | null = null;
+
+/**
+ * Handles `metamask://e2e/profiler/arm?nonce=<id>`, which performance specs
+ * open at the team-specific entry point. Drops the samples recorded so far and
+ * writes a marker the test waits for. Returns false outside performance APKs
+ * so the URL is handled like any other deeplink there.
+ */
+export function armMeasuredAppProfilingFromUri(
+  uri: string | undefined,
+  enabled: boolean = isPerformanceProfilingEnabled,
+): boolean {
+  if (!enabled || !uri) {
+    return false;
+  }
+  const [path, query = ''] = uri.split('?');
+  if (path !== 'metamask://e2e/profiler/arm') {
+    return false;
+  }
+
+  const nonce = new URLSearchParams(query).get('nonce');
+  // Branch and Linking can both deliver the URL; a second arm would wipe the
+  // measured window.
+  if (!nonce || nonce === lastArmNonce) {
+    return true;
+  }
+  lastArmNonce = nonce;
+
+  (isRecording ? Promise.resolve(true) : startAppProfiling(enabled))
+    .then(() => getHermesProfilerModule()?.armProfiling(nonce))
+    .catch((error: unknown) => {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Failed to arm measured Hermes profiling',
+      );
+    });
+  return true;
+}
+
 /**
  * Arms profiling for this app process and keeps it armed for the process's
  * lifetime.
@@ -218,6 +257,7 @@ export function __resetAppProfilingForTests(): void {
   isRecording = false;
   lastProfilePath = null;
   lastError = null;
+  lastArmNonce = null;
   appStateSubscription?.remove();
   appStateSubscription = null;
 }

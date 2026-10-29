@@ -1,3 +1,4 @@
+import type { AccountCreateErrorDestinationId } from './accountCreateError';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
@@ -7,9 +8,11 @@ export type VbaOnboardingDestinationId =
   | 'vendorTerms'
   | 'email'
   | 'identityVerification'
+  | 'identityVerified'
   | 'kycPending'
   | 'kycRejected'
   | 'accountProvisioningError'
+  | AccountCreateErrorDestinationId
   | 'error'
   | 'complete';
 
@@ -48,8 +51,16 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
 
 /**
  * Maps controller facts onto the next onboarding module or status destination.
- * AutoRamp provisioning stays in the coordinator. `hydrateVbaOnboarding` only
- * reads status, and the coordinator opens the BRL route when one is missing.
+ * This read does not sign or create an account. Approved KYC with a usable
+ * autoramp opens the account screen. Approved KYC without one opens Identity
+ * verified. Account setup runs later, on that account screen.
+ *
+ * A rejected applicant opens the failure screen. Rejection is terminal, so
+ * that screen contacts support instead of requesting another SumSub token.
+ * An applicant UKYC asked to retry before the provider flow was (re)submitted
+ * opens the same screen, and Try again relaunches Sumsub. Routing that retry
+ * straight into identity verification from every entry point dropped the user
+ * back into the provider, so closing Sumsub looked like it had done nothing.
  *
  * @param snapshot - Facts from hydrate.
  * @returns The next module or status destination.
@@ -60,7 +71,11 @@ export const getVbaDestinationForSnapshot = (
   if (!snapshot) {
     return 'error';
   }
-  if (snapshot.kycStatus === 'rejected') {
+  if (
+    snapshot.kycStatus === 'rejected' ||
+    (snapshot.kycStatus === 'retry' &&
+      snapshot.providerFlowStatus !== 'submitted')
+  ) {
     return 'kycRejected';
   }
 
@@ -71,13 +86,9 @@ export const getVbaDestinationForSnapshot = (
   }
 
   if (snapshot.kycStatus === 'approved') {
-    if (snapshot.autorampStatus === 'ready') {
-      return 'complete';
-    }
-
-    return snapshot.autorampStatus === 'retryable_failure'
-      ? 'accountProvisioningError'
-      : 'kycPending';
+    return snapshot.autorampStatus === 'ready'
+      ? 'complete'
+      : 'identityVerified';
   }
 
   if (

@@ -29,6 +29,8 @@ jest.mock('@metamask/keyring-api', () => ({
 }));
 jest.mock('../../../core/Multichain/utils', () => ({
   isSolanaAccount: jest.fn(),
+  isBtcAccount: jest.fn(),
+  isTronAccount: jest.fn(),
 }));
 jest.mock('../../../util/address', () => ({
   getAddressAccountType: jest.fn(),
@@ -42,7 +44,9 @@ const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
 >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
 const { isEvmAccountType } = jest.requireMock('@metamask/keyring-api');
-const { isSolanaAccount } = jest.requireMock('../../../core/Multichain/utils');
+const { isSolanaAccount, isBtcAccount, isTronAccount } = jest.requireMock(
+  '../../../core/Multichain/utils',
+);
 const { getAddressAccountType } = jest.requireMock('../../../util/address');
 
 describe('Rewards Utils', () => {
@@ -285,7 +289,7 @@ describe('Rewards Utils', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to the rewards tab when there is no back route', () => {
+    it('opens rewards home when there is no back route', () => {
       const mockGoBack = jest.fn();
       const mockNavigate = jest.fn();
       const navigation = {
@@ -297,9 +301,7 @@ describe('Rewards Utils', () => {
       exitRewardsFlow(navigation as never);
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.REWARDS_VIEW,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
   });
 
@@ -712,9 +714,54 @@ describe('Rewards Utils', () => {
       expect(result).toEqual({ scope: 'solana', account_type: 'solana' });
     });
 
-    it('falls back to account.type when neither evm nor solana', () => {
+    it('returns bitcoin scope when isBtcAccount returns true', () => {
       (isEvmAccountType as jest.Mock).mockReturnValue(false);
       (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (isBtcAccount as jest.Mock).mockReturnValue(true);
+      (isTronAccount as jest.Mock).mockReturnValue(false);
+      (getAddressAccountType as jest.Mock).mockReturnValue('bip122:p2wpkh');
+
+      const bitcoinAccount: InternalAccount = {
+        ...baseAccount,
+        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        scopes: ['bip122:000000000019d6689c085ae165831e93'],
+        type: 'bip122:p2wpkh',
+      };
+
+      const result = deriveAccountMetricProps(bitcoinAccount);
+
+      expect(isBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
+      expect(result).toEqual({
+        scope: 'bitcoin',
+        account_type: 'bip122:p2wpkh',
+      });
+    });
+
+    it('returns tron scope when isTronAccount returns true', () => {
+      (isEvmAccountType as jest.Mock).mockReturnValue(false);
+      (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (isBtcAccount as jest.Mock).mockReturnValue(false);
+      (isTronAccount as jest.Mock).mockReturnValue(true);
+      (getAddressAccountType as jest.Mock).mockReturnValue('tron:eoa');
+
+      const tronAccount: InternalAccount = {
+        ...baseAccount,
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        scopes: ['tron:728126428'],
+        type: 'tron:eoa',
+      };
+
+      const result = deriveAccountMetricProps(tronAccount);
+
+      expect(isTronAccount).toHaveBeenCalledWith(tronAccount);
+      expect(result).toEqual({ scope: 'tron', account_type: 'tron:eoa' });
+    });
+
+    it('falls back to account.type when account is not evm, solana, bitcoin, or tron', () => {
+      (isEvmAccountType as jest.Mock).mockReturnValue(false);
+      (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (isBtcAccount as jest.Mock).mockReturnValue(false);
+      (isTronAccount as jest.Mock).mockReturnValue(false);
       (getAddressAccountType as jest.Mock).mockReturnValue('other');
 
       const otherAccount: InternalAccount = {

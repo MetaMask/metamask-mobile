@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { useNetworkTier } from './useNetworkTier';
+import { useNetworkTier, useNetworkTierState } from './useNetworkTier';
 
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
@@ -81,6 +81,51 @@ describe('useNetworkTier', () => {
     const { result } = renderHook(() => useNetworkTier());
 
     expect(result.current).toBeNull();
+  });
+
+  it('reports the initial unknown NetInfo state as unresolved', () => {
+    mockNetInfoState({
+      type: 'unknown',
+      isInternetReachable: null,
+      details: {},
+    });
+
+    const { result } = renderHook(() => useNetworkTierState());
+
+    expect(result.current).toEqual({
+      tier: null,
+      isResolved: false,
+    });
+  });
+
+  it('reports unclassified but initialized transports as resolved unknown', () => {
+    mockNetInfoState({
+      type: 'vpn',
+      isInternetReachable: true,
+      details: {},
+    });
+
+    const { result } = renderHook(() => useNetworkTierState());
+
+    expect(result.current).toEqual({
+      tier: null,
+      isResolved: true,
+    });
+  });
+
+  it('reports explicit unreachability as resolved even for an unknown type', () => {
+    mockNetInfoState({
+      type: 'unknown',
+      isInternetReachable: false,
+      details: {},
+    });
+
+    const { result } = renderHook(() => useNetworkTierState());
+
+    expect(result.current).toEqual({
+      tier: 'NONE',
+      isResolved: true,
+    });
   });
 
   it('returns NONE for wifi when internet is not reachable', () => {

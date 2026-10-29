@@ -9,7 +9,9 @@ import {
   clearPriceAlertsApiMocks,
 } from '../../../../../../../tests/component-view/api-mocking/priceAlerts';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
 import {
   type AbsolutePriceAlert,
   CreatePriceAlertTestIds,
@@ -90,16 +92,17 @@ describeForPlatforms('CreatePriceAlertView', () => {
   });
 
   it('opens in edit mode with pre-filled threshold when editingAlert is passed', async () => {
-    const { getByText, getByTestId } = renderCreatePriceAlertViewWithRoutes({
-      routeParams: {
-        editingAlert,
-        existingAbsoluteAlerts: [],
-      },
-    });
+    const { getByRole, getByText, getByTestId } =
+      renderCreatePriceAlertViewWithRoutes({
+        routeParams: {
+          editingAlert,
+          existingAbsoluteAlerts: [],
+        },
+      });
 
     expect(getByText('Edit ETH price alert')).toBeOnTheScreen();
     // threshold 3000 is pre-filled as "$3000"
-    expect(getByText('$3000')).toBeOnTheScreen();
+    expect(getByRole('text', { name: '$3000' })).toBeOnTheScreen();
     // Update button is shown (not "Set price alert")
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
@@ -113,16 +116,138 @@ describeForPlatforms('CreatePriceAlertView', () => {
 
   it('applies +5% quick percentage pill and updates the target price', async () => {
     // currentPrice defaults to 2500 in the renderer, so +5% → 2625
-    const { getByTestId, findByText } = renderCreatePriceAlertViewWithRoutes();
+    const { findByRole, getByTestId } = renderCreatePriceAlertViewWithRoutes();
 
     fireEvent.press(
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     );
 
-    expect(await findByText('$2625')).toBeOnTheScreen();
+    expect(await findByRole('text', { name: '$2625' })).toBeOnTheScreen();
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).not.toBeDisabled();
+  });
+
+  it('keeps a typed percent after the direction changes', async () => {
+    const { findByText, getByTestId, getByText } =
+      renderCreatePriceAlertViewWithRoutes({
+        routeParams: { initialType: 'percent_change' },
+      });
+    const percentInput = () =>
+      getByTestId(CreatePriceAlertTestIds.PERCENT_INPUT);
+
+    fireEvent.press(getByText('1'));
+    fireEvent.press(getByText('0'));
+
+    expect(
+      await within(percentInput()).findByRole('text', { name: '10' }),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE));
+
+    expect(
+      await findByText(strings('price_alerts.moves_down')),
+    ).toBeOnTheScreen();
+    expect(
+      await within(percentInput()).findByRole('text', { name: '10' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows a high-precision quick percentage and clears back to an empty amount', async () => {
+    const { findByRole, getByRole, getByTestId, queryByRole } =
+      renderCreatePriceAlertViewWithRoutes({
+        routeParams: {
+          assetId: 'eip155:1/erc20:0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
+          currentPrice: 0.00000000000001,
+          symbol: 'SHIB',
+          ticker: 'SHIB',
+        },
+      });
+
+    fireEvent.press(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
+    );
+
+    expect(
+      await findByRole('text', { name: '$0.000000000000011' }),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
+
+    for (let index = 0; index < 20; index += 1) {
+      fireEvent.press(getByTestId(KeypadTestIds.DELETE_BUTTON));
+    }
+
+    expect(await findByRole('text', { name: '$' })).toBeOnTheScreen();
+    expect(getByRole('text', { name: '$' })).toBeOnTheScreen();
+    expect(
+      queryByRole('text', { name: '$0.000000000000011' }),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('accepts manual keypad input beyond two decimals for a tiny price', async () => {
+    const { findByRole, getByTestId } = renderCreatePriceAlertViewWithRoutes({
+      routeParams: {
+        assetId: 'eip155:1/erc20:0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
+        currentPrice: 0.00001234,
+        symbol: 'SHIB',
+        ticker: 'SHIB',
+      },
+    });
+
+    for (let index = 0; index < 20; index += 1) {
+      fireEvent.press(getByTestId(KeypadTestIds.DELETE_BUTTON));
+    }
+    for (const key of [
+      KeypadTestIds.KEY_0,
+      KeypadTestIds.KEY_DOT,
+      KeypadTestIds.KEY_0,
+      KeypadTestIds.KEY_0,
+      KeypadTestIds.KEY_0,
+      KeypadTestIds.KEY_0,
+      KeypadTestIds.KEY_1,
+      KeypadTestIds.KEY_2,
+      KeypadTestIds.KEY_3,
+      KeypadTestIds.KEY_4,
+      KeypadTestIds.KEY_5,
+    ]) {
+      fireEvent.press(getByTestId(key));
+    }
+
+    expect(
+      await findByRole('text', { name: '$0.000012345' }),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('blocks a sixteenth decimal digit for a tiny price', async () => {
+    const { findByRole, getByTestId } = renderCreatePriceAlertViewWithRoutes({
+      routeParams: {
+        assetId: 'eip155:1/erc20:0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
+        currentPrice: 0.0000000001,
+        symbol: 'SHIB',
+        ticker: 'SHIB',
+      },
+    });
+
+    for (let index = 0; index < 20; index += 1) {
+      fireEvent.press(getByTestId(KeypadTestIds.DELETE_BUTTON));
+    }
+    fireEvent.press(getByTestId(KeypadTestIds.KEY_DOT));
+    for (let index = 0; index < 15; index += 1) {
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
+    }
+    fireEvent.press(getByTestId(KeypadTestIds.KEY_2));
+
+    expect(
+      await findByRole('text', { name: '$0.111111111111111' }),
+    ).toBeOnTheScreen();
   });
 
   it('saves alert with recurring=false after toggling the switch off', async () => {

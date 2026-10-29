@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Position } from '@metamask/social-controllers';
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
@@ -79,7 +80,6 @@ describe('useOpenSocialPostComposer', () => {
         profileId: 'current-user',
         displayName: 'Giga Whale',
         handle: 'giga-whale',
-        shareUrl: 'https://metamask.io/social/giga-whale',
         linkedAccountId: LINKED_ID,
         linkedAccountAddress: LINKED_ADDRESS,
       },
@@ -99,6 +99,23 @@ describe('useOpenSocialPostComposer', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
     expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('forwards share options to the composer as route params', () => {
+    const options = {
+      position: { positionId: 'btc-perp' } as Position,
+      entryPoint: 'perps' as const,
+    };
+    const { result } = renderHook(() => useOpenSocialPostComposer(), {
+      wrapper,
+    });
+
+    result.current.openComposer(options);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POST_COMPOSER,
+      options,
+    );
   });
 
   it('navigates to profile onboarding when no linked wallet is set', () => {

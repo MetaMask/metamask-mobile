@@ -2,7 +2,7 @@
  * Quality Gates Validator
  *
  * Validates performance metrics against thresholds defined in TimerHelper instances.
- * Each timer can have its own threshold (base + 10% margin).
+ * Each timer can have its own threshold (base + THRESHOLD_MARGIN_PERCENT margin).
  */
 
 import QualityGateError from './QualityGateError';

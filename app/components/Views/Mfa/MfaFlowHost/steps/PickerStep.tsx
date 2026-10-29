@@ -18,6 +18,7 @@ import { MfaShield, StepError, StepHeader, type StepProps } from './StepLayout';
 const PICKER_LABEL_KEYS: Record<MfaMethod, string> = {
   email_otp: 'mfa.picker.email_otp',
   passkey: 'mfa.picker.passkey',
+  totp: 'mfa.picker.totp',
 };
 
 /**

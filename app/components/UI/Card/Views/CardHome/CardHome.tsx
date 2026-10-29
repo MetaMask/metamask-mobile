@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -15,6 +15,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextButton,
   HeaderStandard,
   Icon,
   IconColor,
@@ -22,6 +23,7 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -65,6 +67,7 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -240,11 +243,22 @@ const CardHome = () => {
   const {
     initiateProvisioning,
     isProvisioning,
-    walletEntry,
+    isLoading: isPushProvisioningLoading,
+    canAddToWallet,
+    isCardInWallet,
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
-  } = useCardWalletProvisioning(data, platformWalletSupported);
+    walletEntry,
+  } = useCardWalletProvisioning(data, { platformWalletSupported });
+  useApplePaySplashPrompt({
+    canAddToWallet,
+    isPushProvisioningLoading,
+  });
+  const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
+  const handleLearnMoreAboutApplePay = useCallback(() => {
+    Linking.openURL(applePayLearnMoreUrl).catch(() => undefined);
+  }, [applePayLearnMoreUrl]);
   const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
   const handleOpenInWallet = useCallback(() => {
     openInWallet().catch(() => undefined);
@@ -747,6 +761,21 @@ const CardHome = () => {
           </Box>
         )}
 
+        {!isLoading &&
+          pendingDevicesLabel.length > 0 &&
+          !isUkMigrationForced && (
+            <Box
+              twClassName="mx-4 mt-2"
+              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
+            >
+              <CardMessageBox
+                messageType={CardMessageBoxType.WalletVerificationPending}
+                values={{ devices: pendingDevicesLabel }}
+                onConfirm={canOpenInWallet ? handleOpenInWallet : undefined}
+              />
+            </Box>
+          )}
+
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Animated.View
             style={[tw.style('w-full relative'), arrival.cardStyle]}
@@ -851,36 +880,6 @@ const CardHome = () => {
             </Box>
           )}
 
-        {!isLoading &&
-          pendingDevicesLabel.length > 0 &&
-          !isUkMigrationForced && (
-            <Box
-              twClassName="w-full px-4 pt-4"
-              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
-            >
-              <Text variant={TextVariant.BodyMd}>
-                {strings('card.push_provisioning.verification_pending_title')}
-              </Text>
-              <Text variant={TextVariant.BodySm} style={tw.style('mt-1')}>
-                {strings(
-                  'card.push_provisioning.verification_pending_description',
-                  { devices: pendingDevicesLabel },
-                )}
-              </Text>
-              {canOpenInWallet && (
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  size={ButtonSize.Sm}
-                  isFullWidth
-                  onPress={handleOpenInWallet}
-                  testID={CardHomeSelectors.VERIFICATION_PENDING_OPEN_WALLET}
-                >
-                  {strings('card.push_provisioning.open_in_apple_wallet')}
-                </Button>
-              )}
-            </Box>
-          )}
-
         {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
@@ -897,6 +896,16 @@ const CardHome = () => {
                 buttonType="basic"
                 borderRadius={4}
               />
+            )}
+            {Platform.OS === 'ios' && !isCardInWallet && (
+              <TextButton
+                variant={TextVariant.BodySm}
+                twClassName="mt-2"
+                onPress={handleLearnMoreAboutApplePay}
+                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+              >
+                {strings('card.apple_pay_usage.learn_more')}
+              </TextButton>
             )}
           </Box>
         )}
@@ -961,6 +970,8 @@ const CardHome = () => {
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
+            showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+            onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)

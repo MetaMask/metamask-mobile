@@ -13,14 +13,15 @@ Read, in order:
 5. `docs/canonical-read-model-and-api.md` — agreed working direction for public read types and routes.
 6. `docs/ui-components.md` — composition rules for PredictNext core UI work.
 7. `docs/module-structure.md` — feature ownership and public/internal module boundaries.
-8. The Jira issue being implemented.
+8. The Jira issue being implemented. When migrating a caller outside Predict, also read `docs/adr/0002-permanent-public-api-private-legacy.md` and `docs/public-api-contract.md`.
 
 ## Scope
 
 - Build the new architecture for Kalshi first.
-- Keep production Polymarket on the legacy `Predict/` stack.
+- Keep production Polymarket on the legacy `Predict/` stack with unchanged behavior.
 - Do not add Kalshi branches to legacy Predict controllers or providers.
-- Do not create Polymarket adapters, compatibility code, or migration scaffolding until a ticket explicitly starts that work.
+- External callers use the PredictNext public API and never branch on Venue. Its Polymarket branch passes through to legacy code moved as-is. Do not convert legacy Polymarket data into canonical types on the client, and do not expose legacy objects publicly.
+- Do not create Polymarket adapters or migration scaffolding beyond that pass-through until a ticket explicitly starts PRED-1356.
 - Implement only the capabilities required by the current vertical slice. Do not scaffold future services, UI tiers, or optional adapter capabilities.
 
 ## Sources of truth

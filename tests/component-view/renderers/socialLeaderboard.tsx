@@ -237,13 +237,23 @@ export function renderHomeTopTradersSection(
   return result;
 }
 
+/** Second EVM account for onboarding tests that pick a non-default row. */
+export const SECOND_ONBOARDING_EVM_ACCOUNT = {
+  id: 'acc-2',
+  name: 'Account 2',
+  address: '0x0000000000000000000000000000000000000002',
+};
+
 /**
  * Renders profile onboarding with an EVM account that has a native mainnet
  * balance, plus a Solana account. The balance hooks are EVM-only. Onboarding
  * must mount and list only the EVM account.
+ *
+ * Pass `includeSecondEvmAccount` to add a second EVM account after the default.
  */
 export function renderSocialProfileOnboarding(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
+  options: { includeSecondEvmAccount?: boolean } = {},
 ) {
   const state = createStateFixture()
     .withMinimalAccounts()
@@ -271,6 +281,30 @@ export function renderSocialProfileOnboarding(
                   type: SolAccountType.DataAccount,
                   scopes: [SolScope.Mainnet],
                 },
+                ...(options.includeSecondEvmAccount
+                  ? {
+                      [SECOND_ONBOARDING_EVM_ACCOUNT.id]: {
+                        id: SECOND_ONBOARDING_EVM_ACCOUNT.id,
+                        address: SECOND_ONBOARDING_EVM_ACCOUNT.address,
+                        metadata: {
+                          name: SECOND_ONBOARDING_EVM_ACCOUNT.name,
+                          importTime: 2,
+                          keyring: { type: 'HD Key Tree' },
+                        },
+                        options: {},
+                        methods: [
+                          'personal_sign',
+                          'eth_sign',
+                          'eth_signTransaction',
+                          'eth_signTypedData_v1',
+                          'eth_signTypedData_v3',
+                          'eth_signTypedData_v4',
+                        ],
+                        type: 'eip155:eoa',
+                        scopes: ['eip155:0'],
+                      },
+                    }
+                  : {}),
               },
             },
           },

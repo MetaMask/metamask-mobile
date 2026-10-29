@@ -4,6 +4,7 @@ import { Side } from '../types';
 import {
   ensureError,
   isNetworkError,
+  isPredictNoMatchError,
   showDepositErrorToast,
   parseErrorMessage,
   checkPlaceOrderError,
@@ -129,6 +130,34 @@ describe('predictErrorHandler', () => {
     it('returns false for null/undefined', () => {
       expect(isNetworkError(null)).toBe(false);
       expect(isNetworkError(undefined)).toBe(false);
+    });
+  });
+
+  describe('isPredictNoMatchError', () => {
+    it.each([
+      PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK,
+      PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY,
+      PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL,
+      'no order match',
+      'not enough bids to match user share amount',
+    ])('returns true for a no-match error: %s', (message) => {
+      expect(isPredictNoMatchError(new Error(message))).toBe(true);
+      expect(isPredictNoMatchError(message)).toBe(true);
+    });
+
+    it.each([
+      PREDICT_ERROR_CODES.PREVIEW_FAILED,
+      PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+      'net::ERR_CONNECTION_TIMED_OUT',
+      'Some other failure',
+      '',
+    ])('returns false for a non-no-match error: %s', (message) => {
+      expect(isPredictNoMatchError(new Error(message))).toBe(false);
+    });
+
+    it('returns false for null/undefined', () => {
+      expect(isPredictNoMatchError(null)).toBe(false);
+      expect(isPredictNoMatchError(undefined)).toBe(false);
     });
   });
 

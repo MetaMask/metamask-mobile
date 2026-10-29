@@ -3,7 +3,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
 import type { TokenI } from '../../Tokens/types';
-import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
+import {
+  TronSpecialAssetsStatus,
+  type TronSpecialAssetsMap,
+} from '../../../../selectors/assets/assets-list';
 import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 import {
   buildTronEarnTokenIfEligible,
@@ -78,6 +81,7 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 15,
+        status: TronSpecialAssetsStatus.Ready,
         trxReadyForWithdrawal: undefined,
         trxStakingRewards: undefined,
         trxInLockPeriod: undefined,
@@ -114,6 +118,7 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 0,
+        status: TronSpecialAssetsStatus.Ready,
         trxReadyForWithdrawal: undefined,
         trxStakingRewards: undefined,
         trxInLockPeriod: undefined,
@@ -133,6 +138,7 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 1,
+        status: TronSpecialAssetsStatus.Ready,
         trxReadyForWithdrawal: undefined,
         trxStakingRewards: undefined,
         trxInLockPeriod: undefined,

@@ -15,11 +15,13 @@ import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
 import type { TradeAction } from '../../../UI/SocialFeed/utils/tradeAction';
+import { Share } from 'react-native';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../Onboarding/socialLeaderboardOnboardingNavigation', () => ({
   ...jest.requireActual('../Onboarding/socialLeaderboardOnboardingNavigation'),
   isSocialV1Treatment: jest.fn(() => false),
@@ -312,6 +314,7 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
+    selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () =>
       mockSelectSocialLeaderboardPerpsEnabled(),
   }),
@@ -408,6 +411,24 @@ describe('TraderPositionView', () => {
       tokenSymbol: 'PEPE',
       position: makeDefaultPosition(),
     };
+  });
+
+  it('shares the position deeplink from the header', () => {
+    const shareSpy = jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction });
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(shareSpy).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+    });
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'Share position');
   });
 
   it('renders the container with real position data', () => {

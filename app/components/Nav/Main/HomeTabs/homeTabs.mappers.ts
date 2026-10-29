@@ -40,6 +40,7 @@ export const shouldHideRewardsTabBar = (route: HomeTabRoute): boolean => {
   return !(
     !active ||
     active === Routes.REWARDS_DASHBOARD ||
+    active === Routes.REWARDS_MONEY_DASHBOARD ||
     active === Routes.REWARDS_ONBOARDING_FLOW
   );
 };
@@ -61,6 +62,7 @@ export const toJsTabOptions = (
   },
   ...(tab.onLeave ? { onLeave: tab.onLeave } : null),
   ...(tab.isHidden ? { isHidden: true } : null),
+  ...(tab.showNewBadge ? { showNewBadge: true } : null),
   ...(tab.isSelected ? { isSelected: tab.isSelected } : null),
   ...(tab.freezeOnBlur === undefined
     ? null
@@ -70,6 +72,7 @@ export const toJsTabOptions = (
 export const toNativeTabOptions = (
   tab: HomeTabDefinition,
   route?: HomeTabRoute,
+  newBadgeColor?: string,
 ): NativeBottomTabNavigationOptions => {
   const { nativeIcon } = tab;
   const isHidden = route ? (tab.hidesTabBarFor?.(route) ?? false) : false;
@@ -82,6 +85,14 @@ export const toNativeTabOptions = (
             source: focused ? nativeIcon.selectedSource : nativeIcon.source,
             tinted: true,
           }),
+        }
+      : null),
+    ...(tab.showNewBadge
+      ? {
+          tabBarBadge: '',
+          ...(newBadgeColor
+            ? { tabBarBadgeStyle: { backgroundColor: newBadgeColor } }
+            : null),
         }
       : null),
     // Only set when hiding, so the shared style identity survives otherwise.

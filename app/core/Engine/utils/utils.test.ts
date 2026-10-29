@@ -8,24 +8,20 @@ import { preferencesControllerInit } from '../controllers/preferences-controller
 import type { PreferencesControllerWithSavedGasFees } from '../controllers/preferences-controller-types';
 import { createMockMessengerClientInitFunction } from './test-utils';
 import { getMessengerClientOrThrow, initMessengerClients } from './utils';
-import { permissionControllerInit } from '../controllers/permission-controller-init';
-import {
-  CaveatSpecificationConstraint,
-  PermissionController,
-  PermissionSpecificationConstraint,
-} from '@metamask/permission-controller';
+import { analyticsControllerInit } from '../controllers/analytics-controller/analytics-controller-init';
+import type { AnalyticsController } from '@metamask/analytics-controller';
 import { InitMessengerClientsFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Wallet } from '@metamask/wallet';
 
 jest.mock('../controllers/preferences-controller-init');
-jest.mock('../controllers/permission-controller-init');
+jest.mock('../controllers/analytics-controller/analytics-controller-init');
 jest.mock('../controllers/delegation/delegation-controller-init');
 
 describe('initMessengerClients', () => {
   const mockPreferencesControllerInit = jest.mocked(preferencesControllerInit);
-  const mockPermissionControllerInit = jest.mocked(permissionControllerInit);
+  const mockAnalyticsControllerInit = jest.mocked(analyticsControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -35,7 +31,7 @@ describe('initMessengerClients', () => {
         wallet: { getInstance: jest.fn() } as unknown as Wallet,
         initFunctions: {
           PreferencesController: mockPreferencesControllerInit,
-          PermissionController: mockPermissionControllerInit,
+          AnalyticsController: mockAnalyticsControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedMessenger<MockAnyNamespace>({
@@ -63,11 +59,8 @@ describe('initMessengerClients', () => {
     mockPreferencesControllerInit.mockReturnValue({
       controller: {} as unknown as PreferencesControllerWithSavedGasFees,
     });
-    mockPermissionControllerInit.mockReturnValue({
-      controller: {} as unknown as PermissionController<
-        PermissionSpecificationConstraint,
-        CaveatSpecificationConstraint
-      >,
+    mockAnalyticsControllerInit.mockReturnValue({
+      controller: {} as unknown as AnalyticsController,
     });
   });
 
@@ -79,7 +72,7 @@ describe('initMessengerClients', () => {
       controllers.messengerClientsByName.PreferencesController,
     ).toBeDefined();
     expect(
-      controllers.messengerClientsByName.PermissionController,
+      controllers.messengerClientsByName.AnalyticsController,
     ).toBeDefined();
   });
 
@@ -87,10 +80,10 @@ describe('initMessengerClients', () => {
     const request = buildModularizedControllerRequest();
     initMessengerClients(request);
 
-    const permissionControllerInitMessenger =
-      mockPermissionControllerInit.mock.calls[0][0].initMessenger;
+    const analyticsControllerInitMessenger =
+      mockAnalyticsControllerInit.mock.calls[0][0].initMessenger;
 
-    expect(permissionControllerInitMessenger).toBeDefined();
+    expect(analyticsControllerInitMessenger).toBeDefined();
   });
 
   it('throws when controller is not found', async () => {

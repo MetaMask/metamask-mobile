@@ -6,7 +6,11 @@ import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
-import { getFollowTradingHomeRoute } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  getFollowTradingHomeRoute,
+  isSocialV1Treatment,
+} from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -39,6 +43,12 @@ const parseSocialTraderPositionNavigationParams = (
 };
 
 const navigateToFallback = () => {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+  ) {
+    return;
+  }
   NavigationService.navigation.navigate(
     getFollowTradingHomeRoute(),
     undefined,
@@ -46,10 +56,18 @@ const navigateToFallback = () => {
   );
 };
 
+const logPositionQueryInvalidationError = (invalidationError: unknown) => {
+  DevLogger.log(
+    '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
+    invalidationError,
+  );
+};
+
 /**
  * Handles notification-approved TraderPosition deeplinks.
  *
- * Supported URL format:
+ * Supported URL formats:
+ * - https://link.metamask.io/social/profile/position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  */
 export const handleSocialTraderPositionUrl = ({
@@ -88,22 +106,19 @@ export const handleSocialTraderPositionUrl = ({
     }
 
     // Defense-in-depth: invalidate cached positions for this trader so the
-    // profile view fetches fresh data the next time it mounts. Failures
-    // here must not block navigation.
-    try {
-      const fetchOptions = { addressOrId: traderId };
-      ReactQueryService.queryClient.invalidateQueries({
+    // profile view fetches fresh data the next time it mounts. Rejections
+    // are logged and do not block navigation.
+    const fetchOptions = { addressOrId: traderId };
+    void ReactQueryService.queryClient
+      .invalidateQueries({
         queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
-      });
-      ReactQueryService.queryClient.invalidateQueries({
+      })
+      .catch(logPositionQueryInvalidationError);
+    void ReactQueryService.queryClient
+      .invalidateQueries({
         queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
-      });
-    } catch (invalidationError) {
-      DevLogger.log(
-        '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
-        invalidationError,
-      );
-    }
+      })
+      .catch(logPositionQueryInvalidationError);
 
     if (notificationSubtype !== undefined) {
       const event = AnalyticsEventBuilder.createEventBuilder(
@@ -121,13 +136,23 @@ export const handleSocialTraderPositionUrl = ({
       analytics.trackEvent(event);
     }
 
+    const openedFromNotification = notificationSubtype !== undefined;
+
+    const isV1Treatment = isSocialV1Treatment();
+    if (
+      isV1Treatment &&
+      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+    ) {
+      return;
+    }
     NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
       positionId,
       traderId,
-      source: 'notification',
-      originalEntryPoint: 'notification',
+      source: openedFromNotification ? 'notification' : 'deep_link',
+      originalEntryPoint: openedFromNotification ? 'notification' : 'deep_link',
       notificationSubtype,
       notificationTemplateVariant,
+      isSocialV1: isV1Treatment,
     });
   } catch (error) {
     DevLogger.log(

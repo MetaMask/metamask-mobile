@@ -99,6 +99,8 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
+Before the first edit on any change, follow `mms-planning` and do what it decides.
+
 **Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set, whose base skills `yarn install` installs for you (Cursor / Codex / Claude harnesses); `yarn skills` adds every domain:
 
 | Guide                                                                                      | Scope                                                                        |
@@ -131,7 +133,7 @@ See detailed setup documentation:
 - **Native development**: [docs/readme/environment.md](./docs/readme/environment.md)
 - **Infura & Firebase**: [README.md](./README.md#getting-started)
 
-**Required Tools**: Node.js ^24.16.0 • Yarn ^4.14.1 • Watchman
+**Required Tools**: Node.js ^24.22.1 • Yarn ^4.14.1 • Watchman
 
 ### AI Tooling — Developer Usage Collection
 

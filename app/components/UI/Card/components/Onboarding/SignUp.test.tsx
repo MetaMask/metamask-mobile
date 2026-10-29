@@ -16,6 +16,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 import { CardActions, CardFlow, CardScreens } from '../../util/metrics';
+import en from '../../../../../../locales/languages/en.json';
 
 const mockUseCardPostAuthRedirect = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -206,6 +207,8 @@ const mockGetFundingSources = jest.fn();
 const mockGetResumeCardInfo = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
 const mockPatchContactDetails = jest.fn();
+const mockRecordProviderOnboardingStarted = jest.fn();
+const mockRecordCardActivated = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -226,6 +229,10 @@ jest.mock('../../../../../core/Engine', () => ({
         mockGetSpendingPrerequisites(...args),
       patchContactDetails: (...args: unknown[]) =>
         mockPatchContactDetails(...args),
+      recordProviderOnboardingStarted: (...args: unknown[]) =>
+        mockRecordProviderOnboardingStarted(...args),
+      recordCardActivated: (...args: unknown[]) =>
+        mockRecordCardActivated(...args),
     },
   },
 }));
@@ -379,6 +386,8 @@ describe('SignUp Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
+    mockRecordCardActivated.mockResolvedValue(undefined);
     capturedOnValueChange = null;
     mockUseRoute.mockReturnValue({ params: undefined });
     mockGetUserDetails.mockReset();
@@ -1182,8 +1191,9 @@ describe('SignUp Component', () => {
     });
 
     // Unit fallback: SignUp has no *.view.test.tsx; this file already renders
-    // the screen with mocked hooks/selectors. Locks the shared description key.
-    it('uses the provider-agnostic sign-up description for Immersve countries', () => {
+    // the screen with mocked hooks/selectors. Title and description stay on
+    // the shared keys for Baanx and Immersve.
+    it('uses the shared sign-up title and description for Immersve countries', () => {
       const { selectCardImmersveEnabled } = jest.requireMock(
         '../../../../../selectors/featureFlagController/card',
       );
@@ -1197,12 +1207,77 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
+      expect(getByTestId('onboarding-step-title')).toHaveTextContent(
+        'card.card_onboarding.sign_up.title',
+      );
       expect(getByTestId('onboarding-step-description')).toHaveTextContent(
         'card.card_onboarding.sign_up.description',
       );
       expect(
+        queryByText('card.card_onboarding.sign_up.title_immersve'),
+      ).not.toBeOnTheScreen();
+      expect(
         queryByText('card.card_onboarding.sign_up.description_immersve'),
       ).not.toBeOnTheScreen();
+    });
+
+    it('renders Immersve-only field labels on the signup screen', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+
+      const { getByText, getByTestId, queryByText } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(
+        getByText('card.card_onboarding.sign_up.email_label'),
+      ).toBeOnTheScreen();
+      expect(
+        getByText('card.card_onboarding.sign_up.phone_number_label_immersve'),
+      ).toBeOnTheScreen();
+      expect(
+        getByText('card.card_onboarding.sign_up.account_label_immersve'),
+      ).toBeOnTheScreen();
+      expect(
+        getByText('card.card_onboarding.sign_up.account_description_immersve'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('signup-i-already-have-an-account-text'),
+      ).toHaveTextContent(
+        'card.card_onboarding.sign_up.i_already_have_an_account_immersve',
+      );
+      expect(
+        queryByText('card.card_onboarding.set_phone_number.phone_number_label'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the Figma signup copy on the shared English strings', () => {
+      const { sign_up: signUp, set_phone_number: setPhoneNumber } =
+        en.card.card_onboarding;
+
+      expect(signUp.title).toBe('Set up your MetaMask Card');
+      expect(signUp.description).toBe(
+        'We need a few details to get your card ready.',
+      );
+      expect(signUp.email_label).toBe('Email');
+      expect(signUp.phone_number_label_immersve).toBe('Phone number');
+      expect(signUp.account_label_immersve).toBe('Spending account');
+      expect(signUp.account_description_immersve).toBe(
+        'Card purchases will come from this account.',
+      );
+      expect(signUp.i_already_have_an_account_immersve).toBe(
+        'I already have a MetaMask Card',
+      );
+      expect(signUp.clickwrap_prefix).toBe(
+        'By pressing "Next", you accept Immersve\'s ',
+      );
+      expect(setPhoneNumber.phone_number_label).toBe('Enter phone number');
     });
 
     const enableImmersve = () => {

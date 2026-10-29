@@ -11,6 +11,7 @@ import {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  listCompletedAnalysisRuns,
   loadCollectedReports,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,
@@ -24,6 +25,8 @@ import {
   findSkillAnalyzer,
   runSkillAnalyzer,
   parseProfileFileName,
+  HERMES_PROFILE_ARTIFACT_PATTERN,
+  RAW_RESULTS_ARTIFACT_PATTERN,
   summarizeHermesProfile,
   groupProfiles,
   buildAiBriefing,
@@ -40,7 +43,7 @@ import {
 import {
   collectHermesCpuProfiles,
   findHermesCpuProfileFiles,
-} from '../../../../tests/scripts/aggregate-performance-reports.mjs';
+} from './aggregate-performance-reports.mjs';
 
 function profile(fileName, overrides = {}) {
   const parsed = parseProfileFileName(fileName);
@@ -95,6 +98,27 @@ test('parseArgs supports weekly, collection and scheduled exception modes', () =
     parseArgs(['--scheduled-exception', '--skip-ai', '--run', '100']).skipAi,
     true,
   );
+});
+
+test('weekly --github-issues lists issues and does not open or comment', () => {
+  const source = fs.readFileSync(
+    new URL('./analyze-app-profiling.mjs', import.meta.url),
+    'utf8',
+  );
+  const mainStart = source.indexOf('async function main(');
+  const scheduledStart = source.indexOf(
+    'async function runScheduledExceptionAnalysis',
+  );
+  const weeklyStart = source.indexOf('async function runWeeklyAnalysis');
+  const weeklyEnd = source.indexOf('\nif (import.meta.url');
+  const dispatch = source.slice(mainStart, scheduledStart);
+  const weekly = source.slice(weeklyStart, weeklyEnd);
+
+  assert.match(dispatch, /if \(args\.weekly\) \{[\s\S]*?return;/);
+  assert.match(weekly, /loadWeeklyIssues\(/);
+  assert.equal(weekly.includes('syncProfilingRegressionIssues('), false);
+  assert.equal(weekly.includes("issue', 'create'"), false);
+  assert.equal(weekly.includes("issue', 'comment'"), false);
 });
 
 test('resolveRunsInRange keeps a half-open scheduled window', () => {
@@ -280,6 +304,90 @@ test('the newest analysis of a run wins over an older one', () => {
   assert.equal(collected.size, 1);
 });
 
+test('collects chained analyses from performance runs and standalone ones', () => {
+  const calls = [];
+  const runsByWorkflow = {
+    'analyze-app-profiling.yml': [
+      { databaseId: 10, status: 'completed', conclusion: 'success', createdAt: '2026-09-18T12:00:00Z' },
+    ],
+    'run-performance-e2e-manual.yml': [
+      { databaseId: 30, status: 'completed', conclusion: 'failure', createdAt: '2026-09-19T12:00:00Z' },
+      { databaseId: 20, status: 'completed', conclusion: 'success', createdAt: '2026-09-17T12:00:00Z' },
+    ],
+  };
+
+  const runs = listCompletedAnalysisRuns('MetaMask/metamask-mobile', {
+    listRuns: (repo, workflow, branch = null) => {
+      calls.push({ repo, workflow, branch });
+      return runsByWorkflow[workflow];
+    },
+  });
+
+  assert.deepEqual(calls, [
+    { repo: 'MetaMask/metamask-mobile', workflow: 'analyze-app-profiling.yml', branch: null },
+    { repo: 'MetaMask/metamask-mobile', workflow: 'run-performance-e2e-manual.yml', branch: 'main' },
+  ]);
+  // Newest first across both workflows.
+  assert.deepEqual(
+    runs.map((run) => [run.databaseId, run.requiresSuccess]),
+    [
+      [30, false],
+      [10, true],
+      [20, false],
+    ],
+  );
+});
+
+test('a failed performance run still provides its chained report', () => {
+  const analysisRuns = [
+    // A flaky scenario failed the performance run after its report uploaded.
+    { databaseId: 30, status: 'completed', conclusion: 'failure', createdAt: '2026-09-19T12:00:00Z', requiresSuccess: false },
+    { databaseId: 25, status: 'in_progress', conclusion: '', createdAt: '2026-09-19T18:00:00Z', requiresSuccess: false },
+    { databaseId: 20, status: 'completed', conclusion: 'failure', createdAt: '2026-09-18T12:00:00Z', requiresSuccess: true },
+  ];
+  const reports = {
+    30: { meta: { runId: '30' }, scenarios: [] },
+    25: { meta: { runId: '25' }, scenarios: [] },
+    20: { meta: { runId: '700' }, scenarios: [] },
+  };
+
+  const collected = loadCollectedReports(
+    'MetaMask/metamask-mobile',
+    '2026-09-14T00:00:00.000Z',
+    '2026-09-21T00:00:00.000Z',
+    {
+      listAnalysisRuns: () => analysisRuns,
+      readReport: (_repo, runId) => reports[runId] || null,
+    },
+  );
+
+  assert.deepEqual([...collected.keys()], ['30']);
+});
+
+test('a standalone re-analysis wins over the chained report of the same run', () => {
+  const analysisRuns = [
+    { databaseId: 500, status: 'completed', conclusion: 'success', createdAt: '2026-09-19T14:00:00Z', requiresSuccess: true },
+    { databaseId: 30, status: 'completed', conclusion: 'success', createdAt: '2026-09-19T12:00:00Z', requiresSuccess: false },
+  ];
+  const reports = {
+    500: { meta: { runId: '30', analysis: 're-run' }, scenarios: [] },
+    30: { meta: { runId: '30', analysis: 'chained' }, scenarios: [] },
+  };
+
+  const collected = loadCollectedReports(
+    'MetaMask/metamask-mobile',
+    '2026-09-14T00:00:00.000Z',
+    '2026-09-21T00:00:00.000Z',
+    {
+      listAnalysisRuns: () => analysisRuns,
+      readReport: (_repo, runId) => reports[runId] || null,
+    },
+  );
+
+  assert.equal(collected.get('30').meta.analysis, 're-run');
+  assert.equal(collected.size, 1);
+});
+
 test('reportsForRuns keeps the week when one run lost its artifacts', async () => {
   const outputDirectory = fs.mkdtempSync(
     path.join(os.tmpdir(), 'weekly-reports-'),
@@ -440,7 +548,7 @@ test('findHermesProfiles excludes hashed Playwright attachment copies', () => {
   const named = path.join(root, 'reports', 'hermes-cpuprofiles');
   const dedicated = path.join(
     root,
-    'hermes-cpuprofiles-android-imported-wallet-Pixel-14',
+    'testmu-he-hermes-cpuprofiles-android-imported-wallet-Pixel-14',
   );
   const hashed = path.join(root, 'playwright-report', 'data');
   fs.mkdirSync(named, { recursive: true });
@@ -590,20 +698,20 @@ test('selectSourcemap keeps onboarding and imported-wallet variants separate', (
   assert.equal(sourcemapVariant(maps[1]), 'without-srp');
   assert.equal(
     profileSourcemapVariant(
-      '/profiles/browserstack-android-Warm_Start.cpuprofile',
+      '/profiles/testmu-android-Warm_Start.cpuprofile',
     ),
     'with-srp',
   );
   assert.equal(
     selectSourcemap(
-      '/profiles/android-onboarding-Cold_Start.cpuprofile',
+      '/profiles/testmu-android-onboarding-Cold_Start.cpuprofile',
       maps,
     ),
     maps[1],
   );
   assert.equal(
     selectSourcemap(
-      '/profiles/browserstack-android-Warm_Start.cpuprofile',
+      '/profiles/testmu-android-Warm_Start.cpuprofile',
       maps,
     ),
     maps[0],
@@ -613,7 +721,7 @@ test('selectSourcemap keeps onboarding and imported-wallet variants separate', (
 test('selectSourcemap rejects ambiguous matching maps', () => {
   assert.equal(
     selectSourcemap(
-      '/profiles/browserstack-android-Warm_Start.cpuprofile',
+      '/profiles/testmu-android-Warm_Start.cpuprofile',
       [
         '/maps/one/index.android.bundle.with-srp.map',
         '/maps/two/index.android.bundle.with-srp.map',
@@ -676,11 +784,11 @@ test('convertProfile symbolicates locally without React Native CLI config', asyn
 test('parseProfileFileName treats plain file as logical segment 1', () => {
   assert.deepEqual(
     parseProfileFileName(
-      'browserstack-android-Cold_Start__Login.cpuprofile',
+      'testmu-android-Cold_Start__Login.cpuprofile',
     ),
     {
-      fileName: 'browserstack-android-Cold_Start__Login.cpuprofile',
-      project: 'browserstack-android',
+      fileName: 'testmu-android-Cold_Start__Login.cpuprofile',
+      project: 'testmu-android',
       scenario: 'Cold_Start__Login',
       retry: 0,
       segment: 1,
@@ -691,7 +799,7 @@ test('parseProfileFileName treats plain file as logical segment 1', () => {
 
 test('parseProfileFileName reads retry and segment numbers', () => {
   const parsed = parseProfileFileName(
-    'browserstack-android-Warm_Start.retry-2.segment-3.cpuprofile',
+    'testmu-android-Warm_Start.retry-2.segment-3.cpuprofile',
   );
   assert.equal(parsed.retry, 2);
   assert.equal(parsed.segment, 3);
@@ -760,9 +868,9 @@ test('inclusive frame percentages deduplicate recursion within one sample', () =
 
 test('groupProfiles combines logical segment 1 through N into one scenario', () => {
   const grouped = groupProfiles([
-    profile('browserstack-android-Cold_Start.cpuprofile'),
-    profile('browserstack-android-Cold_Start.segment-2.cpuprofile'),
-    profile('browserstack-android-Cold_Start.segment-3.cpuprofile'),
+    profile('testmu-android-Cold_Start.cpuprofile'),
+    profile('testmu-android-Cold_Start.segment-2.cpuprofile'),
+    profile('testmu-android-Cold_Start.segment-3.cpuprofile'),
   ]);
   assert.equal(grouped.length, 1);
   assert.equal(grouped[0].profileCount, 3);
@@ -776,21 +884,21 @@ test('groupProfiles combines logical segment 1 through N into one scenario', () 
 
 test('groupProfiles keeps retries in the same scenario with locations', () => {
   const grouped = groupProfiles([
-    profile('browserstack-android-Warm_Start.cpuprofile', {
+    profile('testmu-android-Warm_Start.cpuprofile', {
       skillAudit: {
         jsWorkMs: 10,
         topSwapsFrames: [],
         topNonSwapsFrames: [],
       },
     }),
-    profile('browserstack-android-Warm_Start.retry-1.cpuprofile', {
+    profile('testmu-android-Warm_Start.retry-1.cpuprofile', {
       skillAudit: {
         jsWorkMs: 20,
         topSwapsFrames: [],
         topNonSwapsFrames: [],
       },
     }),
-    profile('browserstack-android-Warm_Start.retry-1.segment-2.cpuprofile', {
+    profile('testmu-android-Warm_Start.retry-1.segment-2.cpuprofile', {
       skillAudit: {
         jsWorkMs: 20,
         topSwapsFrames: [],
@@ -814,7 +922,7 @@ test('groupProfiles keeps retries in the same scenario with locations', () => {
 
 test('groupProfiles uses only the worst retry across its segments', () => {
   const grouped = groupProfiles([
-    profile('browserstack-android-Warm_Start.cpuprofile', {
+    profile('testmu-android-Warm_Start.cpuprofile', {
       skillAudit: {
         captureLengthMs: 100,
         jsWorkMs: 40,
@@ -823,7 +931,7 @@ test('groupProfiles uses only the worst retry across its segments', () => {
         topNonSwapsFrames: [],
       },
     }),
-    profile('browserstack-android-Warm_Start.retry-1.cpuprofile', {
+    profile('testmu-android-Warm_Start.retry-1.cpuprofile', {
       skillAudit: {
         captureLengthMs: 100,
         jsWorkMs: 20,
@@ -842,8 +950,8 @@ test('groupProfiles uses only the worst retry across its segments', () => {
 test('scenario filter matches sanitized Hermes name', () => {
   const grouped = groupProfiles(
     [
-      profile('browserstack-android-Cold_Start.cpuprofile'),
-      profile('browserstack-android-Warm_Start.cpuprofile'),
+      profile('testmu-android-Cold_Start.cpuprofile'),
+      profile('testmu-android-Warm_Start.cpuprofile'),
     ],
     'Cold Start',
   );
@@ -851,7 +959,7 @@ test('scenario filter matches sanitized Hermes name', () => {
   assert.equal(grouped[0].scenario, 'Cold_Start');
 });
 
-test('reports explicitly state that BrowserStack metrics are excluded', () => {
+test('reports explicitly state that TestMu metrics are excluded', () => {
   const report = {
     meta: {
       runId: '1',
@@ -861,7 +969,7 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
       ai: false,
     },
     scenarios: groupProfiles([
-      profile('browserstack-android-Cold_Start.cpuprofile'),
+      profile('testmu-android-Cold_Start.cpuprofile'),
     ]),
     aiAnalysis: null,
   };
@@ -885,7 +993,7 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
   );
   assert.match(buildAiBriefing(report), /Do not state totals such as how many/);
   assert.doesNotMatch(buildAiBriefing(report), /add one factual caveat line/);
-  assert.match(buildMarkdown(report), /BrowserStack app-profiling metrics are excluded/);
+  assert.match(buildMarkdown(report), /TestMu app-profiling metrics are excluded/);
   assert.match(buildMarkdown(report), /Per-scenario skill analysis/);
   assert.match(buildMarkdown(report), /JS duty cycle/);
   assert.match(buildSlack(report), /Hermes CPU sampling only/);
@@ -896,7 +1004,7 @@ test('reports mention a retry only when the scenario had several attempts', () =
   const singleAttempt = {
     meta: { profileCount: 1, symbolicatedProfileCount: 0, ai: false },
     scenarios: groupProfiles([
-      profile('browserstack-android-Cold_Start.cpuprofile'),
+      profile('testmu-android-Cold_Start.cpuprofile'),
     ]),
     aiAnalysis: null,
   };
@@ -910,7 +1018,7 @@ test('reports mention a retry only when the scenario had several attempts', () =
   const withRetries = {
     meta: { profileCount: 2, symbolicatedProfileCount: 0, ai: false },
     scenarios: groupProfiles([
-      profile('browserstack-android-Warm_Start.cpuprofile', {
+      profile('testmu-android-Warm_Start.cpuprofile', {
         skillAudit: {
           jsWorkMs: 10,
           runtimeAndIdleMs: 10,
@@ -918,7 +1026,7 @@ test('reports mention a retry only when the scenario had several attempts', () =
           topNonSwapsFrames: [],
         },
       }),
-      profile('browserstack-android-Warm_Start.retry-1.cpuprofile', {
+      profile('testmu-android-Warm_Start.retry-1.cpuprofile', {
         skillAudit: {
           jsWorkMs: 30,
           runtimeAndIdleMs: 10,
@@ -940,8 +1048,8 @@ test('Slack keeps sourcemaps as a caveat and does not lead with a disclaimer', (
   const report = {
     meta: { runId: '1', profileCount: 2, symbolicatedProfileCount: 0, ai: false },
     scenarios: groupProfiles([
-      profile('browserstack-android-Cold_Start.cpuprofile'),
-      profile('android-onboarding-Fresh_Install.cpuprofile'),
+      profile('testmu-android-Cold_Start.cpuprofile'),
+      profile('testmu-android-onboarding-Fresh_Install.cpuprofile'),
     ]),
     aiAnalysis: null,
   };
@@ -959,7 +1067,7 @@ test('Slack omits the sourcemap caveat once every profile is symbolicated', () =
   const report = {
     meta: { runId: '1', profileCount: 1, symbolicatedProfileCount: 1, ai: false },
     scenarios: groupProfiles([
-      profile('browserstack-android-Cold_Start.cpuprofile', {
+      profile('testmu-android-Cold_Start.cpuprofile', {
         symbolicated: true,
       }),
     ]),
@@ -980,7 +1088,7 @@ test('Slack keeps the full Notes block and links the analysis artifact', () => {
         'https://github.com/MetaMask/metamask-mobile/actions/runs/88#artifacts',
     },
     scenarios: groupProfiles([
-      profile('browserstack-android-Cold_Start.cpuprofile', {
+      profile('testmu-android-Cold_Start.cpuprofile', {
         symbolicated: true,
       }),
     ]),
@@ -1003,11 +1111,11 @@ test('writeScenarioArtifacts packages every segment and retry by scenario', () =
   fs.mkdirSync(raw);
   const firstPath = path.join(
     raw,
-    'browserstack-android-Perps.cpuprofile',
+    'testmu-android-Perps.cpuprofile',
   );
   const retryPath = path.join(
     raw,
-    'browserstack-android-Perps.retry-1.cpuprofile',
+    'testmu-android-Perps.retry-1.cpuprofile',
   );
   fs.writeFileSync(firstPath, '{"first":true}');
   fs.writeFileSync(retryPath, '{"retry":true}');
@@ -1056,7 +1164,7 @@ test('a worst first attempt is never labelled retry 0', () => {
   const report = {
     meta: { profileCount: 2, symbolicatedProfileCount: 0, ai: false },
     scenarios: groupProfiles([
-      profile('browserstack-android-Warm_Start.cpuprofile', {
+      profile('testmu-android-Warm_Start.cpuprofile', {
         skillAudit: {
           jsWorkMs: 40,
           runtimeAndIdleMs: 10,
@@ -1064,7 +1172,7 @@ test('a worst first attempt is never labelled retry 0', () => {
           topNonSwapsFrames: [],
         },
       }),
-      profile('browserstack-android-Warm_Start.retry-1.cpuprofile', {
+      profile('testmu-android-Warm_Start.retry-1.cpuprofile', {
         skillAudit: {
           jsWorkMs: 5,
           runtimeAndIdleMs: 10,
@@ -1090,7 +1198,7 @@ test('Slack suppresses frames below five percent of JS work', () => {
       ai: false,
     },
     scenarios: groupProfiles([
-      profile('browserstack-android-Cold_Start.cpuprofile', {
+      profile('testmu-android-Cold_Start.cpuprofile', {
         skillAudit: {
           captureLengthMs: 100,
           jsWorkMs: 60,
@@ -1114,11 +1222,11 @@ test('Slack conclusions name a repeated frame once instead of listing every scen
     line: 39,
   };
   const files = [
-    'browserstack-android-Asset_View.cpuprofile',
-    'browserstack-android-Swap_flow.cpuprofile',
-    'browserstack-android-Predict_Deposit.cpuprofile',
-    'browserstack-android-Perps_add_funds.cpuprofile',
-    'browserstack-android-Money_Home_empty.cpuprofile',
+    'testmu-android-Asset_View.cpuprofile',
+    'testmu-android-Swap_flow.cpuprofile',
+    'testmu-android-Predict_Deposit.cpuprofile',
+    'testmu-android-Perps_add_funds.cpuprofile',
+    'testmu-android-Money_Home_empty.cpuprofile',
   ];
   const profiles = files.map((fileName, index) =>
     profile(fileName, {
@@ -1138,7 +1246,7 @@ test('Slack conclusions name a repeated frame once instead of listing every scen
     }),
   );
   profiles.push(
-    profile('browserstack-android-Aggregated_Balance.cpuprofile', {
+    profile('testmu-android-Aggregated_Balance.cpuprofile', {
       symbolicated: true,
       skillAudit: {
         captureLengthMs: 38000,
@@ -1157,7 +1265,7 @@ test('Slack conclusions name a repeated frame once instead of listing every scen
     }),
   );
   profiles.push(
-    profile('android-onboarding-Cold_Start_To_Onboarding.cpuprofile', {
+    profile('testmu-android-onboarding-Cold_Start_To_Onboarding.cpuprofile', {
       symbolicated: true,
       skillAudit: {
         captureLengthMs: 17000,
@@ -1197,7 +1305,7 @@ test('Slack conclusions name a repeated frame once instead of listing every scen
 
 test('conclusions still name the leading hotspot when it is not dominant', () => {
   const profiles = [
-    profile('browserstack-android-Wallet.cpuprofile', {
+    profile('testmu-android-Wallet.cpuprofile', {
       skillAudit: {
         captureLengthMs: 40000,
         jsWorkMs: 20000,
@@ -1206,7 +1314,7 @@ test('conclusions still name the leading hotspot when it is not dominant', () =>
         topNonSwapsFrames: [{ name: 'mod', selfMs: 4000 }],
       },
     }),
-    profile('browserstack-android-Send.cpuprofile', {
+    profile('testmu-android-Send.cpuprofile', {
       skillAudit: {
         captureLengthMs: 35000,
         jsWorkMs: 18000,
@@ -1215,7 +1323,7 @@ test('conclusions still name the leading hotspot when it is not dominant', () =>
         topNonSwapsFrames: [{ name: 'mod', selfMs: 3500 }],
       },
     }),
-    profile('browserstack-android-Perps.cpuprofile', {
+    profile('testmu-android-Perps.cpuprofile', {
       skillAudit: {
         captureLengthMs: 50000,
         jsWorkMs: 30000,
@@ -1224,7 +1332,7 @@ test('conclusions still name the leading hotspot when it is not dominant', () =>
         topNonSwapsFrames: [{ name: 'isPropertyEqual', selfMs: 2100 }],
       },
     }),
-    profile('browserstack-android-Swap.cpuprofile', {
+    profile('testmu-android-Swap.cpuprofile', {
       skillAudit: {
         captureLengthMs: 22000,
         jsWorkMs: 12000,
@@ -1251,7 +1359,7 @@ function windowScenario(
   { jsWorkMs, runtimeAndIdleMs = 100, frames = [] },
 ) {
   return groupProfiles([
-    profile(`browserstack-android-${name}.cpuprofile`, {
+    profile(`testmu-android-${name}.cpuprofile`, {
       skillAudit: {
         captureLengthMs: jsWorkMs + runtimeAndIdleMs,
         jsWorkMs,
@@ -1366,7 +1474,7 @@ test('median takes the middle value and averages an even sample', () => {
 
 test('scenarioFrameTotals sums frame self time across segments', () => {
   const scenario = groupProfiles([
-    profile('browserstack-android-Perps.cpuprofile', {
+    profile('testmu-android-Perps.cpuprofile', {
       skillAudit: {
         jsWorkMs: 50,
         runtimeAndIdleMs: 50,
@@ -1374,7 +1482,7 @@ test('scenarioFrameTotals sums frame self time across segments', () => {
         topNonSwapsFrames: [{ name: 'formatDate', selfMs: 20, calls: 2 }],
       },
     }),
-    profile('browserstack-android-Perps.segment-2.cpuprofile', {
+    profile('testmu-android-Perps.segment-2.cpuprofile', {
       skillAudit: {
         jsWorkMs: 50,
         runtimeAndIdleMs: 50,
@@ -1456,7 +1564,7 @@ test('window digest drops frames that were hot in only one run', () => {
 
 test('window shares divide by the same JS work the frames were summed over', () => {
   const twoSegments = groupProfiles([
-    profile('browserstack-android-Perps.cpuprofile', {
+    profile('testmu-android-Perps.cpuprofile', {
       skillAudit: {
         jsWorkMs: 100,
         runtimeAndIdleMs: 100,
@@ -1464,7 +1572,7 @@ test('window shares divide by the same JS work the frames were summed over', () 
         topNonSwapsFrames: [{ name: 'formatDate', selfMs: 10 }],
       },
     }),
-    profile('browserstack-android-Perps.segment-2.cpuprofile', {
+    profile('testmu-android-Perps.segment-2.cpuprofile', {
       skillAudit: {
         jsWorkMs: 100,
         runtimeAndIdleMs: 100,
@@ -1542,5 +1650,77 @@ test('window markdown lists every run and its per-run numbers', () => {
   assert.match(markdown, /## Runs analyzed/);
   assert.match(markdown, /Median JS work per run \| 120\.0 ms/);
   assert.match(markdown, /Runs observed \| 3\/3/);
-  assert.match(markdown, /BrowserStack app-profiling metrics are excluded/);
+  assert.match(markdown, /TestMu app-profiling metrics are excluded/);
+});
+
+test('findHermesProfiles reads profiles from TestMu artifact directories', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-testmu-find-'));
+  const artifact = path.join(
+    root,
+    'testmu-he-hermes-cpuprofiles-android-onboarding-flow-Pixel_8_Pro-14.0',
+  );
+  const unrelated = path.join(root, 'testmu-he-android-onboarding-test-results-x');
+  fs.mkdirSync(artifact, { recursive: true });
+  fs.mkdirSync(unrelated, { recursive: true });
+  const profile = path.join(
+    artifact,
+    'testmu-android-onboarding-Fresh_SRP.cpuprofile',
+  );
+  fs.writeFileSync(profile, '{}');
+  fs.writeFileSync(path.join(unrelated, 'stray.cpuprofile'), '{}');
+
+  assert.deepEqual(findHermesProfiles(root), [profile]);
+});
+
+test('parseProfileFileName recognizes the TestMu Playwright projects', () => {
+  const cases = [
+    ['testmu-android-Asset_View.cpuprofile', 'testmu-android', 'Asset_View'],
+    [
+      'testmu-android-onboarding-Fresh_SRP.cpuprofile',
+      'testmu-android-onboarding',
+      'Fresh_SRP',
+    ],
+    [
+      'testmu-android-onboarding-seedless-Apple_Login.cpuprofile',
+      'testmu-android-onboarding-seedless',
+      'Apple_Login',
+    ],
+  ];
+
+  for (const [fileName, project, scenario] of cases) {
+    const parsed = parseProfileFileName(fileName);
+    assert.equal(parsed.project, project, fileName);
+    assert.equal(parsed.scenario, scenario, fileName);
+  }
+});
+
+test('parseProfileFileName no longer maps BrowserStack project names', () => {
+  assert.equal(
+    parseProfileFileName('browserstack-android-Cold_Start.cpuprofile').project,
+    'unknown-project',
+  );
+});
+
+test('profileSourcemapVariant maps TestMu projects to the matching build', () => {
+  assert.equal(
+    profileSourcemapVariant('/p/testmu-android-Warm_Start.cpuprofile'),
+    'with-srp',
+  );
+  assert.equal(
+    profileSourcemapVariant('/p/testmu-android-onboarding-Cold.cpuprofile'),
+    'without-srp',
+  );
+  assert.equal(
+    profileSourcemapVariant('/p/testmu-android-onboarding-seedless-A.cpuprofile'),
+    'without-srp',
+  );
+  assert.equal(
+    profileSourcemapVariant('/p/browserstack-android-Warm_Start.cpuprofile'),
+    null,
+  );
+});
+
+test('profile artifacts are downloaded from the TestMu runner names only', () => {
+  assert.equal(HERMES_PROFILE_ARTIFACT_PATTERN, 'testmu-he-hermes-cpuprofiles-*');
+  assert.equal(RAW_RESULTS_ARTIFACT_PATTERN, 'testmu-he-*-test-results-*');
 });

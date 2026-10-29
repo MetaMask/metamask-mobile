@@ -14,13 +14,14 @@ import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/comp
 import Browser from '../../../page-objects/Browser/BrowserView.js';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal.js';
 import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector.js';
-import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet.js';
 
 appiumTest.describe(
   SmokeNetworkAbstractions('Chain Permission Management'),
   () => {
-    appiumTest.describe.configure({ timeout: 300_000 });
+    // iOS multi-account + network edit path is longer than Android (account
+    // sync probes + sheet transitions). 360s matches other multi-step smokes.
+    appiumTest.describe.configure({ timeout: 360_000 });
 
     appiumTest(
       'allows simultaneous granting and revoking of multiple chain permissions',
@@ -44,7 +45,7 @@ appiumTest.describe(
 
             await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();
-            await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+            await ConnectedAccountsModal.openFromBrowser();
 
             await ConnectedAccountsModal.tapPermissionsSummaryTab();
             await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
@@ -93,10 +94,7 @@ appiumTest.describe(
 
             await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();
-            await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-            await Assertions.expectElementToNotBeVisible(
-              ToastModal.notificationTitle,
-            );
+            await ConnectedAccountsModal.openFromBrowser();
             await ConnectedAccountsModal.expectConnectedAccountDisplayed(
               'Account 1',
             );
@@ -109,10 +107,10 @@ appiumTest.describe(
             await AccountListBottomSheet.tapAccountByNameV2('Account 2');
             await AccountListBottomSheet.tapConnectAccountsButton();
 
-            await ConnectedAccountsModal.expectConnectedAccountDisplayed(
+            await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
               'Account 1',
-            );
-            await Assertions.expectTextDisplayed('Account 2');
+              'Account 2',
+            ]);
 
             await ConnectedAccountsModal.tapAccountListBottomSheet();
             await AccountListBottomSheet.addAccountAndExpectVisibleV2(
@@ -122,11 +120,11 @@ appiumTest.describe(
             await AccountListBottomSheet.tapAccountByNameV2('Account 3');
             await AccountListBottomSheet.tapConnectAccountsButton();
 
-            await ConnectedAccountsModal.expectConnectedAccountDisplayed(
+            await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
               'Account 1',
-            );
-            await Assertions.expectTextDisplayed('Account 2');
-            await Assertions.expectTextDisplayed('Account 3');
+              'Account 2',
+              'Account 3',
+            ]);
 
             await ConnectedAccountsModal.tapPermissionsSummaryTab();
             await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();

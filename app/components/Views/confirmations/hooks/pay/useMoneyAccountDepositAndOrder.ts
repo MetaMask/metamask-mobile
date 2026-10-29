@@ -41,13 +41,13 @@ export function useMoneyAccountDepositAndOrder({
   useDefaultPaySelectedSection({ disable });
 
   const { payToken, setPayToken } = useTransactionPayToken();
-  const { hasTokens } = useTransactionPayAvailableTokens();
+  const { availableTokens } = useTransactionPayAvailableTokens();
   const fiatPayment = useTransactionPayFiatPayment();
 
   useAutomaticMoneyAccountPayToken({
+    availableTokens,
     disable,
     hasFiatPaymentSelected: Boolean(fiatPayment?.selectedPaymentMethodId),
-    hasTokenBalance: hasTokens,
     payTokenSelected: Boolean(payToken),
   });
 

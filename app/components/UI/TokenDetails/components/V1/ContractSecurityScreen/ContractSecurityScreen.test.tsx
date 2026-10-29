@@ -19,19 +19,45 @@ import {
 } from '../SecurityTab/SecurityTab.types';
 import { tokenListSecurityBadgeKeys } from '../../../../Tokens/queries/tokenSecurityBadgeKeys';
 import { requestTokenSecurityForAsset } from '../../../../Tokens/util/tokenSecurityBadgeBatch';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 const TOKEN_CAIP_ASSET_ID =
   'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933' as CaipAssetType;
+const TOKEN_ADDRESS = '0x6982508145454ce325ddbe47a25d4ec3d2311933';
+const TOKEN_CHAIN_ID = '0x1';
+const TOKEN_SYMBOL = 'PEPE';
+
+interface MockToken {
+  caipAssetId: CaipAssetType;
+  address: string;
+  chainId: string;
+  symbol: string;
+}
 
 /**
  * The route carries the token only. The payload comes off the shared query
  * entry, which is the path the screen is reached by in practice: the tab has
  * just read that entry, so this screen renders from cache without fetching.
  */
-let mockRouteParams: { token: { caipAssetId: CaipAssetType } } = {
-  token: { caipAssetId: TOKEN_CAIP_ASSET_ID },
+let mockRouteParams: {
+  token: MockToken;
+  tdpVersion?: string;
+  tokenCategory?: string;
+} = {
+  token: {
+    caipAssetId: TOKEN_CAIP_ASSET_ID,
+    address: TOKEN_ADDRESS,
+    chainId: TOKEN_CHAIN_ID,
+    symbol: TOKEN_SYMBOL,
+  },
 };
 
 jest.mock('@react-navigation/native', () => ({
@@ -49,8 +75,19 @@ const mockRequestTokenSecurityForAsset = jest.mocked(
   requestTokenSecurityForAsset,
 );
 
-const renderScreen = (securityData?: TokenSecurityData) => {
-  mockRouteParams = { token: { caipAssetId: TOKEN_CAIP_ASSET_ID } };
+const renderScreen = (
+  securityData?: TokenSecurityData,
+  routeOverrides?: { tdpVersion?: string; tokenCategory?: string },
+) => {
+  mockRouteParams = {
+    token: {
+      caipAssetId: TOKEN_CAIP_ASSET_ID,
+      address: TOKEN_ADDRESS,
+      chainId: TOKEN_CHAIN_ID,
+      symbol: TOKEN_SYMBOL,
+    },
+    ...routeOverrides,
+  };
 
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -76,6 +113,79 @@ describe('ContractSecurityScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRequestTokenSecurityForAsset.mockResolvedValue(null);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
+  });
+
+  // The new V1 contract-security screen is the only surface that fires this
+  // event — the legacy SecurityTrustScreen keeps its own `security_page_viewed`.
+  describe('the "Contract security opened" event', () => {
+    it('fires once on mount with the token and verdict properties', () => {
+      renderScreen(CBXRP_VERIFIED);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.TOKEN_DETAILS_CONTRACT_SECURITY_OPENED
+            .category,
+          properties: expect.objectContaining({
+            tdp_version: 'v3',
+            token_category: 'memecoin',
+            chain_id: TOKEN_CHAIN_ID,
+            verdict: 'screened',
+            token_address: TOKEN_ADDRESS,
+            token_symbol: TOKEN_SYMBOL,
+          }),
+        }),
+      );
+    });
+
+    it('does not re-fire on re-render', () => {
+      const { rerender, queryClient } = renderScreen(CBXRP_VERIFIED);
+
+      rerender(
+        <QueryClientProvider client={queryClient}>
+          <ContractSecurityScreen />
+        </QueryClientProvider>,
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('defaults tdp_version/token_category when the opener omits them', () => {
+      renderScreen(CBXRP_VERIFIED);
+
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.properties).toEqual(
+        expect.objectContaining({
+          tdp_version: 'v3',
+          token_category: 'memecoin',
+        }),
+      );
+    });
+
+    it('reads tdp_version/token_category from the route and verdict from the payload', () => {
+      // Non-default route values + a Warning payload (ETHOS_WARNING ->
+      // `medium_risk`) prove the effect reads the route and facts rather than
+      // returning the hardcoded `v3` / `memecoin` / `screened` defaults.
+      renderScreen(ETHOS_WARNING, {
+        tdpVersion: 'v2',
+        tokenCategory: 'standard',
+      });
+
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.properties).toEqual(
+        expect.objectContaining({
+          tdp_version: 'v2',
+          token_category: 'standard',
+          verdict: 'medium_risk',
+        }),
+      );
+    });
   });
 
   // These are the only landmarks on a screen of rows that each carry a
@@ -141,13 +251,48 @@ describe('ContractSecurityScreen', () => {
   // Solana sends neither `VERIFIED_CONTRACT` nor `UNVERIFIED_CONTRACT`, which
   // is the one check that can honestly say it does not know.
   it('dashes the check the payload leaves unresolved', () => {
-    const { getByTestId } = renderScreen(ETHOS_WARNING);
+    const { getByTestId, queryByTestId } = renderScreen(ETHOS_WARNING);
 
     expect(
       getByTestId(
         ContractSecuritySelectors.rowValue(ContractCheckKey.ContractVerified),
       ),
     ).toHaveTextContent(STAT_EMPTY_VALUE);
+    expect(
+      queryByTestId(
+        ContractSecuritySelectors.rowIcon(ContractCheckKey.ContractVerified),
+      ),
+    ).toBeNull();
+  });
+
+  // Passing checks stay green without a tick so they match `is_mintable`. Fail
+  // still draws the Close glyph. CBXRP_VERIFIED is both: mintable and
+  // blacklistable, so `no_blacklist` is the fail row and the rest pass.
+  describe('check presentation', () => {
+    it('omits the tick on passing rows and keeps the fail glyph', () => {
+      const { getByTestId, queryByTestId } = renderScreen(CBXRP_VERIFIED);
+
+      for (const checkKey of [
+        ContractCheckKey.NoHoneypot,
+        ContractCheckKey.ContractVerified,
+        ContractCheckKey.Renounced,
+      ]) {
+        expect(
+          queryByTestId(ContractSecuritySelectors.rowIcon(checkKey)),
+        ).toBeNull();
+      }
+
+      expect(
+        getByTestId(
+          ContractSecuritySelectors.rowIcon(ContractCheckKey.NoBlacklist),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          ContractSecuritySelectors.rowIcon(ContractCheckKey.IsMintable),
+        ),
+      ).toBeNull();
+    });
   });
 
   describe('findings', () => {

@@ -21,6 +21,8 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { MonetizedPrimitive } from '../../../../core/Analytics/MetaMetrics.types';
 import {
+  MONEY_ACCOUNT_CAMPAIGN_NAMES,
+  MONEY_ACCOUNT_CAMPAIGN_PLATFORMS,
   SCREEN_NAMES,
   BOTTOM_SHEET_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -480,6 +482,30 @@ describe('useMoneyAnalytics', () => {
           redirect_target_type: expect.anything(),
         }),
       );
+    });
+  });
+
+  describe('trackCampaignTriggered', () => {
+    it('fires MONEY_ACCOUNT_CAMPAIGN_TRIGGERED with campaign identity properties', () => {
+      const { result } = renderHook(() => useMoneyAnalytics());
+
+      result.current.trackCampaignTriggered({
+        campaign_name:
+          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH,
+        campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS.BRAZE,
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MONEY_ACCOUNT_CAMPAIGN_TRIGGERED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          campaign_name:
+            MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH,
+          campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS.BRAZE,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(mockBuiltEvent);
     });
   });
 

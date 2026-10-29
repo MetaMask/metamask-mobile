@@ -1,10 +1,15 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
+import type { SocialShellTab } from '../../../Views/SocialLeaderboard/shell/types';
 import type {
   AssetLoaderParams,
   AssetViewParams,
 } from '../../../Views/Asset/Asset.types';
 import type { TokenDetailsRouteParams } from '../../../UI/TokenDetails/constants/constants';
+import type {
+  TdpVersion,
+  TdpTokenCategory,
+} from '../../../UI/TokenDetails/analytics/getTdpAnalyticsBase';
 import type {
   CreatePriceAlertRouteParams,
   PriceAlertRouteParams,
@@ -44,7 +49,11 @@ export type AssetStackParamList = {
     isPricePositive?: boolean;
     useAmbientColor?: boolean;
   };
-  ContractSecurity: { token: TokenDetailsRouteParams };
+  ContractSecurity: {
+    token: TokenDetailsRouteParams;
+    tdpVersion?: TdpVersion;
+    tokenCategory?: TdpTokenCategory;
+  };
   CreatePriceAlert: CreatePriceAlertRouteParams;
   ManagePriceAlerts: PriceAlertRouteParams;
 };
@@ -194,6 +203,7 @@ export type TransactionsHomeParamList = {
 export type RewardsHomeParamList = {
   RewardsOnboardingFlow: undefined;
   RewardsDashboard: undefined;
+  RewardsMoneyDashboard: undefined;
 };
 
 /**
@@ -208,6 +218,7 @@ export type HomeTabsParamList = {
   WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
   TrendingView: ExploreFeedRouteParams | undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
+  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
   TradeWalletActions:
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
@@ -217,6 +228,14 @@ export type HomeTabsParamList = {
     | undefined;
   RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
 };
+
+export interface SocialLeaderboardTabParams {
+  source?: string;
+  showNotificationsBanner?: boolean;
+  landingTab?: 'leaderboard' | 'feed';
+  landingFeedAudience?: 'all' | 'following';
+  initialTab?: SocialShellTab;
+}
 
 /**
  * Param list for `MainNavigator` (`ConnectedMain`).

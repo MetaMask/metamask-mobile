@@ -4,19 +4,16 @@ import SecurityBadgeBottomSheet from './SecurityBadgeBottomSheet';
 import { IconName, IconColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
-}));
+const mockCreateEventBuilder = jest.fn(
+  AnalyticsEventBuilder.createEventBuilder,
+);
 
-jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 const mockRouteParams = {
   icon: IconName.SecurityTick,
@@ -50,6 +47,12 @@ jest.mock('@react-navigation/native', () => {
 describe('SecurityBadgeBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockUseRouteImpl = jest.fn(() => ({
       params: mockRouteParams,
     }));
@@ -139,6 +142,55 @@ describe('SecurityBadgeBottomSheet', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
     );
+  });
+
+  describe('tdp_version property', () => {
+    const builtEvents = (
+      event: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
+    ) =>
+      mockTrackEvent.mock.calls
+        .map(([built]) => built)
+        .filter((built) => built?.name === event.category);
+
+    it('defaults tdp_version to v2 when the param is absent', () => {
+      render(<SecurityBadgeBottomSheet />);
+
+      const opened = builtEvents(
+        MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_OPENED,
+      );
+      expect(opened).toHaveLength(1);
+      expect(opened[0].properties).toEqual(
+        expect.objectContaining({ tdp_version: 'v2' }),
+      );
+    });
+
+    it('carries tdp_version on both opened and action-taken events', () => {
+      const mockOnProceed = jest.fn();
+      mockUseRouteImpl = jest.fn(() => ({
+        params: {
+          ...mockRouteParams,
+          onProceed: mockOnProceed,
+          tdpVersion: 'v3',
+        },
+      }));
+
+      const { getByText } = render(<SecurityBadgeBottomSheet />);
+
+      expect(
+        builtEvents(MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_OPENED)[0]
+          .properties,
+      ).toEqual(expect.objectContaining({ tdp_version: 'v3' }));
+
+      fireEvent.press(getByText(strings('security_trust.continue_anyway')));
+
+      expect(
+        builtEvents(
+          MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
+        )[0].properties,
+      ).toEqual(
+        expect.objectContaining({ action: 'proceed', tdp_version: 'v3' }),
+      );
+    });
   });
 
   describe('Feature tag rendering', () => {

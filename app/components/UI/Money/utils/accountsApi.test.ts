@@ -330,7 +330,7 @@ describe('parseAccountsApiActivity', () => {
     ]);
   });
 
-  it('ignores rows of other transaction types', () => {
+  it('ignores inbound mUSD from any sender because VBA classification comes from the SIWE service', () => {
     expect(
       parseAccountsApiActivity({ data: [inboundTopUpRow] }, MONEY_ADDRESS),
     ).toEqual([]);

@@ -8,10 +8,13 @@ import {
   selectMoneyEnableMfaFlag,
   selectMoneyHubEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
+  selectIsMoneyDepositBrazeCampaignEnabledFlag,
   selectMoneyDepositMinBalance,
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
   selectMoneyCardActivityCashbackMultisendContracts,
+  selectMoneyVbaPendingActivityEnabled,
+  selectMoneyVbaCompletedActivityEnabled,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyCardFlipAnimationEnabledFlag,
@@ -62,6 +65,92 @@ const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
       },
     },
   },
+});
+
+describe.each([
+  [
+    'selectMoneyVbaPendingActivityEnabled',
+    selectMoneyVbaPendingActivityEnabled,
+    'moneyVbaPendingActivityEnabled',
+    'MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED',
+  ],
+  [
+    'selectMoneyVbaCompletedActivityEnabled',
+    selectMoneyVbaCompletedActivityEnabled,
+    'moneyVbaCompletedActivityEnabled',
+    'MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED',
+  ],
+])('%s', (_name, selector, remoteKey, localKey) => {
+  const originalProcessEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...process.env };
+    delete process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
+    delete process.env.MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED;
+  });
+
+  afterEach(() => {
+    process.env = originalProcessEnv;
+  });
+
+  it('returns true when the remote version-gated flag is enabled', () => {
+    mockedValidate.mockReturnValue(true);
+    expect(
+      selector(
+        createState({
+          [remoteKey]: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        }) as never,
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when the remote flag is disabled even if local override is enabled', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env[localKey] = 'true';
+    expect(
+      selector(
+        createState({
+          [remoteKey]: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        }) as never,
+      ),
+    ).toBe(false);
+  });
+
+  it('uses the local QA override when remote flag shape is invalid', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env[localKey] = 'true';
+    expect(
+      selector(
+        createState({
+          [remoteKey]: { enabled: 'yes' },
+        }) as never,
+      ),
+    ).toBe(true);
+  });
+
+  it('defaults off when remote flag is absent and local override is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    expect(selector(createState() as never)).toBe(false);
+  });
+
+  it('defaults off when the remote flag shape is invalid and local override is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    expect(
+      selector(
+        createState({
+          [remoteKey]: { enabled: 'true' },
+          _unique: `${String(remoteKey)}-invalid-default-off`,
+        }) as never,
+      ),
+    ).toBe(false);
+  });
 });
 
 describe('selectMoneyEnableActivityDetailsFlag', () => {
@@ -591,6 +680,50 @@ describe('selectMoneyEarningSectionEnabledFlag', () => {
     const state = createState({ _unique: 'earning-section-no-local-flag' });
 
     expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(false);
+  });
+});
+
+describe('selectIsMoneyDepositBrazeCampaignEnabledFlag', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when the remote flag is enabled', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyDepositBrazeCampaignEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(selectIsMoneyDepositBrazeCampaignEnabledFlag(state as never)).toBe(
+      true,
+    );
+  });
+
+  it('returns false when the remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyDepositBrazeCampaignEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(selectIsMoneyDepositBrazeCampaignEnabledFlag(state as never)).toBe(
+      false,
+    );
+  });
+
+  it('defaults to false when the remote flag is absent or invalid', () => {
+    mockedValidate.mockReturnValue(undefined);
+
+    expect(
+      selectIsMoneyDepositBrazeCampaignEnabledFlag(createState() as never),
+    ).toBe(false);
   });
 });
 

@@ -3,8 +3,22 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { SocialControllerMessenger } from '@metamask/social-controllers';
+import type {
+  SocialControllerMessenger,
+  SocialServiceRefreshNotificationPreferencesCacheAction,
+} from '@metamask/social-controllers';
 import type { RootMessenger } from '../types';
+
+type SocialControllerMessengerActions =
+  | MessengerActions<SocialControllerMessenger>
+  | SocialServiceRefreshNotificationPreferencesCacheAction;
+
+type SocialControllerMessengerWithNotificationCache = Messenger<
+  'SocialController',
+  SocialControllerMessengerActions,
+  MessengerEvents<SocialControllerMessenger>,
+  RootMessenger
+>;
 
 /**
  * Get the messenger for the SocialController.
@@ -17,10 +31,10 @@ import type { RootMessenger } from '../types';
  */
 export function getSocialControllerMessenger(
   rootMessenger: RootMessenger,
-): SocialControllerMessenger {
+): SocialControllerMessengerWithNotificationCache {
   const messenger = new Messenger<
     'SocialController',
-    MessengerActions<SocialControllerMessenger>,
+    SocialControllerMessengerActions,
     MessengerEvents<SocialControllerMessenger>,
     RootMessenger
   >({
@@ -35,6 +49,8 @@ export function getSocialControllerMessenger(
       'SocialService:fetchFollowing',
       'SocialService:optOutOfLeaderboard',
       'SocialService:optInToLeaderboard',
+      'SocialService:translateComment',
+      'SocialService:refreshNotificationPreferencesCache',
     ],
     messenger,
   });

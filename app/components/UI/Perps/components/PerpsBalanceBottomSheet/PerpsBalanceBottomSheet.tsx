@@ -12,6 +12,7 @@ import {
   ButtonIconSize,
   ButtonSize,
   ButtonsAlignment,
+  FontFamily,
   FontWeight,
   IconName,
   SensitiveText,
@@ -121,7 +122,8 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
               title={strings('perps.title')}
               amount={
                 <SensitiveText
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
+                  fontFamily={FontFamily.Hero}
                   color={TextColor.TextDefault}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Medium}

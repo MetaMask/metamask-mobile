@@ -108,6 +108,8 @@ export function cardTransactionDisplayInfo(
     isIncoming: !tx.isDebit,
     icon: IconName.Card,
     status: mapCardTransactionStatus(tx.status),
+    // Activity rows only render this line when asked. Card charges live here.
+    showPrimaryAmount: true,
   };
 }
 

@@ -277,7 +277,10 @@ function buildTestInfrastructure(): PerpsPlatformDependencies {
       setMeasurement: jest.fn(),
       addBreadcrumb: jest.fn(),
     },
-    rewards: { getPerpsDiscountForAccount: jest.fn(() => Promise.resolve(0)) },
+    rewards: {
+      getPerpsDiscountForAccount: jest.fn(() => Promise.resolve(0)),
+      getPerpsTradingFeeGrant: jest.fn(() => Promise.resolve(null)),
+    },
   };
 }
 

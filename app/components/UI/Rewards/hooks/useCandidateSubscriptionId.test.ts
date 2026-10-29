@@ -124,6 +124,66 @@ describe('useCandidateSubscriptionId', () => {
     );
   });
 
+  it('fetches once on mount and ignores focus when focus refresh is off', async () => {
+    const mockCandidateId = 'candidate-once';
+    mockEngineCall.mockResolvedValue(mockCandidateId);
+
+    renderHook(() => useCandidateSubscriptionId({ refreshOnFocus: false }));
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCandidateSubscriptionId(mockCandidateId),
+    );
+  });
+
+  it('retries when the candidate id becomes retry even if focus refresh is off', async () => {
+    mockEngineCall.mockResolvedValue('candidate-once');
+
+    const { rerender } = renderHook(() =>
+      useCandidateSubscriptionId({ refreshOnFocus: false }),
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+    mockUseSelector.mockReturnValue('retry');
+    rerender();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+    expect(mockEngineCall).toHaveBeenLastCalledWith(
+      'RewardsController:getCandidateSubscriptionId',
+    );
+
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+  });
+
   it('should retry fetching when candidateSubscriptionId is set to retry', async () => {
     const mockCandidateId = 'retry-candidate-456';
 

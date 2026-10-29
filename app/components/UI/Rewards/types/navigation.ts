@@ -8,6 +8,7 @@ import type { AccountGroupId } from '@metamask/account-api';
 import type { SeasonRewardType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
 import type { RewardsInfoSheetModalParams } from '../components/RewardsInfoSheetModal';
+import type { RewardsMoneyClaimsPausedModalParams } from '../components/Money/RewardsMoneyClaimsPausedModal';
 
 export interface RewardsOndoCampaignDetailsParams {
   campaignId?: string;
@@ -171,12 +172,20 @@ export interface RewardOptInAccountGroupModalParams {
 }
 
 /**
+ * Params for `RewardsMoneyInviteSheet`.
+ * `referralCode` prefills the sheet when the caller already has a code
+ * (deeplink or onboarding); it is absent when the user opens it to type one.
+ */
+export interface RewardsMoneyInviteSheetParams {
+  referralCode?: string;
+}
+
+/**
  * Param list for screens registered in `RewardsNavigator`.
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsStackParamList = {
-  ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsVipSplashView: undefined;
   RewardsVipView: undefined;
@@ -185,6 +194,9 @@ export type RewardsStackParamList = {
   RewardsVipRefereeSplashView: undefined;
   RewardsVipRefereeView: undefined;
   RewardsCampaignsView: undefined;
+  RewardsTradingCommissionsView: undefined;
+  RewardsTradingRebatesView: undefined;
+  RewardsEarningsHistoryView: undefined;
   RewardsCampaignTourStep: RewardsCampaignTourStepParams;
   RewardsCampaignDetails: RewardsOndoCampaignDetailsParams | undefined;
   RewardsOndoCampaignWinning: RewardsOndoCampaignWinningParams;
@@ -226,7 +238,12 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   RewardsBottomSheetModal: RewardsBottomSheetModalParams | undefined;
   RewardsInfoSheetModal: RewardsInfoSheetModalParams | undefined;
+  RewardsMoneyClaimsPausedModal:
+    | RewardsMoneyClaimsPausedModalParams
+    | undefined;
   RewardsClaimBottomSheetModal: RewardsClaimBottomSheetModalParams | undefined;
   RewardOptInAccountGroupModal: RewardOptInAccountGroupModalParams | undefined;
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;
+  RewardsMoneyInviteSheet: RewardsMoneyInviteSheetParams | undefined;
+  RewardsMoneyTermsSheet: undefined;
 };

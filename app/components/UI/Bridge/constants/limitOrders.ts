@@ -19,6 +19,46 @@ export enum LimitOrderPriceComparisonDirection {
   AT_OR_BELOW = 'atOrBelow',
 }
 
+/**
+ * Everything a comparison direction maps to, so a new reading of it is a new
+ * field here rather than another switch. Labels are locale keys, resolved
+ * where they render.
+ */
+export const LIMIT_ORDER_DIRECTION: Record<
+  LimitOrderPriceComparisonDirection,
+  {
+    /**
+     * The Bridge API `trigger.threshold` for this direction.
+     */
+    threshold: 'above' | 'below';
+    /**
+     * The direction a price reads in once inverted.
+     */
+    opposite: LimitOrderPriceComparisonDirection;
+    /**
+     * Sign shown before a trigger price, e.g. "≥ $2,200.00".
+     */
+    signKey: string;
+    /**
+     * Comparison in the price input copy, e.g. "is at or above".
+     */
+    labelKey: string;
+  }
+> = {
+  [LimitOrderPriceComparisonDirection.AT_OR_ABOVE]: {
+    threshold: 'above',
+    opposite: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+    signKey: 'bridge.limit.trigger_condition_at_or_above',
+    labelKey: 'bridge.limit.is_at_or_above',
+  },
+  [LimitOrderPriceComparisonDirection.AT_OR_BELOW]: {
+    threshold: 'below',
+    opposite: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+    signKey: 'bridge.limit.trigger_condition_at_or_below',
+    labelKey: 'bridge.limit.is_at_or_below',
+  },
+};
+
 export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
 
 /**
@@ -39,9 +79,10 @@ export const LIMIT_ORDER_DEFAULT_SLIPPAGE = String(
 
 /**
  * Cost tolerance in % that limit orders start with until the user picks
- * another value.
+ * another value, used when the `swapsLimitOrder.defaultPriceTolerance` remote
+ * flag is missing or invalid.
  */
-export const LIMIT_ORDER_DEFAULT_COST_TOLERANCE = '2';
+export const LIMIT_ORDER_DEFAULT_COST_TOLERANCE = '3';
 
 export const SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES = [
   10, 60, 1440, 4320, 10080, 43200,
@@ -54,6 +95,14 @@ export const SWAPS_LIMIT_ORDER_EXPIRATION_CLOSE_DELAY_MS = 250;
 
 export type SwapsLimitOrderExpirationMinutes =
   (typeof SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES)[number];
+
+export function isSwapsLimitOrderExpirationMinutes(
+  value: number,
+): value is SwapsLimitOrderExpirationMinutes {
+  return SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES.some(
+    (option) => option === value,
+  );
+}
 
 export const SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES: SwapsLimitOrderExpirationMinutes = 60;
 
@@ -78,8 +127,22 @@ export const getSwapsLimitOrderExpirationLabel = (
 
 export const LIMIT_ORDER_DEFAULT_METAMASK_FEE = 0.875;
 
-export const LIMIT_ORDERS_STALE_TIME = 60 * 60 * 1000;
+export const LIMIT_ORDER_METAMASK_FEE_LEARN_MORE_URL =
+  'https://support.metamask.io/trade/metamask-fees/';
+
 export const LIMIT_ORDERS_PAGE_LIMIT = 20;
+
+/**
+ * How often the orders list of the selected orders tab is refetched while it
+ * is on screen.
+ */
+export const LIMIT_ORDERS_REFETCH_INTERVAL = 20 * 1000;
+
+/**
+ * Refetch interval used instead of `LIMIT_ORDERS_REFETCH_INTERVAL` on low-end
+ * hardware over a slow cellular connection.
+ */
+export const LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL = 60 * 1000;
 
 export const OPEN_LIMIT_ORDER_STATES = [
   LimitOrderState.Open,
@@ -108,9 +171,9 @@ export const LIMIT_ORDERS_CHAIN_CONFIG: Partial<
   >
 > = {
   [EthScope.Mainnet]: {
-    minAmountUSD: 50,
+    minAmountUSD: 100,
   },
   '*': {
-    minAmountUSD: 1,
+    minAmountUSD: 10,
   },
 };

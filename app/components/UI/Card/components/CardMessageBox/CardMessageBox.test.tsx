@@ -55,6 +55,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.uk_migration_required.description':
         'Complete your MetaMask Card update to keep using your card.',
       'card.uk_migration_required.confirm_button_label': 'Update now',
+      'card.push_provisioning.verification_pending_title':
+        'Verification pending',
+      'card.push_provisioning.verification_pending_description':
+        'Open the card in Apple Wallet to verify it on {{devices}}.',
+      'card.push_provisioning.open_in_apple_wallet': 'Open in Apple Wallet',
     };
     let value = mockStrings[key] || key;
     if (params) {
@@ -301,6 +306,36 @@ describe('CardMessageBox', () => {
         <CardMessageBox
           messageType={CardMessageBoxType.CreditAvailable}
           values={{ amount: '$10.86' }}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('WalletVerificationPending warning', () => {
+    it('interpolates the devices into the description', () => {
+      const { getByText, queryByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.WalletVerificationPending}
+          values={{ devices: 'iPhone' }}
+        />
+      ));
+
+      expect(getByText('Verification pending')).toBeOnTheScreen();
+      expect(
+        getByText('Open the card in Apple Wallet to verify it on iPhone.'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
+    });
+
+    it('renders Open in Apple Wallet when onConfirm is provided', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.WalletVerificationPending}
+          values={{ devices: 'iPhone' }}
           onConfirm={mockOnConfirm}
         />
       ));

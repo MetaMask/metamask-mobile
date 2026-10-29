@@ -96,7 +96,7 @@ import { useTrackBatchSellTokenPageViewed } from '../../hooks/useTrackBatchSellT
 import { useTrackBatchSellTokenPageContinueClicked } from '../../hooks/useTrackBatchSellTokenPageContinueClicked';
 import type { BatchSellTokenSelectRouteParams } from './types';
 import { safeToChecksumAddress } from '../../../../../util/address';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(

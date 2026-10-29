@@ -207,6 +207,19 @@ function getESLintInstance() {
     // Temporarily disabled until we can eliminate code fences.
     eslintrc.rules['react/no-unescaped-entities'] = 0;
 
+    // We lint the *transformed* (fence-stripped) source, which differs from the
+    // file on disk. When `process.env.CI === 'true'`, typescript-eslint infers a
+    // "single run" and builds the TypeScript program once from disk, so the AST
+    // (and node ranges) come from the on-disk file while ESLint's source text is
+    // the transformed one. Rules that read node text (e.g.
+    // `react/jsx-no-comment-textnodes`) then see misaligned text and report
+    // bogus errors. Disabling the inference makes typescript-eslint parse the
+    // provided source instead.
+    eslintrc.parserOptions = {
+      ...eslintrc.parserOptions,
+      disallowAutomaticSingleRunInference: true,
+    };
+
     // Remove all test-related overrides. We will never lint test files here.
     eslintrc.overrides = eslintrc.overrides.filter(
       (override) =>

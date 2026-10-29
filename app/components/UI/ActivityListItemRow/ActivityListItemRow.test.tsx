@@ -14,7 +14,11 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
-import type { ActivityListItem, Status } from '../../../util/activity-adapters';
+import {
+  KALSHI_VENUE_CHAIN_ID,
+  type ActivityListItem,
+  type Status,
+} from '../../../util/activity-adapters';
 import { ActivityListItemRow } from './ActivityListItemRow';
 import { ActivityListItemRowPendingActions } from './ActivityListItemRowPendingActions';
 import { strings } from '../../../../locales/i18n';
@@ -1387,6 +1391,60 @@ describe('ActivityListItemRow — row content', () => {
     expect(primary).toContain('$');
   });
 
+  describe('Settlement rows', () => {
+    const makeSettlement = (proceeds: string, hash: string) =>
+      ({
+        type: 'predictionSettled',
+        chainId: KALSHI_VENUE_CHAIN_ID,
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash,
+        data: {
+          token: { amount: proceeds, symbol: 'USD', direction: 'in' },
+          eventTitle: 'FIFA World Cup 2026',
+          marketQuestion: 'Will Spain win the 2026 FIFA World Cup?',
+          outcomeLabel: 'Spain',
+          side: 'yes',
+          result: 'yes',
+          shares: '10',
+          icon: 'https://example.com/spain.png',
+        },
+      }) as ActivityListItem;
+
+    it('renders Settled with the market question, signed proceeds, and no network badge', () => {
+      const { getByTestId } = render(
+        <ActivityListItemRow
+          item={makeSettlement('10', 'settled-1')}
+          index={0}
+        />,
+      );
+
+      expect(getByTestId('activity-title-settled-1').props.children).toBe(
+        strings('predict.transactions.settled_title'),
+      );
+      expect(getByTestId('activity-subtitle-settled-1').props.children).toBe(
+        'Will Spain win the 2026 FIFA World Cup?',
+      );
+      expect(
+        getByTestId('activity-primary-amount-settled-1').props.children,
+      ).toBe('+$10.00');
+      expect(getNetworkImageSource).not.toHaveBeenCalled();
+    });
+
+    it('renders zero proceeds of a losing Settlement like other zero domain amounts', () => {
+      const { getByTestId } = render(
+        <ActivityListItemRow
+          item={makeSettlement('0', 'settled-0')}
+          index={0}
+        />,
+      );
+
+      expect(
+        getByTestId('activity-primary-amount-settled-0').props.children,
+      ).toBe('+$0.00');
+    });
+  });
+
   it('renders very small funding fees in subscript notation', () => {
     const funding = {
       type: 'perpsPaidFundingFees',
@@ -2228,6 +2286,7 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'predictionsAddFunds',
   'predictionsWithdrawFunds',
   'predictionClaimWinnings',
+  'predictionSettled',
   'predictionCashedOut',
   'predictionPlaced',
   'perpsAddFunds',
@@ -2293,6 +2352,7 @@ const EXPECTED_TITLES = {
     'transactions.activity_prediction_withdrawal',
   ),
   predictionClaimWinnings: strings('predict.transactions.claim_title'),
+  predictionSettled: strings('predict.transactions.settled_title'),
   predictionCashedOut: strings('predict.transactions.sell_title'),
   predictionPlaced: strings('transactions.activity_prediction_placed'),
   perpsAddFunds: strings('transactions.activity_perps_account_funded'),
@@ -2808,6 +2868,27 @@ describe('ActivityListItemRowPendingActions', () => {
 
     expect(getByText(strings('transaction.speedup'))).toBeOnTheScreen();
     expect(getByText(strings('transaction.cancel'))).toBeOnTheScreen();
+  });
+
+  it('hides speed-up for swaps, bridges, and their approvals', () => {
+    for (const type of [
+      TransactionType.swap,
+      TransactionType.bridge,
+      TransactionType.swapApproval,
+      TransactionType.bridgeApproval,
+    ]) {
+      const props = makePendingActionProps({
+        tx: makePendingActionTx({ type }),
+      });
+
+      const { queryByText, unmount } = render(
+        <ActivityListItemRowPendingActions {...props} />,
+      );
+
+      expect(queryByText(strings('transaction.speedup'))).toBeNull();
+
+      unmount();
+    }
   });
 
   it('renders QR signing and QR cancel actions for approved QR hardware transactions', () => {

@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import BoxGlass from '../BoxGlass';
-import { useTheme } from '../../../util/theme';
+import { useLiquidGlass } from '../../hooks/useLiquidGlass';
 
 export type ButtonGlassVariant =
   | typeof ButtonVariant.Primary
@@ -15,16 +15,21 @@ export type ButtonGlassVariant =
   | typeof ButtonVariant.Tertiary;
 
 export type ButtonGlassProps = ButtonBaseProps & {
-  /** False renders the plain `Button` in the same variant. */
+  /** The screen's flag. False, or an OS without glass, renders the plain `Button`. */
   isGlass?: boolean;
-  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: clear glass. */
+  /** Primary and tertiary: the plain button. Secondary: brand sheen. */
   variant?: ButtonGlassVariant;
   containerStyle?: StyleProp<ViewStyle>;
+  /** Optional prop to show the danger state of the button. */
+  isDanger?: boolean;
+  /** Optional prop to show the inverse state of the button, reserved for buttons on colored backgrounds. */
+  isInverse?: boolean;
 };
 
 /**
  * The design-system `Button` drawn on Liquid Glass, kept out of the package
- * until the design system takes it. Callers gate `isGlass` on their screen flag.
+ * until the design system takes it. Callers pass their screen flag as `isGlass`.
+ * Primary and tertiary stay the plain button.
  */
 const ButtonGlass = ({
   isGlass = true,
@@ -33,9 +38,14 @@ const ButtonGlass = ({
   twClassName,
   ...props
 }: ButtonGlassProps) => {
-  const { colors } = useTheme();
+  const { isGlassEnabled } = useLiquidGlass();
 
-  if (!isGlass) {
+  if (
+    !isGlass ||
+    !isGlassEnabled ||
+    variant === ButtonVariant.Primary ||
+    variant === ButtonVariant.Tertiary
+  ) {
     return (
       <Button
         {...props}
@@ -46,14 +56,11 @@ const ButtonGlass = ({
     );
   }
 
-  const isPrimary = variant === ButtonVariant.Primary;
-
   return (
     <BoxGlass
       radiusClassName="rounded-full"
       isInteractive={!props.isDisabled}
-      hasSheen={variant === ButtonVariant.Secondary}
-      tintColor={isPrimary ? colors.icon.default : undefined}
+      hasSheen
       containerStyle={containerStyle}
     >
       <Button

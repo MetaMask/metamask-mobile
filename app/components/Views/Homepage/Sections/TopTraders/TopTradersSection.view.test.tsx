@@ -51,6 +51,12 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { LEADERBOARD_LANDING_FEED_AB_KEY } from '../../../SocialLeaderboard/SocialV0View/abTestConfig';
 // eslint-disable-next-line import-x/no-restricted-paths -- test-only: drives the A/B assignments this entry point forwards
 import { SOCIAL_V1_AB_KEY } from '../../../SocialLeaderboard/SocialV1View/abTestConfig';
+/* eslint-disable import-x/no-restricted-paths -- test-only: exercises the post-consent V1 navigation path */
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../../../SocialLeaderboard/terms/socialTermsAcceptance';
+/* eslint-enable import-x/no-restricted-paths */
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -79,6 +85,10 @@ const readRouteParams = async (routeName: string) => {
   const probe = await screen.findByTestId(getRouteParamsProbeTestId(routeName));
   return JSON.parse(probe.props.children as string) as Record<string, unknown>;
 };
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -301,13 +311,15 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     });
   });
 
-  it('opens the Social V1 shell without a landing tab when the Social V1 treatment is assigned', async () => {
+  it('switches to the Social tab without a landing tab when the Social V1 treatment is assigned', async () => {
+    await acceptSocialTerms();
     renderHomeTopTradersSection(
       [
         { name: Routes.SOCIAL.V0 },
+        { name: Routes.SOCIAL.V1 },
         {
-          name: Routes.SOCIAL.V1,
-          Component: createRouteParamsProbe(Routes.SOCIAL.V1),
+          name: Routes.HOME_TABS,
+          Component: createRouteParamsProbe(Routes.HOME_TABS),
         },
       ],
       {
@@ -322,19 +334,23 @@ describeForPlatforms('Homepage TopTradersSection', () => {
 
     fireEvent.press(screen.getByTestId(SECTION_TITLE_ID));
 
-    expect(await readRouteParams(Routes.SOCIAL.V1)).toEqual({
-      source: 'home_carousel',
+    expect(await readRouteParams(Routes.HOME_TABS)).toEqual({
+      screen: Routes.SOCIAL.TAB,
+      params: { source: 'home_carousel' },
     });
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V0)),
     ).not.toBeOnTheScreen();
   });
 
   // -------------------------------------------------------------------------
-  // Follow is intercepted when notifications are off
+  // Follow runs, then trading-signals setup opens when notifications are off
   // -------------------------------------------------------------------------
 
-  it('routes a Follow tap to the trading signals setup when both notification channels are off', async () => {
+  it('follows and then opens trading signals setup when both notification channels are off', async () => {
     clearLeaderboardApiMock();
     setupLeaderboardApiMock({
       notificationPrefs: { pushEnabled: false, inAppEnabled: false },
@@ -355,7 +371,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
         getRouteProbeTestId(Routes.SOCIAL.TRADING_SIGNALS_SETUP),
       ),
     ).toBeOnTheScreen();
-    expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
       'SocialController:followTrader',
       expect.anything(),
     );

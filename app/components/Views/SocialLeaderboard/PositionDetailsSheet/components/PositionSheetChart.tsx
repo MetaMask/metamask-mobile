@@ -431,7 +431,7 @@ const PositionSheetChart = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 py-2"
+          twClassName="px-4 pb-2"
         >
           {timeAxisLabels.map((label, index) => (
             <Text

@@ -6,6 +6,12 @@ import {
   mockSpotFeedItem,
 } from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { FEED_PAGE_LIMIT } from '../../../../UI/SocialFeed/data/socialFeedQueries';
+import { mockOpenPerpsFeedItem } from '../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { useSelector } from 'react-redux';
+import {
+  addPendingPost,
+  resetPendingPosts,
+} from '../../pendingPosts/pendingPostsStore';
 import { useMyProfilePosts } from './useMyProfilePosts';
 
 const mockCall = jest.fn();
@@ -27,6 +33,10 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => true),
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
 }));
 
 jest.mock('../../../../../util/social/socialServiceTelemetry', () => ({
@@ -65,6 +75,75 @@ const createWrapper = () => {
 describe('useMyProfilePosts', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(useSelector).mockReturnValue(true);
+    resetPendingPosts();
+  });
+
+  it('dates each post by its comment rather than its trade', async () => {
+    mockCall.mockResolvedValueOnce(
+      mockFeedResponse([
+        mockSpotFeedItem({
+          authorComment: {
+            uid: 'comment-1',
+            text: 'gm',
+            timestamp: 1_700_000_200,
+            engagement: { reactions: [], userReaction: null },
+          },
+        }),
+      ]),
+    );
+
+    const { result } = renderHook(() => useMyProfilePosts('0xabc'), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+    expect(result.current.posts[0].timestampMs).toBe(1_700_000_200_000);
+  });
+
+  it('shows the owner’s pending post on top of their Posts', async () => {
+    mockCall.mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()]));
+    addPendingPost({
+      ownerProfileId: 'viewer-profile',
+      post: {
+        id: 'pending-comment-1',
+        commentId: 'comment-1',
+        authorHandle: 'Giga Whale',
+        timestampMs: 1,
+        reactions: [],
+        item: mockOpenPerpsFeedItem({ id: 'pending-item' }),
+      },
+    });
+
+    const { result } = renderHook(
+      () => useMyProfilePosts('0xabc', { ownerProfileId: 'viewer-profile' }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.posts).toHaveLength(2));
+    expect(result.current.posts[0].id).toBe('pending-comment-1');
+  });
+
+  it('keeps pending posts off someone else’s profile', async () => {
+    mockCall.mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()]));
+    addPendingPost({
+      ownerProfileId: 'viewer-profile',
+      post: {
+        id: 'pending-comment-1',
+        commentId: 'comment-1',
+        authorHandle: 'Giga Whale',
+        timestampMs: 1,
+        reactions: [],
+        item: mockOpenPerpsFeedItem({ id: 'pending-item' }),
+      },
+    });
+
+    const { result } = renderHook(() => useMyProfilePosts('0xother'), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+    expect(result.current.posts[0].id).not.toBe('pending-comment-1');
   });
 
   it('fetches commented-only posts for the owner address', async () => {

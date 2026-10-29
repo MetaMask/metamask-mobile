@@ -288,26 +288,30 @@ describe('V2 unified-buy BuildQuote', () => {
   it('initializes from a V2 deeplink with assetId only — region default amount, not URL amount', async () => {
     const { stateOverrides } = setupV2Hooks();
 
-    const { findByText, queryByText } = renderV2BuildQuoteView({
+    const { findByText, findByTestId, queryByText } = renderV2BuildQuoteView({
       initialParams: { assetId: ETH_ASSET_ID },
       overrides: stateOverrides,
     });
 
     expect(await findByText('Buy ETH')).toBeOnTheScreen();
     expect(await findByText('on Ethereum Main Network')).toBeOnTheScreen();
-    expect(await findByText(/100/)).toBeOnTheScreen();
+    expect(
+      await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+    ).toHaveTextContent('$100');
     expect(queryByText(/275/)).not.toBeOnTheScreen();
   });
 
   it('honors an explicit amount route param when provided', async () => {
     const { stateOverrides } = setupV2Hooks();
 
-    const { findByText } = renderV2BuildQuoteView({
+    const { findByTestId } = renderV2BuildQuoteView({
       initialParams: { assetId: ETH_ASSET_ID, amount: 250 },
       overrides: stateOverrides,
     });
 
-    expect(await findByText(/250/)).toBeOnTheScreen();
+    expect(
+      await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+    ).toHaveTextContent('$250');
   });
 
   it('navigates from settings cog to TransactionsView order history', async () => {
@@ -343,9 +347,12 @@ describe('V2 unified-buy BuildQuote', () => {
       includePaymentSelectionRoute: true,
     });
 
+    await findByText('Debit/Credit Card');
     fireEvent.press(await findByTestId(BUILD_QUOTE_TEST_IDS.PAYMENT_PILL));
 
-    expect(await findByText('Pay with')).toBeOnTheScreen();
+    await waitFor(async () => {
+      expect(await findByText('Pay with')).toBeOnTheScreen();
+    });
     expect(await findByText('Apple Pay')).toBeOnTheScreen();
   });
 
@@ -409,12 +416,9 @@ describe('V2 unified-buy BuildQuote', () => {
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
     });
 
-    const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-    expect(
-      (amountInput.props.children as unknown[])
-        .filter((child) => typeof child === 'string')
-        .join(''),
-    ).toContain('100');
+    expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+      '$100',
+    );
   });
 
   it('updates the displayed amount when a quick-amount chip is tapped', async () => {
@@ -437,11 +441,9 @@ describe('V2 unified-buy BuildQuote', () => {
     fireEvent.press(await findByText('$50'));
 
     await waitFor(() => {
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      const text = (amountInput.props.children as unknown[])
-        .filter((c) => typeof c === 'string')
-        .join('');
-      expect(text).toContain('50');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '$50',
+      );
     });
   });
 

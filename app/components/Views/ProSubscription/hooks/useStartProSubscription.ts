@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
   PRODUCT_TYPES,
+  RECURRING_INTERVALS,
   SubscriptionDelegationServiceErrorMessage,
 } from '@metamask/subscription-controller';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -10,8 +12,11 @@ import {
   isStrictHexString,
   isValidHexAddress,
   type Hex,
+  type Json,
 } from '@metamask/utils';
+import { v1 as random } from 'uuid';
 import Engine from '../../../../core/Engine';
+import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -19,7 +24,8 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
 import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
-import { strings } from '../../../../../locales/i18n';
+import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
+import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
 
@@ -83,6 +89,113 @@ async function topUpMembershipShortfall(
   }
 
   await promise;
+}
+
+const MEMBERSHIP_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+};
+
+/**
+ * Formats a membership billing or renew date with the device locale.
+ *
+ * @param date - Date to format.
+ * @returns Localized date string (e.g. "Nov 5, 2026").
+ */
+function formatMembershipDate(date: Date): string {
+  return date.toLocaleDateString(I18n.locale, MEMBERSHIP_DATE_FORMAT);
+}
+
+/**
+ * Adds calendar months on the local calendar and clamps the day to the last
+ * day of the target month. January 31 plus one month is February 28 or 29.
+ *
+ * @param date - Starting date.
+ * @param months - Number of calendar months to add.
+ * @returns A new date in the target month, keeping the original time of day.
+ */
+function addCalendarMonths(date: Date, months: number): Date {
+  const monthIndex = date.getMonth() + months;
+  const year = date.getFullYear() + Math.floor(monthIndex / 12);
+  const month = monthIndex % 12;
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(date.getDate(), lastDayOfMonth);
+
+  return new Date(
+    year,
+    month,
+    day,
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds(),
+    date.getMilliseconds(),
+  );
+}
+
+/**
+ * Builds the `requestData` payload for a `confirm_membership` approval.
+ *
+ * Annual plans show an equivalent monthly amount (`amount / 12`, rounded to
+ * cents) in the sheet hero; the Total row still shows the full plan amount.
+ *
+ * @param plan - Checkout-ready Plus plan.
+ * @param isTrial - Whether Benefits determined this user can start a trial.
+ * @param now - Reference date for billed-on / renew calculations.
+ * @returns Approval request data for ConfirmMembershipApproval.
+ */
+export function buildConfirmMembershipRequestData(
+  plan: SelectedPlusPlan,
+  isTrial: boolean,
+  now: Date = new Date(),
+): ConfirmMembershipRequestData & Record<string, Json> {
+  const isAnnual = plan.interval === RECURRING_INTERVALS.year;
+  const totalAmount = new BigNumber(plan.amount).decimalPlaces(2).toFixed(2);
+  const monthlyAmount = isAnnual
+    ? new BigNumber(plan.amount).dividedBy(12).decimalPlaces(2).toFixed(2)
+    : totalAmount;
+
+  const { trialPeriodDays } = plan;
+  if (isTrial && trialPeriodDays !== undefined && trialPeriodDays > 0) {
+    const billedOnDate = new Date(now);
+    billedOnDate.setDate(billedOnDate.getDate() + trialPeriodDays);
+    const billedOn = formatMembershipDate(billedOnDate);
+
+    return {
+      monthlyAmount,
+      totalAmount,
+      renewDate: billedOn,
+      isTrial: true,
+      billedOn,
+    };
+  }
+
+  const renewDate = addCalendarMonths(now, isAnnual ? 12 : 1);
+
+  return {
+    monthlyAmount,
+    totalAmount,
+    renewDate: formatMembershipDate(renewDate),
+  };
+}
+
+/**
+ * Raises a `confirm_membership` approval and waits for the user to accept or
+ * reject it. Rejection propagates so the caller can treat it as a user cancel.
+ *
+ * @param plan - Checkout-ready Plus plan.
+ * @param isTrial - Whether Benefits determined this user can start a trial.
+ */
+async function requestMembershipConsent(
+  plan: SelectedPlusPlan,
+  isTrial: boolean,
+): Promise<void> {
+  await Engine.context.ApprovalController.add({
+    id: random(),
+    origin: ORIGIN_METAMASK,
+    type: ApprovalTypes.CONFIRM_MEMBERSHIP,
+    requestData: buildConfirmMembershipRequestData(plan, isTrial),
+  });
 }
 
 const SUBSCRIPTION_START_ERROR_LOG_OPTIONS = {
@@ -221,8 +334,15 @@ function reportStartSubscriptionError(
   throw loggedError;
 }
 
+export interface StartProSubscriptionOptions {
+  isTrial?: boolean;
+}
+
 export interface UseStartProSubscriptionResult {
-  startSubscription: (plan: SelectedPlusPlan) => Promise<void>;
+  startSubscription: (
+    plan: SelectedPlusPlan,
+    options?: StartProSubscriptionOptions,
+  ) => Promise<void>;
   isSubmitting: boolean;
   errorMessage: string | undefined;
 }
@@ -231,15 +351,17 @@ export interface UseStartProSubscriptionResult {
  * Starts a Money Account Plus subscription using the client-owned checkout
  * flow from MetaMask/core#10666:
  * 1. `checkMoneyAccountBalance`
- * 2. If short, open a `membershipSubscription` MetaMask Pay top-up for the
+ * 2. Obtain consent before starting:
+ * - Sufficient balance: raise a `confirm_membership` approval and wait for
+ * the user to accept it.
+ * - Shortfall: open a `membershipSubscription` MetaMask Pay top-up for the
  * shortfall and wait for the user to approve it. The server keeps the
  * subscription provisional until the funds land, and cancels it if they
  * don't arrive within its grace period.
  * 3. Call `SubscriptionDelegationService:startSubscriptionWithDelegation`
  *
  * `@metamask/subscription-controller` 13 removed `skipApproval`. The service
- * expects the caller to obtain consent before the call. The shortfall path
- * does that through the MetaMask Pay top-up.
+ * expects the caller to obtain consent before the call.
  *
  * Resolves after the subscription starts. The caller shows the success screen;
  * this hook does not navigate. The delegation start refreshes subscriptions
@@ -264,7 +386,10 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
   );
 
   const startSubscription = useCallback(
-    async (plan: SelectedPlusPlan): Promise<void> => {
+    async (
+      plan: SelectedPlusPlan,
+      options?: StartProSubscriptionOptions,
+    ): Promise<void> => {
       if (isSubmittingRef.current) {
         throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
       }
@@ -290,7 +415,9 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
             subscriptionParams,
           );
 
-        if (!hasSufficientBalance) {
+        if (hasSufficientBalance) {
+          await requestMembershipConsent(plan, options?.isTrial ?? false);
+        } else {
           await topUpMembershipShortfall(
             initiateDeposit,
             balance,

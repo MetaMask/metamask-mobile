@@ -15,6 +15,7 @@ import {
 import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
+  selectDisplayedMoneyAccountPlusSubscription,
   selectHasAnyMoneyAccountPlusEntitlement,
   selectHasExistingMoneyAccountPlusSubscription,
   selectIsMoneyAccountPlusSubscriber,
@@ -809,6 +810,67 @@ describe('subscriptionController selectors', () => {
                 }),
               ],
               trialedProducts: [],
+            }),
+          ),
+        ).toBeUndefined();
+      });
+    });
+
+    describe('selectDisplayedMoneyAccountPlusSubscription', () => {
+      it('prefers the current Plus subscription over the last one', () => {
+        const current = createSubscription({
+          id: 'sub-current',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.paused,
+        });
+        const last = createSubscription({
+          id: 'sub-last',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.canceled,
+        });
+
+        expect(
+          selectDisplayedMoneyAccountPlusSubscription(
+            createState({
+              subscriptions: [current],
+              trialedProducts: [],
+              lastSubscription: last,
+            }),
+          ),
+        ).toEqual(current);
+      });
+
+      it('returns the last Plus subscription when the current list has none', () => {
+        const last = createSubscription({
+          id: 'sub-last',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.canceled,
+        });
+
+        expect(
+          selectDisplayedMoneyAccountPlusSubscription(
+            createState({
+              subscriptions: [],
+              trialedProducts: [],
+              lastSubscription: last,
+            }),
+          ),
+        ).toEqual(last);
+      });
+
+      it('returns undefined when neither current nor last is Plus', () => {
+        const last = createSubscription({
+          id: 'sub-shield',
+          products: [createProduct(PRODUCT_TYPES.SHIELD)],
+          status: SUBSCRIPTION_STATUSES.canceled,
+        });
+
+        expect(
+          selectDisplayedMoneyAccountPlusSubscription(
+            createState({
+              subscriptions: [],
+              trialedProducts: [],
+              lastSubscription: last,
             }),
           ),
         ).toBeUndefined();

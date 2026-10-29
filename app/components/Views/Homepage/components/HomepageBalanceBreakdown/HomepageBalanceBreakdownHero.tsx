@@ -5,6 +5,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   ButtonBase,
+  FontFamily,
   FontWeight,
   SensitiveText,
   SensitiveTextLength,
@@ -13,6 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import BalanceEmptyState from '../../../../UI/BalanceEmptyState';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -24,6 +26,18 @@ import { useHomepageBalanceBreakdownHero } from './useHomepageBalanceBreakdownHe
 interface HomepageBalanceBreakdownHeroProps {
   hero: HeroData;
 }
+
+/**
+ * Keeps the aggregate muted only while another balance slice is unresolved.
+ * Settled slice errors are incomplete data, but no longer a loading state.
+ *
+ * @param isPartiallyLoaded - Whether an eligible slice is still loading.
+ * @returns The semantic color for the aggregate balance.
+ */
+export const getHomepageBalanceColor = (
+  isPartiallyLoaded: boolean | undefined,
+): TextColor =>
+  isPartiallyLoaded ? TextColor.TextMuted : TextColor.TextDefault;
 
 const HomepageBalanceBreakdownHero = ({
   hero,
@@ -38,8 +52,10 @@ const HomepageBalanceBreakdownHero = ({
     isLoading,
     percentText,
     privacyMode,
+    skipBalanceAnimation,
     shouldShowEmptyState,
     togglePrivacy,
+    zeroBalance,
   } = useHomepageBalanceBreakdownHero(hero);
 
   if (!isLoading && shouldShowEmptyState) {
@@ -64,26 +80,33 @@ const HomepageBalanceBreakdownHero = ({
       testID={HomepageBalanceBreakdownTestIds.HERO}
       twClassName="mx-4 h-auto self-stretch flex-col items-start justify-start overflow-visible rounded-none bg-transparent p-0"
     >
-      <Skeleton hideChildren={isLoading}>
-        <Animated.View style={animatedBalanceStyle}>
+      <Animated.View style={animatedBalanceStyle}>
+        {privacyMode ? (
           <SensitiveText
-            color={
-              hero.isPartiallyLoaded || hero.hasErroredSlice
-                ? TextColor.TextMuted
-                : TextColor.TextDefault
-            }
+            color={getHomepageBalanceColor(hero.isPartiallyLoaded)}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLg}
+            fontFamily={FontFamily.Hero}
+            variant={TextVariant.AmountDisplayLg}
           >
             {displayBalance}
           </SensitiveText>
-        </Animated.View>
-      </Skeleton>
+        ) : (
+          <AnimatedBalanceText
+            accessible={false}
+            color={getHomepageBalanceColor(hero.isPartiallyLoaded)}
+            isLoading={isLoading}
+            loadingValue={zeroBalance}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            value={displayBalance}
+            animated={!skipBalanceAnimation}
+          />
+        )}
+      </Animated.View>
 
-      {hero.delta && amountText ? (
-        <Skeleton hideChildren={isLoading}>
+      {!isLoading && hero.delta && amountText ? (
+        <Skeleton>
           <Box
             alignItems={BoxAlignItems.Center}
             flexDirection={BoxFlexDirection.Row}

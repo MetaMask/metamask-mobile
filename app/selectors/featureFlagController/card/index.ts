@@ -4,10 +4,12 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
 import { CardProviderIds } from '../../../core/Engine/controllers/card-controller/provider-types';
 import {
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  readCardImmersveMfaEnabled,
   readCardUkMigrationSignInRoutingEnabled,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
@@ -30,11 +32,13 @@ export {
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
   readCardUkMigrationFlag,
+  readCardImmersveMfaEnabled,
   readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
   resolveCardUkMigrationState,
@@ -56,6 +60,25 @@ export const selectCardFeatureFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
     readCardFeatureFlag(remoteFeatureFlags as CardRemoteFeatureFlags),
+);
+
+/** Used when `cardFeature.constants.applePayLearnMoreUrl` is missing or blank. */
+export const DEFAULT_APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io/card';
+
+export const selectApplePayLearnMoreUrl = createSelector(
+  selectCardFeatureFlag,
+  (cardFeatureFlag): string => {
+    const url = cardFeatureFlag.constants?.applePayLearnMoreUrl;
+    return typeof url === 'string' && url.trim().length > 0
+      ? url
+      : DEFAULT_APPLE_PAY_LEARN_MORE_URL;
+  },
+);
+
+export const selectCardLinkApiEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    readCardLinkApiEnabled(remoteFeatureFlags as CardRemoteFeatureFlags),
 );
 
 // -- Immersve provider flags --
@@ -235,6 +258,12 @@ export const selectCardUkMigrationSignInRoutingEnabled = createSelector(
     readCardUkMigrationSignInRoutingEnabled(
       remoteFeatureFlags as CardRemoteFeatureFlags,
     ),
+);
+
+export const selectCardImmersveMfaEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    readCardImmersveMfaEnabled(remoteFeatureFlags as CardRemoteFeatureFlags),
 );
 
 export const selectCardIntercomSupportEnabled = createSelector(

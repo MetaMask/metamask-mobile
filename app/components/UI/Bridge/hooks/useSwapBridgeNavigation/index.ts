@@ -46,6 +46,7 @@ import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedS
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
 import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
 import type { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
+import type { SwapsLimitOrderExpirationMinutes } from '../../constants/limitOrders';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -68,6 +69,8 @@ export interface BridgeRouteParams {
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
   initialTab?: BridgeTabKey;
+  initialLimitOrderExpirationMinutes?: SwapsLimitOrderExpirationMinutes;
+  initialLimitOrderPriceTolerance?: string;
   scrollToTopOnNav?: boolean;
   autoFocusSourceAmountInput?: boolean;
   /**

@@ -3,13 +3,13 @@ import type {
   Position,
   Trade,
 } from '@metamask/social-controllers';
-import { strings } from '../../../../../locales/i18n';
 import type {
   TraderFeedRow,
   SocialV1FeedItem,
   SocialV1SpotSide,
 } from '../types';
 import {
+  formatAbbreviatedUsd,
   formatHoldDuration,
   formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
@@ -17,15 +17,10 @@ import {
 } from './formatters';
 import { isEntryAction } from './tradeAction';
 import { tradeTimestampToMs } from './tradeTimestamp';
-import { markMocked, type SocialV1MockedField } from '../mockMarker';
-import { mockAutoClose, mockMarkPrice } from '../mocks/socialV1Enrichment';
+import { buildLivePriceSource } from '../live/buildLivePriceSource';
 import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
-import {
-  asFeedCardItem,
-  toWholePercent,
-  type FeedCardItem,
-} from './feedCardStats';
+import { asFeedCardItem, toWholePercent } from './feedCardStats';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -40,18 +35,22 @@ export const toUnitPrice = (trade: Trade): number | null => {
 };
 
 /**
- * Average entry price across every fill that grew the position -- the honest
- * figure, since a position built over several fills has no single entry.
+ * Average entry price of the position.
  *
- * Prefers the fills because they survive a full close: once a position is
- * closed `positionAmount` is 0, so `costBasis / positionAmount` is unusable.
- * That ratio is the fallback for rows whose fill history did not come through.
+ * While it is open that is `costBasis / positionAmount`: the basis its P&L is
+ * measured against, which also prices tokens the trader received rather than
+ * bought. The API's `entryPriceUsd` drops that received half, so it is not
+ * read. Once closed `positionAmount` is 0, so the entry is averaged over the
+ * fills that grew the position instead.
  */
 export const deriveAverageEntryPrice = (core: Position): number | null => {
-  const storedEntry = (core as Pick<FeedCardItem, 'entryPriceUsd'>)
-    .entryPriceUsd;
-  if (isPresentNumber(storedEntry) && storedEntry > 0) {
-    return storedEntry;
+  if (
+    core.isOpen !== false &&
+    isPresentNumber(core.costBasis) &&
+    core.costBasis > 0 &&
+    core.positionAmount > 0
+  ) {
+    return core.costBasis / core.positionAmount;
   }
 
   const entryFills = (core.trades ?? []).filter(
@@ -68,10 +67,6 @@ export const deriveAverageEntryPrice = (core: Position): number | null => {
 
   if (totals.tokens > 0 && totals.usd > 0) {
     return totals.usd / totals.tokens;
-  }
-
-  if (isPresentNumber(core.costBasis) && core.positionAmount > 0) {
-    return Math.abs(core.costBasis) / core.positionAmount;
   }
 
   return null;
@@ -95,6 +90,42 @@ export const deriveExitPrice = (core: Position): number | null => {
 
   return toUnitPrice(lastExit);
 };
+
+/**
+ * Current unit price of an open position: what the remaining holdings are
+ * worth over how many there are. `null` once the position is closed, or when
+ * the row omitted its current value.
+ */
+export const deriveCurrentPrice = (core: Position): number | null =>
+  isPresentNumber(core.currentValueUSD) && core.positionAmount > 0
+    ? core.currentValueUSD / core.positionAmount
+    : null;
+
+/**
+ * Market cap per unit of price, read off the latest fill that recorded both.
+ * Constant while supply is, so any price on this position scales into a
+ * market cap -- the same ratio the position details sheet charts against.
+ */
+export const deriveMarketCapPerPrice = (core: Position): number | null => {
+  const fills = [...(core.trades ?? [])].sort(
+    (a, b) => tradeTimestampToMs(b.timestamp) - tradeTimestampToMs(a.timestamp),
+  );
+  for (const trade of fills) {
+    const unitPrice = toUnitPrice(trade);
+    if (isPresentNumber(trade.marketCap) && trade.marketCap > 0 && unitPrice) {
+      return trade.marketCap / unitPrice;
+    }
+  }
+  return null;
+};
+
+const toMarketCapLabel = (
+  marketCapPerPrice: number | null,
+  price: number | null,
+): string | undefined =>
+  marketCapPerPrice == null || price == null
+    ? undefined
+    : formatAbbreviatedUsd(marketCapPerPrice * price);
 
 /**
  * How long the position has been held, in milliseconds.
@@ -181,10 +212,8 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
 /**
  * Maps one loaded feed row into the V1 card model.
  *
- * Identity, time, symbol, direction, leverage, value, P&L, the author's win
- * rate and caption, entry (when position metrics stored one) and hold time
- * come from the row. Mark price and the perp auto-close bracket are still
- * invented, and each invented value is recorded in `mockedFields`.
+ * Every figure comes from the row. Open positions also carry a `live` source
+ * so the card can follow a streamed price from these snapshot values.
  */
 export function toSocialV1FeedItem(
   row: TraderFeedRow,
@@ -192,7 +221,6 @@ export function toSocialV1FeedItem(
 ): SocialV1FeedItem {
   const { item, core } = row;
   const card = asFeedCardItem(core);
-  const mockedFields: SocialV1MockedField[] = [];
 
   const author = {
     id: item.traderId,
@@ -245,24 +273,32 @@ export function toSocialV1FeedItem(
       ? formatUsd(Math.abs(core.boughtUsd))
       : undefined,
     isPnlPositive: item.isPnlPositive,
-    mockedFields,
   };
 
   const entryPrice = deriveAverageEntryPrice(core);
   const entryPriceLabel =
     entryPrice == null ? undefined : formatTradeUnitPrice(entryPrice);
   const isSpot = item.type === 'spot';
+  const marketCapPerPrice = isSpot ? deriveMarketCapPerPrice(core) : null;
+  const holdDurationMs = deriveHoldDurationMs(
+    core,
+    Boolean(item.isClosed),
+    now,
+  );
+  const holdTimeLabel =
+    holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs);
 
   if (item.isClosed) {
     const exitPrice = deriveExitPrice(core);
-    const holdDurationMs = deriveHoldDurationMs(core, true, now);
     const closed = {
       ...base,
       entryPriceLabel,
       exitPriceLabel:
         exitPrice == null ? undefined : formatTradeUnitPrice(exitPrice),
-      holdTimeLabel:
-        holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs),
+      holdTimeLabel,
+      closedAtMs: isPresentNumber(core.lastTradeAt)
+        ? tradeTimestampToMs(core.lastTradeAt)
+        : undefined,
     };
 
     return isSpot
@@ -270,6 +306,8 @@ export function toSocialV1FeedItem(
           ...closed,
           variant: 'spotClosed',
           side: toSpotSide(core, item.action),
+          entryMarketCapLabel: toMarketCapLabel(marketCapPerPrice, entryPrice),
+          exitMarketCapLabel: toMarketCapLabel(marketCapPerPrice, exitPrice),
         }
       : {
           ...closed,
@@ -279,35 +317,26 @@ export function toSocialV1FeedItem(
         };
   }
 
-  const markPrice = mockMarkPrice(item.traderId, base.asset.symbol, entryPrice);
-  if (markPrice != null) {
-    mockedFields.push('markPrice');
-  }
-  const markPriceLabel =
-    markPrice == null ? undefined : markMocked(formatTradeUnitPrice(markPrice));
+  const currentPrice = deriveCurrentPrice(core);
+  const live = buildLivePriceSource(core, false, {
+    snapshotPrice: currentPrice,
+    entryPrice,
+    marketCapPerPrice,
+  });
 
   if (isSpot) {
-    const holdDurationMs = deriveHoldDurationMs(core, false, now);
-
     return {
       ...base,
       variant: 'spotOpen',
       side: toSpotSide(core, item.action),
-      markPriceLabel,
+      markPriceLabel:
+        currentPrice == null ? undefined : formatTradeUnitPrice(currentPrice),
+      marketCapLabel: toMarketCapLabel(marketCapPerPrice, currentPrice),
       entryPriceLabel,
-      holdTimeLabel:
-        holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs),
+      entryMarketCapLabel: toMarketCapLabel(marketCapPerPrice, entryPrice),
+      holdTimeLabel,
+      ...(live ? { live } : {}),
     };
-  }
-
-  const autoClose = mockAutoClose(
-    item.traderId,
-    base.asset.symbol,
-    entryPrice,
-    item.direction,
-  );
-  if (autoClose) {
-    mockedFields.push('autoClose');
   }
 
   return {
@@ -317,16 +346,11 @@ export function toSocialV1FeedItem(
     tradeSymbol: item.tradeSymbol,
     leverage: item.leverage ?? undefined,
     leverageLabel: toLeverageLabel(item),
-    markPriceLabel,
+    markPriceLabel:
+      currentPrice == null ? undefined : formatTradeUnitPrice(currentPrice),
     entryPriceLabel,
-    autoCloseLabel: autoClose
-      ? markMocked(
-          strings('social_leaderboard.feed.position_card.auto_close_pair', {
-            takeProfit: formatTradeUnitPrice(autoClose.takeProfit),
-            stopLoss: formatTradeUnitPrice(autoClose.stopLoss),
-          }),
-        )
-      : undefined,
+    holdTimeLabel,
+    ...(live ? { live } : {}),
   };
 }
 

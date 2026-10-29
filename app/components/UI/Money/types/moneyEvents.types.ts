@@ -2,6 +2,8 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import {
   BOTTOM_SHEET_NAMES as MONEY_BOTTOM_SHEET_NAMES,
+  MONEY_ACCOUNT_CAMPAIGN_NAMES,
+  MONEY_ACCOUNT_CAMPAIGN_PLATFORMS,
   COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
@@ -60,6 +62,11 @@ export type MoneyActivitySurfaceClickedEventProperties =
 export type MoneyBaseEventProperties = Partial<MoneyLocationEventProperties> &
   MoneyCardEventProperties &
   MoneyFundedEventProperties;
+
+export type MoneyAccountCampaignTriggeredEventProperties = {
+  campaign_name: MONEY_ACCOUNT_CAMPAIGN_NAMES;
+  campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS;
+};
 
 type MoneyTokenRowEventProperties = {
   token_symbol: string;

@@ -417,6 +417,56 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
       is_authenticated: false,
     });
   });
+
+  it('includes tdp_version on ACTION_BUTTON_CLICKED when tdpVersion is provided', async () => {
+    const { result } = await renderOnBuy({
+      token: defaultToken,
+      tdpVersion: 'v3',
+    });
+
+    await act(async () => {
+      await result.current();
+    });
+
+    assertAnalyticsEvent(MetaMetricsEvents.ACTION_BUTTON_CLICKED, {
+      action_name: ActionButtonType.BUY,
+      tdp_version: 'v3',
+    });
+  });
+
+  it('omits tdp_version on ACTION_BUTTON_CLICKED when tdpVersion is not provided', async () => {
+    const { result } = await renderOnBuy();
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ action_name: ActionButtonType.BUY }),
+    );
+    expect(mockAddProperties).not.toHaveBeenCalledWith(
+      expect.objectContaining({ tdp_version: expect.anything() }),
+    );
+  });
+
+  it('does not add tdp_version to RAMPS_BUTTON_CLICKED even when tdpVersion is provided', async () => {
+    const { result } = await renderOnBuy({
+      token: defaultToken,
+      tdpVersion: 'v2',
+    });
+
+    await act(async () => {
+      await result.current();
+    });
+
+    // RAMPS_BUTTON_CLICKED payload (asset_symbol present) must not carry tdp_version.
+    expect(mockAddProperties).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        asset_symbol: 'DAI',
+        tdp_version: expect.anything(),
+      }),
+    );
+  });
 });
 
 describe('useTokenAtomicActions - useHandleOnSend', () => {
@@ -520,6 +570,35 @@ describe('useTokenAtomicActions - useHandleOnSend', () => {
 
     expect(mockNavigateToSendPage).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('includes tdp_version on ACTION_BUTTON_CLICKED when tdpVersion is provided', async () => {
+    const { result } = renderHook(() =>
+      useHandleOnSend({ token: defaultToken, tdpVersion: 'v2' }),
+    );
+
+    await act(async () => {
+      await result.current();
+    });
+
+    assertAnalyticsEvent(MetaMetricsEvents.ACTION_BUTTON_CLICKED, {
+      action_name: ActionButtonType.SEND,
+      tdp_version: 'v2',
+    });
+  });
+
+  it('omits tdp_version on ACTION_BUTTON_CLICKED when tdpVersion is not provided', async () => {
+    const { result } = renderHook(() =>
+      useHandleOnSend({ token: defaultToken }),
+    );
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockAddProperties).not.toHaveBeenCalledWith(
+      expect.objectContaining({ tdp_version: expect.anything() }),
+    );
   });
 });
 
@@ -677,6 +756,38 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
         hasAccountGroup: true,
         hasChainId: true,
       }),
+    );
+  });
+
+  it('includes tdp_version on ACTION_BUTTON_CLICKED when tdpVersion is provided', () => {
+    const { result } = renderHook(() =>
+      useHandleOnReceive({
+        token: defaultToken,
+        networkName: 'Ethereum Mainnet',
+        tdpVersion: 'v3',
+      }),
+    );
+
+    result.current();
+
+    assertAnalyticsEvent(MetaMetricsEvents.ACTION_BUTTON_CLICKED, {
+      action_name: ActionButtonType.RECEIVE,
+      tdp_version: 'v3',
+    });
+  });
+
+  it('omits tdp_version on ACTION_BUTTON_CLICKED when tdpVersion is not provided', () => {
+    const { result } = renderHook(() =>
+      useHandleOnReceive({
+        token: defaultToken,
+        networkName: 'Ethereum Mainnet',
+      }),
+    );
+
+    result.current();
+
+    expect(mockAddProperties).not.toHaveBeenCalledWith(
+      expect.objectContaining({ tdp_version: expect.anything() }),
     );
   });
 });

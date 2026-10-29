@@ -2,6 +2,7 @@ import type { TraderProfileResponse } from '@metamask/social-controllers';
 import type { MySocialProfile } from '../hooks/useMyProfile';
 import {
   FAKE_STATS_PREFIX,
+  buildPerformanceCells,
   overlayMyProfileLiveStats,
 } from './overlayMyProfileLiveStats';
 
@@ -9,14 +10,8 @@ const localProfile: MySocialProfile = {
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
-  volumeUsd30d: 386_260,
-  tradeCount30d: 39,
-  profileAgeLabel: '2y',
-  copySuccessRatePercent: 72,
   followerCount: 4,
   rankingTag: 'whale',
 };
@@ -61,17 +56,9 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.fallbackFields.winRate).toBe(true);
-    expect(result.fallbackFields.holdTime).toBe(false);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
+    expect(result.performanceCells).toEqual([]);
     expect(result.rankingTag).toBe('whale');
     expect(result.followerCount).toBe(4);
-    expect(result.sheetProfile.profile.name).toBe('Giga Whale');
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
   });
 
   it('uses live stats without a fake prefix when the profile fetch succeeds', () => {
@@ -79,17 +66,17 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.fallbackFields.winRate).toBe(false);
-    expect(result.fallbackFields.pnl).toBe(false);
     expect(result.rankingTag).toBe('dolphin');
     expect(result.followerCount).toBe(88);
-    expect(result.sheetProfile.profile.name).toBe('Giga Whale');
-    expect(result.sheetProfile.stats.pnl30d).toBe(1200);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBe(180);
-    expect(result.sheetProfile.copytradedAllTime?.count).toBe(44);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual([
+      'pnl',
+      'winRate',
+      'holdTime',
+      'volume',
+    ]);
   });
 
-  it('keeps a fake prefix on fields the live profile omits', () => {
+  it('keeps a fake prefix on headline stats the live profile omits', () => {
     const result = overlayMyProfileLiveStats(
       localProfile,
       liveProfile({
@@ -100,44 +87,49 @@ describe('overlayMyProfileLiveStats', () => {
           tradeCount30d: null,
           volumeUsd30d: null,
         },
-        copytradedAllTime: {
-          count: 0,
-          volumeUSD: 0,
-          distinctActors: 0,
+      }),
+    );
+
+    expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
+    expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
+  });
+});
+
+describe('buildPerformanceCells', () => {
+  it('returns no cells without a live profile', () => {
+    expect(buildPerformanceCells(null)).toEqual([]);
+  });
+
+  it('returns all four cells in grid order when live stats are present', () => {
+    expect(buildPerformanceCells(liveProfile())).toEqual([
+      { id: 'pnl', value: '+$1,200', tone: 'success' },
+      { id: 'winRate', value: '42%', tone: 'default' },
+      { id: 'holdTime', value: '3h', tone: 'default' },
+      { id: 'volume', value: '$50,000', tone: 'default' },
+    ]);
+  });
+
+  it('marks negative P&L with the error tone', () => {
+    const [pnlCell] = buildPerformanceCells(
+      liveProfile({ stats: { pnl30d: -450 } }),
+    );
+
+    expect(pnlCell).toEqual({ id: 'pnl', value: '-$450', tone: 'error' });
+  });
+
+  it('omits cells whose live value is missing', () => {
+    const cells = buildPerformanceCells(
+      liveProfile({
+        stats: {
+          pnl30d: null,
+          winRate30d: 0.5,
+          medianHoldMinutes: null,
+          volumeUsd30d: 1000,
         },
       }),
     );
 
-    expect(result.fallbackFields.winRate).toBe(true);
-    expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.fallbackFields.pnl).toBe(false);
-    expect(result.fallbackFields.holdTime).toBe(false);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
-    expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.fallbackFields.volume).toBe(true);
-    expect(result.fallbackFields.tradeCount).toBe(true);
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
-  });
-
-  it('backfills sheet mocks on legacy profiles that omit the new fields', () => {
-    const legacyOnly: MySocialProfile = {
-      profileId: 'current-user',
-      displayName: 'Giga Whale',
-      handle: 'giga-whale',
-      shareUrl: 'https://metamask.io/social/giga-whale',
-      winRatePercent: 60,
-      pnlUsd: 7100,
-      timesCopied: 981,
-    };
-
-    const result = overlayMyProfileLiveStats(legacyOnly, null);
-
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
+    expect(cells.map((cell) => cell.id)).toEqual(['winRate', 'volume']);
   });
 });

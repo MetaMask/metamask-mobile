@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import type { Colors } from '../../../../../util/theme/models';
+import { FIXED_BOTTOM_CONTAINER_PADDING } from '../../constants/perpsUIConfig';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -12,7 +13,7 @@ const createStyles = (colors: Colors) =>
     },
     scrollViewContent: {
       flexGrow: 1,
-      paddingBottom: 120, // Space for fixed button
+      paddingBottom: 0,
       paddingTop: 0,
     },
     scrollViewContentKeypad: {
@@ -21,20 +22,15 @@ const createStyles = (colors: Colors) =>
       paddingTop: 0,
     },
     fixedBottomContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
       backgroundColor: colors.background.default,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
       paddingHorizontal: 16,
       paddingTop: 16,
+      paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING,
     },
     sliderSection: {
       paddingHorizontal: 32,
-      paddingTop: 32,
-      paddingBottom: 24,
+      paddingTop: 16,
+      paddingBottom: 16,
     },
     detailsWrapper: {
       paddingHorizontal: 16,

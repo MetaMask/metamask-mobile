@@ -98,6 +98,7 @@ export const createMockInfrastructure =
       // === Rewards (DI — no RewardsController in Core yet) ===
       rewards: {
         getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
+        getPerpsTradingFeeGrant: jest.fn().mockResolvedValue(null),
       },
 
       // === Disk Cache (cold-start persistence) ===

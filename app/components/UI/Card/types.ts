@@ -47,6 +47,7 @@ export enum CardMessageBoxType {
   CreditAvailableNoMoneyAccount = 'credit_available_no_money_account',
   UkMigrationSoft = 'uk_migration_soft',
   UkMigrationRequired = 'uk_migration_required',
+  WalletVerificationPending = 'wallet_verification_pending',
 }
 
 /**

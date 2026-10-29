@@ -31,6 +31,9 @@ import { createTokenSelectModalNavigationDetails } from '../../components/TokenS
 import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { RampIntent } from '../../types';
+import { SolScope } from '@metamask/keyring-api';
+import { BottomSheetDialog } from '@metamask/design-system-react-native';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
 
 const mockSetActiveNetwork = jest.fn();
 const mockEngineContext = {
@@ -44,8 +47,31 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-const getByRoleButton = (name?: string | RegExp) =>
-  screen.getByRole('button', { name });
+const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
+  '0': KeypadTestIds.KEY_0,
+  '1': KeypadTestIds.KEY_1,
+  '2': KeypadTestIds.KEY_2,
+  '3': KeypadTestIds.KEY_3,
+  '4': KeypadTestIds.KEY_4,
+  '5': KeypadTestIds.KEY_5,
+  '6': KeypadTestIds.KEY_6,
+  '7': KeypadTestIds.KEY_7,
+  '8': KeypadTestIds.KEY_8,
+  '9': KeypadTestIds.KEY_9,
+  '.': KeypadTestIds.KEY_DOT,
+};
+
+const getByRoleButton = (name?: string | RegExp) => {
+  const matches = screen.getAllByRole('button', { name });
+  if (matches.length === 1 || typeof name !== 'string') {
+    return matches[0];
+  }
+
+  const keypadTestID = KEYPAD_TEST_IDS_BY_LABEL[name];
+  return (
+    matches.find(({ props }) => props.testID === keypadTestID) ?? matches[0]
+  );
+};
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -776,6 +802,30 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`${symbol}${validAmount}`)).toBeTruthy();
     });
 
+    it('groups EUR input without reusing its decimal separator', () => {
+      mockUseFiatCurrenciesValues = {
+        ...mockUseFiatCurrenciesInitialValues,
+        currentFiatCurrency: mockFiatCurrenciesData[1],
+      };
+      render(BuildQuote);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      for (const key of ['1', '2', '3', '4']) {
+        fireEvent.press(getByRoleButton(key));
+      }
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('€1.234');
+
+      fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_DOT));
+      fireEvent.press(getByRoleButton('5'));
+      fireEvent.press(getByRoleButton('6'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('€1.234,56');
+    });
+
     it('updates the amount input with quick amount buttons', () => {
       render(BuildQuote);
       const initialAmount = '0';
@@ -868,6 +918,15 @@ describe('BuildQuote View', () => {
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).not.toBeOnTheScreen();
+    });
+
+    it('does not claim the native responder for amount keypad touches', () => {
+      render(BuildQuote);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      const bottomSheet = screen.UNSAFE_getByType(BottomSheetDialog);
+
+      expect(bottomSheet.props.onStartShouldSetResponder).toBeUndefined();
     });
 
     it('replaces quick amounts with Done confirm when an amount is entered', () => {
@@ -1304,6 +1363,91 @@ describe('BuildQuote View', () => {
 
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
+    });
+
+    describe('non-EVM asset', () => {
+      const solanaNetwork = {
+        ...mockCryptoCurrenciesData[0].network,
+        chainId: SolScope.Mainnet,
+        chainName: 'Solana',
+        shortName: 'SOL',
+      };
+
+      beforeEach(() => {
+        mockUseGasPriceEstimationValue = {
+          estimatedGasFee: toTokenMinimalUnit('0.27', 9),
+        };
+      });
+
+      afterEach(() => {
+        jest
+          .mocked(useBalance)
+          .mockImplementation(
+            () => mockUseBalanceValues as ReturnType<typeof useBalance>,
+          );
+      });
+
+      it('sets max to the full native balance without subtracting EVM gas', () => {
+        mockUseRampSDKValues = {
+          ...mockUseRampSDKInitialValues,
+          isBuy: false,
+          isSell: true,
+          selectedAsset: {
+            ...mockCryptoCurrenciesData[0],
+            symbol: 'SOL',
+            decimals: 9,
+            address: NATIVE_ADDRESS,
+            network: solanaNetwork,
+          },
+        };
+        mockUseBalanceValues = {
+          balance: '1 SOL',
+          balanceFiat: undefined,
+          balanceBN: toTokenMinimalUnit('1', 9),
+        };
+
+        render(BuildQuote);
+        fireEvent.press(getByRoleButton('0 SOL'));
+        fireEvent.press(getByRoleButton('Max'));
+
+        expect(getByRoleButton('1 SOL')).toBeOnTheScreen();
+      });
+
+      it('does not show the EVM network fee error for a non-EVM token', () => {
+        mockUseLimitsValues.limits = {
+          ...mockUseLimitsValues.limits,
+          maxAmount: 10,
+        } as Limits;
+        mockUseRampSDKValues = {
+          ...mockUseRampSDKInitialValues,
+          isBuy: false,
+          isSell: true,
+          selectedAsset: {
+            ...mockCryptoCurrenciesData[0],
+            symbol: 'USDC',
+            decimals: 6,
+            address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            network: solanaNetwork,
+          },
+        };
+        jest.mocked(useBalance).mockImplementation((asset) =>
+          asset?.address === NATIVE_ADDRESS
+            ? { balance: '0', balanceFiat: undefined, balanceBN: 0n }
+            : {
+                balance: '5 USDC',
+                balanceFiat: undefined,
+                balanceBN: toTokenMinimalUnit('5', 6),
+              },
+        );
+
+        render(BuildQuote);
+        fireEvent.press(getByRoleButton('0 USDC'));
+        fireEvent.press(getByRoleButton(VALID_AMOUNT.toString()));
+
+        expect(
+          screen.queryByText(/enough .* to cover the network fees/),
+        ).not.toBeOnTheScreen();
+      });
     });
 
     it('resets the sell amount when switching assets', () => {

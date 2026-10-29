@@ -18,10 +18,6 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'flex-end',
       margin: 0,
     },
-    scrollViewContent: {
-      flex: 1,
-      justifyContent: 'flex-end',
-    },
   });
 };
 

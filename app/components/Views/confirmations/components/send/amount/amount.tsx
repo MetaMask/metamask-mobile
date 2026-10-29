@@ -22,7 +22,10 @@ import TagBase, {
 } from '../../../../../../component-library/base-components/TagBase';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
-import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  AnimatedAmountDisplay,
+  getFontSizeForInputLength,
+} from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Device from '../../../../../../util/device';
@@ -37,7 +40,7 @@ import { useSendContext } from '../../../context/send-context';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { AmountKeyboard } from './amount-keyboard';
-import { getFontSizeForInputLength, styleSheet } from './amount.styles';
+import { styleSheet } from './amount.styles';
 import { formatAmountWithCommas } from '../../../utils/format-amount';
 import { InitSendLocation } from '../../../constants/send';
 import {

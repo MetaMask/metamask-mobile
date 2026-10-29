@@ -72,10 +72,6 @@ describe('Remote Feature Flags Helper', () => {
         expect(flagByName(flagName)).toEqual(disabledVersionGate);
       }
 
-      expect(flagByName('stellarAccounts')).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.1',
-      });
       expect(flagByName('nativeTabBarEnabled')).toBe(true);
       expect(flagByName('predictHomeRedesign')).toEqual({
         enabled: true,
@@ -86,6 +82,25 @@ describe('Remote Feature Flags Helper', () => {
         minimumVersion: '8.13.0',
         startDate: '',
         endDate: '',
+      });
+    });
+
+    it('pins DeFi controller V2 off and lets a test override win', () => {
+      const defaultResponse = createRemoteFeatureFlagsMock().response as Record<
+        string,
+        unknown
+      >[];
+      const overrideResponse = createRemoteFeatureFlagsMock({
+        defiControllerV2: { enabled: true },
+      }).response as Record<string, unknown>[];
+      const flagByName = (response: Record<string, unknown>[], name: string) =>
+        response.find((obj) => name in obj)?.[name];
+
+      expect(flagByName(defaultResponse, 'defiControllerV2')).toEqual({
+        enabled: false,
+      });
+      expect(flagByName(overrideResponse, 'defiControllerV2')).toEqual({
+        enabled: true,
       });
     });
 

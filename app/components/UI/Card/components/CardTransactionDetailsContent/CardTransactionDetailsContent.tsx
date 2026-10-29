@@ -194,7 +194,7 @@ const CardTransactionDetailsContent = ({
                   size={ButtonSize.Lg}
                   isFullWidth
                   onPress={onViewOnExplorer}
-                  startIconName={IconName.Export}
+                  startIconName={IconName.ArrowSquareOut}
                   testID="card-transaction-details-explorer-button"
                 >
                   {strings('card.transactions.view_on_explorer')}

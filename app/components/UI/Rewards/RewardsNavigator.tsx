@@ -5,7 +5,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { slideFromRightNativeOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
-import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import RewardsVipSplashView from './Views/RewardsVipSplashView';
 import RewardsVipView from './Views/RewardsVipView';
@@ -14,6 +13,9 @@ import RewardsVipRefereeView from './Views/RewardsVipRefereeView';
 import RewardsVipTiersView from './Views/RewardsVipTiersView';
 import RewardsVipTransactionsView from './Views/RewardsVipTransactionsView';
 import CampaignsView from './Views/CampaignsView';
+import RewardsTradingCommissionsView from './Views/RewardsTradingCommissionsView';
+import RewardsTradingRebatesView from './Views/RewardsTradingRebatesView';
+import RewardsEarningsHistoryView from './Views/RewardsEarningsHistoryView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
 import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
 import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
@@ -35,8 +37,13 @@ import MoneyAccountSweepstakesCampaignDetailsView from './Views/MoneyAccountSwee
 import MoneyAccountSweepstakesCampaignWinningView from './Views/MoneyAccountSweepstakesCampaignWinningView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectSettingsReferralAvailable } from '../../../reducers/rewardsMoney/selectors';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
+import {
+  useNavigation,
+  useNavigationState,
+  useRoute,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -45,6 +52,11 @@ import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
 import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinningView';
 import { getActiveRouteNameFromNavigationState } from './utils';
+import {
+  isRewardsMoneyFlowScreen,
+  rewardsFlowFocusedScreen,
+  rewardsFlowRequestedScreen,
+} from './utils/rewardsFlowSubscriptionGate';
 import type { RewardsStackParamList } from './types/navigation';
 
 let sessionNotificationsNudgeShown = false;
@@ -53,16 +65,37 @@ const Stack = createNativeStackNavigator<RewardsStackParamList>();
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute();
 
   const activeRewardsRoute = useNavigationState(
     getActiveRouteNameFromNavigationState,
   );
+  const focusedScreen = rewardsFlowFocusedScreen(
+    activeRewardsRoute,
+    rewardsFlowRequestedScreen(route.params),
+  );
+  const focusedMoneyScreen = isRewardsMoneyFlowScreen(focusedScreen)
+    ? focusedScreen
+    : undefined;
+  // Points screens are omitted without a subscription. A money ledger stays.
+  // Settings stays only while the referral section has a cached payload to
+  // show. Any other focused route is dismissed so an opt-out cannot leave a
+  // points screen registered in navigation state.
+  const unsubscribedScreenAllowed =
+    focusedMoneyScreen !== undefined &&
+    (focusedMoneyScreen !== Routes.REWARDS_SETTINGS_VIEW ||
+      settingsReferralAvailable);
+  const closeFlow =
+    !isVersionBlocked && !subscriptionId && !unsubscribedScreenAllowed;
 
   useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
-  // The tab-level data hooks (useCandidateSubscriptionId, useGeoRewardsMetadata,
-  // useReferralDetails) intentionally live on RewardsDashboard, not here.
+  // The tab-level data hooks (useCandidateSubscriptionId, useGeoRewardsMetadata)
+  // intentionally live on RewardsDashboard, not here.
   // RewardsDashboard is the Rewards tab entry and stays mounted while this pushed
   // REWARDS_FLOW stack is open, so it already populates Redux for these sub-pages
   // and keeps event-driven refetches running. Re-declaring those hooks here would
@@ -140,32 +173,28 @@ const RewardsNavigator: React.FC = () => {
     showEnableNotificationsNudge,
   ]);
 
-  // Recover from a lost subscription while the flow is mounted.
+  // Recover from a lost subscription while a points screen is focused.
   //
-  // REWARDS_FLOW is a screen on the root MainNavigator stack; it is normally
-  // pushed from the dashboard, which only renders for subscribed users. But if
-  // the subscription disappears while the flow is still mounted (account switch
-  // or opt-out), subscriptionId flips to falsy and the native stack below would
-  // be left with zero registered screens — which throws — and its navigation
-  // state would still reference sub-page routes that no longer exist (blank flow
-  // / broken back). Dismiss the flow so the user returns to the Rewards tab and
-  // the stale state is discarded.
+  // REWARDS_FLOW is a screen on the root MainNavigator stack. If the
+  // subscription disappears while a points screen is still mounted (account
+  // switch or opt-out), dropping every screen would throw, and leaving those
+  // routes registered would keep a blank flow. Dismiss it. A money ledger
+  // stays. Settings stays only while the referral section has a payload.
   useEffect(() => {
-    if (isVersionBlocked || subscriptionId) {
+    if (!closeFlow) {
       return;
     }
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
-  }, [isVersionBlocked, subscriptionId, navigation]);
+  }, [closeFlow, navigation]);
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
   }
 
-  // Never render an empty native stack navigator (it throws). When there is no
-  // subscription, render nothing while the effect above dismisses the flow.
-  if (!subscriptionId) {
+  // Never render an empty native stack navigator (it throws).
+  if (closeFlow) {
     return null;
   }
 
@@ -177,12 +206,37 @@ const RewardsNavigator: React.FC = () => {
     },
   };
 
+  if (!subscriptionId) {
+    if (!focusedMoneyScreen) {
+      return null;
+    }
+    return (
+      <Stack.Navigator
+        initialRouteName={focusedMoneyScreen}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen
+          name={Routes.REWARDS_SETTINGS_VIEW}
+          component={RewardsSettingsView}
+        />
+        <Stack.Screen
+          name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
+          component={RewardsTradingCommissionsView}
+        />
+        <Stack.Screen
+          name={Routes.REWARDS_TRADING_REBATES_VIEW}
+          component={RewardsTradingRebatesView}
+        />
+        <Stack.Screen
+          name={Routes.REWARDS_EARNINGS_HISTORY_VIEW}
+          component={RewardsEarningsHistoryView}
+        />
+      </Stack.Navigator>
+    );
+  }
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen
-        name={Routes.REFERRAL_REWARDS_VIEW}
-        component={ReferralRewardsView}
-      />
       <Stack.Screen
         name={Routes.REWARDS_SETTINGS_VIEW}
         component={RewardsSettingsView}
@@ -220,6 +274,18 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_CAMPAIGNS_VIEW}
         component={CampaignsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
+        component={RewardsTradingCommissionsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_TRADING_REBATES_VIEW}
+        component={RewardsTradingRebatesView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_EARNINGS_HISTORY_VIEW}
+        component={RewardsEarningsHistoryView}
       />
       <Stack.Screen
         name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}

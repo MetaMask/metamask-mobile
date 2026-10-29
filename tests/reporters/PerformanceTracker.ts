@@ -1,4 +1,5 @@
 import { createLogger } from '../framework/logger';
+import { THRESHOLD_MARGIN_PERCENT } from '../framework/quality-gates/thresholdMargin';
 import type { MetricStep, DeviceInfo, TeamInfo } from './types';
 
 const logger = createLogger({ name: 'PerformanceTracker' });
@@ -69,7 +70,6 @@ export class PerformanceTracker {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async attachToTest(testInfo: any): Promise<MetricsOutput> {
-    const THRESHOLD_MARGIN_PERCENT = 10;
     const metrics: MetricsOutput = {
       steps: [],
       timestamp: new Date().toISOString(),

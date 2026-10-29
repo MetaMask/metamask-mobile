@@ -6,14 +6,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonVariant,
   ButtonSize,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AndroidBackHandler from '../AndroidBackHandler';
@@ -198,32 +196,27 @@ const AccountBackupStep1 = (props) => {
             </Text>
           </Box>
 
-          <Box
-            justifyContent={BoxJustifyContent.FlexEnd}
-            twClassName={`mt-auto gap-y-4 ${
+          <FooterGlass
+            twClassName={`px-0 mt-auto justify-end ${
               Platform.OS === 'android' ? 'mb-6' : 'mb-4'
             }`}
-          >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={goNext}
-              isFullWidth
-              size={ButtonSize.Lg}
-            >
-              {strings('account_backup_step_1.cta_text')}
-            </Button>
-            {!hasFunds && (
-              <Button
-                variant={ButtonVariant.Secondary}
-                onPress={showRemindLater}
-                isFullWidth
-                size={ButtonSize.Lg}
-                testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
-              >
-                {strings('account_backup_step_1.remind_me_later')}
-              </Button>
-            )}
-          </Box>
+            primaryButtonProps={{
+              children: strings('account_backup_step_1.cta_text'),
+              onPress: goNext,
+              size: ButtonSize.Lg,
+            }}
+            secondaryButtonProps={
+              !hasFunds
+                ? {
+                    children: strings('account_backup_step_1.remind_me_later'),
+                    onPress: showRemindLater,
+                    size: ButtonSize.Lg,
+                    testID:
+                      ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
+                  }
+                : undefined
+            }
+          />
         </Box>
       </ScrollView>
       {Device.isAndroid() && (

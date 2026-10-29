@@ -7,7 +7,18 @@ import StepperCard from './StepperCard';
 import type { StepperCardStep } from './StepperCard.types';
 import { GlassView } from 'expo-glass-effect';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
-import { mockTheme } from '../../../util/theme';
+
+let mockIsGlassEnabled = false;
+jest.mock('../../hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual('../../hooks/useLiquidGlass');
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -247,6 +258,14 @@ describe('StepperCard', () => {
   });
 
   describe('glass', () => {
+    beforeEach(() => {
+      mockIsGlassEnabled = true;
+    });
+
+    afterEach(() => {
+      mockIsGlassEnabled = false;
+    });
+
     const stepWithSkip = () =>
       makeStep({ secondaryCta: { text: 'Skip', onPress: jest.fn() } });
 
@@ -273,15 +292,13 @@ describe('StepperCard', () => {
       expect(step.secondaryCta?.onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('draws the primary button as tinted glass and keeps it pressable', () => {
+    it('keeps the primary button off glass and pressable', () => {
       const step = makeStep();
       const { UNSAFE_getAllByType, getByTestId } = render(
         <StepperCard steps={[step]} currentStep={0} testID="card" isGlass />,
       );
 
-      // The card's glass, then the primary button's.
-      const [, primaryGlass] = UNSAFE_getAllByType(GlassView);
-      expect(primaryGlass.props.tintColor).toBe(mockTheme.colors.icon.default);
+      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
 
       fireEvent.press(getByTestId('card-cta-button'));
 

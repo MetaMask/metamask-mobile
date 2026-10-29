@@ -53,9 +53,11 @@ import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMapping';
 import {
-  beginPostSwapShareSession,
-  patchPostSwapShareSession,
-} from '../../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
+  beginPostTradeShareSession,
+  patchPostTradeShareSession,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
@@ -90,9 +92,19 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import {
+  buildCopyTradeIntentOptions,
+  postCopyTradeIntent,
+  type CopyTradeOrigin,
+} from '../../../../util/social/copyTradeIntent';
+import {
+  isSocialTradeSource,
+  recordSocialTrade,
+} from '../../../../util/social/socialActivityStorage';
 import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
@@ -125,6 +137,7 @@ import {
   trackQuickBuyTrade,
   beginQuickBuySubmission,
   endQuickBuySubmission,
+  type TrackedQuickBuyPostTradePrompt,
 } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
@@ -277,13 +290,19 @@ export function useQuickBuyController(
   onClose: () => void,
   analyticsContext: QuickBuyAnalyticsContext,
   initialTradeMode: QuickBuyTradeMode = 'buy',
-  postSwapShare = false,
+  postTradeShare = false,
+  copyTradeOrigin?: CopyTradeOrigin,
+  postTradeShareOwner?: string,
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
+  const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isProfileTradingActivityPrivate = useSelector(
+    selectIsProfileTradingActivityPrivate,
+  );
 
   const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
@@ -1664,9 +1683,44 @@ export function useQuickBuyController(
     );
     const previewChain =
       caipChainIdToTradeInFlightChain(target.chain) ?? target.chain;
-    const shouldPostSwapShare = postSwapShare && Boolean(tradeInFlightChain);
-    const postSwapShareSessionId = shouldPostSwapShare
-      ? beginPostSwapShareSession({
+    const sharePreview: SocialPostTradePreview = {
+      tokenSymbol: target.tokenSymbol,
+      tokenAddress: target.tokenAddress,
+      chain: previewChain,
+      side: tradeMode,
+      costLabel: tradeToastInfo.fiatAmountLabel,
+      entryPriceLabel: formattedRate,
+    };
+    // Public copy-trades always share. Private profiles use the normal
+    // Quick Buy toasts instead. Other swaps get the prompt chosen from the
+    // linked profile and how many share sheets it has already completed.
+    const shouldForcePostTradeShare =
+      postTradeShare && !isProfileTradingActivityPrivate;
+    const prompt = shouldForcePostTradeShare
+      ? undefined
+      : resolvePostTradePrompt('swap');
+    let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
+    if (prompt?.kind === 'claim_sheet') {
+      trackedPostTradePrompt = prompt;
+    } else if (prompt?.kind === 'share_sheet' && tradeInFlightChain) {
+      trackedPostTradePrompt = prompt;
+    } else if (prompt?.kind === 'post_to_feed_toast' && tradeInFlightChain) {
+      trackedPostTradePrompt = {
+        kind: 'post_to_feed_toast',
+        tradeInFlightChain,
+        preview: sharePreview,
+      };
+    }
+    const isCreateProfilePrompt =
+      trackedPostTradePrompt?.kind === 'claim_sheet';
+    const shouldPostTradeShare =
+      isCreateProfilePrompt ||
+      ((shouldForcePostTradeShare ||
+        trackedPostTradePrompt?.kind === 'share_sheet') &&
+        Boolean(tradeInFlightChain));
+    const postTradeShareSessionId = shouldPostTradeShare
+      ? beginPostTradeShareSession({
+          variant: isCreateProfilePrompt ? 'create_profile' : 'share',
           target,
           tradeMode,
           pairLabel:
@@ -1674,17 +1728,12 @@ export function useQuickBuyController(
               ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
               : undefined,
           tradeInFlightChain,
-          preview: {
-            tokenSymbol: target.tokenSymbol,
-            tokenAddress: target.tokenAddress,
-            chain: previewChain,
-            side: tradeMode,
-            costLabel: tradeToastInfo.fiatAmountLabel,
-            entryPriceLabel: formattedRate,
-          },
+          copyTradeOrigin,
+          owner: postTradeShareOwner,
+          preview: sharePreview,
         })
       : undefined;
-    if (shouldPostSwapShare) {
+    if (shouldPostTradeShare) {
       onClose();
     } else {
       onClose();
@@ -1707,19 +1756,45 @@ export function useQuickBuyController(
       // notification once submitTx resolves.
       beginQuickBuySubmission();
       dispatch(setIsSubmittingTx(true));
-      const submitResult = await Engine.context.BridgeStatusController.submitTx(
-        walletAddress,
-        activeQuote,
-        stxEnabled,
-        undefined, // quotesReceivedContext
-        undefined, // location
-        undefined, // abTests
-        undefined, // mergedActiveAbTests
-        undefined, // tokenSecurityTypeDestination
-        undefined, // batchSellTrades
-        undefined, // inputPrimaryDenomination
-        BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-      );
+      if (copyTradeOrigin) {
+        postCopyTradeIntent(
+          () =>
+            sourceToken && activeQuote.quoteId
+              ? buildCopyTradeIntentOptions(
+                  copyTradeOrigin,
+                  `${formatChainIdToCaip(sourceToken.chainId)}:${walletAddress}`,
+                  {
+                    product: 'swaps',
+                    quoteId: activeQuote.quoteId,
+                  },
+                )
+              : undefined,
+          { surface: 'quick_buy', source: 'useQuickBuyController' },
+        );
+      }
+      const submitResult = activeQuote.quote.intent
+        ? await Engine.context.BridgeStatusController.submitIntent({
+            quoteResponse: activeQuote,
+            accountAddress: walletAddress,
+            location: undefined,
+            abTests: undefined,
+            activeAbTests: undefined,
+            tokenSecurityTypeDestination: destToken?.securityData?.type ?? null,
+            inputPrimaryDenomination: 'token_amount',
+            quotesReceivedContext: undefined,
+            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+          })
+        : await Engine.context.BridgeStatusController.submitTx({
+            accountAddress: walletAddress,
+            quoteResponses: [activeQuote],
+            isStxEnabled: stxEnabled,
+            tokenSecurityTypeDestination: destToken?.securityData?.type ?? null,
+            inputPrimaryDenomination: 'token_amount',
+            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+          });
+      if (isSocialTradeSource(analyticsContext.source)) {
+        recordSocialTrade();
+      }
       const txHash =
         submitResult &&
         typeof (submitResult as { hash?: unknown }).hash === 'string'
@@ -1732,11 +1807,12 @@ export function useQuickBuyController(
         trackQuickBuyTrade(txMetaId, {
           ...tradeToastInfo,
           txSignature: txHash,
-          postSwapShare: shouldPostSwapShare,
-          postSwapShareSessionId,
+          postTradeShare: shouldPostTradeShare,
+          postTradeShareSessionId,
+          postTradePrompt: trackedPostTradePrompt,
         });
-        if (postSwapShareSessionId && txHash) {
-          patchPostSwapShareSession(postSwapShareSessionId, {
+        if (postTradeShareSessionId && txHash) {
+          patchPostTradeShareSession(postTradeShareSessionId, {
             transactionHash: txHash,
           });
         }
@@ -1777,8 +1853,8 @@ export function useQuickBuyController(
       );
       // submitTx threw before publish (e.g. user rejection), so no bridge
       // history item will ever exist — surface the failure immediately.
-      const sessionUpdated = postSwapShareSessionId
-        ? patchPostSwapShareSession(postSwapShareSessionId, {
+      const sessionUpdated = postTradeShareSessionId
+        ? patchPostTradeShareSession(postTradeShareSessionId, {
             status: 'failed',
           })
         : false;
@@ -1810,6 +1886,7 @@ export function useQuickBuyController(
     goToBuy,
     handleClose,
     activeQuote,
+    destToken?.securityData?.type,
     walletAddress,
     stxEnabled,
     dispatch,
@@ -1833,10 +1910,15 @@ export function useQuickBuyController(
     trackTradeCompleted,
     markTradeSubmitted,
     submitStartedAtRef,
-    postSwapShare,
+    postTradeShare,
+    isProfileTradingActivityPrivate,
+    resolvePostTradePrompt,
+    copyTradeOrigin,
+    postTradeShareOwner,
     sourceTokenAmount,
     estimatedReceiveAmount,
     target,
+    analyticsContext.source,
   ]);
 
   // Preformatted headline value in the user's display currency (correct symbol
