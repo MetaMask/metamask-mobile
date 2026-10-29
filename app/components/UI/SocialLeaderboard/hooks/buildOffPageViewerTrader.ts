@@ -25,8 +25,6 @@ export interface OffPageViewerIdentity {
 
 export interface OffPageViewerTrader {
   trader: RankedTrader;
-  /** The selected window has no PnL, so the card shows an empty state. */
-  empty: boolean;
   /** ROI is absent, so the percent line stays hidden on the pinned card. */
   omitPercentage: boolean;
 }
@@ -135,7 +133,6 @@ export const buildOffPageViewerTrader = ({
     live.stats.pnl30d,
     chains,
   );
-  const empty = pnl == null;
   const synthetic: TopTrader = {
     id: identity.profileId,
     address: live.profile.address || identity.linkedAccountAddress || '',
@@ -160,7 +157,9 @@ export const buildOffPageViewerTrader = ({
       ...synthetic,
       displayMetric: getTraderMetricDisplay(synthetic, sort),
     },
-    empty,
-    omitPercentage: roi == null,
+    // No PnL is represented as zero in the pinned card, so keep the zero
+    // percent visible for the no-trades state. Only hide ROI when a real PnL
+    // exists but the profile did not provide the corresponding ROI.
+    omitPercentage: pnl != null && roi == null,
   };
 };

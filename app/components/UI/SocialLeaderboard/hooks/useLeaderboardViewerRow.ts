@@ -21,8 +21,6 @@ export interface LeaderboardViewerRow {
   trader: RankedTrader;
   /** The viewer is not on the loaded page, so their position is unknown. */
   hideRank: boolean;
-  /** No PnL for the selected window. The card shows an empty state. */
-  empty: boolean;
   /** ROI is absent, so the percent line stays hidden on the pinned card. */
   omitPercentage: boolean;
 }
@@ -106,7 +104,6 @@ export const useLeaderboardViewerRow = (
       return {
         trader: matchedViewer,
         hideRank: false,
-        empty: false,
         omitPercentage: false,
       };
     }
@@ -124,7 +121,6 @@ export const useLeaderboardViewerRow = (
     return {
       trader: offPage.trader,
       hideRank: true,
-      empty: offPage.empty,
       omitPercentage: offPage.omitPercentage,
     };
   }, [

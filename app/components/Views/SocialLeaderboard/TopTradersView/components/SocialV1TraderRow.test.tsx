@@ -235,7 +235,7 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
   });
 
-  it('shows a muted empty label and hides a zero percent and zero followers', () => {
+  it('shows zero dollar, percent, and follower metrics for no trades', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={{
@@ -250,17 +250,12 @@ describe('SocialV1TraderRow', () => {
         highlighted
         hideRank
         showLeaderboardDetails
-        neutralMetricLabel="No trades yet"
       />,
     );
 
-    expect(screen.getByText('No trades yet')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
-    ).toBeNull();
+    expect(screen.getByText('$0.00')).toBeOnTheScreen();
+    expect(screen.getByText('+0.0%')).toBeOnTheScreen();
+    expect(screen.getByText('0 followers')).toBeOnTheScreen();
     expect(screen.queryByText('-')).toBeNull();
   });
 

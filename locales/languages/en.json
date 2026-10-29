@@ -1327,9 +1327,6 @@
     "cohort_filter": {
       "title": "Trader cohort"
     },
-    "leaderboard": {
-      "viewer_no_trades": "No trades yet"
-    },
     "feed": {
       "title": "Top traders",
       "tabs": {

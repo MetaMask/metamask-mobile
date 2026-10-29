@@ -114,7 +114,6 @@ describe('useLeaderboardViewerRow', () => {
     expect(result.current.viewerRow).toEqual({
       trader: listed,
       hideRank: false,
-      empty: false,
       omitPercentage: false,
     });
     expect(result.current.rowsWithoutViewer).toEqual([]);
@@ -157,7 +156,6 @@ describe('useLeaderboardViewerRow', () => {
     );
 
     expect(result.current.viewerRow?.hideRank).toBe(true);
-    expect(result.current.viewerRow?.empty).toBe(false);
     expect(result.current.viewerRow?.trader.pnlValue).toBe(-0.59);
     expect(result.current.viewerRow?.trader.percentageChange).toBe(-2.4);
     expect(result.current.viewerRow?.trader.followerCount).toBe(7);

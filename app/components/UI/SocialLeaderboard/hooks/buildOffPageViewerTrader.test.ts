@@ -62,7 +62,6 @@ describe('buildOffPageViewerTrader', () => {
       chains: SPOT_CHAINS,
     });
 
-    expect(result.empty).toBe(false);
     expect(result.trader.pnlValue).toBe(7);
     expect(result.trader.followerCount).toBe(7);
     expect(result.trader.winRatePercent).toBe(50);
@@ -140,7 +139,6 @@ describe('buildOffPageViewerTrader', () => {
       chains: ALL_CHAINS,
     });
 
-    expect(result.empty).toBe(false);
     expect(result.trader.pnlValue).toBe(12);
   });
 
@@ -161,7 +159,6 @@ describe('buildOffPageViewerTrader', () => {
       chains: PERP_CHAINS,
     });
 
-    expect(result.empty).toBe(false);
     expect(result.trader.pnlValue).toBe(0);
   });
 
@@ -181,8 +178,7 @@ describe('buildOffPageViewerTrader', () => {
       chains: ALL_CHAINS,
     });
 
-    expect(result.empty).toBe(true);
-    expect(result.omitPercentage).toBe(true);
+    expect(result.omitPercentage).toBe(false);
     expect(result.trader.pnlValue).toBe(0);
   });
 
@@ -197,7 +193,6 @@ describe('buildOffPageViewerTrader', () => {
       chains: ALL_CHAINS,
     });
 
-    expect(result.empty).toBe(false);
     expect(result.omitPercentage).toBe(true);
     expect(result.trader.pnlValue).toBe(-0.59);
   });

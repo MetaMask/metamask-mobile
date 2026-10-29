@@ -443,7 +443,7 @@ describe('SocialLeaderboard', () => {
     expect(rowIds()).toHaveLength(3);
   });
 
-  it('shows the empty label when the off-page profile has no pnl', () => {
+  it('shows zero metrics when the off-page profile has no pnl', () => {
     mockProfile = {
       profileId: 'viewer',
       handle: 'me',
@@ -476,15 +476,11 @@ describe('SocialLeaderboard', () => {
 
     renderLeaderboard({ showViewerRow: true });
 
+    expect(screen.getByText('$0.00')).toBeOnTheScreen();
+    expect(screen.getByText('+0.0%')).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.leaderboard.viewer_no_trades'),
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
-    ).toBeNull();
   });
 
   it('falls back to the handle on the viewer card without a display name', () => {

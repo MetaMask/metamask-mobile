@@ -391,11 +391,6 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             highlighted
             hideRank={viewerRow.hideRank}
             showLeaderboardDetails
-            neutralMetricLabel={
-              viewerRow.empty
-                ? strings('social_leaderboard.leaderboard.viewer_no_trades')
-                : undefined
-            }
             omitPercentage={viewerRow.omitPercentage}
             testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
           />
