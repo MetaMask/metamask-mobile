@@ -20,7 +20,6 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 import useMountEffect from '../../hooks/useMountEffect';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectGeolocationLocation,
   selectGeolocationStatus,
@@ -53,7 +52,14 @@ const MoneyGeoBlockSheet = () => {
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.WALLET.HOME);
+      const parentNavigation = navigation.getParent();
+      if (!parentNavigation) {
+        throw new Error(
+          '[MoneyGeoBlockSheet] Cannot close without a parent navigator',
+        );
+      }
+
+      parentNavigation.goBack();
     });
   }, [navigation]);
 

@@ -7,11 +7,12 @@ import { MoneyGeoBlockSheetTestIds } from './MoneyGeoBlockSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
-import Routes from '../../../../../constants/navigation/Routes';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 const mockNavigate = jest.fn();
+const mockParentGoBack = jest.fn();
+const mockGetParent = jest.fn(() => ({ goBack: mockParentGoBack }));
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -23,6 +24,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      getParent: mockGetParent,
     }),
   };
 });
@@ -142,32 +144,35 @@ describe('MoneyGeoBlockSheet', () => {
     ).toHaveTextContent(strings('money.geo_block.button'));
   });
 
-  it('closes sheet and navigates to wallet home when continue button is pressed', () => {
+  it('closes the Money modal stack when continue is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
 
     fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('closes sheet and navigates to wallet home when bottom sheet close callback runs', () => {
+  it('closes the Money modal stack when the bottom sheet close callback runs', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
     const sheet = getByTestId(MoneyGeoBlockSheetTestIds.SHEET);
 
     sheet.props.onClose();
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('closes sheet and navigates to wallet home when header close button is pressed', () => {
+  it('closes the Money modal stack when the header close button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
 
     fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.CLOSE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   describe('analytics', () => {
