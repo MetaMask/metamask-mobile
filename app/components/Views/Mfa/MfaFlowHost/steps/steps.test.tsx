@@ -730,7 +730,7 @@ describe('PasskeyStep', () => {
 describe('FailureStep', () => {
   it('offers a retry when the error allows it', () => {
     const onAction = jest.fn();
-    const { getByTestId, getByText, queryByText } = render(
+    const { getByTestId, getByText, queryByText, queryByTestId } = render(
       <FailureStep
         {...buildState({
           name: 'failure',
@@ -744,14 +744,14 @@ describe('FailureStep', () => {
 
     expect(getByText('Something went wrong')).toBeOnTheScreen();
     expect(queryByText('Something went wrong. Try again.')).toBeNull();
+    expect(queryByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON)).toBeNull();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
-    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
   });
 
   it('only offers to close for a final error', () => {
-    const { queryByTestId, getByText } = render(
+    const onAction = jest.fn();
+    const { queryByTestId, getByTestId, getByText } = render(
       <FailureStep
         {...buildState({
           name: 'failure',
@@ -759,14 +759,17 @@ describe('FailureStep', () => {
           canRetry: false,
         })}
         reason={reason}
-        onAction={jest.fn()}
+        onAction={onAction}
       />,
     );
 
+    expect(getByText('Something went wrong')).toBeOnTheScreen();
     expect(
       getByText("You've reached the limit for this method."),
     ).toBeOnTheScreen();
     expect(queryByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON)).toBeNull();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
   });
 
   it('sends an error only support can fix to support', () => {
