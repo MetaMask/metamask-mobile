@@ -181,7 +181,7 @@ describe('SocialFeedPositionCard', () => {
   });
 
   it('forwards the open spot item when Copy trade is pressed', () => {
-    const item = mockOpenSpotFeedItem();
+    const item = mockOpenSpotFeedItem({ comment: 'Small bag, big hopes.' });
     const onCopyTrade = jest.fn();
 
     renderWithProvider(
@@ -411,7 +411,7 @@ describe('SocialFeedPositionCard', () => {
   });
 
   it('renders the open spot card with entry, hold time, cost and copy trade', () => {
-    const item = mockOpenSpotFeedItem();
+    const item = mockOpenSpotFeedItem({ comment: 'Small bag, big hopes.' });
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
 
@@ -431,6 +431,7 @@ describe('SocialFeedPositionCard', () => {
   describe('spot market cap', () => {
     it('quotes the open spot card in market cap', () => {
       const item = mockOpenSpotFeedItem({
+        comment: 'Small bag, big hopes.',
         marketCapLabel: '$1.2M',
         entryMarketCapLabel: '$800K',
       });
@@ -447,6 +448,7 @@ describe('SocialFeedPositionCard', () => {
 
     it('falls back to price when the fills recorded no market cap', () => {
       const item = mockOpenSpotFeedItem({
+        comment: 'Small bag, big hopes.',
         marketCapLabel: undefined,
         entryMarketCapLabel: undefined,
       });
@@ -459,6 +461,7 @@ describe('SocialFeedPositionCard', () => {
 
     it('quotes the closed spot card entry and exit in market cap', () => {
       const item = mockClosedSpotFeedItem({
+        comment: 'Settled into the bag.',
         entryMarketCapLabel: '$800K',
         exitMarketCapLabel: '$1.1M',
       });
@@ -471,7 +474,7 @@ describe('SocialFeedPositionCard', () => {
   });
 
   it('renders the closed spot card with entry, exit and cost but no copy trade', () => {
-    const item = mockClosedSpotFeedItem();
+    const item = mockClosedSpotFeedItem({ comment: 'Settled into the bag.' });
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
 
