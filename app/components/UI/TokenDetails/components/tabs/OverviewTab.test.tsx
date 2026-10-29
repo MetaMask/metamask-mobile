@@ -429,7 +429,6 @@ describe('OverviewTab', () => {
 
     expect(mockUseTokenPerformance).toHaveBeenCalledWith({
       marketData: null,
-      assetMarketData: null,
     });
     expect(
       getByTestId('token-details-overview-tab-performance-value-1h'),
