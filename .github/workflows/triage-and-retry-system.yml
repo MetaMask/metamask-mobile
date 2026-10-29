@@ -138,8 +138,8 @@ jobs:
         run: npm install --no-save @sentry/node@10.73.0
 
       - name: Get version from package.json
-        # zizmor: ignore[github-env] VERSION is extracted from package.json for Sentry release tagging; value is semver-validated by Node
-        run: |
+        run:
+          | # zizmor: ignore[github-env] VERSION is extracted from package.json for Sentry release tagging; value is semver-validated by Node
           TMPFILE=$(mktemp)
           if curl -sSf -o "$TMPFILE" "https://raw.githubusercontent.com/${REPO}/${HEAD_SHA}/package.json"; then
             echo "VERSION=$(node -p "JSON.parse(require('fs').readFileSync('$TMPFILE','utf8')).version")" >> "$GITHUB_ENV"

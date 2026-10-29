@@ -153,7 +153,6 @@
     // === Mobile-specific: Metro Bundler ===
     "Metro.*error",
     "Metro.*timeout",
-    "Unable to resolve module",
     "Watchman.*error",
 
     // === Mobile-specific: Xcode/iOS Build ===
@@ -201,6 +200,7 @@
     "error TS\\d+:",
     "Cannot find module",
     "Module not found",
+    "Unable to resolve module",
     "ERR_PACKAGE_PATH_NOT_EXPORTED",
 
     // === JavaScript errors ===
