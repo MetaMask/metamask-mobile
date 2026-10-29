@@ -44,7 +44,6 @@ PR #37727 adds the device key and the A2T session. It puts the Kalshi token exch
 6. The phone gets the A2T from MetaMask Auth directly and treats it as an opaque string with an `expiresIn`.
 7. Keys and tokens live in an Engine service with one key per profile. The service follows `KeyringController` lock and unlock, and wallet reset reaches it through the Engine messenger.
 8. The confirmation screen renders from the user's intent and the bound fields, never from display strings in the Predict API response.
-9. The phone requests an A2T only when a signed request needs one. Browsing needs none.
 
 ### Trust boundaries
 

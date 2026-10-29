@@ -52,9 +52,10 @@ This is the same algorithm and the same wire format as the localhost POC. Once l
 Do not copy the private key into AsyncStorage, MMKV, Redux, logs, or the KeyringController vault. PredictNext still forbids credentials in Redux and general persisted product state.
 
 The service does not expose generic signing. A later request-signing capability
-must accept a validated operation/profile, construct the permitted payload
-internally, and send the payload and signature to predict-api. See
-`docs/remote-adapters.md`.
+signs a payload whose shape mobile does not define. predict-api will likely
+build that payload, and mobile will check it against a template before
+signing. Mobile can also build the payload from a template the backend
+supplies. In both cases the template comes from outside this client.
 
 ## What a production key requires
 
