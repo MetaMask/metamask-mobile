@@ -54,13 +54,19 @@ export function usePredictWithdrawGasFeeToken(): {
     Boolean(address) &&
     amountRaw !== '0';
 
-  const { data: isAvailable, isPending } = useQuery({
+  const {
+    data: isAvailable,
+    isPending,
+    isFetching,
+  } = useQuery({
     ...predictQueries.withdrawGasFeeToken.options({ address, amountRaw }),
     enabled: isEnabled,
   });
 
+  // Treat a refetch as pending, so a cached `false` doesn't show the alert
+  // while it is being checked again.
   return {
-    isPending: isEnabled && isPending,
-    isUnavailable: isEnabled && isAvailable === false,
+    isPending: isEnabled && (isPending || isFetching),
+    isUnavailable: isEnabled && isAvailable === false && !isFetching,
   };
 }

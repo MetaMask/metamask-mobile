@@ -51,11 +51,11 @@ function createTransaction(
   } as TransactionMeta;
 }
 
-function renderUsePredictWithdrawGasFeeToken() {
-  const queryClient = new QueryClient({
+function renderUsePredictWithdrawGasFeeToken(
+  queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
-  });
-
+  }),
+) {
   return renderHook(() => usePredictWithdrawGasFeeToken(), {
     wrapper: ({ children }: { children: React.ReactNode }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -115,6 +115,37 @@ describe('usePredictWithdrawGasFeeToken', () => {
 
     await waitFor(() => expect(result.current.isUnavailable).toBe(true));
     expect(result.current.isPending).toBe(false);
+  });
+
+  it('returns pending instead of a cached unavailable result while checking it again', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    isWithdrawGasFeeTokenAvailableMock.mockResolvedValueOnce(false);
+    const first = renderUsePredictWithdrawGasFeeToken(queryClient);
+    await waitFor(() => expect(first.result.current.isUnavailable).toBe(true));
+    first.unmount();
+
+    let resolveRecheck: (isAvailable: boolean) => void = () => undefined;
+    isWithdrawGasFeeTokenAvailableMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRecheck = resolve;
+      }),
+    );
+    const { result } = renderUsePredictWithdrawGasFeeToken(queryClient);
+
+    await waitFor(() =>
+      expect(isWithdrawGasFeeTokenAvailableMock).toHaveBeenCalledTimes(2),
+    );
+    expect(result.current).toStrictEqual({
+      isPending: true,
+      isUnavailable: false,
+    });
+
+    resolveRecheck(true);
+
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+    expect(result.current.isUnavailable).toBe(false);
   });
 
   it('allows the withdraw when the check fails', async () => {

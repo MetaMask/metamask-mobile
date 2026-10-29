@@ -29,6 +29,9 @@ export const predictWithdrawGasFeeTokenOptions = (
     queryKey: predictWithdrawGasFeeTokenKeys.detail(params),
     queryFn: () =>
       Engine.context.PredictController.isWithdrawGasFeeTokenAvailable(params),
-    staleTime: 30_000,
+    // `getGasFeeTokens` returns `[]` when Sentinel fails, so a `false` result
+    // can come from an outage rather than a real "can't pay". Let it go stale
+    // right away so the same amount is checked again instead of staying cached.
+    staleTime: (query) => (query.state.data === false ? 0 : 30_000),
     retry: 1,
   });
