@@ -357,6 +357,38 @@ if (enableApiCallLogs || isTestEnvironment) {
     }
   };
 
+  // Decode a data: URL in pure JavaScript without any network request.
+  // Native fetch implementations on Android (OkHttp via Hermes, Expo
+  // NativeRequest) do not support the data: scheme.  snap_getFile relies
+  // on this path via decodeBase64 in @metamask/snaps-utils.
+  const fetchDataUrl = (dataUrl) => {
+    try {
+      const commaIdx = dataUrl.indexOf(',');
+      if (commaIdx === -1) {
+        return Promise.reject(new TypeError('Invalid data URL: missing comma'));
+      }
+      const meta = dataUrl.slice(5, commaIdx); // strip leading 'data:'
+      const payload = dataUrl.slice(commaIdx + 1);
+      const isBase64 = meta.endsWith(';base64');
+
+      const buf = isBase64
+        ? global.Buffer.from(payload, 'base64')
+        : global.Buffer.from(decodeURIComponent(payload), 'utf8');
+      const ab = buf.buffer.slice(
+        buf.byteOffset,
+        buf.byteOffset + buf.byteLength,
+      );
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        arrayBuffer: () => Promise.resolve(ab),
+      });
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  };
+
   // if mockServer is off we route to original destination
   const proxiedFetch = async (url, options) => {
     // Extract URL string from Request or URL objects
@@ -370,6 +402,12 @@ if (enableApiCallLogs || isTestEnvironment) {
       urlString = url.url;
     } else {
       urlString = String(url);
+    }
+
+    // data: URLs are decoded locally — native fetch on Android (OkHttp) and
+    // Expo NativeRequest do not support the data: scheme.
+    if (typeof urlString === 'string' && urlString.startsWith('data:')) {
+      return fetchDataUrl(urlString);
     }
 
     const MOCKTTP_URL = await mockReady;

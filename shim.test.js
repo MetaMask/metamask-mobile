@@ -238,6 +238,27 @@ describe('E2E network shim', () => {
     );
   });
 
+  it('decodes data URLs in JavaScript without calling the underlying fetch', async () => {
+    loadShim();
+    answerHealthCheck({ ok: true });
+
+    // 'Zm9v' is base64 for [0x66, 0x6f, 0x6f] ('foo')
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    const response = await global.fetch(dataUrl);
+
+    expect(response.ok).toBe(true);
+    const ab = await response.arrayBuffer();
+    expect(new Uint8Array(ab)).toEqual(new Uint8Array([0x66, 0x6f, 0x6f]));
+
+    // The underlying fetch must not be called with the data: URL — it is
+    // only called once for the health-check.
+    expect(underlyingFetch).not.toHaveBeenCalledWith(dataUrl, undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(
+      proxied(dataUrl),
+      undefined,
+    );
+  });
+
   it('rejects when the proxied fetch fails, without retrying the original URL directly', async () => {
     loadShim();
     answerHealthCheck({ ok: true });
