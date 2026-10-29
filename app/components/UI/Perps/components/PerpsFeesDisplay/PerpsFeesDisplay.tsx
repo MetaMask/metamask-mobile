@@ -1,7 +1,8 @@
+import type { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import type { PerpsFeeSource } from '@metamask/perps-controller';
-import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { strings } from '../../../../../../locales/i18n';
+import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -17,26 +18,19 @@ import {
 
 interface PerpsFeesDisplayProps {
   /**
-   * MetaMask fee discount in whole percentage points. When defined and
-   * positive, a discount badge (VIP or member, see `feeSource`) is rendered
-   * and (if `originalFee` is also provided) the pre-discount fee is shown
-   * struck-through.
+   * MetaMask fee discount in whole percentage points. When positive, an
+   * attribution label is rendered. If `originalFee` is also provided, the
+   * pre-discount fee is shown struck-through.
    */
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   /**
-   * Winning source of the fee resolution this quote was priced from. Only
-   * picks the badge variant shown when `feeDiscountPercentage` is positive:
-   * `subscription` renders the member badge, anything else (or omitted) the
-   * VIP badge.
-   */
-  feeSource?: PerpsFeeSource;
-  /**
-   * Fee amount in USD **after** any VIP discount has been applied.
+   * Fee amount in USD **after** any discount has been applied.
    * When `undefined`, a placeholder is rendered.
    */
   fee: number | undefined;
   /**
-   * Fee amount in USD **before** any VIP discount. Shown struck-through when
+   * Fee amount in USD **before** any discount. Shown struck-through when
    * a discount is active. When `undefined` the struck-through row is omitted.
    */
   originalFee?: number;
@@ -49,9 +43,11 @@ interface PerpsFeesDisplayProps {
   fontWeight?: FontWeight;
 }
 
+const strikethroughStyle = { textDecorationLine: 'line-through' as const };
+
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   feeDiscountPercentage,
-  feeSource,
+  feeDiscountKind,
   fee,
   originalFee,
   placeholder = '--',
@@ -85,12 +81,25 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
     return formatPerpsFiat(originalFee, { ranges: PRICE_RANGES_MINIMAL_VIEW });
   }, [showStrikethrough, originalFee]);
 
+  const isPromotionalDiscount =
+    hasDiscount && feeDiscountKind === 'promotional';
+  const discountedFeeColor =
+    isPromotionalDiscount && showStrikethrough
+      ? TextColor.SuccessDefault
+      : color;
+
   return (
     <View style={styles.feeRowContent}>
       {hasDiscount ? (
         <View style={styles.vipBadgeContainer}>
-          <MembershipVipBadge
-            hasProEntitlement={feeSource === 'subscription'}
+          <PerpsFeeDiscountLabel
+            feeDiscountPercentage={feeDiscountPercentage}
+            feeDiscountKind={feeDiscountKind}
+            accessibilityLabel={
+              isPromotionalDiscount
+                ? strings('perps.tooltips.fees.promotional_discount')
+                : undefined
+            }
           />
         </View>
       ) : null}
@@ -98,18 +107,26 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
         <Text
           variant={variant}
           color={TextColor.TextAlternative}
-          // eslint-disable-next-line react-native/no-inline-styles
-          style={{ textDecorationLine: 'line-through' }}
+          style={strikethroughStyle}
           testID={testID ? `${testID}-original` : undefined}
+          twClassName="tabular-nums"
+          accessibilityLabel={
+            isPromotionalDiscount
+              ? strings('perps.tooltips.fees.original_fee_value', {
+                  fee: originalFeeText,
+                })
+              : undefined
+          }
         >
           {originalFeeText}
         </Text>
       ) : null}
       <Text
         variant={variant}
-        color={color}
+        color={discountedFeeColor}
         fontWeight={fontWeight}
         testID={testID}
+        twClassName="tabular-nums"
       >
         {feeText}
       </Text>

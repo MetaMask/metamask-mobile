@@ -1,8 +1,10 @@
 import { createSlice, PayloadAction, type Action } from '@reduxjs/toolkit';
 import type {
+  ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
   LedgerEarningEntryDto,
+  LedgerEntryDto,
   ReferralFunnelDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
@@ -27,6 +29,36 @@ export interface RewardsMoneyState {
   commissions: Record<string, CommissionEntryView[]>;
   /** First page of self-earned cashback ledger rows, keyed by Hydra profile id. */
   cashbackLedger: Record<string, LedgerEarningEntryDto[]>;
+  /**
+   * First page of the unified earnings ledger (accruals and settled claims),
+   * keyed by Hydra profile id.
+   */
+  earningsHistory: Record<string, LedgerEntryDto[]>;
+  /**
+   * First page of `GET /earnings/claim/me`, the open claims the ledger does
+   * not carry, keyed by Hydra profile id.
+   */
+  inFlightClaims: Record<string, ClaimDto[]>;
+  /**
+   * Epoch ms until Claim is enabled again after a refusal's `Retry-After`,
+   * keyed by Hydra profile id. Survives leaving the Earnings tab.
+   */
+  claimWaitingUntil: Record<string, number>;
+  /**
+   * Claim button lock for one profile. `in_progress` is a claim this session
+   * has not finished. `awaiting_fresh_summary` is a paid claim whose balance
+   * refresh failed, or an address this phone cannot sign. `summaryKey` is the
+   * claimable figures that lock was taken against. Dropped on rehydrate, so a
+   * killed session cannot leave Claim disabled.
+   */
+  claimLocks: Record<string, ClaimLock>;
+}
+
+export type ClaimLockStatus = 'in_progress' | 'awaiting_fresh_summary';
+
+export interface ClaimLock {
+  status: ClaimLockStatus;
+  summaryKey: string;
 }
 
 export const initialState: RewardsMoneyState = {
@@ -35,6 +67,10 @@ export const initialState: RewardsMoneyState = {
   referralFunnel: {},
   commissions: {},
   cashbackLedger: {},
+  earningsHistory: {},
+  inFlightClaims: {},
+  claimWaitingUntil: {},
+  claimLocks: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -191,6 +227,50 @@ const rewardsMoneySlice = createSlice({
     ) => {
       state.cashbackLedger[action.payload.profileId] = action.payload.items;
     },
+    setEarningsHistory: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        items: LedgerEntryDto[];
+      }>,
+    ) => {
+      state.earningsHistory[action.payload.profileId] = action.payload.items;
+    },
+    setInFlightClaims: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        claims: ClaimDto[];
+      }>,
+    ) => {
+      state.inFlightClaims[action.payload.profileId] = action.payload.claims;
+    },
+    setClaimWaitingUntil: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        until: number | null;
+      }>,
+    ) => {
+      if (action.payload.until === null) {
+        delete state.claimWaitingUntil[action.payload.profileId];
+        return;
+      }
+      state.claimWaitingUntil[action.payload.profileId] = action.payload.until;
+    },
+    setClaimLock: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        lock: ClaimLock | null;
+      }>,
+    ) => {
+      if (action.payload.lock === null) {
+        delete state.claimLocks[action.payload.profileId];
+        return;
+      }
+      state.claimLocks[action.payload.profileId] = action.payload.lock;
+    },
     resetRewardsMoneyState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -199,11 +279,22 @@ const rewardsMoneySlice = createSlice({
       (state, action: RehydrateAction): RewardsMoneyState => {
         const persisted = action.payload?.rewardsMoney ?? state;
         return {
+          ...initialState,
           referralMe: settleEntries(persisted.referralMe),
           earningsSummary: settleEntries(persisted.earningsSummary),
           referralFunnel: settleEntries(persisted.referralFunnel),
-          commissions: persisted.commissions ?? {},
-          cashbackLedger: persisted.cashbackLedger ?? {},
+          commissions: persisted.commissions ?? initialState.commissions,
+          cashbackLedger:
+            persisted.cashbackLedger ?? initialState.cashbackLedger,
+          earningsHistory:
+            persisted.earningsHistory ?? initialState.earningsHistory,
+          inFlightClaims:
+            persisted.inFlightClaims ?? initialState.inFlightClaims,
+          claimWaitingUntil:
+            persisted.claimWaitingUntil ?? initialState.claimWaitingUntil,
+          // A lock belongs to the running session. Restoring one would leave
+          // Claim disabled after the process that owned the claim was gone.
+          claimLocks: {},
         };
       },
     );
@@ -222,6 +313,10 @@ export const {
   setReferralFunnel,
   setCommissions,
   setCashbackLedger,
+  setEarningsHistory,
+  setInFlightClaims,
+  setClaimWaitingUntil,
+  setClaimLock,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 

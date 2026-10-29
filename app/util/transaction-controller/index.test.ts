@@ -283,7 +283,7 @@ describe('Transaction Controller Util', () => {
       ).toHaveBeenCalledWith(EIP_1559_TRANSACTION_PARAMS_MOCK, {
         ...TRANSACTION_OPTIONS_MOCK,
         excludeNativeTokenForFee: true,
-        gasFeeToken: '0x20c0000000000000000000000000000000000000',
+        gasFeeToken: '0x20c0000000000000000000006a37da5c996874be',
       });
       expect(
         Engine.context.TransactionController.addTransactionBatch,

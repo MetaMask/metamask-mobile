@@ -14,9 +14,8 @@ import { RootState } from '../../reducers';
 import { areAddressesEqual } from '../../util/address';
 import { createDeepEqualSelector } from '../util';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../multichainAccounts/accountTreeController';
-import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
-import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
-import { CaipChainId } from '@metamask/utils';
+import { selectPrimaryMoneyAccount } from '../moneyAccountController';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 /**
  * Selects the RampsController state from Redux.
@@ -156,19 +155,19 @@ export const selectTransak = createSelector(
     },
 );
 
-const EVM_WILDCARD_SCOPE = 'eip155:0' as CaipChainId;
-
 /**
- * EVM address from the selected account group, used as `walletAddress`
- * for {@link RampsController.hydrateVbaOnboarding}.
+ * Primary Money account address, used as `walletAddress` for
+ * {@link RampsController.hydrateVbaOnboarding} (selfhosted registration +
+ * autoramp create). Must not use the selected account-group EVM address —
+ * that registers Account 1 and deposits land outside the Money screen.
  */
 export const selectSelectedVbaWalletAddress = createSelector(
-  selectSelectedInternalAccountByScope,
-  (selectByScope): string | null => {
-    const account = selectByScope(EVM_WILDCARD_SCOPE);
-    if (!account) {
+  selectPrimaryMoneyAccount,
+  (moneyAccount): string | null => {
+    const address = moneyAccount?.address;
+    if (!address) {
       return null;
     }
-    return getFormattedAddressFromInternalAccount(account);
+    return toChecksumHexAddress(address);
   },
 );

@@ -5,10 +5,8 @@ import {
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -18,8 +16,6 @@ import React, { useMemo } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import TraderAvatar from './TraderAvatar';
-import { MOCK_MARKER } from '../mockMarker';
-import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
 import { buildTraderStatLabels } from '../utils/traderStats';
@@ -52,8 +48,8 @@ export interface SocialTraderIdentityRowProps {
 
 /**
  * Shared trader identity chrome for Social V1: the avatar in a left gutter,
- * then a column with the handle, invented verified badge, relative age,
- * rotating stat line and overflow, followed by any content passed as children.
+ * then a column with the handle, relative age, rotating stat line and
+ * overflow, followed by any content passed as children.
  */
 const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   author,
@@ -69,7 +65,6 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   children,
 }) => {
   const tw = useTailwind();
-  const { showMockedFields } = useSocialFeedSurface();
   const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
 
   const avatar = (
@@ -92,73 +87,27 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
           twClassName="shrink min-w-0"
+          testID={testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE}
         >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            twClassName="shrink"
-            testID={
-              testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE
-            }
-          >
-            {handle}
-          </Text>
-          {/* Nothing reports verification yet, so the badge is invented and
-              only shown on surfaces that opt into mocked fields. */}
-          {showMockedFields ? (
-            <Icon
-              name={IconName.VerifiedFilled}
-              size={IconSize.Sm}
-              twClassName="text-info-default shrink-0"
-              testID={
-                testIDs?.verifiedBadge ??
-                SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE
-              }
-            />
-          ) : null}
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
+          {handle}
+        </Text>
+        <Text
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextMuted}
           twClassName="shrink-0"
+          testID={
+            testIDs?.timestamp ?? SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
+          }
         >
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextMuted}
-            testID={
-              testIDs?.timestamp ??
-              SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
-            }
-          >
-            {formatFeedPostAge(timestampMs, now)}
-          </Text>
-          {/* TODO(social): remove this temporary mock marker.
-              Nothing reports verification yet, so the badge above is invented.
-              The asterisk sits after the timestamp to flag that as mock data.
-              Delete this block once a real verification signal exists. */}
-          {showMockedFields ? (
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextMuted}
-              testID={
-                testIDs?.mockMarker ??
-                SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER
-              }
-            >
-              {MOCK_MARKER}
-            </Text>
-          ) : null}
-        </Box>
+          {formatFeedPostAge(timestampMs, now)}
+        </Text>
       </Box>
       <RotatingTraderStat
         labels={statLabels}

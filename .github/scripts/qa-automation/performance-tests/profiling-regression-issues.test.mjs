@@ -222,7 +222,11 @@ test('a scenario issue follows the bug-report template and routes to its team', 
   // Sections are in template order.
   const positions = BUG_REPORT_SECTIONS.map((section) => issue.body.indexOf(section));
   assert.deepEqual(positions, [...positions].sort((left, right) => left - right));
-  assert.match(issue.body, /\*\*20\.4 s\*\* against a \*\*12\.2 s\*\* median/);
+  assert.match(issue.body, /\*\*20\.4 s\*\* against a \*\*12\.2 s\*\* average/);
+  assert.match(
+    issue.body,
+    /flagged only after two consecutive runs over the threshold/,
+  );
   assert.match(issue.body, /\*\*1\.68×\*\*, threshold 1\.5×/);
   assert.match(issue.body, /Owner: `metamask-mobile-platform` \(@MetaMask\/mobile-platform\)/);
   assert.match(issue.body, /`memoized` — node_modules\/reselect\/dist\/cjs\/reselect\.cjs:502 — 4,237 ms self/);
@@ -270,7 +274,7 @@ test('recurrence comments carry the run and a machine-readable marker', () => {
   });
 
   assert.match(scenarioComment, /Flagged again in performance run \[36676470722\]/);
-  assert.match(scenarioComment, /20\.4 s vs 12\.2 s recent median \(1\.68× across 2 baseline runs\)/);
+  assert.match(scenarioComment, /20\.4 s vs 12\.2 s recent average \(1\.68× across 2 baseline runs\)/);
   assert.deepEqual(parseRecurrenceMarkers(scenarioComment), [
     {
       runId: '36676470722',
@@ -699,7 +703,7 @@ test('listIssuesOpenedInWindow keeps the week and counts recurrences', () => {
   assert.match(list[list.indexOf('--search') + 1], /created:>=2026-09-21/);
   assert.equal(
     weeklyIssueBrief(items[0]),
-    'Perps add funds — JS work 340.0 ms vs 200.0 ms recent median (1.7×) in run 11 · owner mm-perps-engineering-team · open, flagged 2 more times since',
+    'Perps add funds — JS work 340.0 ms vs 200.0 ms recent baseline (1.7×) in run 11 · owner mm-perps-engineering-team · open, flagged 2 more times since',
   );
   assert.equal(
     weeklyIssueBrief(items[1]),

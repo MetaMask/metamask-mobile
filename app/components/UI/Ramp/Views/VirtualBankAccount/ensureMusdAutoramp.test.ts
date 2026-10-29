@@ -6,6 +6,8 @@ import {
   findUsableAutoramp,
   resetMusdAutorampSetupGuard,
 } from './ensureMusdAutoramp';
+import { TraceName } from '../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from './vbaCufTrace';
 
 const mockHydrate = jest.fn();
 const mockRegister = jest.fn();
@@ -26,6 +28,13 @@ jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), log: jest.fn() },
 }));
+jest.mock('./vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'autoramp-setup-id'),
+  endVbaCufChildTrace: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
 
 const setAutoramps = (
   autoramps: {
@@ -65,6 +74,14 @@ describe('ensureMusdAutoramp', () => {
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
       'awaiting_provider',
+    );
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaAutorampSetup,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'autoramp-setup-id',
+      true,
+      undefined,
     );
     expect(mockCreate).not.toHaveBeenCalled();
 
@@ -162,6 +179,39 @@ describe('ensureMusdAutoramp', () => {
     expect(findUsableAutoramp(autoramps, '0xabc', 'USD')).toBe(autoramps[1]);
   });
 
+  it.each(['RegistrationFailed', 'AuthorizationFailed'] as const)(
+    'does not treat an existing %s autoramp as usable',
+    async (status) => {
+      setAutoramps([
+        {
+          walletAddress: '0xabc',
+          status,
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+        expect.objectContaining({
+          result: { kind: 'fiat', status },
+        }),
+      );
+      expect(mockHydrate).not.toHaveBeenCalled();
+      expect(mockCreate).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does not let a failed autoramp with no currency block another fiat', async () => {
+    setAutoramps([{ walletAddress: '0xabc', status: 'RegistrationFailed' }]);
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+      }),
+    );
+  });
+
   it('does not treat a rejected BRL autoramp as terminal for a USD request', async () => {
     setAutoramps([
       {
@@ -211,19 +261,50 @@ describe('ensureMusdAutoramp', () => {
     expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
-  it('fails without creating when wallet lookup is unavailable', async () => {
+  it('surfaces an account-creation error when wallet lookup is unavailable', async () => {
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',
     });
     mockRegister.mockResolvedValue({ type: 'lookupUnavailable' });
 
-    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        result: { kind: 'unknown' },
+      }),
+    );
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it('fails when create throws', async () => {
+  it('surfaces an account-creation error when create throws', async () => {
     mockCreate.mockRejectedValue(new Error('create failed'));
 
-    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        result: { kind: 'unknown' },
+      }),
+    );
   });
+
+  it('preserves an HTTP 500 account-creation error', async () => {
+    mockCreate.mockRejectedValue({ httpStatus: 500 });
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        result: { kind: 'http', status: 500 },
+      }),
+    );
+  });
+
+  it.each(['RegistrationFailed', 'AuthorizationFailed'] as const)(
+    'surfaces the %s fiat status returned by account creation',
+    async (status) => {
+      mockCreate.mockResolvedValue({ id: 'ar-new', status });
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+        expect.objectContaining({
+          result: { kind: 'fiat', status },
+        }),
+      );
+    },
+  );
 });

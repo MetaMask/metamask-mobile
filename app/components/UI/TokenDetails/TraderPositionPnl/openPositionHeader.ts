@@ -94,7 +94,6 @@ const formatAverageCost = (
  */
 export const toOpenPositionHeader = ({
   position,
-  isLoading,
   walletFiatBalance,
   conversion,
   earliestTradeAt,
@@ -151,5 +150,5 @@ export const toOpenPositionHeader = ({
     return { positionValue: walletFiatBalance, isLoading: false };
   }
 
-  return { isLoading };
+  return { isLoading: false };
 };

@@ -1,3 +1,4 @@
+import { lightTheme } from '@metamask/design-tokens';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -30,7 +31,7 @@ describe('SocialV1TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders rank medal, username, cohort, and PnL without follow chrome', () => {
+  it('renders rank medal, username, and PnL without follow chrome', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -41,29 +42,22 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.COHORT),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.COHORT),
+    ).toBeNull();
     expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
     expect(screen.queryByText('92% WR')).toBeNull();
     expect(screen.queryByText('48,707 followers')).toBeNull();
     expect(screen.queryByText('+43.0%')).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
     expect(screen.queryByText('Follow')).toBeNull();
   });
 
-  it('hides the invented verified badge unless the surface shows mocked fields', () => {
-    renderWithProvider(
-      <SocialV1TraderRow
-        trader={baseTrader}
-        onFollowPress={mockOnFollowPress}
-      />,
-    );
-
-    expect(
-      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
-    ).toBeNull();
-  });
-
-  it('shows the verified badge on a surface that shows mocked fields', () => {
+  it('never renders a verified badge, including when mocked fields are on', () => {
     renderWithProvider(
       <SocialFeedSurfaceProvider showMockedFields>
         <SocialV1TraderRow
@@ -74,8 +68,8 @@ describe('SocialV1TraderRow', () => {
     );
 
     expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
   });
 
   it('renders the numeric rank for positions outside the podium', () => {
@@ -102,23 +96,37 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
     ).toBeOnTheScreen();
+    expect(screen.getByText('-')).toBeOnTheScreen();
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
 
-  it('wraps a highlighted row in the muted gradient card', () => {
+  it('wraps a highlighted row in the muted viewer card', () => {
     renderWithProvider(
       <SocialV1TraderRow
-        trader={baseTrader}
+        trader={{ ...baseTrader, rank: 59, overallRank: 59 }}
         onFollowPress={mockOnFollowPress}
         highlighted
-        hideRank
       />,
     );
 
-    expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT),
-    ).toBeOnTheScreen();
+    const card = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT);
+
+    expect(card).toBeOnTheScreen();
+    expect(card).toHaveStyle({
+      backgroundColor: lightTheme.colors.background.muted,
+      borderWidth: 1,
+      borderRadius: 16,
+      paddingLeft: 8,
+      paddingRight: 8,
+      paddingTop: 12,
+      paddingBottom: 12,
+    });
+    expect(screen.queryByTestId('social-gradient-card-gradient')).toBeNull();
+    expect(screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toHaveStyle({
+      width: 32,
+    });
+    expect(screen.getByText('59')).toBeOnTheScreen();
   });
 
   it('keeps the row interactive', () => {
@@ -158,5 +166,72 @@ describe('SocialV1TraderRow', () => {
     );
 
     expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
+  });
+
+  it('renders the window percent and follower count when leaderboard details are on', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 7.76, followerCount: 4700 }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+7.8%')).toBeOnTheScreen();
+    expect(screen.getByText('4.7K followers')).toBeOnTheScreen();
+  });
+
+  it('colors a negative percent as a loss while the dollar stays a gain', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: -8.5 }}
+        metric={{ label: '+$1.00', isPositive: true }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+$1.00')).toBeOnTheScreen();
+    expect(screen.getByText('-8.5%')).toBeOnTheScreen();
+  });
+
+  it('omits a zero percent and a zero follower count', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 0, followerCount: 0 }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeNull();
+  });
+
+  it('shows a zero percent and a zero follower count on the pinned viewer card', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{
+          ...baseTrader,
+          rank: 0,
+          overallRank: 0,
+          percentageChange: 0,
+          followerCount: 0,
+        }}
+        onFollowPress={mockOnFollowPress}
+        highlighted
+        hideRank
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('-')).toBeOnTheScreen();
+    expect(screen.getByText('+0.0%')).toBeOnTheScreen();
+    expect(screen.getByText('0 followers')).toBeOnTheScreen();
   });
 });

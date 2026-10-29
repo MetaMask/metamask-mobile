@@ -1,4 +1,5 @@
-import type { OrderType, PerpsFeeSource } from '@metamask/perps-controller';
+import type { PerpsFeeDiscountKind } from '../../../../utils/feeDiscount';
+import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
 import type { View } from 'react-native';
 
@@ -63,7 +64,7 @@ export interface PerpsProOrderSummaryProps {
   fee?: number;
   originalFee?: number;
   feeDiscountPercentage?: number;
-  feeSource?: PerpsFeeSource;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
   /**
@@ -157,6 +158,7 @@ export interface PerpsProOrderFormProps {
   onUseMidPricePress?: () => void;
   chaseMaxDistance?: string;
   onChaseMaxDistanceChange?: (value: string) => void;
+  onChaseMaxDistanceFocus?: () => void;
   chaseMaxDistanceUnit?: 'usd' | 'percent';
   onChaseMaxDistanceUnitChange?: (unit: 'usd' | 'percent') => void;
   chaseReferencePrice?: string;

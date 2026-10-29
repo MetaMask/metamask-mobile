@@ -28,12 +28,7 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import CurrencyToggle from '../CurrencySwitch';
 import FadeInView from '../FadeInView';
-
-export const INPUT_DISPLAY_TEST_IDS = {
-  AMOUNT_CURSOR: 'EarnAmountCursor',
-  LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON:
-    'LendingMaxSafeWithdrawalTooltipIcon',
-};
+import { INPUT_DISPLAY_TEST_IDS } from './InputDisplay.testIds';
 
 export interface InputDisplayProps {
   isOverMaximum: {

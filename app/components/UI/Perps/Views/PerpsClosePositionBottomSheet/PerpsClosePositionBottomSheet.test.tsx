@@ -514,7 +514,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
       const unit = () =>
         queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL);
-      const fiatFirst = amount().props.children;
+      expect(amount()).toHaveTextContent('$4,500');
       expect(unit()).toBeNull();
 
       fireEvent.press(
@@ -522,9 +522,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
         ),
       );
-      const tokenFirst = amount().props.children;
-
-      expect(tokenFirst).not.toBe(fiatFirst);
+      expect(amount()).toHaveTextContent('1.5');
       expect(unit()).toHaveTextContent('ETH');
 
       fireEvent.press(
@@ -532,7 +530,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
         ),
       );
-      expect(amount().props.children).toBe(fiatFirst);
+      expect(amount()).toHaveTextContent('$4,500');
       expect(unit()).toBeNull();
     });
 
@@ -983,6 +981,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       usePerpsOrderFeesMock.mockReturnValue({
         ...defaultPerpsOrderFeesMock,
         feeDiscountPercentage: 15,
+        feeDiscountKind: 'vip',
       });
 
       const { getByTestId } = renderSheet();

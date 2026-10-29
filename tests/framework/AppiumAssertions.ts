@@ -32,12 +32,24 @@ export const matchesAccessibilityLabel = (
   const normalizedActual = normalize(actualLabel);
   const normalizedExpected = normalize(expectedLabel);
   if (exact) {
+    // An empty accessibility or visible label is not an amount match.
+    if (!normalizedActual || !normalizedExpected) {
+      return false;
+    }
+
+    if (normalizedActual === normalizedExpected) {
+      return true;
+    }
+
+    // Appium joins the accessibility label and visible text with ", ".
+    // Split only on that separator so a thousands comma stays inside "1,000".
+    const parts = actualLabel
+      .split(/,\s+/)
+      .map((part) => normalize(part))
+      .filter((part) => part.length > 0);
+
     return (
-      normalizedActual === normalizedExpected ||
-      actualLabel
-        .split(',')
-        .map((part) => normalize(part))
-        .every((part) => part === normalizedExpected)
+      parts.length > 0 && parts.every((part) => part === normalizedExpected)
     );
   }
 

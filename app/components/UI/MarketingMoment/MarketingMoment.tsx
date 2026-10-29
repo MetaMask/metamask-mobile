@@ -1,6 +1,10 @@
 import React from 'react';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+  type Edge,
+} from 'react-native-safe-area-context';
 import { AnimationDuration } from '@metamask/design-tokens';
 import {
   Box,
@@ -56,6 +60,12 @@ const MarketingMomentContent = ({
   testID,
 }: Omit<MarketingMomentProps, 'theme'>) => {
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
+  // Native safe area adds the window inset for every enabled edge. Drop an
+  // edge the context already zeroed, so a screen that applied it is not padded twice.
+  const edges = (['top', 'right', 'bottom', 'left'] as const).filter(
+    (edge): edge is Edge => insets[edge] > 0,
+  );
   const { label: primaryLabel, ...primaryButtonProps } =
     primaryAction ?? ({} as Partial<MarketingMomentAction>);
   const { label: secondaryLabel, ...secondaryButtonProps } =
@@ -82,7 +92,11 @@ const MarketingMomentContent = ({
           {background}
         </Box>
       ) : null}
-      <SafeAreaView style={tw.style('min-h-0 flex-1')}>
+      <SafeAreaView
+        edges={edges}
+        style={tw.style('min-h-0 flex-1')}
+        testID={testID ? `${testID}-body` : undefined}
+      >
         <Box
           flexDirection={BoxFlexDirection.Column}
           gap={4}

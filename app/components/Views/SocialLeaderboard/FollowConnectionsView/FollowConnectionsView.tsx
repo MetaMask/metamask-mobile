@@ -48,7 +48,9 @@ import {
   useTraderFollowing,
   type FollowerConnection,
 } from './hooks';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Screen } = SocialEvent;
 const addressesMatch = (
   left: string | undefined,
   right: string | undefined,
@@ -142,6 +144,19 @@ const FollowConnectionsView: React.FC = () => {
   const { isFollowing, toggleFollow } = useFollowToggleMany();
   const { profileId: viewerProfileId } = useSessionProfileId();
   const viewerAddress = useSelector(selectSelectedInternalAccountAddress);
+  const [activeLoading, activeError, activeCount] =
+    activeIndex === 1
+      ? [isFollowingLoading, followingError, following.length]
+      : activeIndex === 2
+        ? [
+            mutualFollowers.isLoading,
+            mutualFollowers.error,
+            mutualFollowers.followers.length,
+          ]
+        : [isFollowersLoading, followersError, followers.length];
+  const trackInteraction = useSocialScreenAnalytics(Screen.FOLLOW_CONNECTIONS, {
+    state: [activeLoading, Boolean(activeError), activeCount > 0],
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -190,6 +205,7 @@ const FollowConnectionsView: React.FC = () => {
       address: string;
       avatarUri?: string;
     }) => {
+      trackInteraction(Interaction.TAP);
       const isSelf = isViewerConnection(
         connection,
         viewerProfileId,
@@ -215,7 +231,7 @@ const FollowConnectionsView: React.FC = () => {
         traderAvatarUri: connection.avatarUri,
       });
     },
-    [navigation, viewerAddress, viewerProfileId],
+    [navigation, trackInteraction, viewerAddress, viewerProfileId],
   );
 
   const handleFollowingRowPress = useCallback(
@@ -531,7 +547,6 @@ const FollowConnectionsView: React.FC = () => {
       : activeIndex === 2
         ? mutualsContent
         : followersContent;
-
   return (
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}

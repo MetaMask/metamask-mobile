@@ -1,13 +1,8 @@
-const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
-
 const MOBILE_UTM = '?utm_source=mobile_app';
 
 // Support
 export const METAMASK_SUPPORT_URL = `https://support.metamask.io/${MOBILE_UTM}`;
 export const SRP_GUIDE_URL = `https://support.metamask.io/getting-started/user-guide-secret-recovery-phrase-password-and-private-keys/${MOBILE_UTM}`;
-export const NON_CUSTODIAL_WALLET_URL = `https://support.metamask.io/getting-started/metamask-is-a-self-custodial-wallet/${MOBILE_UTM}`;
-export const KEEP_SRP_SAFE_URL = `https://support.metamask.io/privacy-and-security/staying-safe-in-web3/scammers-and-phishers-rugpulls-and-airdrop-scams/${MOBILE_UTM}`;
 export const PRIVATE_KEY_GUIDE_URL = `https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/${MOBILE_UTM}#private-keys`;
 export const SRP_DOS_AND_DONTS_URL = `https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/${MOBILE_UTM}#metamask-secret-recovery-phrase-dos-and-donts`;
 export const IMPORT_WALLET_PRIVATE_KEY_URL = `https://support.metamask.io/start/use-an-existing-wallet/${MOBILE_UTM}#importing-using-a-private-key`;
@@ -20,7 +15,6 @@ export const WHY_TRANSACTION_TAKE_TIME_URL =
   'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172';
 export const SIMULATION_DETALS_ARTICLE_URL = `https://support.metamask.io/transactions-and-gas/transactions/simulations/${MOBILE_UTM}`;
 
-export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/privacy-and-security/how-to-customize-token-approvals-with-a-spending-cap/${MOBILE_UTM}`;
 export const CONNECTING_TO_A_DECEPTIVE_SITE = `https://support.metamask.io/troubleshooting/deceptive-site-ahead-when-trying-to-connect-to-a-site/${MOBILE_UTM}`;
 
 export const CONNECTING_TO_DEPRECATED_NETWORK = `https://support.metamask.io/networks-and-sidechains/eth-on-testnets/${MOBILE_UTM}`;
@@ -101,6 +95,7 @@ export const buildCardSupportUrl = (
 
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;
+export const PERPS_TROUBLESHOOT_URL = `https://support.metamask.io/trade/perps/troubleshoot/${MOBILE_UTM}`;
 export const PERPS_ADL_URL = `https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/${MOBILE_UTM}#what-is-auto-deleveraging-adl`;
 
 // Troubleshooting
@@ -132,24 +127,11 @@ export const SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.etherscan.io';
 export const BASE_MAINNET_BLOCK_EXPLORER = 'https://basescan.org';
 export const BSC_MAINNET_BLOCK_EXPLORER = 'https://bscscan.com';
 
-// Rpcs
-export const MAINNET_DEFAULT_RPC_URL = `https://mainnet.infura.io/v3/${infuraProjectId}`;
-export const LINEA_DEFAULT_RPC_URL = `https://linea-mainnet.infura.io/v3/${infuraProjectId}`;
-
 // Phishing
 export const MM_PHISH_DETECT_URL =
   'https://github.com/metamask/eth-phishing-detect';
 export const MM_BLOCKLIST_ISSUE_URL =
   'https://github.com/metamask/eth-phishing-detect/issues';
-
-// https://github.com/MetaMask/metamask-mobile/tree/gh-pages
-export const MM_APP_CONFIG_URL =
-  'https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json';
-export const MM_APP_CONFIG_TEST_URL =
-  'https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json';
-
-export const MM_DEPRECATED_NETWORKS =
-  'https://blog.ethereum.org/2022/06/21/testnet-deprecation/';
 
 export const MM_APP_STORE_LINK =
   'itms-apps://apps.apple.com/app/metamask-blockchain-wallet/id1438144202';
@@ -175,17 +157,9 @@ export const LINEA_FAUCET = 'https://www.infura.io/faucet/linea';
 
 // Add custom network
 export const ADD_CUSTOM_NETWORK_ARTCILE = `https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/${MOBILE_UTM}`;
-export const CUSTOM_NETWORKS_GUIDE_URL = `https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/${MOBILE_UTM}`;
-export const UNKNOWN_NETWORK_RISKS_URL = `https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/${MOBILE_UTM}`;
-
-export const LEDGER_SUPPORT_LINK =
-  'https://support.ledger.com/article/16748796611613-zd';
 
 export const GOERLI_DEPRECATED_ARTICLE =
   'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';
-
-export const ETHEREUM_LOGO =
-  'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg';
 
 /**
  * Price API origin. Callers append their own `/v3/...` path, the same shape as

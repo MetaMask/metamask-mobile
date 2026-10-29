@@ -64,7 +64,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
 
   return (
     <Box>
-      <SectionDivider marginVertical={4} />
+      <SectionDivider marginVertical={6} />
       <Box
         twClassName="px-4"
         testID={MyProfileViewSelectorsIDs.PERFORMANCE_SECTION}
@@ -72,7 +72,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
         <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
           {strings('social_leaderboard.my_profile.performance_30d')}
         </Text>
-        <Box gap={2} twClassName="py-3">
+        <Box gap={2} twClassName="pt-3">
           {chunkPairs(cells).map((row) => (
             <Box
               key={row.map((cell) => cell.id).join('-')}
@@ -105,7 +105,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
           ))}
         </Box>
       </Box>
-      <SectionDivider marginVertical={4} />
+      <SectionDivider marginVertical={0} twClassName="mt-6" />
     </Box>
   );
 };

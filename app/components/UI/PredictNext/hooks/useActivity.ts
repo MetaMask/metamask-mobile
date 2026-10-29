@@ -10,7 +10,8 @@ export interface UseActivityOptions {
   enabled?: boolean;
 }
 
-/** Reads a paginated Activity list (Fills and Settlements) for a Venue. */
+/** Reads a paginated Activity list (Trades and Settlements) for a Venue, in
+ * the backend's pinned order. */
 export const useActivity = (
   venueId: PredictVenueId,
   params: PortfolioPageParams,

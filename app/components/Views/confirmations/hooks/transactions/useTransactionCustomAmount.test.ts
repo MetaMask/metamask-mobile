@@ -133,7 +133,10 @@ function getMoneyAccountState(balanceRaw?: string) {
               address: MONEY_ACCOUNT_ADDRESS_MOCK,
               id: 'account1',
               options: {
-                entropy: { id: MONEY_ACCOUNT_KEYRING_ID_MOCK },
+                entropy: {
+                  type: 'mnemonic',
+                  id: MONEY_ACCOUNT_KEYRING_ID_MOCK,
+                },
               },
             },
           },

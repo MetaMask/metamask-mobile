@@ -119,6 +119,7 @@ const mockCommitLimitPrice = jest.fn();
 const mockCommitTriggerPrice = jest.fn();
 const mockSetTriggerPrice = jest.fn();
 const mockResetPriceInputInteraction = jest.fn();
+const mockRegisterPriceFieldHandlers = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
@@ -149,11 +150,13 @@ const mockContextValue = {
   triggerPrice: undefined as string | undefined,
   setTriggerPrice: mockSetTriggerPrice,
   resetPriceInputInteraction: mockResetPriceInputInteraction,
+  registerPriceFieldHandlers: mockRegisterPriceFieldHandlers,
   setOrderType: mockSetOrderType,
   pendingReduceOnly: undefined as boolean | undefined,
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
   setMaxPossibleAmountOverride: mockSetMaxPossibleAmountOverride,
+  setEstimatedFeeRate: jest.fn(),
   balanceForValidation: 500,
 };
 
@@ -272,6 +275,7 @@ jest.mock('../../../../../../../util/Logger', () => ({
 let mockPositionStreamLoading = false;
 let mockMarketDataLoading = false;
 let mockMarketDataError: string | null = null;
+let mockProviderMetadataAvailable = true;
 let mockMarketData: {
   szDecimals: number;
   maxLeverage: number;
@@ -306,6 +310,7 @@ jest.mock('../../../../hooks', () => ({
     return {
       marketData: data ? { ...data, szDecimals: mockSizeDecimals } : data,
       isLoading: mockMarketDataLoading,
+      isProviderMetadataAvailable: mockProviderMetadataAvailable,
       error: mockMarketDataError,
     };
   },
@@ -315,6 +320,7 @@ jest.mock('../../../../hooks', () => ({
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
+  usePerpsQuotedFeeReservation: jest.fn(),
   usePerpsOrderValidation: (params: typeof mockOrderValidationParams) => {
     mockOrderValidationParams = params;
     if (mockValidateCalculatedMargin && params) {
@@ -704,6 +710,7 @@ describe('usePerpsProOrderForm', () => {
     mockPositionStreamLoading = false;
     mockMarketDataLoading = false;
     mockMarketDataError = null;
+    mockProviderMetadataAvailable = true;
     mockMarketData = { szDecimals: 3, maxLeverage: 40 };
     mockMarketDataByProvider = null;
     mockIsPlacing = false;
@@ -3841,6 +3848,18 @@ describe('usePerpsProOrderForm', () => {
       ).toBeUndefined();
     });
 
+    it('keeps Cross unavailable when provider margin metadata is unavailable', () => {
+      mockProviderMetadataAvailable = false;
+
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+      expect(result.current.isCrossMarginAvailableForMarket).toBe(false);
+      expect(result.current.marginMode).toBe('isolated');
+    });
+
     it.each([
       ['onlyIsolated', { onlyIsolated: true as const }],
       [
@@ -4781,6 +4800,52 @@ describe('usePerpsProOrderForm', () => {
         result.current.scaleOrder.onSizeSkewChange('2.00');
       });
     };
+
+    it('registers order-book price-field handlers for Scale start/end and Chase max distance', () => {
+      mockOrderForm.type = 'scale';
+      renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      expect(typeof handlers?.scaleStart).toBe('function');
+      expect(typeof handlers?.scaleEnd).toBe('function');
+      expect(typeof handlers?.chaseMaxDistance).toBe('function');
+    });
+
+    it('fills the Scale start price from a registered order-book handler', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleStart?.('88000');
+      });
+
+      expect(result.current.scaleOrder.startPrice).toBe('88000');
+    });
+
+    it('fills the Scale end price from a registered order-book handler', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleEnd?.('92000');
+      });
+
+      expect(result.current.scaleOrder.endPrice).toBe('92000');
+    });
+
+    it('ignores an undefined order-book price for Scale fields', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleStart?.(undefined);
+      });
+
+      expect(result.current.scaleOrder.startPrice).toBe('');
+    });
 
     it('keeps Scale placement disabled for a Lighter route', () => {
       mockOrderForm.type = 'scale';
@@ -8642,6 +8707,118 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.chaseMaxDistanceUnit).toBe('percent');
+      expect(result.current.chaseMaxDistance).toBe('');
+    });
+
+    it('fills Chase max distance (USD) from a tapped order-book price', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('91000');
+      });
+
+      expect(result.current.chaseMaxDistanceUnit).toBe('usd');
+      expect(result.current.chaseMaxDistance).toBe('1000');
+    });
+
+    it.each([
+      ['long', '91000'],
+      ['long', '89000'],
+      ['short', '91000'],
+      ['short', '89000'],
+    ] as const)(
+      'stores the absolute Chase USD distance for a %s when the book price is %s',
+      (direction, tappedPrice) => {
+        mockOrderForm.type = 'chase';
+        mockOrderForm.direction = direction;
+        mockLivePrice = '90000';
+        const { result } = renderProForm();
+
+        const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+        act(() => {
+          handlers?.chaseMaxDistance?.(tappedPrice);
+        });
+
+        expect(result.current.chaseMaxDistance).toBe('1000');
+      },
+    );
+
+    it('keeps a half-tick Chase USD distance instead of rounding it to zero', () => {
+      // szDecimals 2 and a reference between ticks: |0.5432 - 0.54325|
+      // canonicalizes to "0" under venue price rounding.
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '0.54325';
+      mockSizeDecimals = 2;
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('0.5432');
+      });
+
+      expect(result.current.chaseMaxDistance).toBe('0.00005');
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
+    });
+
+    it('fills Chase max distance (percent) from a tapped order-book price', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('91800');
+      });
+
+      expect(result.current.chaseMaxDistance).toBe('2');
+    });
+
+    it('keeps a fractional Chase percent when the tapped price is one unit from the reference', () => {
+      // Arrange: reference 90000, percent unit. A $1 book tap is ~0.00111%.
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+
+      // Act
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('90001');
+      });
+
+      // Assert: two-decimal rounding would store 0.00 and block placement.
+      expect(result.current.chaseMaxDistance).toBe('0.00111111');
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
+    });
+
+    it('ignores a tapped price equal to the live reference price for Chase max distance', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('90000');
+      });
+
       expect(result.current.chaseMaxDistance).toBe('');
     });
 

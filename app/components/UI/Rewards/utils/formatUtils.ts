@@ -86,10 +86,31 @@ export const formatRewardsTimeOnly = (
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
+const DAYS_PER_WEEK = 7;
+const DAYS_PER_MONTH = 30;
+const DAYS_PER_YEAR = 365;
+
+/**
+ * Compact label for a positive whole-day age.
+ * Days through six, then weeks until a month, months until a year, then years.
+ * Months use `mo` so they stay distinct from minutes.
+ */
+function formatDaysAgo(diffDays: number): string {
+  if (diffDays < DAYS_PER_WEEK) {
+    return `${diffDays}d ago`;
+  }
+  if (diffDays < DAYS_PER_MONTH) {
+    return `${Math.floor(diffDays / DAYS_PER_WEEK)}w ago`;
+  }
+  if (diffDays < DAYS_PER_YEAR) {
+    return `${Math.floor(diffDays / DAYS_PER_MONTH)}mo ago`;
+  }
+  return `${Math.floor(diffDays / DAYS_PER_YEAR)}y ago`;
+}
 
 /**
  * Short relative time for a past instant.
- * @example 'just now', '5m ago', '3h ago', '4d ago'
+ * @example 'just now', '5m ago', '3h ago', '4d ago', '2w ago', '3mo ago', '1y ago'
  */
 export const formatRewardsRelativeTime = (
   date: Date,
@@ -113,7 +134,7 @@ export const formatRewardsRelativeTime = (
   if (diffHours < 24) {
     return `${diffHours}h ago`;
   }
-  return `${diffDays}d ago`;
+  return formatDaysAgo(diffDays);
 };
 
 const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -121,7 +142,7 @@ const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 /**
  * Day-level relative label for a UTC `YYYY-MM-DD` bucket.
  * A commission group has no time of day, so this never invents one.
- * @example 'today', '1d ago', '4d ago'
+ * @example 'today', '1d ago', '2w ago', '3mo ago', '1y ago'
  */
 export const formatRewardsRelativeDay = (
   day: string,
@@ -147,7 +168,7 @@ export const formatRewardsRelativeDay = (
   if (diffDays <= 0) {
     return 'today';
   }
-  return `${diffDays}d ago`;
+  return formatDaysAgo(diffDays);
 };
 
 /**

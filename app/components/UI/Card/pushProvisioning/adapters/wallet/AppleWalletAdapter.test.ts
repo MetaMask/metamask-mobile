@@ -1,8 +1,10 @@
 import { Platform } from 'react-native';
 import type { onCardActivatedPayload } from '@expensify/react-native-wallet';
 import { AppleWalletAdapter } from './AppleWalletAdapter';
+import Logger from '../../../../../../util/Logger';
 import {
   ProvisionCardParams,
+  ProvisioningError,
   ProvisioningErrorCode,
   ApplePayEncryptedPayload,
 } from '../../types';
@@ -261,6 +263,7 @@ describe('AppleWalletAdapter', () => {
             cardDescription: 'MetaMask Card ending in 1234',
           },
           expect.any(Function),
+          expect.any(Function),
         );
       });
 
@@ -274,6 +277,7 @@ describe('AppleWalletAdapter', () => {
 
         expect(mockAddCardToAppleWallet).toHaveBeenCalledWith(
           expect.objectContaining({ primaryAccountIdentifier }),
+          expect.any(Function),
           expect.any(Function),
         );
       });
@@ -291,6 +295,7 @@ describe('AppleWalletAdapter', () => {
             cardHolderName: 'Card Holder',
           }),
           expect.any(Function),
+          expect.any(Function),
         );
       });
 
@@ -307,6 +312,7 @@ describe('AppleWalletAdapter', () => {
             cardDescription: 'MetaMask Card ending in 1234',
           }),
           expect.any(Function),
+          expect.any(Function),
         );
       });
 
@@ -316,6 +322,62 @@ describe('AppleWalletAdapter', () => {
         const result = await adapter.provisionCard(mockProvisionParams);
 
         expect(result.status).toBe('canceled');
+        expect(result.error).toBeUndefined();
+      });
+
+      it.each([
+        ['requireActivation', 'requires_activation'],
+        ['active', 'active'],
+      ] as const)(
+        'returns the pass activation state %s as %s',
+        async (reportedState, activationState) => {
+          mockAddCardToAppleWallet.mockImplementation(
+            async (_data, _callback, onAddFinished) => {
+              onAddFinished?.({ activationState: reportedState });
+              return 'success';
+            },
+          );
+
+          const result = await adapter.provisionCard(mockProvisionParams);
+
+          expect(result.status).toBe('success');
+          expect(result.activationState).toBe(activationState);
+        },
+      );
+
+      it('leaves the activation state unset when the wallet does not report one', async () => {
+        mockAddCardToAppleWallet.mockResolvedValue('success');
+
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.activationState).toBeUndefined();
+      });
+
+      it('returns a wallet decline when Apple Wallet already showed the error', async () => {
+        mockAddCardToAppleWallet.mockImplementation(
+          async (_data, _callback, onAddFinished) => {
+            onAddFinished?.({
+              errorDomain: 'PKPassKitErrorDomain',
+              errorCode: 2,
+            });
+            return 'error';
+          },
+        );
+
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.status).toBe('error');
+        expect(result.error?.code).toBe(ProvisioningErrorCode.WALLET_DECLINED);
+        expect(result.error?.metadata).toEqual({
+          errorDomain: 'PKPassKitErrorDomain',
+          errorCode: 2,
+        });
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: expect.stringContaining('PKPassKitErrorDomain 2'),
+          }),
+          expect.anything(),
+        );
       });
 
       it('returns error status when SDK returns error', async () => {
@@ -376,6 +438,30 @@ describe('AppleWalletAdapter', () => {
         expect(result.status).toBe('error');
         expect(result.error?.code).toBe(ProvisioningErrorCode.UNKNOWN_ERROR);
       });
+
+      it.each([
+        ProvisioningErrorCode.NETWORK_ERROR,
+        ProvisioningErrorCode.TIMEOUT,
+      ])(
+        'passes a %s from the encrypt callback through unchanged',
+        async (code) => {
+          const callbackError = new ProvisioningError(code, 'mapped');
+          mockAddCardToAppleWallet.mockImplementation(
+            async (_data, callback) => {
+              await callback('nonce', 'sig', ['cert']);
+              return 'success';
+            },
+          );
+
+          const result = await adapter.provisionCard({
+            ...mockProvisionParams,
+            issuerEncryptCallback: jest.fn().mockRejectedValue(callbackError),
+          });
+
+          expect(result.status).toBe('error');
+          expect(result.error).toBe(callbackError);
+        },
+      );
 
       it('returns error result when callback throws', async () => {
         const errorCallback = jest

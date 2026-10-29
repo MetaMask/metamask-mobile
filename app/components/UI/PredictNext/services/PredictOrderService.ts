@@ -40,6 +40,12 @@ const MAX_COMMIT_OBSERVATIONS = 3;
 /** How long to wait between observation re-POSTs, in milliseconds. */
 const COMMIT_OBSERVATION_DELAY_MS = 500;
 
+/** A Commit being observed, and the rejection that abandons it. */
+interface InFlightCommit {
+  promise: Promise<PredictOrderReceipt>;
+  abandon: (error: PredictError) => void;
+}
+
 const isInProgressReceipt = (receipt: PredictOrderReceipt): boolean =>
   IN_PROGRESS_RECEIPT_STATUSES.includes(receipt.status);
 
@@ -99,15 +105,17 @@ export interface PredictOrderServiceOptions {
  * operation coalesce into the single in-flight Commit, and an unfinished
  * operation is observed by committing the same Preview again, which never
  * places a second Order. After a terminal receipt the service invalidates
- * the authoritative Balance, Positions, and Activity reads. Nothing is
- * persisted: after a restart the outcome surfaces through those reads.
+ * the authoritative Balance, Positions, Activity, and Summary reads. Nothing
+ * is persisted: after a restart the outcome surfaces through those reads.
  */
 export class PredictOrderService {
   readonly #messenger: PredictOrderServiceMessenger;
   readonly #trading: VenueTradingAdapter;
   readonly #venueId: PredictVenueId;
   readonly #observationDelayMs: number;
-  readonly #inFlightCommits = new Map<string, Promise<PredictOrderReceipt>>();
+  readonly #inFlightCommits = new Map<string, InFlightCommit>();
+  /** Bumped when every Commit already underway is abandoned. */
+  #commitGeneration = 0;
 
   constructor({
     messenger,
@@ -170,16 +178,50 @@ export class PredictOrderService {
     this.#assertVenue(venueId);
     const inFlight = this.#inFlightCommits.get(previewId);
     if (inFlight) {
-      return inFlight;
+      return inFlight.promise;
     }
-    const commit = this.#commitAndObserve(previewId).finally(() => {
-      this.#inFlightCommits.delete(previewId);
+    const generation = this.#commitGeneration;
+    let abandon: (error: PredictError) => void = () => undefined;
+    const abandonment = new Promise<never>((_resolve, reject) => {
+      abandon = reject;
     });
-    this.#inFlightCommits.set(previewId, commit);
-    return commit;
+    // Racing the abandonment is what makes the rejection immediate: a caller
+    // must not wait out the observation delay after the reset.
+    const commit = Promise.race([
+      this.#commitAndObserve(previewId, generation),
+      abandonment,
+    ]);
+    const tracked = commit.finally(() => {
+      if (this.#inFlightCommits.get(previewId)?.promise === tracked) {
+        this.#inFlightCommits.delete(previewId);
+      }
+    });
+    this.#inFlightCommits.set(previewId, { promise: tracked, abandon });
+    return tracked;
   }
 
-  async #commitAndObserve(previewId: string): Promise<PredictOrderReceipt> {
+  /**
+   * Abandons every Commit underway and refuses to observe the ones already
+   * underway. Called when the platform replaces the Predict User: the Preview
+   * was approved by somebody else, so the service must neither re-POST it nor
+   * refresh the portfolio reads its receipts describe.
+   *
+   * A Commit started after this returns is a new person's Commit and is
+   * observed normally.
+   */
+  abandonCommits(): void {
+    this.#commitGeneration += 1;
+    const commits = [...this.#inFlightCommits.values()];
+    this.#inFlightCommits.clear();
+    commits.forEach((commit) =>
+      commit.abandon(PredictError.from(PredictErrorCode.UNAUTHENTICATED)),
+    );
+  }
+
+  async #commitAndObserve(
+    previewId: string,
+    generation: number,
+  ): Promise<PredictOrderReceipt> {
     const receipt = await withPredictNextTrace(
       {
         method: 'commitPreview',
@@ -187,9 +229,12 @@ export class PredictOrderService {
         op: TraceOperation.PredictOrderSubmission,
         tags: { venueId: this.#venueId },
       },
-      () => this.#observe(previewId),
+      () => this.#observe(previewId, generation),
     );
-    if (isTerminalReceipt(receipt)) {
+    // Checked before refreshing: a receipt for an abandoned Commit describes
+    // the previous Predict User, so it must not repopulate the cache the
+    // reset just cleared.
+    if (generation === this.#commitGeneration && isTerminalReceipt(receipt)) {
       this.#invalidatePortfolioReads();
     }
     return receipt;
@@ -198,23 +243,47 @@ export class PredictOrderService {
   /** Commits once, then observes an in-progress operation with bounded
    * re-POSTs. The Commit is idempotent by Preview reference, so each re-POST
    * observes the same operation instead of placing another Order. */
-  async #observe(previewId: string): Promise<PredictOrderReceipt> {
-    let receipt = await this.#trading.commitOrder(previewId);
+  async #observe(
+    previewId: string,
+    generation: number,
+  ): Promise<PredictOrderReceipt> {
+    let receipt = await this.#commitOnce(previewId, generation);
     let observations = 0;
     while (
       isInProgressReceipt(receipt) &&
       observations < MAX_COMMIT_OBSERVATIONS
     ) {
       await sleep(this.#observationDelayMs);
-      receipt = await this.#trading.commitOrder(previewId);
+      receipt = await this.#commitOnce(previewId, generation);
       observations += 1;
     }
     return receipt;
   }
 
-  /** Fire-and-forget: a terminal receipt changed Balance, Positions, or
-   * Activity. A failed invalidation must not fail the committed Order; the
-   * reads stay stale only until their next fetch. */
+  /** One observation POST. The generation is checked before the request, so
+   * an abandoned Commit is never sent again, and after the response, so a
+   * receipt that arrives for it is not treated as the current person's. */
+  async #commitOnce(
+    previewId: string,
+    generation: number,
+  ): Promise<PredictOrderReceipt> {
+    this.#assertNotAbandoned(generation);
+    const receipt = await this.#trading.commitOrder(previewId);
+    this.#assertNotAbandoned(generation);
+    return receipt;
+  }
+
+  #assertNotAbandoned(generation: number): void {
+    if (generation !== this.#commitGeneration) {
+      // The session that approved the Preview is gone; the same code the
+      // backend uses for a rejected token keeps this out of user copy.
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
+    }
+  }
+
+  /** Fire-and-forget: a terminal receipt changed Balance, Positions,
+   * Activity, or the Summary. A failed invalidation must not fail the
+   * committed Order; the reads stay stale only until their next fetch. */
   #invalidatePortfolioReads(): void {
     for (const family of portfolioQueryFamilies(this.#venueId)) {
       // #invalidateFamily contains its own errors; this catch only marks the
@@ -237,6 +306,9 @@ export class PredictOrderService {
   }
 
   destroy(): void {
+    // Nothing may observe or refresh a Commit once the service is gone: a
+    // destroyed Engine must not re-POST the previous person's Commit.
+    this.abandonCommits();
     this.#messenger.unregisterActionHandler('PredictOrderService:requestQuote');
     this.#messenger.unregisterActionHandler(
       'PredictOrderService:commitPreview',

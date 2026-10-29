@@ -13,7 +13,11 @@ import type {
   NavigationProp,
   NavigatorScreenParams,
 } from '@react-navigation/native';
-import { isSolanaAccount } from '../../../core/Multichain/utils';
+import {
+  isBtcAccount,
+  isSolanaAccount,
+  isTronAccount,
+} from '../../../core/Multichain/utils';
 import { getAddressAccountType } from '../../../util/address';
 import Routes from '../../../constants/navigation/Routes';
 import type { RewardsStackParamList } from './types/navigation';
@@ -104,9 +108,6 @@ export const convertInternalAccountToCaipAccountId = (
 // Metrics related utils
 export enum RewardsMetricsButtons {
   WAYS_TO_EARN = 'ways_to_earn',
-  COPY_REFERRAL_CODE = 'copy_referral_code',
-  COPY_REFERRAL_LINK = 'copy_referral_link',
-  SHARE_REFERRAL_LINK = 'share_referral_link',
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
@@ -121,11 +122,16 @@ export const deriveAccountMetricProps = (account?: InternalAccount) => {
     };
   }
 
-  const scope = isEvmAccountType(account.type)
-    ? 'evm'
-    : isSolanaAccount(account)
-      ? 'solana'
-      : account.type; // Fallback to account.type for other types
+  let scope: string = account.type;
+  if (isEvmAccountType(account.type)) {
+    scope = 'evm';
+  } else if (isSolanaAccount(account)) {
+    scope = 'solana';
+  } else if (isBtcAccount(account)) {
+    scope = 'bitcoin';
+  } else if (isTronAccount(account)) {
+    scope = 'tron';
+  }
   let type = account.metadata?.keyring?.type;
 
   try {
@@ -221,15 +227,3 @@ export const exitRewardsFlow = (
 };
 
 export { getBetaSupportUrl } from '../../../util/support/betaSupportUrl';
-
-// Referral URL builder
-export const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';
-export const REFERRAL_BASE_URL = `https://${REFERRAL_LINK_PATH}`;
-
-/**
- * Builds a referral URL from a referral code
- * @param referralCode - The referral code to build the URL from
- * @returns The full referral URL
- */
-export const buildReferralUrl = (referralCode: string): string =>
-  `${REFERRAL_BASE_URL}${referralCode}`;

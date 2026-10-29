@@ -1,3 +1,4 @@
+import PerpsFeeCaption from '../../components/PerpsFeesDisplay/PerpsFeeCaption';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -9,16 +10,12 @@ import {
   ButtonSize,
   ButtonVariant,
   SectionDivider,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
@@ -28,6 +25,10 @@ import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { formatPositionSize } from '../../utils/formatUtils';
+import {
+  formatCombinedFeePercentage,
+  formatOriginalCombinedFeePercentage,
+} from '../../utils/feeDiscount';
 import PerpsCloseTotals from './components/PerpsCloseTotals';
 import PerpsClosePositionSheetHeader from './components/PerpsClosePositionSheetHeader';
 import PerpsLimitPriceRow from './components/PerpsLimitPriceRow';
@@ -159,10 +160,15 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
   }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
-  const totalFeeRate =
-    (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
-  const feePercentage =
-    totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+  const feePercentage = formatCombinedFeePercentage(
+    feeResults.protocolFeeRate,
+    feeResults.metamaskFeeRate,
+  );
+  const originalFeePercentage = formatOriginalCombinedFeePercentage(
+    feeResults.protocolFeeRate,
+    feeResults.metamaskFeeRate,
+    feeResults.originalMetamaskFeeRate,
+  );
   const summaryPnlPercentage =
     summaryMargin !== 0
       ? (summaryPnl / Math.abs(summaryMargin)) * 100
@@ -292,24 +298,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           />
 
           {feePercentage ? (
-            <Box
-              twClassName="flex-row items-center justify-center gap-2 pt-2"
+            <PerpsFeeCaption
+              feePercentage={feePercentage}
+              originalFeePercentage={originalFeePercentage}
+              feeDiscountPercentage={feeResults.feeDiscountPercentage}
+              feeDiscountKind={feeResults.feeDiscountKind}
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
-            >
-              {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <MembershipVipBadge
-                  hasProEntitlement={feeResults.feeSource === 'subscription'}
-                />
-              ) : null}
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.trade_sheet.includes_fee', {
-                  feePercentage,
-                })}
-              </Text>
-            </Box>
+              twClassName="pt-2"
+            />
           ) : null}
         </>
       )}

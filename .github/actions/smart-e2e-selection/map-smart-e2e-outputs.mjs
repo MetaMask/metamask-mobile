@@ -6,12 +6,9 @@
  *   []      → '[]'
  *   ids     → JSON.stringify(ids)
  *
- * Performance:
- *   ["ALL"] / ["all"] → '["ALL"]' (run every performance test)
- *   []                → '[]'      (skip)
- *   [""] / blank tags → '[]'      (skip)
- *   ids               → JSON.stringify(ids)
- *   missing or error  → '[]'      (skip; never the run-all token)
+ * Performance tags are not part of Smart E2E selection. The output is
+ * always an empty list, including when an older analyzer result still
+ * carries performance_tests.
  */
 
 export function mapSmartE2eOutputs(result) {
@@ -20,34 +17,14 @@ export function mapSmartE2eOutputs(result) {
     : ['ALL'];
   const confidence =
     typeof result?.confidence === 'number' ? result.confidence : 0;
-  const performance = result?.performance_tests ?? {};
-  const performanceTags = Array.isArray(performance.selected_tags)
-    ? performance.selected_tags
-    : [];
-  const performanceReasoning =
-    typeof performance.reasoning === 'string' ? performance.reasoning : '';
 
   return {
     ai_e2e_test_tags: JSON.stringify(selectedTags),
     ai_confidence: String(confidence),
-    ai_performance_test_tags: mapPerformanceTags(performanceTags),
-    ai_performance_test_reasoning: performanceReasoning,
+    ai_performance_test_tags: '[]',
+    ai_performance_test_reasoning:
+      'Performance tests are not part of Smart E2E selection.',
   };
-}
-
-function mapPerformanceTags(tags) {
-  const normalized = tags
-    .filter((tag) => typeof tag === 'string')
-    .map((tag) => tag.trim())
-    .filter((tag) => tag.length > 0);
-
-  if (normalized.length === 0) {
-    return '[]';
-  }
-  if (normalized.some((tag) => tag.toUpperCase() === 'ALL')) {
-    return '["ALL"]';
-  }
-  return JSON.stringify(normalized);
 }
 
 export function parseResultJson(raw) {

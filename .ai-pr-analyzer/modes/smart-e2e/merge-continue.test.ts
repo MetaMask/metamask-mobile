@@ -9,7 +9,6 @@ describe('smart-e2e mergeContinueResult', () => {
       {
         selected_tags: ['SmokeAccounts'],
         confidence: 95,
-        performance_tests: { selected_tags: [], reasoning: 'seed' },
       },
       {
         selected_tags: ['SmokeConfirmations'],
@@ -27,10 +26,7 @@ describe('smart-e2e mergeContinueResult', () => {
       'SmokeConfirmations',
     ]);
     assert.equal(merged.confidence, 95);
-    assert.deepEqual(
-      (merged.performance_tests as { selected_tags: string[] }).selected_tags,
-      ['@PerformanceLogin'],
-    );
+    assert.equal(merged.performance_tests, undefined);
   });
 
   it('uses higher AI confidence without lowering the hard-rule floor', () => {
@@ -52,7 +48,7 @@ describe('smart-e2e mergeContinueResult', () => {
 });
 
 describe('smart-e2e allowContinue', () => {
-  it('continues when selected_tags is ALL so AI can pick performance tags', () => {
+  it('continues when selected_tags is ALL so AI can add smoke tags', () => {
     assert.equal(allowContinue({ selected_tags: ['ALL'] }), true);
   });
 

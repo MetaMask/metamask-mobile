@@ -43,6 +43,7 @@ export const SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
     flagKey: SWAP_DISCOVERY_FEED_REVAMP_AB_KEY,
     validVariants: Object.values(SwapDiscoveryFeedRevampVariant),
     eventNames: [
+      EVENT_NAME.ADVANCED_ORDER_PAGE_VIEWED,
       EVENT_NAME.SWAP_PAGE_VIEWED,
       UnifiedSwapBridgeEventName.QuotesRequested,
       UnifiedSwapBridgeEventName.QuotesReceived,

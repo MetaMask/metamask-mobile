@@ -13,6 +13,7 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -63,11 +64,11 @@ const GLOW_SCALE = 1.2;
 const GLOW_BLUR = 14;
 const GLOW_CENTER = SELECTED_SIZE / 2;
 
-const GLIDE_EASING = Easing.inOut(Easing.cubic);
-const INTRO_GLIDE_MS = 660;
-const MIN_GLIDE_MS = 280;
-const MAX_GLIDE_MS = 520;
-const GLIDE_MS_PER_EXTRA_STEP = 120;
+const GLIDE_EASING = Easing.out(Easing.cubic);
+const INTRO_GLIDE_MS = 400;
+const MIN_GLIDE_MS = 180;
+const MAX_GLIDE_MS = 340;
+const GLIDE_MS_PER_EXTRA_STEP = 80;
 
 /**
  * Fraction of a slot to travel before the next color counts as passed.
@@ -245,8 +246,11 @@ const AvatarGlow: React.FC<{ scrollX: SharedValue<number> }> = ({
 );
 
 /** Crossfade when the selected avatar changes. Low-tier devices swap instantly. */
-const AVATAR_DISSOLVE_MS = 450;
-const AVATAR_DISSOLVE_EASING = Easing.inOut(Easing.cubic);
+const AVATAR_DISSOLVE_MS = 200;
+const AVATAR_DISSOLVE_EASING = Easing.out(Easing.cubic);
+/** One blink of the preview, so a new face reads as a change. */
+export const AVATAR_FLICKER_OUT_MS = 50;
+export const AVATAR_FLICKER_IN_MS = 110;
 
 const AvatarArtLayer: React.FC<{
   variant: FoxiconVariant;
@@ -297,22 +301,49 @@ const DissolvingAvatarArt: React.FC<{
   const layers = animate
     ? PROFILE_AVATAR_PRESETS
     : PROFILE_AVATAR_PRESETS.filter((preset) => preset.id === selectedVariant);
+  const opacity = useSharedValue(1);
+  const hasMounted = useRef(false);
+
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    cancelAnimation(opacity);
+    opacity.value = withSequence(
+      withTiming(0, {
+        duration: AVATAR_FLICKER_OUT_MS,
+        easing: Easing.out(Easing.quad),
+      }),
+      withTiming(1, {
+        duration: AVATAR_FLICKER_IN_MS,
+        easing: Easing.out(Easing.cubic),
+      }),
+    );
+  }, [opacity, selectedVariant]);
+
+  const flickerStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   return (
-    <Box
-      twClassName="items-center justify-center"
-      style={{ width: sizePx, height: sizePx }}
+    <Animated.View
+      style={flickerStyle}
+      testID={SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW_FLICKER}
     >
-      {layers.map((preset) => (
-        <AvatarArtLayer
-          key={preset.id}
-          variant={preset.id}
-          isSelected={preset.id === selectedVariant}
-          sizePx={sizePx}
-          animate={animate}
-        />
-      ))}
-    </Box>
+      <Box
+        twClassName="items-center justify-center"
+        style={{ width: sizePx, height: sizePx }}
+      >
+        {layers.map((preset) => (
+          <AvatarArtLayer
+            key={preset.id}
+            variant={preset.id}
+            isSelected={preset.id === selectedVariant}
+            sizePx={sizePx}
+            animate={animate}
+          />
+        ))}
+      </Box>
+    </Animated.View>
   );
 };
 
@@ -343,6 +374,11 @@ interface AvatarBackgroundCarouselProps {
   avatarPresetId: string;
   selectedBackgroundId: string;
   onSelect: (backgroundId: string) => void;
+  /**
+   * Skips the entrance glide and glow when the device is LOW hardware.
+   * When omitted, the carousel reads the hardware tier itself.
+   */
+  isLowTier?: boolean;
 }
 
 /**
@@ -351,18 +387,19 @@ interface AvatarBackgroundCarouselProps {
  * the user swipes as well as when they tap a neighbor.
  *
  * Finger swipes use native scrolling and snapping. The entrance and taps glide
- * with an ease-in-out cubic curve driven from the UI thread. Low-tier devices
- * skip the entrance glide and the blurred glow.
+ * with an ease-out cubic curve driven from the UI thread. Low-tier devices skip
+ * the entrance glide and the blurred glow.
  */
 const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   avatarPresetId,
   selectedBackgroundId,
   onSelect,
+  isLowTier: isLowTierProp,
 }) => {
   const tw = useTailwind();
   const { playSelection } = useHaptics();
   const [width, setWidth] = useState(0);
-  const isLowTier = getHardwareTier() === 'LOW';
+  const isLowTier = isLowTierProp ?? getHardwareTier() === 'LOW';
   const resolvedBackgroundId =
     getProfileAvatarBackground(selectedBackgroundId)?.id;
   // Frozen at mount: a changing `contentOffset` re-positions the native

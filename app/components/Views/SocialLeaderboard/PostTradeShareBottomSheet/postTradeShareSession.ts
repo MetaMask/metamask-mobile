@@ -8,6 +8,12 @@ import type {
 export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
 
 /**
+ * `share` asks a user with a social profile to post the trade.
+ * `create_profile` asks a user without one to create a profile.
+ */
+export type PostTradeShareVariant = 'share' | 'create_profile';
+
+/**
  * Screen that opened Quick Buy. Try again reopens only that screen, because
  * several Social screens can stay mounted at once.
  */
@@ -23,6 +29,7 @@ export type PostTradeShareOwnerId =
 interface PostTradeShareSessionBase {
   sessionId: string;
   status: PostTradeShareStatus;
+  variant: PostTradeShareVariant;
   pairLabel?: string;
   tradeInFlightChain?: string;
   reopenRequested: boolean;
@@ -53,18 +60,20 @@ export type PostTradeShareSession =
 
 type BeginSpotPostTradeShareSession = Omit<
   SpotPostTradeShareSession,
-  'reopenRequested' | 'sessionId' | 'status' | 'product'
+  'reopenRequested' | 'sessionId' | 'status' | 'product' | 'variant'
 > & {
   status?: PostTradeShareStatus;
   product?: 'spot';
+  variant?: PostTradeShareVariant;
 };
 
 type BeginPerpsPostTradeShareSession = Omit<
   PerpsPostTradeShareSession,
-  'reopenRequested' | 'sessionId' | 'status' | 'product'
+  'reopenRequested' | 'sessionId' | 'status' | 'product' | 'variant'
 > & {
   status?: PostTradeShareStatus;
   product: 'perps';
+  variant?: PostTradeShareVariant;
 };
 
 export type BeginPostTradeShareSession =
@@ -126,12 +135,14 @@ export const beginPostTradeShareSession = (
 ): string => {
   const sessionId = String(nextSessionId++);
   const status = session.status ?? 'pending';
+  const variant = session.variant ?? 'share';
   if (session.product === 'perps') {
     state.session = {
       ...session,
       product: 'perps',
       sessionId,
       status,
+      variant,
       reopenRequested: false,
     };
   } else {
@@ -140,6 +151,7 @@ export const beginPostTradeShareSession = (
       product: 'spot',
       sessionId,
       status,
+      variant,
       reopenRequested: false,
     };
   }

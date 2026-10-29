@@ -25,6 +25,8 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -61,6 +63,9 @@ import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
@@ -101,7 +106,6 @@ import {
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
-
 import TokenDetailsPagePending from './TokenDetailsPagePending';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -111,6 +115,10 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    content: {
+      flex: 1,
+      isolation: 'isolate',
     },
   });
 };
@@ -381,11 +389,27 @@ const TokenDetails: React.FC<{
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
 
+  // The glass header floats over the list and fades its backdrop in on scroll.
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
+
+  const handleListScrollOffset = useCallback(
+    (y: number) => {
+      headerScrollY.set(y);
+      onScrollOffset(y);
+    },
+    [headerScrollY, onScrollOffset],
+  );
+
   const handleMultichainScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      handleListScrollOffset(event.nativeEvent.contentOffset.y);
     },
-    [onScrollOffset],
+    [handleListScrollOffset],
   );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
@@ -622,8 +646,16 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
+  const headerSpacer = headerInset > 0 && (
+    <View
+      style={{ height: headerInset }}
+      testID={TokenDetailsTestIds.HEADER_SPACER}
+    />
+  );
+
   const renderHeader = () => (
     <>
+      {headerSpacer}
       <AssetOverviewContent
         token={token}
         balance={balance}
@@ -686,58 +718,70 @@ const TokenDetails: React.FC<{
 
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader
-        token={token}
-        securityData={securityData}
-        tdpVersion="v2"
-        onBackPress={handleBackPress}
-        onSharePress={handleShare}
-        starButton={starButton}
-        onPriceAlertPress={
-          isPriceAlertsChainSupported &&
-          (currentPriceUsd ?? 0) > 0 &&
-          caip19AssetId
-            ? handlePriceAlertPress
-            : undefined
-        }
-        onCopyAddress={handleCopyAddress}
-        description={headerDescription}
-      />
+      <View style={styles.content} testID={TokenDetailsTestIds.CONTENT}>
+        <TokenDetailsInlineHeader
+          token={token}
+          securityData={securityData}
+          tdpVersion="v2"
+          onBackPress={handleBackPress}
+          onSharePress={handleShare}
+          starButton={starButton}
+          onPriceAlertPress={
+            isPriceAlertsChainSupported &&
+            (currentPriceUsd ?? 0) > 0 &&
+            caip19AssetId
+              ? handlePriceAlertPress
+              : undefined
+          }
+          onCopyAddress={handleCopyAddress}
+          description={headerDescription}
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          scrollY={headerScrollY}
+        />
 
-      {txIsNonEvmAsset ? (
-        <MultichainTransactionsView
-          header={renderHeader()}
-          transactions={transactions}
-          navigation={navigation}
-          selectedAddress={selectedAddress}
-          chainId={token.chainId as SupportedCaipChainId}
-          bridgeArrivalTransactions={bridgeArrivalTxs}
-          enableRefresh
-          showDisclaimer
-          location={TransactionDetailLocation.AssetDetails}
-          onScroll={handleMultichainScroll}
-        />
-      ) : (
-        <Transactions
-          header={renderHeader()}
-          onScrollThroughContent={onScrollOffset}
-          assetSymbol={token.symbol}
-          navigation={navigation}
-          transactions={transactions}
-          submittedTransactions={submittedTxs}
-          confirmedTransactions={confirmedTxs}
-          selectedAddress={selectedAddress}
-          conversionRate={conversionRate}
-          currentCurrency={txCurrentCurrency}
-          networkType={token.chainId}
-          loading={!transactionsUpdated}
-          headerHeight={280}
-          tokenChainId={token.chainId}
-          skipScrollOnClick
-          hideEmptyState
-          location={TransactionDetailLocation.AssetDetails}
-        />
-      )}
+        {txIsNonEvmAsset ? (
+          <MultichainTransactionsView
+            header={renderHeader()}
+            transactions={transactions}
+            navigation={navigation}
+            selectedAddress={selectedAddress}
+            chainId={token.chainId as SupportedCaipChainId}
+            bridgeArrivalTransactions={bridgeArrivalTxs}
+            enableRefresh
+            showDisclaimer
+            location={TransactionDetailLocation.AssetDetails}
+            onScroll={handleMultichainScroll}
+            refreshControlOffset={headerInset}
+          />
+        ) : (
+          <>
+            {/* Transactions drops its header while loading, so its spinner needs the spacer here. */}
+            {!transactionsUpdated && headerSpacer}
+            <Transactions
+              header={renderHeader()}
+              onScrollThroughContent={handleListScrollOffset}
+              assetSymbol={token.symbol}
+              navigation={navigation}
+              transactions={transactions}
+              submittedTransactions={submittedTxs}
+              confirmedTransactions={confirmedTxs}
+              selectedAddress={selectedAddress}
+              conversionRate={conversionRate}
+              currentCurrency={txCurrentCurrency}
+              networkType={token.chainId}
+              loading={!transactionsUpdated}
+              headerHeight={280}
+              tokenChainId={token.chainId}
+              skipScrollOnClick
+              hideEmptyState
+              location={TransactionDetailLocation.AssetDetails}
+              refreshControlOffset={headerInset}
+            />
+          </>
+        )}
+      </View>
+      {/* Outside the isolated content, so its sheets open above the glass header. */}
       <TokenDetailsStickyFooter
         token={token}
         securityData={securityData}

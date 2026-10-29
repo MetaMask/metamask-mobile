@@ -66,6 +66,7 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchBalance: jest.fn(),
   fetchPositions: jest.fn(),
   fetchActivity: jest.fn(),
+  fetchPortfolioSummary: jest.fn(),
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
@@ -81,6 +82,38 @@ describe('KalshiRemoteAdapter', () => {
   beforeEach(() => {
     client = createClient();
     adapter = new KalshiRemoteAdapter(client);
+  });
+
+  it('serves the static Kalshi catalog without a network read', async () => {
+    const result = await adapter.marketData.fetchVenueCatalog();
+
+    expect(result).toEqual({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell'],
+      feeds: {
+        sports: 'sports-football-nfl-games',
+        'nfl-games': 'sports-football-nfl-games',
+        'nfl-props': 'sports-football-nfl-win-totals',
+        'college-football-games': 'sports-football-ncaa-games',
+        'college-football-props': 'sports-football-ncaa-win-totals',
+      },
+      searchSupported: true,
+    });
+    expect(Object.values(client).some((fn) => fn.mock.calls.length)).toBe(
+      false,
+    );
+  });
+
+  it('lists only the actions its adapter structure implements', async () => {
+    const { actions } = await adapter.marketData.fetchVenueCatalog();
+
+    // Buy and sell are served by the trading capability; there is no
+    // funding or Claim capability, so those actions must stay absent.
+    expect(typeof adapter.trading.previewOrder).toBe('function');
+    expect(typeof adapter.trading.commitOrder).toBe('function');
+    expect(adapter).not.toHaveProperty('funding');
+    expect(adapter).not.toHaveProperty('claims');
+    expect([...actions].sort()).toEqual(['buy', 'sell']);
   });
 
   it('parses canonical Events from the Predict API', async () => {
@@ -298,13 +331,13 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it('maps HTTP 429 to RATE_LIMITED without response data', async () => {
+  it('maps HTTP 429 to RATE_LIMITED keeping only the status from the response', async () => {
     client.fetchFeed.mockRejectedValue(new PredictHttpError(429));
 
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.RATE_LIMITED,
-        metadata: undefined,
+        metadata: { status: 429 },
       }),
     );
   });
@@ -319,19 +352,53 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it.each([500, 502, 504])('maps HTTP %s to NETWORK_ERROR', async (status) => {
-    client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
+  it.each([500, 502, 504])(
+    'maps HTTP %s to NETWORK_ERROR with the status',
+    async (status) => {
+      client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
+
+      await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.NETWORK_ERROR,
+          metadata: { status },
+        }),
+      );
+    },
+  );
+
+  it.each([403, 451])(
+    'maps HTTP %s to GEO_BLOCKED with the status',
+    async (status) => {
+      client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
+
+      await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.GEO_BLOCKED,
+          metadata: { status },
+        }),
+      );
+    },
+  );
+
+  it('maps an unhandled HTTP status to INVALID_RESPONSE with the status', async () => {
+    client.fetchFeed.mockRejectedValue(new PredictHttpError(404));
 
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.NETWORK_ERROR }),
+      expect.objectContaining({
+        code: PredictErrorCode.INVALID_RESPONSE,
+        metadata: { status: 404 },
+      }),
     );
   });
 
-  it('maps other transport failures to INVALID_RESPONSE', async () => {
+  it('maps other transport failures to INVALID_RESPONSE without their details', async () => {
     client.fetchFeed.mockRejectedValue(new Error('network detail'));
 
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      expect.objectContaining({
+        code: PredictErrorCode.INVALID_RESPONSE,
+        metadata: undefined,
+      }),
     );
   });
 
@@ -396,11 +463,22 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it('maps Balance HTTP 401 to UNAUTHENTICATED', async () => {
+  it('maps Balance HTTP 401 to UNAUTHENTICATED with the status', async () => {
     client.fetchBalance.mockRejectedValue(new PredictHttpError(401));
 
     await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
+      expect.objectContaining({
+        code: PredictErrorCode.UNAUTHENTICATED,
+        metadata: { status: 401 },
+      }),
+    );
+  });
+
+  it('maps Balance HTTP 451 to GEO_BLOCKED', async () => {
+    client.fetchBalance.mockRejectedValue(new PredictHttpError(451));
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.GEO_BLOCKED }),
     );
   });
 
@@ -420,13 +498,15 @@ describe('KalshiRemoteAdapter', () => {
           venueId: 'kalshi',
           marketId: 'market-1',
           side: 'yes',
+          status: 'open',
           shares: '75.00',
-          marketExposure: '41.25',
-          realizedPnl: '-2.50',
+          averagePrice: '0.55',
+          costBasis: '41.25',
           context: {
             eventId: 'event-1',
             eventTitle: 'Lakers vs Celtics',
             marketQuestion: 'Will the Lakers win?',
+            outcomeLabel: 'Lakers',
           },
         },
       ],
@@ -495,26 +575,32 @@ describe('KalshiRemoteAdapter', () => {
       venueId: 'kalshi',
       activity: [
         {
-          type: 'fill',
-          id: 'fill-1',
-          venueId: 'kalshi',
-          marketId: 'market-1',
-          outcomeSide: 'yes',
-          shares: '75.00',
-          price: '0.55',
-          timestamp: '2026-09-01T12:00:00.000Z',
-        },
-        {
           type: 'settlement',
-          id: 'market-1:2026-09-02T00:00:00.000Z',
+          id: 'settlement-market-1-yes',
           venueId: 'kalshi',
           marketId: 'market-1',
-          result: 'yes',
           side: 'yes',
+          shares: '75.00',
+          result: 'yes',
           proceeds: '75.00',
+          realizedPnl: '33.75',
           timestamp: '2026-09-02T00:00:00.000Z',
         },
+        {
+          type: 'trade',
+          id: '0199e2b4-1f0d-7c55-8a10-6b7c8d9e0f1a',
+          venueId: 'kalshi',
+          marketId: 'market-1',
+          side: 'yes',
+          action: 'buy',
+          shares: '75.00',
+          price: '0.55',
+          amount: '41.25',
+          fee: '0',
+          timestamp: '2026-09-01T12:00:00.000Z',
+        },
       ],
+      settlementsCompleteFrom: '2026-08-27T00:00:00.000Z',
     };
     client.fetchActivity.mockResolvedValue(page);
 
@@ -542,6 +628,81 @@ describe('KalshiRemoteAdapter', () => {
 
     await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('rejects an Activity page out of the pinned order', async () => {
+    const trade = {
+      type: 'trade',
+      venueId: 'kalshi',
+      marketId: 'market-1',
+      side: 'yes',
+      action: 'buy',
+      shares: '1',
+      price: '0.55',
+      amount: '0.56',
+      fee: '0.01',
+    };
+    client.fetchActivity.mockResolvedValue({
+      venueId: 'kalshi',
+      activity: [
+        { ...trade, id: 'older', timestamp: '2026-09-01T00:00:00.000Z' },
+        { ...trade, id: 'newer', timestamp: '2026-09-02T00:00:00.000Z' },
+      ],
+    });
+
+    await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('parses the canonical Portfolio Summary from the Predict API', async () => {
+    const summary = {
+      venueId: 'kalshi',
+      currency: 'USD',
+      availableBalance: '50.00',
+      positionsValue: '24.40',
+      claimableValue: '0',
+      totalValue: '74.40',
+      unrealizedPnl: '1.78',
+      unrealizedPnlPercent: '7.85',
+      asOf: '2026-10-23T12:00:05.120Z',
+      complete: false,
+    };
+    client.fetchPortfolioSummary.mockResolvedValue(summary);
+    const signal = new AbortController().signal;
+
+    const result = await adapter.portfolio.fetchPortfolioSummary({ signal });
+
+    expect(result).toEqual(summary);
+    expect(client.fetchPortfolioSummary).toHaveBeenCalledWith(adapter.venueId, {
+      signal,
+    });
+  });
+
+  it('rejects a Portfolio Summary for another Venue', async () => {
+    client.fetchPortfolioSummary.mockResolvedValue({
+      venueId: 'other',
+      currency: 'USD',
+      availableBalance: '0',
+      positionsValue: '0',
+      claimableValue: '0',
+      totalValue: '0',
+      unrealizedPnl: '0',
+      asOf: '2026-10-23T12:00:05.120Z',
+      complete: true,
+    });
+
+    await expect(adapter.portfolio.fetchPortfolioSummary()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('maps Portfolio Summary HTTP 503 to VENUE_UNAVAILABLE', async () => {
+    client.fetchPortfolioSummary.mockRejectedValue(new PredictHttpError(503));
+
+    await expect(adapter.portfolio.fetchPortfolioSummary()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
     );
   });
 
@@ -731,7 +892,23 @@ describe('KalshiRemoteAdapter', () => {
       );
 
       await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
-        expect.objectContaining({ code: PredictErrorCode.MARKET_NOT_FOUND }),
+        expect.objectContaining({
+          code: PredictErrorCode.MARKET_NOT_FOUND,
+          metadata: { status: 404, bodyCode: 'market_not_found' },
+        }),
+      );
+    });
+
+    it('maps an unknown backend preview code by status, keeping the code', async () => {
+      client.fetchOrderPreview.mockRejectedValue(
+        new PredictHttpError(400, 'invalid_request'),
+      );
+
+      await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.INVALID_RESPONSE,
+          metadata: { status: 400, bodyCode: 'invalid_request' },
+        }),
       );
     });
 

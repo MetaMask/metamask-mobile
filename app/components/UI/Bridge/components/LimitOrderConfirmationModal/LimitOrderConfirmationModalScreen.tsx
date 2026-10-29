@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
-import { formatChainIdToDec } from '@metamask/bridge-controller';
+import { FeatureId, formatChainIdToDec } from '@metamask/bridge-controller';
 import { parseCaipAssetType } from '@metamask/utils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -14,7 +14,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../constants/limitOrders';
+import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../selectors/bridge/featureFlags';
 import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import type { LimitOrderDelegationsResponse } from '../../api/limitOrders/getDelegations/schema';
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
@@ -32,6 +32,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { getOrderTypeFromTrigger } from '../../utils/limitOrders/getOrderTypeFromTrigger';
 
 /**
  * What went wrong on the last confirm attempt. Each one reads differently in
@@ -61,7 +64,11 @@ export const LimitOrderConfirmationModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const params = useParams<LimitOrderConfirmationModalParams>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
+  const defaultCostTolerance = useSelector(
+    selectBridgeLimitOrderDefaultCostTolerance,
+  );
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const sourceWalletAddress = useSelector(selectSourceWalletAddress);
@@ -110,8 +117,7 @@ export const LimitOrderConfirmationModalScreen = () => {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   // The tolerance the delegations are requested with. The create request has to
   // be given the same one, so both read this single resolved value.
-  const costTolerancePercent =
-    costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE;
+  const costTolerancePercent = costTolerance ?? defaultCostTolerance;
   const { fetchLimitOrdersDelegations } = useFetchLimitOrdersDelegations({
     ...params.order,
     costTolerance: costTolerancePercent,
@@ -153,6 +159,31 @@ export const LimitOrderConfirmationModalScreen = () => {
     supportedFeeTokenSymbols,
   ]);
 
+  const sharedAdvancedOrderProperties = useMemo(
+    () => ({
+      feature_id: FeatureId.LIMIT_ORDER,
+      // TODO use location from navigation context
+      location: 'Main View',
+    }),
+    [],
+  );
+
+  const publishDelegationFailureEvent = useCallback(() => {
+    if (!trigger) {
+      return;
+    }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
+        .addProperties({
+          ...sharedAdvancedOrderProperties,
+          order_type: getOrderTypeFromTrigger(trigger),
+          error: 'delegation_failed',
+        })
+        .build(),
+    );
+  }, [trigger, trackEvent, createEventBuilder, sharedAdvancedOrderProperties]);
+
   const handleConfirm = useCallback(async () => {
     if (!feeTokenValidation.isValid) {
       return;
@@ -178,6 +209,7 @@ export const LimitOrderConfirmationModalScreen = () => {
     try {
       await autoUpgradeEIP7702Account();
     } catch (upgradeError) {
+      publishDelegationFailureEvent();
       Logger.error(
         upgradeError as Error,
         'LimitOrderConfirmationModalScreen: Failed to upgrade account',
@@ -195,6 +227,7 @@ export const LimitOrderConfirmationModalScreen = () => {
     try {
       delegationsResponse = await fetchLimitOrdersDelegations();
     } catch (fetchError) {
+      publishDelegationFailureEvent();
       Logger.error(
         fetchError as Error,
         'LimitOrderConfirmationModalScreen: Failed to fetch limit order delegations',
@@ -212,6 +245,7 @@ export const LimitOrderConfirmationModalScreen = () => {
         delegationsResponse.delegations,
       );
     } catch (signatureError) {
+      publishDelegationFailureEvent();
       Logger.error(
         signatureError as Error,
         'LimitOrderConfirmationModalScreen: Failed to sign limit order delegations',
@@ -243,7 +277,24 @@ export const LimitOrderConfirmationModalScreen = () => {
         // against exactly the delegation it issued.
         delegations: signedDelegations,
       });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_COMPLETED)
+          .addProperties({
+            ...sharedAdvancedOrderProperties,
+            order_type: getOrderTypeFromTrigger(trigger),
+          })
+          .build(),
+      );
     } catch (createError) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
+          .addProperties({
+            ...sharedAdvancedOrderProperties,
+            order_type: getOrderTypeFromTrigger(trigger),
+            error: (createError as Error).message,
+          })
+          .build(),
+      );
       Logger.error(
         createError as Error,
         'LimitOrderConfirmationModalScreen: Failed to create limit order',
@@ -274,8 +325,12 @@ export const LimitOrderConfirmationModalScreen = () => {
     navigation,
     params.order.destAmount,
     setLimitOrdersTab,
-    trigger,
     costTolerancePercent,
+    trackEvent,
+    createEventBuilder,
+    publishDelegationFailureEvent,
+    trigger,
+    sharedAdvancedOrderProperties,
   ]);
 
   return (

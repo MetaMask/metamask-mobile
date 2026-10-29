@@ -1,6 +1,12 @@
 import React from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import {
   TokenDetails as TokenDetailsRoute,
   TokenDetailsLegacyRouteWrapper as TokenDetails,
@@ -32,6 +38,8 @@ import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
 } from '../../../../selectors/bridge/featureFlags';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
 import {
   selectAssetsMemecoinTdpV1Enabled,
   selectMemecoinTdpV1PriceApiBaseUrl,
@@ -353,9 +361,10 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
 const mockTransactions = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: (props: { header?: React.ReactNode }) => {
+  default: (props: { header?: React.ReactNode; loading?: boolean }) => {
     mockTransactions(props);
-    return props.header ?? null;
+    // Mirrors Transactions, which shows only its loader while loading.
+    return props.loading ? null : (props.header ?? null);
   },
 }));
 
@@ -463,10 +472,19 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
 const mockAssetDetailsQuickBuy = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
-jest.mock('../components/AssetDetailsQuickBuy', () => ({
-  __esModule: true,
-  default: (props: Record<string, unknown>) => mockAssetDetailsQuickBuy(props),
-}));
+jest.mock('../components/AssetDetailsQuickBuy', () => {
+  const ReactLib = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockAssetDetailsQuickBuy(props);
+      return ReactLib.createElement(View, {
+        testID: 'asset-details-quick-buy',
+      });
+    },
+  };
+});
 
 jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn(),
@@ -1896,6 +1914,118 @@ describe('TokenDetails', () => {
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ description: undefined }),
+      );
+    });
+  });
+
+  describe('glass header', () => {
+    const lastProps = (mock: jest.Mock) => mock.mock.calls.at(-1)?.[0];
+    const callProp = (mock: jest.Mock, name: string, ...args: unknown[]) => {
+      const handler = lastProps(mock)?.[name];
+      if (typeof handler !== 'function') {
+        throw new Error(`Expected a ${name} handler`);
+      }
+      act(() => {
+        handler(...args);
+      });
+    };
+    const withBrandRefresh = () => {
+      const base = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((selector) =>
+        selector === selectTokenDetailsBrandRefreshEnabled
+          ? true
+          : base?.(selector),
+      );
+    };
+
+    it('keeps the plain header in place by default', () => {
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({ isGlass: false }),
+      );
+      expect(queryByTestId(TokenDetailsTestIds.HEADER_SPACER)).toBeNull();
+    });
+
+    it('floats the glass header and starts the content below it', () => {
+      withBrandRefresh();
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({ isGlass: true }),
+      );
+
+      callProp(mockTokenDetailsInlineHeader, 'onLayout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
+        height: 120,
+      });
+    });
+
+    it('keeps the transactions loader below the glass header', () => {
+      withBrandRefresh();
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        transactionsUpdated: false,
+      });
+      const { getByTestId } = render(<TokenDetails />);
+
+      callProp(mockTokenDetailsInlineHeader, 'onLayout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
+        height: 120,
+      });
+    });
+
+    it('adds no spacer above the transactions loader with the plain header', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        transactionsUpdated: false,
+      });
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId(TokenDetailsTestIds.HEADER_SPACER)).toBeNull();
+    });
+
+    it('renders the Quick Buy sheet above the glass header', () => {
+      withBrandRefresh();
+      const { getByTestId } = render(<TokenDetails />);
+
+      const content = getByTestId(TokenDetailsTestIds.CONTENT);
+
+      expect(content).toHaveStyle({ isolation: 'isolate' });
+      expect(
+        within(content).queryByTestId('asset-details-quick-buy'),
+      ).toBeNull();
+      expect(getByTestId('asset-details-quick-buy')).toBeOnTheScreen();
+    });
+
+    it('keeps the footer outside the isolated content, so its sheets open above the glass header', () => {
+      withBrandRefresh();
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(
+        within(getByTestId(TokenDetailsTestIds.CONTENT)).queryByTestId(
+          'bottomsheetfooter',
+        ),
+      ).toBeNull();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+    });
+
+    it('fades the header backdrop with the list scroll', () => {
+      withBrandRefresh();
+      render(<TokenDetails />);
+
+      callProp(mockTransactions, 'onScrollThroughContent', 64);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({
+          scrollY: expect.objectContaining({ value: 64 }),
+        }),
       );
     });
   });

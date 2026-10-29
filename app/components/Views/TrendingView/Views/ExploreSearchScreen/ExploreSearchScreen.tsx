@@ -52,6 +52,8 @@ import SearchFeedRow, {
 } from '../../search/SearchFeedRow';
 import {
   getExploreSearchResultCount,
+  getExploreSearchSessionId,
+  renewEndedExploreSearchSession,
   trackExploreSearchAbandoned,
   trackExploreSearchEvent,
   trackExploreSearchOpened,
@@ -321,6 +323,17 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   const isLoading = sections.some((s) => s.isLoading);
 
+  // A focus counter, not useIsFocused: frozen screens never render the blurred value.
+  const navigation = useNavigation();
+  const [focusCount, setFocusCount] = useState(0);
+  useEffect(
+    () =>
+      navigation.addListener('focus', () =>
+        setFocusCount((count) => count + 1),
+      ),
+    [navigation],
+  );
+
   const pills = useMemo<PillOption[]>(
     () => [
       { key: ALL_PILL_KEY, name: strings('trending.search_tabs.all') },
@@ -344,6 +357,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     searchQuery,
     redactSearchQuery,
     isLoading,
+    focusCount,
     getPill: getActivePill,
     getSections,
   });
@@ -652,6 +666,7 @@ const ExploreSearchScreen: React.FC = () => {
     enabled: isHomepageSearch,
     initiallyAvailable: routeParams?.pastePillVisible,
     onPaste: handleHomepagePaste,
+    getSearchSessionId: getExploreSearchSessionId,
   });
   // Gates the keyboard, which iOS paints dark grey mid-push, and the results
   // subtree, whose mount blocks the JS thread while the screen slides in.
@@ -676,6 +691,7 @@ const ExploreSearchScreen: React.FC = () => {
     // leaving it mounted, e.g. switching away from the nav-bar Search tab.
     const unsubscribeFocus = navigation.addListener('focus', () => {
       isCancelPressedRef.current = false;
+      renewEndedExploreSearchSession();
     });
     const unsubscribeBeforeRemove = navigation.addListener(
       'beforeRemove',

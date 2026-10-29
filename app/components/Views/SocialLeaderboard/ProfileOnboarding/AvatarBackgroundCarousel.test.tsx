@@ -3,6 +3,8 @@ import React from 'react';
 import type { HardwareTier } from '../../../../util/deviceCapability';
 import { playSelection } from '../../../../util/haptics';
 import AvatarBackgroundCarousel, {
+  AVATAR_FLICKER_IN_MS,
+  AVATAR_FLICKER_OUT_MS,
   hapticBackgroundIndex,
 } from './AvatarBackgroundCarousel';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
@@ -162,6 +164,24 @@ describe('AvatarBackgroundCarousel', () => {
       expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
         opacity: 0,
       });
+    });
+
+    it('flickers the preview once when the avatar changes', () => {
+      const { selectAvatar } = renderCarousel();
+      const flicker = screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW_FLICKER,
+      );
+
+      expect(flicker).toHaveAnimatedStyle({ opacity: 1 });
+
+      selectAvatar('royal');
+      flush(AVATAR_FLICKER_OUT_MS);
+
+      expect(flicker).toHaveAnimatedStyle({ opacity: 0 });
+
+      flush(AVATAR_FLICKER_IN_MS);
+
+      expect(flicker).toHaveAnimatedStyle({ opacity: 1 });
     });
 
     it('fades the new avatar in and the previous one out', () => {

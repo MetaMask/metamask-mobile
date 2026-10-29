@@ -75,6 +75,7 @@ export const initialStateWatchlist = (
           },
           MoneyAccountController: {
             moneyAccounts: {},
+            defaultMoneyAccountId: null,
           },
           NftController: {
             allNfts: {},
