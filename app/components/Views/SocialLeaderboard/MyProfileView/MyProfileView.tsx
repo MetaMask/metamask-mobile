@@ -485,7 +485,6 @@ const MyProfileView: React.FC = () => {
                 ]
               : isOwner && displayProfile
                 ? [
-                    // First item is the rightmost icon, matching MMDS.
                     {
                       iconName: IconName.Share,
                       iconProps: { color: IconColor.IconDefault },
@@ -498,50 +497,8 @@ const MyProfileView: React.FC = () => {
                       hitSlop: HEADER_ICON_HIT_SLOP,
                       twClassName: HEADER_ICON_BUTTON_CLASS,
                     },
-                    {
-                      iconName: IconName.Refresh,
-                      iconProps: { color: IconColor.IconDefault },
-                      size: ButtonIconSize.Md,
-                      onPress: handleResetProfile,
-                      accessibilityLabel: strings(
-                        'social_leaderboard.my_profile.debug_reset_profile',
-                      ),
-                      testID:
-                        MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON,
-                      hitSlop: HEADER_ICON_HIT_SLOP,
-                      twClassName: HEADER_ICON_BUTTON_CLASS,
-                    },
                   ]
                 : undefined
-          backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
-          endAccessory={
-            !isOwner && traderId ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
-                <ButtonIcon
-                  iconName={IconName.Share}
-                  iconProps={{ color: IconColor.IconDefault }}
-                  size={ButtonIconSize.Md}
-                  onPress={handleShareTraderDeeplink}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.my_profile.share_profile',
-                  )}
-                  testID={MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON}
-                />
-              </SocialHeaderGlassSurface>
-            ) : isOwner && displayProfile ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
-                <ButtonIcon
-                  iconName={IconName.Edit}
-                  iconProps={{ color: IconColor.IconDefault }}
-                  size={ButtonIconSize.Md}
-                  onPress={handleOpenComposer}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.my_profile.create_post',
-                  )}
-                  testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
-                />
-              </SocialHeaderGlassSurface>
-            ) : undefined
           }
           testID={MyProfileViewSelectorsIDs.HEADER}
         />

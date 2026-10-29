@@ -563,22 +563,7 @@ describe('MyProfileView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('resets the local profile and opens onboarding from the header', () => {
-    renderWithProvider(<MyProfileView />);
-
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    );
-
-    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    ).toHaveProp('accessibilityLabel', 'debug: reset profile');
-  });
-
   it('opens the post composer from the profile actions', () => {
-  it('opens the post composer from the owner profile header', () => {
     renderWithProvider(<MyProfileView />);
 
     const createPostButton = screen.getByTestId(
@@ -596,6 +581,7 @@ describe('MyProfileView', () => {
     const shareSpy = jest
       .spyOn(Share, 'share')
       .mockResolvedValue({ action: Share.sharedAction });
+
     renderWithProvider(<MyProfileView />);
 
     const shareProfileButton = screen.getByTestId(
@@ -613,13 +599,6 @@ describe('MyProfileView', () => {
       left: 12,
       right: 12,
     });
-    await waitFor(() =>
-      expect(shareSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(profile.shareUrl),
-        }),
-      ),
-    );
     expect(shareSpy).toHaveBeenCalledWith({
       url: 'https://link.metamask.io/social/profile?traderId=current-user',
     });
