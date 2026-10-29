@@ -229,20 +229,32 @@ describe('TraderPositionPnlSection', () => {
     expect(positionProp()).toBeUndefined();
   });
 
-  it('marks the footer as having a balance only when the token balance is positive', () => {
-    mockUseOpenPositionHeader.mockReturnValue({
-      sharePosition: null,
-      isLoading: false,
-      isPositionLoading: false,
-    });
-    mockUseTokenBalance.mockReturnValue({
-      balance: '0',
-      fiatBalance: '$0.00',
-      tokenFormattedBalance: '0 PEPE',
-    } as ReturnType<typeof useTokenBalance>);
+  it.each<[string | undefined, boolean]>([
+    ['10', true],
+    ['1,234,567', true],
+    ['<0.00001', true],
+    ['0', false],
+    ['', false],
+    [undefined, false],
+  ])(
+    'sets hasTokenBalance from formatted balance %j to %s',
+    (balance, hasTokenBalance) => {
+      mockUseOpenPositionHeader.mockReturnValue({
+        sharePosition: null,
+        isLoading: false,
+        isPositionLoading: false,
+      });
+      mockUseTokenBalance.mockReturnValue({
+        balance,
+        fiatBalance: '$0.00',
+        tokenFormattedBalance: balance ? `${balance} PEPE` : undefined,
+      } as ReturnType<typeof useTokenBalance>);
 
-    renderSection();
+      renderSection();
 
-    expect(footerProps[footerProps.length - 1].hasTokenBalance).toBe(false);
-  });
+      expect(footerProps[footerProps.length - 1].hasTokenBalance).toBe(
+        hasTokenBalance,
+      );
+    },
+  );
 });
