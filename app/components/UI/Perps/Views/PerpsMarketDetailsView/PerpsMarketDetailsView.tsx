@@ -1213,8 +1213,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           return;
         }
 
-        if (useBottomSheet && !(await checkAccountSupport())) {
-          return;
+        if (useBottomSheet) {
+          const support = await checkAccountSupport(market.providerId);
+          if (support !== 'supported') {
+            return;
+          }
         }
 
         // Check for cross-margin position (MetaMask only supports isolated margin)

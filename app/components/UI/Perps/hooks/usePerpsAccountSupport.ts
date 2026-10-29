@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import type {
+  GetAccountSupportParams,
+  PerpsAccountSupport,
+  PerpsProviderType,
+} from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
@@ -7,12 +12,10 @@ import {
   selectPerpsProvider,
 } from '../selectors/perpsController';
 
-type PerpsAccountSupport =
-  | { isSupported: true }
-  | { isSupported: false; reason: 'multi_sig_account' };
-
 interface AccountSupportController {
-  getAccountSupport: () => Promise<PerpsAccountSupport>;
+  getAccountSupport: (
+    params?: GetAccountSupportParams,
+  ) => Promise<PerpsAccountSupport>;
 }
 
 const hasAccountSupport = (
@@ -23,9 +26,16 @@ const hasAccountSupport = (
   'getAccountSupport' in controller &&
   typeof controller.getAccountSupport === 'function';
 
+export type PerpsAccountSupportCheckResult =
+  | 'supported'
+  | 'unsupported'
+  | 'stale';
+
 export interface UsePerpsAccountSupportReturn {
   isAccountUnsupportedModalVisible: boolean;
-  checkAccountSupport: () => Promise<boolean>;
+  checkAccountSupport: (
+    providerId?: PerpsProviderType,
+  ) => Promise<PerpsAccountSupportCheckResult>;
   closeAccountUnsupportedModal: () => void;
 }
 
@@ -41,40 +51,59 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
   const provider = useSelector(selectPerpsProvider);
   const network = useSelector(selectPerpsNetwork);
   const contextKey = `${selectedAddress ?? ''}:${provider ?? ''}:${network}`;
-  const contextKeyRef = useRef(contextKey);
-  contextKeyRef.current = contextKey;
+  const contextRef = useRef({ selectedAddress, provider, network });
+  contextRef.current = { selectedAddress, provider, network };
 
   const [isAccountUnsupportedModalVisible, setIsModalVisible] = useState(false);
 
-  const readAccountSupport = useCallback(async () => {
-    const controller = Engine.context?.PerpsController;
-    if (!hasAccountSupport(controller)) {
-      return { isSupported: true } as const;
-    }
+  const readAccountSupport = useCallback(
+    async (providerId?: PerpsProviderType) => {
+      const controller = Engine.context?.PerpsController;
+      if (!hasAccountSupport(controller)) {
+        return { isSupported: true } as const;
+      }
 
-    try {
-      return await controller.getAccountSupport();
-    } catch {
-      return { isSupported: true } as const;
-    }
-  }, []);
+      try {
+        return await controller.getAccountSupport(
+          providerId ? { providerId } : undefined,
+        );
+      } catch {
+        return { isSupported: true } as const;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     readAccountSupport().catch(() => undefined);
   }, [contextKey, readAccountSupport]);
 
-  const checkAccountSupport = useCallback(async () => {
-    const requestedContext = contextKeyRef.current;
-    const support = await readAccountSupport();
-    if (contextKeyRef.current !== requestedContext) {
-      return false;
-    }
-    if (!support.isSupported) {
-      setIsModalVisible(true);
-      return false;
-    }
-    return true;
-  }, [readAccountSupport]);
+  const checkAccountSupport = useCallback(
+    async (
+      providerId?: PerpsProviderType,
+    ): Promise<PerpsAccountSupportCheckResult> => {
+      const requested = contextRef.current;
+      const requestedRoute = providerId ?? requested.provider;
+      const requestedContext = `${requested.selectedAddress ?? ''}:${
+        requestedRoute ?? ''
+      }:${requested.network}`;
+      const support = await readAccountSupport(providerId);
+      const current = contextRef.current;
+      const currentRoute = providerId ?? current.provider;
+      const currentContext = `${current.selectedAddress ?? ''}:${
+        currentRoute ?? ''
+      }:${current.network}`;
+      if (currentContext !== requestedContext) {
+        return 'stale';
+      }
+      if (!support.isSupported) {
+        setIsModalVisible(true);
+        return 'unsupported';
+      }
+      return 'supported';
+    },
+    [readAccountSupport],
+  );
 
   const closeAccountUnsupportedModal = useCallback(() => {
     setIsModalVisible(false);

@@ -27,6 +27,7 @@ import {
   createEthMarketForViews,
   createFundedAccountForViews,
   createLongPositionForViews,
+  createScreenVsBottomSheetAssignmentForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
@@ -78,6 +79,7 @@ import {
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { PERPS_SHARE_POSITION_INTERACTION_TYPE } from '../PerpsSharePositionView/PerpsSharePositionView.constants';
+import { ScreenVsBottomSheetVariant } from '../../abTestConfig';
 
 const CANDLE_SELECTOR_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector` as const;
@@ -155,6 +157,67 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the real unsupported-account explanation without opening the Lite order sheet', async () => {
+    const market = createEthMarketForViews({ providerId: 'lighter' });
+    const assignment = createScreenVsBottomSheetAssignmentForViews(
+      ScreenVsBottomSheetVariant.Treatment,
+    );
+    const getAccountSupport = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    getAccountSupport.mockResolvedValue({
+      isSupported: false,
+      reason: 'multi_sig_account',
+    });
+
+    try {
+      renderPerpsMarketDetailsView({
+        initialParams: { market },
+        streamOverrides: { positions: [], marketData: [market] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...assignment.engine.backgroundState,
+              PerpsController: {
+                activeProvider: 'aggregated',
+                isEligible: true,
+              },
+            },
+          },
+        },
+        extraRoutes: [
+          {
+            name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          },
+        ],
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(getAccountSupport).toHaveBeenCalledWith({
+        providerId: 'lighter',
+      });
+      expect(
+        screen.queryByTestId(
+          getRouteProbeTestId(
+            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+    } finally {
+      getAccountSupport.mockResolvedValue({ isSupported: true });
+    }
   });
 
   it('opens market-hours tooltip when info button is pressed for stock markets', async () => {

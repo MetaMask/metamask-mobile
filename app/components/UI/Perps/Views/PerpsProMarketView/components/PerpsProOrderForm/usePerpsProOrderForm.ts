@@ -849,6 +849,7 @@ export const usePerpsProOrderForm = ({
   >(undefined);
   const lastTrackedFarFromMarketRef = useRef<string | undefined>(undefined);
   const submissionStateRef = useRef('');
+  const executionStateRef = useRef('');
   const complianceStateRef = useRef('');
   const lifecycleGenerationRef = useRef(0);
   useLayoutEffect(
@@ -1990,6 +1991,37 @@ export const usePerpsProOrderForm = ({
               marginModeContextKey,
               isCrossMarginUnsupported,
             });
+  const currentExecutionState = JSON.stringify({
+    orderForm,
+    reduceOnly,
+    triggerPrice: normalizedTriggerPrice,
+    scaleStartPrice,
+    scaleEndPrice,
+    scaleTotalOrders,
+    scaleSizeSkew,
+    chaseMaxDistance,
+    chaseMaxDistanceUnit,
+    selectedAddress: normalizedSelectedAddress,
+    orderProviderId,
+    scaleProviderId,
+    marketProviderId: market.providerId,
+    network,
+    marginMode,
+    marginModeContextKey,
+    maxSlippageBps: resolvedMaxSlippageBps,
+    isTriggeredOrdersEnabled,
+    isTriggerAvailabilityPending,
+    supportedTriggerOrderTypes,
+    resolvedTriggerProviderId,
+    isTwapEnabled,
+    isTwapAvailabilityPending,
+    resolvedTwapProviderId,
+    isScaleOrdersEnabled,
+    isScaleOrderSupportPending,
+    isChaseEnabled,
+    isChaseAvailabilityPending,
+    chaseProviderId,
+  });
   const currentComplianceState =
     orderForm.type === 'chase'
       ? JSON.stringify({
@@ -2003,8 +2035,9 @@ export const usePerpsProOrderForm = ({
       : currentSubmissionState;
   useLayoutEffect(() => {
     submissionStateRef.current = currentSubmissionState;
+    executionStateRef.current = currentExecutionState;
     complianceStateRef.current = currentComplianceState;
-  }, [currentComplianceState, currentSubmissionState]);
+  }, [currentComplianceState, currentExecutionState, currentSubmissionState]);
   const effectiveMarginRequired =
     isScaleOrder && scaleLadderResult.success
       ? calculateMarginRequired({
@@ -3166,7 +3199,15 @@ export const usePerpsProOrderForm = ({
           expectedScaleLadder,
         });
 
-        if (!(await checkAccountSupport())) {
+        const expectedExecutionState = executionStateRef.current;
+        const accountSupport = await checkAccountSupport(expectedProviderId);
+        if (
+          accountSupport !== 'supported' ||
+          executionStateRef.current !== expectedExecutionState ||
+          !isCurrentSubmission() ||
+          selectedAddressRef.current !== expectedSelectedAddress ||
+          networkRef.current !== expectedNetwork
+        ) {
           return;
         }
 
@@ -3474,7 +3515,15 @@ export const usePerpsProOrderForm = ({
         }
       }
 
-      if (!(await checkAccountSupport())) {
+      const expectedExecutionState = executionStateRef.current;
+      const accountSupport = await checkAccountSupport(orderParams.providerId);
+      if (
+        accountSupport !== 'supported' ||
+        executionStateRef.current !== expectedExecutionState ||
+        !isCurrentSubmission() ||
+        selectedAddressRef.current !== expectedSelectedAddress ||
+        networkRef.current !== expectedNetwork
+      ) {
         return;
       }
 

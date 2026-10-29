@@ -526,6 +526,7 @@ jest.mock('../../app/core/Engine', () => {
       // getMarkets returns one market so explore sections render "See all perps"
       PerpsController: {
         state: { isTestnet: false },
+        getAccountSupport: jest.fn().mockResolvedValue({ isSupported: true }),
         getRecoveredDispatches: jest.fn().mockResolvedValue([]),
         getPendingManualRecoveries: jest.fn().mockResolvedValue([]),
         getScaleOrderGroups: jest.fn().mockResolvedValue([]),

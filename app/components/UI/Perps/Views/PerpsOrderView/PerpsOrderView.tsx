@@ -1817,15 +1817,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // same lock only after this read, so a second tap in the same turn
       // would otherwise start a parallel placement.
       isSubmittingRef.current = true;
-      let accountSupported = false;
+      let accountSupport: Awaited<ReturnType<typeof checkAccountSupport>> =
+        'stale';
       try {
-        accountSupported = await checkAccountSupport();
+        accountSupport = await checkAccountSupport();
       } finally {
         isSubmittingRef.current = false;
       }
-      if (!accountSupported) {
+      if (accountSupport === 'unsupported') {
         return 'accountUnsupported' as const;
       }
+      if (accountSupport === 'stale') return;
 
       if (liquidityError) {
         showToast(

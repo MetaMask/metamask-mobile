@@ -247,6 +247,18 @@ describe('PerpsTradeScreen errors', () => {
     });
   });
 
+  it('keeps the trade screen in place when submission aborts silently', async () => {
+    const onSubmit = jest.fn().mockResolvedValue(undefined);
+    render(<PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(mockNavigateTo).not.toHaveBeenCalledWith('accountUnsupported');
+  });
+
   it('shows the payment asset icon beside the pay with value', () => {
     render(
       <PerpsTradeScreen
