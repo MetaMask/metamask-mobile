@@ -27,6 +27,7 @@ const CARD_STATE_MOCK: CardSliceState = {
   pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
   cardArrivalAnimationSeen: false,
   cardArrivalPreviewRequested: false,
+  applePaySplashSeen: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,6 +42,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   pendingMoneyAccountCardLink: null,
   cardArrivalAnimationSeen: false,
   cardArrivalPreviewRequested: false,
+  applePaySplashSeen: false,
 };
 
 describe('Card Selectors', () => {
@@ -149,6 +151,7 @@ describe('Card Reducer', () => {
         pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         cardArrivalAnimationSeen: true,
         cardArrivalPreviewRequested: false,
+        applePaySplashSeen: false,
       };
 
       const state = cardReducer(currentState, resetCardState());

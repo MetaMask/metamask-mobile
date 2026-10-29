@@ -145,11 +145,12 @@ const SectionRule = () => (
 );
 
 /**
- * One contract check — a label, a pass/fail glyph and the check's own wording.
+ * One contract check — a label, the check's own wording, and a fail glyph
+ * when the check failed.
  *
  * An unresolved check shows a dimmed dash and no glyph. That matters more here
  * than on the stat rows: Blockaid reports only the risks it detected and never
- * the checks it ran, so a green tick for "nothing found" would claim a test
+ * the checks it ran, so a passing colour for "nothing found" would claim a test
  * result that does not exist. An absent check and an explicit `unknown` have to
  * land on the same dash.
  */

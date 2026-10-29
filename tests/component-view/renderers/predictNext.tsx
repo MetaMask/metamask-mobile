@@ -5,6 +5,10 @@ import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStatePredictNext } from '../presets/predictNext';
 import { PredictHome } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome';
 import { PredictEventScreen } from '../../../app/components/UI/PredictNext/views/PredictEvent/PredictEventScreen';
+import {
+  EventMarketList,
+  type EventMarketListProps,
+} from '../../../app/components/UI/PredictNext/views/PredictEvent/internal/EventMarketList';
 import { PredictFeedScreen } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen';
 import { PredictPortfolioScreen } from '../../../app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen';
 import { PredictSearchScreen } from '../../../app/components/UI/PredictNext/views/PredictSearch/PredictSearchScreen';
@@ -101,6 +105,40 @@ export const renderPredictEventScreen = (
     { state: initialStatePredictNext().build() },
     { ...initialParams },
   );
+
+/** Exercises the screen-local list without mounting the Event Screen owner. */
+export const renderEventMarketList = (
+  props: EventMarketListProps,
+  {
+    privacyMode = false,
+    queryClient,
+  }: {
+    privacyMode?: boolean;
+    queryClient?: QueryClient;
+  } = {},
+) => {
+  const handle = React.createRef<{
+    updateProps: (next: EventMarketListProps) => void;
+  }>();
+  const List = () => {
+    const [currentProps, setProps] = React.useState(props);
+    React.useImperativeHandle(handle, () => ({ updateProps: setProps }), []);
+    return <EventMarketList {...currentProps} />;
+  };
+  const view = renderComponentViewScreen(
+    List,
+    { name: PredictNextRoutes.EVENT },
+    { state: initialStatePredictNext(privacyMode).build() },
+    undefined,
+    queryClient,
+  );
+
+  return {
+    ...view,
+    updateProps: (next: EventMarketListProps) =>
+      handle.current?.updateProps(next),
+  };
+};
 
 export const renderPredictPortfolioScreen = (
   initialParams: PredictNextPortfolioParams,

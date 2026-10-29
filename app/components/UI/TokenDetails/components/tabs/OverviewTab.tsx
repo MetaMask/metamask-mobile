@@ -6,10 +6,10 @@ import ContentDisplay from '../../../AssetOverview/AboutAsset/ContentDisplay';
 import Balance from '../../../AssetOverview/Balance';
 import TokenDetailsSection from '../../../AssetOverview/TokenDetails';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
 import { useTokenAssetDetails } from '../../queries/tokenAssetQuery';
+import type { TokenMarketData } from '../../queries/tokenMarketData';
 import { selectMemecoinTdpV1TokenApiBaseUrl } from '../../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
@@ -72,7 +72,7 @@ export interface OverviewTabProps {
   token: TokenDetailsRouteParams;
   assetId: CaipAssetType | null;
   securityData?: TokenSecurityData | null;
-  marketData?: FungibleAssetPrice | null;
+  marketData?: TokenMarketData | null;
 }
 
 const OverviewTab = ({
@@ -90,7 +90,6 @@ const OverviewTab = ({
 
   const performance = useTokenPerformance({
     marketData: marketData ?? null,
-    assetMarketData: asset?.marketData ?? null,
   });
   const hasPerformance = [
     performance.fiveMinute,

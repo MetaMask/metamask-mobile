@@ -70,37 +70,14 @@ jobs:
             pull_requests: write
             workflows: write
 
-      - name: Checkout release branch
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.ref_name }}
-          token: ${{ steps.get-token.outputs.token }}
-          fetch-depth: 0
-
-      - name: Checkout github-tools
-        uses: actions/checkout@v6
-        with:
-          repository: MetaMask/github-tools
-          path: github-tools
-          ref: v1
-
-      - name: Setup Node for changelog tooling
-        uses: MetaMask/action-checkout-and-setup@v3
-        with:
-          is-high-risk-environment: true
-
+      # The action checks out the release branch itself and derives the changelog version from
+      # the branch name (release/X.Y.Z or release/X.Y.Z-ota → X.Y.Z).
       - name: Update Release Changelog
-        shell: bash
+        uses: MetaMask/github-tools/.github/actions/update-release-changelog@v1
         env:
-          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
-          GIT_AUTHOR_NAME: metamaskbot
-          GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
-        run: |
-          set -euo pipefail
-          git config user.name metamaskbot
-          git config user.email metamaskbot@users.noreply.github.com
-          bash .github/scripts/run-update-release-changelog-mobile.sh \
-            "${GITHUB_REF_NAME}" \
-            mobile \
-            "${{ github.server_url }}/${{ github.repository }}" \
-            "null"
+          AI_ANALYZER_LITELLM_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+        with:
+          release-branch: ${{ github.ref_name }}
+          repository-url: ${{ github.server_url }}/${{ github.repository }}
+          platform: mobile
+          github-token: ${{ steps.get-token.outputs.token }}

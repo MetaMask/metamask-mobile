@@ -285,9 +285,10 @@ const openRecoverableError = (navigation: AppNavigationProp): void => {
 export interface OpenVbaOnboardingRequest {
   source?: string;
   /**
-   * Re-enter identity verification when hydrate still reports a rejected KYC
-   * session. Without this, Try again on the failure page routes back to itself.
-   * The retry pushes a new identity screen so SumSub mounts again instead of
+   * Re-enter identity verification when hydrate still reports a KYC session
+   * whose status is `retry`. A rejected session stays on the failure page:
+   * rejection is terminal and must not request another SumSub token. The
+   * retry pushes a new identity screen so SumSub mounts again instead of
    * revealing the previous one.
    */
   retryRejectedKyc?: boolean;
@@ -414,7 +415,9 @@ export const resolveVbaOnboarding = async (
  * first and calls {@link resolveVbaOnboarding} there.
  *
  * @param defaultSource - Caller/entry point for error telemetry.
- * @returns An async callback. Pass a source string, or `{ retryRejectedKyc: true }` from the KYC failure page.
+ * @returns An async callback. Pass a source string, or
+ * `{ retryRejectedKyc: true }` to re-enter SumSub when the hydrated KYC
+ * status is `retry`.
  */
 export const useOpenVbaOnboarding = (
   defaultSource = 'unspecified',
@@ -434,8 +437,10 @@ export const useOpenVbaOnboarding = (
       }
 
       try {
+        const canReenterSumSub =
+          retryRejectedKyc && resolved.snapshot.kycStatus === 'retry';
         const destinationId =
-          retryRejectedKyc && resolved.destinationId === 'kycRejected'
+          canReenterSumSub && resolved.destinationId === 'kycRejected'
             ? 'identityVerification'
             : resolved.destinationId;
         Logger.log('[vba-onboarding] resume', {
@@ -443,7 +448,7 @@ export const useOpenVbaOnboarding = (
           snapshot: resolved.snapshot,
           destinationId,
         });
-        if (retryRejectedKyc && destinationId === 'identityVerification') {
+        if (canReenterSumSub && destinationId === 'identityVerification') {
           navigation.dispatch(
             StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
               snapshot: resolved.snapshot,

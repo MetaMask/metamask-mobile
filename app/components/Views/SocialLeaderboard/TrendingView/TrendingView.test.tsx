@@ -38,10 +38,7 @@ interface MockSocialFeedProps {
   scrollMode: string;
   showMockedFields?: boolean;
   isActive?: boolean;
-  renderHeader?: (props: {
-    pendingNewCount: number;
-    onRevealPending: () => void;
-  }) => React.ReactNode;
+  renderHeader?: () => React.ReactNode;
   inlineRows?: readonly SocialFeedInlineRow[];
   emptyState?: React.ReactNode;
   onRefresh?: () => void;
@@ -58,8 +55,6 @@ interface MockSocialFeedProps {
 
 const mockSocialFeed = jest.fn<null, [MockSocialFeedProps]>();
 const mockFeedScrollToOffset = jest.fn();
-const mockRevealPending = jest.fn();
-let mockPendingNewCount = 0;
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
@@ -75,10 +70,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     return ReactActual.createElement(
       View,
       { testID: props.testID },
-      props.renderHeader?.({
-        pendingNewCount: mockPendingNewCount,
-        onRevealPending: mockRevealPending,
-      }),
+      props.renderHeader?.(),
       props.emptyState,
       props.inlineRows?.map((row) =>
         ReactActual.createElement(
@@ -206,7 +198,6 @@ const pressChip = (token: SocialV1HotToken) =>
 describe('TrendingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPendingNewCount = 0;
     mockUseTrendingHotTokens.mockReturnValue({
       tokens: [BTC, ETH],
       isLoading: false,
@@ -251,25 +242,6 @@ describe('TrendingView', () => {
     expect(lastFeedProps()).toEqual(
       expect.objectContaining(TRENDING_FEED_QUERY),
     );
-  });
-
-  it('reveals held posts from the pill', () => {
-    mockPendingNewCount = 3;
-    renderWithProvider(<TrendingView />);
-
-    fireEvent.press(
-      screen.getByLabelText('social_leaderboard.feed.live_stream.new_posts'),
-    );
-
-    expect(mockRevealPending).toHaveBeenCalledTimes(1);
-  });
-
-  it('hides the pill without held posts', () => {
-    renderWithProvider(<TrendingView />);
-
-    expect(
-      screen.queryByLabelText('social_leaderboard.feed.live_stream.new_posts'),
-    ).toBeNull();
   });
 
   it('streams the feed only while the tab is active', () => {

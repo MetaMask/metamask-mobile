@@ -45,6 +45,7 @@ export const ManageProfileTradingActivitySelectorsIDs = {
   BACK_BUTTON: 'manage-profile-trading-activity-back',
   SWITCH: 'manage-profile-trading-activity-switch',
   INFO_BUTTON: 'manage-profile-trading-activity-info',
+  BENEFITS: 'manage-profile-trading-activity-benefits',
 } as const;
 
 export const ManageProfileLinkedAccountSelectorsIDs = {
