@@ -604,6 +604,39 @@ const isWalletLeaf = (
   typeof value.enabled === 'boolean' &&
   typeof value.minimumVersion === 'string';
 
+const keepProvisioningWallet = (
+  wallet: ProvisioningWallet,
+  platformRule: Record<string, unknown>,
+  countryEligibility: unknown,
+  cardProcessor: string | undefined,
+  allowed: readonly ProvisioningWallet[],
+  implementedWallets: readonly ProvisioningWallet[],
+): ResolvedProvisioningWallet | null => {
+  if (!allowed.includes(wallet) || !implementedWallets.includes(wallet)) {
+    return null;
+  }
+  const leaf = platformRule[wallet];
+  if (!isWalletLeaf(leaf)) {
+    return null;
+  }
+  if (
+    validatedVersionGatedFeatureFlag({
+      enabled: leaf.enabled,
+      minimumVersion: leaf.minimumVersion,
+    }) !== true
+  ) {
+    return null;
+  }
+  if (!eligibilityPasses(countryEligibility, leaf.eligibility, cardProcessor)) {
+    return null;
+  }
+  if (wallet !== 'samsung_pay') {
+    return { wallet };
+  }
+  const devices = readSamsungDevices(leaf);
+  return devices ? { wallet, devices } : null;
+};
+
 /**
  * Wallets a provider may offer for these facts.
  *
@@ -647,39 +680,17 @@ export function resolveCardProvisioningWallets(
   const allowed = PROVISIONING_WALLETS_BY_PLATFORM[facts.platform];
   const kept: ResolvedProvisioningWallet[] = [];
   for (const wallet of PROVISIONING_WALLET_ORDER) {
-    if (!allowed.includes(wallet) || !implementedWallets.includes(wallet)) {
-      continue;
+    const resolved = keepProvisioningWallet(
+      wallet,
+      platformRule,
+      countryRule.eligibility,
+      facts.cardProcessor,
+      allowed,
+      implementedWallets,
+    );
+    if (resolved) {
+      kept.push(resolved);
     }
-    const leaf = platformRule[wallet];
-    if (!isWalletLeaf(leaf)) {
-      continue;
-    }
-    if (
-      validatedVersionGatedFeatureFlag({
-        enabled: leaf.enabled,
-        minimumVersion: leaf.minimumVersion,
-      }) !== true
-    ) {
-      continue;
-    }
-    if (
-      !eligibilityPasses(
-        countryRule.eligibility,
-        leaf.eligibility,
-        facts.cardProcessor,
-      )
-    ) {
-      continue;
-    }
-    if (wallet === 'samsung_pay') {
-      const devices = readSamsungDevices(leaf);
-      if (!devices) {
-        continue;
-      }
-      kept.push({ wallet, devices });
-      continue;
-    }
-    kept.push({ wallet });
   }
 
   return kept.length > 0 ? kept : NO_PROVISIONING_WALLETS;

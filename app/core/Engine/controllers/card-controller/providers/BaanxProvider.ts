@@ -362,6 +362,20 @@ function mapAllowanceToFundingStatus(
   return FundingAssetStatus.Active;
 }
 
+function baanxProvisioningCountryCode(
+  location: string,
+  countryOfResidence: string | null | undefined,
+): string | undefined {
+  if (location === 'us') {
+    return 'US';
+  }
+  const residence = countryOfResidence?.trim();
+  if (!residence) {
+    return undefined;
+  }
+  return residence.toUpperCase();
+}
+
 export class BaanxProvider implements ICardProvider {
   readonly id = CardProviderIds.Baanx;
 
@@ -2026,13 +2040,10 @@ export class BaanxProvider implements ICardProvider {
       return null;
     }
 
-    const residence = user.countryOfResidence?.trim();
-    const countryCode =
-      location === 'us'
-        ? 'US'
-        : residence
-          ? residence.toUpperCase()
-          : undefined;
+    const countryCode = baanxProvisioningCountryCode(
+      location,
+      user.countryOfResidence,
+    );
     const cardProcessor =
       typeof user.cardProvider === 'string' && user.cardProvider.length > 0
         ? user.cardProvider

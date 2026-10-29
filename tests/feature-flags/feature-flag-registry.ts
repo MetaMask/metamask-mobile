@@ -4682,7 +4682,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.74.0',
       enabled: true,
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   galileoGoogleWalletInAppProvisioningEnabled: {
@@ -4693,7 +4693,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '7.73.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   gasFeesSponsoredNetwork: {
@@ -8657,7 +8657,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
   earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton: {
     name: 'earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton',
