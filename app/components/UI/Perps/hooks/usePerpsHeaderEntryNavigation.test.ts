@@ -113,50 +113,6 @@ describe('usePerpsHeaderEntryNavigation', () => {
     });
   });
 
-  it('opens the market list on Watchlist when a Pro treatment user has favorites', () => {
-    mockSelectors({
-      isProModeEnabled: true,
-      perpsMode: PerpsMode.Pro,
-      watchlist: ['ETH'],
-    });
-    mockUseABTest.mockReturnValue({
-      variant: PERPS_HEADER_NAV_VARIANTS[PerpsHeaderNavVariant.Treatment],
-      variantName: PerpsHeaderNavVariant.Treatment,
-      isActive: true,
-    });
-
-    const { result } = renderHook(() => usePerpsHeaderEntryNavigation());
-
-    expect(result.current.getTarget()).toEqual({
-      screen: Routes.PERPS.MARKET_LIST,
-      params: { showWatchlistOnly: true },
-    });
-  });
-
-  it('opens All when the watchlist feature is off even if favorites are saved', () => {
-    mockSelectors({
-      isProModeEnabled: true,
-      perpsMode: PerpsMode.Pro,
-      isWatchlistEnabled: false,
-      watchlist: ['ETH'],
-    });
-    mockUseABTest.mockReturnValue({
-      variant: PERPS_HEADER_NAV_VARIANTS[PerpsHeaderNavVariant.Treatment],
-      variantName: PerpsHeaderNavVariant.Treatment,
-      isActive: true,
-    });
-
-    const { result } = renderHook(() => usePerpsHeaderEntryNavigation());
-
-    expect(result.current.getTarget()).toEqual({
-      screen: Routes.PERPS.MARKET_LIST,
-      params: {
-        showWatchlistOnly: false,
-        defaultMarketTypeFilter: 'all',
-      },
-    });
-  });
-
   it('uses the Pro switch target even while the current mode is still Lite', () => {
     mockSelectors({ watchlist: [] });
     mockUseABTest.mockReturnValue({

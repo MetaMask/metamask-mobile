@@ -150,27 +150,6 @@ describe('PerpsButton', () => {
     });
   });
 
-  it('opens the market list for a Pro treatment user', () => {
-    mockHeaderAssignment.variant =
-      PERPS_HEADER_NAV_VARIANTS[PerpsHeaderNavVariant.Treatment];
-    mockSelectorState({
-      isProModeEnabled: true,
-      perpsMode: PerpsMode.Pro,
-      watchlist: ['ETH'],
-    });
-
-    const { getByTestId } = render(
-      <PerpsButton actionPosition={ActionPosition.FIRST_POSITION} />,
-    );
-
-    fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.PERPS_BUTTON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_LIST,
-      params: { showWatchlistOnly: true },
-    });
-  });
-
   it('navigates to the tutorial for first-time users regardless of Pro mode', () => {
     mockSelectorState({
       isFirstTimePerpsUser: true,

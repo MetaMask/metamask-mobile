@@ -6,10 +6,17 @@ import { fireEvent } from '@testing-library/react-native';
 import { renderWalletActionsView } from '../../../../tests/component-view/renderers/walletActions';
 import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet.testIds';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
+import { PerpsMode, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
   renderScreenWithRoutes,
   getRouteProbeTestId,
+  getRouteParamsProbeTestId,
+  createRouteParamsProbe,
 } from '../../../../tests/component-view/render';
+import {
+  PERPS_HEADER_AB_TEST_KEY,
+  PerpsHeaderNavVariant,
+} from '../../UI/Perps/abTestConfig';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import { initialStateWalletActions } from '../../../../tests/component-view/presets/walletActions';
@@ -78,6 +85,99 @@ function renderWalletActionsWithNestedRoot(options: {
   );
 
   return renderWithProvider(tree, { state });
+}
+
+const perpsEntryScreens = [
+  Routes.PERPS.PERPS_HOME,
+  Routes.PERPS.MARKET_LIST,
+  Routes.PERPS.MARKET_DETAILS,
+];
+
+function renderWalletActionsPerpsEntry(state: Record<string, unknown>) {
+  const NestedRoot = () => (
+    <NestedStack.Navigator>
+      {perpsEntryScreens.map((name) => (
+        <NestedStack.Screen
+          key={name}
+          name={name}
+          component={
+            name === Routes.PERPS.PERPS_HOME
+              ? RouteProbe(name)
+              : createRouteParamsProbe(name)
+          }
+        />
+      ))}
+    </NestedStack.Navigator>
+  );
+
+  const tree = (
+    <RootStack.Navigator>
+      <RootStack.Screen
+        name={Routes.MODAL.WALLET_ACTIONS}
+        component={WalletActions as unknown as React.ComponentType}
+      />
+      <RootStack.Screen
+        name={Routes.PERPS.ROOT}
+        component={NestedRoot as unknown as React.ComponentType}
+      />
+    </RootStack.Navigator>
+  );
+
+  return renderWithProvider(tree, { state });
+}
+
+function proHeaderEntryState({
+  variant,
+  watchlist,
+  lastViewedSymbol,
+}: {
+  variant: PerpsHeaderNavVariant;
+  watchlist: string[];
+  lastViewedSymbol?: string;
+}) {
+  return initialStateWalletActions({ isEvmSelected: true })
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            isEligible: true,
+            initializationState: 'initialized',
+            isTestnet: false,
+            isFirstTimeUser: { mainnet: false, testnet: false },
+            mode: PerpsMode.Pro,
+            watchlistMarkets: { testnet: [], mainnet: watchlist },
+            recentlyViewedMarkets: {
+              testnet: [],
+              mainnet: lastViewedSymbol
+                ? [{ symbol: lastViewedSymbol, viewedAt: Date.now() }]
+                : [],
+            },
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProModeEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsWatchlistV2Enabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              [PERPS_HEADER_AB_TEST_KEY]: variant,
+            },
+          },
+        },
+      },
+    })
+    .build() as unknown as Record<string, unknown>;
+}
+
+async function readPerpsRouteParams(
+  findByTestId: (testId: string) => Promise<{ props: { children?: unknown } }>,
+  routeName: string,
+) {
+  const probe = await findByTestId(getRouteParamsProbeTestId(routeName));
+  return JSON.parse(String(probe.props.children)) as Record<string, unknown>;
 }
 
 // Regression: #24972 – Perps missing from Trade menu when non-EVM network selected
@@ -352,5 +452,70 @@ describeForPlatforms('WalletActions', () => {
     expect(
       queryByTestId(getRouteProbeTestId(Routes.PERPS.PERPS_HOME)),
     ).toBeNull();
+  });
+
+  it('opens Watchlist for a Pro treatment user with a saved symbol', async () => {
+    const state = proHeaderEntryState({
+      variant: PerpsHeaderNavVariant.Treatment,
+      watchlist: ['ETH'],
+    });
+    const { getByTestId, findByTestId } = renderWalletActionsPerpsEntry(state);
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    );
+
+    expect(
+      await readPerpsRouteParams(findByTestId, Routes.PERPS.MARKET_LIST),
+    ).toEqual(
+      expect.objectContaining({
+        showWatchlistOnly: true,
+        source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
+      }),
+    );
+  });
+
+  it('opens All for a Pro treatment user with an empty watchlist', async () => {
+    const state = proHeaderEntryState({
+      variant: PerpsHeaderNavVariant.Treatment,
+      watchlist: [],
+    });
+    const { getByTestId, findByTestId } = renderWalletActionsPerpsEntry(state);
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    );
+
+    expect(
+      await readPerpsRouteParams(findByTestId, Routes.PERPS.MARKET_LIST),
+    ).toEqual(
+      expect.objectContaining({
+        showWatchlistOnly: false,
+        defaultMarketTypeFilter: 'all',
+        source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
+      }),
+    );
+  });
+
+  it('opens the last-viewed market for a Pro control user', async () => {
+    const state = proHeaderEntryState({
+      variant: PerpsHeaderNavVariant.Control,
+      watchlist: ['ETH'],
+      lastViewedSymbol: 'ETH',
+    });
+    const { getByTestId, findByTestId } = renderWalletActionsPerpsEntry(state);
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    );
+
+    expect(
+      await readPerpsRouteParams(findByTestId, Routes.PERPS.MARKET_DETAILS),
+    ).toEqual(
+      expect.objectContaining({
+        market: expect.objectContaining({ symbol: 'ETH' }),
+        source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
+      }),
+    );
   });
 });

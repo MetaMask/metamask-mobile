@@ -1,11 +1,30 @@
 import '../../../../tests/component-view/mocks';
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import NetInfo from '@react-native-community/netinfo';
+import { PerpsMode } from '@metamask/perps-controller';
 import {
   renderWalletHomepageSearch,
   renderWalletView,
   renderWalletViewWithRoutes,
 } from '../../../../tests/component-view/renderers/wallet';
+import type NetInfoMock from '../../../__mocks__/@react-native-community/netinfo';
+// Wallet home renders this Homepage section. The title test id is owned there.
+// eslint-disable-next-line import-x/no-restricted-paths
+import { homepageSectionTitleTestId } from '../Homepage/Homepage.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths
+import { HomeSectionNames } from '../Homepage/hooks/useHomeViewedEvent';
+import {
+  PERPS_HEADER_AB_TEST_KEY,
+  PerpsHeaderNavVariant,
+} from '../../UI/Perps/abTestConfig';
+import { PERPS_SECTION_HEADER_BUTTON_LOCATION } from '../../UI/Perps/utils/perpsHeaderEntryNavigation';
 import { initialStateWallet } from '../../../../tests/component-view/presets/wallet';
-import { renderComponentViewScreen } from '../../../../tests/component-view/render';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+  renderComponentViewScreen,
+} from '../../../../tests/component-view/render';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { MoneyBalanceCardTestIds } from '../../UI/Money/components/MoneyBalanceCard/MoneyBalanceCard.testIds';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
@@ -26,7 +45,6 @@ import {
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import { strings } from '../../../../locales/i18n';
 import Wallet from './index';
-import React from 'react';
 
 const PASTED_ADDRESS = '0x1111111111111111111111111111111111111111';
 // Kept local so this Wallet view test does not import the Trending route module.
@@ -523,6 +541,99 @@ describeForPlatforms('Wallet', () => {
         queryByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
       ).not.toBeOnTheScreen();
       expect(getByTestId(MoneyBalanceCardTestIds.LABEL)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Perps section header market list', () => {
+    const NestedStack = createNativeStackNavigator();
+    const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+    const PerpsRoot = () => (
+      <NestedStack.Navigator>
+        <NestedStack.Screen
+          name={Routes.PERPS.MARKET_LIST}
+          component={createRouteParamsProbe(Routes.PERPS.MARKET_LIST)}
+        />
+      </NestedStack.Navigator>
+    );
+
+    afterEach(() => {
+      netInfoMock.__resetMockNetInfo();
+    });
+
+    it('lands a Pro treatment user on the market list from the section header', async () => {
+      netInfoMock.__setMockNetInfo({
+        type: 'wifi',
+        isInternetReachable: true,
+      });
+
+      const { findByTestId } = renderWalletViewWithRoutes({
+        extraRoutes: [
+          {
+            name: Routes.PERPS.ROOT,
+            Component: PerpsRoot as unknown as React.ComponentType,
+          },
+        ],
+        overrides: {
+          settings: {
+            basicFunctionalityEnabled: true,
+          },
+          engine: {
+            backgroundState: {
+              EarnController: {
+                pooled_staking: { isEligible: false },
+                lending: { positions: [], markets: [] },
+              },
+              PerpsController: {
+                isEligible: true,
+                initializationState: 'initialized',
+                isTestnet: false,
+                isFirstTimeUser: { mainnet: false, testnet: false },
+                mode: PerpsMode.Pro,
+                watchlistMarkets: { testnet: [], mainnet: ['ETH'] },
+              },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsPerpTradingEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  perpsWatchlistV2Enabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  [PERPS_HEADER_AB_TEST_KEY]: PerpsHeaderNavVariant.Treatment,
+                },
+              },
+            },
+          },
+        } as unknown as Record<string, unknown>,
+      });
+
+      fireEvent.press(
+        await findByTestId(
+          homepageSectionTitleTestId(HomeSectionNames.PERPS),
+          {},
+          { timeout: 10000 },
+        ),
+      );
+
+      const probe = await findByTestId(
+        getRouteParamsProbeTestId(Routes.PERPS.MARKET_LIST),
+        {},
+        { timeout: 10000 },
+      );
+
+      expect(JSON.parse(String(probe.props.children))).toEqual(
+        expect.objectContaining({
+          showWatchlistOnly: true,
+          button_location: PERPS_SECTION_HEADER_BUTTON_LOCATION,
+        }),
+      );
     });
   });
 });

@@ -1398,6 +1398,11 @@ describe('TradeWalletActions', () => {
   });
 
   describe('action navigation', () => {
+    // Press-to-destination stays here. TradeWalletActions navigates only after
+    // a Reanimated exit callback and requestAnimationFrame. Component-view
+    // tests do not flush that callback, so the Perps route probe never mounts.
+    // WalletActions.view.test.tsx covers the same Pro header targets with real
+    // Redux state.
     it('calls goToSwaps after dismissing RootModalFlow when Swap is pressed', async () => {
       const { getByTestId } = renderScreen(
         TradeWalletActions,
