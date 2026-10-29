@@ -14,6 +14,7 @@ import Text, {
 import styleSheet from './ContentDisplay.styles';
 import { strings } from '../../../../../locales/i18n';
 
+export const CONTENT_DISPLAY_MEASURE_TEST_ID = 'content-display-measure';
 export const CONTENT_DISPLAY_TEXT_TEST_ID = 'content-display-text';
 export const CONTENT_DISPLAY_TOGGLE_TEST_ID = 'content-display-toggle';
 
@@ -34,29 +35,26 @@ const ContentDisplay = ({
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [hasMeasured, setHasMeasured] = useState(false);
 
   useEffect(() => {
     setIsExpanded(false);
     setIsTruncated(false);
+    setHasMeasured(false);
   }, [content, numberOfLines]);
 
   /**
-   * Same truncation check as TruncatedError: compare the joined onTextLayout
-   * lines against the source string. RN reports only the visible clamped
-   * lines, so a shorter joined string means the description is truncated.
+   * Truncation can only be measured on an unclamped copy: once `numberOfLines`
+   * is applied, `onTextLayout` reports the clamped lines, so it can never
+   * exceed the limit. This hidden copy carries no clamp, so a line count over
+   * the limit means the visible (clamped) text overflows and needs a toggle.
    */
-  const handleTextLayout = useCallback(
+  const handleMeasureTextLayout = useCallback(
     (event: NativeSyntheticEvent<TextLayoutEventData>) => {
-      if (isExpanded) {
-        return;
-      }
-
-      const renderedText = event.nativeEvent.lines
-        .map((line) => line.text)
-        .join('');
-      setIsTruncated(renderedText.length < content.length);
+      setIsTruncated(event.nativeEvent.lines.length > numberOfLines);
+      setHasMeasured(true);
     },
-    [content, isExpanded],
+    [numberOfLines],
   );
 
   const toggleContent = () => {
@@ -67,11 +65,22 @@ const ContentDisplay = ({
 
   return (
     <View>
+      {!hasMeasured ? (
+        <Text
+          color={TextColor.Alternative}
+          style={[styles.measureText, textStyle]}
+          onTextLayout={handleMeasureTextLayout}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID={CONTENT_DISPLAY_MEASURE_TEST_ID}
+        >
+          {content}
+        </Text>
+      ) : null}
       <Text
         numberOfLines={isExpanded ? undefined : numberOfLines}
         color={TextColor.Alternative}
         style={[textStyle]}
-        onTextLayout={handleTextLayout}
         testID={CONTENT_DISPLAY_TEXT_TEST_ID}
       >
         {content}
