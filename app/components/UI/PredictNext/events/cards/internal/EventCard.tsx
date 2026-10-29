@@ -267,7 +267,7 @@ const OutcomeRow = ({
       <Button
         testID={testID}
         variant={ButtonVariant.Secondary}
-        isDisabled={!isOutcomeTradeable(market, outcome)}
+        isDisabled={!onOrder || !isOutcomeTradeable(market, outcome)}
         onPress={() => onOrder?.(event, market, outcome)}
         twClassName={`w-16 px-0 ${fillClassName}`}
       >

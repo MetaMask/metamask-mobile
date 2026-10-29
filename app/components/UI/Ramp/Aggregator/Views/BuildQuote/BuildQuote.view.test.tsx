@@ -24,6 +24,7 @@ import {
 } from '../../../../../../../tests/component-view/presets/ramps';
 import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../../tests/component-view/presets/multichainAccounts';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { MOCK_SOLANA_ACCOUNT } from '../../../../../../util/test/accountsControllerTestUtils';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { RAMPS_OFF_RAMP_NON_EVM_FLAG_KEY } from '../../../../../../selectors/featureFlagController/offRampNonEvm';
@@ -439,6 +440,73 @@ describe('Aggregator BuildQuote', () => {
           { timeout: 5000 },
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('uses the EVM sibling balance when the selected account is Solana', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        overrides: {
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: MOCK_SOLANA_ACCOUNT.id,
+                  accounts: {
+                    [MOCK_SOLANA_ACCOUNT.id]: MOCK_SOLANA_ACCOUNT,
+                  },
+                },
+              },
+              AccountTreeController: {
+                accountTree: {
+                  wallets: {
+                    'entropy:wallet1': {
+                      groups: {
+                        'entropy:wallet1/0': {
+                          accounts: [
+                            MULTICHAIN_TEST_ACCOUNTS.account1.id,
+                            MOCK_SOLANA_ACCOUNT.id,
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const {
+        findByRole,
+        findByTestId,
+        findByText,
+        getByTestId,
+        getByText,
+        queryByTestId,
+        queryByText,
+      } = renderApi;
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      await findByText('EUR');
+      await findByText('Apple Pay');
+
+      await enterSellAmountViaKeypad(
+        { findByRole, findByTestId, getByTestId },
+        '50',
+        'ETH',
+      );
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR),
+        ).not.toBeOnTheScreen();
+      });
+      const getQuotesButton = await findByRole('button', {
+        name: 'Get quotes',
+      });
+      await waitFor(() => {
+        expect(getQuotesButton).not.toBeDisabled();
+      });
     });
 
     it('navigates to Quotes screen when "Get quotes" is pressed with a valid sell amount', async () => {

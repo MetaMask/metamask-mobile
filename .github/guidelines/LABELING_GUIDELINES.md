@@ -46,7 +46,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### Force Appium iOS Smoke Tests
 
-- **run-appium-ios-tests**: Add this label to a PR to request iOS E2E tests. Does not bypass ignorable-only, `skip-e2e`, or `pr-not-ready-for-e2e` gates. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **run-appium-ios-tests**: Add this label to a PR to request iOS E2E tests. Does not bypass ignorable-only, `skip-e2e`, or `pr-not-ready-for-e2e` gates. Adding or removing this label re-triggers CI. Not honored on fork PRs. A file under `tests/smoke-appium/**/*.spec.ts` requests both Android and iOS Appium smoke without this label only when the pull request files API reports it as `added` with no previous filename. Edits, renames, and copies do not trigger that added-spec rule. On a PR targeting `main`, a change under `tests/smoke-appium/**` can still select both platforms through the smoke-infrastructure override.
 
 ### Block merge if any is present
 

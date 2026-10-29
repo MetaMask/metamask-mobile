@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import {
   NavigationProp,
   RouteProp,
@@ -1441,7 +1440,6 @@ describe('PredictBuyPreview', () => {
           totalFeePercentage: 6,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
       };

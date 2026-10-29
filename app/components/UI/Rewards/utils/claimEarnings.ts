@@ -705,7 +705,8 @@ function resolveNetworkClientId(chainId: Hex): string {
 /**
  * Submits the voucher, then the same mUSD approve and Teller deposit a Money
  * Account deposit uses. Sponsored on Monad mainnet. Resolves only after the
- * batch is confirmed on chain.
+ * batch is confirmed on chain. The claim stays on the screen that started
+ * it: the batch is already authorized, so this does not open a confirmation.
  *
  * The deposit call is not typed as `moneyAccountDeposit`: that type asks MM
  * Pay to quote a token the user holds, and this batch is funded by the
@@ -715,11 +716,17 @@ export async function submitClaimVoucher({
   voucher,
   vaultConfig,
   moneyAccountAddress,
+  onBatchSubmitted,
   now = Date.now,
 }: {
   voucher: ClaimVoucherDto;
   vaultConfig: MoneyAccountVaultConfig;
   moneyAccountAddress: string;
+  /**
+   * The batch id, once the wallet has accepted it. The settled trade banner
+   * for this id is replaced by the rewards line.
+   */
+  onBatchSubmitted?: (batchId: string) => void;
   /** Clock for the voucher window. Tests inject one. */
   now?: () => number;
 }): Promise<void> {
@@ -779,6 +786,7 @@ export async function submitClaimVoucher({
           { ...depositTx, type: TransactionType.contractInteraction },
         ],
       });
+      onBatchSubmitted?.(batchId);
       return batchId;
     },
   });

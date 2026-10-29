@@ -241,6 +241,7 @@ const mockDefaultUsePerpsOrderForm = () => ({
   handleMaxAmount: jest.fn(),
   optimizeOrderAmount: jest.fn(),
   maxPossibleAmount: 1000,
+  setEstimatedFeeRate: jest.fn(),
   balanceForValidation: 1000,
   calculations: {
     marginRequired: 11,
@@ -356,11 +357,13 @@ jest.mock('../../hooks', () => {
     })),
     usePerpsMarketData: jest.fn(),
     usePerpsLiquidationPrice: jest.fn(),
+    usePerpsQuotedFeeReservation: jest.fn(),
     usePerpsOrderFees: jest.fn(() => ({
       totalFee: 45,
       undiscountedTotalFee: 45,
       protocolFee: 45,
       metamaskFee: 0,
+      totalFeeRate: 0.00045,
       protocolFeeRate: 0.00045,
       metamaskFeeRate: 0,
       isLoadingMetamaskFee: false,
@@ -496,7 +499,7 @@ jest.mock(
 jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(() => ({
     onConfirm: jest.fn(),
-    onReject: jest.fn(),
+    onReject: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -1201,6 +1204,7 @@ const defaultMockHooks = {
     handleMinAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
   },
 };
@@ -1499,6 +1503,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -2918,6 +2923,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -3305,6 +3311,7 @@ describe('PerpsOrderView', () => {
     handleMinAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
     ...overrides,
   });
@@ -3574,6 +3581,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -3622,6 +3630,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -4119,6 +4128,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4173,6 +4183,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4227,6 +4238,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4284,6 +4296,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4341,6 +4354,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4397,6 +4411,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4474,6 +4489,7 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
+      setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '10',
@@ -4718,6 +4734,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '10',
@@ -4921,6 +4938,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -4953,6 +4971,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -5064,6 +5083,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -5096,6 +5116,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -5445,6 +5466,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '0',
@@ -5487,6 +5509,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '33.33',
@@ -5609,6 +5632,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '20.00', // Truthy value - triggers formatPrice path
@@ -5650,6 +5674,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '', // Falsy value - triggers fallback path
@@ -5691,6 +5716,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '16.67',
@@ -5735,6 +5761,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '0',
@@ -5789,6 +5816,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '6.25',
@@ -5922,6 +5950,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
@@ -6033,6 +6062,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',
@@ -6917,6 +6947,7 @@ describe('PerpsOrderView', () => {
         handleMinAmount: jest.fn(),
         optimizeOrderAmount: jest.fn(),
         maxPossibleAmount: 1000,
+        setEstimatedFeeRate: jest.fn(),
         balanceForValidation: 1000,
         calculations: {
           marginRequired: '11',

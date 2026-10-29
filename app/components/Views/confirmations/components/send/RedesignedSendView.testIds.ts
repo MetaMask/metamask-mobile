@@ -5,6 +5,7 @@ export const RedesignedSendViewSelectorsIDs = {
   PERCENTAGE_BUTTON_100: 'percentage-button-100',
   RECIPIENT_ADDRESS_INPUT: 'recipient-address-input',
   REVIEW_BUTTON: 'review-button',
+  FIAT_TOGGLE: 'fiat_toggle',
 } as const;
 
 /** TestID for recipient row (unselected). */

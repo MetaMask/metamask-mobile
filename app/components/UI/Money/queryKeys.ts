@@ -32,6 +32,11 @@ export const MoneyAccountApiDataServiceQueryKeys = {
    * Interest earned by a Money Account position for a requested time window.
    */
   FETCH_INTEREST: `${MoneyAccountApiDataService.name}:fetchInterest`,
+  /**
+   * Current Accountant exchange rate for a vault (assets per share).
+   */
+  FETCH_VAULT_RATE: `${MoneyAccountApiDataService.name}:fetchVaultRate`,
+  FETCH_RATE_HISTORY: `${MoneyAccountApiDataService.name}:fetchRateHistory`,
   /** Current VBA transfers for the SIWE-authenticated Money Account wallet. */
   FETCH_VBA_TRANSFERS: `${MoneyAccountApiDataService.name}:fetchVbaTransfers`,
 } as const;

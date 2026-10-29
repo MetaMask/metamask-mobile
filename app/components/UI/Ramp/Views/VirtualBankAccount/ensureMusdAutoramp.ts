@@ -1,6 +1,7 @@
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { TraceName } from '../../../../../util/trace';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 import {
   AccountCreateRegistrationError,
@@ -8,6 +9,8 @@ import {
   getAccountCreateResultFromError,
   getAccountCreateResultFromResponse,
 } from './accountCreateError';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
 
 /**
  * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
@@ -242,8 +245,18 @@ export const ensureMusdAutoramp = (
     return inFlight;
   }
 
+  const setupTraceId = startVbaCufChildTrace(TraceName.VbaAutorampSetup);
   const run = runSetup(walletAddress, sourceCurrency, replaceTerminal)
+    .then((outcome) => {
+      endVbaCufChildTrace(
+        setupTraceId,
+        outcome !== 'failed',
+        outcome === 'failed' ? VBA_CUF_END_REASON.ERROR : undefined,
+      );
+      return outcome;
+    })
     .catch((error: unknown) => {
+      endVbaCufChildTrace(setupTraceId, false, VBA_CUF_END_REASON.ERROR);
       if (error instanceof AccountCreateRegistrationError) {
         throw error;
       }

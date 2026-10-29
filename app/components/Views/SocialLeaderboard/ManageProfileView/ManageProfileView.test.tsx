@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
@@ -12,6 +13,9 @@ import { renderShortAddress } from '../../../../util/address';
 import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
 import type { UseMyProfileResult } from '../MyProfileView/hooks/useMyProfile';
 import type { UseProfileControllerResult } from './hooks/useProfileController';
+import type { XProfile } from '@metamask/profile-controller';
+import type { UseXAuth } from '../../../../hooks/useXAuth';
+import { XAuthError, XAuthErrorType } from '../../../../core/XAuthService';
 import ManageProfileView from './ManageProfileView';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 
@@ -37,6 +41,37 @@ jest.mock('../MyProfileView/hooks/useMyProfile', () => ({
 jest.mock('./hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
 }));
+
+const mockConnect = jest.fn<Promise<void>, []>();
+const mockUseXAuth = jest.fn<UseXAuth, []>();
+jest.mock('../../../../hooks/useXAuth', () => ({
+  useXAuth: () => mockUseXAuth(),
+}));
+
+const xProfile: XProfile = {
+  xUserId: 'x-1',
+  xProfileUrl: 'https://x.com/giga-whale',
+  username: 'giga-whale',
+  displayName: 'Giga Whale',
+  avatarUrl: 'https://example.com/avatar.png',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const xAuthResult = (overrides: Partial<UseXAuth> = {}): UseXAuth => ({
+  isConnected: true,
+  xProfile,
+  isConnecting: false,
+  isDisconnecting: false,
+  isRefreshing: false,
+  connectError: undefined,
+  disconnectError: undefined,
+  refreshError: undefined,
+  connect: mockConnect,
+  disconnect: jest.fn().mockResolvedValue(undefined),
+  refresh: jest.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual(
@@ -64,7 +99,6 @@ const profile: UseMyProfileResult['profile'] = {
   connectedToX: true,
   followerCount: 0,
   followingCount: 0,
-  shareUrl: 'https://metamask.io/social/giga-whale',
   linkedAccountAddress: MOCK_ADDRESS_2,
   shareTradingActivity: true,
 };
@@ -104,6 +138,8 @@ describe('ManageProfileView', () => {
       refresh: jest.fn().mockResolvedValue(undefined),
     });
     mockUseProfileController.mockReturnValue(controllerResult());
+    mockConnect.mockResolvedValue(undefined);
+    mockUseXAuth.mockReturnValue(xAuthResult());
     mockUseLinkableSocialAccounts.mockReturnValue([
       {
         id: 'account-2',
@@ -173,7 +209,25 @@ describe('ManageProfileView', () => {
     );
   });
 
-  it('navigates to the handle editor', () => {
+  it('does not open the handle editor once the handle is set', () => {
+    renderWithProvider(<ManageProfileView />, { state });
+
+    const row = screen.getByTestId(ManageProfileViewSelectorsIDs.HANDLE_ROW);
+    fireEvent.press(row);
+
+    expect(row.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the handle editor while no handle is set', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: { ...profile, handle: '' },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
     renderWithProvider(<ManageProfileView />, { state });
 
     fireEvent.press(
@@ -197,64 +251,186 @@ describe('ManageProfileView', () => {
     );
   });
 
-  it('disconnects X from the socials row', async () => {
-    const disconnectX = jest.fn().mockResolvedValue(undefined);
-    mockUseProfileController.mockReturnValue(controllerResult({ disconnectX }));
+  describe('socials row', () => {
+    const pressSocials = async () => {
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+        );
+      });
+    };
 
-    renderWithProvider(<ManageProfileView />, { state });
+    it('opens the X account screen when X is connected', async () => {
+      renderWithProvider(<ManageProfileView />, { state });
 
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+      await pressSocials();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.X_ACCOUNT,
       );
+      expect(mockConnect).not.toHaveBeenCalled();
     });
 
-    expect(disconnectX).toHaveBeenCalledWith('current-user');
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
+    it('starts X OAuth when X is not connected', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      mockUseMyProfile.mockReturnValue({
+        profile: { ...profile, xHandle: null, connectedToX: false },
+        isLoading: false,
+        error: null,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
 
-  it('disconnects X when the account is linked but the handle failed to load', async () => {
-    const disconnectX = jest.fn().mockResolvedValue(undefined);
-    mockUseMyProfile.mockReturnValue({
-      profile: { ...profile, xHandle: null, connectedToX: true },
-      isLoading: false,
-      error: null,
-      refresh: jest.fn().mockResolvedValue(undefined),
+      renderWithProvider(<ManageProfileView />, { state });
+
+      const row = screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW);
+      expect(row.props.accessibilityState).toEqual({ disabled: false });
+
+      await pressSocials();
+
+      expect(mockConnect).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
-    mockUseProfileController.mockReturnValue(controllerResult({ disconnectX }));
 
-    renderWithProvider(<ManageProfileView />, { state });
-
-    expect(
-      screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
-    ).toHaveTextContent(/X/);
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+    it('ignores presses while connecting', async () => {
+      mockUseXAuth.mockReturnValue(
+        xAuthResult({ isConnected: false, isConnecting: true }),
       );
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(mockConnect).not.toHaveBeenCalled();
     });
 
-    expect(disconnectX).toHaveBeenCalledWith('current-user');
-  });
-
-  it('shows a save error when disconnecting X fails', async () => {
-    const disconnectX = jest.fn().mockRejectedValue(new Error('network'));
-    mockUseProfileController.mockReturnValue(controllerResult({ disconnectX }));
-
-    renderWithProvider(<ManageProfileView />, { state });
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+    it('shows nothing when the user cancels X OAuth', () => {
+      mockUseXAuth.mockReturnValue(
+        xAuthResult({
+          isConnected: false,
+          connectError: new XAuthError(
+            XAuthErrorType.UserCancelled,
+            'cancelled',
+          ),
+        }),
       );
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      expect(
+        screen.queryByText(
+          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        ),
+      ).toBeNull();
     });
 
-    expect(disconnectX).toHaveBeenCalledWith('current-user');
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(
-      screen.getByText(strings('social_leaderboard.manage_profile.save_error')),
-    ).toBeOnTheScreen();
+    it('shows a connect error when X OAuth fails', () => {
+      mockUseXAuth.mockReturnValue(
+        xAuthResult({
+          isConnected: false,
+          connectError: new XAuthError(XAuthErrorType.BackendError, 'boom'),
+        }),
+      );
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      expect(
+        screen.getByText(
+          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    describe('connect error announcement', () => {
+      let announceSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        announceSpy = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+      });
+
+      afterEach(() => {
+        announceSpy.mockRestore();
+      });
+
+      it('exposes the connect error as a polite alert', () => {
+        mockUseXAuth.mockReturnValue(
+          xAuthResult({
+            isConnected: false,
+            connectError: new XAuthError(XAuthErrorType.BackendError, 'boom'),
+          }),
+        );
+
+        renderWithProvider(<ManageProfileView />, { state });
+
+        expect(
+          screen.getByTestId(ManageProfileViewSelectorsIDs.X_CONNECT_ERROR)
+            .props,
+        ).toEqual(
+          expect.objectContaining({
+            accessibilityRole: 'alert',
+            accessibilityLiveRegion: 'polite',
+          }),
+        );
+      });
+
+      it('announces the connect error when it appears', () => {
+        mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+
+        const { rerender } = renderWithProvider(<ManageProfileView />, {
+          state,
+        });
+
+        expect(announceSpy).not.toHaveBeenCalled();
+
+        mockUseXAuth.mockReturnValue(
+          xAuthResult({
+            isConnected: false,
+            connectError: new XAuthError(
+              XAuthErrorType.NetworkFailure,
+              'offline',
+            ),
+          }),
+        );
+        rerender(<ManageProfileView />);
+
+        expect(announceSpy).toHaveBeenCalledWith(
+          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        );
+      });
+
+      it('does not announce when the user cancels X OAuth', () => {
+        mockUseXAuth.mockReturnValue(
+          xAuthResult({
+            isConnected: false,
+            connectError: new XAuthError(
+              XAuthErrorType.UserCancelled,
+              'cancelled',
+            ),
+          }),
+        );
+
+        renderWithProvider(<ManageProfileView />, { state });
+
+        expect(announceSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    it('shows the X username from the controller before the profile refetches', () => {
+      mockUseXAuth.mockReturnValue(
+        xAuthResult({ xProfile: { ...xProfile, username: 'fresh-handle' } }),
+      );
+      mockUseMyProfile.mockReturnValue({
+        profile: { ...profile, xHandle: null, connectedToX: false },
+        isLoading: false,
+        error: null,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      expect(
+        screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+      ).toHaveTextContent(/X @fresh-handle/);
+    });
   });
 
   it('navigates to trading activity', () => {
@@ -305,6 +481,20 @@ describe('ManageProfileView', () => {
     );
   });
 
+  it('opens the avatar picker from the avatar and pencil', () => {
+    renderWithProvider(<ManageProfileView />, { state });
+
+    fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.AVATAR));
+
+    expect(
+      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.EDIT_AVATAR);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
   it('disables editor rows when no controller profile exists', () => {
     mockUseMyProfile.mockReturnValue({
       profile: null,
@@ -326,6 +516,12 @@ describe('ManageProfileView', () => {
     );
     fireEvent.press(
       screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+    );
+    fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.AVATAR));
+    fireEvent.press(
+      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
     );
 
     expect(mockNavigate).not.toHaveBeenCalled();

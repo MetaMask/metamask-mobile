@@ -14,7 +14,27 @@ export interface MoneyApiErrorDetails {
   responseHeaders?: Record<string, string>;
 }
 
-const reportedFailures = new Map<InterestWindow, string>();
+/**
+ * Prefix for the premium vault's dedupe key. Base queries keep the window
+ * alone, so a recovered base query cannot clear a premium failure.
+ */
+const PREMIUM_INTEREST_FAILURE_KEY_PREFIX = 'premium';
+
+type MoneyInterestFailureKeyPrefix = typeof PREMIUM_INTEREST_FAILURE_KEY_PREFIX;
+
+type MoneyInterestFailureKey =
+  | InterestWindow
+  | `${MoneyInterestFailureKeyPrefix}:${InterestWindow}`;
+
+const reportedFailures = new Map<MoneyInterestFailureKey, string>();
+
+const failureKey = (
+  interestWindow: InterestWindow,
+  failureKeyPrefix?: MoneyInterestFailureKeyPrefix,
+): MoneyInterestFailureKey =>
+  failureKeyPrefix === undefined
+    ? interestWindow
+    : `${failureKeyPrefix}:${interestWindow}`;
 
 /**
  * Extracts Money Account API diagnostics from a query error.
@@ -49,19 +69,23 @@ export const getMoneyApiErrorDetails = (
  * Reports an interest query failure to Sentry at most once per window and
  * error message, so refetches during an outage don't flood Sentry. Lifetime
  * (since inception) failures get their own feature tag for alerting.
+ * Premium passes a key prefix so it does not share the base window entry.
  *
  * @param interestWindow - The interest window whose query failed.
  * @param error - The query error.
+ * @param failureKeyPrefix - Set for the premium vault. Base queries omit it.
  */
 export const reportMoneyInterestError = (
   interestWindow: InterestWindow,
   error: unknown,
+  failureKeyPrefix?: MoneyInterestFailureKeyPrefix,
 ): void => {
+  const key = failureKey(interestWindow, failureKeyPrefix);
   const fingerprint = error instanceof Error ? error.message : String(error);
-  if (reportedFailures.get(interestWindow) === fingerprint) {
+  if (reportedFailures.get(key) === fingerprint) {
     return;
   }
-  reportedFailures.set(interestWindow, fingerprint);
+  reportedFailures.set(key, fingerprint);
 
   const isLifetime = interestWindow === 'since_inception';
   const sentryError = new Error(
@@ -89,14 +113,16 @@ export const reportMoneyInterestError = (
 
 /**
  * Clears the dedupe entry once a window's query recovers, so a later failure
- * reports again.
+ * reports again. Premium passes the same key prefix used when reporting.
  *
  * @param interestWindow - The interest window whose query succeeded.
+ * @param failureKeyPrefix - Set for the premium vault. Base queries omit it.
  */
 export const clearReportedMoneyInterestError = (
   interestWindow: InterestWindow,
+  failureKeyPrefix?: MoneyInterestFailureKeyPrefix,
 ): void => {
-  reportedFailures.delete(interestWindow);
+  reportedFailures.delete(failureKey(interestWindow, failureKeyPrefix));
 };
 
 /**
