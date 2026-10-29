@@ -60,19 +60,12 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
         testID={GifPickerSheetSelectorsIDs.item(item.id)}
         style={tw.style('flex-1')}
       >
-        <Box twClassName="relative overflow-hidden rounded-xl">
+        <Box twClassName="overflow-hidden rounded-xl">
           <Image
             source={{ uri: item.previewUrl }}
             style={tw.style('w-full', { aspectRatio: 4 / 3 })}
             accessibilityIgnoresInvertColors
           />
-          {item.title ? (
-            <Box twClassName="absolute bottom-2 left-2 max-w-[85%] rounded-md bg-muted px-2 py-1">
-              <Text variant={TextVariant.BodySm} numberOfLines={1}>
-                {item.title}
-              </Text>
-            </Box>
-          ) : null}
         </Box>
       </Pressable>
     ),
