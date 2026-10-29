@@ -10,6 +10,8 @@
  * REAL (runs production code paths):
  *   - HyperLiquidProvider — its order / close / validation logic, asset
  *     mapping, all in-memory state transitions
+ *   - `buildPerpsAccountSupportHarness` additionally runs PerpsController's
+ *     account-support decision through the provider and mocked venue read
  *   - `buildPerpsFeeResolutionHarness` additionally runs PerpsController's
  *     real fee resolver and provider pricing path
  *   - `buildPerpsDepositHarness` additionally runs PerpsController's real
@@ -342,6 +344,11 @@ export interface PerpsFeeResolutionHarness {
   getPerpsTradingFeeGrant: jest.MockedFunction<GetPerpsTradingFeeGrant>;
 }
 
+export interface PerpsAccountSupportHarness {
+  controller: PerpsController;
+  infoClient: ReturnType<typeof createMockInfoClient>;
+}
+
 export interface PerpsDepositHarness {
   controller: PerpsController;
   /** `TransactionController:addTransaction`; its confirmation never settles. */
@@ -548,6 +555,19 @@ function buildHarnessController(
     infrastructure,
     deferEligibilityCheck: true,
   });
+}
+
+/**
+ * Builds a real PerpsController around the Hyperliquid provider while keeping
+ * the venue's multisig lookup at the integration I/O boundary.
+ */
+export function buildPerpsAccountSupportHarness(): PerpsAccountSupportHarness {
+  const { mocks } = buildPerpsIntegrationHarness();
+
+  return {
+    controller: buildHarnessController(mocks.infrastructure),
+    infoClient: mocks.infoClient,
+  };
 }
 
 /**
