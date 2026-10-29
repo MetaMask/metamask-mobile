@@ -3695,7 +3695,9 @@
       "unavailable": "No markets are available right now."
     },
     "event": {
-      "your_positions": "Your positions"
+      "your_positions": "Your positions",
+      "game_lines": "Game Lines",
+      "outcome": "Outcome"
     },
     "search": {
       "placeholder": "Search markets",
