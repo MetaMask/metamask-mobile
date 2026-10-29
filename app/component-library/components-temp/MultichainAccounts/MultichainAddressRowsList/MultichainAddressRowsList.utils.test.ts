@@ -4,6 +4,7 @@ import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import {
   sortNetworkAddressItems,
+  compareNetworksByPriority,
   getCompatibleNetworksForAccount,
   NetworkAddressItem,
 } from './MultichainAddressRowsList.utils';
@@ -46,6 +47,26 @@ const createMockNetworks = () => ({
 });
 
 describe('MultichainAddressRowsList Utils', () => {
+  describe('compareNetworksByPriority', () => {
+    it('orders mainnets before testnets and applies name tie-breakers', () => {
+      const networks = [
+        { chainId: 'eip155:11155111' as CaipChainId, name: 'Sepolia' },
+        { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
+        { chainId: CHAIN_IDS.MAINNET as CaipChainId, name: 'Ethereum Mainnet' },
+        { chainId: 'eip155:59141' as CaipChainId, name: 'Linea Sepolia' },
+      ];
+
+      const sorted = [...networks].sort(compareNetworksByPriority);
+
+      expect(sorted.map((network) => network.name)).toEqual([
+        'Ethereum Mainnet',
+        'Polygon',
+        'Linea Sepolia',
+        'Sepolia',
+      ]);
+    });
+  });
+
   describe('sortNetworkAddressItems', () => {
     it('sorts networks with Ethereum first', () => {
       const items: NetworkAddressItem[] = [

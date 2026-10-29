@@ -26,7 +26,7 @@ const evmHexOrOriginalChainId = (chainId: CaipChainId): string =>
  * @param chainId - Chain ID (can be hex or CAIP format)
  * @returns Priority score
  */
-const getNetworkPriority = (chainId: CaipChainId): number => {
+export const getNetworkPriority = (chainId: CaipChainId): number => {
   const hexChainId = evmHexOrOriginalChainId(chainId);
 
   // Hardcoded order for top networks
@@ -70,16 +70,32 @@ const getNetworkPriority = (chainId: CaipChainId): number => {
  * @param items - Array of NetworkAddressItem objects to sort
  * @returns Sorted array of NetworkAddressItem objects
  */
+/**
+ * Compares two networks by wallet display priority, then by name.
+ * Test networks sort after mainnets / popular / custom networks.
+ *
+ * @param a - First network (chain id + display name)
+ * @param b - Second network (chain id + display name)
+ * @returns Negative if `a` should come first, positive if `b` should, else 0
+ */
+export const compareNetworksByPriority = (
+  a: { chainId: CaipChainId; name: string },
+  b: { chainId: CaipChainId; name: string },
+): number => {
+  const priorityDiff =
+    getNetworkPriority(a.chainId) - getNetworkPriority(b.chainId);
+  return priorityDiff === 0 ? a.name.localeCompare(b.name) : priorityDiff;
+};
+
 export const sortNetworkAddressItems = (
   items: NetworkAddressItem[],
 ): NetworkAddressItem[] =>
-  items.sort((a, b) => {
-    const priorityDiff =
-      getNetworkPriority(a.chainId) - getNetworkPriority(b.chainId);
-    return priorityDiff === 0
-      ? a.networkName.localeCompare(b.networkName)
-      : priorityDiff;
-  });
+  [...items].sort((a, b) =>
+    compareNetworksByPriority(
+      { chainId: a.chainId, name: a.networkName },
+      { chainId: b.chainId, name: b.networkName },
+    ),
+  );
 
 /**
  * Creates a NetworkAddressItem from chain ID, network config, and address

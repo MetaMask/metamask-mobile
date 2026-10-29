@@ -28,21 +28,23 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../util/networks'),
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-image' })),
 }));
 
 const mockNetworkConfigurations = {
-  'eip155:1': {
-    chainId: '0x1',
-    name: 'Ethereum Mainnet',
+  // Intentionally unordered: testnets before mainnets to assert sorting.
+  'eip155:11155111': {
+    chainId: '0xaa36a7',
+    name: 'Sepolia',
     rpcEndpoints: [
       {
-        url: 'https://mainnet.infura.io/v3',
-        networkClientId: 'mainnet',
+        url: 'https://sepolia.infura.io/v3',
+        networkClientId: 'sepolia',
       },
     ],
     defaultRpcEndpointIndex: 0,
-    caipChainId: 'eip155:1',
+    caipChainId: 'eip155:11155111',
   },
   'eip155:137': {
     chainId: '0x89',
@@ -55,6 +57,30 @@ const mockNetworkConfigurations = {
     ],
     defaultRpcEndpointIndex: 0,
     caipChainId: 'eip155:137',
+  },
+  'eip155:59141': {
+    chainId: '0xe705',
+    name: 'Linea Sepolia',
+    rpcEndpoints: [
+      {
+        url: 'https://linea-sepolia.infura.io/v3',
+        networkClientId: 'linea-sepolia',
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    caipChainId: 'eip155:59141',
+  },
+  'eip155:1': {
+    chainId: '0x1',
+    name: 'Ethereum Mainnet',
+    rpcEndpoints: [
+      {
+        url: 'https://mainnet.infura.io/v3',
+        networkClientId: 'mainnet',
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    caipChainId: 'eip155:1',
   },
 };
 
@@ -90,6 +116,23 @@ describe('NetworkConnectMultiSelector', () => {
         ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
       )[0],
     ).toBeOnTheScreen();
+  });
+
+  it('orders mainnets before testnets using wallet network priority', () => {
+    renderWithProvider(<NetworkConnectMultiSelector {...defaultProps} />);
+
+    const networkNames = screen
+      .getAllByTestId(/-(selected|not-selected)$/)
+      .map((element) =>
+        String(element.props.testID).replace(/-(selected|not-selected)$/, ''),
+      );
+
+    expect(networkNames).toEqual([
+      'Ethereum Mainnet',
+      'Polygon',
+      'Linea Sepolia',
+      'Sepolia',
+    ]);
   });
 
   it('reuses derived networks when network configurations are unchanged', () => {
@@ -134,7 +177,7 @@ describe('NetworkConnectMultiSelector', () => {
     const selectAllbutton = getAllByTestId(
       ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
     );
-    fireEvent.press(selectAllbutton[0]);
+    // Partially selected → select all remaining networks
     fireEvent.press(selectAllbutton[0]);
 
     const updateButton = getByTestId(
@@ -145,6 +188,8 @@ describe('NetworkConnectMultiSelector', () => {
     expect(defaultProps.onSubmit).toHaveBeenCalledWith([
       'eip155:1',
       'eip155:137',
+      'eip155:59141',
+      'eip155:11155111',
     ]);
   });
 

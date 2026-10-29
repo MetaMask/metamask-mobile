@@ -27,6 +27,7 @@ import {
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
+import { compareNetworksByPriority } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnectMultiSelector.testIds';
@@ -57,24 +58,30 @@ const NetworkConnectMultiSelector = ({
     onSubmit(selectedChainIds);
   }, [onSubmit, selectedChainIds]);
   // TODO: [SOLANA]  When we support non evm networks, refactor this
-  const networks = useMemo(
-    () =>
-      Object.entries(networkConfigurations).map(
-        ([key, network]: [
-          string,
-          EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-        ]) => ({
-          id: key,
-          name: network.name,
-          isSelected: false,
-          imageSource: getNetworkImageSource({
-            chainId: network.caipChainId,
-          }),
-          caipChainId: network.caipChainId,
+  const networks = useMemo(() => {
+    const networkItems = Object.entries(networkConfigurations).map(
+      ([key, network]: [
+        string,
+        EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+      ]) => ({
+        id: key,
+        name: network.name,
+        isSelected: false,
+        imageSource: getNetworkImageSource({
+          chainId: network.caipChainId,
         }),
+        caipChainId: network.caipChainId,
+      }),
+    );
+
+    // Match wallet network priority: mainnets / popular first, testnets last.
+    return networkItems.sort((a, b) =>
+      compareNetworksByPriority(
+        { chainId: a.caipChainId, name: a.name },
+        { chainId: b.caipChainId, name: b.name },
       ),
-    [networkConfigurations],
-  );
+    );
+  }, [networkConfigurations]);
 
   const onSelectNetwork = useCallback(
     (chainId: CaipChainId) => {
