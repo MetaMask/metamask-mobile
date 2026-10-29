@@ -72,6 +72,8 @@ yarn mm cleanup --shutdown
 yarn mm launch --force
 ```
 
+Agents that run many commands can call the CLI bin directly: `node_modules/.bin/mm <command>` takes the same arguments as `yarn mm <command>`. It saves about 0.4-0.5 s per call, because Yarn's script runtime does not start.
+
 Launching while a session is already active fails with `MM_SESSION_ALREADY_RUNNING`. Run `yarn mm cleanup` first, or pass `--force` to clean up the active session and launch in a single step.
 
 There is no alternate launch context. Supplying `--context e2e`, non-default state initialization, fixtures, contract seeding, or E2E ports is rejected.
