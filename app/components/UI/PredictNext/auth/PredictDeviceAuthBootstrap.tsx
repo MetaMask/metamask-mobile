@@ -11,6 +11,7 @@ import type {
   NetworkTier,
 } from '../../../../util/deviceCapability/types';
 import Logger from '../../../../util/Logger';
+import { resolveVenueAuthProfile } from '../config/predictConfig';
 import { selectPredictConfig } from '../selectors/predictConfig';
 import { isA2tSessionCleared } from './a2tSession';
 
@@ -41,8 +42,7 @@ export const PredictDeviceAuthBootstrap = ({
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = useSelector(selectIsUnlocked);
   const predictConfig = useSelector(selectPredictConfig);
-  const isKalshiEnabled =
-    predictConfig.enabled && predictConfig.venues.kalshi.enabled;
+  const isKalshiEnabled = resolveVenueAuthProfile(predictConfig) !== undefined;
   const includeA2t = shouldPrefetchA2t(hardwareTier, networkTier);
 
   useEffect(() => {

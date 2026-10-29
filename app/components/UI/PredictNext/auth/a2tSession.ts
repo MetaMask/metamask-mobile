@@ -440,6 +440,7 @@ export class A2tSession {
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(this.#deps.profile.a2t.requestTimeoutMs),
     });
 
     const payload: unknown = await response.json().catch(() => undefined);

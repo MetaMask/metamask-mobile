@@ -33,7 +33,7 @@ describe('predictDeviceAuthServiceInit', () => {
       predictConfig: {
         enabled: true,
         venues: {
-          kalshi: { enabled: true },
+          kalshi: { enabled: true, authProfileId: 'kalshi-a2t-v1' },
           polymarket: { enabled: false },
         },
         venueSelection: { enabled: false },
@@ -191,6 +191,35 @@ describe('predictDeviceAuthServiceInit', () => {
     subscribers.get('RemoteFeatureFlagController:stateChange')?.();
 
     expect(mockClear).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears credentials when the remote config selects an unknown auth profile', () => {
+    const { featureFlags, subscribers } = initialize();
+    featureFlags.predictConfig.venues.kalshi.authProfileId =
+      'server-defined-profile';
+
+    subscribers.get('RemoteFeatureFlagController:stateChange')?.();
+
+    expect(mockClear).toHaveBeenCalledTimes(1);
+  });
+
+  it('enables the service only when the remote config resolves the bundled Kalshi profile', () => {
+    const { call, featureFlags } = initialize();
+    const deps = jest.mocked(PredictDeviceAuthService).mock.calls[0]?.[1] as {
+      isEnabled: () => boolean;
+    };
+
+    expect(deps.isEnabled()).toBe(true);
+
+    featureFlags.predictConfig.venues.kalshi.authProfileId =
+      'server-defined-profile';
+    expect(deps.isEnabled()).toBe(false);
+
+    featureFlags.predictConfig.venues.kalshi.authProfileId = 'kalshi-a2t-v1';
+    featureFlags.predictConfig.venues.kalshi.enabled = false;
+    expect(deps.isEnabled()).toBe(false);
+
+    expect(call).toHaveBeenCalledWith('RemoteFeatureFlagController:getState');
   });
 });
 

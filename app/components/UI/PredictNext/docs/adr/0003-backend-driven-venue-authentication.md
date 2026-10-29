@@ -11,8 +11,10 @@ two-signature exchange (SRP challenge plus device proof), accepts the preferred
 decoding token claims, and owns lock/profile/flag/reset invalidation. Generic
 request signing and remotely supplied signing profiles remain future work; the
 service intentionally exposes no arbitrary-byte signing action. The bundled
-profile now selects the allowlisted P-256 implementation and pins its stable
-key slot, formats, salt length, commitment, proof prefix, and issuer paths.
+profile now selects the allowlisted `device-p256-salt-v1` implementation and
+pins its stable key slot, proof prefix, and issuer paths. That implementation
+fixes the public-key encoding, signature encoding, 16-byte salt, and SHA-256
+commitment.
 Storage is derived internally from the key slot, so profiles cannot redirect
 keychain access. Remote configuration may select a bundled profile ID but
 cannot override those instructions.

@@ -1,7 +1,10 @@
 import { HandlerType } from '@metamask/snaps-utils';
 import type { SnapId } from '@metamask/snaps-sdk';
 
-import { parsePredictConfig } from '../../../components/UI/PredictNext/config/predictConfig';
+import {
+  parsePredictConfig,
+  resolveVenueAuthProfile,
+} from '../../../components/UI/PredictNext/config/predictConfig';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../../../components/UI/PredictNext/auth/venueAuthProfiles';
 import {
   PredictDeviceAuthService,
@@ -92,7 +95,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
       const config = parsePredictConfig(
         state.remoteFeatureFlags?.predictConfig,
       );
-      return config.enabled && config.venues.kalshi.enabled;
+      return resolveVenueAuthProfile(config) !== undefined;
     },
     isUnlocked: () =>
       initMessenger.call('KeyringController:getState').isUnlocked,
@@ -104,15 +107,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
       new Promise((resolve) => {
         setTimeout(resolve, ms);
       }),
-    fetch: (input, init) =>
-      global.fetch(input, {
-        ...init,
-        signal:
-          init?.signal ??
-          AbortSignal.timeout(
-            KALSHI_AUTHENTICATION_PROFILE.a2t.requestTimeoutMs,
-          ),
-      }),
+    fetch: (input, init) => global.fetch(input, init),
   });
 
   initMessenger.subscribe('KeyringController:lock', () => controller.clear());
@@ -138,7 +133,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   initMessenger.subscribe('RemoteFeatureFlagController:stateChange', () => {
     const state = initMessenger.call('RemoteFeatureFlagController:getState');
     const config = parsePredictConfig(state.remoteFeatureFlags?.predictConfig);
-    if (!config.enabled || !config.venues.kalshi.enabled) {
+    if (!resolveVenueAuthProfile(config)) {
       controller.clear();
     }
   });

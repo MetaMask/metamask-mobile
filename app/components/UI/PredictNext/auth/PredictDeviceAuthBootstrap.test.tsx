@@ -82,7 +82,7 @@ describe('PredictDeviceAuthBootstrap', () => {
       .mockReturnValueOnce({
         enabled,
         venues: {
-          kalshi: { enabled },
+          kalshi: { enabled, authProfileId: 'kalshi-a2t-v1' },
           polymarket: { enabled: false },
         },
         venueSelection: { enabled: false },

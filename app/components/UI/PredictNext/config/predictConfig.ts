@@ -1,10 +1,30 @@
-import { boolean, mask, object, type Struct } from '@metamask/superstruct';
+import {
+  boolean,
+  mask,
+  object,
+  optional,
+  string,
+  type Struct,
+} from '@metamask/superstruct';
+import {
+  resolveBundledAuthenticationProfile,
+  type VenueAuthenticationProfile,
+} from '../auth/venueAuthProfiles';
+
+export const DEFAULT_KALSHI_AUTH_PROFILE_ID = 'kalshi-a2t-v1';
 
 export interface PredictConfig {
   enabled: boolean;
   venues: {
     polymarket: { enabled: boolean };
-    kalshi: { enabled: boolean };
+    /**
+     * `authProfileId` selects a bundled authentication profile (see
+     * `resolveBundledAuthenticationProfile`) by id. Remote configuration may
+     * only choose among bundled profiles; it cannot supply or override
+     * cryptographic instructions. Omitted or unrecognized ids fall back to
+     * `DEFAULT_KALSHI_AUTH_PROFILE_ID` via `resolveVenueAuthProfile`.
+     */
+    kalshi: { enabled: boolean; authProfileId?: string };
   };
   venueSelection: { enabled: boolean };
 }
@@ -19,11 +39,15 @@ export const DEFAULT_PREDICT_CONFIG: PredictConfig = {
 };
 
 const enabledSchema = object({ enabled: boolean() });
+const kalshiSchema = object({
+  enabled: boolean(),
+  authProfileId: optional(string()),
+});
 const predictConfigSchema = object({
   enabled: boolean(),
   venues: object({
     polymarket: enabledSchema,
-    kalshi: enabledSchema,
+    kalshi: kalshiSchema,
   }),
   venueSelection: enabledSchema,
 });
@@ -34,4 +58,20 @@ export const parsePredictConfig = (value: unknown): PredictConfig => {
   } catch {
     return DEFAULT_PREDICT_CONFIG;
   }
+};
+
+/**
+ * Resolves the bundled Kalshi authentication profile the current config
+ * selects, or undefined when Predict, the Kalshi venue, or the selected
+ * profile id is not available.
+ */
+export const resolveVenueAuthProfile = (
+  config: PredictConfig,
+): VenueAuthenticationProfile | undefined => {
+  if (!config.enabled || !config.venues.kalshi.enabled) {
+    return undefined;
+  }
+  return resolveBundledAuthenticationProfile(
+    config.venues.kalshi.authProfileId ?? DEFAULT_KALSHI_AUTH_PROFILE_ID,
+  );
 };

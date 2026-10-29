@@ -11,10 +11,12 @@ import {
 import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
 /**
- * Allowlisted software P-256 device-key implementation. A bundled venue
- * profile binds its key slot and wire contract. The private key and salt are
- * encrypted in SecureKeychain; plaintext stays in this module only while the
- * wallet is unlocked.
+ * Allowlisted `device-p256-salt-v1` software key. A bundled venue profile
+ * selects this implementation and binds its key slot. This module fixes the
+ * uncompressed public key, the raw `r || s` signature, the 16-byte salt, and
+ * the SHA-256 commitment. The private key and salt are encrypted in
+ * SecureKeychain; plaintext stays in this module only while the wallet is
+ * unlocked.
  */
 
 /** Uncompressed SEC1 point: 0x04 || X || Y. */
@@ -69,8 +71,7 @@ export const createP256DeviceKey = (
     clear: clearDeviceKey,
     delete: () => deleteDeviceKey(profile),
     sign: (data) => signWithDeviceKey(profile, data),
-    commitment: (publicRaw, salt) =>
-      deviceKeyCommitment(profile, publicRaw, salt),
+    commitment: deviceKeyCommitment,
   };
 };
 
@@ -171,11 +172,7 @@ async function signWithDeviceKey(
 /**
  * Unpadded base64url of SHA-256(raw public key || raw salt).
  */
-function deviceKeyCommitment(
-  profile: DeviceKeyProfile,
-  publicRaw: Uint8Array,
-  salt: Uint8Array,
-): string {
+function deviceKeyCommitment(publicRaw: Uint8Array, salt: Uint8Array): string {
   if (
     publicRaw.length !== P256_DEVICE_PUBLIC_KEY_LENGTH ||
     publicRaw[0] !== 0x04
@@ -183,7 +180,7 @@ function deviceKeyCommitment(
     throw new Error('expected a 65-byte uncompressed P-256 public key');
   }
 
-  if (salt.length !== profile.saltLength) {
+  if (salt.length !== P256_DEVICE_SALT_LENGTH) {
     throw new Error('expected a 16-byte device key salt');
   }
 
@@ -255,7 +252,7 @@ function forgetKey(key: StoredP256DeviceKey): void {
 function createDeviceKey(profile: DeviceKeyProfile): StoredP256DeviceKey {
   const { secretKey } = p256.keygen();
   const publicRaw = p256.getPublicKey(secretKey, false);
-  const saltRaw = randomBytes(profile.saltLength);
+  const saltRaw = randomBytes(P256_DEVICE_SALT_LENGTH);
   const key: StoredP256DeviceKey = {
     keySlot: profile.keySlot,
     secretKey: copyBytes(secretKey),
@@ -278,11 +275,7 @@ function toPublicMaterial(key: StoredP256DeviceKey): P256DevicePublicMaterial {
 
 function assertSupportedProfile(profile: DeviceKeyProfile): void {
   if (
-    profile.implementation !== 'device-p256-v1' ||
-    profile.publicKeyFormat !== 'SEC1_UNCOMPRESSED_BASE64URL' ||
-    profile.signatureFormat !== 'P1363_BASE64URL' ||
-    profile.saltLength !== P256_DEVICE_SALT_LENGTH ||
-    profile.commitment !== 'SHA256_PUBLIC_KEY_SALT' ||
+    profile.implementation !== 'device-p256-salt-v1' ||
     !/^[a-z0-9](?:[a-z0-9-]{0,62})$/u.test(profile.keySlot)
   ) {
     throw new Error('Unsupported P-256 device key profile');

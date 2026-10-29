@@ -2,13 +2,14 @@
 
 Phase 1 of the Kalshi ISV flow, after the existing SRP login. The mobile app holds a P-256 device key and a 16-byte salt. The A2T `nonce` is `base64url(SHA-256(public key || salt))`. `a2tSession.ensureA2T` sends the public key and salt to the A2T issuer, signs `srpMessage` with the SRP key, and signs the proof of possession with this key.
 
-`auth/p256DeviceKey.ts` implements the allowlisted `device-p256-v1` key
+`auth/p256DeviceKey.ts` implements the allowlisted `device-p256-salt-v1` key
 strategy. It does not choose Kalshi behavior itself. The Engine-owned
 `PredictDeviceAuthService` binds it once to the bundled authentication profile,
-which supplies the stable key slot, formats, salt length, and commitment
-strategy. The implementation derives keychain storage from the slot; profiles
-cannot provide raw keychain identifiers. The service separately applies the
-Predict and Kalshi feature gates and owns the in-memory A2T session.
+which supplies the stable key slot. The implementation fixes the uncompressed
+public key, the raw `r || s` signature, the 16-byte salt, and the SHA-256
+commitment. It derives keychain storage from the slot; profiles cannot provide
+raw keychain identifiers. The service separately applies the Predict and Kalshi
+feature gates and owns the in-memory A2T session.
 
 The authentication profile ID and device-key slot are intentionally separate.
 An A2T protocol revision can select a new profile while retaining
@@ -58,7 +59,7 @@ internally, and send the payload and signature to predict-api. See
 
 A non-exportable key has to be created by a new native module. `react-native-keychain` stores passwords. `expo-secure-store` stores strings. `react-native-quick-crypto` and `@noble/curves` generate software keys. None of them create a Secure Enclave or Android Keystore key, and none of them return the 64-byte `r || s` signature Kalshi requires. Adding the native module means a native rebuild (`yarn setup`, then an iOS and Android build). It cannot be done from JavaScript alone.
 
-Replace the `device-p256-v1` implementation behind `createP256DeviceKey` with
+Replace the `device-p256-salt-v1` implementation behind `createP256DeviceKey` with
 that module. Keep the profile and public-material contracts stable. The Engine
 service should still refuse to run when the selected Venue is off, and the JS
 layer should still be unable to read the private key.

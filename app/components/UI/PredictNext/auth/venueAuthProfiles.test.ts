@@ -8,12 +8,8 @@ describe('KALSHI_AUTHENTICATION_PROFILE', () => {
     expect(KALSHI_AUTHENTICATION_PROFILE).toEqual({
       id: 'kalshi-a2t-v1',
       deviceKey: {
-        implementation: 'device-p256-v1',
+        implementation: 'device-p256-salt-v1',
         keySlot: 'kalshi-v1',
-        publicKeyFormat: 'SEC1_UNCOMPRESSED_BASE64URL',
-        signatureFormat: 'P1363_BASE64URL',
-        saltLength: 16,
-        commitment: 'SHA256_PUBLIC_KEY_SALT',
       },
       a2t: {
         challengePath: '/venues/kalshi/a2t/challenge',

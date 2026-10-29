@@ -115,7 +115,7 @@ describe('p256DeviceKey', () => {
     expect(() =>
       createP256DeviceKey({
         ...KALSHI_AUTHENTICATION_PROFILE.deviceKey,
-        signatureFormat: 'DER',
+        implementation: 'device-p256-v1',
       } as never),
     ).toThrow('Unsupported P-256 device key profile');
   });

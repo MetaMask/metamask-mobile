@@ -7,6 +7,9 @@ import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
 const PERSISTED_KEY_VERSION = 2;
 const P256_PUBLIC_KEY_LENGTH = 65;
+
+/** Same 16-byte salt as `P256_DEVICE_SALT_LENGTH` in `p256DeviceKey.ts`. */
+const P256_DEVICE_SALT_LENGTH = 16;
 const DEVICE_KEY_ACCOUNT = 'device-key';
 const DEVICE_KEY_SERVICE_PREFIX = 'com.metamask.predict.device-key';
 
@@ -83,7 +86,7 @@ function parsePersistedKey(
     const saltRaw = fromBase64Url(parsed.salt);
     if (
       !p256.utils.isValidSecretKey(secretKey) ||
-      saltRaw.length !== profile.saltLength
+      saltRaw.length !== P256_DEVICE_SALT_LENGTH
     ) {
       return null;
     }

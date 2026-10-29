@@ -1,16 +1,16 @@
 export interface VenueAuthenticationProfile {
   readonly id: string;
   readonly deviceKey: {
-    readonly implementation: 'device-p256-v1';
+    /**
+     * Allowlisted key implementation. Encoding, salt length, and commitment
+     * live in that implementation.
+     */
+    readonly implementation: 'device-p256-salt-v1';
     /**
      * Stable key lifetime identity. Changing the authentication profile id
      * must not rotate a key unless this slot changes too.
      */
     readonly keySlot: string;
-    readonly publicKeyFormat: 'SEC1_UNCOMPRESSED_BASE64URL';
-    readonly signatureFormat: 'P1363_BASE64URL';
-    readonly saltLength: 16;
-    readonly commitment: 'SHA256_PUBLIC_KEY_SALT';
   };
   readonly a2t: {
     readonly challengePath: string;
@@ -33,12 +33,8 @@ export interface VenueAuthenticationProfile {
 export const KALSHI_AUTHENTICATION_PROFILE: VenueAuthenticationProfile = {
   id: 'kalshi-a2t-v1',
   deviceKey: {
-    implementation: 'device-p256-v1',
+    implementation: 'device-p256-salt-v1',
     keySlot: 'kalshi-v1',
-    publicKeyFormat: 'SEC1_UNCOMPRESSED_BASE64URL',
-    signatureFormat: 'P1363_BASE64URL',
-    saltLength: 16,
-    commitment: 'SHA256_PUBLIC_KEY_SALT',
   },
   a2t: {
     challengePath: '/venues/kalshi/a2t/challenge',
