@@ -99,7 +99,7 @@ describe('useEventPositions', () => {
     });
   });
 
-  it('keeps both Outcome sides and the first object for duplicates within and across pages', () => {
+  it('keeps both Outcome sides and the latest object for duplicates within and across pages', () => {
     const event = makePredictNextMultiMarketEvent();
     const yes = makePredictNextPosition({
       marketId: event.markets[0].id,
@@ -121,9 +121,33 @@ describe('useEventPositions', () => {
 
     const { result } = renderEventPositions(event);
 
-    expect(result.current).toEqual([no, yes]);
-    expect(result.current[0]).toBe(no);
-    expect(result.current[1]).toBe(yes);
+    expect(result.current).toEqual([duplicateYes, duplicateNo]);
+    expect(result.current[0]).toBe(duplicateYes);
+    expect(result.current[1]).toBe(duplicateNo);
+  });
+
+  it('omits a holding once a later copy is no longer open', () => {
+    const event = makePredictNextMultiMarketEvent();
+    const open = makePredictNextPosition({
+      marketId: event.markets[0].id,
+      shares: '12.50',
+    });
+    const settled = makePredictNextPosition({
+      ...open,
+      status: 'settled',
+      shares: '12.50',
+    });
+    const claimable = makePredictNextPosition({
+      marketId: event.markets[1].id,
+      status: 'claimable',
+    });
+    mockUsePositions.mockReturnValue(
+      makePositionsQuery(event, [[open, claimable], [settled]]),
+    );
+
+    const { result } = renderEventPositions(event);
+
+    expect(result.current).toEqual([]);
   });
 
   it('reprojects the same cached holdings when Event Market membership changes', () => {

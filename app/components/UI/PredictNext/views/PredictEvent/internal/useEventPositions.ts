@@ -2,7 +2,8 @@ import { useEffect, useMemo } from 'react';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { usePositions } from '../../../hooks/usePositions';
 import { PORTFOLIO_PAGE_LIMIT } from '../../../queries/portfolioQueries';
-import type { PredictEvent, PredictPosition } from '../../../types';
+import type { PredictEvent } from '../../../types';
+import { dedupeLatestPositions } from '../../../utils/positions';
 
 const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
 /** Includes the initial page, matching the existing Event Screen discovery bound. */
@@ -34,28 +35,19 @@ export const useEventPositions = (event: PredictEvent) => {
 
   return useMemo(() => {
     const marketIds = new Set(event.markets.map((market) => market.id));
-    const seen = new Set<string>();
-    const positions: PredictPosition[] = [];
     // The bound limits discovery, not usable pages already in the shared cache.
-    for (const page of data?.pages ?? []) {
-      for (const position of page.positions) {
-        if (
-          position.venueId !== event.venueId ||
-          !marketIds.has(position.marketId)
-        ) {
-          continue;
-        }
-        const key = JSON.stringify([
-          position.venueId,
-          position.marketId,
-          position.side,
-        ]);
-        if (!seen.has(key)) {
-          seen.add(key);
-          positions.push(position);
-        }
-      }
-    }
-    return positions;
+    // A repeated Position keeps its later copy: status and size can advance
+    // across pages. Resolved holdings cannot be cashed out, so they stay on
+    // Portfolio.
+    const latest = dedupeLatestPositions(
+      (data?.pages ?? []).map((page) => ({
+        positions: page.positions.filter(
+          (position) =>
+            position.venueId === event.venueId &&
+            marketIds.has(position.marketId),
+        ),
+      })),
+    );
+    return latest.filter((position) => position.status === 'open');
   }, [data, event.markets, event.venueId]);
 };
