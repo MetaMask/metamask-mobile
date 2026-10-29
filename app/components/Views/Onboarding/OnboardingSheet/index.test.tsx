@@ -4,6 +4,7 @@ import OnboardingSheet from '.';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
+import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 
 // Mock callback functions
 const mockOnPressCreate = jest.fn();
@@ -12,6 +13,17 @@ const mockOnPressContinueWithGoogle = jest.fn();
 const mockOnPressContinueWithApple = jest.fn();
 
 const mockNavigate = jest.fn();
+const mockSelectAddDeviceSyncEnabled = jest.fn(() => false);
+
+jest.mock('../../../../selectors/featureFlagController/addDeviceSync', () => ({
+  selectAddDeviceSyncEnabled: (...args: unknown[]) =>
+    mockSelectAddDeviceSyncEnabled(...args),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: (state?: unknown) => unknown) => selector(undefined),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -72,6 +84,7 @@ describe('OnboardingSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectAddDeviceSyncEnabled.mockReturnValue(false);
   });
 
   describe('Rendering', () => {
@@ -175,6 +188,48 @@ describe('OnboardingSheet', () => {
 
         expect(mockOnPressImport).toHaveBeenCalledTimes(1);
         expect(mockOnPressCreate).not.toHaveBeenCalled();
+      });
+
+      it('hides Import from MetaMask extension when add-device sync is disabled', () => {
+        const { queryByTestId } = render(<OnboardingSheet {...defaultProps} />);
+
+        expect(
+          queryByTestId(
+            OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON,
+          ),
+        ).toBeNull();
+      });
+
+      it('hides Import from MetaMask extension on the create-wallet sheet', () => {
+        mockSelectAddDeviceSyncEnabled.mockReturnValue(true);
+
+        const { queryByTestId } = render(
+          <OnboardingSheet {...defaultProps} createWallet />,
+        );
+
+        expect(
+          queryByTestId(
+            OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON,
+          ),
+        ).toBeNull();
+      });
+
+      it('calls onPressImportFromExtension when add-device sync is enabled', () => {
+        const mockOnPressImportFromExtension = jest.fn();
+        mockSelectAddDeviceSyncEnabled.mockReturnValue(true);
+
+        const { getByTestId } = render(
+          <OnboardingSheet
+            {...defaultProps}
+            onPressImportFromExtension={mockOnPressImportFromExtension}
+          />,
+        );
+
+        fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
+        );
+
+        expect(mockOnPressImportFromExtension).toHaveBeenCalledTimes(1);
       });
 
       it('calls onPressCreate when createWallet=true and SRP button is pressed', () => {

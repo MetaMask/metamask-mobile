@@ -28,6 +28,18 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+const mockSelectAddDeviceSyncEnabled = jest.fn(() => false);
+
+jest.mock('../../../../selectors/featureFlagController/addDeviceSync', () => ({
+  selectAddDeviceSyncEnabled: (...args: unknown[]) =>
+    mockSelectAddDeviceSyncEnabled(...args),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: (state?: unknown) => unknown) => selector(undefined),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({

@@ -55,6 +55,18 @@ class OnboardingSheet {
       elemDescription: 'Import Seed Button in Onboarding Sheet',
     });
   }
+
+  get importFromExtensionButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON,
+    );
+  }
+
+  async tapImportFromExtensionButton(): Promise<void> {
+    await Gestures.waitAndTap(this.importFromExtensionButton, {
+      elemDescription: 'Import from MetaMask extension button',
+    });
+  }
 }
 
 export default new OnboardingSheet();

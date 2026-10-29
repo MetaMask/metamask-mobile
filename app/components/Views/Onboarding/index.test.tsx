@@ -1048,6 +1048,57 @@ describe('Onboarding', () => {
       expect(getByText(strings('onboarding.import_srp'))).toBeOnTheScreen();
     });
 
+    it('navigates to AddDeviceToWallet from the social import sheet', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const stateWithAddDeviceSync = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...mockInitialState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...mockInitialState.engine.backgroundState
+                  .RemoteFeatureFlagController?.remoteFeatureFlags,
+                [FeatureFlagNames.addDeviceSyncEnabled]: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: stateWithAddDeviceSync,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      fireEvent.press(
+        getByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+      );
+    });
+
     it('navigates to import flow when import wallet is pressed with seedless disabled', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(false);
       const { getByTestId } = renderScreen(

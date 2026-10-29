@@ -1307,6 +1307,10 @@ const Onboarding = () => {
     return () => subscription.remove();
   }, [navigation, sheetMode]);
 
+  const onPressImportFromExtension = useCallback(() => {
+    navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+  }, [navigation]);
+
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -1724,6 +1728,7 @@ const Onboarding = () => {
             onPressContinueWithTelegram={
               isTelegramLoginEnabled ? onSheetContinueWithTelegram : undefined
             }
+            onPressImportFromExtension={onPressImportFromExtension}
             loadingProvider={sheetSocialProvider}
           />
         ) : null}

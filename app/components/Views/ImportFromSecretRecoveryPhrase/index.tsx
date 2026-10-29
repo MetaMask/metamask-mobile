@@ -123,7 +123,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import ImportOptionsSheet from './ImportOptionsSheet';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import { selectQrSyncImportMnemonic } from '../../../selectors/qrSyncController';
 import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
@@ -290,7 +289,6 @@ const ImportFromSecretRecoveryPhrase = () => {
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
   const [slideAnim] = useState(() => new Animated.Value(0));
   const [currentInputWord, setCurrentInputWord] = useState('');
-  const [isImportMenuVisible, setIsImportMenuVisible] = useState(false);
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -412,18 +410,6 @@ const ImportFromSecretRecoveryPhrase = () => {
       },
     });
   }, [hideSeedPhraseInput, navigation]);
-
-  const onScanHeaderPress = useCallback(() => {
-    if (isAddDeviceSyncEnabled) {
-      setIsImportMenuVisible(true);
-      return;
-    }
-    onQrCodePress();
-  }, [isAddDeviceSyncEnabled, onQrCodePress]);
-
-  const onImportFromExtensionPress = useCallback(() => {
-    navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
-  }, [navigation]);
 
   const animateToStep = useCallback(
     (nextStep: number) => {
@@ -779,7 +765,7 @@ const ImportFromSecretRecoveryPhrase = () => {
             ? [
                 {
                   iconName: IconName.Scan,
-                  onPress: onScanHeaderPress,
+                  onPress: onQrCodePress,
                   testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
                 },
               ]
@@ -1013,12 +999,6 @@ const ImportFromSecretRecoveryPhrase = () => {
           />
         </KeyboardStickyView>
       )}
-      <ImportOptionsSheet
-        isVisible={isImportMenuVisible}
-        onClose={() => setIsImportMenuVisible(false)}
-        onSelectQrCode={onQrCodePress}
-        onSelectExtension={onImportFromExtensionPress}
-      />
       <PasswordResetWarningSheet
         isVisible={isWarningSheetVisible}
         onConfirm={onConfirmWarningSheet}
