@@ -32,6 +32,7 @@ import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
   HomeTabsParamList,
+  RewardsHomeParamList,
   ImportPrivateKeyStackParamList,
   MainStackParamList,
   SocialLeaderboardTabParams,
@@ -634,7 +635,7 @@ export type RootStackParamList = {
   TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
-  RewardsView: undefined;
+  RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
