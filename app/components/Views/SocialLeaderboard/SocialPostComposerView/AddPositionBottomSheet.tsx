@@ -1,10 +1,16 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  BackHandler,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Position } from '@metamask/social-controllers';
 import {
-  BottomSheet,
   BottomSheetHeader,
   Box,
   FilterButton,
@@ -19,18 +25,21 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
 import { useTraderPositions } from '../TraderProfileView/hooks';
 import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
+import { ComposerSheetSnap } from './ComposerSheetSnap';
 import HiddenPositionInfo from './HiddenPositionInfo';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const styles = StyleSheet.create({
   root: {
+    flex: 1,
+  },
+  list: {
     flex: 1,
   },
 });
@@ -48,10 +57,12 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
   onSelect,
   onClose,
 }) => {
-  const { colors } = useTheme();
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [isHiddenPositionInfoOpen, setIsHiddenPositionInfoOpen] =
     useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [filtersHeight, setFiltersHeight] = useState(0);
+  const [listHeight, setListHeight] = useState<number | null>(null);
   // Wallet-only PerpsController rows are not included — they have no
   // `positionUid` and cannot be posted.
   const {
@@ -93,6 +104,24 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
     setTab(value === 'closed' ? 'closed' : 'open');
   }, []);
 
+  const handleHeaderLayout = useCallback((next: number) => {
+    setHeaderHeight((current) => (current === next ? current : next));
+  }, []);
+
+  const handleFiltersLayout = useCallback((event: LayoutChangeEvent) => {
+    const next = event.nativeEvent.layout.height;
+    setFiltersHeight((current) => (current === next ? current : next));
+  }, []);
+
+  const handleListContentSize = useCallback((_width: number, next: number) => {
+    setListHeight((current) => (current === next ? current : next));
+  }, []);
+
+  const defaultHeight =
+    headerHeight > 0 && filtersHeight > 0 && listHeight !== null
+      ? headerHeight + filtersHeight + listHeight
+      : 0;
+
   const handleClose = useCallback(() => {
     trackInteraction(Interaction.SHEET_DISMISSED, Outcome.DISMISSED);
     onClose();
@@ -106,6 +135,24 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
   const handleHideHiddenPositionInfo = useCallback(() => {
     setIsHiddenPositionInfoOpen(false);
   }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') {
+      return undefined;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (isHiddenPositionInfoOpen) {
+          handleHideHiddenPositionInfo();
+          return true;
+        }
+        handleClose();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [handleClose, handleHideHiddenPositionInfo, isHiddenPositionInfoOpen]);
 
   const handleSelect = useCallback(
     (position: Position) => {
@@ -184,104 +231,111 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
           <Box twClassName="absolute inset-0">
-            <Pressable
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: colors.overlay.default },
-              ]}
-              onPress={handleClose}
-              accessibilityRole="button"
-              testID={AddPositionBottomSheetSelectorsIDs.BACKDROP}
-            />
-            <BottomSheet
-              onClose={handleClose}
-              testID={AddPositionBottomSheetSelectorsIDs.SHEET}
-            >
-              <BottomSheetHeader
-                onClose={handleClose}
-                closeButtonProps={{
-                  testID: AddPositionBottomSheetSelectorsIDs.CLOSE_BUTTON,
-                }}
-              >
-                {strings('social_leaderboard.composer.add_position_title')}
-              </BottomSheetHeader>
-              <Box twClassName="px-4 pb-3">
-                <FilterButtonGroup
-                  value={tab}
-                  onChange={handleTabChange}
-                  variant={FilterButtonVariant.Secondary}
+            <ComposerSheetSnap
+              sheetTestID={AddPositionBottomSheetSelectorsIDs.SHEET}
+              onDismiss={handleClose}
+              defaultHeight={defaultHeight}
+              onHeaderLayout={handleHeaderLayout}
+              backdropTestID={AddPositionBottomSheetSelectorsIDs.BACKDROP}
+              header={
+                <BottomSheetHeader
+                  onClose={handleClose}
+                  closeButtonProps={{
+                    testID: AddPositionBottomSheetSelectorsIDs.CLOSE_BUTTON,
+                  }}
                 >
-                  <FilterButton
-                    value="open"
-                    size={FilterButtonSize.Md}
-                    testID={AddPositionBottomSheetSelectorsIDs.OPEN_TAB}
+                  {strings('social_leaderboard.composer.add_position_title')}
+                </BottomSheetHeader>
+              }
+            >
+              <>
+                <Box twClassName="px-4 pb-3" onLayout={handleFiltersLayout}>
+                  <FilterButtonGroup
+                    value={tab}
+                    onChange={handleTabChange}
+                    variant={FilterButtonVariant.Secondary}
                   >
-                    {strings('social_leaderboard.composer.tab_open')}
-                  </FilterButton>
-                  <FilterButton
-                    value="closed"
-                    size={FilterButtonSize.Md}
-                    testID={AddPositionBottomSheetSelectorsIDs.CLOSED_TAB}
-                  >
-                    {strings('social_leaderboard.composer.tab_closed')}
-                  </FilterButton>
-                </FilterButtonGroup>
-              </Box>
-              <ScrollView>
-                {error && positions.length === 0 ? (
-                  <Box
-                    twClassName="px-4 py-8 items-center gap-2"
-                    testID={AddPositionBottomSheetSelectorsIDs.ERROR}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
+                    <FilterButton
+                      value="open"
+                      size={FilterButtonSize.Md}
+                      testID={AddPositionBottomSheetSelectorsIDs.OPEN_TAB}
                     >
-                      {strings('social_leaderboard.composer.error_title')}
-                    </Text>
-                    <TextButton
-                      onPress={() => {
-                        refetch().catch(() => undefined);
-                      }}
-                      testID={AddPositionBottomSheetSelectorsIDs.RETRY}
+                      {strings('social_leaderboard.composer.tab_open')}
+                    </FilterButton>
+                    <FilterButton
+                      value="closed"
+                      size={FilterButtonSize.Md}
+                      testID={AddPositionBottomSheetSelectorsIDs.CLOSED_TAB}
                     >
-                      {strings('social_leaderboard.composer.retry')}
-                    </TextButton>
-                  </Box>
-                ) : isLoading && positions.length === 0 ? (
-                  SKELETON_KEYS.map((key) => <PositionRowSkeleton key={key} />)
-                ) : positions.length === 0 ? (
-                  <Box twClassName="items-center px-4 py-8">
-                    <TabEmptyState
-                      description={
-                        showPostEmptyCopy
-                          ? strings('social_leaderboard.composer.empty_title')
-                          : strings('social_leaderboard.composer.empty_closed')
-                      }
-                      descriptionProps={{
-                        color: TextColor.TextDefault,
-                        fontWeight: FontWeight.Medium,
-                      }}
-                      twClassName="bg-transparent"
-                      testID={AddPositionBottomSheetSelectorsIDs.EMPTY}
+                      {strings('social_leaderboard.composer.tab_closed')}
+                    </FilterButton>
+                  </FilterButtonGroup>
+                </Box>
+                <ScrollView
+                  style={defaultHeight > 0 ? styles.list : undefined}
+                  onContentSizeChange={handleListContentSize}
+                >
+                  {error && positions.length === 0 ? (
+                    <Box
+                      twClassName="px-4 py-8 items-center gap-2"
+                      testID={AddPositionBottomSheetSelectorsIDs.ERROR}
                     >
-                      {showPostEmptyCopy ? (
-                        <TextButton
-                          onPress={handleShowHiddenPositionInfo}
-                          testID={AddPositionBottomSheetSelectorsIDs.EMPTY_HELP}
-                        >
-                          {strings('social_leaderboard.composer.empty_help')}
-                        </TextButton>
-                      ) : null}
-                    </TabEmptyState>
-                  </Box>
-                ) : tab === 'open' ? (
-                  renderOpenSections()
-                ) : (
-                  renderClosedList()
-                )}
-              </ScrollView>
-            </BottomSheet>
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextDefault}
+                      >
+                        {strings('social_leaderboard.composer.error_title')}
+                      </Text>
+                      <TextButton
+                        onPress={() => {
+                          refetch().catch(() => undefined);
+                        }}
+                        testID={AddPositionBottomSheetSelectorsIDs.RETRY}
+                      >
+                        {strings('social_leaderboard.composer.retry')}
+                      </TextButton>
+                    </Box>
+                  ) : isLoading && positions.length === 0 ? (
+                    SKELETON_KEYS.map((key) => (
+                      <PositionRowSkeleton key={key} />
+                    ))
+                  ) : positions.length === 0 ? (
+                    <Box twClassName="items-center px-4 py-8">
+                      <TabEmptyState
+                        description={
+                          showPostEmptyCopy
+                            ? strings('social_leaderboard.composer.empty_title')
+                            : strings(
+                                'social_leaderboard.composer.empty_closed',
+                              )
+                        }
+                        descriptionProps={{
+                          color: TextColor.TextDefault,
+                          fontWeight: FontWeight.Medium,
+                        }}
+                        twClassName="bg-transparent"
+                        testID={AddPositionBottomSheetSelectorsIDs.EMPTY}
+                      >
+                        {showPostEmptyCopy ? (
+                          <TextButton
+                            onPress={handleShowHiddenPositionInfo}
+                            testID={
+                              AddPositionBottomSheetSelectorsIDs.EMPTY_HELP
+                            }
+                          >
+                            {strings('social_leaderboard.composer.empty_help')}
+                          </TextButton>
+                        ) : null}
+                      </TabEmptyState>
+                    </Box>
+                  ) : tab === 'open' ? (
+                    renderOpenSections()
+                  ) : (
+                    renderClosedList()
+                  )}
+                </ScrollView>
+              </>
+            </ComposerSheetSnap>
             {isHiddenPositionInfoOpen ? (
               <HiddenPositionInfo onDismiss={handleHideHiddenPositionInfo} />
             ) : null}

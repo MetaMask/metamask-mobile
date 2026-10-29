@@ -93,6 +93,7 @@ jest.mock('react-native-gesture-handler', () => {
       'onEnd',
       'onFinalize',
       'activeOffsetX',
+      'activeOffsetY',
       'failOffsetY',
       'hitSlop',
       'minDistance',

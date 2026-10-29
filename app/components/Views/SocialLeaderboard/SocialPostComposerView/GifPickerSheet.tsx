@@ -1,15 +1,17 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  BackHandler,
   Image,
   Modal,
+  Platform,
   Pressable,
   useWindowDimensions,
+  View,
   type ListRenderItem,
 } from 'react-native';
 import { GestureHandlerRootView, FlatList } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
-  BottomSheet,
   BottomSheetHeader,
   Box,
   Skeleton,
@@ -21,8 +23,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
+import { ComposerSheetSnap } from './ComposerSheetSnap';
 import { GifPickerSheetSelectorsIDs } from './GifPickerSheet.testIds';
 import type { KlipyGif } from './klipyClient';
+import { gifDefaultHeight } from './sheetSnap';
 import { useKlipyGifs } from './useKlipyGifs';
 
 export interface GifPickerSheetProps {
@@ -40,7 +44,21 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
   const { height } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const { gifs, isLoading, error, loadMore, retry } = useKlipyGifs(query, true);
-  const panelHeight = Math.max(280, Math.round(height * 0.42));
+  const panelHeight = gifDefaultHeight(height);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') {
+      return undefined;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        onClose();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [onClose]);
 
   const handleSelect = useCallback(
     (gif: KlipyGif) => {
@@ -87,11 +105,11 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
     >
       <SafeAreaProvider>
         <GestureHandlerRootView style={tw.style('flex-1')}>
-          <BottomSheet
-            onClose={onClose}
-            testID={GifPickerSheetSelectorsIDs.SHEET}
-          >
-            <Box style={tw.style({ height: panelHeight })}>
+          <ComposerSheetSnap
+            sheetTestID={GifPickerSheetSelectorsIDs.SHEET}
+            onDismiss={onClose}
+            defaultHeight={panelHeight}
+            header={
               <BottomSheetHeader
                 onClose={onClose}
                 closeButtonProps={{
@@ -103,7 +121,9 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
               >
                 {strings('social_leaderboard.composer.gifs_title')}
               </BottomSheetHeader>
-
+            }
+          >
+            <View style={tw.style('min-h-0 flex-1')}>
               <Box twClassName="px-4 py-2">
                 <TextFieldSearch
                   value={query}
@@ -177,8 +197,8 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
                   testID={GifPickerSheetSelectorsIDs.LIST}
                 />
               )}
-            </Box>
-          </BottomSheet>
+            </View>
+          </ComposerSheetSnap>
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </Modal>
