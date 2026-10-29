@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type { TraderProfileResponse } from '@metamask/social-controllers';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { buildTraderProfileQueryKey } from '../../../../util/social/traderProfileQueries';
 import type {
   LeaderboardSort,
@@ -31,6 +33,8 @@ export interface UseLeaderboardViewerRowResult {
   rowsWithoutViewer: RankedTrader[];
   viewerProfileId?: string;
   viewerAddress?: string;
+  /** Refetches the off-page profile. No-op when that request is not active. */
+  refreshViewerProfile: () => Promise<void>;
 }
 
 /**
@@ -47,6 +51,7 @@ export const useLeaderboardViewerRow = (
   scope: LeaderboardViewerScope,
 ): UseLeaderboardViewerRowResult => {
   const { profile } = useMyProfile();
+  const isUnlocked = useSelector(selectIsUnlocked);
 
   const matchedViewer = useMemo(() => {
     if (!enabled || !profile) {
@@ -68,12 +73,30 @@ export const useLeaderboardViewerRow = (
     [matchedViewer, traders],
   );
 
-  const shouldFetchProfile = Boolean(enabled && profile && !matchedViewer);
-  const { data: liveProfile, error: liveProfileError } =
-    useQuery<TraderProfileResponse>({
-      queryKey: buildTraderProfileQueryKey(profile?.profileId ?? ''),
-      enabled: shouldFetchProfile,
-    });
+  // Pause while locked so the query never reaches getBearerToken. Focus and
+  // reconnect refetches stay off: React Query can run them on foreground
+  // before React commits enabled:false after auto-lock. Unlock enables the
+  // query and fetches.
+  const shouldFetchProfile = Boolean(
+    enabled && isUnlocked && profile && !matchedViewer,
+  );
+  const {
+    data: liveProfile,
+    error: liveProfileError,
+    refetch: refetchViewerProfile,
+  } = useQuery<TraderProfileResponse>({
+    queryKey: buildTraderProfileQueryKey(profile?.profileId ?? ''),
+    enabled: shouldFetchProfile,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  const refreshViewerProfile = useCallback(async () => {
+    if (!shouldFetchProfile) {
+      return;
+    }
+    await refetchViewerProfile();
+  }, [refetchViewerProfile, shouldFetchProfile]);
 
   const viewerRow = useMemo((): LeaderboardViewerRow | null => {
     if (!enabled || !profile) {
@@ -120,5 +143,6 @@ export const useLeaderboardViewerRow = (
     rowsWithoutViewer,
     viewerProfileId: profile?.profileId ?? undefined,
     viewerAddress: profile?.linkedAccountAddress ?? undefined,
+    refreshViewerProfile,
   };
 };

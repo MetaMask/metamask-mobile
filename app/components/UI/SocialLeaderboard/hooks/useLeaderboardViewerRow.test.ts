@@ -5,6 +5,8 @@ import type { RankedTrader } from '../types';
 import { useLeaderboardViewerRow } from './useLeaderboardViewerRow';
 
 const mockUseQuery = jest.fn();
+const mockRefetchViewerProfile = jest.fn();
+let mockIsUnlocked = true;
 let mockProfile: {
   profileId: string;
   displayName: string;
@@ -18,6 +20,10 @@ jest.mock('../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
 
 jest.mock('@metamask/react-data-query', () => ({
   useQuery: (options: unknown) => mockUseQuery(options),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsUnlocked,
 }));
 
 const trader = (overrides: Partial<RankedTrader>): RankedTrader => ({
@@ -63,14 +69,29 @@ const queryResult = (overrides: Record<string, unknown> = {}) => ({
   data: undefined,
   error: null,
   isLoading: false,
-  refetch: jest.fn(),
+  refetch: mockRefetchViewerProfile,
   ...overrides,
 });
+
+const disabledProfileQuery = {
+  enabled: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+};
+
+const enabledProfileQuery = {
+  enabled: true,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+};
 
 describe('useLeaderboardViewerRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockProfile = null;
+    mockIsUnlocked = true;
+    mockRefetchViewerProfile.mockReset();
+    mockRefetchViewerProfile.mockResolvedValue(undefined);
     mockUseQuery.mockReturnValue(queryResult());
   });
 
@@ -88,7 +109,7 @@ describe('useLeaderboardViewerRow', () => {
     );
 
     expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
+      expect.objectContaining(disabledProfileQuery),
     );
     expect(result.current.viewerRow).toEqual({
       trader: listed,
@@ -108,7 +129,7 @@ describe('useLeaderboardViewerRow', () => {
     );
 
     expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true }),
+      expect.objectContaining(enabledProfileQuery),
     );
     expect(result.current.viewerRow).toBeNull();
     expect(result.current.rowsWithoutViewer).toHaveLength(1);
@@ -146,6 +167,48 @@ describe('useLeaderboardViewerRow', () => {
     expect(result.current.viewerRow?.trader.username).toBe('Wen');
   });
 
+  it('does not fetch the profile while the wallet is locked', () => {
+    mockIsUnlocked = false;
+    mockProfile = { profileId: 'viewer', displayName: 'Wen', handle: 'wen' };
+
+    const { result } = renderHook(() =>
+      useLeaderboardViewerRow([trader({ id: 'other' })], 'pnl', true, scope),
+    );
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining(disabledProfileQuery),
+    );
+    expect(result.current.viewerRow).toBeNull();
+  });
+
+  it('refetches the off-page profile and skips the refetch when it is inactive', async () => {
+    mockProfile = { profileId: 'viewer', displayName: 'Wen', handle: 'wen' };
+    mockUseQuery.mockReturnValue(queryResult({ data: liveProfile() }));
+
+    const { result, rerender } = renderHook(
+      ({ unlocked }: { unlocked: boolean }) => {
+        mockIsUnlocked = unlocked;
+        return useLeaderboardViewerRow(
+          [trader({ id: 'other' })],
+          'pnl',
+          true,
+          scope,
+        );
+      },
+      { initialProps: { unlocked: true } },
+    );
+
+    await result.current.refreshViewerProfile();
+
+    expect(mockRefetchViewerProfile).toHaveBeenCalledTimes(1);
+
+    mockIsUnlocked = false;
+    rerender({ unlocked: false });
+    await result.current.refreshViewerProfile();
+
+    expect(mockRefetchViewerProfile).toHaveBeenCalledTimes(1);
+  });
+
   it('returns null when the viewer row is disabled', () => {
     mockProfile = { profileId: 'viewer', displayName: 'Wen', handle: 'wen' };
 
@@ -154,7 +217,7 @@ describe('useLeaderboardViewerRow', () => {
     );
 
     expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
+      expect.objectContaining(disabledProfileQuery),
     );
     expect(result.current.viewerRow).toBeNull();
   });

@@ -155,8 +155,6 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       : undefined,
   });
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
   const hydrateSnapshotRow = useCallback(
     (trader: TopTrader): RankedTrader => ({
       ...trader,
@@ -176,19 +174,30 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     hydrateRow: hydrateSnapshotRow,
   });
 
-  const { viewerRow, rowsWithoutViewer, viewerProfileId, viewerAddress } =
-    useLeaderboardViewerRow(
-      traders,
-      sort,
-      showViewerRow && resolution.status === 'ready',
-      {
-        timeframe,
-        chains:
-          resolution.status === 'ready'
-            ? resolution.chains
-            : NO_LEADERBOARD_CHAINS,
-      },
-    );
+  const {
+    viewerRow,
+    rowsWithoutViewer,
+    viewerProfileId,
+    viewerAddress,
+    refreshViewerProfile,
+  } = useLeaderboardViewerRow(
+    traders,
+    sort,
+    showViewerRow && resolution.status === 'ready',
+    {
+      timeframe,
+      chains:
+        resolution.status === 'ready'
+          ? resolution.chains
+          : NO_LEADERBOARD_CHAINS,
+    },
+  );
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([refresh(), refreshViewerProfile()]);
+  }, [refresh, refreshViewerProfile]);
+
+  useImperativeHandle(ref, () => ({ refresh: refreshAll }), [refreshAll]);
 
   const rows = useMemo(
     () =>
@@ -258,8 +267,8 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   }, [navigation, viewerAddress, viewerProfileId]);
 
   const handleRetry = useCallback(() => {
-    refresh().catch(() => undefined);
-  }, [refresh]);
+    refreshAll().catch(() => undefined);
+  }, [refreshAll]);
 
   const firstContentState =
     !isEnabled || resolution.status === 'hidden'

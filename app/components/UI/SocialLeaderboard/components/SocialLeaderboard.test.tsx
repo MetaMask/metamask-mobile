@@ -23,6 +23,7 @@ const mockTrack = jest.fn();
 let mockIsEnabled = true;
 let mockIsPerpsEnabled = true;
 let mockNetworkTier: string | null = 'WIFI';
+let mockIsUnlocked = true;
 let mockProfile: Record<string, unknown> | null = null;
 
 jest.mock('../../../Views/Homepage/Sections/TopTraders/hooks', () => ({
@@ -78,7 +79,13 @@ jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockNetworkTier,
 }));
 
+jest.mock('../../../../selectors/keyringController', () => ({
+  ...jest.requireActual('../../../../selectors/keyringController'),
+  selectIsUnlocked: () => mockIsUnlocked,
+}));
+
 const mockUseQuery = jest.fn();
+const mockRefetchViewerProfile = jest.fn();
 jest.mock('@metamask/react-data-query', () => ({
   useQuery: (options: unknown) => mockUseQuery(options),
 }));
@@ -157,13 +164,16 @@ describe('SocialLeaderboard', () => {
     mockIsEnabled = true;
     mockIsPerpsEnabled = true;
     mockNetworkTier = 'WIFI';
+    mockIsUnlocked = true;
     mockProfile = null;
     mockQueryResult();
+    mockRefetchViewerProfile.mockReset();
+    mockRefetchViewerProfile.mockResolvedValue(undefined);
     mockUseQuery.mockReturnValue({
       data: undefined,
       error: null,
       isLoading: false,
-      refetch: jest.fn(),
+      refetch: mockRefetchViewerProfile,
     });
   });
 
@@ -402,7 +412,11 @@ describe('SocialLeaderboard', () => {
     expect(screen.queryByText('-')).toBeNull();
     expect(rowIds()).toHaveLength(3);
     expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true }),
+      expect.objectContaining({
+        enabled: true,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+      }),
     );
   });
 
@@ -545,6 +559,44 @@ describe('SocialLeaderboard', () => {
     });
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefetchViewerProfile).not.toHaveBeenCalled();
+  });
+
+  it('refreshes the off-page viewer profile with the leaderboard', async () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    const ref = React.createRef<SocialLeaderboardHandle>();
+
+    renderLeaderboard({ ref, showViewerRow: true });
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefetchViewerProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fetch the viewer profile while the wallet is locked', async () => {
+    mockIsUnlocked = false;
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    const ref = React.createRef<SocialLeaderboardHandle>();
+
+    renderLeaderboard({ ref, showViewerRow: true });
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockRefetchViewerProfile).not.toHaveBeenCalled();
   });
 
   it('renders the title when given', () => {
