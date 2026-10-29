@@ -132,6 +132,10 @@ describe('getMaybeHexChainId', () => {
         getMaybeHexChainId('bip122:000000000019d6689c085ae165831e93'),
       ).toBeUndefined();
     });
+
+    it('returns undefined for a namespace bridge-controller does not know', () => {
+      expect(getMaybeHexChainId('kalshi:mainnet')).toBeUndefined();
+    });
   });
 
   describe('EVM chain IDs', () => {
