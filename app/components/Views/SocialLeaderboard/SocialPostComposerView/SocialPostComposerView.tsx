@@ -9,6 +9,7 @@ import {
   ButtonVariant,
   HeaderBase,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
@@ -146,6 +147,26 @@ interface ImageInsertEvent {
 }
 
 /** Line smiley matching the composer GIF chip; the icon set has no equivalent. */
+const ComposerAttachmentCloseButton = ({
+  onPress,
+  accessibilityLabel,
+  testID,
+}: {
+  onPress: () => void;
+  accessibilityLabel: string;
+  testID: string;
+}) => (
+  <ButtonIcon
+    iconName={IconName.Close}
+    size={ButtonIconSize.Md}
+    iconProps={{ color: IconColor.IconDefault }}
+    twClassName="absolute z-20 -top-3 -right-3 bg-section"
+    onPress={onPress}
+    accessibilityLabel={accessibilityLabel}
+    testID={testID}
+  />
+);
+
 const GifChipIcon = ({ color }: { color: string }) => (
   <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
     <Circle cx="8" cy="8" r="6.25" stroke={color} strokeWidth={1.25} />
@@ -620,47 +641,32 @@ const SocialPostComposerView: React.FC = () => {
               <Box twClassName="relative mt-12">
                 <PositionCardBody item={previewItem} />
                 {isTradeInFlightLocked ? null : (
-                  <Pressable
+                  <ComposerAttachmentCloseButton
                     onPress={() => setSelectedPosition(null)}
-                    accessibilityRole="button"
                     accessibilityLabel={strings(
                       'social_leaderboard.composer.remove_position',
                     )}
                     testID={SocialPostComposerViewSelectorsIDs.REMOVE_POSITION}
-                    hitSlop={8}
-                    style={tw.style(
-                      'absolute z-20 -top-3 -right-3 w-8 h-8 rounded-full bg-default border border-muted items-center justify-center',
-                    )}
-                  >
-                    <Icon name={IconName.Close} size={IconSize.Sm} />
-                  </Pressable>
+                  />
                 )}
               </Box>
             ) : null}
 
             {gifUri ? (
-              <Box twClassName="relative mt-4 rounded-2xl overflow-hidden">
-                <SocialFeedGif
-                  uri={gifUri}
-                  testID={SocialPostComposerViewSelectorsIDs.GIF_PREVIEW}
-                />
-                <Pressable
+              <Box twClassName="relative mt-4">
+                <Box twClassName="overflow-hidden rounded-2xl">
+                  <SocialFeedGif
+                    uri={gifUri}
+                    testID={SocialPostComposerViewSelectorsIDs.GIF_PREVIEW}
+                  />
+                </Box>
+                <ComposerAttachmentCloseButton
                   onPress={() => setGifUri(null)}
-                  accessibilityRole="button"
                   accessibilityLabel={strings(
                     'social_leaderboard.composer.remove_gif',
                   )}
                   testID={SocialPostComposerViewSelectorsIDs.REMOVE_GIF}
-                  style={tw.style(
-                    'absolute top-2 right-2 w-7 h-7 rounded-full bg-default items-center justify-center',
-                  )}
-                >
-                  <ButtonIcon
-                    iconName={IconName.Close}
-                    size={ButtonIconSize.Sm}
-                    onPress={() => setGifUri(null)}
-                  />
-                </Pressable>
+                />
               </Box>
             ) : null}
 
@@ -680,7 +686,7 @@ const SocialPostComposerView: React.FC = () => {
             gap={2}
             twClassName="px-4 pt-3"
             style={tw.style({
-              paddingBottom: isGifSheetOpen ? 8 : Math.max(insets.bottom, 12),
+              paddingBottom: Math.max(insets.bottom, 12),
             })}
           >
             {selectedPosition || isTradeInFlightLocked ? null : (
@@ -714,13 +720,14 @@ const SocialPostComposerView: React.FC = () => {
               </Box>
             ) : null}
           </Box>
-          {isGifSheetOpen ? (
-            <GifPickerSheet
-              onSelect={handleSelectGif}
-              onClose={() => setIsGifSheetOpen(false)}
-            />
-          ) : null}
         </KeyboardAvoidingView>
+
+        {isGifSheetOpen ? (
+          <GifPickerSheet
+            onSelect={handleSelectGif}
+            onClose={() => setIsGifSheetOpen(false)}
+          />
+        ) : null}
 
         {isShareSheetOpen ? (
           <AddPositionBottomSheet
