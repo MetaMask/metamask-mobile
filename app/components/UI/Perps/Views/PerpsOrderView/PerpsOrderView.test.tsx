@@ -1414,7 +1414,7 @@ describe('PerpsOrderView', () => {
     mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();
-    mockCheckAccountSupport.mockResolvedValue(true);
+    mockCheckAccountSupport.mockResolvedValue('supported');
     applyDefaultHookMocks();
     (global.requestAnimationFrame as jest.Mock).mockImplementation(
       runFrameSynchronously,
@@ -1707,6 +1707,7 @@ describe('PerpsOrderView', () => {
       'payWith',
       'marginInfo',
       'liquidationInfo',
+      'accountUnsupported',
     ]);
   });
 
@@ -4051,7 +4052,7 @@ describe('PerpsOrderView', () => {
 
   it('blocks order placement for an unsupported account', async () => {
     const mockPlaceOrder = jest.fn();
-    mockCheckAccountSupport.mockResolvedValue(false);
+    mockCheckAccountSupport.mockResolvedValue('unsupported');
     (usePerpsOrderExecution as jest.Mock).mockReturnValue({
       placeOrder: mockPlaceOrder,
       isPlacing: false,
@@ -4069,6 +4070,33 @@ describe('PerpsOrderView', () => {
     expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
     expect(mockPlaceOrder).not.toHaveBeenCalled();
   });
+
+  it.each([
+    { support: 'stale' as const, expected: undefined },
+    {
+      support: 'unsupported' as const,
+      expected: 'accountUnsupported' as const,
+    },
+  ])(
+    'returns $expected to the trade sheet for a $support account-support check',
+    async ({ support, expected }) => {
+      useTradeSheetRoute();
+      mockCheckAccountSupport.mockResolvedValue(support);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const result: { outcome?: void | 'accountUnsupported' } = {};
+      await act(async () => {
+        result.outcome = await (getMockTradeScreenProps().onSubmit() as Promise<
+          void | 'accountUnsupported'
+        >);
+      });
+
+      expect(result.outcome).toBe(expected);
+      expect(
+        defaultMockHooks.usePerpsTrading.placeOrder,
+      ).not.toHaveBeenCalled();
+    },
+  );
 
   it('handles network error during order placement', () => {
     const mockPlaceOrder = jest
