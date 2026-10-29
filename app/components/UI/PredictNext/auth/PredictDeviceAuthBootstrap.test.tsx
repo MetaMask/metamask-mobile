@@ -70,19 +70,21 @@ describe('PredictDeviceAuthBootstrap', () => {
   const mockSelectors = ({
     signedIn = true,
     unlocked = true,
-    enabled = true,
+    predictEnabled = true,
+    kalshiEnabled = true,
   }: {
     signedIn?: boolean;
     unlocked?: boolean;
-    enabled?: boolean;
+    predictEnabled?: boolean;
+    kalshiEnabled?: boolean;
   } = {}) => {
     mockUseSelector
       .mockReturnValueOnce(signedIn)
       .mockReturnValueOnce(unlocked)
       .mockReturnValueOnce({
-        enabled,
+        enabled: predictEnabled,
         venues: {
-          kalshi: { enabled, authProfileId: 'kalshi-a2t-v1' },
+          kalshi: { enabled: kalshiEnabled, authProfileId: 'kalshi-a2t-v1' },
           polymarket: { enabled: false },
         },
         venueSelection: { enabled: false },
@@ -171,8 +173,8 @@ describe('PredictDeviceAuthBootstrap', () => {
     expect(Engine.controllerMessenger.call).not.toHaveBeenCalled();
   });
 
-  it('does not prepare credentials while Kalshi is disabled', () => {
-    mockSelectors({ enabled: false });
+  it('does not prepare credentials while PredictNext is disabled', () => {
+    mockSelectors({ predictEnabled: false, kalshiEnabled: true });
 
     render(
       <PredictDeviceAuthBootstrap>
@@ -181,6 +183,24 @@ describe('PredictDeviceAuthBootstrap', () => {
     );
 
     expect(Engine.controllerMessenger.call).not.toHaveBeenCalled();
+  });
+
+  it('prepares credentials when PredictNext is enabled and Kalshi is disabled', async () => {
+    mockSelectors({ kalshiEnabled: false });
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(undefined);
+
+    render(
+      <PredictDeviceAuthBootstrap>
+        <></>
+      </PredictDeviceAuthBootstrap>,
+    );
+
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'PredictDeviceAuthService:prefetch',
+        true,
+      );
+    });
   });
 
   it('prepares only the local key while signed out', async () => {

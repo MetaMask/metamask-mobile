@@ -21,8 +21,9 @@ export interface PredictConfig {
      * `authProfileId` selects a bundled authentication profile (see
      * `resolveBundledAuthenticationProfile`) by id. Remote configuration may
      * only choose among bundled profiles; it cannot supply or override
-     * cryptographic instructions. Omitted or unrecognized ids fall back to
-     * `DEFAULT_KALSHI_AUTH_PROFILE_ID` via `resolveVenueAuthProfile`.
+     * cryptographic instructions. An omitted id selects
+     * `DEFAULT_KALSHI_AUTH_PROFILE_ID`. An id this build does not bundle
+     * leaves Kalshi authentication off.
      */
     kalshi: { enabled: boolean; authProfileId?: string };
   };
@@ -62,9 +63,9 @@ export const parsePredictConfig = (value: unknown): PredictConfig => {
 
 /**
  * Resolves the bundled Kalshi authentication profile the config selects,
- * independent of whether the Kalshi venue is enabled. Used anywhere that
- * needs to know which profile applies even while the venue is off, such as
- * targeting the right persisted device key on wallet reset.
+ * independent of whether Predict or the Kalshi venue is enabled. An omitted
+ * id selects the default profile. An id this build does not bundle returns
+ * undefined.
  */
 export const resolveSelectedAuthProfile = (
   config: PredictConfig,

@@ -55,6 +55,11 @@ const BUNDLED_AUTHENTICATION_PROFILES = {
 export type BundledAuthenticationProfileId =
   keyof typeof BUNDLED_AUTHENTICATION_PROFILES;
 
+/** Profiles shipped with this build. Wallet reset deletes each of their key slots. */
+export const listBundledAuthenticationProfiles =
+  (): readonly VenueAuthenticationProfile[] =>
+    Object.values(BUNDLED_AUTHENTICATION_PROFILES);
+
 /**
  * Remote configuration may select a bundled profile, but cannot supply or
  * override cryptographic instructions.

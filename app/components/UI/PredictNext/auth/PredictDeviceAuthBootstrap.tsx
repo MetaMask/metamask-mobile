@@ -11,7 +11,6 @@ import type {
   NetworkTier,
 } from '../../../../util/deviceCapability/types';
 import Logger from '../../../../util/Logger';
-import { resolveVenueAuthProfile } from '../config/predictConfig';
 import { selectPredictConfig } from '../selectors/predictConfig';
 import { isA2tSessionCleared } from './a2tSession';
 
@@ -42,11 +41,11 @@ export const PredictDeviceAuthBootstrap = ({
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = useSelector(selectIsUnlocked);
   const predictConfig = useSelector(selectPredictConfig);
-  const isKalshiEnabled = resolveVenueAuthProfile(predictConfig) !== undefined;
+  const isPredictEnabled = predictConfig.enabled;
   const includeA2t = shouldPrefetchA2t(hardwareTier, networkTier);
 
   useEffect(() => {
-    if (!isUnlocked || !isKalshiEnabled) {
+    if (!isUnlocked || !isPredictEnabled) {
       return;
     }
     Engine.controllerMessenger
@@ -60,7 +59,7 @@ export const PredictDeviceAuthBootstrap = ({
           'Predict device authentication prefetch failed',
         );
       });
-  }, [includeA2t, isKalshiEnabled, isSignedIn, isUnlocked]);
+  }, [includeA2t, isPredictEnabled, isSignedIn, isUnlocked]);
 
   return <>{children}</>;
 };

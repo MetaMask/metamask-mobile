@@ -9,7 +9,10 @@ import {
   type P256DeviceKey,
   type P256DevicePublicMaterial,
 } from '../auth/p256DeviceKey';
-import type { VenueAuthenticationProfile } from '../auth/venueAuthProfiles';
+import {
+  listBundledAuthenticationProfiles,
+  type VenueAuthenticationProfile,
+} from '../auth/venueAuthProfiles';
 
 export const PREDICT_DEVICE_AUTH_SERVICE_NAME =
   'PredictDeviceAuthService' as const;
@@ -55,10 +58,11 @@ export type PredictDeviceAuthServiceMessenger = Messenger<
 export interface PredictDeviceAuthServiceDependencies {
   /**
    * Resolves the bundled profile the current configuration selects,
-   * independent of whether the venue is currently enabled. Queried on every
-   * capability call so a resolved profile id change rebuilds the device key
-   * and session; undefined when this build does not recognize the selected
-   * profile id. `isEnabled` is the separate on/off switch.
+   * independent of whether the venue is currently enabled. Queried when
+   * preparing credentials so a resolved profile id change rebuilds the device
+   * key and session. Undefined when this build does not recognize the
+   * selected profile id. `isEnabled` is the separate on/off switch. Wallet
+   * reset ignores this and deletes every bundled key slot.
    */
   getProfile: () => VenueAuthenticationProfile | undefined;
   getIssuerUrl: () => string | undefined;
@@ -122,32 +126,31 @@ export class PredictDeviceAuthService {
   async ensureDeviceKey(): Promise<P256DevicePublicMaterial | null> {
     const enabled = this.#deps.isEnabled();
     const unlocked = this.#deps.isUnlocked();
-    const binding = this.#resolveBinding();
-    if (!enabled || !unlocked || !binding) {
-      this.clear();
-      return null;
-    }
-    return binding.deviceKey.ensure(unlocked);
+    return this.#ensureDeviceKey(this.#resolveBinding(), enabled, unlocked);
   }
 
   async getA2t(): Promise<string | undefined> {
-    const key = await this.ensureDeviceKey();
-    if (!key) {
-      return undefined;
-    }
+    const enabled = this.#deps.isEnabled();
+    const unlocked = this.#deps.isUnlocked();
     const binding = this.#resolveBinding();
-    if (!this.#deps.isSignedIn()) {
-      binding?.session.clear();
+    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
+    if (!binding || !key) {
       return undefined;
     }
-    return binding?.session.ensureA2T();
+    if (!this.#deps.isSignedIn()) {
+      binding.session.clear();
+      return undefined;
+    }
+    return binding.session.ensureA2T();
   }
 
   async prefetch(includeA2t = true): Promise<void> {
-    const key = await this.ensureDeviceKey();
+    const enabled = this.#deps.isEnabled();
+    const unlocked = this.#deps.isUnlocked();
     const binding = this.#resolveBinding();
-    if (key && includeA2t && this.#deps.isSignedIn()) {
-      await binding?.session.ensureA2T();
+    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
+    if (binding && key && includeA2t && this.#deps.isSignedIn()) {
+      await binding.session.ensureA2T();
     } else if (!this.#deps.isSignedIn()) {
       binding?.session.clear();
     }
@@ -158,21 +161,51 @@ export class PredictDeviceAuthService {
     this.#active?.deviceKey.clear();
   }
 
+  /**
+   * Drops the in-memory session and deletes every bundled profile's key.
+   * The selected configuration is ignored. A failed delete is logged and
+   * does not skip the remaining slots or reject.
+   */
   async reset(): Promise<void> {
-    try {
-      // Resolve (rather than read `#active`) so a reset issued while the
-      // capability is currently disabled still targets the persisted key for
-      // the configured profile, e.g. after the remote flag turned it off.
-      const binding = this.#resolveBinding();
-      binding?.session.clear();
-      await binding?.deviceKey.delete();
-    } catch (error) {
-      // A failed key delete must not abort wallet reset.
+    const logFailure = (error: unknown): void => {
       Logger.error(
         ensureError(error, 'PredictDeviceAuthService.reset'),
         'Failed to reset Predict device authentication',
       );
+    };
+    const active = this.#active;
+    this.#active = undefined;
+    try {
+      active?.session.clear();
+      active?.deviceKey.clear();
+    } catch (error) {
+      logFailure(error);
     }
+
+    for (const profile of listBundledAuthenticationProfiles()) {
+      try {
+        await createP256DeviceKey(profile.deviceKey).delete();
+      } catch (error) {
+        logFailure(error);
+      }
+    }
+  }
+
+  /**
+   * Loads the key for the binding this call already resolved. A second
+   * `getProfile` after the load would request the A2T from a new session
+   * whose key was never loaded.
+   */
+  async #ensureDeviceKey(
+    binding: PredictDeviceAuthBinding | undefined,
+    enabled: boolean,
+    unlocked: boolean,
+  ): Promise<P256DevicePublicMaterial | null> {
+    if (!enabled || !unlocked || !binding) {
+      this.clear();
+      return null;
+    }
+    return binding.deviceKey.ensure(unlocked);
   }
 
   /**

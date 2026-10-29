@@ -1,5 +1,6 @@
 import {
   KALSHI_AUTHENTICATION_PROFILE,
+  listBundledAuthenticationProfiles,
   resolveBundledAuthenticationProfile,
 } from './venueAuthProfiles';
 
@@ -22,6 +23,12 @@ describe('KALSHI_AUTHENTICATION_PROFILE', () => {
         challengeAttempts: 2,
       },
     });
+  });
+
+  it('lists every profile this build ships', () => {
+    expect(listBundledAuthenticationProfiles()).toEqual([
+      KALSHI_AUTHENTICATION_PROFILE,
+    ]);
   });
 
   it('allows configuration to select only a bundled profile', () => {

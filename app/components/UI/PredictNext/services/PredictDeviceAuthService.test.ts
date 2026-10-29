@@ -3,9 +3,11 @@ import {
   PredictDeviceAuthService,
   type PredictDeviceAuthServiceMessenger,
 } from './PredictDeviceAuthService';
+import { A2tSession } from '../auth/a2tSession';
 import { createP256DeviceKey } from '../auth/p256DeviceKey';
 import {
   KALSHI_AUTHENTICATION_PROFILE,
+  listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
 
@@ -27,6 +29,16 @@ jest.mock('../auth/a2tSession', () => ({
   })),
 }));
 
+jest.mock('../auth/venueAuthProfiles', () => {
+  const actual = jest.requireActual('../auth/venueAuthProfiles');
+  return {
+    ...actual,
+    listBundledAuthenticationProfiles: jest.fn(() => [
+      actual.KALSHI_AUTHENTICATION_PROFILE,
+    ]),
+  };
+});
+
 jest.mock('../auth/p256DeviceKey', () => ({
   createP256DeviceKey: jest.fn(() => ({
     ensure: mockEnsureDeviceKey,
@@ -38,6 +50,13 @@ jest.mock('../auth/p256DeviceKey', () => ({
     commitment: jest.fn(),
   })),
 }));
+
+const DEVICE_PUBLIC_MATERIAL = {
+  publicRaw: new Uint8Array(65),
+  publicKey: 'public-key',
+  saltRaw: new Uint8Array(16),
+  salt: 'salt',
+};
 
 const SECOND_AUTHENTICATION_PROFILE: VenueAuthenticationProfile = {
   ...KALSHI_AUTHENTICATION_PROFILE,
@@ -84,12 +103,10 @@ const createService = ({
 describe('PredictDeviceAuthService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockEnsureDeviceKey.mockResolvedValue({
-      publicRaw: new Uint8Array(65),
-      publicKey: 'public-key',
-      saltRaw: new Uint8Array(16),
-      salt: 'salt',
-    });
+    jest
+      .mocked(listBundledAuthenticationProfiles)
+      .mockReturnValue([KALSHI_AUTHENTICATION_PROFILE]);
+    mockEnsureDeviceKey.mockResolvedValue(DEVICE_PUBLIC_MATERIAL);
     mockGetA2t.mockResolvedValue('opaque-a2t');
   });
 
@@ -134,17 +151,72 @@ describe('PredictDeviceAuthService', () => {
     expect(mockGetA2t).not.toHaveBeenCalled();
   });
 
-  it('deletes the persisted key on reset', async () => {
-    const { service } = createService();
+  it('deletes every bundled key slot when no profile is selected', async () => {
+    jest
+      .mocked(listBundledAuthenticationProfiles)
+      .mockReturnValue([
+        KALSHI_AUTHENTICATION_PROFILE,
+        SECOND_AUTHENTICATION_PROFILE,
+      ]);
+    const getProfile = jest.fn(
+      (): VenueAuthenticationProfile | undefined => undefined,
+    );
+    const { service } = createService({ getProfile });
 
     await service.reset();
 
-    expect(mockClearSession).toHaveBeenCalledTimes(1);
-    expect(mockDeleteDeviceKey).toHaveBeenCalledTimes(1);
+    expect(getProfile).not.toHaveBeenCalled();
+    expect(createP256DeviceKey).toHaveBeenNthCalledWith(
+      1,
+      KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+    );
+    expect(createP256DeviceKey).toHaveBeenNthCalledWith(
+      2,
+      SECOND_AUTHENTICATION_PROFILE.deviceKey,
+    );
+    expect(mockDeleteDeviceKey).toHaveBeenCalledTimes(2);
     expect(Logger.error).not.toHaveBeenCalled();
   });
 
-  it('logs and resolves when deleting the persisted key fails', async () => {
+  it('deletes every bundled key slot when the selected profile is one of them', async () => {
+    jest
+      .mocked(listBundledAuthenticationProfiles)
+      .mockReturnValue([
+        KALSHI_AUTHENTICATION_PROFILE,
+        SECOND_AUTHENTICATION_PROFILE,
+      ]);
+    const getProfile = jest.fn(() => KALSHI_AUTHENTICATION_PROFILE);
+    const { service } = createService({ getProfile });
+    await service.ensureDeviceKey();
+    getProfile.mockClear();
+    jest.mocked(createP256DeviceKey).mockClear();
+    mockDeleteDeviceKey.mockClear();
+    mockClearSession.mockClear();
+
+    await service.reset();
+
+    expect(getProfile).not.toHaveBeenCalled();
+    expect(mockClearSession).toHaveBeenCalledTimes(1);
+    expect(mockClearDeviceKey).toHaveBeenCalledTimes(1);
+    expect(createP256DeviceKey).toHaveBeenNthCalledWith(
+      1,
+      KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+    );
+    expect(createP256DeviceKey).toHaveBeenNthCalledWith(
+      2,
+      SECOND_AUTHENTICATION_PROFILE.deviceKey,
+    );
+    expect(mockDeleteDeviceKey).toHaveBeenCalledTimes(2);
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('deletes the remaining key slots when one delete fails', async () => {
+    jest
+      .mocked(listBundledAuthenticationProfiles)
+      .mockReturnValue([
+        KALSHI_AUTHENTICATION_PROFILE,
+        SECOND_AUTHENTICATION_PROFILE,
+      ]);
     const { service } = createService();
     mockDeleteDeviceKey.mockRejectedValueOnce(
       new Error('device key delete failed'),
@@ -152,14 +224,19 @@ describe('PredictDeviceAuthService', () => {
 
     await expect(service.reset()).resolves.toBeUndefined();
 
-    expect(mockClearSession).toHaveBeenCalledTimes(1);
+    expect(mockDeleteDeviceKey).toHaveBeenCalledTimes(2);
+    expect(createP256DeviceKey).toHaveBeenNthCalledWith(
+      2,
+      SECOND_AUTHENTICATION_PROFILE.deviceKey,
+    );
+    expect(Logger.error).toHaveBeenCalledTimes(1);
     expect(Logger.error).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'device key delete failed' }),
       'Failed to reset Predict device authentication',
     );
   });
 
-  it('resolves the profile from getProfile on every capability call', async () => {
+  it('resolves the profile from getProfile when preparing an A2T', async () => {
     const getProfile = jest.fn(() => KALSHI_AUTHENTICATION_PROFILE);
     const { service } = createService({ getProfile });
 
@@ -206,5 +283,53 @@ describe('PredictDeviceAuthService', () => {
     await service.ensureDeviceKey();
 
     expect(createP256DeviceKey).toHaveBeenCalledTimes(1);
+  });
+
+  it('requests the A2T for the profile resolved before the device key loads', async () => {
+    const getProfile = jest.fn(() => KALSHI_AUTHENTICATION_PROFILE);
+    const { service } = createService({ getProfile });
+    mockEnsureDeviceKey.mockImplementation(async () => {
+      getProfile.mockReturnValue(SECOND_AUTHENTICATION_PROFILE);
+      return DEVICE_PUBLIC_MATERIAL;
+    });
+
+    await expect(service.getA2t()).resolves.toBe('opaque-a2t');
+
+    expect(getProfile).toHaveBeenCalledTimes(1);
+    expect(createP256DeviceKey).toHaveBeenCalledTimes(1);
+    expect(createP256DeviceKey).toHaveBeenCalledWith(
+      KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+    );
+    expect(A2tSession).toHaveBeenCalledTimes(1);
+    expect(A2tSession).toHaveBeenCalledWith(
+      expect.objectContaining({ profile: KALSHI_AUTHENTICATION_PROFILE }),
+    );
+    expect(mockGetA2t).toHaveBeenCalledTimes(1);
+    expect(mockClearDeviceKey).not.toHaveBeenCalled();
+    expect(mockClearSession).not.toHaveBeenCalled();
+  });
+
+  it('prefetches the A2T for the profile resolved before the device key loads', async () => {
+    const getProfile = jest.fn(() => KALSHI_AUTHENTICATION_PROFILE);
+    const { service } = createService({ getProfile });
+    mockEnsureDeviceKey.mockImplementation(async () => {
+      getProfile.mockReturnValue(SECOND_AUTHENTICATION_PROFILE);
+      return DEVICE_PUBLIC_MATERIAL;
+    });
+
+    await service.prefetch();
+
+    expect(getProfile).toHaveBeenCalledTimes(1);
+    expect(createP256DeviceKey).toHaveBeenCalledTimes(1);
+    expect(createP256DeviceKey).toHaveBeenCalledWith(
+      KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+    );
+    expect(A2tSession).toHaveBeenCalledTimes(1);
+    expect(A2tSession).toHaveBeenCalledWith(
+      expect.objectContaining({ profile: KALSHI_AUTHENTICATION_PROFILE }),
+    );
+    expect(mockGetA2t).toHaveBeenCalledTimes(1);
+    expect(mockClearDeviceKey).not.toHaveBeenCalled();
+    expect(mockClearSession).not.toHaveBeenCalled();
   });
 });
