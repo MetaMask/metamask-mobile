@@ -268,11 +268,30 @@ describe('TokenDetailsInlineHeader', () => {
       expect(mockOnBackPress).toHaveBeenCalledTimes(1);
     });
 
-    it('renders asset ticker as title', () => {
-      const { getByText, queryByText } = renderHeader();
+    it('renders the token name with the ticker below it', () => {
+      const { getByText, toJSON } = renderHeader();
+
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(getByText('ETH')).toBeOnTheScreen();
+
+      const serialized = JSON.stringify(toJSON());
+      expect(serialized.indexOf('Ethereum')).toBeLessThan(
+        serialized.indexOf('ETH'),
+      );
+    });
+
+    it('omits the ticker line when it matches the token name', () => {
+      const { getByText, queryByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          name: 'ETH',
+          ticker: 'ETH',
+          symbol: 'ETH',
+        },
+      });
 
       expect(getByText('ETH')).toBeOnTheScreen();
-      expect(queryByText('Ethereum')).toBeNull();
+      expect(queryByTestId('token-details-ticker')).toBeNull();
     });
 
     it('does not render description or copy button for native tokens', () => {

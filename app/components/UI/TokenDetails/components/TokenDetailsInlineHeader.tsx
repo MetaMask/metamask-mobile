@@ -215,6 +215,35 @@ export const TokenDetailsInlineHeader = ({
     );
   }, [description, inlineDescription]);
 
+  const tokenName = token.name?.trim() || token.ticker || token.symbol;
+  const tokenTicker = token.ticker || token.symbol;
+  const showTickerBelowName = Boolean(
+    tokenTicker &&
+      tokenName &&
+      tokenTicker.toLowerCase() !== tokenName.toLowerCase(),
+  );
+  const headerTitle = showTickerBelowName ? (
+    <Box flexDirection={BoxFlexDirection.Column}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+      >
+        {tokenName}
+      </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+        testID="token-details-ticker"
+      >
+        {tokenTicker}
+      </Text>
+    </Box>
+  ) : (
+    tokenName
+  );
+
   return (
     <HeaderSubpage
       includesTopInset
@@ -241,7 +270,7 @@ export const TokenDetailsInlineHeader = ({
           <AssetLogo asset={token} />
         </BadgeWrapper>
       }
-      title={token.ticker || token.symbol}
+      title={headerTitle}
       titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
       description={headerDescription}
     />
