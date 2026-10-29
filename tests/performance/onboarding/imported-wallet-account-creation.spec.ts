@@ -9,6 +9,7 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import { AppiumAssertions } from '../../framework';
 import TimerHelper from '../../framework/TimerHelper';
 import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 1: Imported wallet with 50+ accounts + account creation */
 test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
@@ -26,6 +27,7 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceAccountList}
         'Time since the user clicks on new account created until the Token list is visible',
       );
 
+      await enableHermesAppProfiling();
       await WalletView.tapIdenticon();
       await screen1Timer.measure(
         async () =>

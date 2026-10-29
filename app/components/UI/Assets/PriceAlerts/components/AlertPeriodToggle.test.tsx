@@ -31,6 +31,28 @@ describe('AlertPeriodToggle', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders 5 minutes only when enabled for perpetuals', () => {
+    const spotScreen = render(
+      <AlertPeriodToggle value="24h" onChange={mockOnChange} />,
+    );
+
+    expect(
+      spotScreen.queryByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_5M),
+    ).not.toBeOnTheScreen();
+
+    const perpsScreen = render(
+      <AlertPeriodToggle
+        value="24h"
+        onChange={mockOnChange}
+        includeFiveMinutes
+      />,
+    );
+
+    expect(
+      perpsScreen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_5M),
+    ).toBeOnTheScreen();
+  });
+
   it('marks the selected period in accessibility state', () => {
     const screen = render(
       <AlertPeriodToggle value="1h" onChange={mockOnChange} />,

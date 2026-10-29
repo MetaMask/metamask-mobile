@@ -14,3 +14,6 @@ export const FEED_CAIP2_CHAINS: readonly CaipChainId[] = [
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // solana mainnet
   'eip155:999', // hyperliquid
 ];
+
+/** HyperEVM, the chain the feed files Hyperliquid perp markets under. */
+export const HYPERLIQUID_CAIP2_CHAIN_ID: CaipChainId = 'eip155:999';

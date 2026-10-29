@@ -8,6 +8,8 @@ import { describeForPlatforms } from '../../../../tests/component-view/platform'
 import {
   ACTIVITY_CV_PREDICT_DEPOSIT_TIME_MS,
   ACTIVITY_CV_PREDICT_MARKET_TITLE,
+  ACTIVITY_CV_PREDICT_SETTLEMENT_OUTCOME,
+  ACTIVITY_CV_PREDICT_SETTLEMENT_TIME_MS,
   activityPredictPayUsdcTokenOverride,
   activityPredictTradingEnabledFlag,
   buildConfirmedLocalPredictDepositWithPayTransaction,
@@ -17,10 +19,12 @@ import {
   buildPredictBuyActivity,
   buildPredictClaimActivity,
   buildPredictSellActivity,
+  buildPredictSettlementItem,
   initialStateActivity,
   initialStateActivityWithLocalTransactions,
 } from '../../../../tests/component-view/presets/activity';
 import {
+  renderActivityDetailsTemplateView,
   renderActivityDetailsView,
   getActivityDetailsViewParams,
 } from '../../../../tests/component-view/renderers/activity';
@@ -97,7 +101,7 @@ function renderPredictProviderDetails(activity: PredictActivity) {
   const params = getActivityDetailsViewParams(item);
   jest
     .mocked(Engine.context.PredictController.getActivity)
-    .mockResolvedValue([activity]);
+    .mockResolvedValue({ activities: [activity], nextCursor: undefined });
 
   const state = initialStateActivity()
     .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
@@ -144,7 +148,7 @@ describeForPlatforms('ActivityDetails — Predict', () => {
   afterEach(() => {
     jest
       .mocked(Engine.context.PredictController.getActivity)
-      .mockResolvedValue([]);
+      .mockResolvedValue({ activities: [], nextCursor: undefined });
   });
 
   describe('Predict account funding', () => {
@@ -538,6 +542,109 @@ describeForPlatforms('ActivityDetails — Predict', () => {
 
       expect(queryByTestId(DO_IT_AGAIN_BUTTON)).toBeNull();
       expect(queryByTestId(BLOCK_EXPLORER_BUTTON)).toBeNull();
+    });
+  });
+
+  // Rendered through TemplateLoader with a fixture item: the Next details
+  // lookup that resolves a Kalshi row from route params arrives with PRED-1410.
+  describe('Settled', () => {
+    it('shows a winning Settlement with proceeds, outcome, result, shares, and net P&L', () => {
+      const { getByTestId, getByText, UNSAFE_getAllByType } =
+        renderActivityDetailsTemplateView({
+          item: buildPredictSettlementItem(),
+        });
+
+      expect(
+        within(getByTestId(AMOUNT_HEADER)).getByText('+$10.00'),
+      ).toBeOnTheScreen();
+      expect(findAmountTextColor(UNSAFE_getAllByType, /^\+\$10\.00$/)).toBe(
+        TextColor.SuccessDefault,
+      );
+
+      expect(
+        getByText(strings('predict.transactions.you_predicted')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(ACTIVITY_CV_PREDICT_SETTLEMENT_OUTCOME),
+      ).toBeOnTheScreen();
+      expect(getByText(ACTIVITY_CV_PREDICT_MARKET_TITLE)).toBeOnTheScreen();
+
+      expect(getByTestId(STATUS_PILL)).toHaveTextContent(
+        strings('transaction.confirmed'),
+      );
+      expect(getByTestId(DATE_ROW)).toHaveTextContent(
+        formatPredictDate(ACTIVITY_CV_PREDICT_SETTLEMENT_TIME_MS),
+        { exact: false },
+      );
+      expect(
+        getByText(strings('predict.transactions.settlement_result')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('predict.transactions.settlement_result_won')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('predict.transactions.shares_settled')),
+      ).toBeOnTheScreen();
+      expect(getByText('10')).toBeOnTheScreen();
+
+      expect(
+        getByText(strings('predict.transactions.net_pnl')),
+      ).toBeOnTheScreen();
+      expect(findAmountTextColor(UNSAFE_getAllByType, /^\+\$4\.20$/)).toBe(
+        TextColor.SuccessDefault,
+      );
+    });
+
+    it('shows a losing Settlement with zero proceeds and a negative net P&L', () => {
+      const { getByTestId, getByText, UNSAFE_getAllByType } =
+        renderActivityDetailsTemplateView({
+          item: buildPredictSettlementItem({
+            token: { amount: '0', symbol: 'USD', direction: 'in' },
+            result: 'no',
+            realizedPnl: '-6',
+          }),
+        });
+
+      expect(
+        within(getByTestId(AMOUNT_HEADER)).getByText('$0.00'),
+      ).toBeOnTheScreen();
+      expect(findAmountTextColor(UNSAFE_getAllByType, /^\$0\.00$/)).toBe(
+        TextColor.TextDefault,
+      );
+      expect(
+        getByText(strings('predict.transactions.settlement_result_lost')),
+      ).toBeOnTheScreen();
+      expect(findAmountTextColor(UNSAFE_getAllByType, /^-\$6\.00$/)).toBe(
+        TextColor.ErrorDefault,
+      );
+    });
+
+    it('omits the net P&L row when realized PnL is absent', () => {
+      const { getByText, queryByText } = renderActivityDetailsTemplateView({
+        item: buildPredictSettlementItem({ realizedPnl: undefined }),
+      });
+
+      expect(
+        getByText(strings('predict.transactions.shares_settled')),
+      ).toBeOnTheScreen();
+      expect(queryByText(strings('predict.transactions.net_pnl'))).toBeNull();
+    });
+
+    it('reads a scalar result as a partial payout and falls back to the held side', () => {
+      const { getByText } = renderActivityDetailsTemplateView({
+        item: buildPredictSettlementItem({
+          token: { amount: '5', symbol: 'USD', direction: 'in' },
+          result: 'scalar',
+          outcomeLabel: undefined,
+        }),
+      });
+
+      expect(
+        getByText(strings('predict.transactions.settlement_result_partial')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('predict.market_details.yes')),
+      ).toBeOnTheScreen();
     });
   });
 });

@@ -52,6 +52,7 @@ import {
 } from '../constants/constants';
 import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 
 export type TokenActionInput = TokenI & {
   /** Preferred CAIP-19 when already resolved (e.g. Asset route params). */
@@ -119,7 +120,14 @@ const useIsRampAuthenticated = (): boolean => {
 /**
  * Atomic hook returning the click handler for the Buy CTA on Token Details
  */
-export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
+export const useHandleOnBuy = ({
+  token,
+  tdpVersion,
+}: {
+  token: TokenActionInput;
+  /** Token Details page version. When set, adds `tdp_version` to the below-chart Buy `ACTION_BUTTON_CLICKED` event. Omit for non-TDP callers. */
+  tdpVersion?: TdpVersion;
+}) => {
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
@@ -133,6 +141,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
       action_position: ActionPosition.FIRST_POSITION,
       button_label: strings('asset_overview.buy_button'),
       location: ActionLocation.ASSET_DETAILS,
+      ...(tdpVersion ? { tdp_version: tdpVersion } : {}),
     });
 
     const assetId = await resolveBuyAssetId(token);
@@ -171,7 +180,15 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     );
 
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-  }, [store, token, trackEvent, createEventBuilder, isAuthenticated, goToBuy]);
+  }, [
+    store,
+    token,
+    trackEvent,
+    createEventBuilder,
+    isAuthenticated,
+    goToBuy,
+    tdpVersion,
+  ]);
 };
 
 /**
@@ -248,7 +265,14 @@ export const useHandleOnSwap = ({
  * Switches to the token's chain (when needed) and routes through the
  * non-EVM send flow first; falls through to the EVM send page otherwise.
  */
-export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
+export const useHandleOnSend = ({
+  token,
+  tdpVersion,
+}: {
+  token: TokenActionInput;
+  /** Token Details page version. When set, adds `tdp_version` to the below-chart Send `ACTION_BUTTON_CLICKED` event. Omit for non-TDP callers. */
+  tdpVersion?: TdpVersion;
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -259,16 +283,13 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
-        .addProperties({
-          action_name: ActionButtonType.SEND,
-          action_position: ActionPosition.THIRD_POSITION,
-          button_label: strings('asset_overview.send_button'),
-          location: ActionLocation.ASSET_DETAILS,
-        })
-        .build(),
-    );
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.SEND,
+      action_position: ActionPosition.THIRD_POSITION,
+      button_label: strings('asset_overview.send_button'),
+      location: ActionLocation.ASSET_DETAILS,
+      ...(tdpVersion ? { tdp_version: tdpVersion } : {}),
+    });
 
     const wasHandledAsNonEvm = await sendNonEvmAsset(
       InitSendLocation.AssetOverview,
@@ -315,6 +336,7 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
     store,
     navigateToSendPage,
     token,
+    tdpVersion,
   ]);
 };
 
@@ -324,10 +346,13 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
 export const useHandleOnReceive = ({
   token,
   networkName,
+  tdpVersion,
 }: {
   token: TokenActionInput;
   /** Optional network name displayed in the share-address QR sheet. */
   networkName?: string;
+  /** Token Details page version. When set, adds `tdp_version` to the below-chart Receive `ACTION_BUTTON_CLICKED` event. Omit for non-TDP callers. */
+  tdpVersion?: TdpVersion;
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const store = useStore<RootState>();
@@ -341,6 +366,7 @@ export const useHandleOnReceive = ({
       action_position: ActionPosition.FOURTH_POSITION,
       button_label: strings('asset_overview.receive_button'),
       location: ActionLocation.ASSET_DETAILS,
+      ...(tdpVersion ? { tdp_version: tdpVersion } : {}),
     });
 
     const state = store.getState();
@@ -383,5 +409,13 @@ export const useHandleOnReceive = ({
         },
       );
     }
-  }, [trackEvent, createEventBuilder, store, navigation, token, networkName]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    store,
+    navigation,
+    token,
+    networkName,
+    tdpVersion,
+  ]);
 };

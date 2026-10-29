@@ -19,7 +19,10 @@ import type {
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { Position as SocialPosition } from '@metamask/social-controllers';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/PerpsTooltipView';
+import type { ConfirmationLaunchSource } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -38,6 +41,10 @@ export type PerpsModalsNavigationParamList = {
   PerpsSelectProvider: undefined;
   PerpsModeSelection: undefined;
   PerpsOutreachDetails: undefined;
+  PerpsSharePosition: PerpsStackParamList['PerpsPnlHeroCard'] & {
+    accountAddress?: string;
+    socialPosition?: SocialPosition;
+  };
   PerpsSelectModifyAction: {
     position: Position;
     useBottomSheet?: boolean;
@@ -83,6 +90,11 @@ export type PerpsOrderRouteParams = {
   fromTokenDetails?: boolean;
   /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
   showPerpsHeader?: boolean;
+  /**
+   * Where the confirmation was opened from. Adjust-margin deposits use this
+   * so the confirmation covers that sheet and returns to it when finished.
+   */
+  launchedFrom?: ConfirmationLaunchSource;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section (search, watchlist, category, all_markets) */
@@ -104,6 +116,8 @@ export type PerpsOrderRouteParams = {
    * / failed toasts still fire.
    */
   stayOnCurrentScreen?: boolean;
+  /** Social post being copied; a matching order records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -323,6 +337,19 @@ export type PerpsStackParamList = {
      */
     useBottomSheet?: boolean;
     /**
+     * Claims the recovery owner's current reviewed action before dismissal.
+     * When supplied, must return true to submit. The owner must still fence
+     * forwarding in onConfirm after the editor has dismissed.
+     */
+    onBeforeConfirm?: () => boolean;
+    /**
+     * Validates the recovery owner's exact authoritative position review when
+     * ordinary position streams are unavailable. Without this callback, the
+     * view uses its existing live-position guard. The owner must also fence
+     * forwarding after dismissal; the provider rechecks size and entry price.
+     */
+    isPositionReviewCurrent?: (position: Position) => boolean;
+    /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
      */
@@ -394,6 +421,8 @@ export type PerpsStackParamList = {
      * of opening market details.
      */
     stayOnCurrentScreen?: boolean;
+    /** Social post being copied, forwarded to the order view. */
+    copyTradeOrigin?: CopyTradeOrigin;
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)

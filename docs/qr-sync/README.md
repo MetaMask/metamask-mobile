@@ -14,9 +14,9 @@ QR Sync lets a **MetaMask Mobile user** copy their extension wallet onto mobile 
 
 Mobile imports the secrets securely, then rebuilds the **same account layout** the user had in the extension — instead of guessing which accounts to show based on on-chain activity.
 
-**Primary flow today:** Add Device → OTP pairing → password + import → Onboarding Success → Home.
+**New user:** Add Device → OTP pairing → password + import → Onboarding Success → Home.
 
-**Not in scope yet:** Adding a device via QR for users who already completed mobile onboarding.
+**Existing user:** Add Device → OTP pairing → import into the current vault → Home. Extension layout (names, groups, pin/hide) is applied in the background, the same path as new-user Phase C.
 
 ---
 

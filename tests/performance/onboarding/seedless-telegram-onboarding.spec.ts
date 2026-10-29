@@ -55,7 +55,7 @@ const assertTelegramLoginReady = async (): Promise<void> => {
         'Prerequisites:',
         '- telegram_login_enabled must be true (e2e/test LaunchDarkly env defaults to false;',
         '  without-srp performance builds bake MM_TELEGRAM_LOGIN_ENABLED=true)',
-        '- E2E_MOCK_OAUTH without-srp BrowserStack build (QA mock credentials) must be installed',
+        '- E2E_MOCK_OAUTH without-srp TestMu build (QA mock credentials) must be installed',
         `Original error: ${details}`,
       ].join(' '),
     );
@@ -73,7 +73,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
     // actions run.
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
       const platform = currentDeviceDetails.platform;
-      // Conservative initial guardrails — calibrate against BrowserStack
+      // Conservative initial guardrails — calibrate against TestMu
       // baselines once this coverage has 10+ clean RC/release-profile runs
       // (see TO-916 acceptance criteria for p50/p95 documentation).
       const timer1 = new TimerHelper(

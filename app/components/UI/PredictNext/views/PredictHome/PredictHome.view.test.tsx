@@ -1,6 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
-import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
@@ -9,28 +8,38 @@ import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.te
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
+import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
+import { PredictError, PredictErrorCode } from '../../errors';
+import {
+  KALSHI_STATIC_VENUE_CATALOG,
+  POLYMARKET_STATIC_VENUE_CATALOG,
+} from '../../config/venueCatalogs';
 import type {
   PredictEntityId,
   PredictFeedId,
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
-import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
-  NCAA_GAMES_FEED_ID,
   NCAA_FEED_SCREEN_ID,
-  NFL_GAMES_FEED_ID,
   NFL_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import {
+  answerPredictNextCatalog,
+  configurePredictNextCatalog,
   configurePredictNextFeeds,
   expectPredictNextGameCard,
   makePredictNextEvent,
   messengerCall,
+  mockPredictNextMessenger,
   ncaaEvents,
   nflEvents,
+  PREDICT_NEXT_FEED_IDS,
   publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
+
+const { nflGames: NFL_GAMES_FEED_ID, ncaaGames: NCAA_GAMES_FEED_ID } =
+  PREDICT_NEXT_FEED_IDS;
 
 describe('PredictHome', () => {
   beforeEach(() => {
@@ -100,20 +109,17 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('keeps funding actions disabled', async () => {
+  it('offers no funding actions while none is implemented', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
-    fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
-    fireEvent.press(view.getByTestId(PredictHomeTestIds.WITHDRAW));
-
-    expect(view.getByTestId(PredictHomeTestIds.ADD_FUNDS)).toBeDisabled();
-    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeDisabled();
-    expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(view.queryByText('Add Funds')).not.toBeOnTheScreen();
+    expect(view.queryByText('Withdraw')).not.toBeOnTheScreen();
   });
 
   it('masks Balance when privacy mode is enabled', async () => {
-    const view = renderPredictNext(undefined, true);
+    const view = renderPredictNext(true);
 
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
     expect(view.queryByText('$123.13')).not.toBeOnTheScreen();
@@ -122,28 +128,26 @@ describe('PredictHome', () => {
 
   it('keeps Balance failure isolated and retries it', async () => {
     let balanceFails = true;
-    messengerCall.mockImplementation(
-      (action: string, _venueId: string, id: string) => {
-        if (action === 'PredictPortfolioService:getBalance') {
-          return balanceFails
-            ? Promise.reject(new Error('Balance failed'))
-            : Promise.resolve({
-                venueId: 'kalshi',
-                currency: 'USD',
-                available: '5',
-              });
-        }
-        if (action === 'PredictMarketDataService:getFeed') {
-          return Promise.resolve({
-            venueId: 'kalshi',
-            id,
-            title: 'Games',
-            events: id === NFL_GAMES_FEED_ID ? nflEvents : ncaaEvents,
-          });
-        }
-        return Promise.resolve(undefined);
-      },
-    );
+    mockPredictNextMessenger((action: string, _venueId: string, id: string) => {
+      if (action === 'PredictPortfolioService:getBalance') {
+        return balanceFails
+          ? Promise.reject(new Error('Balance failed'))
+          : Promise.resolve({
+              venueId: 'kalshi',
+              currency: 'USD',
+              available: '5',
+            });
+      }
+      if (action === 'PredictMarketDataService:getFeed') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          id,
+          title: 'Games',
+          events: id === NFL_GAMES_FEED_ID ? nflEvents : ncaaEvents,
+        });
+      }
+      return Promise.resolve(undefined);
+    });
     const view = renderPredictNext();
 
     expect(
@@ -159,6 +163,24 @@ describe('PredictHome', () => {
     expect(
       await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
     ).toHaveTextContent('$5.00');
+  });
+
+  it('shows region copy without a retry when Balance is geo-blocked', async () => {
+    const callFixture = messengerCall.getMockImplementation();
+    mockPredictNextMessenger((action: string, ...params: unknown[]) =>
+      action === 'PredictPortfolioService:getBalance'
+        ? Promise.reject(PredictError.from(PredictErrorCode.GEO_BLOCKED))
+        : callFixture?.(action, ...params),
+    );
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.BALANCE_GEO_BLOCKED),
+    ).toHaveTextContent('Not available in your region');
+    expect(view.queryByText('Balance unavailable')).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.BALANCE_RETRY),
+    ).not.toBeOnTheScreen();
   });
 
   it('uses the 60-second Balance focus revalidation window', async () => {
@@ -177,22 +199,20 @@ describe('PredictHome', () => {
       'kalshi',
     );
 
-    messengerCall.mockImplementation(
-      (action: string, _venueId: string, id: string) => {
-        if (action === 'PredictPortfolioService:getBalance') {
-          return Promise.reject(new Error('Balance refetch failed'));
-        }
-        if (action === 'PredictMarketDataService:getFeed') {
-          return Promise.resolve({
-            venueId: 'kalshi',
-            id,
-            title: 'Games',
-            events: id === NFL_GAMES_FEED_ID ? nflEvents : ncaaEvents,
-          });
-        }
-        return Promise.resolve(undefined);
-      },
-    );
+    mockPredictNextMessenger((action: string, _venueId: string, id: string) => {
+      if (action === 'PredictPortfolioService:getBalance') {
+        return Promise.reject(new Error('Balance refetch failed'));
+      }
+      if (action === 'PredictMarketDataService:getFeed') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          id,
+          title: 'Games',
+          events: id === NFL_GAMES_FEED_ID ? nflEvents : ncaaEvents,
+        });
+      }
+      return Promise.resolve(undefined);
+    });
     now.mockReturnValue(61_001);
     await act(async () => {
       focusManager.setFocused(false);
@@ -387,10 +407,12 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
 
-      expect(watchedEventIds()).toEqual([
-        ...eventIds(nflEvents),
-        ...eventIds(ncaaEvents),
-      ]);
+      // Each section resolves its own preview Feed, so the service may hear
+      // the two watches in either order. The ids are the contract, not the
+      // arrival order; sorting keeps extra or duplicate watches failing.
+      expect(watchedEventIds().sort()).toEqual(
+        [...eventIds(nflEvents), ...eventIds(ncaaEvents)].sort(),
+      );
       expect(
         liveDataCalls().filter(
           ([action]) => action === 'PredictLiveDataService:unwatchEvents',
@@ -527,7 +549,7 @@ describe('PredictHome', () => {
 
   it('renders a successful NCAAF preview while NFL is still loading', async () => {
     let resolveNfl: (value: unknown) => void = () => undefined;
-    messengerCall.mockImplementation(
+    mockPredictNextMessenger(
       (action: string, _venueId: string, feedId: PredictFeedId) => {
         if (action !== 'PredictMarketDataService:getFeed') {
           return Promise.resolve(undefined);
@@ -636,19 +658,20 @@ describe('PredictHome', () => {
   });
 
   it('returns to Home after opening the immutable Event from a card', async () => {
-    messengerCall.mockImplementation(
-      (action: string, _venueId: string, id: string) => {
-        if (action === 'PredictMarketDataService:getEvent') {
-          return Promise.resolve(nflEvents.find((event) => event.id === id));
-        }
-        return Promise.resolve({
-          venueId: 'kalshi',
-          id,
-          title: 'Games',
-          events: id === 'sports-football-nfl-games' ? nflEvents : ncaaEvents,
-        });
-      },
-    );
+    mockPredictNextMessenger((action: string, _venueId: string, id: string) => {
+      if (action === 'PredictMarketDataService:getEvent') {
+        return Promise.resolve(nflEvents.find((event) => event.id === id));
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId: 'kalshi', positions: [] });
+      }
+      return Promise.resolve({
+        venueId: 'kalshi',
+        id,
+        title: 'Games',
+        events: id === 'sports-football-nfl-games' ? nflEvents : ncaaEvents,
+      });
+    });
     const view = renderPredictNext();
 
     fireEvent.press(
@@ -696,17 +719,311 @@ describe('PredictHome', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('tracks the homepage entry point', async () => {
-    renderPredictNext({
-      entryPoint: PredictEventValues.ENTRY_POINT.HOMESCREEN_BALANCE_BREAKDOWN,
+  describe('capability-gated Feed sections', () => {
+    const feedCalls = () =>
+      messengerCall.mock.calls.filter(
+        ([action]) => action === 'PredictMarketDataService:getFeed',
+      );
+    const buyButtons = (view: ReturnType<typeof renderPredictNext>) =>
+      view.queryAllByLabelText(/, buy$/);
+
+    it('renders every section the Venue supports, with search and buy', async () => {
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID)),
+      ).toBeOnTheScreen();
+      expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+      expect(buyButtons(view).length).toBeGreaterThan(0);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
+      ).not.toBeOnTheScreen();
     });
 
-    await waitFor(() =>
+    it('omits a section whose Feed key the Venue lacks and never reads its Feed', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: { 'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'] },
+      });
+      const view = renderPredictNext();
+
       expect(
-        Engine.context.PredictController.trackHomeViewed,
-      ).toHaveBeenCalledWith({
-        entryPoint: 'homescreen_balance_breakdown',
-      }),
-    );
+        await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(feedCalls().map(([, , feedId]) => feedId)).not.toContain(
+        NCAA_GAMES_FEED_ID,
+      );
+    });
+
+    it('shows a placeholder and reads no Feed while capabilities load', async () => {
+      configurePredictNextCatalog('pending');
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.SECTIONS_LOADING),
+      ).toBeOnTheScreen();
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SEARCH),
+      ).not.toBeOnTheScreen();
+      expect(feedCalls()).toHaveLength(0);
+    });
+
+    it('shows a retryable failure and renders the sections after recovery', async () => {
+      configurePredictNextCatalog(
+        PredictError.from(PredictErrorCode.SERVICE_DEGRADED),
+      );
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.SECTIONS_ERROR),
+      ).toHaveTextContent('Markets couldn’t be loaded.', { exact: false });
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(feedCalls()).toHaveLength(0);
+
+      configurePredictNextCatalog(KALSHI_STATIC_VENUE_CATALOG);
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.SECTIONS_RETRY));
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SECTIONS_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ['a malformed catalog', { venueId: 'kalshi', actions: 'buy' }],
+      ["another Venue's catalog", POLYMARKET_STATIC_VENUE_CATALOG],
+    ])('enables nothing for %s', async (_name, catalog) => {
+      configurePredictNextCatalog(catalog);
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
+      ).toHaveTextContent('No markets are available right now.');
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SEARCH),
+      ).not.toBeOnTheScreen();
+      expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+      expect(feedCalls()).toHaveLength(0);
+    });
+
+    it('enables nothing when the catalog read returns no catalog', async () => {
+      configurePredictNextCatalog(undefined);
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.SECTIONS_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SEARCH),
+      ).not.toBeOnTheScreen();
+      expect(feedCalls()).toHaveLength(0);
+    });
+
+    it('shows prices without buy buttons when the Venue does not support buy', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        actions: ['sell'],
+        searchSupported: false,
+      });
+      const view = renderPredictNext();
+
+      const card = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-1'),
+      );
+      expect(
+        within(card).getByTestId(PredictHomeTestIds.gameQuote('nfl-1', 'away')),
+      ).toBeOnTheScreen();
+      expect(buyButtons(view)).toHaveLength(0);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SEARCH),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('venue-generic Home', () => {
+    const calls = (action: string) =>
+      messengerCall.mock.calls.filter(([name]) => name === action);
+
+    it('renders the sections and Feeds of an arbitrary Venue descriptor', async () => {
+      // A feed set Kalshi's catalog does not have: college football only,
+      // under Feed IDs of its own, plus a key Home has no section for.
+      const testFeedId = 'test-college-games' as PredictFeedId;
+      configurePredictNextCatalog({
+        venueId: 'kalshi',
+        actions: ['buy'],
+        feeds: {
+          'college-football-games': testFeedId,
+          trending: 'test-trending',
+        },
+        searchSupported: false,
+      });
+      const testEvents = [
+        makePredictNextEvent('test-1', 'Test Game One'),
+        makePredictNextEvent('test-2', 'Test Game Two'),
+      ];
+      mockPredictNextMessenger((action: string, venueId: string) => {
+        if (action === 'PredictMarketDataService:getFeed') {
+          return Promise.resolve({
+            venueId,
+            id: testFeedId,
+            title: 'Test Games',
+            events: testEvents,
+          });
+        }
+        if (action === 'PredictPortfolioService:getBalance') {
+          return Promise.resolve({ venueId, currency: 'USD', available: '1' });
+        }
+        return Promise.resolve(undefined);
+      });
+      const view = renderPredictNext();
+
+      const section = await view.findByTestId(
+        PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID),
+      );
+      expect(
+        await within(section).findByTestId(
+          PredictHomeTestIds.event('kalshi', 'test-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(section).getByTestId(
+          PredictHomeTestIds.event('kalshi', 'test-2'),
+        ),
+      ).toBeOnTheScreen();
+      expect(within(section).getByText('NCAAF')).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SEARCH),
+      ).not.toBeOnTheScreen();
+      expect(
+        calls('PredictMarketDataService:getFeed').map(
+          ([, venueId, feedId, params]) => [venueId, feedId, params],
+        ),
+      ).toEqual([['kalshi', testFeedId, { limit: 2 }]]);
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.sectionHeader(NCAA_FEED_SCREEN_ID)),
+      );
+
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.VIEW),
+      ).toBeOnTheScreen();
+      await waitFor(() =>
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictMarketDataService:getFeed',
+          'kalshi',
+          testFeedId,
+          { limit: 20 },
+        ),
+      );
+    });
+
+    describe('for a Venue other than Kalshi', () => {
+      // Polymarket's bundled descriptor: search, but none of Home's Feed keys.
+      const venueId = 'polymarket' as PredictVenueId;
+
+      beforeEach(() => {
+        mockPredictNextMessenger((action: string, requestedVenueId: string) => {
+          if (action === 'PredictPortfolioService:getBalance') {
+            return Promise.resolve({
+              venueId: requestedVenueId,
+              currency: 'USD',
+              available: '42',
+            });
+          }
+          if (action === 'PredictPortfolioService:getPositions') {
+            return Promise.resolve({
+              venueId: requestedVenueId,
+              positions: [],
+            });
+          }
+          if (action === 'PredictPortfolioService:getActivity') {
+            return Promise.resolve({
+              venueId: requestedVenueId,
+              activity: [],
+            });
+          }
+          if (action === 'PredictMarketDataService:searchEvents') {
+            return Promise.resolve({ venueId: requestedVenueId, events: [] });
+          }
+          return Promise.resolve(undefined);
+        });
+      });
+
+      it('reads everything for the Active Venue and never for Kalshi', async () => {
+        const view = renderPredictNext(false, { venueId });
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+        ).toHaveTextContent('$42.00');
+        expect(
+          await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
+        ).toBeOnTheScreen();
+        expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+        expect(calls('PredictPortfolioService:getBalance')).toEqual([
+          ['PredictPortfolioService:getBalance', venueId],
+        ]);
+        expect(calls('PredictMarketDataService:getFeed')).toHaveLength(0);
+        expect(
+          messengerCall.mock.calls.filter(([, id]) => id === 'kalshi'),
+        ).toEqual([]);
+      });
+
+      it('opens Portfolio for the Active Venue', async () => {
+        const view = renderPredictNext(false, { venueId });
+        await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+        fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
+
+        expect(
+          await view.findByTestId(PredictPortfolioScreenTestIds.CONTAINER),
+        ).toBeOnTheScreen();
+        await waitFor(() =>
+          expect(
+            calls('PredictPortfolioService:getPositions').map(([, id]) => id),
+          ).toContain(venueId),
+        );
+      });
+
+      it('opens search for the Active Venue', async () => {
+        const view = renderPredictNext(false, { venueId });
+
+        fireEvent.press(await view.findByTestId(PredictHomeTestIds.SEARCH));
+        fireEvent.changeText(
+          await view.findByTestId(PredictSearchScreenTestIds.INPUT),
+          'chiefs',
+        );
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictMarketDataService:searchEvents',
+            venueId,
+            expect.objectContaining({ q: 'chiefs' }),
+          ),
+        );
+      });
+    });
   });
 });

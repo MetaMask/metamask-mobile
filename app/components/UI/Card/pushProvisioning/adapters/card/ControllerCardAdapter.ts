@@ -38,6 +38,18 @@ function mapProviderError(error: unknown): ProvisioningError {
           strings('card.push_provisioning.error_card_not_eligible'),
           error,
         );
+      case CardProviderErrorCode.Network:
+        return new ProvisioningError(
+          ProvisioningErrorCode.NETWORK_ERROR,
+          strings('card.push_provisioning.error_network'),
+          error,
+        );
+      case CardProviderErrorCode.Timeout:
+        return new ProvisioningError(
+          ProvisioningErrorCode.TIMEOUT,
+          strings('card.push_provisioning.error_timeout'),
+          error,
+        );
       case CardProviderErrorCode.ServerError:
         return new ProvisioningError(
           ProvisioningErrorCode.PROVIDER_UNAVAILABLE,

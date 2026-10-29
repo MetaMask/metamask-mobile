@@ -4,13 +4,13 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { bytesToHex, Hex } from '@metamask/utils';
-import { v4 as uuidv4, parse as uuidParse } from 'uuid';
+import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { createMoneyAccountBatchId } from '../utils/createMoneyAccountBatchId';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
@@ -64,6 +64,11 @@ export interface InitiateDepositOptions {
    */
   launchedFrom?: ConfirmationLaunchSource;
   transactionType?: TransactionType;
+  /**
+   * Optional batch id so a caller can subscribe to transaction events before
+   * `addTransactionBatch` runs and avoid missing the confirmed/rejected race.
+   */
+  batchId?: Hex;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -150,7 +155,7 @@ export function useMoneyAccountDeposit() {
         throw error;
       }
 
-      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+      const batchId = options?.batchId ?? createMoneyAccountBatchId();
       // Only record an explicit funding intent (card / addMusd). Generic deposits
       // (e.g. the home "Add" button) are left unset so the toast derives the
       // intent from the transaction's actual payment method instead of a guess.

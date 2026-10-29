@@ -5,12 +5,15 @@ import {
 } from '@metamask/transaction-controller';
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
+import { act } from '@testing-library/react-native';
 import {
   renderHookWithProvider,
   type ProviderValues,
 } from '../../../../util/test/renderWithProvider';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
 import { useMoneyTransactionDisplayInfo } from './useMoneyTransactionDisplayInfo';
 import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 
@@ -62,6 +65,7 @@ function makeState(
       { conversionRate?: number; usdConversionRate?: number }
     >;
     tokenMarketData?: Record<string, unknown>;
+    remoteFeatureFlags?: Record<string, unknown>;
     tokens?: TransactionMeta[];
   } = {},
 ): ProviderValues['state'] {
@@ -106,6 +110,9 @@ function makeState(
         },
         AccountsController: {
           internalAccounts: { accounts: {}, selectedAccount: '' },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: overrides.remoteFeatureFlags ?? {},
         },
         NetworkController: {
           networkConfigurationsByChainId: {
@@ -211,6 +218,31 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
       { state: makeState() },
     );
     expect(result.current.label).toBe('money.transaction.received');
+  });
+
+  it('keeps an incoming mUSD transfer as received with ordinary sender details', () => {
+    const sender = '0x000000000000000000000000000000000000000a';
+    const recipient = '0x000000000000000000000000000000000000000b';
+    const tx = makeTx(TransactionType.incoming, {
+      status: TransactionStatus.confirmed,
+      chainId: '0x8f',
+      txParams: { from: sender, to: recipient },
+      transferInformation: {
+        amount: '12345678',
+        symbol: 'mUSD',
+        decimals: 6,
+        contractAddress: MUSD_TOKEN_ADDRESS,
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, recipient),
+      { state: makeState() },
+    );
+
+    expect(result.current.label).toBe('money.transaction.received');
+    expect(result.current.description).toBe('money.transaction.received_from');
+    expect(result.current.showPrimaryAmount).toBeUndefined();
   });
 
   it('returns sent for moneyAccountWithdraw type', () => {

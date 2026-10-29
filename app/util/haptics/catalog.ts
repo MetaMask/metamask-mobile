@@ -55,6 +55,9 @@ export const ImpactMoment = {
   /** Quick amount selection — Light impact. Paired with quick amount selection animation. */
   QuickAmountSelection: 'quickAmountSelection',
 
+  /** Single key press on an in-app numeric keypad — Light impact. */
+  KeypadKey: 'keypadKey',
+
   /** Slider step / tick — Light impact. Paired with slider animation. */
   SliderTick: 'sliderTick',
 
@@ -80,6 +83,14 @@ export const ImpactMoment = {
 
   /** Tab bar press — Medium impact. Paired with tab transition animation. */
   TabChange: 'tabChange',
+
+  /**
+   * Entry into a flow whose commit uses `PrimaryCTA` — Light impact.
+   * Distinct from `playSelection` (discrete pickers and toggles) and from
+   * `PrimaryCTA`, so the entry tap stays lighter than the commit and can be
+   * tuned without changing either.
+   */
+  SecondaryCTA: 'secondaryCta',
 
   /**
    * Primary surface commit (Buy opening a flow, bottom-sheet Save, etc.) —
@@ -124,4 +135,6 @@ export interface HapticsPlayer {
   playWarningNotification: () => Promise<void>;
   playImpact: (moment: HapticImpactMoment) => Promise<void>;
   playSelection: () => Promise<void>;
+  /** Fire-and-forget `playImpact` — swallows rejection so a haptics failure never blocks the caller. */
+  fireImpact: (moment: HapticImpactMoment) => void;
 }

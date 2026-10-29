@@ -18,9 +18,14 @@ type AllowedEvents = MessengerEvents<PerpsControllerMessenger>;
  * PerpsController uses the messenger for all cross-controller communication:
  * NetworkController, KeyringController, TransactionController,
  * RemoteFeatureFlagController, AccountsController, AccountTreeController,
- * AuthenticationController, AuthenticatedUserStorageService.
+ * AuthenticationController, AuthenticatedUserStorageService,
+ * SubscriptionController.
  * The root messenger already registers actions for these controllers,
  * so the child messenger can call them through the parent.
+ *
+ * `SubscriptionController:getBenefits` is what lets the perps fee resolver
+ * hydrate the Money Account Plus benefits snapshot; without it every order
+ * resolves as having no subscription source and pays the default builder fee.
  *
  * @param rootMessenger - The base messenger used to create the restricted
  * messenger.
@@ -55,6 +60,7 @@ export function getPerpsControllerMessenger(
       'AuthenticationController:getBearerToken',
       'AuthenticatedUserStorageService:getNotificationPreferences',
       'AuthenticatedUserStorageService:putNotificationPreferences',
+      'SubscriptionController:getBenefits',
     ],
     events: [
       'RemoteFeatureFlagController:stateChange',

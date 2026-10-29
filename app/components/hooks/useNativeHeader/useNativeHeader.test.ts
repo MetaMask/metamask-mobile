@@ -62,6 +62,35 @@ describe('useNativeHeader', () => {
     );
   });
 
+  it('keeps the UIKit scroll edge effect by default', () => {
+    renderHook(() => useNativeHeader({ leftItems, rightItems }));
+
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ scrollEdgeEffects: undefined }),
+    );
+  });
+
+  it('hides the UIKit top scroll edge effect for a screen drawing its own backdrop', () => {
+    renderHook(() =>
+      useNativeHeader({ leftItems, rightItems, hidesScrollEdgeEffect: true }),
+    );
+
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ scrollEdgeEffects: { top: 'hidden' } }),
+    );
+  });
+
+  it('stays off and leaves the navigator alone where the OS cannot draw Liquid Glass', () => {
+    jest.mocked(isLiquidGlassAvailable).mockReturnValue(false);
+
+    const { result } = renderHook(() =>
+      useNativeHeader({ leftItems, rightItems }),
+    );
+
+    expect(result.current).toBe(false);
+    expect(mockSetOptions).not.toHaveBeenCalled();
+  });
+
   it('leaves the navigator options alone when the screen gate is off', () => {
     const { result } = renderHook(() =>
       useNativeHeader({ leftItems, rightItems, isEnabled: false }),
@@ -85,6 +114,7 @@ describe('useNativeHeader', () => {
     expect(mockSetOptions).toHaveBeenCalledWith(
       expect.objectContaining({
         headerShown: false,
+        scrollEdgeEffects: undefined,
         unstable_headerLeftItems: undefined,
         unstable_headerRightItems: undefined,
       }),

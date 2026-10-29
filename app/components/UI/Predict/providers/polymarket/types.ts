@@ -55,6 +55,78 @@ export interface ClobMarketInfo {
   mos?: number;
 }
 
+/** Polymarket Data API v2 envelope: every response wraps its payload in `data`; paginated routes add an opaque cursor. */
+export interface PolymarketDataApiV2Response<Row> {
+  data: Row[] | null;
+  pagination?: {
+    next_cursor?: string | null;
+  } | null;
+}
+
+/** Raw Polymarket Data API v2 position row (`GET /v2/positions`). */
+export interface PolymarketPositionV2 {
+  condition_id: string;
+  event_id: string;
+  icon: string;
+  title: string;
+  slug: string;
+  event_slug?: string;
+  /** Current holding size for the outcome (v1 `size`). */
+  current_size: number;
+  outcome: string;
+  outcome_index: number;
+  /** Mark-to-market P&L for the row (`current_value − entry_cost_usdc`). */
+  unrealized_pnl?: number | null;
+  /** Current outcome price (v1 `curPrice`). */
+  current_price: number;
+  current_value: number;
+  /** Cost basis in USDC (v1 `initialValue`). */
+  entry_cost_usdc: number;
+  avg_price: number;
+  redeemable: boolean;
+  negative_risk: boolean;
+  realized_pnl: number;
+  end_date: string;
+  /** Outcome token id (v1 `asset`). Not an indicator of market protocol. */
+  token_id: string;
+}
+
+/** Activity side as returned by the Data API v2 (empty string when absent). */
+type PolymarketActivityV2Side = 'BUY' | 'SELL' | '';
+
+/** Raw Polymarket Data API v2 activity row (`GET /v2/activity`). */
+export interface PolymarketActivityV2 {
+  type: string;
+  side: PolymarketActivityV2Side;
+  size?: number | string | null;
+  price: number;
+  usdc_size: number;
+  timestamp: number;
+  transaction_hash: string;
+  condition_id: string;
+  outcome_index: number;
+  title: string;
+  outcome?: string;
+  icon: string;
+  slug?: string;
+  event_slug?: string;
+  token_id?: string;
+}
+
+/** Raw Polymarket Data API v2 user-PnL series (`GET /v2/user-pnl`). */
+export interface PolymarketUserPnlV2Response {
+  data: {
+    proxy_wallet: string;
+    interval: string;
+    fidelity: string;
+    points: {
+      t?: number;
+      unrealized_pnl?: number | null;
+      [key: string]: unknown;
+    }[];
+  } | null;
+}
+
 // Polymarket API response types
 export interface PolymarketApiMarket {
   conditionId: string;
@@ -78,9 +150,24 @@ export interface PolymarketApiMarket {
   resolvedBy: string;
   orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
+  /** UMA resolution status. Only meaningful for CTF (non-v2) markets. */
   umaResolutionStatus: string;
+  /**
+   * Protocol V2 resolution status: `inactive` (drafted, not on chain),
+   * `active` (deployed, unresolved), or `resolved`. Only set on v2 markets;
+   * null or absent when Gamma has no resolution metadata.
+   */
+  resolutionStatus?: string | null;
   /** Gamma protocol version. `v2` is Protocol V2. A missing value is CTF. */
   version?: string;
+  /**
+   * Protocol V2 outcome token ids (decimal strings), indexed like
+   * `clobTokenIds`. Present on v2 markets; both fields can be present —
+   * the market version decides which field to use. The v2 wire returns
+   * the ids as a native JSON array; the JSON-encoded string form is
+   * accepted for compatibility.
+   */
+  positionIds?: string | string[];
   line?: number;
   cryptoMarketConfig?: {
     twapEnabled?: boolean;
@@ -168,6 +255,19 @@ export interface ContractConfig {
   negRiskExchange: string;
   collateral: string;
   conditionalTokens: string;
+}
+
+/**
+ * Contracts the positions protocol (Polymarket Protocol V2) needs. Protocol
+ * V2 settles on a single exchange, so there is no separate neg-risk exchange
+ * contract. PositionManager is the ERC-1155 position ledger; the Router
+ * executes split, merge, and redeem against it.
+ */
+export interface PositionsProtocolContractConfig {
+  exchange: string;
+  negRiskExchange: string;
+  positionManager: string;
+  router: string;
 }
 
 export interface RoundConfig {

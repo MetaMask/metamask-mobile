@@ -14,11 +14,12 @@ import type {
   QuickBuyTarget,
   QuickBuyTradeMode,
 } from './types';
+import type { CopyTradeOrigin } from '../../../util/social/copyTradeIntent';
 
 export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   target: QuickBuyTarget;
   features: QuickBuyFeatures;
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
   onClose: () => void;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
@@ -42,8 +43,10 @@ interface QuickBuyProviderProps {
   onClose: () => void;
   features: QuickBuyFeatures;
   initialTradeMode?: QuickBuyTradeMode;
-  analyticsContext?: QuickBuyAnalyticsContext;
-  postSwapShare?: boolean;
+  analyticsContext: QuickBuyAnalyticsContext;
+  postTradeShare?: boolean;
+  postTradeShareOwner?: string;
+  copyTradeOrigin?: CopyTradeOrigin;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
   children: React.ReactNode;
@@ -55,7 +58,9 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   features,
   initialTradeMode,
   analyticsContext,
-  postSwapShare,
+  postTradeShare,
+  postTradeShareOwner,
+  copyTradeOrigin,
   activeScreen,
   setActiveScreen,
   children,
@@ -65,7 +70,9 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     analyticsContext,
     initialTradeMode,
-    postSwapShare,
+    postTradeShare,
+    copyTradeOrigin,
+    postTradeShareOwner,
   );
   // Open the keypad by default so the sheet matches the taller Figma layout
   // (footer + keypad visible together).

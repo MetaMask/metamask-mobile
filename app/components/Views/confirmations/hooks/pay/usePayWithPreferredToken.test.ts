@@ -42,6 +42,7 @@ const AVAILABLE_TOKEN_MOCK: AssetType = {
   balance: '12.34',
   chainId: TOKEN_MOCK.chainId,
   decimals: TOKEN_MOCK.decimals,
+  balanceInSelectedCurrencyAmount: 12.34,
   fiat: { balance: 12.34 },
   image: '',
   isETH: false,
@@ -124,6 +125,17 @@ describe('usePayWithPreferredToken', () => {
   });
 
   it('returns the preferred token candidate when the selected token differs', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          ...AVAILABLE_TOKEN_MOCK,
+          balance: '2',
+          balanceInSelectedCurrencyAmount: 12.34,
+          fiat: { balance: 99 },
+        },
+      ],
+      hasTokens: true,
+    });
     useTransactionPayTokenMock.mockReturnValue({
       payToken: OTHER_TOKEN_MOCK,
       setPayToken: setPayTokenMock,

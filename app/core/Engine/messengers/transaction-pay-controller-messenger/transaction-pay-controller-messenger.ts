@@ -13,6 +13,7 @@ import {
 } from '@metamask/keyring-controller';
 import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
 import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger<
@@ -62,6 +63,7 @@ type InitMessengerActions =
   | KeyringControllerSignPersonalMessageAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetNetworkConfigurationByChainIdAction
+  | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerIsAtomicBatchSupportedAction;
 
 type InitMessengerEvents = never;
@@ -90,6 +92,7 @@ export function getTransactionPayControllerInitMessenger(
       'KeyringController:signPersonalMessage',
       'KeyringController:signTypedMessage',
       'NetworkController:getNetworkConfigurationByChainId',
+      'RemoteFeatureFlagController:getState',
       'TransactionController:isAtomicBatchSupported',
     ],
     events: [],

@@ -14,17 +14,7 @@ import {
   PERPS_GTM_MODAL_ENGAGE,
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
-
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
-}));
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
@@ -40,13 +30,14 @@ jest.mock('../../../../../util/metrics', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     }),
   };
 });
@@ -93,18 +84,29 @@ describe('PerpsGTMModal', () => {
   });
 
   it('renders all main elements', async () => {
-    const { getByText, getByTestId } = renderWithProvider(<PerpsGTMModal />, {
+    const { getByTestId } = renderWithProvider(<PerpsGTMModal />, {
       state: initialState,
     });
 
     await waitFor(() => {
-      expect(getByText('perps.gtm_content.title')).toBeTruthy();
-      expect(getByText('perps.gtm_content.title_description')).toBeTruthy();
-      expect(getByText('perps.gtm_content.try_now')).toBeTruthy();
-      expect(getByText('perps.gtm_content.not_now')).toBeTruthy();
       expect(
         getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_TITLE),
+      ).toHaveTextContent(strings('perps.gtm_content.title'));
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_DESCRIPTION),
+      ).toHaveTextContent(strings('perps.gtm_content.title_description'));
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_IMAGE),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON),
+      ).toHaveTextContent(strings('perps.gtm_content.try_now'));
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON),
+      ).toHaveTextContent(strings('perps.gtm_content.not_now'));
     });
   });
 
@@ -133,11 +135,8 @@ describe('PerpsGTMModal', () => {
       action: PERPS_GTM_MODAL_DECLINE,
     });
     expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.HOME_TABS,
-      { screen: Routes.WALLET.HOME },
-      { pop: true },
-    );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('tracks Whats New Link Clicked with engage action when try now is pressed', async () => {
@@ -177,17 +176,5 @@ describe('PerpsGTMModal', () => {
         isFromGTMModal: true,
       },
     );
-  });
-
-  it('renders image', async () => {
-    const { getByTestId } = renderWithProvider(<PerpsGTMModal />, {
-      state: initialState,
-    });
-
-    await waitFor(() => {
-      expect(
-        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL),
-      ).toBeTruthy();
-    });
   });
 });

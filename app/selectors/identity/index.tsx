@@ -5,6 +5,7 @@ import {
   UserStorageController,
 } from '@metamask/profile-sync-controller';
 import { selectPrimaryHDKeyring } from '../keyringController';
+import { createDeepEqualSelector } from '../util';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
@@ -54,6 +55,79 @@ export const selectCanonicalProfileId = createSelector(
     return (
       authenticationControllerState.srpSessionData?.[primaryEntropySourceId]
         ?.profile?.canonicalProfileId || undefined
+    );
+  },
+);
+
+/**
+ * Selector that returns the entropy source IDs of the SRPs that belong to the
+ * wallet's profile: the primary SRP (the one carrying `canonicalProfileId`)
+ * first, followed by every SRP paired to it.
+ *
+ * A secondary SRP is paired when its session `identifierId` appears in the
+ * primary session's `pairedIdentifierIds`. `canonicalProfileId` is not used
+ * for this: the AuthenticationController propagates it to every session,
+ * including SRPs the server skipped while pairing.
+ *
+ * Falls back to the primary SRP alone when it has no session yet (signed out
+ * or not paired). Returns an empty array when the wallet is locked, because
+ * the primary HD keyring is unknown.
+ */
+export const selectProfileEntropySourceIds = createDeepEqualSelector(
+  selectAuthenticationControllerState,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string[] => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return [];
+    }
+
+    const srpSessionData = authenticationControllerState.srpSessionData ?? {};
+    const pairedIdentifierIds = new Set(
+      (
+        srpSessionData[primaryEntropySourceId]?.profile?.pairedIdentifierIds ??
+        []
+      ).map((identifier) => identifier.id),
+    );
+
+    const pairedEntropySourceIds = Object.entries(srpSessionData)
+      .filter(
+        ([entropySourceId, session]) =>
+          entropySourceId !== primaryEntropySourceId &&
+          pairedIdentifierIds.has(session?.profile?.identifierId),
+      )
+      .map(([entropySourceId]) => entropySourceId);
+
+    return [primaryEntropySourceId, ...pairedEntropySourceIds];
+  },
+);
+
+/**
+ * Profile id of the primary SRP session. This is the id the session token
+ * authenticates as (`profile.profileId`), which is not the canonical id.
+ *
+ * Same key as {@link selectCanonicalProfileId}: the primary HD keyring, so a
+ * stale session left behind by a wallet reset is not read as the live one.
+ * `undefined` when that identity is not knowable yet — signed out, no session
+ * for the primary SRP, or the wallet is locked.
+ */
+export const selectSessionProfileId = createSelector(
+  selectAuthenticationControllerState,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string | undefined => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return undefined;
+    }
+    return (
+      authenticationControllerState.srpSessionData?.[primaryEntropySourceId]
+        ?.profile?.profileId || undefined
     );
   },
 );

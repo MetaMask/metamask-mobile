@@ -1,15 +1,14 @@
 import React, { useRef, useCallback } from 'react';
 import { View } from 'react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
+  BottomSheet,
   Button,
   ButtonSize,
   ButtonVariant,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -55,12 +54,7 @@ const PerpsNotificationBottomSheet: React.FC<
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-      testID={testID}
-    >
+    <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text variant={TextVariant.HeadingMd} style={styles.title}>

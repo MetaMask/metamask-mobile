@@ -369,4 +369,63 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
       expect(result.current).toBe(true);
     });
   });
+
+  describe('for Stellar non-native source with reserve', () => {
+    const createStellarNonNativeQuote = () => {
+      const nativeAsset = toBridgeAssetV2(
+        getNativeAssetForChainId(ChainId.STELLAR),
+      );
+      return {
+        chainId: formatChainIdToCaip(ChainId.STELLAR),
+        quote: {
+          src: {
+            asset: {
+              assetId:
+                'stellar:pubnet/credit_alphanum4:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+            },
+          },
+          feeData: {
+            network: [{ normalizedAmount: '0.00001', asset: nativeAsset }],
+            reserve: [{ normalizedAmount: '1.5', asset: nativeAsset }],
+          },
+        },
+      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+    };
+
+    it('returns false when native balance cannot cover quote fee and reserve', () => {
+      const mockQuote = createStellarNonNativeQuote();
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '0.4',
+        atomicBalance: BigNumber.from('4000000'),
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useHasSufficientGasEvenIfGasIncludedOrSponsored({
+            quote: mockQuote,
+          }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when native balance covers quote fee and reserve', () => {
+      const mockQuote = createStellarNonNativeQuote();
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '2',
+        atomicBalance: BigNumber.from('20000000'),
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useHasSufficientGasEvenIfGasIncludedOrSponsored({
+            quote: mockQuote,
+          }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(true);
+    });
+  });
 });

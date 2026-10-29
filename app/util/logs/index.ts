@@ -1,3 +1,8 @@
+import {
+  deriveStateFromMetadata,
+  type StateConstraint,
+  type StateMetadata,
+} from '@metamask/base-controller';
 import Engine from '../../core/Engine';
 import {
   getApplicationName,
@@ -83,7 +88,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
 
   delete fullState.engine.backgroundState.NftController;
   delete fullState.engine.backgroundState.TokensController;
-  delete fullState.engine.backgroundState.TokenDetectionController;
+  delete fullState.engine.backgroundState.AssetsController;
   delete fullState.engine.backgroundState.NftDetectionController;
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
@@ -91,9 +96,22 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
 
+  const { backgroundState } = fullState.engine;
+  const rawCardControllerState = backgroundState.CardController;
+  for (const [name, controller] of Object.entries(Engine.context)) {
+    if (backgroundState[name] && 'metadata' in controller) {
+      backgroundState[name] = deriveStateFromMetadata(
+        backgroundState[name],
+        controller.metadata as StateMetadata<StateConstraint>,
+        'includeInStateLogs',
+        (error) => Logger.error(error, `State logs: ${name}`),
+      );
+    }
+  }
+
   const cardControllerState = fullState.engine.backgroundState.CardController;
   if (cardControllerState) {
-    const { cardHomeData, cardHomeDataAddress } = cardControllerState;
+    const { cardHomeData, cardHomeDataAddress } = rawCardControllerState;
     cardControllerState.cardHomeData = cardHomeData
       ? {
           hasCard: Boolean(cardHomeData.card),

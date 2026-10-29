@@ -3,11 +3,7 @@ import { Image, Pressable } from 'react-native';
 import Animated, { SlideInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimationDuration } from '@metamask/design-tokens';
-import {
-  Theme,
-  ThemeProvider,
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
@@ -123,7 +119,7 @@ const PerpsOutreachBannerContent = ({
     <Animated.View
       entering={SlideInUp.duration(AnimationDuration.Promptly)}
       style={[
-        tw.style('w-full bg-accent02-light'),
+        tw.style('w-full bg-background-section'),
         includesTopInset && { paddingTop: insets.top },
       ]}
       testID={PerpsOutreachBannerSelectorsIDs.BANNER}
@@ -178,10 +174,7 @@ const PerpsOutreachBannerContent = ({
               >
                 {campaign.title}
               </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
+              <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
                 {campaign.body}
               </Text>
             </Box>
@@ -203,13 +196,11 @@ const PerpsOutreachBannerContent = ({
 /**
  * Dismissible outreach banner shown above the header on Perps surfaces.
  *
- * The background is the light accent colour in both app themes, so the subtree
- * is pinned to the light theme to keep the text and close icon readable on it.
+ * The background is the section surface, a step off the page background, so
+ * the banner reads as its own strip in light and dark mode.
  */
 const PerpsOutreachBanner = (props: PerpsOutreachBannerProps) => (
-  <ThemeProvider theme={Theme.Light}>
-    <PerpsOutreachBannerContent {...props} />
-  </ThemeProvider>
+  <PerpsOutreachBannerContent {...props} />
 );
 
 export default PerpsOutreachBanner;

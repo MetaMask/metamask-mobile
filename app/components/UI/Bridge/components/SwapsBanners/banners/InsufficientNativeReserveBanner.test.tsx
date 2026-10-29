@@ -9,7 +9,16 @@ import { BridgeTabKey } from '../../../Views/BridgeView/BridgeView.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { InsufficientNativeReserveBanner } from './InsufficientNativeReserveBanner';
 import { renderBanner, createBannerState } from './testUtils';
-import { ARC_USDC_BRIDGE_TOKEN } from '../../../../../../enablement/assets/arc';
+import { ARC_HEX_CHAIN_ID } from '../../../../../../enablement/assets/arc';
+import type { BridgeToken } from '../../../types';
+
+const ARC_NATIVE_USDC_TOKEN: BridgeToken = {
+  address: '0x0000000000000000000000000000000000000000',
+  chainId: ARC_HEX_CHAIN_ID,
+  decimals: 18,
+  name: 'USDC',
+  symbol: 'USDC',
+};
 
 /**
  * Unit fallback: reserve banner needs isolated quote + session overrides.
@@ -79,7 +88,7 @@ describe('InsufficientNativeReserveBanner', () => {
       <InsufficientNativeReserveBanner />,
       {
         state: createBannerState({
-          sourceToken: ARC_USDC_BRIDGE_TOKEN,
+          sourceToken: ARC_NATIVE_USDC_TOKEN,
         }),
       },
     );

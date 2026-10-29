@@ -21,10 +21,18 @@ import * as SendType from './useSendType';
 import { useSendMetricsContext } from '../../context/send-context/send-metrics-context';
 import { NonEvmSendUnknownValue } from './metrics/useNonEvmSendMetrics';
 import { useSendActions } from './useSendActions';
+import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 
 jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../../util/navigation/navigateToActivityAfterConfirmation',
+  () => ({
+    navigateToActivityAfterConfirmation: jest.fn(),
+  }),
+);
 
 const mockUseSendMetricsContext = useSendMetricsContext as jest.MockedFunction<
   typeof useSendMetricsContext
@@ -454,7 +462,7 @@ describe('useSendActions', () => {
       });
     });
 
-    it('navigates to transactions view on successful submission', async () => {
+    it('replaces Send with Activity on successful submission', async () => {
       jest
         .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
         .mockResolvedValue({
@@ -469,7 +477,9 @@ describe('useSendActions', () => {
       await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('TransactionsView');
+        expect(navigateToActivityAfterConfirmation).toHaveBeenCalledWith(
+          expect.objectContaining({ navigate: mockNavigate }),
+        );
         expect(mockAlert).not.toHaveBeenCalled();
       });
 

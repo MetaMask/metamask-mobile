@@ -60,6 +60,47 @@ describe('useStickyFooterTracking', () => {
     );
   });
 
+  it('includes tdp_version in the emitted properties when provided', () => {
+    const { result } = renderHook(() => useStickyFooterTracking());
+
+    act(() => {
+      result.current({
+        ctaType: 'quick_buy',
+        balanceFiatUsd: 150,
+        tokenAddress: '0xabc',
+        chainId: '0x1',
+        tdp_version: 'v3',
+      });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Token Details CTA Clicked',
+        properties: expect.objectContaining({
+          cta_type: 'quick_buy',
+          tdp_version: 'v3',
+        }),
+      }),
+    );
+  });
+
+  it('omits tdp_version when not provided', () => {
+    const { result } = renderHook(() => useStickyFooterTracking());
+
+    act(() => {
+      result.current({
+        ctaType: 'buy',
+        balanceFiatUsd: 150,
+        tokenAddress: '0xabc',
+        chainId: '0x1',
+      });
+    });
+
+    expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
+      'tdp_version',
+    );
+  });
+
   it('tracks money deposit CTA type', () => {
     const { result } = renderHook(() => useStickyFooterTracking());
 

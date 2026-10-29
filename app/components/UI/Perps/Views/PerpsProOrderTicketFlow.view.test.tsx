@@ -171,6 +171,12 @@ const renderTicket = ({
       status: 'ready',
       providerId: activeProvider,
       supportedStrategies,
+      supportedTriggerOrderTypes: [
+        'stop_market',
+        'stop_limit',
+        'take_profit_market',
+        'take_profit_limit',
+      ],
     });
   // The ticket reads `maxLeverage` from the controller's MarketInfo (a
   // number), which is what bounds the leverage picker.
@@ -355,6 +361,10 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       .spyOn(PerpsConnectionManager, 'subscribeToInitializedUserContext')
       .mockImplementation(() => () => undefined);
     validateOrderMock().mockReset().mockResolvedValue({ isValid: true });
+    jest
+      .mocked(Engine.context.PerpsController.calculateFees)
+      .mockReset()
+      .mockResolvedValue({});
     placeOrderMock()
       .mockReset()
       .mockResolvedValue({ success: true, orderId: 'component-view-order' });
@@ -546,6 +556,114 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       expect(placeOrderMock().mock.calls[0][0]).not.toHaveProperty('price');
     },
   );
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Fee-adjusted max size (quote -> sizing wiring)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('fee-adjusted max size', () => {
+    const LEVERAGE = 3;
+    const BALANCE = 1000;
+    const LOW_FEE_QUOTE = { protocolFeeRate: 0.0045, metamaskFeeRate: 0.0005 };
+    const HIGH_FEE_QUOTE = { protocolFeeRate: 0.0095, metamaskFeeRate: 0.0005 };
+    const budgetCeiling = (feeRate: number) =>
+      BALANCE / (1 / LEVERAGE + feeRate);
+
+    const mockQuote = (quote: object) =>
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue(quote);
+
+    const readSizeInput = () =>
+      Number(
+        String(screen.getByTestId(ids.SIZE_INPUT).props.value).replace(
+          /[^0-9.]/g,
+          '',
+        ),
+      );
+
+    const typeSize = async (size: string) => {
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, size);
+      fireEvent(sizeInput, 'blur');
+    };
+
+    const waitForSize = (matches: (size: number) => boolean) =>
+      waitFor(() => expect(matches(readSizeInput())).toBe(true), {
+        timeout: TIMEOUT_MS,
+      });
+
+    itForPlatforms(
+      'reserves the quoted fee when the size is capped at the max and shrinks it when the quote rises',
+      async () => {
+        mockQuote(LOW_FEE_QUOTE);
+        renderTicket({ balance: String(BALANCE) });
+
+        await typeSize('100000');
+        await waitForSize(
+          (size) => size <= budgetCeiling(0.005) && size > budgetCeiling(0.01),
+        );
+        const lowFeeMax = readSizeInput();
+
+        // The next size edit resolves a new, higher quote.
+        mockQuote(HIGH_FEE_QUOTE);
+        await typeSize('50');
+        await waitForSize((size) => size === 50);
+        await typeSize('100000');
+        await waitForSize(
+          (size) => size < lowFeeMax && size <= budgetCeiling(0.01),
+        );
+        const displayedSize = readSizeInput();
+
+        fireEvent.press(await awaitEnabledPlaceOrderButton());
+        await expectPlaceOrderCalledWith({ leverage: LEVERAGE });
+        const usdAmount = Number(placeOrderMock().mock.calls[0][0].usdAmount);
+        expect(usdAmount).toBe(displayedSize);
+        expect(usdAmount / LEVERAGE + usdAmount * 0.01).toBeLessThanOrEqual(
+          BALANCE,
+        );
+      },
+    );
+
+    itForPlatforms('leaves a partial size untouched', async () => {
+      mockQuote(HIGH_FEE_QUOTE);
+      renderTicket({ balance: String(BALANCE) });
+
+      await typeSize('50');
+      await waitForSize((size) => size === 50);
+      fireEvent.press(await awaitEnabledPlaceOrderButton());
+
+      await expectPlaceOrderCalledWith({ usdAmount: '50' });
+    });
+
+    itForPlatforms(
+      'leaves a reduce-only close above the margin ceiling untouched',
+      async () => {
+        mockQuote(HIGH_FEE_QUOTE);
+        renderTicket({
+          balance: '100',
+          positions: [createLongPositionForViews({ size: '1' })],
+        });
+        const sizeInput = await findSizeInput();
+        fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+        fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+        fireEvent.changeText(sizeInput, '2400');
+        fireEvent(sizeInput, 'blur');
+
+        await waitForSize((size) => size === 2400);
+        const placeOrderButton = await awaitValidatedPlaceOrderButton(
+          (params) => params.reduceOnly === true && params.isBuy === false,
+        );
+        fireEvent.press(placeOrderButton);
+
+        await expectPlaceOrderCalledWith({
+          isBuy: false,
+          reduceOnly: true,
+          usdAmount: '2400',
+        });
+      },
+    );
+  });
 
   // ─────────────────────────────────────────────────────────────────────────
   // Reduce-only × order type

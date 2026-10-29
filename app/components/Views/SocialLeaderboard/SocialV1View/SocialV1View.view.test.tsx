@@ -10,19 +10,54 @@
  */
 import '../../../../../tests/component-view/mocks';
 
-import { fireEvent, screen, within } from '@testing-library/react-native';
+import React from 'react';
+import { Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
+import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
 import {
   clearLeaderboardApiMock,
+  getLeaderboardMessengerSpy,
   setupLeaderboardApiMock,
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
-import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
+import {
+  getRouteProbeTestId,
+  renderScreenWithRoutes,
+} from '../../../../../tests/component-view/render';
+import { initialStateSocialLeaderboard } from '../../../../../tests/component-view/presets/socialLeaderboard';
+import {
+  initialStateQuickBuy,
+  quickBuySellableUsdcOverrides,
+} from '../../../../../tests/component-view/presets/quickBuy';
+import { DEFAULT_QUICK_BUY_TARGET } from '../../../../../tests/component-view/renderers/quickBuy';
+import type { DeepPartial } from '../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../reducers';
 import { renderSocialV1ViewWithRoutes } from '../../../../../tests/component-view/renderers/socialLeaderboard';
+import { AccessRestrictedProvider } from '../../../UI/Compliance';
 import { mockPerpFeedItem } from '../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { getSocialFeedPositionCardCopyTradeTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import { SocialFeedPostShellSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedPostShell.testIds';
+import { TopTradersViewSelectorsIDs } from '../TopTradersView/TopTradersView.testIds';
+import { QuickBuySheetSelectorsIDs } from '../../../UI/QuickBuy/QuickBuySheet.testIds';
+import type { QuickBuyTarget, QuickBuyTradeMode } from '../../../UI/QuickBuy';
+import { QuickBuySheetHostProvider } from '../../../UI/QuickBuy/QuickBuySheetHost';
+import {
+  beginPostTradeShareSession,
+  clearPostTradeShareSession,
+  PostTradeShareOwner,
+  requestPostTradeShareReopen,
+} from '../PostTradeShareBottomSheet/postTradeShareSession';
+import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 
 const OPEN_PERP_POSITION_ID = 'cv-open-perp';
@@ -96,9 +131,24 @@ const installComplianceController = (blocked: boolean) => {
   });
 };
 
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+// The tab feeds only fetch online, and the NetInfo mock starts offline.
+beforeEach(() => {
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+});
+
+afterEach(() => {
+  netInfoMock.__resetMockNetInfo();
+});
+
+const findTrendingCopyTradeButton = () =>
+  within(
+    screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+  ).findByTestId(copyTradeButtonTestId);
+
 const pressCopyTrade = async () => {
-  const button = await screen.findByTestId(copyTradeButtonTestId);
-  fireEvent.press(button);
+  fireEvent.press(await findTrendingCopyTradeButton());
 };
 
 describe('SocialV1View copy trade', () => {
@@ -174,7 +224,10 @@ describe('SocialV1View copy trade', () => {
       overrides: eligibleOverrides,
     });
 
-    const card = await screen.findByTestId(
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    const card = await trendingPage.findByTestId(
       `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
     );
     const cardScope = within(card);
@@ -183,6 +236,228 @@ describe('SocialV1View copy trade', () => {
     expect(cardScope.getByText(/ETH/)).toBeOnTheScreen();
     expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT)),
+    ).toBeNull();
+  });
+});
+
+describe('SocialV1View initial tab', () => {
+  const feedPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`;
+  const getCalledActions = () =>
+    getLeaderboardMessengerSpy().mock.calls.map(([action]) => action);
+
+  const SocialV1ViewWithAccessRestricted = () => (
+    <AccessRestrictedProvider>
+      <SocialV1View />
+    </AccessRestrictedProvider>
+  );
+
+  const renderWithInitialTab = (initialTab: string) =>
+    renderScreenWithRoutes(
+      SocialV1ViewWithAccessRestricted,
+      { name: Routes.SOCIAL.V1 },
+      [],
+      { state: initialStateSocialLeaderboard().build() },
+      { initialTab },
+    );
+
+  beforeEach(() => {
+    setupLeaderboardApiMock({ feedItems: [openPerpFeedItem] });
+  });
+
+  afterEach(() => {
+    clearLeaderboardApiMock();
+  });
+
+  it('opens on Leaderboard instead of Trending when the initial tab is leaderboard', async () => {
+    renderWithInitialTab('leaderboard');
+
+    expect(
+      await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).toBeOnTheScreen();
+    await waitFor(() =>
+      expect(getCalledActions()).toContain('SocialService:fetchFeed'),
+    );
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    expect(trendingPage.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
+  });
+
+  it('opens on Trending when the initial tab is not a Social V1 tab', async () => {
+    renderWithInitialTab('feed');
+
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    expect(await trendingPage.findByTestId(feedPostTestId)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('switches to Leaderboard when the mounted view is re-entered with that initial tab', async () => {
+    const returnToSocialTestId = 'return-to-social-on-leaderboard';
+    const ReturnToSocialOnLeaderboard = () => {
+      const navigation = useNavigation();
+      return (
+        <Pressable
+          testID={returnToSocialTestId}
+          onPress={() =>
+            navigation.navigate(
+              Routes.SOCIAL.V1,
+              { initialTab: 'leaderboard' },
+              { pop: true },
+            )
+          }
+        />
+      );
+    };
+    renderScreenWithRoutes(
+      SocialV1ViewWithAccessRestricted,
+      { name: Routes.SOCIAL.V1 },
+      [
+        {
+          name: Routes.SOCIAL.MY_PROFILE,
+          Component: ReturnToSocialOnLeaderboard,
+        },
+      ],
+      { state: initialStateSocialLeaderboard().build() },
+    );
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    expect(await trendingPage.findByTestId(feedPostTestId)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+    fireEvent.press(await screen.findByTestId(returnToSocialTestId));
+
+    expect(
+      await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).toBeOnTheScreen();
+  });
+});
+
+describe('SocialV1View post-trade Quick Buy reopen', () => {
+  const target: QuickBuyTarget = {
+    tokenAddress: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
+    tokenSymbol: 'AAVE',
+    tokenName: 'Aave',
+    chain: 'eip155:1',
+  };
+
+  const requestFeedQuickBuyReopen = (
+    reopenTarget: QuickBuyTarget = target,
+    tradeMode: QuickBuyTradeMode = 'buy',
+  ) =>
+    act(() => {
+      beginPostTradeShareSession({
+        owner: PostTradeShareOwner.socialV1Feed,
+        status: 'failed',
+        target: reopenTarget,
+        tradeMode,
+        preview: {
+          tokenSymbol: reopenTarget.tokenSymbol,
+          tokenAddress: reopenTarget.tokenAddress,
+          chain: 'ethereum',
+          side: tradeMode,
+        },
+      });
+      requestPostTradeShareReopen();
+    });
+
+  // Quick Buy needs the bridge state its own CV suite uses on top of the feed preset.
+  const quickBuyOverrides = (extraOverrides: DeepPartial<RootState> = {}) =>
+    initialStateQuickBuy()
+      .withOverrides(eligibleOverrides)
+      .withOverrides(extraOverrides)
+      .build();
+
+  const renderFeedWithQuickBuyState = (
+    extraOverrides?: DeepPartial<RootState>,
+  ) =>
+    renderSocialV1ViewWithRoutes([perpsModalsRoute], {
+      overrides: quickBuyOverrides(extraOverrides),
+    });
+
+  const SocialV1ViewInHomeTabsHost = () => (
+    <QuickBuySheetHostProvider>
+      <AccessRestrictedProvider>
+        <SocialV1View />
+      </AccessRestrictedProvider>
+    </QuickBuySheetHostProvider>
+  );
+
+  const queryQuickBuySheet = (
+    scope: Pick<typeof screen, 'queryByTestId'> = screen,
+  ) =>
+    scope.queryByTestId(QuickBuySheetSelectorsIDs.CONTENT_LOADING, {
+      includeHiddenElements: true,
+    }) ??
+    scope.queryByTestId(QuickBuySheetSelectorsIDs.CONTENT_CONTAINER, {
+      includeHiddenElements: true,
+    });
+
+  beforeEach(() => {
+    setupLeaderboardApiMock({ feedItems: [openPerpFeedItem] });
+    installComplianceController(false);
+  });
+
+  afterEach(() => {
+    clearLeaderboardApiMock();
+    act(() => clearPostTradeShareSession());
+  });
+
+  it('reopens Quick Buy over the feed when a failed post-trade share retries', async () => {
+    renderFeedWithQuickBuyState();
+    await findTrendingCopyTradeButton();
+
+    requestFeedQuickBuyReopen();
+
+    await waitFor(() => expect(queryQuickBuySheet()).toBeOnTheScreen());
+  });
+
+  it('ignores the retry while another screen covers the feed', async () => {
+    renderFeedWithQuickBuyState();
+    await pressCopyTrade();
+    await screen.findByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT));
+
+    requestFeedQuickBuyReopen();
+
+    expect(queryQuickBuySheet()).toBeNull();
+  });
+
+  it('reopens Quick Buy in sell mode when the failed trade was a sell', async () => {
+    renderFeedWithQuickBuyState(quickBuySellableUsdcOverrides());
+    await findTrendingCopyTradeButton();
+
+    requestFeedQuickBuyReopen(DEFAULT_QUICK_BUY_TARGET, 'sell');
+
+    expect(await screen.findByText('Sell USDC')).toBeOnTheScreen();
+  });
+
+  it('renders the sheet in the home tabs host instead of inside the feed', async () => {
+    renderScreenWithRoutes(
+      SocialV1ViewInHomeTabsHost,
+      { name: Routes.SOCIAL.V1 },
+      [],
+      {
+        state: initialStateSocialLeaderboard()
+          .withOverrides(quickBuyOverrides())
+          .build(),
+      },
+    );
+    await findTrendingCopyTradeButton();
+
+    requestFeedQuickBuyReopen();
+
+    await waitFor(() => expect(queryQuickBuySheet()).toBeOnTheScreen());
+    expect(
+      queryQuickBuySheet(
+        within(screen.getByTestId(SocialV1ViewSelectorsIDs.CONTAINER)),
+      ),
     ).toBeNull();
   });
 });

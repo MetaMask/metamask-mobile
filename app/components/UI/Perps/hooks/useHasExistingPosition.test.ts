@@ -84,6 +84,7 @@ describe('useHasExistingPosition', () => {
     jest.clearAllMocks();
     // Default: no fills
     mockUsePerpsLiveFills.mockReturnValue({
+      retry: jest.fn(),
       fills: [],
       isInitialLoading: false,
     });
@@ -299,6 +300,7 @@ describe('useHasExistingPosition', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: mockFills,
         isInitialLoading: false,
       });
@@ -316,6 +318,7 @@ describe('useHasExistingPosition', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [mockFills[1]], // Only ETH fill
         isInitialLoading: false,
       });
@@ -334,6 +337,7 @@ describe('useHasExistingPosition', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: mockFills,
         isInitialLoading: false,
       });
@@ -352,6 +356,7 @@ describe('useHasExistingPosition', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [], // No WebSocket fills
         isInitialLoading: false,
       });
@@ -393,6 +398,7 @@ describe('useHasExistingPosition', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: mockFills, // Has BTC fill with wsTimestamp
         isInitialLoading: false,
       });
@@ -416,6 +422,7 @@ describe('useHasExistingPosition', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -482,6 +489,7 @@ describe('useHasExistingPosition', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [], // No WebSocket fills
         isInitialLoading: false,
       });

@@ -35,6 +35,7 @@ import { HyperliquidError } from '@nktkas/hyperliquid';
 import { ApiRequestError } from '@nktkas/hyperliquid/api/exchange';
 
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import { buildPerpsOrderParams } from '../utils/orderParams';
 import Engine from '../../../../core/Engine';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
@@ -212,11 +213,43 @@ describe('Perps order lifecycle — FLOW integration', () => {
     });
 
     it('reprices and backgrounds Chase through the real provider lifecycle', async () => {
-      jest.useFakeTimers();
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.exchangeClient.order
+        .mockResolvedValueOnce({
+          status: 'ok',
+          response: { data: { statuses: [{ resting: { oid: 123 } }] } },
+        })
+        .mockResolvedValueOnce({
+          status: 'ok',
+          response: { data: { statuses: [{ resting: { oid: 124 } }] } },
+        });
+      perps.harness.mocks.infoClient.orderStatus.mockImplementation(
+        async ({ oid }: { oid: number }) => {
+          if (oid !== 123 && oid !== 124) {
+            return { status: 'unknownOid' };
+          }
+          const canceled =
+            perps.harness.mocks.exchangeClient.cancel.mock.calls.some(
+              ([request]) =>
+                (request as { cancels: { o: number }[] }).cancels.some(
+                  (cancel) => cancel.o === oid,
+                ),
+            );
+          return {
+            status: 'order',
+            order: {
+              status: canceled ? 'canceled' : 'open',
+              order: { coin: 'BTC', oid, sz: '0.1' },
+            },
+          };
+        },
+      );
+      const { result, unmount } = perps.renderHookWithFlow(() =>
+        usePerpsTrading(),
+      );
+
       try {
-        const perps = buildPerpsFlowHarness();
-        perps.harness.setupTradingReady();
-        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
         await act(async () => {
           await result.current.placeOrder({
             symbol: 'BTC',
@@ -234,8 +267,10 @@ describe('Perps order lifecycle — FLOW integration', () => {
           ],
         });
 
-        await act(async () => {
-          await jest.advanceTimersByTimeAsync(10);
+        await waitFor(async () => {
+          expect(
+            await Engine.context.PerpsController.getChaseOrders(),
+          ).toMatchObject([{ repricings: 1, status: 'active' }]);
         });
         const repriced = await Engine.context.PerpsController.getChaseOrders();
         const cancelCountAfterRepricing =
@@ -253,7 +288,11 @@ describe('Perps order lifecycle — FLOW integration', () => {
           2,
         );
       } finally {
-        jest.useRealTimers();
+        try {
+          await Engine.context.PerpsController.suspendChaseOrders();
+        } finally {
+          unmount();
+        }
       }
     });
 
@@ -1284,6 +1323,139 @@ describe('Perps order lifecycle — FLOW integration', () => {
         amount_filled: 0.05,
         remaining_amount: 0.05,
       });
+    });
+
+    it('emits a market Perp Position Close Transaction when closing all positions', async () => {
+      const openLongETH: Position = {
+        ...openLongBTC,
+        symbol: 'ETH',
+        size: '1',
+        entryPrice: '3000',
+        positionValue: '3000',
+      };
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.subscription.getCachedPositions.mockReturnValue([
+        openLongBTC,
+        openLongETH,
+      ]);
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: {
+            statuses: [
+              { filled: { oid: 123, totalSz: '0.1', avgPx: '50000' } },
+              { filled: { oid: 124, totalSz: '1', avgPx: '3000' } },
+            ],
+          },
+        },
+      });
+
+      // Same call usePerpsCloseAllPositions makes.
+      const closeResult = await Engine.context.PerpsController.closePositions({
+        symbols: ['BTC', 'ETH'],
+      });
+
+      expect(closeResult).toMatchObject({ success: true, successCount: 2 });
+      const closeEvent = perps.analytics.lastByName(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+      );
+      expect(closeEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+        order_type: 'market',
+        number_positions_closed: 2,
+      });
+    });
+  });
+
+  describe('placing a Pro order-book row size', () => {
+    it('places the row size, which the Pro form requests without a USD amount', async () => {
+      // Arrange: 0.013 BTC at 81,625 reads as $1,061.13 in the size field,
+      // which the provider would turn into 0.014 BTC.
+      const perps = buildPerpsFlowHarness({ cachedPrices: { BTC: '81625' } });
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+      const order = buildPerpsOrderParams({
+        asset: 'BTC',
+        isBuy: true,
+        size: '0.013',
+        orderType: 'limit',
+        effectivePrice: 81_625,
+        leverage: 3,
+        maxSlippageBps: 300,
+        limitPrice: '81625',
+        providerId: 'hyperliquid',
+        trackingData: { totalFee: 0, marketPrice: 81_625, source: 'test' },
+      });
+
+      // Act
+      await act(async () => {
+        await result.current.placeOrder(order);
+      });
+
+      // Assert
+      expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({ b: true, p: '81625', s: '0.013' }),
+          ],
+        }),
+      );
+    });
+
+    // 0.0002 BTC at 49,990 is $9.998, under the $10 minimum.
+    const buildRowOrder = (size: string, usdAmount?: string) =>
+      buildPerpsOrderParams({
+        asset: 'BTC',
+        isBuy: true,
+        size,
+        orderType: 'limit',
+        effectivePrice: 49_990,
+        leverage: 3,
+        usdAmount,
+        maxSlippageBps: 300,
+        limitPrice: '49990',
+        providerId: 'hyperliquid',
+        trackingData: { totalFee: 0, marketPrice: 49_990, source: 'test' },
+      });
+
+    it('refuses a row size just under the minimum sent without a USD amount', async () => {
+      // Arrange
+      const perps = buildPerpsFlowHarness({ cachedPrices: { BTC: '49990' } });
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+      let placement: OrderResult | null = null;
+
+      // Act
+      await act(async () => {
+        placement = await result.current.placeOrder(buildRowOrder('0.0002'));
+      });
+
+      // Assert
+      expect(placement).toMatchObject({
+        success: false,
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+      });
+      expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
+    it('places that row raised to the minimum, which the Pro form requests as a USD amount', async () => {
+      // Arrange
+      const perps = buildPerpsFlowHarness({ cachedPrices: { BTC: '49990' } });
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      // Act
+      await act(async () => {
+        await result.current.placeOrder(buildRowOrder('0.00021', '10'));
+      });
+
+      // Assert
+      expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [expect.objectContaining({ b: true, p: '49990' })],
+        }),
+      );
     });
   });
 });

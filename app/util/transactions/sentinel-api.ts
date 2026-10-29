@@ -1,189 +1,69 @@
 import { convertHexToDecimal } from '@metamask/controller-utils';
+import {
+  SentinelChainNotSupportedError,
+  type SentinelApiServiceMessenger,
+  type SentinelNetwork,
+} from '@metamask/sentinel-api-service';
 import { Hex } from '@metamask/utils';
 import { prefixError } from './error-prefix';
 
-// TODO: Make it configurable via environment variable
-const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
-const ENDPOINT_NETWORKS = 'networks';
+export type { SentinelNetwork } from '@metamask/sentinel-api-service';
+
+/**
+ * Minimal messenger used to call the `SentinelApiService`.
+ */
+export type SentinelApiMessenger = Pick<SentinelApiServiceMessenger, 'call'>;
+
 const ERROR_PREFIX = 'Sentinel: ';
 
-/**
- * Optional bearer token getter, set at Engine init to authenticate
- * Sentinel and Transaction API calls via core-backend (AuthenticationController).
- */
-let getBearerTokenForSentinel: (() => Promise<string | undefined>) | undefined;
+let sentinelApiMessenger: SentinelApiMessenger | undefined;
 
 /**
- * Sets the bearer token getter for authenticating Sentinel and Transaction API calls.
- * Called once at Engine init (e.g. from smart-transactions-controller-init) with
- * AuthenticationController.getBearerToken.
+ * Sets the messenger used to query the `SentinelApiService`.
+ * Called once when the `SentinelApiService` is initialized.
  *
- * @param getter - Async function that returns the current bearer token, or undefined to clear.
+ * @param messenger - Messenger able to call `SentinelApiService` actions.
  */
-export function setSentinelApiAuth(
-  getter: (() => Promise<string | undefined>) | undefined,
+export function setSentinelApiMessenger(
+  messenger: SentinelApiMessenger | undefined,
 ): void {
-  getBearerTokenForSentinel = getter;
+  sentinelApiMessenger = messenger;
 }
 
 /**
- * Returns headers for Sentinel/Transaction API requests, including Authorization
- * when the app has set a bearer token getter and it returns a token.
- * Use this for all outbound Sentinel and relay requests.
+ * Gets the messenger used to query the `SentinelApiService`.
  *
- * @returns Promise resolving to headers (optional Bearer only when authenticated).
+ * @returns Messenger able to call `SentinelApiService` actions.
  */
-export async function getSentinelApiHeadersAsync(): Promise<
-  Record<string, string>
-> {
-  const headers: Record<string, string> = {};
-
-  if (getBearerTokenForSentinel) {
-    try {
-      const token = await getBearerTokenForSentinel();
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-    } catch {
-      // Proceed without auth if token retrieval fails
-    }
+export function getSentinelApiMessenger(): SentinelApiMessenger {
+  if (!sentinelApiMessenger) {
+    throw new Error('Messenger not initialized');
   }
 
-  return headers;
-}
-
-// In-memory cache for network flags (matches server's cache-control: max-age=300)
-const CACHE_TTL_MS = 300_000; // 5 minutes
-
-interface CacheState {
-  data: SentinelNetworkMap | null;
-  timestamp: number;
-  // Pending promise is kept until cache is populated to handle multiple async waves
-  pendingPromise: Promise<SentinelNetworkMap> | null;
-}
-
-const cache: CacheState = {
-  data: null,
-  timestamp: 0,
-  pendingPromise: null,
-};
-
-/**
- * Clears the in-memory cache for network flags.
- * Exported for testing purposes only.
- */
-export function clearSentinelNetworkCache(): void {
-  cache.data = null;
-  cache.timestamp = 0;
-  cache.pendingPromise = null;
-}
-
-export interface SentinelNetwork {
-  name: string;
-  group: string;
-  chainID: number;
-  nativeCurrency: {
-    name: string;
-    symbol: string;
-    decimals: number;
-  };
-  network: string;
-  explorer: string;
-  confirmations: boolean;
-  cubistSigners?: Hex[];
-  smartTransactions: boolean;
-  relayTransactions: boolean;
-  hidden: boolean;
-  sendBundle: boolean;
-}
-
-export type SentinelNetworkMap = Record<string, SentinelNetwork>;
-
-/**
- * Returns all network data.
- * The `/networks` endpoint returns the same data regardless of subdomain,
- * meaning all network subdomains are aliases of the same source.
- *
- * Results are cached in-memory for 5 minutes to match the server's
- * cache-control: max-age=300 header, since React Native's fetch
- * doesn't automatically respect HTTP caching headers.
- *
- * Concurrent requests are deduplicated - if a fetch is already in progress,
- * subsequent callers will receive the same Promise.
- */
-function getAllSentinelNetworkFlags(): Promise<SentinelNetworkMap> {
-  const now = Date.now();
-
-  // Return cached data if still valid
-  if (cache.data && now - cache.timestamp < CACHE_TTL_MS) {
-    return Promise.resolve(cache.data);
-  }
-
-  // If a request is already in flight, return that Promise (deduplication)
-  // This handles multiple "waves" of async calls
-  if (cache.pendingPromise) {
-    return cache.pendingPromise;
-  }
-
-  // Create and store the pending request
-  cache.pendingPromise = fetchNetworkFlags();
-
-  return cache.pendingPromise;
+  return sentinelApiMessenger;
 }
 
 /**
- * Fetches network flags from the API and updates the cache.
- * Clears the pending promise after completion to allow cache expiry.
- */
-async function fetchNetworkFlags(): Promise<SentinelNetworkMap> {
-  try {
-    const url = `${buildUrl('ethereum-mainnet')}${ENDPOINT_NETWORKS}`;
-    const headers = await getSentinelApiHeadersAsync();
-    const response = await fetch(url, { headers });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch network flags: ${response.status}`);
-    }
-
-    const data: SentinelNetworkMap = await response.json();
-
-    // Update cache BEFORE clearing pending promise
-    cache.data = data;
-    cache.timestamp = Date.now();
-
-    return data;
-  } catch (error) {
-    throw prefixError(error, ERROR_PREFIX);
-  } finally {
-    // Clear pending promise after completion (success or failure)
-    // This allows cache expiry to trigger a new fetch after TTL
-    // Any concurrent callers already have a reference to this promise
-    cache.pendingPromise = null;
-  }
-}
-
-/**
- * Get Sentinel Network flags by chainId
+ * Get Sentinel network flags by chain ID.
  *
  * @param chainId - The chain ID to get the network flags for.
- * @returns A promise that resolves to the Sentinel network flags for the given chain ID, or undefined if not found.
+ * @returns A promise that resolves to the Sentinel network flags for the given chain ID, or undefined if not supported.
  */
 export async function getSentinelNetworkFlags(
   chainId: Hex,
 ): Promise<SentinelNetwork | undefined> {
-  const chainIdDecimal = convertHexToDecimal(chainId);
-  const networks = await getAllSentinelNetworkFlags();
-  return networks[chainIdDecimal];
-}
+  try {
+    return await getSentinelApiMessenger().call(
+      'SentinelApiService:getNetwork',
+      chainId,
+    );
+  } catch (error) {
+    if (error instanceof SentinelChainNotSupportedError) {
+      return undefined;
+    }
 
-/**
- * Returns api base url for a given subdomain.
- *
- * @param subdomain - The subdomain to use in the URL.
- * @returns The complete URL with the subdomain.
- */
-export function buildUrl(subdomain: string): string {
-  return BASE_URL.replace('{0}', subdomain);
+    throw prefixError(error, ERROR_PREFIX);
+  }
 }
 
 /**
@@ -220,12 +100,18 @@ export async function getSentinelSigners(chainId: Hex): Promise<Hex[]> {
 export async function getSendBundleSupportedChains(
   chainIds: Hex[],
 ): Promise<Record<string, boolean>> {
-  const networkData = await getAllSentinelNetworkFlags();
+  let networks: Record<string, SentinelNetwork>;
+
+  try {
+    networks = await getSentinelApiMessenger().call(
+      'SentinelApiService:getNetworks',
+    );
+  } catch (error) {
+    throw prefixError(error, ERROR_PREFIX);
+  }
 
   return chainIds.reduce<Record<string, boolean>>((acc, chainId) => {
-    const chainIdDecimal = convertHexToDecimal(chainId);
-    const network = networkData[chainIdDecimal];
-    acc[chainId] = Boolean(network?.sendBundle);
+    acc[chainId] = Boolean(networks[convertHexToDecimal(chainId)]?.sendBundle);
     return acc;
   }, {});
 }

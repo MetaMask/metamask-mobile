@@ -149,22 +149,55 @@ export class WalletHomeSections {
     );
   }
 
-  async scrollAndTapPerpsSection(): Promise<void> {
-    try {
-      await WalletHomeScroll.scrollAndTapSection(
+  async scrollAndTapPerpsSection(
+    direction: 'up' | 'down' = 'down',
+    options: {
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
+  ): Promise<void> {
+    // One short pass. The Perps flow owns retries so a late-mounted header can
+    // be probed again before this scroll burns the whole timeout.
+    const clippedHeaderNudge = options.overshootSwipe ?? {
+      direction: 'up' as const,
+      percentage: 0.2,
+    };
+    if (
+      await WalletHomeScroll.tapIfAlreadyVisible(
         this.perpsSectionHeader,
         'Perpetuals section',
-        'down',
-        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
-      );
-    } catch {
-      await WalletHomeScroll.scrollAndTapSection(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-        'up',
-        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
-      );
+        {
+          tapTimeout: 5_000,
+          overshootSwipe: clippedHeaderNudge,
+          clearTabBar: true,
+        },
+      )
+    ) {
+      return;
     }
+
+    const fallbackDirection = direction === 'down' ? 'up' : 'down';
+
+    await WalletHomeScroll.tryScrollDirections(
+      (scrollDirection) =>
+        WalletHomeScroll.scrollAndTapSection(
+          this.perpsSectionHeader,
+          'Perpetuals section',
+          scrollDirection,
+          {
+            overshootSwipe: options.overshootSwipe ?? {
+              direction:
+                scrollDirection === 'down'
+                  ? ('up' as const)
+                  : ('down' as const),
+              percentage: 0.15,
+            },
+            maxAttempts: 2,
+            tapTimeout: 3_000,
+            clearTabBar: true,
+          },
+        ),
+      [direction, fallbackDirection],
+    );
   }
 
   async scrollAndTapPredictionsSection(
@@ -212,14 +245,20 @@ export class WalletHomeSections {
         this.predictionsSectionHeader,
         'Predictions section',
         'down',
-        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
+        {
+          overshootSwipe: { direction: 'up', percentage: 0.2 },
+          clearTabBar: true,
+        },
       );
     } catch {
       await WalletHomeScroll.scrollAndTapSection(
         this.predictionsSectionHeader,
         'Predictions section',
         'up',
-        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
+        {
+          overshootSwipe: { direction: 'down', percentage: 0.2 },
+          clearTabBar: true,
+        },
       );
     }
   }
@@ -293,6 +332,7 @@ export class WalletHomeSections {
           WalletHomeScroll.scrollAndTapSection(target, description, direction, {
             timeout: scrollAndTapPerDirectionMs,
             tapTimeout: tapTimeoutMs,
+            fullyVisible: true,
             overshootSwipe: {
               direction: direction === 'down' ? 'up' : 'down',
               percentage: 0.15,

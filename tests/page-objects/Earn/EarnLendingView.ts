@@ -12,6 +12,7 @@ import { DEPOSIT_DETAILS_SECTION_TEST_ID } from '../../../app/components/UI/Earn
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/DepositReceiveSection/DepositReceiveSection.testIds';
 import { PROGRESS_STEPPER_TEST_IDS } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/ProgressStepper/ProgressStepper.testIds';
 import { EarnWithdrawInputViewTestIds } from '../../../app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.testIds';
+import { ActivitiesViewSelectorsIDs } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { type AppiumElement } from '../../framework';
 
 class EarnLendingView {
@@ -92,7 +93,7 @@ class EarnLendingView {
   async scrollToWithdrawButton(): Promise<void> {
     await Gestures.scrollToElement(
       this.withdrawButton,
-      Matchers.scrollContainer('transactions-container'),
+      Matchers.scrollContainer(ActivitiesViewSelectorsIDs.CONTAINER),
       {
         direction: 'down',
         scrollAmount: 200,

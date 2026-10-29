@@ -8,7 +8,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { SECURITY_EMPTY_VALUE } from '../SecurityTab.constants';
+import { STAT_EMPTY_VALUE } from '../../../../constants/tokenStats';
+import { formatPercent } from '../../../../utils/statBarFormat';
 import { SecurityTabSelectors } from '../SecurityTab.testIds';
 
 /**
@@ -18,6 +19,9 @@ import { SecurityTabSelectors } from '../SecurityTab.testIds';
  */
 const TOP_TEN_SWATCH = 'bg-primary-default';
 const REMAINING_SWATCH = 'bg-primary-muted';
+
+/** Matches the Top 10 stat row, which repeats this figure three rows down. */
+const LEGEND_DECIMALS = 1;
 
 const LegendEntry = ({
   swatchTwClassName,
@@ -42,23 +46,19 @@ const LegendEntry = ({
       color={TextColor.TextDefault}
       numberOfLines={1}
     >
-      {`${label} ${value ?? SECURITY_EMPTY_VALUE}`}
+      {`${label} ${value ?? STAT_EMPTY_VALUE}`}
     </Text>
   </Box>
 );
 
 export interface HoldersDistributionBarProps {
   /**
-   * Share held by the top ten wallets, 0-100, used only to size the fill.
+   * Share held by the top ten wallets, as a raw number in the range 0-100.
    *
    * `null` renders nothing at all. A zero-width bar would read as "0%
    * concentration", which is a reassuring claim rather than an absence.
    */
-  fillPercentage: number | null;
-  /** Already-formatted top-ten share, e.g. `18.4%`. */
-  topTenPercentage: string | null;
-  /** Already-formatted share held by everyone else, e.g. `81.6%`. */
-  remainingPercentage: string | null;
+  topTenPercentage: number | null;
 }
 
 /**
@@ -69,18 +69,22 @@ export interface HoldersDistributionBarProps {
  * judge at a glance for the mid-range values that matter most. Label and value
  * sit in one `Text` so they wrap as a unit rather than leaving a percentage
  * stranded on its own line.
+ *
+ * The one component on this tab that formats its own values, where every other
+ * receives strings. It takes the raw share because it needs that number to
+ * size the fill, and deriving the two labels from the same number is what
+ * makes a bar whose length contradicts its legend unrepresentable. The guard
+ * below also runs before the subtraction, so `100 - x` needs no null test.
  */
 export const HoldersDistributionBar: React.FC<HoldersDistributionBarProps> = ({
-  fillPercentage,
   topTenPercentage,
-  remainingPercentage,
 }) => {
   const fillStyle = useMemo(
-    () => ({ width: `${fillPercentage ?? 0}%` as `${number}%` }),
-    [fillPercentage],
+    () => ({ width: `${topTenPercentage ?? 0}%` as `${number}%` }),
+    [topTenPercentage],
   );
 
-  if (fillPercentage === null) {
+  if (topTenPercentage === null) {
     return null;
   }
 
@@ -104,13 +108,13 @@ export const HoldersDistributionBar: React.FC<HoldersDistributionBarProps> = ({
         <LegendEntry
           swatchTwClassName={TOP_TEN_SWATCH}
           label={strings('token_details_v1.security_tab.holders.top_ten')}
-          value={topTenPercentage}
+          value={formatPercent(topTenPercentage, LEGEND_DECIMALS)}
           testID={SecurityTabSelectors.LEGEND_TOP_TEN}
         />
         <LegendEntry
           swatchTwClassName={REMAINING_SWATCH}
           label={strings('token_details_v1.security_tab.holders.remaining')}
-          value={remainingPercentage}
+          value={formatPercent(100 - topTenPercentage, LEGEND_DECIMALS)}
           testID={SecurityTabSelectors.LEGEND_REMAINING}
         />
       </Box>

@@ -28,6 +28,7 @@ export enum AlertKeys {
   MMPayHardwareAccount = 'mmpay_hardware_account',
   DepositLimit = 'deposit_limit',
   SignedOrSubmitted = 'signed_or_submitted',
+  SuggestedGasFeeHigh = 'suggested_gas_fee_high',
   TokenContractAddress = 'token_contract_address',
   TokenTrustSignalMalicious = 'token_trust_signal_malicious',
   TokenTrustSignalWarning = 'token_trust_signal_warning',

@@ -27,6 +27,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import {
@@ -37,9 +39,6 @@ import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
 import { useTheme } from '../../../util/theme';
-import Text from '../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
-
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import { ShowConfirmDeleteModalState } from './types';
@@ -421,7 +420,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
     <ReusableModal ref={sheetRef} style={styles.screen}>
       <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.notch} />
-        <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        <Text variant={TextVariant.HeadingMd} style={styles.title}>
           {strings('networks.select_network')}
         </Text>
         <View style={styles.searchContainer}>
@@ -490,9 +489,15 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
             isVisible={showWarningModal}
             title={strings(modalTitle)}
             body={
-              <Text>
-                <Text style={styles.desc}>{strings(modalDescription)}</Text>{' '}
-                <Text style={[styles.blueText]} onPress={goToLearnMore}>
+              <Text variant={TextVariant.BodyMd}>
+                <Text variant={TextVariant.BodyMd} style={styles.desc}>
+                  {strings(modalDescription)}
+                </Text>{' '}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  style={[styles.blueText]}
+                  onPress={goToLearnMore}
+                >
                   {strings('networks.learn_more')}
                 </Text>
               </Text>
@@ -554,7 +559,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
               {strings('asset_details.network')}
             </BottomSheetHeader>
             <View style={styles.containerDeleteText}>
-              <Text style={styles.textCentred}>
+              <Text variant={TextVariant.BodyMd} style={styles.textCentred}>
                 {strings('app_settings.network_delete')}
               </Text>
               <BottomSheetFooter

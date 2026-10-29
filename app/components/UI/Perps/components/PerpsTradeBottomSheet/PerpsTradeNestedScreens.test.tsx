@@ -14,6 +14,7 @@ import {
   PerpsTPSLViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { CommonActions } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { PayWithSectionConfig } from '../../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
@@ -28,6 +29,8 @@ import {
   PerpsTradePayWithScreen,
   PerpsTradeTPSLScreen,
 } from './PerpsTradeNestedScreens';
+
+jest.mock('../../../../../util/haptics');
 
 const mockGoBack = jest.fn();
 const mockClose = jest.fn();
@@ -376,11 +379,21 @@ describe('PerpsTradeNestedScreens', () => {
           onBack: mockGoBack,
           onClose: mockClose,
           onConfirmComplete: mockGoBack,
-          onConfirm,
+          onConfirm: expect.any(Function),
           leverage: 3,
           maxLeverage: 40,
         }),
       );
+
+      (
+        mockLeverageSheetProps?.onConfirm as (
+          leverage: number,
+          inputMethod?: 'slider' | 'preset',
+        ) => void
+      )(5, 'preset');
+
+      expect(onConfirm).toHaveBeenCalledWith(5, 'preset');
+      expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
   });
 
@@ -498,6 +511,19 @@ describe('PerpsTradeNestedScreens', () => {
       expect(onSave).toHaveBeenCalledWith('110', '90');
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
+    expect(fireImpact).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('does not play a haptic when Save has nothing to commit', () => {
+    mockHasChanges = false;
+    const onSave = jest.fn();
+    render(<PerpsTradeTPSLScreen {...defaultProps} onSave={onSave} />);
+
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+
+    expect(fireImpact).not.toHaveBeenCalled();
+    expect(onSave).not.toHaveBeenCalled();
   });
 
   it('stays on the screen and disables Save while saving', async () => {
@@ -619,6 +645,7 @@ describe('PerpsTradeNestedScreens', () => {
     expect(
       screen.queryByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
     ).not.toBeOnTheScreen();
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
   });
 
   it('shows expected profit and loss for populated fields', () => {

@@ -10,7 +10,7 @@ import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
  * Who may see which Money Account Plus surface.
  */
 export enum MoneyAccountPlusAccess {
-  /** A/B flag is off. No Pro UI anywhere, subscriber or not. */
+  /** Pro subscription flag is off. No Pro UI anywhere, subscriber or not. */
   Disabled = 'disabled',
   /**
    * Holds a Plus subscription (active, trialing, provisional, or paused) or
@@ -40,8 +40,8 @@ export interface MoneyAccountPlusAccessState {
  * Resolves Money Account Plus access together with the subscriptions query
  * state that produced it.
  *
- * The `subSUB990AbtestProSubscriptionFlow` A/B flag gates every Pro surface,
- * so control-group users get {@link MoneyAccountPlusAccess.Disabled} even
+ * The `subscription-money-account-orange-enabled` flag gates every Pro surface,
+ * so users with the flag off get {@link MoneyAccountPlusAccess.Disabled} even
  * when they hold an active subscription. Past that, access is driven by
  * whether an existing Plus subscription is in SubscriptionController state,
  * but only after the initial subscriptions query has succeeded.

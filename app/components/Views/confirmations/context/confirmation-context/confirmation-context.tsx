@@ -15,12 +15,14 @@ export interface ConfirmationContextParams {
   isFooterVisible?: boolean;
   isConfirmationSubmitting: boolean;
   isConfirmationSubmittingRef: React.RefObject<boolean>;
+  isGasFeeModalVisible: boolean;
   isHeadlessBuyInProgress: boolean;
   isTransactionValueUpdating: boolean;
   isTransactionDataUpdating: boolean;
   setHeadlessBuyError: (error: string | undefined) => void;
   setIsConfirmationSubmitting: (isConfirmationSubmitting: boolean) => void;
   setIsFooterVisible: (isFooterVisible: boolean) => void;
+  setIsGasFeeModalVisible: (isGasFeeModalVisible: boolean) => void;
   setIsHeadlessBuyInProgress: (isHeadlessBuyInProgress: boolean) => void;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
   setIsTransactionDataUpdating: (isTransactionDataUpdating: boolean) => void;
@@ -34,12 +36,14 @@ const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   isFooterVisible: true,
   isConfirmationSubmitting: false,
   isConfirmationSubmittingRef: { current: false },
+  isGasFeeModalVisible: false,
   isHeadlessBuyInProgress: false,
   isTransactionDataUpdating: false,
   isTransactionValueUpdating: false,
   setHeadlessBuyError: noop,
   setIsConfirmationSubmitting: noop,
   setIsFooterVisible: noop,
+  setIsGasFeeModalVisible: noop,
   setIsHeadlessBuyInProgress: noop,
   setIsTransactionDataUpdating: noop,
   setIsTransactionValueUpdating: noop,
@@ -58,6 +62,8 @@ export const ConfirmationContextProvider: React.FC<
     useState(false);
 
   const [isFooterVisible, setIsFooterVisible] = useState<boolean>();
+
+  const [isGasFeeModalVisible, setIsGasFeeModalVisible] = useState(false);
 
   const [headlessBuyError, setHeadlessBuyError] = useState<
     string | undefined
@@ -84,6 +90,7 @@ export const ConfirmationContextProvider: React.FC<
       mmPayRequestInProgressNavHandler,
       headlessBuyError,
       isFooterVisible,
+      isGasFeeModalVisible,
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
@@ -91,6 +98,7 @@ export const ConfirmationContextProvider: React.FC<
       isConfirmationSubmittingRef,
       setHeadlessBuyError,
       setIsFooterVisible,
+      setIsGasFeeModalVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
@@ -100,6 +108,7 @@ export const ConfirmationContextProvider: React.FC<
       mmPayRequestInProgressNavHandler,
       headlessBuyError,
       isFooterVisible,
+      isGasFeeModalVisible,
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
@@ -107,6 +116,7 @@ export const ConfirmationContextProvider: React.FC<
       isConfirmationSubmittingRef,
       setHeadlessBuyError,
       setIsFooterVisible,
+      setIsGasFeeModalVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,

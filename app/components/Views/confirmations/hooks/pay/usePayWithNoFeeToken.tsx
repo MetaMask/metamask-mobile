@@ -15,6 +15,7 @@ import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChain
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
+import { payBalanceUsd } from '../../utils/transaction-pay';
 import { AssetType } from '../../types/token';
 import { NoFeeTag } from '../../components/UI/no-fee-tag';
 import { TokenTagRenderer } from '../../components/UI/token';
@@ -134,7 +135,7 @@ export function usePayWithNoFeeToken({
 
     return {
       address: match.address as Hex,
-      balanceUsd: `${match.fiat?.balance ?? 0}`,
+      balanceUsd: payBalanceUsd(match.balanceInSelectedCurrencyAmount),
       chainId: match.chainId as Hex,
       symbol: match.symbol,
     };

@@ -23,5 +23,9 @@ export function getRewardsDataServiceMessenger(
     namespace: 'RewardsDataService',
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    messenger,
+    actions: ['AuthenticationController:getBearerToken'],
+  });
   return messenger;
 }

@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -15,6 +15,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextButton,
   HeaderStandard,
   Icon,
   IconColor,
@@ -22,6 +23,7 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -65,6 +67,7 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -84,6 +87,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
+import type { WalletPassDevice } from '../../pushProvisioning/types';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
@@ -231,21 +235,34 @@ const CardHome = () => {
 
   const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
+  const platformWallet = getWalletTypeForPlatform();
+  const platformWalletSupported =
+    platformWallet === 'apple_wallet'
+      ? capabilities?.pushProvisioning?.applePay === true
+      : capabilities?.pushProvisioning?.googlePay === true;
   const {
     initiateProvisioning,
     isProvisioning,
     isLoading: isPushProvisioningLoading,
     canAddToWallet,
     isCardInWallet,
-  } = useCardWalletProvisioning(data);
-  const platformWallet = getWalletTypeForPlatform();
-  const platformWalletSupported =
-    platformWallet === 'apple_wallet'
-      ? capabilities?.pushProvisioning?.applePay === true
-      : capabilities?.pushProvisioning?.googlePay === true;
-  const showDigitalWalletInstructions =
-    !platformWalletSupported ||
-    (!isPushProvisioningLoading && !canAddToWallet && !isCardInWallet);
+    pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
+    walletEntry,
+  } = useCardWalletProvisioning(data, { platformWalletSupported });
+  useApplePaySplashPrompt({
+    canAddToWallet,
+    isPushProvisioningLoading,
+  });
+  const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
+  const handleLearnMoreAboutApplePay = useCallback(() => {
+    Linking.openURL(applePayLearnMoreUrl).catch(() => undefined);
+  }, [applePayLearnMoreUrl]);
+  const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
+  const handleOpenInWallet = useCallback(() => {
+    openInWallet().catch(() => undefined);
+  }, [openInWallet]);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
@@ -744,6 +761,21 @@ const CardHome = () => {
           </Box>
         )}
 
+        {!isLoading &&
+          pendingDevicesLabel.length > 0 &&
+          !isUkMigrationForced && (
+            <Box
+              twClassName="mx-4 mt-2"
+              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
+            >
+              <CardMessageBox
+                messageType={CardMessageBoxType.WalletVerificationPending}
+                values={{ devices: pendingDevicesLabel }}
+                onConfirm={canOpenInWallet ? handleOpenInWallet : undefined}
+              />
+            </Box>
+          )}
+
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Animated.View
             style={[tw.style('w-full relative'), arrival.cardStyle]}
@@ -848,7 +880,7 @@ const CardHome = () => {
             </Box>
           )}
 
-        {!isLoading && canAddToWallet && !isUkMigrationForced && (
+        {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
               <Box twClassName="py-3">
@@ -864,6 +896,16 @@ const CardHome = () => {
                 buttonType="basic"
                 borderRadius={4}
               />
+            )}
+            {Platform.OS === 'ios' && !isCardInWallet && (
+              <TextButton
+                variant={TextVariant.BodySm}
+                twClassName="mt-2"
+                onPress={handleLearnMoreAboutApplePay}
+                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+              >
+                {strings('card.apple_pay_usage.learn_more')}
+              </TextButton>
             )}
           </Box>
         )}
@@ -924,10 +966,12 @@ const CardHome = () => {
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
             onContactDetails={actions.contactDetailsAction}
-            showDigitalWalletInstructions={showDigitalWalletInstructions}
+            showDigitalWalletInstructions={walletEntry === 'instructions'}
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
+            showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+            onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
@@ -988,5 +1032,28 @@ const CardHome = () => {
     </Box>
   );
 };
+
+function formatPendingDevices(devices: WalletPassDevice[] | undefined): string {
+  if (!devices?.length) {
+    return '';
+  }
+
+  const names = devices.map((walletDevice) =>
+    strings(
+      walletDevice === 'phone'
+        ? 'card.push_provisioning.device_iphone'
+        : 'card.push_provisioning.device_apple_watch',
+    ),
+  );
+
+  if (names.length < 2) {
+    return names[0];
+  }
+
+  return strings('card.push_provisioning.device_list_and', {
+    first: names[0],
+    second: names[1],
+  });
+}
 
 export default CardHome;

@@ -644,12 +644,47 @@ class PerpsProMarketView {
     });
   }
 
+  /**
+   * Bring the positions list on screen without failing when a closed
+   * position has unmounted it. A missing panel used to fail the 30s
+   * close-poll after one 45s scroll. Once any of the panel is visible,
+   * scroll it clear of the bottom edge so Android mounts rows that were
+   * still below the fold before the caller checks that a row is gone.
+   */
+  private async revealPositionsPanel(): Promise<void> {
+    await this.dismissOrderFormKeyboard();
+    const scrollView = await this.scrollView;
+    const revealMs = PlatformDetector.isAndroid() ? 20000 : 8000;
+    const deadline = Date.now() + revealMs;
+    let panelVisible = false;
+    while (Date.now() < deadline) {
+      if (await Utilities.isElementVisible(this.positionsPanel, 500)) {
+        panelVisible = true;
+        break;
+      }
+      if (Date.now() >= deadline) {
+        break;
+      }
+      await Gestures.swipe(scrollView, 'up', {
+        speed: 'fast',
+        percentage: 0.7,
+        elemDescription: 'Swipe Pro market view toward positions panel',
+      });
+    }
+    if (!panelVisible) {
+      return;
+    }
+    await Gestures.scrollIntoViewFullyVisible(this.positionsPanel, {
+      direction: 'up',
+      scrollableElement: scrollView,
+      maxScrolls: 6,
+      percent: 0.7,
+    });
+  }
+
   async expectPositionRowNotVisible(symbol: string): Promise<void> {
     await this.tapPositionsTab();
-    await this.scrollUntilVisible(
-      this.positionsPanel,
-      'Pro positions panel list',
-    );
+    await this.revealPositionsPanel();
     await Assertions.expectElementToNotExist(this.positionRow(symbol), {
       description: `Pro position row for ${symbol} should not be visible`,
       timeout: 10000,

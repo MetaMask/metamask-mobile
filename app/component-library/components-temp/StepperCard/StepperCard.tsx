@@ -2,10 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
-  Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
+  FontFamily,
   Icon,
   IconColor,
   IconName,
@@ -17,12 +16,15 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import { StepperCardProps } from './StepperCard.types';
+import BoxGlass from '../BoxGlass';
+import ButtonGlass from '../ButtonGlass';
 
 const StepperCard = ({
   steps,
   currentStep,
   onComplete,
   testID,
+  isGlass = false,
 }: StepperCardProps) => {
   const tw = useTailwind();
 
@@ -49,13 +51,10 @@ const StepperCard = ({
 
   const step = steps[currentStep];
 
-  return (
-    <Box
-      twClassName="rounded-3xl bg-muted overflow-hidden"
-      testID={getTestId('container')}
-    >
+  const content = (
+    <>
       {/* Image */}
-      <Box twClassName="p-4">
+      <Box twClassName="px-4 pt-4">
         <Box testID={getTestId('step-image')} twClassName="w-full aspect-video">
           {step.media ?? (
             <Image
@@ -71,8 +70,9 @@ const StepperCard = ({
       <Box twClassName="p-4 gap-4">
         <Box twClassName="gap-1">
           <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.DisplayMd}
+            fontFamily={FontFamily.Hero}
+            twClassName="leading-[32px]"
             testID={getTestId('title')}
           >
             {step.title}
@@ -107,29 +107,42 @@ const StepperCard = ({
         {/* CTAs */}
         <Box twClassName="flex-row gap-3">
           {step.secondaryCta && (
-            <Button
-              variant={ButtonVariant.Secondary}
+            <ButtonGlass
+              isGlass={isGlass}
               size={ButtonSize.Lg}
               onPress={step.secondaryCta.onPress}
               isDisabled={step.secondaryCta.disabled}
-              twClassName="flex-1"
+              containerStyle={tw.style('flex-1')}
             >
               {step.secondaryCta.text}
-            </Button>
+            </ButtonGlass>
           )}
-          <Button
+          <ButtonGlass
+            isGlass={isGlass}
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={step.primaryCta.onPress}
             isDisabled={step.primaryCta.disabled}
-            twClassName="flex-1"
+            containerStyle={tw.style('flex-1')}
             testID={getTestId('cta-button')}
           >
             {step.primaryCta.text}
-          </Button>
+          </ButtonGlass>
         </Box>
       </Box>
-    </Box>
+    </>
+  );
+
+  return (
+    <BoxGlass
+      isGlass={isGlass}
+      radiusClassName="rounded-3xl"
+      hasSheen
+      style={tw.style('overflow-hidden')}
+      testID={getTestId('container')}
+    >
+      {content}
+    </BoxGlass>
   );
 };
 

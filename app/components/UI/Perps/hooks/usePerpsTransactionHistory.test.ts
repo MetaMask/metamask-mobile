@@ -239,6 +239,7 @@ describe('usePerpsTransactionHistory', () => {
 
     // Mock live fills hook (returns empty by default, tests can override)
     mockUsePerpsLiveFills.mockReturnValue({
+      retry: jest.fn(),
       fills: [],
       isInitialLoading: false,
     });
@@ -859,6 +860,7 @@ describe('usePerpsTransactionHistory', () => {
       ).context.PerpsController = undefined;
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -879,6 +881,7 @@ describe('usePerpsTransactionHistory', () => {
       mockController.getActiveProviderOrNull.mockReturnValue(null);
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -901,6 +904,7 @@ describe('usePerpsTransactionHistory', () => {
       mockProvider.getOrderFills.mockRejectedValue(new Error('Fetch error'));
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -926,6 +930,7 @@ describe('usePerpsTransactionHistory', () => {
       mockProvider.getOrderFills.mockRejectedValue('String error');
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -1383,6 +1388,7 @@ describe('usePerpsTransactionHistory', () => {
       ]);
 
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [wsRawFill],
         isInitialLoading: false,
       });

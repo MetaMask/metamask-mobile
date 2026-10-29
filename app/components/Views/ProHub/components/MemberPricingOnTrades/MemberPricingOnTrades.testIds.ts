@@ -5,6 +5,8 @@ export const MemberPricingOnTradesTestIds = {
   TITLE: 'pro-hub-member-pricing-title',
   LOADING_SKELETON: 'pro-hub-member-pricing-loading-skeleton',
   ERROR: 'pro-hub-member-pricing-error',
+  PENDING: 'pro-hub-member-pricing-pending',
+  UNAVAILABLE: 'pro-hub-member-pricing-unavailable',
   RETRY_BUTTON: 'pro-hub-member-pricing-retry-button',
   RESETS_ON: 'pro-hub-member-pricing-resets-on',
   ROW: (id: TradeAllowanceItem['id']) => `pro-hub-member-pricing-row-${id}`,

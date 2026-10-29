@@ -11,6 +11,7 @@ import {
   playWarningNotification,
   playImpact,
   playSelection,
+  fireImpact,
 } from './play';
 import { ImpactMoment } from './catalog';
 import { shouldPlayHaptic } from './gates';
@@ -94,6 +95,11 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
+    it('playImpact(KeypadKey) calls impactAsync with Light', async () => {
+      await playImpact(ImpactMoment.KeypadKey);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
+    });
+
     it('playImpact(SliderGrip) calls impactAsync with Medium', async () => {
       await playImpact(ImpactMoment.SliderGrip);
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
@@ -102,6 +108,11 @@ describe('play.ts', () => {
     it('playImpact(TabChange) calls impactAsync with Medium', async () => {
       await playImpact(ImpactMoment.TabChange);
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+    });
+
+    it('playImpact(SecondaryCTA) calls impactAsync with Light', async () => {
+      await playImpact(ImpactMoment.SecondaryCTA);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
     it('playImpact(PrimaryCTA) calls impactAsync with Medium', async () => {
@@ -132,6 +143,12 @@ describe('play.ts', () => {
     it('playSelection calls selectionAsync', async () => {
       await playSelection();
       expect(selectionAsync).toHaveBeenCalled();
+    });
+
+    it('fireImpact calls impactAsync without awaiting', async () => {
+      fireImpact(ImpactMoment.TabChange);
+      await Promise.resolve();
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
     });
   });
 
@@ -164,6 +181,12 @@ describe('play.ts', () => {
       await playSelection();
       expect(selectionAsync).not.toHaveBeenCalled();
     });
+
+    it('fireImpact does not call vendor', async () => {
+      fireImpact(ImpactMoment.SliderTick);
+      await Promise.resolve();
+      expect(impactAsync).not.toHaveBeenCalled();
+    });
   });
 
   describe('error resilience', () => {
@@ -190,6 +213,14 @@ describe('play.ts', () => {
         new Error('native crash'),
       );
       await expect(playSelection()).resolves.toBeUndefined();
+    });
+
+    it('fireImpact does not throw when vendor throws', async () => {
+      (impactAsync as jest.Mock).mockRejectedValueOnce(
+        new Error('native crash'),
+      );
+      expect(() => fireImpact(ImpactMoment.TabChange)).not.toThrow();
+      await Promise.resolve();
     });
   });
 });

@@ -59,6 +59,7 @@ jobs:
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
       IOS_APP_ARTIFACT_PATH: artifacts/main-e2e-MetaMask.app
+      WDA_DERIVED_DATA_PATH: ${{ github.workspace }}/.cache/appium-wda
 
     steps:
       - name: Checkout (Namespace)
@@ -255,16 +256,16 @@ jobs:
       - name: Restore WDA DerivedData cache
         uses: actions/cache@v6
         with:
-          path: ~/appium-wda
-          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          path: ${{ env.WDA_DERIVED_DATA_PATH }}
+          key: wda-derived-data-v2-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
           restore-keys: |
-            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
+            wda-derived-data-v2-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
 
       - name: Check if WDA is prebuilt
         id: wda-prebuilt
         run: |
-          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
-          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
+          WDA_APP=$(find "$WDA_DERIVED_DATA_PATH/Build/Products" -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
+          XCTESTRUN=$(find "$WDA_DERIVED_DATA_PATH/Build/Products" -name '*.xctestrun' 2>/dev/null | head -1 || true)
           if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
             echo "WDA prebuilt artifacts found"

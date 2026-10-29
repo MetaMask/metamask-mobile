@@ -11,13 +11,20 @@ export const REWARDS_MONEY_CONTROLLER_NAME = 'RewardsMoneyController' as const;
 /** mUSD is fixed at 6 decimals. A constant, never part of the payload. */
 export const MUSD_DECIMALS = 6;
 
-export type ReferralRole = 'REFERRER' | 'REFEREE' | 'BOTH' | 'NONE';
+/** A relationship the caller holds. Empty `roles` means none of these. */
+export type ReferralRole =
+  | 'REFERRER'
+  | 'REFEREE'
+  | 'CASHBACK_EXPERIMENT'
+  | 'COPY_TRADING';
 
 /**
- * Server-side product decision about which screen to render. Returned
- * alongside `role` so the `BOTH` policy can change without an app release.
+ * The screen `roles` maps to. A referrer wins over a referee. An empty role
+ * list is `NONE` unless the server flag forces `REFEREE`.
  */
 export type ReferralVariant = 'REFERRER' | 'REFEREE' | 'NONE';
+
+export type ReferralCodeStatus = 'ACTIVE' | 'PAUSED';
 
 export type ReferralUserType = 'KOL' | 'REGULAR';
 
@@ -26,6 +33,15 @@ export type ReferralUserStatus = 'ACTIVE' | 'PAUSED';
 export type EarningOriginType =
   | 'SWAPS_FEE_CASHBACK'
   | 'PERPS_FEE_CASHBACK'
+  | 'REFERRAL_REV_SHARE'
+  | 'SOCIAL_FOLLOW_TRADE';
+
+/**
+ * What one claim settles, and the key the summary groups by. Both cashback
+ * mechanisms settle as one family, so they are one balance on a read surface.
+ */
+export type EarningClaimFamily =
+  | 'REFERRAL_TRADE_FEE_CASHBACK'
   | 'REFERRAL_REV_SHARE'
   | 'SOCIAL_FOLLOW_TRADE';
 
@@ -38,13 +54,9 @@ export type ClaimBlockingReason =
   | 'SIGNER_UNAVAILABLE'
   | 'TAX_DETERMINATION_REQUIRED'
   | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
-
-export type LedgerBlockingReason =
-  | 'SUSPENDED'
-  | 'TAX_DETERMINATION_REQUIRED'
-  | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
+  | 'MECHANISM_NOT_CLAIMABLE'
+  | 'VOIDED'
+  | 'UNDER_REVIEW';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralCodeView = {
@@ -58,17 +70,18 @@ export type ReferralCodeView = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferredByView = {
   referral_code: string | null;
-  earning_start: string | null;
-  /** Drives "your bonus window ends in N days". */
-  earning_end: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarnRatesView = {
-  revshare_rate_bps: number | null;
   cashback_rate_bps: number | null;
-  revshare_earning_term_minutes: number | null;
-  cashback_earning_term_minutes: number | null;
+  /** Window of the cashback row that pays the caller now. Null when none does. */
+  cashback_earning_start: string | null;
+  cashback_earning_end: string | null;
+  revshare_rate_bps: number | null;
+  /** Window of the revenue-share row that pays the caller now. */
+  revshare_earning_start: string | null;
+  revshare_earning_end: string | null;
 };
 
 /**
@@ -91,10 +104,30 @@ export type ReferralLocalizedTextKey =
   | 'availableToClaim'
   | 'claim'
   | 'claimed'
+  | 'held'
+  | 'blocked'
+  | 'voided'
+  | 'pending'
   | 'claimSuccessToast'
+  | 'claimPartialSuccessToast'
+  | 'claimFailureToast'
+  | 'claimFailureRetryToast'
+  | 'claimFailureWaitToast'
+  | 'claimFailureWaitMinutesToast'
+  | 'claimFailureMinimumToast'
+  | 'claimFailureAddressBlockedToast'
+  | 'claimFailureTooLargeToast'
+  | 'claimFailureNoEligibleBalanceToast'
+  | 'claimFailureUnavailableToast'
+  | 'claimFailureContactSupportToast'
+  | 'historyClaimPending'
   | 'last7Days'
-  | 'recordedEarningsLabel'
+  | 'totalEarningsLabel'
   | 'breakdown'
+  | 'breakdownTrading'
+  | 'breakdownTradingDescription'
+  | 'breakdownReferralsDescription'
+  | 'breakdownSocialDescription'
   | 'tradingRebates'
   | 'history'
   | 'historyReferrals'
@@ -107,7 +140,7 @@ export type ReferralLocalizedTextKey =
   | 'copyLink'
   | 'messages'
   | 'telegram'
-  | 'last30DaysUpdatedDaily'
+  | 'updatedDaily'
   | 'eligibleFees'
   | 'funnelCodeUses'
   | 'funnelCodeUsesDescription'
@@ -118,6 +151,8 @@ export type ReferralLocalizedTextKey =
   | 'funnelFeeGenerating'
   | 'funnelFeeGeneratingDescription'
   | 'tradingCommissionsSection'
+  | 'tradingActivityEmptyDescription'
+  | 'tradingActivityEmptyAction'
   | 'copiedOnce'
   | 'copiedTimes'
   | 'rebatePerpsVolume'
@@ -126,20 +161,40 @@ export type ReferralLocalizedTextKey =
   | 'rebateSwaps'
   | 'inviteTitle'
   | 'inviteIllustrationLabel'
-  | 'inviteBody'
+  | 'inviteMessageBody'
   | 'inviteReferralCode'
-  | 'inviteUseDifferentCode'
-  | 'inviteCodePlaceholder'
-  | 'inviteCancelEdit'
   | 'inviteDecline'
   | 'inviteAccept'
-  | 'inviteAcceptedToast'
+  | 'inviteAcceptedEyebrow'
+  | 'inviteAcceptedTitle'
+  | 'inviteAcceptedBody'
+  | 'inviteAcceptedCloseA11y'
+  | 'inviteAcceptedViewRewards'
+  | 'inviteAcceptedStartTrading'
   | 'invitedBenefitTitle'
+  | 'offerEndsIn'
+  | 'offerDurationDay'
+  | 'offerDurationDays'
+  | 'offerDurationHour'
+  | 'offerDurationHours'
   | 'invitedReferredBy'
   | 'invitedOptInDescription'
   | 'invitedOptInAction'
   | 'invitedOptInSuccessToast'
-  | 'invitedOptInLegal';
+  | 'invitedOptInLegal'
+  | 'termsTitle'
+  | 'termsDescription'
+  | 'termsLearnMore'
+  | 'termsUrl'
+  | 'balance'
+  | 'mUSD'
+  | 'paused'
+  | 'claimsPausedTitle'
+  | 'claimsPausedDescription'
+  | 'rewardsPausedTitle'
+  | 'rewardsPausedDescription'
+  | 'rewardsPausedBanner'
+  | 'rewardsPausedLearnMore';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {
@@ -156,16 +211,27 @@ export type ThemeImage = {
 /** `GET /referral/me` — the single call that decides which screen renders. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralMeDto = {
-  role: ReferralRole;
-  variant: ReferralVariant;
+  /** Every relationship the caller holds, in server order. Empty for none. */
+  roles: ReferralRole[];
+  ui_variant: ReferralVariant;
   user_type: ReferralUserType;
   status: ReferralUserStatus;
   referral_code: ReferralCodeView | null;
+  /**
+   * Status of the referrer's own code. Unlike `referral_code`, a paused user
+   * still reports it. Null when the caller holds no non-revoked code.
+   */
+  referral_code_status: ReferralCodeStatus | null;
   referred_by: ReferredByView | null;
   earn_rates: EarnRatesView;
   localized_text: ReferralLocalizedText;
   /** Null when Contentful has no invite hero synced. */
   invite_hero: ThemeImage | null;
+  /**
+   * Program-scoped ISO 3166-1 alpha-2 codes excluded from accepting an invite.
+   * Always present from the API; treat missing as `[]` for older cached payloads.
+   */
+  excluded_regions: string[];
 };
 
 /** `GET /referral/me/funnel` */
@@ -196,15 +262,59 @@ export type ReadWindowDto = {
   to: string | null;
 };
 
+/**
+ * Totals at one level of `GET /earnings/summary`.
+ *
+ * Every amount is an mUSD base-unit integer string. At the root of the
+ * summary, `lifetime_total` is this same `lifetime`.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SummaryTotalsDto = {
+  /**
+   * Everything at this level. It currently partitions exactly as
+   * `claimed + pending + claimable + held + blocked + voided`. An upcoming
+   * change will remove `voided` from `lifetime`. The client treats this
+   * backend figure as the source of truth and does not subtract `voided`.
+   */
   lifetime: string;
+  /**
+   * Exact base units a claim over this slice would pay now. Absent when
+   * claimability was not requested; absent is not zero.
+   */
   claimable?: string;
+  /**
+   * Base units the income threshold is holding, or, while the account is
+   * suspended, everything that was otherwise payable. Valued at what a claim
+   * would release.
+   */
   held?: string;
+  /**
+   * Base units a durable reason excluded: the mechanism is closed, the
+   * accrual has no producing address, the address cannot be screened, or an
+   * operator hold is under review. A suspension does not move this money.
+   * Voided money is not included.
+   */
   blocked?: string;
+  /**
+   * Base units cancelled and never payable. Final, and separate from
+   * `blocked`. Absent when claimability was not requested.
+   */
+  voided?: string;
+  /**
+   * Earned but not claimable yet, including an open trading day and cashback
+   * still inside its claim delay.
+   */
   pending: string;
+  /** Already paid out. */
   claimed: string;
-  forfeited: string;
+  /**
+   * Why this level pays nothing. Null only when `claimable` is non-zero. On
+   * a family it is that family's claim reason. On a branch it is set only
+   * when every family shares the same reason. It names the durable `blocked`
+   * state, except `VOIDED`, which is used only when `blocked` and `held` are
+   * zero and `voided` is not. A suspension reports `SUSPENDED` even though
+   * that money sits in `held`.
+   */
   blocking_reason?: ClaimBlockingReason | null;
 };
 
@@ -215,9 +325,10 @@ export type AddressTotalsDto = {
   claimable?: string;
   held?: string;
   blocked?: string;
+  /** Absent when the caller opted out of claimability. */
+  voided?: string;
   pending: string;
   claimed: string;
-  forfeited: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -235,17 +346,33 @@ export type BranchViewDto<F extends SummaryTotalsDto> = SummaryTotalsDto & {
 /** `GET /earnings/summary` — live backend SummaryView shape. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarningsSummaryDto = {
+  /**
+   * The root `lifetime`: everything in this summary. It currently includes
+   * `voided`. An upcoming change will remove `voided` from it. Read this
+   * figure as returned.
+   */
   lifetime_total: string;
   window: ReadWindowDto | null;
   claimable?: string;
   held?: string;
   blocked?: string;
+  /** Absent when the caller opted out of claimability. */
+  voided?: string;
   pending: string;
   claimed: string;
-  forfeited: string;
+  /**
+   * Server claim minimum, `claimMinimumMusdBaseUnits`, as mUSD base units.
+   * A claimable balance below this is not offered as Claim.
+   */
   minimum_musd_base_units: string;
   self_earned: BranchViewDto<SelfEarnedFamilyTotalsDto>;
   earned_by_others: BranchViewDto<EarnedByOthersFamilyTotalsDto>;
+  /**
+   * True while part of this profile's money is still keyed on a profile merged
+   * into it and has not moved yet. The figures then cover only what has
+   * arrived. Always present.
+   */
+  pairing_pending: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -265,21 +392,35 @@ export type LedgerPerpsSourceView = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type LedgerPredictSourceView = {
+  condition_id: string;
+  token_id: string;
+  side: string;
+  tx_hash: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LedgerEarningEntryDto = {
   type: 'earning';
   id: string;
   earning_origin_type: EarningOriginType;
   musd_amount: string;
+  /** The part of `musd_amount` that is voided. `"0"` when nothing is. */
+  voided_musd_amount: string;
   fee_amount_usd: string;
   entry_count: number;
   transaction_hash: string | null;
   chain_id: string | null;
   ledger_timestamp: string;
   claim_status: string;
-  claim_expires_at: string | null;
-  blocking_reason?: LedgerBlockingReason | null;
+  /**
+   * When this entry stops being pending. Never null: a cashback entry carries
+   * the end of its claim delay, and a day entry carries its UTC day's close.
+   */
+  claimable_at: string;
   swaps_source: LedgerSwapsSourceView | null;
   perps_source: LedgerPerpsSourceView | null;
+  predict_source: LedgerPredictSourceView | null;
 };
 
 /**
@@ -297,6 +438,8 @@ export type LedgerClaimEntryDto = {
   status: string;
   ledger_timestamp: string;
   settled_at: string | null;
+  /** `VOUCHER` for an in-app claim; `MANUAL` for a recorded payout. */
+  payout_method: string;
 };
 
 /** Discriminated ledger row; branch on `type`. */
@@ -337,6 +480,8 @@ export type ClaimDto = {
   released_at: string | null;
   status: string;
   route: string;
+  /** `VOUCHER` for an in-app claim; `MANUAL` for a recorded payout. */
+  payout_method: string;
   created_at: string;
   updated_at: string;
   earnings?: ClaimEarningDto[];
@@ -348,6 +493,67 @@ export type ClaimHistoryPageDto = {
   has_more: boolean;
   cursor: string | null;
 };
+
+/** Last path segment of `POST /wr/earnings/claim/<slug>`. */
+export type ClaimRouteSlug =
+  | 'referral-trade-fee-cashback'
+  | 'referral-rev-share';
+
+export interface ClaimVoucherDto {
+  claim_id: string;
+  from: string;
+  to: string;
+  value: string;
+  valid_after: number;
+  valid_before: number;
+  nonce: string;
+  signature: string;
+}
+
+export interface ClaimExcludedDto {
+  type: string;
+  reason: string;
+}
+
+export interface ClaimInitiateDto {
+  claim: ClaimDto;
+  voucher: ClaimVoucherDto | null;
+  excluded: ClaimExcludedDto[];
+  status: 'LIVE_VOUCHER' | 'AWAITING_RELEASE' | 'OPENED';
+}
+
+export interface ClaimProofChallengeDto {
+  earning_address: string;
+  amount_musd_base_units: string;
+  message: string;
+}
+
+export interface ClaimProofRequiredDto {
+  reason: 'PROOF_REQUIRED';
+  claim_intent_id: string;
+  expires_at: string;
+  challenges: ClaimProofChallengeDto[];
+}
+
+export interface ClaimProofSubmissionDto {
+  earning_address: string;
+  signature: string;
+}
+
+export interface InitiateClaimBody {
+  money_account_address: string;
+  /**
+   * Earning-address keys this handset can sign. Omitting it asks for every
+   * address with eligible cashback. An empty array is refused.
+   */
+  earning_addresses?: string[];
+  claim_intent_id?: string;
+  proofs?: ClaimProofSubmissionDto[];
+}
+
+export type InitiateClaimResult =
+  | { kind: 'authorized'; body: ClaimInitiateDto }
+  | { kind: 'proof_required'; body: ClaimProofRequiredDto };
 
 /**
  * The mechanisms `GET /referral/me/commissions` serves.
@@ -417,7 +623,29 @@ export interface GetReferralCodesDto {
   forceFresh?: boolean;
 }
 
-export interface GetEarningsSummaryDto {
+export interface RegisterRefereeDto {
+  /** The referrer's code. The referee is the bearer token's own profile. */
+  code: string;
+}
+
+/**
+ * Optional narrowing for `GET /earnings/summary`.
+ *
+ * A window (`from`/`to`, UTC `YYYY-MM-DD`, closed on both ends) is only valid
+ * with `includeClaimable: false`. Claimability is what a claim would pay right
+ * now, so the server refuses it beside a window rather than mixing the two.
+ */
+export interface EarningsSummaryQuery {
+  from?: string;
+  to?: string;
+  /**
+   * When false, the response omits `claimable`, `held` and `blocked`.
+   * Defaults to true, matching the server.
+   */
+  includeClaimable?: boolean;
+}
+
+export interface GetEarningsSummaryDto extends EarningsSummaryQuery {
   originTypes?: EarningOriginType[];
   forceFresh?: boolean;
 }

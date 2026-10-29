@@ -3,14 +3,20 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import StatBar from './StatBar';
 import { StatBarSelectors } from './StatBar.testIds';
-import { TokenStatKey, type TokenStatValues } from './StatBar.types';
 import {
   STAT_EMPTY_VALUE,
   STAT_EXPLAINER_KEYS,
-  STAT_KEYS_BY_VARIANT,
-} from './StatBar.constants';
+  TokenStatKey,
+  type TokenStatValues,
+} from '../../../constants/tokenStats';
+import { STAT_KEYS_BY_VARIANT } from './StatBar.constants';
 import { TokenDetailsVariant } from '../../../constants/constants';
 import { mockTheme } from '../../../../../../util/theme';
+
+jest.mock('react-native-linear-gradient', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => <View testID={testID} />;
+});
 
 const STATS: TokenStatValues = {
   [TokenStatKey.MarketCap]: { value: '$500.5K' },
@@ -25,13 +31,9 @@ const STATS: TokenStatValues = {
 };
 
 const MEMECOIN_KEYS = STAT_KEYS_BY_VARIANT[TokenDetailsVariant.Memecoin];
-const ALL_STAT_KEYS = Object.values(TokenStatKey);
+const ALL_STAT_KEYS: TokenStatKey[] = Object.values(TokenStatKey);
 
 describe('StatBar', () => {
-  afterEach(() => {
-    STAT_KEYS_BY_VARIANT[TokenDetailsVariant.Memecoin] = MEMECOIN_KEYS;
-  });
-
   it('renders the memecoin stats in the order ASSETS-4019 fixes', () => {
     const { queryAllByTestId } = render(
       <StatBar variant={TokenDetailsVariant.Memecoin} stats={STATS} />,
@@ -200,10 +202,12 @@ describe('StatBar', () => {
   it('renders only the stats its variant lists', () => {
     // Stands in for a future variant with a shorter bar, which is the whole
     // reason the stats are keyed off the variant rather than hardcoded.
-    STAT_KEYS_BY_VARIANT[TokenDetailsVariant.Memecoin] = [
+    // `replaceProperty` rather than assignment, since the list is `as const`
+    // so that `BarStatKey` can be derived from it.
+    jest.replaceProperty(STAT_KEYS_BY_VARIANT, TokenDetailsVariant.Memecoin, [
       TokenStatKey.MarketCap,
       TokenStatKey.Holders,
-    ];
+    ]);
 
     const { getByTestId, queryByTestId } = render(
       <StatBar variant={TokenDetailsVariant.Memecoin} stats={STATS} />,
@@ -216,6 +220,44 @@ describe('StatBar', () => {
       getByTestId(StatBarSelectors.cell(TokenStatKey.Holders)),
     ).toBeOnTheScreen();
     expect(queryByTestId(StatBarSelectors.cell(TokenStatKey.Tax))).toBeNull();
+  });
+
+  it('fades the trailing edge while more stats sit off screen', () => {
+    const { getByTestId, queryByTestId } = render(
+      <StatBar variant={TokenDetailsVariant.Memecoin} stats={STATS} />,
+    );
+    const scroll = getByTestId(StatBarSelectors.SCROLL);
+
+    expect(
+      queryByTestId(StatBarSelectors.SCROLL_FADE, {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
+
+    fireEvent(scroll, 'layout', {
+      nativeEvent: { layout: { width: 120, height: 48, x: 0, y: 0 } },
+    });
+    fireEvent(scroll, 'contentSizeChange', 400, 48);
+
+    expect(
+      getByTestId(StatBarSelectors.SCROLL_FADE, {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+
+    fireEvent.scroll(scroll, {
+      nativeEvent: {
+        contentOffset: { x: 280, y: 0 },
+        contentSize: { width: 400, height: 48 },
+        layoutMeasurement: { width: 120, height: 48 },
+      },
+    });
+
+    expect(
+      queryByTestId(StatBarSelectors.SCROLL_FADE, {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
   });
 
   // The bar renders no sheet of its own — `TokenDetailsV1` mounts the shared

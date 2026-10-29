@@ -19,6 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import {
   confirmSupportConsent,
+  openSupportWithSavedPreference,
   rejectSupportConsent,
 } from '../../../util/support';
 import StandaloneSupportConsentModal from '../../UI/SupportConsentSheet/StandaloneSupportConsentModal';
@@ -64,14 +65,24 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
   // consent modal (as ErrorBoundary does) to keep the consent UI above the
   // questionnaire.
   const handleContactSupport = useCallback(() => {
+    if (
+      openSupportWithSavedPreference(
+        (url) => Linking.openURL(url),
+        METAMASK_SUPPORT_URL,
+        onContactSupport,
+      )
+    ) {
+      return;
+    }
     setIsConsentModalVisible(true);
-  }, []);
+  }, [onContactSupport]);
 
   // Defer tracking to when support is actually opened (consent confirm/reject),
   // rather than firing on the mere press that only shows the consent sheet.
   const handleConfirmConsent = useCallback(() => {
     setIsConsentModalVisible(false);
-    confirmSupportConsent(
+    // eslint-disable-next-line no-void -- Support opening handles its own errors.
+    void confirmSupportConsent(
       (url) => Linking.openURL(url),
       METAMASK_SUPPORT_URL,
       onContactSupport,
@@ -80,7 +91,8 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
 
   const handleRejectConsent = useCallback(() => {
     setIsConsentModalVisible(false);
-    rejectSupportConsent(
+    // eslint-disable-next-line no-void -- Support opening handles its own errors.
+    void rejectSupportConsent(
       (url) => Linking.openURL(url),
       METAMASK_SUPPORT_URL,
       onContactSupport,

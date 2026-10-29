@@ -7,15 +7,19 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, DeviceEventEmitter, Image, View, Linking } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import {
   Camera,
   useCameraDevice,
   useCodeScanner,
   Code,
 } from 'react-native-vision-camera';
+import {
+  FontWeight,
+  HeaderStandard,
+  IconColor,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Routes from '../../../constants/navigation/Routes';
@@ -194,6 +198,11 @@ const QRScanner = ({
       navigation.goBack();
     }
   }, [navigation, shouldDismissOnScan, markUnmounted]);
+
+  const closeCameraNotAvailable = useCallback(() => {
+    onScanError?.('USER_CANCELLED');
+    navigation.goBack();
+  }, [navigation, onScanError]);
 
   const showAlertForInvalidAddress = () => {
     Alert.alert(
@@ -871,8 +880,21 @@ const QRScanner = ({
 
   if (!cameraDevice) {
     return (
-      <View style={styles.container}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
+      <View style={[styles.container, styles.cameraNotAvailableContainer]}>
+        <HeaderStandard
+          style={styles.cameraNotAvailableHeader}
+          onClose={closeCameraNotAvailable}
+          closeButtonProps={{
+            testID: 'qr-scanner-camera-not-available-close-button',
+            accessibilityLabel: strings('qr_scanner.cancel'),
+            iconProps: { color: IconColor.IconInverse },
+          }}
+        />
+        <Text
+          variant={TextVariant.BodyLg}
+          fontWeight={FontWeight.Medium}
+          style={styles.cameraNotAvailableText}
+        >
           {strings('qr_scanner.camera_not_available')}
         </Text>
       </View>
@@ -905,9 +927,12 @@ const QRScanner = ({
       />
       <View style={styles.overlayContainerColumn}>
         <View style={styles.overlay} />
-
         <View style={styles.overlayContainerRow}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
+          <Text
+            variant={TextVariant.BodyLg}
+            fontWeight={FontWeight.Medium}
+            style={styles.overlayText}
+          >
             {getScannerOverlayLabel()}
           </Text>
           <View style={styles.overlay} />

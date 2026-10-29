@@ -23,6 +23,7 @@ export interface DeeplinkUrlParams {
   request?: string;
   attributionId?: string;
   attribution_id?: string;
+  referral?: string;
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -38,8 +39,12 @@ export interface DeeplinkUrlParams {
   amount?: string;
   asset?: string;
 
-  // Swap-specific parameters
+  // Market Swap-specific parameters
   slippage?: string;
+
+  // Limit Order-specific parameters
+  expiresInMinutes?: string;
+  priceTolerance?: string;
 
   // Perps-specific parameters
   symbol?: string;
@@ -111,10 +116,6 @@ export interface HandleSwapUrlParams {
 /**
  * Navigation parameter interfaces for deep link routing
  */
-export interface RewardsNavigationParams {
-  referral?: string;
-}
-
 export interface PerpsNavigationParams {
   screen?: 'tabs' | 'markets' | 'asset' | 'tutorial';
   symbol?: string;
@@ -152,6 +153,8 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.TRENDING,
   ACTIONS.WHATS_HAPPENING,
   ACTIONS.TOP_TRADERS,
+  ACTIONS.SOCIAL,
+  ACTIONS.SOCIAL_TRADER,
   ACTIONS.SOCIAL_TRADER_POSITION,
   ACTIONS.CARD_ONBOARDING,
   ACTIONS.CARD_HOME,
@@ -171,6 +174,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.MMSDK,
   ACTIONS.ANDROID_SDK,
   ACTIONS.MONEY,
+  ACTIONS.MONEY_ACCOUNT_DEPOSIT,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

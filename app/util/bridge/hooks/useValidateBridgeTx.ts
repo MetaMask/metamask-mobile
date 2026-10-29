@@ -1,13 +1,14 @@
 import { QuoteResponse } from '@metamask/bridge-controller';
-import { useSelector } from 'react-redux';
 import { SolMethod } from '@metamask/keyring-api';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { base58 } from 'ethers/lib/utils';
 import AppConstants from '../../../core/AppConstants';
 import { useCallback } from 'react';
+import { useBridgeSession } from '../../../components/UI/Bridge/hooks/useBridgeSession';
 
 export default function useValidateBridgeTx() {
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const {
+    quoteParams: { walletAddress },
+  } = useBridgeSession();
 
   const validateBridgeTx = useCallback(
     async ({
@@ -29,10 +30,8 @@ export default function useValidateBridgeTx() {
           body: JSON.stringify({
             method: SolMethod.SignAndSendTransaction,
             encoding: 'base64',
-            account_address: selectedAccount?.address
-              ? Buffer.from(base58.decode(selectedAccount.address)).toString(
-                  'base64',
-                )
+            account_address: walletAddress
+              ? Buffer.from(base58.decode(walletAddress)).toString('base64')
               : undefined,
             chain: 'mainnet',
             transactions: [quoteResponse.trade],
@@ -45,7 +44,7 @@ export default function useValidateBridgeTx() {
       );
       return response.json();
     },
-    [selectedAccount?.address],
+    [walletAddress],
   );
 
   return { validateBridgeTx };

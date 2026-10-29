@@ -20,10 +20,12 @@ import {
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 export interface EarnBalanceProps {
   asset: TokenI;
+  /** Draws the stake buttons on brand refresh glass. */
+  isGlass?: boolean;
 }
 
 // Single entry-point for all Earn asset balances
-const EarnBalance = ({ asset }: EarnBalanceProps) => {
+const EarnBalance = ({ asset, isGlass = false }: EarnBalanceProps) => {
   const isLendingToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnToken(state, asset),
   );
@@ -63,7 +65,7 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   if (isStakeableToken && !asset.isStaked) {
     return (
       <Box twClassName="px-4">
-        <StakingBalance asset={asset} />
+        <StakingBalance asset={asset} isGlass={isGlass} />
       </Box>
     );
   }

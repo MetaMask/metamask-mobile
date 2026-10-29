@@ -285,6 +285,11 @@ describe('useMoneyTransactionStatus', () => {
       success: sendSuccessFn,
       failed: sendFailedFn,
     },
+    rescue: {
+      inProgress: jest.fn(() => baseInProgressToast),
+      success: jest.fn(() => baseSuccessToast),
+      failed: jest.fn(() => baseFailedToast),
+    },
   };
 
   beforeEach(() => {

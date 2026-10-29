@@ -1,0 +1,276 @@
+import React from 'react';
+import { Text, processColor } from 'react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import BoxGlass, {
+  GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID,
+  GLASS_SURFACE_SHEEN_TEST_ID,
+  SHEEN_OPACITIES,
+} from './BoxGlass';
+import { mockTheme, ThemeContext } from '../../../util/theme';
+import { AppThemeKey } from '../../../util/theme/models';
+import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
+
+let mockIsGlassEnabled = true;
+jest.mock('../../hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual('../../hooks/useLiquidGlass');
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
+
+const containerStyle = { marginTop: 8 };
+const contentStyle = { padding: 4 };
+
+const layOutSheen = (width: number, height: number) =>
+  fireEvent(screen.getByTestId(GLASS_SURFACE_SHEEN_TEST_ID), 'layout', {
+    nativeEvent: { layout: { x: 0, y: 0, width, height } },
+  });
+
+describe('BoxGlass', () => {
+  beforeEach(() => {
+    mockIsGlassEnabled = true;
+  });
+
+  it('renders its children on the glass', () => {
+    const { getByTestId, getByText } = render(
+      <BoxGlass radiusClassName="rounded-xl" testID="glass">
+        <Text>Content</Text>
+      </BoxGlass>,
+    );
+
+    expect(getByTestId('glass')).toBeOnTheScreen();
+    expect(getByText('Content')).toBeOnTheScreen();
+  });
+
+  it('rounds and clips the glass to the radius token', () => {
+    const { getByTestId } = render(
+      <BoxGlass radiusClassName="rounded-2xl" testID="glass" />,
+    );
+
+    expect(getByTestId('glass')).toHaveStyle({
+      borderRadius: 16,
+      overflow: 'hidden',
+    });
+  });
+
+  it('is static unless marked interactive', () => {
+    const { getByTestId, rerender } = render(
+      <BoxGlass radiusClassName="rounded-xl" testID="glass" />,
+    );
+    expect(getByTestId('glass').props.isInteractive).toBe(false);
+
+    rerender(
+      <BoxGlass radiusClassName="rounded-xl" testID="glass" isInteractive />,
+    );
+
+    expect(getByTestId('glass').props.isInteractive).toBe(true);
+  });
+
+  describe('sheen', () => {
+    it('draws no sheen by default', () => {
+      const { queryByTestId } = render(
+        <BoxGlass radiusClassName="rounded-2xl" testID="glass" />,
+      );
+
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    // The native gradient receives processed colors.
+    it('covers the glass with the muted-tint sheen on the screen colour', () => {
+      const { getByTestId } = render(
+        <BoxGlass radiusClassName="rounded-2xl" testID="glass" hasSheen>
+          <Text>Content</Text>
+        </BoxGlass>,
+      );
+      layOutSheen(100, 40);
+
+      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.default,
+      });
+      expect(getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID)).toHaveProp(
+        'colors',
+        SHEEN_OPACITIES[AppThemeKey.light].map((opacity) =>
+          processColor(
+            colorWithOpacity(mockTheme.colors.background.muted, opacity),
+          ),
+        ),
+      );
+    });
+
+    it('uses the dark stops in dark mode', () => {
+      const { getByTestId } = render(
+        <ThemeContext.Provider
+          value={{ ...mockTheme, themeAppearance: AppThemeKey.dark }}
+        >
+          <BoxGlass radiusClassName="rounded-2xl" hasSheen />
+        </ThemeContext.Provider>,
+      );
+      layOutSheen(100, 40);
+
+      expect(getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID)).toHaveProp(
+        'colors',
+        SHEEN_OPACITIES[AppThemeKey.dark].map((opacity) =>
+          processColor(
+            colorWithOpacity(mockTheme.colors.background.muted, opacity),
+          ),
+        ),
+      );
+    });
+
+    it('draws the gradient only once the sheen has a size', () => {
+      render(<BoxGlass radiusClassName="rounded-2xl" hasSheen />);
+
+      expect(
+        screen.queryByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID),
+      ).not.toBeOnTheScreen();
+
+      layOutSheen(0, 0);
+
+      expect(
+        screen.queryByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID),
+      ).not.toBeOnTheScreen();
+
+      layOutSheen(100, 40);
+
+      expect(
+        screen.getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('draws a new gradient when the sheen resizes', () => {
+      render(<BoxGlass radiusClassName="rounded-2xl" hasSheen />);
+      layOutSheen(100, 40);
+      const gradient = screen.getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID);
+
+      layOutSheen(120, 40);
+
+      expect(screen.getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID)).not.toBe(
+        gradient,
+      );
+    });
+  });
+
+  describe('opaque surface', () => {
+    it('draws the muted surface in the same shape when glass is off', () => {
+      const { getByTestId, getByText } = render(
+        <BoxGlass isGlass={false} radiusClassName="rounded-xl" testID="s">
+          <Text>Content</Text>
+        </BoxGlass>,
+      );
+
+      expect(getByTestId('s')).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.muted,
+        borderRadius: 12,
+      });
+      expect(getByText('Content')).toBeOnTheScreen();
+    });
+
+    it('keeps the glass-only sheen and touch response off', () => {
+      const { getByTestId, queryByTestId } = render(
+        <BoxGlass
+          isGlass={false}
+          radiusClassName="rounded-xl"
+          isInteractive
+          hasSheen
+          testID="s"
+        />,
+      );
+
+      expect(getByTestId('s').props.isInteractive).toBeUndefined();
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('applies both the container and content styles to its one view', () => {
+      const { getByTestId } = render(
+        <BoxGlass
+          isGlass={false}
+          radiusClassName="rounded-xl"
+          containerStyle={containerStyle}
+          style={contentStyle}
+          testID="s"
+        />,
+      );
+
+      expect(getByTestId('s')).toHaveStyle({ marginTop: 8, padding: 4 });
+    });
+
+    it('does not clip its content', () => {
+      const { getByTestId } = render(
+        <BoxGlass isGlass={false} radiusClassName="rounded-xl" testID="s" />,
+      );
+
+      expect(getByTestId('s')).not.toHaveStyle({ overflow: 'hidden' });
+    });
+  });
+
+  describe('opaque surface', () => {
+    it('draws the muted surface where the OS cannot draw glass', () => {
+      mockIsGlassEnabled = false;
+
+      const { getByTestId } = render(
+        <BoxGlass radiusClassName="rounded-xl" testID="s" />,
+      );
+
+      expect(getByTestId('s')).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.muted,
+        borderRadius: 12,
+      });
+      expect(getByTestId('s').props.isInteractive).toBeUndefined();
+    });
+
+    it('draws the muted surface in the same shape when glass is off', () => {
+      const { getByTestId, getByText } = render(
+        <BoxGlass isGlass={false} radiusClassName="rounded-xl" testID="s">
+          <Text>Content</Text>
+        </BoxGlass>,
+      );
+
+      expect(getByTestId('s')).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.muted,
+        borderRadius: 12,
+      });
+      expect(getByText('Content')).toBeOnTheScreen();
+    });
+
+    it('keeps the glass-only sheen and touch response off', () => {
+      const { getByTestId, queryByTestId } = render(
+        <BoxGlass
+          isGlass={false}
+          radiusClassName="rounded-xl"
+          isInteractive
+          hasSheen
+          testID="s"
+        />,
+      );
+
+      expect(getByTestId('s').props.isInteractive).toBeUndefined();
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('applies both the container and content styles to its one view', () => {
+      const { getByTestId } = render(
+        <BoxGlass
+          isGlass={false}
+          radiusClassName="rounded-xl"
+          containerStyle={containerStyle}
+          style={contentStyle}
+          testID="s"
+        />,
+      );
+
+      expect(getByTestId('s')).toHaveStyle({ marginTop: 8, padding: 4 });
+    });
+
+    it('does not clip its content', () => {
+      const { getByTestId } = render(
+        <BoxGlass isGlass={false} radiusClassName="rounded-xl" testID="s" />,
+      );
+
+      expect(getByTestId('s')).not.toHaveStyle({ overflow: 'hidden' });
+    });
+  });
+});

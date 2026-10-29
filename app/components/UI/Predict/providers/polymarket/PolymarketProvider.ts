@@ -30,6 +30,7 @@ import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import {
   CryptoPriceHistoryPoint,
   CryptoPriceSubscriptionOptions,
@@ -39,8 +40,9 @@ import {
   GetPriceParams,
   GetPriceResponse,
   GetSeriesParams,
-  PredictActivity,
+  PredictActivityPage,
   PredictCategory,
+  PredictFeePolicy,
   PredictMarket,
   PredictPosition,
   PredictPositionStatus,
@@ -96,6 +98,8 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   SAFE_EXEC_GAS_LIMIT,
+  V1_MARKET_VERSION,
+  V2_MARKET_VERSION,
 } from './constants';
 import {
   computeProxyAddress,
@@ -108,11 +112,14 @@ import {
   ApiKeyCreds,
   OrderType,
   SignatureType,
-  PolymarketApiActivity,
   PolymarketApiEvent,
   PolymarketApiEventsKeysetResponse,
+  PolymarketApiMarket,
   PolymarketApiTeam,
-  PolymarketPosition,
+  PolymarketDataApiV2Response,
+  PolymarketPositionV2,
+  PolymarketActivityV2,
+  PolymarketUserPnlV2Response,
 } from './types';
 import {
   createApiKey,
@@ -120,6 +127,8 @@ import {
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
   fetchRelatedTagsFromPolymarketApi,
+  mapPolymarketActivityV2,
+  mapPolymarketPositionsV2,
   normalizeRelatedTagsToFilterOptions,
   fetchCarouselFromPolymarketApi,
   getBalance,
@@ -132,6 +141,7 @@ import {
   mergeChildEventsIntoParent,
   parsePolymarketActivity,
   parsePolymarketEvents,
+  parseMarketOutcomeTokenIds,
   parsePolymarketPositions,
   previewOrder,
   previewMaxBuyOrder,
@@ -147,9 +157,12 @@ import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
 import {
+  getPolymarketProtocolForMarketVersion,
   getProtocolWithdrawTokenAddress,
+  POLYMARKET_POSITIONS_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
+  type PolymarketTradeProtocol,
 } from './protocol/definitions';
 import {
   buildProtocolUnsignedOrder,
@@ -162,6 +175,7 @@ import { submitProtocolClobOrder } from './protocol/transport';
 import {
   buildClaimTransaction,
   planDepositWalletClaim,
+  type ClaimMarketVersions,
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
@@ -174,6 +188,7 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
@@ -182,6 +197,66 @@ import {
   fetchWithTimeout,
   isExpectedPolymarketRequestAbort,
 } from './fetchWithTimeout';
+
+/** Page size for Data API v2 paginated reads (positions). */
+const PREDICT_POSITIONS_PAGE_SIZE = 100;
+/**
+ * Upper bound on empty-page cursor hops per activity read. Data API v2 has no
+ * server-side lost-redeem filter, so a fetched page can map to zero visible
+ * rows while its envelope still carries a `next_cursor`. The provider follows
+ * such cursors itself (see `fetchActivity`) so the UI never receives an empty
+ * page that would stall `onEndReached` paging; this cap bounds the work if a
+ * pathological upstream keeps returning cursors without any visible rows.
+ */
+const PREDICT_ACTIVITY_MAX_EMPTY_PAGE_HOPS = 5;
+/**
+ * Upper bound on cursor-followed pages per positions read, so a pathological
+ * response can never loop unbounded. 5 pages × 100 rows = 500 positions.
+ */
+const PREDICT_POSITIONS_MAX_PAGES = 5;
+/**
+ * Data API v2 `bucket_seconds` bounds. Callers pass `fidelity` in minutes (the
+ * unit of the retired CLOB `/prices-history` route); it is converted to
+ * seconds and clamped to this range at the request boundary.
+ */
+const PRICE_HISTORY_MIN_BUCKET_SECONDS = 60;
+const PRICE_HISTORY_MAX_BUCKET_SECONDS = 86_400;
+/**
+ * Upper bound on cursor-followed pages per price-history read. A page holds up
+ * to 10,000 points and the chart buckets keep series far below that, so more
+ * than one page is already unusual; the cap only guards against a runaway walk.
+ */
+const PRICE_HISTORY_MAX_PAGES = 5;
+
+/** Data API v2 `/prices-history` response envelope (fields the app reads). */
+interface PolymarketPriceHistoryPage {
+  data?: { timestamp?: unknown; price?: unknown }[];
+  pagination?: { next_cursor?: string | null };
+}
+
+/** Error for a non-2xx `/v2/prices-history` response. */
+class PolymarketPriceHistoryHttpError extends Error {
+  readonly status: number;
+
+  readonly retryAfter: string | null;
+
+  constructor(status: number, retryAfter: string | null) {
+    super(`Failed to get price history (HTTP ${status})`);
+    this.name = 'PolymarketPriceHistoryHttpError';
+    this.status = status;
+    this.retryAfter = retryAfter;
+  }
+}
+
+/** Converts a fidelity in minutes to a Data API v2 `bucket_seconds` value. */
+const fidelityToBucketSeconds = (fidelityMinutes: number): number =>
+  Math.min(
+    PRICE_HISTORY_MAX_BUCKET_SECONDS,
+    Math.max(
+      PRICE_HISTORY_MIN_BUCKET_SECONDS,
+      Math.round(fidelityMinutes * 60),
+    ),
+  );
 
 /**
  * Narrows the geoblock payload to the fields the app relies on. Returns `null`
@@ -269,6 +344,15 @@ export class PolymarketProvider implements PredictProvider {
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
+  /**
+   * The Gamma market version of every outcome token this session has seen —
+   * populated whenever markets are parsed and by Gamma lookups for tokens
+   * no fetch has covered yet (sells). A market's version never changes, so
+   * entries are set-if-absent and never invalidated. The 'v1' default for
+   * markets whose Gamma payload omits the field is applied at population
+   * time, so a hit is always a resolved version.
+   */
+  #marketVersionsByOutcomeTokenId: Map<string, Promise<string>> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
   #optimisticPositionUpdatesByAddress = new Map<
@@ -345,6 +429,11 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().enabledSportsMarketTypes;
   }
 
+  /** True while the Protocol V2 markets kill switch is on. */
+  #shouldHideV2Markets(): boolean {
+    return this.#getFeatureFlags().disablePolymarketV2Markets;
+  }
+
   #canGroupAllActiveMarkets(event: PolymarketApiEvent): boolean {
     const enabledMarketTypes = new Set(this.#getEnabledSportsMarketTypes());
 
@@ -404,12 +493,15 @@ export class PolymarketProvider implements PredictProvider {
 
     const teamLookup = this.#createTeamLookup(liveSportsEnabled);
 
+    this.#cacheMarketVersionsFromEvents(events);
+
     let markets = parsePolymarketEvents(events, {
       category,
       sortMarketsBy: 'price',
       teamLookup,
       extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+      hideV2Markets: this.#shouldHideV2Markets(),
     });
 
     if (filterEmptyOutcomes) {
@@ -533,14 +625,18 @@ export class PolymarketProvider implements PredictProvider {
 
   #decorateOrderPreview({
     preview,
+    outcomeVersion,
     feeCollection,
     fakOrdersEnabled,
     signer,
+    feePolicy,
   }: {
     preview: OrderPreview;
+    outcomeVersion: string;
     feeCollection: PredictFeatureFlags['feeCollection'];
     fakOrdersEnabled: boolean;
     signer: Signer;
+    feePolicy?: PredictFeePolicy;
   }): OrderPreview {
     const orderType = this.#shouldUseFakOrderType({
       permit2Enabled: feeCollection.permit2Enabled,
@@ -552,8 +648,10 @@ export class PolymarketProvider implements PredictProvider {
 
     const decoratedPreview: OrderPreview = {
       ...preview,
+      outcomeVersion,
       feeRateBps: getPreviewFeeRateBpsForProtocol(),
       orderType,
+      ...(feePolicy ? { feePolicy } : {}),
     };
 
     return this.isRateLimited(signer.address)
@@ -664,15 +762,25 @@ export class PolymarketProvider implements PredictProvider {
     throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
   }
 
-  async #submitOrder({
+  /**
+   * Submits an order on the protocol its market version routes to (see
+   * {@link #resolveTradeProtocol}). Order build, signing, allowances, fee
+   * authorization, and submission use `protocol`. The deposit-wallet setup
+   * beyond allowances, the legacy USDC.e read, and the legacy-Safe sweep use
+   * the CTF definition on both paths, because they move CTF-era assets that
+   * no v2 market changes.
+   */
+  async #submitTradeOrder({
     signer,
     preview,
     protocol,
   }: {
     signer: Signer;
     preview: OrderPreview;
-    protocol: PolymarketProtocolDefinition;
+    protocol: PolymarketTradeProtocol;
   }) {
+    const ctfProtocol =
+      protocol.key === 'positions' ? POLYMARKET_V2_PROTOCOL : protocol;
     const accountState = await this.getAccountState({
       ownerAddress: signer.address,
     });
@@ -704,6 +812,7 @@ export class PolymarketProvider implements PredictProvider {
       signerAddress: isDepositWallet
         ? tradingWalletAddress
         : getAddress(signer.address),
+      builderCode: preview.feePolicy?.builderCode,
       signatureType: isDepositWallet
         ? SignatureType.POLY_1271
         : SignatureType.POLY_GNOSIS_SAFE,
@@ -724,12 +833,23 @@ export class PolymarketProvider implements PredictProvider {
       address: signer.address,
     });
 
-    if (isDepositWallet && depositWalletSetupUpdatedState) {
-      await this.syncDepositWalletBalanceAllowanceForOrderIfNeeded({
-        protocol,
-        signerAddress: signer.address,
-        apiKey: signerApiKey,
-      });
+    if (isDepositWallet) {
+      // A positions sell refreshes the CONDITIONAL-V2 position balance even
+      // when the wallet setup did not change — see the sync method.
+      if (protocol.key === 'positions' && preview.side === Side.SELL) {
+        await this.syncDepositWalletPositionBalanceAllowanceForSell({
+          protocol,
+          tokenId: preview.outcomeTokenId,
+          signerAddress: signer.address,
+          apiKey: signerApiKey,
+        });
+      } else if (depositWalletSetupUpdatedState) {
+        await this.syncDepositWalletBalanceAllowanceForOrderIfNeeded({
+          protocol: ctfProtocol,
+          signerAddress: signer.address,
+          apiKey: signerApiKey,
+        });
+      }
     }
 
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
@@ -744,11 +864,7 @@ export class PolymarketProvider implements PredictProvider {
     let executor: string | undefined;
     let permit2FeeReady = false;
 
-    if (
-      preview.fees !== undefined &&
-      preview.fees.totalFee > 0 &&
-      shouldUsePermit2
-    ) {
+    if (shouldUsePermit2 && preview.fees && preview.fees.totalFee > 0) {
       const feeAmount = BigInt(
         parseUnits(preview.fees.totalFee.toString(), 6).toString(),
       );
@@ -779,7 +895,7 @@ export class PolymarketProvider implements PredictProvider {
             signer,
             legacySafeAddress,
             depositWalletAddress: tradingWalletAddress,
-            protocol,
+            protocol: ctfProtocol,
           },
         );
 
@@ -789,29 +905,30 @@ export class PolymarketProvider implements PredictProvider {
       try {
         const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
           safeAddress: tradingWalletAddress,
-          protocol,
+          protocol: ctfProtocol,
         });
         allowancesTx = await buildTradeAllowancesTx({
           signer,
           safeAddress: tradingWalletAddress,
-          protocol,
+          protocol: ctfProtocol,
+          tradeProtocol: protocol,
           safeUsdceBalance: safeLegacyUsdceBalance,
         });
         permit2AllowanceReady = true;
       } catch (allowanceError) {
         DevLogger.log(
-          'PolymarketProvider: Failed to generate v2 allowances transaction',
+          `PolymarketProvider: Failed to generate ${protocol.key} allowances transaction`,
           { error: allowanceError },
         );
         Logger.error(
           allowanceError instanceof Error
             ? allowanceError
             : new Error(String(allowanceError)),
-          this.getErrorContext('placeOrder:v2AllowancesTx', {
-            operation: 'generate_allowances_tx_v2',
+          this.getErrorContext(`placeOrder:${protocol.key}AllowancesTx`, {
+            operation: `generate_allowances_tx_${protocol.key}`,
           }),
         );
-        throw new Error('Failed to prepare v2 trade preflight');
+        throw new Error(`Failed to prepare ${protocol.key} trade preflight`);
       }
     }
 
@@ -866,10 +983,132 @@ export class PolymarketProvider implements PredictProvider {
     return orderResult.response;
   }
 
+  /**
+   * Caches the market version of every outcome token in the given raw Gamma
+   * events — the one version-resolution function, reused on both paths that
+   * learn about markets: regular market fetches (before parsing) and the
+   * Gamma lookup that backs {@link #ensureOutcomeVersion}. Set-if-absent: a
+   * market's version never changes, and a payload in hand can be an older
+   * snapshot than an already-cached read. Markets whose payload omits the
+   * field are v1 — the default is applied here, at population time. Returns
+   * the versions it saw, so a lookup in progress can read them without
+   * awaiting its own cache entry.
+   */
+  #cacheMarketVersionsFromEvents(
+    events: PolymarketApiEvent[],
+  ): Map<string, string> {
+    const versions = new Map<string, string>();
+    for (const event of events) {
+      for (const market of event.markets ?? []) {
+        try {
+          const version = market.version ?? V1_MARKET_VERSION;
+          for (const outcomeTokenId of parseMarketOutcomeTokenIds(market)) {
+            versions.set(outcomeTokenId, version);
+            if (!this.#marketVersionsByOutcomeTokenId.has(outcomeTokenId)) {
+              this.#marketVersionsByOutcomeTokenId.set(
+                outcomeTokenId,
+                Promise.resolve(version),
+              );
+            }
+          }
+        } catch (error) {
+          // Token-id payloads are untrusted wire data — a malformed value
+          // must skip this market, not fail the listing. Parsing skips the
+          // same markets, and order-time resolution retries through
+          // #ensureOutcomeVersion on a cache miss.
+          DevLogger.log(
+            'PolymarketProvider: Failed to cache market version from outcome token ids',
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              eventId: event.id,
+              conditionId: market.conditionId,
+            },
+          );
+        }
+      }
+    }
+    return versions;
+  }
+
+  /**
+   * Resolves the Gamma market version of an outcome token, used before an
+   * order preview is built so routing reads only from the cache. Market
+   * fetches usually cover this — a sell holds a position whose market the
+   * session may never have parsed, so a cache miss reads Gamma by market
+   * id (once per market; failures stay uncached and retry).
+   */
+  async #ensureOutcomeVersion({
+    marketId,
+    outcomeTokenId,
+  }: {
+    marketId: string;
+    outcomeTokenId: string;
+  }): Promise<string> {
+    const cached = this.#marketVersionsByOutcomeTokenId.get(outcomeTokenId);
+    if (cached) {
+      return cached;
+    }
+
+    const version = getMarketDetailsFromGammaApi({ marketId })
+      .then(
+        (event) =>
+          // A token the fetched event does not describe is unknown — the CTF
+          // path, same as a market whose payload omits the version.
+          this.#cacheMarketVersionsFromEvents([event]).get(outcomeTokenId) ??
+          V1_MARKET_VERSION,
+      )
+      .catch((error) => {
+        DevLogger.log('PolymarketProvider: Failed to resolve market version', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          marketId,
+          outcomeTokenId,
+        });
+        // Don't pin a failed lookup for the session — retry on the next
+        // preview.
+        this.#marketVersionsByOutcomeTokenId.delete(outcomeTokenId);
+        throw error;
+      });
+    this.#marketVersionsByOutcomeTokenId.set(outcomeTokenId, version);
+    return version;
+  }
+
+  /**
+   * Chooses the trade protocol for an order from the Gamma market version
+   * stamped on its preview — no resolution happens at order time. Every
+   * provider preview carries the version (see previewOrder and
+   * previewMaxBuyOrder), so a preview without one is a programming error.
+   */
+  #resolveTradeProtocol({
+    preview,
+  }: {
+    preview: OrderPreview;
+  }): PolymarketTradeProtocol {
+    if (preview.outcomeVersion === undefined) {
+      // A loud failure beats silently routing an unknown version down the
+      // CTF path.
+      throw new Error(
+        `No market version on the preview for outcome token ${preview.outcomeTokenId}`,
+      );
+    }
+    return getPolymarketProtocolForMarketVersion(preview.outcomeVersion);
+  }
+
   public async getMarketDetails({
     marketId,
   }: {
     marketId: string;
+  }): Promise<PredictMarket> {
+    // Details always include v2 markets, so a position or deeplink can still
+    // open one while the kill switch hides it from listings.
+    return this.#getMarketDetails({ marketId, hideV2Markets: false });
+  }
+
+  async #getMarketDetails({
+    marketId,
+    hideV2Markets,
+  }: {
+    marketId: string;
+    hideV2Markets: boolean;
   }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
@@ -909,11 +1148,14 @@ export class PolymarketProvider implements PredictProvider {
 
       const teamLookup = this.#createTeamLookup(isSportsEvent);
 
+      this.#cacheMarketVersionsFromEvents([mergedEvent]);
+
       const [parsedMarket] = parsePolymarketEvents([mergedEvent], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues,
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets,
       });
 
       if (!parsedMarket) {
@@ -941,8 +1183,11 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      // Highlights are a listing: with the kill switch on, an all-v2 market
+      // fails to parse and is dropped like any other failed id.
+      const hideV2Markets = this.#shouldHideV2Markets();
       const marketPromises = marketIds.map((marketId) =>
-        this.getMarketDetails({ marketId }).catch((error) => {
+        this.#getMarketDetails({ marketId, hideV2Markets }).catch((error) => {
           DevLogger.log(
             `PolymarketProvider: Failed to fetch market ${marketId}`,
             error,
@@ -972,7 +1217,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public getActivity(
     _params: GetActivityParams & { address: string },
-  ): Promise<PredictActivity[]> {
+  ): Promise<PredictActivityPage> {
     return this.fetchActivity(_params);
   }
 
@@ -1185,11 +1430,14 @@ export class PolymarketProvider implements PredictProvider {
 
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
 
+      this.#cacheMarketVersionsFromEvents(events);
+
       return parsePolymarketEvents(events, {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets: this.#shouldHideV2Markets(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -1223,12 +1471,15 @@ export class PolymarketProvider implements PredictProvider {
 
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
 
+      this.#cacheMarketVersionsFromEvents(events);
+
       const parsedMarkets = parsePolymarketEvents(events, {
         category: 'trending',
         sortMarketsBy: 'price',
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets: this.#shouldHideV2Markets(),
       })
         .filter((m) => m.status === 'open' && m.outcomes.length > 0)
         .map((market) => {
@@ -1273,49 +1524,81 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('marketId parameter is required');
     }
 
-    try {
-      const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-      const searchParams = new URLSearchParams({ market: marketId });
+    const searchParams = new URLSearchParams({ token_id: marketId });
 
-      if (typeof fidelity === 'number') {
-        searchParams.set('fidelity', String(fidelity));
-      }
+    // Data API v2 takes exactly one window form. An explicit range wins, as it
+    // did on the CLOB route; it is capped at 15 days, so long ranges (MAX)
+    // must use an interval preset.
+    if (startTs !== undefined && endTs !== undefined) {
+      searchParams.set('start', String(startTs));
+      searchParams.set('end', String(endTs));
+    } else if (interval) {
+      searchParams.set('interval', interval);
+    } else {
+      // Without a window the endpoint answers 400, so skip the request.
+      return [];
+    }
 
-      if (startTs !== undefined && endTs !== undefined) {
-        searchParams.set('startTs', String(startTs));
-        searchParams.set('endTs', String(endTs));
-      } else if (interval) {
-        searchParams.set('interval', interval);
-      }
-
-      const response = await fetchWithTimeout(
-        `${CLOB_ENDPOINT}/prices-history?${searchParams.toString()}`,
-        {
-          method: 'GET',
-        },
+    // Omitting bucket_seconds lets the server size the bucket to the window.
+    if (
+      typeof fidelity === 'number' &&
+      Number.isFinite(fidelity) &&
+      fidelity > 0
+    ) {
+      searchParams.set(
+        'bucket_seconds',
+        String(fidelityToBucketSeconds(fidelity)),
       );
+    }
 
-      if (!response.ok) {
-        throw new Error('Failed to get price history');
-      }
+    try {
+      const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+      const points: PredictPriceHistoryPoint[] = [];
+      let cursor: string | null = null;
+      let pages = 0;
 
-      const data = (await response.json()) as {
-        history?: { t?: number; p?: number }[];
-      };
+      do {
+        // A cursor is only valid alongside the original query parameters.
+        const pageParams = new URLSearchParams(searchParams);
+        if (cursor) {
+          pageParams.set('cursor', cursor);
+        }
 
-      if (!Array.isArray(data?.history)) {
-        return [];
-      }
+        const response = await fetchWithTimeout(
+          `${DATA_API_ENDPOINT}/v2/prices-history?${pageParams.toString()}`,
+          { method: 'GET' },
+        );
 
-      return data.history
-        .filter(
-          (entry): entry is { t: number; p: number } =>
-            typeof entry?.t === 'number' && typeof entry?.p === 'number',
-        )
-        .map((entry) => ({
-          timestamp: entry.t,
-          price: entry.p,
-        }));
+        if (!response.ok) {
+          // 429 and 503 carry Retry-After. The call makes no further request;
+          // the next attempt comes from the UI (remount or timeframe change).
+          throw new PolymarketPriceHistoryHttpError(
+            response.status,
+            response.headers?.get('Retry-After') ?? null,
+          );
+        }
+
+        const page = (await response.json()) as PolymarketPriceHistoryPage;
+        if (!Array.isArray(page?.data)) {
+          break;
+        }
+
+        for (const entry of page.data) {
+          if (
+            typeof entry?.timestamp === 'number' &&
+            Number.isFinite(entry.timestamp) &&
+            typeof entry?.price === 'number' &&
+            Number.isFinite(entry.price)
+          ) {
+            points.push({ timestamp: entry.timestamp, price: entry.price });
+          }
+        }
+
+        cursor = page.pagination?.next_cursor ?? null;
+        pages += 1;
+      } while (cursor && pages < PRICE_HISTORY_MAX_PAGES);
+
+      return points;
     } catch (error) {
       DevLogger.log('Error getting price history via Polymarket API:', error);
 
@@ -1327,6 +1610,10 @@ export class PolymarketProvider implements PredictProvider {
           interval,
           startTs,
           endTs,
+          ...(error instanceof PolymarketPriceHistoryHttpError && {
+            status: error.status,
+            retryAfter: error.retryAfter,
+          }),
         }),
       );
 
@@ -1929,10 +2216,98 @@ export class PolymarketProvider implements PredictProvider {
     return result;
   }
 
+  /**
+   * Follows `/v2/positions` opaque `next_cursor` pages for a single status
+   * filter, up to `PREDICT_POSITIONS_MAX_PAGES` pages.
+   */
+  async #fetchPositionPages({
+    dataApiEndpoint,
+    predictAddress,
+    limit,
+    status,
+    outcomeId,
+    marketId,
+  }: {
+    dataApiEndpoint: string;
+    predictAddress: string;
+    limit: number;
+    status?: string;
+    outcomeId?: string;
+    marketId?: string;
+  }): Promise<PolymarketPositionV2[]> {
+    const positions: PolymarketPositionV2[] = [];
+    let cursor: string | undefined;
+    for (let page = 0; page < PREDICT_POSITIONS_MAX_PAGES; page += 1) {
+      const queryParams = new URLSearchParams({
+        limit: limit.toString(),
+        user: predictAddress,
+        sortBy: 'CURRENT_VALUE',
+      });
+
+      if (status) {
+        queryParams.set('status', status);
+      }
+
+      // Use condition (conditionId/outcomeId) if provided for targeted fetch.
+      // This is mutually exclusive with event_id (marketId).
+      if (outcomeId) {
+        queryParams.set('condition', outcomeId);
+      } else if (marketId) {
+        queryParams.set('event_id', marketId);
+      }
+
+      if (cursor) {
+        queryParams.set('cursor', cursor);
+      }
+
+      const positionsUrl = `${dataApiEndpoint}/v2/positions?${queryParams.toString()}`;
+      const response = await fetchWithTimeout(positionsUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get positions');
+      }
+      const positionsText = await response.text();
+      let pageData: PolymarketDataApiV2Response<PolymarketPositionV2>;
+      try {
+        pageData = JSON.parse(
+          positionsText,
+        ) as PolymarketDataApiV2Response<PolymarketPositionV2>;
+      } catch (parseError) {
+        const snippet = positionsText.slice(0, 200).replace(/\s+/gu, ' ');
+        DevLogger.log('PolymarketProvider: non-JSON positions response', {
+          url: positionsUrl,
+          status: response.status,
+          contentType: response.headers.get('content-type'),
+          bodySnippet: snippet,
+        });
+        throw new Error(
+          `Polymarket positions returned non-JSON (status ${response.status}): ${snippet}`,
+        );
+      }
+
+      if (!pageData || !Array.isArray(pageData.data)) {
+        throw new Error('Invalid positions response');
+      }
+
+      positions.push(...pageData.data);
+
+      cursor = pageData.pagination?.next_cursor ?? undefined;
+      if (!cursor) {
+        break;
+      }
+    }
+
+    return positions;
+  }
+
   public async getPositions({
     address,
-    limit = 100, // todo: reduce this once we've decided on the pagination approach
-    offset = 0,
+    limit = PREDICT_POSITIONS_PAGE_SIZE,
     claimable,
     marketId,
     outcomeId,
@@ -1947,59 +2322,49 @@ export class PolymarketProvider implements PredictProvider {
       this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
-    const queryParams = new URLSearchParams({
-      limit: limit.toString(),
-      offset: offset.toString(),
-      user: predictAddress,
-      sortBy: 'CURRENT',
-    });
-
-    if (claimable !== undefined) {
-      queryParams.set('redeemable', claimable.toString());
-    }
-
-    // Use market (conditionId/outcomeId) if provided for targeted fetch
-    // This is mutually exclusive with eventId (marketId)
-    if (outcomeId) {
-      queryParams.set('market', outcomeId);
-    } else if (marketId) {
-      queryParams.set('eventId', marketId);
-    }
-
-    const positionsUrl = `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`;
-    const response = await fetchWithTimeout(positionsUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to get positions');
-    }
-    const positionsText = await response.text();
-    let positionsData: PolymarketPosition[];
-    try {
-      positionsData = JSON.parse(positionsText) as PolymarketPosition[];
-    } catch (parseError) {
-      const snippet = positionsText.slice(0, 200).replace(/\s+/gu, ' ');
-      DevLogger.log('PolymarketProvider: non-JSON positions response', {
-        url: positionsUrl,
-        status: response.status,
-        contentType: response.headers.get('content-type'),
-        bodySnippet: snippet,
-      });
-      throw new Error(
-        `Polymarket positions returned non-JSON (status ${response.status}): ${snippet}`,
-      );
-    }
-
     const teamLookup = this.#createTeamLookup(
       this.#getSupportedLeagues().length > 0,
     );
 
+    // v1's redeemable=true returned settled winners and still-held losers
+    // alike; v2 splits them across two statuses, so a claimable read walks
+    // both. Everything else keeps the v2 default (the OPEN superset) or the
+    // explicit OPEN filter.
+    const statusFilters = !claimable
+      ? [claimable === false ? 'OPEN' : undefined]
+      : ['REDEEMABLE', 'REDEEMABLE_LOST'];
+
+    const walks = await Promise.all(
+      statusFilters.map((status) =>
+        this.#fetchPositionPages({
+          dataApiEndpoint: DATA_API_ENDPOINT,
+          predictAddress,
+          limit,
+          status,
+          outcomeId,
+          marketId,
+        }),
+      ),
+    );
+
+    // The two cohorts are disjoint, but a market settling between the walks
+    // could surface the same token twice; keep the first walk's occurrence.
+    // Pages within a walk are trusted (keyset-ordered, distinct by contract).
+    const positions: PolymarketPositionV2[] = [];
+    const seenTokenIds = new Set<string>();
+    for (const walk of walks) {
+      for (const row of walk) {
+        if (!seenTokenIds.has(row.token_id)) {
+          positions.push(row);
+        }
+      }
+      for (const row of walk) {
+        seenTokenIds.add(row.token_id);
+      }
+    }
+
     const parsedPositions = await parsePolymarketPositions({
-      positions: positionsData,
+      positions: mapPolymarketPositionsV2(positions),
       teamLookup,
     });
 
@@ -2018,8 +2383,8 @@ export class PolymarketProvider implements PredictProvider {
   private async fetchActivity({
     address,
     limit = PREDICT_ACTIVITY_PAGE_SIZE,
-    offset = 0,
-  }: GetActivityParams & { address: string }): Promise<PredictActivity[]> {
+    cursor,
+  }: GetActivityParams & { address: string }): Promise<PredictActivityPage> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     if (!address) {
@@ -2031,42 +2396,77 @@ export class PolymarketProvider implements PredictProvider {
         this.#getCachedAccountState(address)?.address ??
         (await this.getAccountState({ ownerAddress: address })).address;
 
-      const queryParams = new URLSearchParams({
-        user: predictAddress,
-        excludeLostRedeems: 'true',
-        limit: String(limit),
-        offset: String(offset),
-      });
+      const fetchPage = async (
+        pageCursor?: string,
+      ): Promise<PredictActivityPage> => {
+        const queryParams = new URLSearchParams({
+          user: predictAddress,
+          limit: String(limit),
+        });
 
-      const response = await fetchWithTimeout(
-        `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
+        if (pageCursor) {
+          queryParams.set('cursor', pageCursor);
+        }
+
+        const response = await fetchWithTimeout(
+          `${DATA_API_ENDPOINT}/v2/activity?${queryParams.toString()}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
           },
-        },
-      );
+        );
 
-      if (!response.ok) {
-        throw new Error('Failed to get activity');
+        if (!response.ok) {
+          throw new Error('Failed to get activity');
+        }
+
+        const activityRaw =
+          (await response.json()) as PolymarketDataApiV2Response<PolymarketActivityV2>;
+
+        if (!activityRaw || !Array.isArray(activityRaw.data)) {
+          throw new Error('Invalid activity response');
+        }
+
+        const parsedActivity = parsePolymarketActivity(
+          mapPolymarketActivityV2(activityRaw.data),
+        );
+
+        if (!Array.isArray(parsedActivity)) {
+          throw new Error('Invalid parsed activity response');
+        }
+
+        return {
+          activities: parsedActivity,
+          nextCursor: activityRaw.pagination?.next_cursor ?? undefined,
+        };
+      };
+
+      // Lost redeems are dropped client-side (mapPolymarketActivityV2), so a
+      // fetched page can filter down to zero rows while its envelope still
+      // carries a next_cursor. Returning that page as-is would report another
+      // page to useInfiniteQuery, but an empty list never trips FlatList
+      // onEndReached, so remaining history would never load. Keep following
+      // the cursor here until a page survives filtering or the API reports
+      // exhaustion, and return the last fetched page so the UI continues from
+      // its cursor. The hop count is capped (PREDICT_ACTIVITY_MAX_EMPTY_PAGE_HOPS)
+      // so a pathological upstream that always returns a cursor with no visible
+      // rows cannot loop unbounded; after the cap the last empty page is
+      // returned as-is rather than silently truncating history.
+      let page = await fetchPage(cursor);
+      let emptyPageHops = 0;
+
+      while (
+        page.activities.length === 0 &&
+        page.nextCursor !== undefined &&
+        emptyPageHops < PREDICT_ACTIVITY_MAX_EMPTY_PAGE_HOPS
+      ) {
+        emptyPageHops += 1;
+        page = await fetchPage(page.nextCursor);
       }
 
-      const activityRaw = (await response.json()) as unknown;
-
-      if (!Array.isArray(activityRaw)) {
-        throw new Error('Invalid activity response');
-      }
-
-      const parsedActivity = parsePolymarketActivity(
-        activityRaw as PolymarketApiActivity[],
-      );
-
-      if (!Array.isArray(parsedActivity)) {
-        throw new Error('Invalid parsed activity response');
-      }
-
-      return parsedActivity;
+      return page;
     } catch (error) {
       DevLogger.log('Error getting activity via Polymarket API:', error);
 
@@ -2090,8 +2490,8 @@ export class PolymarketProvider implements PredictProvider {
       this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
-    const response = await fetchWithTimeout(
-      `${DATA_API_ENDPOINT}/upnl?user=${predictAddress}`,
+    const pnlResponse = await fetchWithTimeout(
+      `${DATA_API_ENDPOINT}/v2/user-pnl?user=${predictAddress}`,
       {
         method: 'GET',
         headers: {
@@ -2100,17 +2500,51 @@ export class PolymarketProvider implements PredictProvider {
       },
     );
 
-    if (!response.ok) {
+    if (!pnlResponse.ok) {
       throw new Error('Failed to fetch unrealized P&L');
     }
 
-    const data = (await response.json()) as UnrealizedPnL[];
+    const pnlData = (await pnlResponse.json()) as PolymarketUserPnlV2Response;
 
-    if (!Array.isArray(data)) {
-      throw new Error('No unrealized P&L data found');
+    // Only a response that is not an object is unusable. A valid envelope
+    // whose series is missing (data: null, or points absent/not an array)
+    // simply means the user has no PnL history, so cashUpnl stays missing
+    // rather than the query erroring.
+    if (!pnlData || typeof pnlData !== 'object' || Array.isArray(pnlData)) {
+      throw new Error('Invalid unrealized P&L response');
     }
 
-    return data[0];
+    // cashUpnl is the latest point's unrealized_pnl; a null value stays
+    // missing — never coerce it to zero.
+    const latestPoint = Array.isArray(pnlData.data?.points)
+      ? pnlData.data.points.at(-1)
+      : undefined;
+    const cashUpnl = latestPoint?.unrealized_pnl ?? undefined;
+
+    // percentUpnl mirrors the portfolio header formula (getPositionsPnl):
+    // (Σ current_value − Σ entry_cost) / Σ entry_cost over open positions.
+    const openPositions = await this.getPositions({
+      address,
+      claimable: false,
+    });
+    const totals = openPositions.reduce(
+      (acc, position) => ({
+        currentValue: acc.currentValue + position.currentValue,
+        initialValue: acc.initialValue + position.initialValue,
+      }),
+      { currentValue: 0, initialValue: 0 },
+    );
+    const percentUpnl =
+      totals.initialValue > 0
+        ? ((totals.currentValue - totals.initialValue) / totals.initialValue) *
+          100
+        : undefined;
+
+    return {
+      user: predictAddress,
+      cashUpnl,
+      percentUpnl,
+    };
   }
 
   public async previewOrder(
@@ -2118,6 +2552,14 @@ export class PolymarketProvider implements PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview> {
+    // Fail fast on an unresolvable market version — before the CLOB round
+    // trip. Market fetches usually covered this; a sell's market may need
+    // one Gamma read (cached).
+    const outcomeVersion = await this.#ensureOutcomeVersion({
+      marketId: params.marketId,
+      outcomeTokenId: params.outcomeTokenId,
+    });
+
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const basePreview = await previewOrder({
       ...params,
@@ -2126,9 +2568,11 @@ export class PolymarketProvider implements PredictProvider {
 
     return this.#decorateOrderPreview({
       preview: basePreview,
+      outcomeVersion,
       feeCollection,
       fakOrdersEnabled,
       signer: params.signer,
+      feePolicy: params.feePolicy,
     });
   }
 
@@ -2138,6 +2582,10 @@ export class PolymarketProvider implements PredictProvider {
     },
   ): Promise<OrderPreview | null> {
     const { signer, ...previewParams } = params;
+    const outcomeVersion = await this.#ensureOutcomeVersion({
+      marketId: params.marketId,
+      outcomeTokenId: params.outcomeTokenId,
+    });
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const basePreview = await previewMaxBuyOrder({
       ...previewParams,
@@ -2150,9 +2598,11 @@ export class PolymarketProvider implements PredictProvider {
 
     return this.#decorateOrderPreview({
       preview: basePreview,
+      outcomeVersion,
       feeCollection,
       fakOrdersEnabled,
       signer,
+      feePolicy: params.feePolicy,
     });
   }
 
@@ -2211,8 +2661,8 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const protocol = this.#getProtocol();
-      const orderResponse = await this.#submitOrder({
+      const protocol = this.#resolveTradeProtocol({ preview });
+      const orderResponse = await this.#submitTradeOrder({
         signer,
         preview,
         protocol,
@@ -2295,6 +2745,77 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  async #resolveClaimMarketVersions(
+    positions: PredictPosition[],
+  ): Promise<ClaimMarketVersions> {
+    // Gamma is fetched per event id (`position.marketId`) and shared across
+    // positions; versions are keyed by condition id because one event can
+    // hold several markets. A failed or unmatched lookup keeps the CTF claim.
+    const eventMarkets = new Map<string, Promise<PolymarketApiMarket[]>>();
+
+    const getMarketsForEvent = (
+      marketId: string,
+    ): Promise<PolymarketApiMarket[]> => {
+      const cached = eventMarkets.get(marketId);
+      if (cached) {
+        return cached;
+      }
+
+      const markets = getMarketDetailsFromGammaApi({ marketId })
+        .then((event) => event.markets ?? [])
+        .catch((error) => {
+          DevLogger.log('PolymarketProvider: claim version lookup failed', {
+            marketId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+          return [];
+        });
+      eventMarkets.set(marketId, markets);
+      return markets;
+    };
+
+    const versions = await Promise.all(
+      positions.map(async (position) => {
+        const markets = await getMarketsForEvent(position.marketId);
+        const market = markets.find(
+          (candidate) => candidate.conditionId === position.outcomeId,
+        );
+
+        return [
+          position.outcomeId,
+          market?.version === V2_MARKET_VERSION ? V2_MARKET_VERSION : undefined,
+        ] as const;
+      }),
+    );
+
+    return Object.fromEntries(versions);
+  }
+
+  /**
+   * While the Protocol V2 kill switch is on, v2 positions stay unclaimed and
+   * the rest are claimed. Throws `MARKET_UNAVAILABLE` when no winning
+   * position is left, so the user is never sent a claim that pays nothing.
+   * With the switch off, every position is claimed.
+   */
+  #excludeV2ClaimPositions(
+    positions: PredictPosition[],
+    marketVersions: ClaimMarketVersions,
+  ): PredictPosition[] {
+    if (!this.#shouldHideV2Markets()) {
+      return positions;
+    }
+
+    const claimPositions = positions.filter(
+      (position) => marketVersions[position.outcomeId] !== V2_MARKET_VERSION,
+    );
+
+    if (!claimPositions.some(isActionableClaimablePosition)) {
+      throw new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+    }
+
+    return claimPositions;
+  }
+
   public async prepareClaim(
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
@@ -2325,17 +2846,25 @@ export class PolymarketProvider implements PredictProvider {
         safeAddress,
         protocol,
       });
+      const marketVersions = await this.#resolveClaimMarketVersions(positions);
+      const claimPositions = this.#excludeV2ClaimPositions(
+        positions,
+        marketVersions,
+      );
       const claimTransaction = await buildClaimTransaction({
         signer,
-        positions,
+        positions: claimPositions,
         safeAddress,
         protocol,
+        marketVersions,
         safeLegacyUsdceBalance,
       });
 
       return {
         chainId: POLYGON_MAINNET_CHAIN_ID,
         transactions: [claimTransaction],
+        positions: claimPositions,
+        marketVersions,
       };
     } catch (error) {
       // Log error for debugging
@@ -2414,10 +2943,12 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      const marketVersions = await this.#resolveClaimMarketVersions(positions);
       const calls = await planDepositWalletClaim({
         positions,
         walletAddress: accountState.address,
         protocol,
+        marketVersions,
       });
 
       DevLogger.log(
@@ -2743,7 +3274,7 @@ export class PolymarketProvider implements PredictProvider {
       limit: '1',
     });
     const response = await fetchWithTimeout(
-      `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
+      `${DATA_API_ENDPOINT}/v2/activity?${queryParams.toString()}`,
     );
 
     if (!response.ok) {
@@ -2752,11 +3283,18 @@ export class PolymarketProvider implements PredictProvider {
 
     const activityRaw: unknown = await response.json();
 
-    if (!Array.isArray(activityRaw)) {
-      throw new Error('Polymarket activity response must be an array');
+    if (
+      !activityRaw ||
+      typeof activityRaw !== 'object' ||
+      !Array.isArray((activityRaw as PolymarketDataApiV2Response<unknown>).data)
+    ) {
+      throw new Error('Polymarket activity response must be a v2 envelope');
     }
 
-    return activityRaw.length > 0;
+    return (
+      ((activityRaw as PolymarketDataApiV2Response<unknown>).data?.length ??
+        0) > 0
+    );
   }
 
   public async getAccountState(
@@ -2891,15 +3429,20 @@ export class PolymarketProvider implements PredictProvider {
       );
     }
 
-    const depositPusdRaw = await getRawBalance({
-      address: accountState.address,
-      tokenAddress: protocol.collateral.tradingToken,
-    });
+    // Deposit-wallet collateral and the legacy Safe code check share no data.
+    // Overlap them so the balance read waits for one round trip. Legacy
+    // collateral is read only after that Safe is known to exist.
     const legacySafeAddress = computeProxyAddress(address);
-    const legacySafeDeployed = await isSmartContractAddress(
-      legacySafeAddress,
-      numberToHex(POLYGON_MAINNET_CHAIN_ID),
-    );
+    const [depositPusdRaw, legacySafeDeployed] = await Promise.all([
+      getRawBalance({
+        address: accountState.address,
+        tokenAddress: protocol.collateral.tradingToken,
+      }),
+      isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      ),
+    ]);
 
     let legacyPusdRaw = 0n;
     let legacyUsdceRaw = 0n;
@@ -3016,7 +3559,8 @@ export class PolymarketProvider implements PredictProvider {
   }: {
     ownerAddress: string;
     depositWalletAddress: Hex;
-    protocol: PolymarketProtocolDefinition;
+    /** Chooses the allowance requirements the preflight repairs. */
+    protocol: PolymarketTradeProtocol;
     getSigner: (address?: string) => Signer;
     operation?: string;
   }): Promise<boolean> {
@@ -3240,6 +3784,53 @@ export class PolymarketProvider implements PredictProvider {
           operation: 'deposit_wallet_order_balance_allowance_sync',
           walletType: 'deposit-wallet',
         }),
+      );
+    }
+  }
+
+  /**
+   * Refreshes the CONDITIONAL-V2 position balance before a positions sell.
+   * Runs even when the wallet setup did not change — the position can move
+   * on chain without this order touching allowances, and a stale CLOB view
+   * makes the relayer reject the sell. Buys use the collateral sync in
+   * {@link syncDepositWalletBalanceAllowanceForOrderIfNeeded}, which is
+   * protocol-independent.
+   */
+  private async syncDepositWalletPositionBalanceAllowanceForSell({
+    protocol,
+    tokenId,
+    signerAddress,
+    apiKey,
+  }: {
+    protocol: typeof POLYMARKET_POSITIONS_PROTOCOL;
+    tokenId: string;
+    signerAddress: string;
+    apiKey: ApiKeyCreds;
+  }): Promise<void> {
+    try {
+      await syncDepositWalletPositionBalanceAllowance({
+        protocol,
+        signerAddress,
+        apiKey,
+        tokenId,
+      });
+    } catch (error) {
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet positions order balance-allowance sync failed',
+        {
+          operation: 'deposit_wallet_positions_order_balance_allowance_sync',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext(
+          'placeOrder:depositWalletPositionsBalanceAllowanceSync',
+          {
+            operation: 'deposit_wallet_positions_order_balance_allowance_sync',
+            walletType: 'deposit-wallet',
+          },
+        ),
       );
     }
   }

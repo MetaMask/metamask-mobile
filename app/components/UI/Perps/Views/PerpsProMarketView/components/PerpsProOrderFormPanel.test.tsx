@@ -5,10 +5,16 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   PERPS_CONSTANTS,
+  TRIGGER_ORDER_TYPES,
   type OrderType,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+
+jest.mock('../../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 import type {
   PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
@@ -54,9 +60,15 @@ jest.mock('../../../../../../util/haptics');
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 // Provider is a passthrough; the orchestration hook is mocked below so the
-// container test focuses purely on prop/sheet wiring.
+// container test focuses purely on prop/sheet wiring. `setActivePriceField`
+// is captured so the panel's focus-composition wiring can be
+// asserted without needing a real PerpsOrderProvider.
+const mockSetActivePriceField = jest.fn();
 jest.mock('../../../contexts/PerpsOrderContext', () => ({
   PerpsOrderProvider: ({ children }: { children: React.ReactNode }) => children,
+  usePerpsOrderContext: () => ({
+    setActivePriceField: mockSetActivePriceField,
+  }),
 }));
 
 const DEFAULT_SIZE_INPUT: PerpsProSizeInputModel = {
@@ -286,6 +298,8 @@ describe('PerpsProOrderFormPanel', () => {
       supportsScaleOrders: true,
       supportsChaseOrders: true,
       checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
     });
     mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
@@ -320,7 +334,8 @@ describe('PerpsProOrderFormPanel', () => {
     });
   });
 
-  it('skips capability discovery when all strategy flags are disabled', () => {
+  it('skips capability discovery when all advanced order flags are disabled', () => {
+    selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, false);
     selectorValues.set(selectPerpsProTwapEnabledFlag, false);
     selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
     selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
@@ -328,6 +343,19 @@ describe('PerpsProOrderFormPanel', () => {
     renderPanel();
 
     expect(mockUsePerpsProvider).toHaveBeenCalledWith(undefined);
+  });
+
+  it('loads shared capabilities when only triggered orders are enabled', () => {
+    selectorValues.set(selectPerpsProTwapEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+    });
   });
 
   it('loads shared capabilities when only Chase is enabled', () => {
@@ -403,6 +431,8 @@ describe('PerpsProOrderFormPanel', () => {
       supportsScaleOrders: true,
       supportsChaseOrders: false,
       checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
     });
 
     renderPanel();
@@ -697,6 +727,8 @@ describe('PerpsProOrderFormPanel', () => {
       supportsScaleOrders: true,
       supportsChaseOrders: true,
       checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
     });
     mockHookResult.isOrderTypeVisible = true;
 
@@ -718,7 +750,7 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
-  it('omits TWAP and Scale when the controller resolves a Lighter route', () => {
+  it('offers supported Lighter Scale while TWAP awaits its form limits', () => {
     mockUsePerpsProvider.mockReturnValue({
       isLoadingOrderCapabilities: false,
       orderCapabilities: {
@@ -730,6 +762,8 @@ describe('PerpsProOrderFormPanel', () => {
       supportsScaleOrders: true,
       supportsChaseOrders: false,
       checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: [],
+      checkTriggerOrderSupport: mockCheckOrderCapability,
     });
     mockHookResult.isOrderTypeVisible = true;
 
@@ -737,20 +771,13 @@ describe('PerpsProOrderFormPanel', () => {
 
     expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
       expect.objectContaining({
-        availableOrderTypes: [
-          'market',
-          'limit',
-          'stop_limit',
-          'stop_market',
-          'take_profit_limit',
-          'take_profit_market',
-        ],
+        availableOrderTypes: ['market', 'limit', 'scale'],
       }),
     );
     expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
       expect.objectContaining({
-        isScaleOrdersEnabled: false,
-        scaleProviderId: undefined,
+        isScaleOrdersEnabled: true,
+        scaleProviderId: 'lighter',
       }),
     );
   });
@@ -797,5 +824,70 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
+  });
+
+  describe('focused price field composition', () => {
+    const getMountedInput = (testID: string) =>
+      screen.getByTestId(testID, { includeHiddenElements: true });
+
+    it('marks the limit price as the active field on focus', () => {
+      mockHookResult.orderType = 'limit';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('limit');
+    });
+
+    it('marks the trigger price as the active field on focus', () => {
+      mockHookResult.orderType = 'stop_market';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.TRIGGER_PRICE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('trigger');
+    });
+
+    it('marks the Scale start price as the active field on focus', () => {
+      mockHookResult.orderType = 'scale';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.SCALE_START_PRICE),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('scaleStart');
+    });
+
+    it('marks the Scale end price as the active field on focus', () => {
+      mockHookResult.orderType = 'scale';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.SCALE_END_PRICE),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('scaleEnd');
+    });
+
+    it('marks Chase max distance as the active field on focus', () => {
+      mockHookResult.orderType = 'chase';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.CHASE_MAX_DISTANCE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('chaseMaxDistance');
+    });
   });
 });

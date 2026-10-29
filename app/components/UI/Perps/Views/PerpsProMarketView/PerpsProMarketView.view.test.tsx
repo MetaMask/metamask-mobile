@@ -8,25 +8,36 @@ import {
   within,
   waitFor,
 } from '@testing-library/react-native';
-import type {
-  ChaseOrder,
-  Order,
-  PriceUpdate,
-  TwapOrder,
-  TwapOrderFill,
+import {
+  AggregatedOrderBookConnection,
+  type ChaseOrder,
+  type OrderBookData,
+  type OrderBookLevel,
+  type Order,
+  type PriceUpdate,
+  type TriggerOrderType,
+  type PerpsOrderCapabilities,
+  type PerpsProviderType,
+  type TwapOrder,
+  type TwapOrderFill,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
+import type { ComponentType } from 'react';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   describeForPlatforms,
   itForPlatforms,
 } from '../../../../../../tests/component-view/platform';
 import {
+  createBtcMarketForViews,
   createFundedAccountForViews,
+  createEthMarketForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -44,7 +55,9 @@ import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
+  getPerpsProChaseHandleSelector,
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseSideFilterOptionSelector,
@@ -56,10 +69,17 @@ import {
   getPerpsProTwapTerminateSelector,
   getPerpsProTwapValueSelector,
 } from '../../Perps.testIds';
-import { formatProOrderCardTimestamp } from '../../utils/formatUtils';
+import {
+  formatPerpsInput,
+  formatProOrderCardTimestamp,
+  normalizePerpsNumericInput,
+} from '../../utils/formatUtils';
 import { getTwapOrderProviderId } from '../../utils/twapOrderUtils';
+import { readPerpsUiObservations } from '../../utils/perpsUiObservations';
+import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const orderBookValueHeaderId = `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-column-header-value`;
 const TIMEOUT_MS = 5000;
 const activeChase: ChaseOrder = {
   handle: 'chase-view-1',
@@ -231,6 +251,10 @@ const openTwapManagementTab = async () => {
 
 const resetPerpsControllerMocks = () => {
   jest
+    .mocked(Engine.context.PerpsController.getScalePriceLadder)
+    .mockReset()
+    .mockResolvedValue({ status: 'unavailable', reason: 'not_implemented' });
+  jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
     .mockReset()
     .mockResolvedValue({
@@ -267,7 +291,15 @@ const resetPerpsControllerMocks = () => {
     .mockResolvedValue({ isValid: true });
 };
 
+const engineWithState = Engine as unknown as {
+  state?: Record<string, unknown>;
+};
+let engineStateBeforeTest: Record<string, unknown> | undefined;
+
 beforeEach(() => {
+  // Identity journeys publish controller updates through Engine.state. Snapshot
+  // it so a later preference write cannot reuse that copy and collapse the book.
+  engineStateBeforeTest = engineWithState.state;
   issuedTwapReadPromises.clear();
   activeTwapSubscriptions.clear();
   settledChaseReadPromises.clear();
@@ -275,6 +307,10 @@ beforeEach(() => {
   resetChaseOrderVisibilityForTests();
   PerpsCacheInvalidator._clearAllSubscribers();
   resetPerpsControllerMocks();
+  jest.mocked(Engine.context.PerpsController.subscribeToOrderBook).mockReset();
+  jest
+    .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+    .mockImplementation(() => () => undefined);
   connectionReadySpy = jest
     .spyOn(PerpsConnectionManager, 'isSelectedUserContextReady')
     .mockReturnValue(true);
@@ -329,6 +365,7 @@ afterEach(async () => {
     // assertion cannot leak a frozen clock into the next test.
     dateNowSpy?.mockRestore();
     dateNowSpy = undefined;
+    engineWithState.state = engineStateBeforeTest;
   }
 });
 
@@ -339,14 +376,43 @@ const renderFundedProMarket = () =>
     },
   });
 
-const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
-  renderPerpsProMarketView({
+const renderProMarketWithTriggeredOrdersFlag = (
+  enabled: boolean,
+  providerId: 'hyperliquid' | 'lighter' = 'hyperliquid',
+  capabilities?: PerpsOrderCapabilities | Promise<PerpsOrderCapabilities>,
+  restoredOrderType?: TriggerOrderType,
+) => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue(
+      capabilities ??
+        (providerId === 'hyperliquid'
+          ? {
+              status: 'ready',
+              providerId,
+              supportedStrategies: [],
+              supportedTriggerOrderTypes: [
+                'stop_market',
+                'stop_limit',
+                'take_profit_market',
+                'take_profit_limit',
+              ],
+            }
+          : { status: 'unavailable', providerId, reason: 'not_implemented' }),
+    );
+
+  return renderPerpsProMarketView({
+    initialParams: { market: { symbol: 'ETH', providerId } },
     streamOverrides: {
       account: createFundedAccountForViews('1000'),
     },
     overrides: {
       engine: {
         backgroundState: {
+          PerpsController: {
+            activeProvider: providerId,
+            ...(restoredOrderType && { selectedOrderType: restoredOrderType }),
+          },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               perpsProModeEnabled: {
@@ -371,6 +437,7 @@ const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
       },
     },
   });
+};
 
 const renderProMarketWithTwapFlag = (
   enabled: boolean,
@@ -424,24 +491,39 @@ const renderProMarketWithTwapFlag = (
   });
 };
 
-const renderProMarketWithScaleFlag = (enabled: boolean) => {
+const renderProMarketWithScaleFlag = (
+  enabled: boolean,
+  providerId: PerpsProviderType = 'hyperliquid',
+) => {
+  const market =
+    providerId === 'lighter'
+      ? createEthMarketForViews({ providerId })
+      : undefined;
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
     .mockResolvedValue({
       status: 'ready',
-      providerId: 'hyperliquid',
+      providerId,
       supportedStrategies: enabled ? ['scale'] : [],
+      supportedTriggerOrderTypes: [
+        'stop_market',
+        'stop_limit',
+        'take_profit_market',
+        'take_profit_limit',
+      ],
     });
 
   return renderPerpsProMarketView({
+    initialParams: market ? { market } : undefined,
     streamOverrides: {
+      ...(market ? { marketData: [market] } : {}),
       account: createFundedAccountForViews('1000'),
     },
     overrides: {
       engine: {
         backgroundState: {
           PerpsController: {
-            activeProvider: 'hyperliquid',
+            activeProvider: providerId,
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
@@ -547,6 +629,101 @@ const createTwapPickerDate = (hours: number, minutes: number) => {
   return date;
 };
 
+const deliverProOrderBook = (bidPrice: string) => {
+  const level = (price: string): OrderBookLevel => ({
+    price,
+    size: '1.5',
+    total: '1.5',
+    notional: '3750',
+    totalNotional: '3750',
+  });
+  const book: OrderBookData = {
+    bids: [level(bidPrice)],
+    asks: [],
+    spread: '10',
+    spreadPercentage: '0.4',
+    midPrice: '2500',
+    lastUpdated: 1_700_000_000_000,
+    maxTotal: '1.5',
+  };
+  jest
+    .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+    .mockImplementation(({ callback }) => {
+      callback(book);
+      return () => undefined;
+    });
+  return jest
+    .spyOn(AggregatedOrderBookConnection.prototype, 'subscribe')
+    .mockImplementation((params) => {
+      params.callback(book);
+      return () => undefined;
+    });
+};
+
+const pressTopBid = () =>
+  screen.findByTestId(
+    `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+
+const renderChaseProMarket = () => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue({
+      status: 'ready',
+      providerId: 'hyperliquid',
+      supportedStrategies: ['chase'],
+      supportedTriggerOrderTypes: [
+        'stop_market',
+        'stop_limit',
+        'take_profit_market',
+        'take_profit_limit',
+      ],
+    });
+  return renderPerpsProMarketView({
+    streamOverrides: { account: createFundedAccountForViews('1000') },
+    overrides: {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProModeEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsMobileChase: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+const openChaseOrderForm = async () => {
+  await findSizeInput();
+  fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+      {},
+      { timeout: TIMEOUT_MS },
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
+      {},
+      { timeout: TIMEOUT_MS },
+    ),
+  );
+  await screen.findByTestId(ids.CHASE_FORM, {}, { timeout: TIMEOUT_MS });
+};
+
 const selectTriggeredOrderType = async (
   optionTestID: (typeof triggeredOrderTypeIDs)[number],
 ) => {
@@ -590,14 +767,26 @@ const syncEngineControllerState = (
     | 'RemoteFeatureFlagController',
   nextState: Record<string, unknown>,
 ) => {
-  const engineWithState = Engine as unknown as {
-    state?: Record<string, unknown>;
-  };
   engineWithState.state = {
     ...(engineWithState.state ?? {}),
     [key]: nextState,
   };
   store.dispatch(updateBgState({ key }));
+};
+
+const showOrderBook = (
+  store: ReturnType<typeof renderPerpsProMarketView>['store'],
+) => {
+  const current = store.getState().engine.backgroundState.PerpsController;
+  act(() => {
+    syncEngineControllerState(store, 'PerpsController', {
+      ...current,
+      proLayoutPreferences: {
+        ...current?.proLayoutPreferences,
+        orderBookExpanded: true,
+      },
+    });
+  });
 };
 
 describeForPlatforms('PerpsProMarketView input journeys', () => {
@@ -611,6 +800,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         status: 'ready',
         providerId: 'hyperliquid',
         supportedStrategies: ['chase'],
+        supportedTriggerOrderTypes: [
+          'stop_market',
+          'stop_limit',
+          'take_profit_market',
+          'take_profit_limit',
+        ],
       });
       getOrderCapabilities.mockClear();
       renderPerpsProMarketView({
@@ -1127,6 +1322,65 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   }
 
   itForPlatforms(
+    'records the hook cancellation result after pressing the Chase terminate control',
+    async () => {
+      const savedDev = __DEV__;
+      (globalThis as { __DEV__?: boolean }).__DEV__ = true;
+      try {
+        const cursor = readPerpsUiObservations().cancellationSequence;
+        const outcome = { success: true, orderId: activeChase.handle };
+        const cancelOrder = jest.mocked(
+          Engine.context.PerpsController.cancelOrder,
+        );
+        cancelOrder.mockResolvedValue(outcome);
+        jest
+          .mocked(Engine.context.PerpsController.getChaseOrders)
+          .mockResolvedValueOnce([activeChase])
+          .mockResolvedValue([]);
+        renderFundedProMarket();
+        await openChaseManagementTab();
+
+        fireEvent.press(
+          await screen.findByTestId(
+            getPerpsProChaseTerminateSelector(
+              'active',
+              'ETH',
+              activeChase.handle,
+              true,
+            ),
+          ),
+        );
+
+        await waitFor(() => {
+          expect(cancelOrder).toHaveBeenCalledTimes(1);
+          expect(cancelOrder).toHaveBeenCalledWith({
+            orderId: activeChase.handle,
+            symbol: 'ETH',
+            orderType: 'chase',
+          });
+          expect(
+            readPerpsUiObservations().cancellations.filter(
+              (item) => item.sequence > cursor,
+            ),
+          ).toEqual([
+            expect.objectContaining({
+              request: {
+                orderId: activeChase.handle,
+                symbol: 'ETH',
+                orderType: 'chase',
+              },
+              state: 'settled',
+              result: outcome,
+            }),
+          ]);
+        });
+      } finally {
+        (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
+      }
+    },
+  );
+
+  itForPlatforms(
     'retains canceled History when the controller omits the terminated session',
     async () => {
       const getChaseOrders = jest.mocked(
@@ -1470,6 +1724,112 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ),
       );
       expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false);
+    },
+  );
+
+  itForPlatforms(
+    'binds the compatible primary terminate control to its exact Chase handle',
+    async () => {
+      const unrelated: ChaseOrder = {
+        ...activeChase,
+        handle: 'unrelated-chase',
+      };
+      jest
+        .mocked(Engine.context.PerpsController.getChaseOrders)
+        .mockResolvedValue([activeChase, unrelated]);
+      renderFundedProMarket();
+
+      await openChaseManagementTab();
+      const primary = await screen.findByTestId(
+        getPerpsProChaseHandleSelector('ETH', activeChase.handle),
+      );
+      const other = screen.getByTestId(
+        getPerpsProChaseHandleSelector('ETH', unrelated.handle),
+      );
+      const compatible = getPerpsProChaseTerminateSelector(
+        'active',
+        'ETH',
+        activeChase.handle,
+        true,
+      );
+
+      expect(within(primary).getByTestId(compatible)).toBeOnTheScreen();
+      expect(within(other).queryByTestId(compatible)).toBeNull();
+      expect(
+        within(other).getByTestId(
+          getPerpsProChaseTerminateSelector(
+            'active',
+            'ETH',
+            unrelated.handle,
+            false,
+          ),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'keeps the existing handler bound to its handle when a different primary Chase row leaves',
+    async () => {
+      const unrelated = { ...activeChase, handle: 'unrelated-primary' };
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
+      getChaseOrders
+        .mockResolvedValueOnce([unrelated, activeChase])
+        .mockResolvedValue([activeChase]);
+      cancelOrder.mockClear();
+      renderFundedProMarket();
+      await openChaseManagementTab();
+      const ownedSelector = getPerpsProChaseHandleSelector(
+        'ETH',
+        activeChase.handle,
+      );
+      const primarySelector = getPerpsProChaseTerminateSelector(
+        'active',
+        'ETH',
+        unrelated.handle,
+        true,
+      );
+      expect(
+        within(await screen.findByTestId(ownedSelector)).getByTestId(
+          getPerpsProChaseTerminateSelector(
+            'active',
+            'ETH',
+            activeChase.handle,
+            false,
+          ),
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        within(
+          screen.getByTestId(
+            getPerpsProChaseHandleSelector('ETH', unrelated.handle),
+          ),
+        ).getByTestId(primarySelector),
+      );
+      await waitFor(() =>
+        expect(
+          within(screen.getByTestId(ownedSelector)).getByTestId(
+            primarySelector,
+          ),
+        ).toBeOnTheScreen(),
+      );
+      cancelOrder.mockClear();
+      fireEvent.press(
+        within(screen.getByTestId(ownedSelector)).getByTestId(primarySelector),
+      );
+      await waitFor(() =>
+        expect(cancelOrder).toHaveBeenCalledWith({
+          orderId: activeChase.handle,
+          symbol: 'ETH',
+          orderType: 'chase',
+        }),
+      );
+      expect(cancelOrder).toHaveBeenCalledTimes(1);
     },
   );
 
@@ -1936,6 +2296,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           status: 'ready',
           providerId: 'hyperliquid',
           supportedStrategies: ['chase'],
+          supportedTriggerOrderTypes: [
+            'stop_market',
+            'stop_limit',
+            'take_profit_market',
+            'take_profit_limit',
+          ],
         });
       getChaseOrders
         .mockResolvedValueOnce([])
@@ -2417,6 +2783,225 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'keeps Basic orders selectable when Lighter cannot execute enabled triggers',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter');
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+      );
+
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+      for (const testID of triggeredOrderTypeIDs) {
+        expect(screen.queryByTestId(testID)).not.toBeOnTheScreen();
+      }
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
+      expect(await findPriceInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    },
+  );
+
+  itForPlatforms(
+    'shows only the trigger subset declared by a provider',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter', {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market', 'take_profit_limit'],
+      });
+      await findSizeInput();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      const tab = await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+      );
+      fireEvent.press(tab);
+
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'shows all four native Lighter trigger types when the provider declares support',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter', {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: [
+          'stop_market',
+          'stop_limit',
+          'take_profit_market',
+          'take_profit_limit',
+        ],
+      });
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      );
+
+      for (const testID of triggeredOrderTypeIDs) {
+        expect(screen.getByTestId(testID)).toBeOnTheScreen();
+      }
+      expect(
+        Engine.context.PerpsController.getOrderCapabilities,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', providerId: 'lighter' }),
+      );
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    },
+  );
+
+  itForPlatforms(
+    'keeps Basic orders available while trigger capabilities are pending',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(
+        true,
+        'hyperliquid',
+        new Promise<PerpsOrderCapabilities>(() => undefined),
+      );
+      await findSizeInput();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'waits for capabilities before declaring a restored trigger draft unavailable',
+    async () => {
+      let resolveCapabilities = (_capabilities: PerpsOrderCapabilities): void =>
+        undefined;
+      const capabilities = new Promise<PerpsOrderCapabilities>((resolve) => {
+        resolveCapabilities = resolve;
+      });
+      renderProMarketWithTriggeredOrdersFlag(
+        true,
+        'hyperliquid',
+        capabilities,
+        'stop_market',
+      );
+      await findSizeInput();
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+
+      fireEvent.changeText(triggerInput, '2600');
+
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+        strings('perps.order.type.stop_market.title'),
+      );
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      expect(
+        screen.queryByTestId(`${ids.NOTICE}-trigger-orders-unavailable`),
+      ).not.toBeOnTheScreen();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveCapabilities({
+          status: 'unavailable',
+          providerId: 'hyperliquid',
+          reason: 'not_implemented',
+        });
+        await capabilities;
+      });
+
+      expect(
+        await screen.findByTestId(`${ids.NOTICE}-trigger-orders-unavailable`),
+      ).toHaveTextContent(
+        strings('perps.order.validation.trigger_orders_unavailable'),
+      );
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('2600'));
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    },
+  );
+
+  itForPlatforms(
+    'preserves the trigger draft after its rollout is disabled',
+    async () => {
+      const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+      await findSizeInput();
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+      );
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '3000');
+      const remote =
+        store.getState().engine.backgroundState.RemoteFeatureFlagController;
+      act(() =>
+        syncEngineControllerState(store, 'RemoteFeatureFlagController', {
+          ...remote,
+          remoteFeatureFlags: {
+            ...remote.remoteFeatureFlags,
+            perpsProTriggeredOrdersEnabled: {
+              enabled: false,
+              minimumVersion: '0.0.0',
+            },
+          },
+        }),
+      );
+
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('3000'));
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+        strings('perps.order.type.stop_market.title'),
+      );
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
     'hides triggered order types when the remote flag is disabled',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(false);
@@ -2712,6 +3297,119 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'opens the size field and order book in the saved coin denomination',
+    async () => {
+      renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                orderBookPreferences: { currency: 'base', metric: 'total' },
+                proLayoutPreferences: { orderBookExpanded: true },
+              },
+            },
+          },
+        },
+      });
+      await findSizeInput();
+      await screen.findByTestId(
+        orderBookValueHeaderId,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (ETH)',
+      );
+      expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+        'Total (ETH)',
+      );
+    },
+  );
+
+  itForPlatforms(
+    'keeps the size field and order book on the same denomination',
+    async () => {
+      const mounted = renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                proLayoutPreferences: { orderBookExpanded: true },
+              },
+            },
+          },
+        },
+      });
+      const unwire = wirePerpsControllerForStore(mounted.store);
+
+      try {
+        const sizeInput = await findSizeInput();
+        await screen.findByTestId(
+          orderBookValueHeaderId,
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (USD)',
+        );
+        expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+          'Total ($)',
+        );
+
+        fireEvent.changeText(sizeInput, '100');
+        await waitFor(() => expect(sizeInput).toHaveProp('value', '100'));
+        fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+
+        await waitFor(() => {
+          expect(sizeInput).toHaveProp('value', '0.04');
+          expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+            'Size (ETH)',
+          );
+          expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+            'Total (ETH)',
+          );
+        });
+
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-grouping-trigger`,
+          ),
+        );
+        fireEvent.press(
+          await screen.findByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-config-sheet-currency-usd`,
+          ),
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-config-sheet-apply`,
+          ),
+        );
+
+        await waitFor(() => {
+          expect(sizeInput).toHaveProp('value', '100');
+          expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+            'Size (USD)',
+          );
+          expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+            'Total ($)',
+          );
+        });
+      } finally {
+        unwire();
+      }
+    },
+  );
+
+  itForPlatforms(
     'keeps asset sizing available when Scale ladder prices differ from the market',
     async () => {
       renderProMarketWithScaleFlag(true);
@@ -2752,23 +3450,90 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'clears a fully accepted Lighter Scale draft despite an overall failed result',
+    async () => {
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      placeOrder.mockResolvedValueOnce({
+        success: false,
+        acceptedSize: '0.03',
+        acceptedChildren: [
+          { state: 'resting', orderId: 'scale-child-1' },
+          { state: 'resting', orderId: 'scale-child-2' },
+          { state: 'resting', orderId: 'scale-child-3' },
+        ],
+      });
+      const getScalePriceLadder = jest.mocked(
+        Engine.context.PerpsController.getScalePriceLadder,
+      );
+      getScalePriceLadder.mockResolvedValue({
+        status: 'ready',
+        providerId: 'lighter',
+        prices: ['2000', '2100', '2200'],
+        sizingPreview: {
+          sizes: ['0.01', '0.01', '0.01'],
+          totalSize: '0.03',
+          totalNotional: '63',
+          minimumBaseSize: '0.001',
+          minimumQuoteAmount: '10',
+          sizeDecimals: 3,
+        },
+      });
+      renderProMarketWithScaleFlag(true, 'lighter');
+      const sizeInput = await openScaleOrderForm();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2000');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+      await waitFor(
+        () => expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
+        { timeout: TIMEOUT_MS },
+      );
+
+      fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledTimes(1);
+          expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '');
+          expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+            'value',
+            '',
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
     'previews slider sizing live and keeps it after drag-end commit',
     async () => {
       renderFundedProMarket();
-      const sizeInput = await findSizeInput();
-      const slider = screen.getByTestId(ids.SIZE_SLIDER);
-      const initialValue = sizeInput.props.value;
+      await findSizeInput();
+      const initialValue = screen.getByTestId(ids.SIZE_INPUT).props.value;
 
-      fireEvent(slider, 'valueChange', 50);
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 50);
 
       await waitFor(() => {
-        expect(sizeInput.props.value).not.toBe(initialValue);
-        expect(Number(sizeInput.props.value)).toBeGreaterThan(0);
+        const updatedSizeInput = screen.getByTestId(ids.SIZE_INPUT);
+        expect(updatedSizeInput.props.value).not.toBe(initialValue);
+        expect(
+          Number(normalizePerpsNumericInput(updatedSizeInput.props.value)),
+        ).toBeGreaterThan(0);
       });
-      const previewValue = sizeInput.props.value;
-      fireEvent(slider, 'dragEnd', 50);
+      const previewValue = screen.getByTestId(ids.SIZE_INPUT).props.value;
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 50);
 
-      await waitFor(() => expect(sizeInput).toHaveProp('value', previewValue));
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+          'value',
+          previewValue,
+        ),
+      );
     },
   );
 
@@ -2918,7 +3683,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         );
         expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
-        expect(sizeInput).toHaveProp('value', '3000');
+        expect(sizeInput).toHaveProp('value', formatPerpsInput('3000'));
       });
     },
   );
@@ -2941,7 +3706,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await waitFor(() => {
         const marginCappedAmount = Number(
-          screen.getByTestId(ids.SIZE_INPUT).props.value,
+          normalizePerpsNumericInput(
+            screen.getByTestId(ids.SIZE_INPUT).props.value,
+          ),
         );
         expect(marginCappedAmount).toBeGreaterThan(0);
         expect(marginCappedAmount).toBeLessThan(2500);
@@ -2957,7 +3724,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 2500);
 
       await waitFor(() =>
-        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '2500'),
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+          'value',
+          formatPerpsInput('2500'),
+        ),
       );
     },
   );
@@ -3656,6 +4426,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           status: 'ready',
           providerId: 'hyperliquid',
           supportedStrategies: ['chase'],
+          supportedTriggerOrderTypes: [
+            'stop_market',
+            'stop_limit',
+            'take_profit_market',
+            'take_profit_limit',
+          ],
         });
       renderPerpsProMarketView({
         streamOverrides: { account: createFundedAccountForViews('1000') },
@@ -3725,6 +4501,92 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
     },
   );
+
+  itForPlatforms(
+    'fills a focused Scale start price from an order-book tap without switching type',
+    async () => {
+      const bookSpy = deliverProOrderBook('2400');
+      try {
+        const { store } = renderProMarketWithScaleFlag(true);
+        showOrderBook(store);
+        await openScaleOrderForm();
+        fireEvent(screen.getByTestId(ids.SCALE_START_PRICE), 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+            'value',
+            formatPerpsInput('2400'),
+          );
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            strings('perps.order.type.scale.title'),
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'fills a focused Chase percent distance from an order-book tap',
+    async () => {
+      const bookSpy = deliverProOrderBook('2550');
+      try {
+        const { store } = renderChaseProMarket();
+        showOrderBook(store);
+        await openChaseOrderForm();
+        fireEvent.press(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT));
+        fireEvent(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+            'value',
+            formatPerpsInput('2'),
+          );
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            `${strings('perps.order.type.chase.title')}$2500`,
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'fills a focused stop-limit trigger from an order-book tap and leaves the limit price',
+    async () => {
+      const bookSpy = deliverProOrderBook('2490');
+      try {
+        const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+        showOrderBook(store);
+        await findSizeInput();
+        await selectTriggeredOrderType(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        );
+        const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+        const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+        fireEvent.changeText(limitInput, '2400');
+        fireEvent(triggerInput, 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(triggerInput).toHaveProp('value', formatPerpsInput('2490'));
+          expect(limitInput).toHaveProp('value', formatPerpsInput('2400'));
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            strings('perps.order.type.stop_limit.title'),
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
+    },
+  );
 });
 
 describe('PerpsProMarketView header actions', () => {
@@ -3755,5 +4617,947 @@ describe('PerpsProMarketView header actions', () => {
     expect(
       await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+});
+
+describe('Pro market order liquidity', () => {
+  it.each([true, false])(
+    'checks the exact fractional MAX close with shallow=%s and recovers when depth returns',
+    async (shallow) => {
+      const getMarkets = jest.mocked(Engine.context.PerpsController.getMarkets);
+      const originalImplementation = getMarkets.getMockImplementation();
+      getMarkets.mockResolvedValue([
+        { name: 'ETH', szDecimals: 3, maxLeverage: 50, marginTableId: 1 },
+      ]);
+      try {
+        const level = (price: number, size: number): OrderBookLevel => ({
+          price: String(price),
+          size: String(size),
+          total: String(size),
+          notional: String(price * size),
+          totalNotional: String(price * size),
+        });
+        const makeBook = (bids: OrderBookLevel[]): OrderBookData => ({
+          midPrice: '100',
+          asks: [],
+          bids,
+          spread: '0',
+          spreadPercentage: '0',
+          lastUpdated: Date.now(),
+          maxTotal: '1',
+        });
+        const blockedBook = makeBook(
+          shallow ? [level(100, 0.5)] : [level(100, 0.5), level(96, 0.009)],
+        );
+        let deliver: ((book: OrderBookData) => void) | undefined;
+        jest
+          .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+          .mockImplementation(({ callback }) => {
+            deliver = callback;
+            callback(blockedBook);
+            return () => undefined;
+          });
+        const market = {
+          ...createEthMarketForViews({ price: '$100.00' }),
+          providerId: 'hyperliquid' as const,
+          szDecimals: 3,
+        };
+        const placeOrder = jest.mocked(
+          Engine.context.PerpsController.placeOrder,
+        );
+        renderPerpsProMarketView({
+          initialParams: { market },
+          streamOverrides: {
+            account: createFundedAccountForViews('1000'),
+            marketData: [market],
+            positions: [
+              createLongPositionForViews({
+                size: '0.509',
+                entryPrice: '100',
+                positionValue: '50.9',
+                marginUsed: '10',
+                liquidationPrice: '50',
+              }),
+            ],
+            orders: [],
+            prices: {
+              ETH: {
+                symbol: 'ETH',
+                price: '100',
+                markPrice: '100',
+                percentChange24h: '0',
+                timestamp: Date.now(),
+                isTradable: true,
+              },
+            },
+          },
+        });
+        await findSizeInput();
+        fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+        fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+        await waitFor(() =>
+          expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen(),
+        );
+        fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 100);
+        fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 100);
+
+        const message = strings(
+          shallow
+            ? 'perps.slippage.insufficient_depth'
+            : 'perps.slippage.cannot_fill',
+        );
+        expect(await screen.findByText(message)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '50');
+        const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+        expect(submit).toBeDisabled();
+        fireEvent.press(submit);
+        expect(placeOrder).not.toHaveBeenCalled();
+
+        await act(async () => {
+          deliver?.(makeBook([level(100, 0.509)]));
+        });
+        await waitFor(() =>
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
+        );
+        expect(screen.queryByText(message)).not.toBeOnTheScreen();
+        await act(async () => {
+          fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+        });
+        await waitFor(() =>
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              size: '0.509',
+              reduceOnly: true,
+              isBuy: false,
+              isFullClose: true,
+            }),
+          ),
+        );
+        expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('usdAmount');
+      } finally {
+        if (originalImplementation) {
+          getMarkets.mockImplementation(originalImplementation);
+        }
+      }
+    },
+  );
+
+  it.each([true, false, null])(
+    'blocks shallow=%s and submits after visible depth recovers',
+    async (shallow) => {
+      const level = (price: number, size: number): OrderBookLevel => ({
+        price: String(price),
+        size: String(size),
+        total: String(size),
+        notional: String(price * size),
+        totalNotional: String(price * size),
+      });
+      const makeBook = (asks: OrderBookLevel[]): OrderBookData => ({
+        midPrice: '2500',
+        asks,
+        bids: [],
+        spread: '0',
+        spreadPercentage: '0',
+        lastUpdated: Date.now(),
+        maxTotal: '1',
+      });
+      const blockedBook = makeBook(
+        shallow ? [level(2500, 0.001)] : [level(2500, 0.039), level(2600, 1)],
+      );
+      let deliver: ((book: OrderBookData) => void) | undefined;
+      jest
+        .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+        .mockImplementation(({ callback, onError }) => {
+          deliver = callback;
+          if (shallow === null) {
+            onError?.(new Error('order book unavailable'));
+          } else {
+            callback(blockedBook);
+          }
+          return () => undefined;
+        });
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      renderFundedProMarket();
+      const input = await findSizeInput();
+
+      fireEvent.changeText(input, '100');
+      const message = strings(
+        shallow !== false
+          ? 'perps.slippage.insufficient_depth'
+          : 'perps.slippage.cannot_fill',
+      );
+      expect(
+        await screen.findByText(message, {}, { timeout: TIMEOUT_MS }),
+      ).toBeOnTheScreen();
+      const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      expect(submit).toBeDisabled();
+      fireEvent.press(submit);
+      expect(placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        deliver?.(makeBook([level(2500, 1)]));
+      });
+      await waitFor(
+        () =>
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+        { timeout: TIMEOUT_MS },
+      );
+      expect(screen.queryByText(message)).not.toBeOnTheScreen();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+      });
+      await waitFor(
+        () =>
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              isBuy: true,
+              orderType: 'market',
+              usdAmount: '100',
+            }),
+          ),
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  it('keeps a limit order unblocked when the order book is unavailable', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+      .mockImplementation(({ onError }) => {
+        onError?.(new Error('order book unavailable'));
+        return () => undefined;
+      });
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    renderFundedProMarket();
+    fireEvent.changeText(await findSizeInput(), '100');
+    const message = strings('perps.slippage.insufficient_depth');
+    expect(
+      await screen.findByText(message, {}, { timeout: TIMEOUT_MS }),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    fireEvent.changeText(limitInput, '2500');
+    fireEvent(limitInput, 'blur');
+
+    await waitFor(
+      () =>
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+      { timeout: TIMEOUT_MS },
+    );
+    expect(screen.queryByText(message)).not.toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+    });
+    await waitFor(
+      () =>
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'limit',
+            price: '2500',
+          }),
+        ),
+      { timeout: TIMEOUT_MS },
+    );
+  });
+
+  it('keeps a market order enabled while the order book subscription is pending', async () => {
+    renderFundedProMarket();
+    fireEvent.changeText(await findSizeInput(), '100');
+
+    await waitFor(
+      () =>
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+      { timeout: TIMEOUT_MS },
+    );
+    expect(
+      Engine.context.PerpsController.subscribeToOrderBook,
+    ).toHaveBeenCalled();
+    expect(
+      screen.queryByText(strings('perps.slippage.insufficient_depth')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.slippage.cannot_fill')),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describe('Pro order book size on click', () => {
+  const panelId = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
+  const bidRowId = `${panelId}-bid-row-0`;
+  const settingsApplyId = `${panelId}-config-sheet-apply`;
+  const ladderLevel = (price: string, size: string): OrderBookLevel => ({
+    price,
+    size,
+    total: size,
+    notional: String(Number(price) * Number(size)),
+    totalNotional: String(Number(price) * Number(size)),
+  });
+  let ladderSpy: jest.SpyInstance | undefined;
+  let unwireController: (() => void) | undefined;
+
+  // The ladder streams on its own Hyperliquid socket, not the Engine. Serving
+  // it at that socket wrapper is the transport boundary, like nock for HTTP.
+  const serveLadder = (bid: OrderBookLevel, midPrice = '2500') => {
+    ladderSpy = jest
+      .spyOn(AggregatedOrderBookConnection.prototype, 'subscribe')
+      .mockImplementation(({ callback, onStatusChange }) => {
+        onStatusChange?.('connected');
+        callback({
+          bids: [bid],
+          asks: [],
+          midPrice,
+          spread: '0',
+          spreadPercentage: '0',
+          lastUpdated: Date.now(),
+          maxTotal: bid.size,
+        });
+        return () => undefined;
+      });
+  };
+
+  const renderProBook = (currency: 'usd' | 'base' = 'usd') =>
+    renderPerpsProMarketView({
+      streamOverrides: { account: createFundedAccountForViews('1000') },
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              orderBookPreferences: { currency, metric: 'size' },
+              proLayoutPreferences: { orderBookExpanded: true },
+            },
+          },
+        },
+      },
+    });
+
+  const turnOnSizeOnClick = async () => {
+    fireEvent.press(
+      await screen.findByTestId(
+        `${panelId}-grouping-trigger`,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    fireEvent(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+      'valueChange',
+      true,
+    );
+    fireEvent.press(screen.getByTestId(settingsApplyId));
+    await waitFor(() =>
+      expect(screen.queryByTestId(settingsApplyId)).not.toBeOnTheScreen(),
+    );
+  };
+
+  const tapBid = async () =>
+    fireEvent.press(
+      await screen.findByTestId(bidRowId, {}, { timeout: TIMEOUT_MS }),
+    );
+
+  const placeAndReadOrder = async () => {
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    await waitFor(
+      () => expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
+      { timeout: TIMEOUT_MS },
+    );
+    await act(async () => {
+      fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+    });
+    await waitFor(() => expect(placeOrder).toHaveBeenCalledTimes(1), {
+      timeout: TIMEOUT_MS,
+    });
+    return placeOrder.mock.calls[0][0];
+  };
+
+  afterEach(() => {
+    ladderSpy?.mockRestore();
+    ladderSpy = undefined;
+    unwireController?.();
+    unwireController = undefined;
+  });
+
+  it('fills only the price while size on click is off', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    const sizeBefore = (await findSizeInput()).props.value;
+
+    await tapBid();
+
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    await waitFor(() =>
+      expect(limitInput).toHaveProp('value', formatPerpsInput('2490')),
+    );
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', sizeBefore);
+  });
+
+  it('fills the row price and size and places exactly the row size', async () => {
+    // $722.10 at 2,490 would size 0.30 ETH through the USD amount alone.
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    await findSizeInput();
+    await turnOnSizeOnClick();
+
+    await tapBid();
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        formatPerpsInput('722.1'),
+      ),
+    );
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
+      expect.objectContaining({
+        orderType: 'limit',
+        price: '2490',
+        size: '0.29',
+      }),
+    );
+    // Providers re-derive the size from a USD amount, so none is sent.
+    expect(order).not.toHaveProperty('usdAmount');
+  });
+
+  it('shows the row size in coin and places it', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook('base');
+    await findSizeInput();
+    await turnOnSizeOnClick();
+
+    await tapBid();
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '0.29'),
+    );
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
+      expect.objectContaining({ price: '2490', size: '0.29' }),
+    );
+    expect(order).not.toHaveProperty('usdAmount');
+  });
+
+  it('fills the trigger price and size of a stop-market order', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+    unwireController = wirePerpsControllerForStore(store);
+    await findSizeInput();
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    await turnOnSizeOnClick();
+    await selectTriggeredOrderType(
+      PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+    );
+
+    await tapBid();
+
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+    await waitFor(() =>
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('2490')),
+    );
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
+      expect.objectContaining({
+        orderType: 'stop_market',
+        triggerPrice: '2490',
+        size: '0.29',
+      }),
+    );
+    expect(order).not.toHaveProperty('usdAmount');
+  });
+
+  it('fills the limit price and size of a stop-limit order', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+    unwireController = wirePerpsControllerForStore(store);
+    await findSizeInput();
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    await turnOnSizeOnClick();
+    await selectTriggeredOrderType(
+      PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+    );
+
+    await tapBid();
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+    fireEvent.changeText(triggerInput, '2600');
+    fireEvent(triggerInput, 'blur');
+
+    expect(await findPriceInput(ids.LIMIT_PRICE_INPUT)).toHaveProp(
+      'value',
+      formatPerpsInput('2490'),
+    );
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
+      expect.objectContaining({
+        orderType: 'stop_limit',
+        price: '2490',
+        triggerPrice: '2600',
+        size: '0.29',
+      }),
+    );
+    expect(order).not.toHaveProperty('usdAmount');
+  });
+
+  // A sell stop-limit at 2,400 with its trigger focused takes the 2,490 tap.
+  const tapIntoFocusedStopLimitTrigger = async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+    unwireController = wirePerpsControllerForStore(store);
+    await findSizeInput();
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    await turnOnSizeOnClick();
+    await selectTriggeredOrderType(
+      PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+    );
+    fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    fireEvent.changeText(limitInput, '2400');
+    fireEvent(limitInput, 'blur');
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+    fireEvent(triggerInput, 'focus');
+
+    await tapBid();
+
+    await waitFor(() =>
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('2490')),
+    );
+    expect(limitInput).toHaveProp('value', formatPerpsInput('2400'));
+    return triggerInput;
+  };
+
+  it('keeps the row size when the tap fills a focused stop-limit trigger', async () => {
+    await tapIntoFocusedStopLimitTrigger();
+
+    // $722.10 at the 2,400 limit would size 0.31 ETH through the amount alone.
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
+      expect.objectContaining({
+        orderType: 'stop_limit',
+        isBuy: false,
+        price: '2400',
+        triggerPrice: '2490',
+        size: '0.29',
+      }),
+    );
+    expect(order).not.toHaveProperty('usdAmount');
+  });
+
+  it('sizes from the amount again once the filled trigger changes', async () => {
+    const triggerInput = await tapIntoFocusedStopLimitTrigger();
+
+    fireEvent.changeText(triggerInput, '2480');
+    fireEvent(triggerInput, 'blur');
+
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        price: '2400',
+        triggerPrice: '2480',
+        size: '0.31',
+        usdAmount: '722.1',
+      }),
+    );
+  });
+
+  it('keeps the row size when the tap fills a focused Scale start price', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    const { store } = renderProMarketWithScaleFlag(true);
+    unwireController = wirePerpsControllerForStore(store);
+    await findSizeInput();
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    await turnOnSizeOnClick();
+    await openScaleOrderForm();
+    fireEvent(screen.getByTestId(ids.SCALE_START_PRICE), 'focus');
+
+    await tapBid();
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+        'value',
+        formatPerpsInput('2490'),
+      ),
+    );
+    fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+    fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2990');
+    fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+    fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+
+    // $722.10 over a 2,490 to 2,990 ladder would size 0.27 ETH from the amount.
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        orderType: 'scale',
+        scaleMinPrice: '2490',
+        scaleMaxPrice: '2990',
+        scaleNumOrders: 3,
+        size: '0.29',
+      }),
+    );
+  });
+
+  it('keeps the row size when the tap fills a focused Chase distance', async () => {
+    serveLadder(ladderLevel('2400', '0.29'));
+    const { store } = renderChaseProMarket();
+    unwireController = wirePerpsControllerForStore(store);
+    await findSizeInput();
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    await turnOnSizeOnClick();
+    await openChaseOrderForm();
+    fireEvent(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+    await tapBid();
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'value',
+        formatPerpsInput('100'),
+      ),
+    );
+    // $696.00 at the 2,500 live price would size 0.28 ETH from the amount.
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
+      expect.objectContaining({ orderType: 'chase', size: '0.29' }),
+    );
+    expect(order).not.toHaveProperty('usdAmount');
+  });
+
+  // 0.0002 BTC at 49,990 is $9.998, which reads as $10.00 once rounded to cents.
+  it.each(['0.0001', '0.0002'])(
+    'raises a %s BTC row below the market minimum to that minimum',
+    async (rowSize) => {
+      const market = {
+        ...createBtcMarketForViews(),
+        providerId: 'hyperliquid' as const,
+        szDecimals: 5,
+      };
+      serveLadder(ladderLevel('49990', rowSize), '50000');
+      renderPerpsProMarketView({
+        initialParams: { market },
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+          marketData: [market],
+          prices: {
+            BTC: {
+              symbol: 'BTC',
+              price: '50000',
+              markPrice: '50000',
+              percentChange24h: '0',
+              timestamp: Date.now(),
+              isTradable: true,
+            },
+          },
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                proLayoutPreferences: { orderBookExpanded: true },
+              },
+            },
+          },
+        },
+      });
+      await findSizeInput();
+      await turnOnSizeOnClick();
+
+      await tapBid();
+
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+          'value',
+          formatPerpsInput('10'),
+        ),
+      );
+      expect(await placeAndReadOrder()).toEqual(
+        expect.objectContaining({ price: '49990', usdAmount: '10' }),
+      );
+    },
+  );
+
+  it('caps a row above the margin limit at the maximum size', async () => {
+    // 2 ETH at 2,490 is $4,980, above what $1,000 of margin can open.
+    serveLadder(ladderLevel('2490', '2'));
+    renderProBook();
+    const sizeBefore = (await findSizeInput()).props.value;
+    await turnOnSizeOnClick();
+
+    await tapBid();
+    let filledSize = sizeBefore;
+    await waitFor(() => {
+      filledSize = screen.getByTestId(ids.SIZE_INPUT).props.value;
+      expect(filledSize).not.toBe(sizeBefore);
+    });
+    fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 100);
+    fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 100);
+
+    // Dragging to MAX at the same price leaves the filled size unchanged.
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        filledSize,
+      ),
+    );
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(expect.objectContaining({ price: '2490' }));
+    expect(order.size).not.toBe('2');
+  });
+
+  it('sizes from the amount again once the filled price changes', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    await findSizeInput();
+    await turnOnSizeOnClick();
+    await tapBid();
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    await waitFor(() =>
+      expect(limitInput).toHaveProp('value', formatPerpsInput('2490')),
+    );
+
+    fireEvent.changeText(limitInput, '2400');
+    fireEvent(limitInput, 'blur');
+
+    // $722.10 at 2,400 covers 0.31 ETH; the row's 0.29 no longer applies.
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        price: '2400',
+        size: '0.31',
+        usdAmount: '722.1',
+      }),
+    );
+  });
+
+  it('sizes from the amount after the size is typed away and back', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    await findSizeInput();
+    await turnOnSizeOnClick();
+    await tapBid();
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        formatPerpsInput('722.1'),
+      ),
+    );
+
+    fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '600');
+    fireEvent(screen.getByTestId(ids.SIZE_INPUT), 'blur');
+    fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '722.1');
+    fireEvent(screen.getByTestId(ids.SIZE_INPUT), 'blur');
+
+    // Typed back to $722.10, the amount sizes the order, not the row's 0.29.
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        price: '2490',
+        size: '0.30',
+        usdAmount: '722.1',
+      }),
+    );
+  });
+
+  it('sizes from the amount after the price is changed away and back', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    await findSizeInput();
+    await turnOnSizeOnClick();
+    await tapBid();
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    await waitFor(() =>
+      expect(limitInput).toHaveProp('value', formatPerpsInput('2490')),
+    );
+
+    fireEvent.changeText(limitInput, '2400');
+    fireEvent(limitInput, 'blur');
+    fireEvent.changeText(limitInput, '2490');
+    fireEvent(limitInput, 'blur');
+
+    // Back at 2,490, the amount sizes the order, not the row's 0.29.
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        price: '2490',
+        size: '0.30',
+        usdAmount: '722.1',
+      }),
+    );
+  });
+
+  it('sizes a slider preview from the previewed amount after a row fill', async () => {
+    const marginText = () =>
+      within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(/^\$/).props
+        .children;
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    await findSizeInput();
+    await turnOnSizeOnClick();
+    await tapBid();
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        formatPerpsInput('722.1'),
+      ),
+    );
+    const filledMargin = marginText();
+
+    fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 50);
+
+    let previewSize = '';
+    let previewMargin = filledMargin;
+    await waitFor(() => {
+      previewSize = screen.getByTestId(ids.SIZE_INPUT).props.value;
+      previewMargin = marginText();
+      expect(previewSize).not.toBe(formatPerpsInput('722.1'));
+      expect(previewMargin).not.toBe(filledMargin);
+    });
+    fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 50);
+
+    // The preview already showed the size and margin the release commits.
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        previewSize,
+      ),
+    );
+    expect(marginText()).toBe(previewMargin);
+  });
+
+  it('fills only the price when the row price is missing', async () => {
+    serveLadder(ladderLevel('', '1.5'));
+    renderProBook();
+    const sizeBefore = (await findSizeInput()).props.value;
+    await turnOnSizeOnClick();
+
+    await tapBid();
+
+    expect(await findPriceInput(ids.LIMIT_PRICE_INPUT)).toHaveProp('value', '');
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', sizeBefore);
+  });
+
+  it.each(['', 'abc', '0'])(
+    'fills only the price when the row size is %p',
+    async (size) => {
+      serveLadder(ladderLevel('2490', size));
+      renderProBook();
+      const sizeBefore = (await findSizeInput()).props.value;
+      await turnOnSizeOnClick();
+
+      await tapBid();
+
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+      await waitFor(() =>
+        expect(limitInput).toHaveProp('value', formatPerpsInput('2490')),
+      );
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        sizeBefore,
+      );
+    },
+  );
+});
+
+describe('Pro market Lighter limit order take profit and stop loss', () => {
+  it('blocks a limit order with both TP and SL on a providerless market while Lighter is active', async () => {
+    const market = createEthMarketForViews();
+    renderPerpsProMarketView({
+      initialParams: { market },
+      streamOverrides: {
+        marketData: [market],
+        account: createFundedAccountForViews('1000'),
+      },
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: { activeProvider: 'lighter' },
+          },
+        },
+      },
+      extraRoutes: [
+        {
+          name: Routes.PERPS.TPSL,
+          Component: PerpsTPSLView as unknown as ComponentType<unknown>,
+        },
+      ],
+    });
+
+    fireEvent.changeText(await findSizeInput(), '10');
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    fireEvent.changeText(await findPriceInput(ids.LIMIT_PRICE_INPUT), '2600');
+    const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+    await waitFor(() => expect(submit).toBeEnabled());
+
+    fireEvent.press(screen.getByTestId(ids.TPSL));
+    fireEvent.changeText(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      ),
+      '2800',
+    );
+    fireEvent.changeText(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+      '2400',
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).not.toBeOnTheScreen(),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('perps.order.validation.lighter_limit_tpsl_unsupported'),
+      ),
+    ).toBeOnTheScreen();
+    await waitFor(() => expect(submit).toBeDisabled());
   });
 });

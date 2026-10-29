@@ -29,7 +29,7 @@ describe('useSwapsFeatureId', () => {
   it.each([
     FeatureId.UNIFIED_SWAP_BRIDGE,
     FeatureId.LIMIT_ORDER,
-    FeatureId.RECURRING_BUY,
+    FeatureId.RECURRING_ORDER,
     FeatureId.BATCH_SELL,
   ])('returns %s when the provider is scoped to that flow', (featureId) => {
     const { result } = renderHook(() => useSwapsFeatureId(), {

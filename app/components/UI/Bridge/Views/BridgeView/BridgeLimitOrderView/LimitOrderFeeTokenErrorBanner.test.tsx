@@ -1,13 +1,15 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { LimitOrderFeeTokenErrorBanner } from './LimitOrderFeeTokenErrorBanner';
 
 describe('LimitOrderFeeTokenErrorBanner', () => {
-  it('renders the unsupported-pair message', () => {
+  it('renders the unsupported-pair message with supported token symbols', () => {
     render(
       <LimitOrderFeeTokenErrorBanner
         reason="unsupported-pair"
+        supportedTokenSymbols={['ETH', 'USDC', 'USDT']}
         onRetry={jest.fn()}
       />,
     );
@@ -15,6 +17,13 @@ describe('LimitOrderFeeTokenErrorBanner', () => {
     expect(
       screen.getByTestId(
         BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_UNSUPPORTED_BANNER,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('bridge.limit.unsupported_fee_token_pair', {
+          supportedTokens: 'ETH, USDC, USDT',
+        }),
       ),
     ).toBeOnTheScreen();
   });

@@ -17,4 +17,6 @@ export interface StartSpanOptions {
 export const withIsolationScope = <T>(callback: (scope: unknown) => T): T =>
   callback({ setTag: (_k: string, _v: unknown) => undefined });
 
+export const startNewTrace = <T>(callback: () => T): T => callback();
+
 export default {};

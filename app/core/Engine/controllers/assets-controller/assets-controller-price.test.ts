@@ -27,7 +27,10 @@ describe('AssetsController native asset pricing', () => {
     };
     const fetchPriceV2SupportedNetworks = jest.fn().mockResolvedValue({
       fullSupport: [MAINNET_CHAIN_ID],
-      partialSupport: [],
+      partialSupport: {
+        spotPricesV2: [],
+        spotPricesV3: [],
+      },
     });
     const fetchV3SpotPrices = jest.fn().mockResolvedValue({
       [MAINNET_ETH_ASSET_ID]: {

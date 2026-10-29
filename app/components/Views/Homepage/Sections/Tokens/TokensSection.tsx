@@ -27,7 +27,10 @@ import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/Tok
 import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet';
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { SectionRefreshHandle } from '../../types';
+import {
+  SectionRefreshHandle,
+  type HomepageDeviceCapability,
+} from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
@@ -50,6 +53,8 @@ import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
 interface TokensSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
+  deviceCapability?: HomepageDeviceCapability;
+  onContentReadyChange?: (contentReady: boolean) => void;
 }
 
 const MAX_TOKENS_DISPLAYED = 5;
@@ -78,7 +83,15 @@ const getHomepageReadyContentState = (
  * For accounts with balance, shows the user's token holdings
  */
 const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
-  ({ sectionIndex, totalSectionsLoaded }, ref) => {
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      deviceCapability,
+      onContentReadyChange,
+    },
+    ref,
+  ) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation<AppNavigationProp>();
     const isZeroBalanceAccount = useIsZeroBalanceAccount();
@@ -140,18 +153,12 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       [sortedTokenKeys, shouldExcludeMusd],
     );
 
-    // Show error when an explicit refresh failed, or when balance data has loaded
-    // and the account has balance but the selector returned no tokens (controllers
-    // failed to load data). The accountGroupBalance null-check prevents a false
-    // positive on cold start or for legitimately empty token lists.
-    // When mUSD is surfaced in the Money hub, displayTokenKeys can be empty because
-    // it is filtered out; do not treat "balance but no non-mUSD tokens" as an error.
-    const hasBalanceButNoTokens =
-      accountGroupBalance != null &&
-      accountGroupBalance.totalBalanceInUserCurrency > 0 &&
+    const showTokensError = hasTokensError;
+    const isTokenListLoading =
+      !showTokensError &&
       displayTokenKeys.length === 0 &&
-      (!shouldExcludeMusd || sortedTokenKeys.length === 0);
-    const showTokensError = hasTokensError || hasBalanceButNoTokens;
+      sortedTokenKeys.length === 0 &&
+      accountGroupBalance == null;
 
     const refresh = useCallback(async () => {
       if (isZeroBalanceAccount) {
@@ -170,11 +177,17 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
     const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
     const contentReady =
-      showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0;
+      showTokensError || isZeroBalanceAccount || !isTokenListLoading;
     const contentState = getHomepageReadyContentState(
       showTokensError,
       isZeroBalanceAccount,
     );
+
+    useEffect(() => {
+      if (contentReady) {
+        onContentReadyChange?.(true);
+      }
+    }, [contentReady, onContentReadyChange]);
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
@@ -191,12 +204,13 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       contentReady,
       isEmpty: isZeroBalanceAccount || showTokensError,
       contentStateForTrace: showTokensError ? 'error' : undefined,
-      isLoading:
-        displayTokenKeys.length === 0 &&
-        sortedTokenKeys.length === 0 &&
-        !showTokensError,
+      isLoading: isTokenListLoading,
     });
-    useHomepageReady({ contentReady, contentState });
+    useHomepageReady({
+      contentReady,
+      contentState,
+      ...deviceCapability,
+    });
 
     const handleViewAllTokens = useCallback(() => {
       navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
@@ -233,7 +247,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
             </SectionRow>
           ) : (
             <SectionRow>
-              {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
+              {isTokenListLoading ? (
                 <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
               ) : (
                 displayTokenKeys.map((tokenKey, index) => (

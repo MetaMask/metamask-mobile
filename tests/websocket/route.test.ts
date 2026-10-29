@@ -14,7 +14,7 @@ describe('resolveWebSocketTarget', () => {
 
       const result = resolveWebSocketTarget(url, wsRoutes, mockServerPort);
 
-      expect(result).toBe('ws://localhost:8089');
+      expect(result).toBe('ws://localhost:8089/User-Wallet');
     });
 
     it('gives exact-prefix routes precedence over the generic /proxy-ws fallback', () => {
@@ -22,7 +22,45 @@ describe('resolveWebSocketTarget', () => {
 
       const result = resolveWebSocketTarget(url, wsRoutes, mockServerPort);
 
+      expect(result).toBe('ws://localhost:8089?should-not-be-proxied');
+    });
+
+    it('keeps the path and query after the matched prefix', () => {
+      const url = 'wss://gateway.api.cx.metamask.io/v1?token=abc';
+
+      const result = resolveWebSocketTarget(url, wsRoutes, mockServerPort);
+
+      expect(result).toBe('ws://localhost:8089/v1?token=abc');
+    });
+
+    it('rewrites the bare prefix to the bare local mock URL', () => {
+      const result = resolveWebSocketTarget(
+        WS_SERVICES[0].url,
+        wsRoutes,
+        mockServerPort,
+      );
+
       expect(result).toBe('ws://localhost:8089');
+    });
+
+    it('joins a prefix with a trailing slash without doubling or dropping it', () => {
+      const result = resolveWebSocketTarget(
+        'wss://example.com/socket/v2?x=1',
+        { 'wss://example.com/socket/': 'ws://localhost:9001/' },
+        mockServerPort,
+      );
+
+      expect(result).toBe('ws://localhost:9001/v2?x=1');
+    });
+
+    it('does not match a prefix that only shares the start of the hostname', () => {
+      const url = `${WS_SERVICES[0].url}.example.com/v1`;
+
+      const result = resolveWebSocketTarget(url, wsRoutes, mockServerPort);
+
+      expect(result).toBe(
+        `ws://localhost:${mockServerPort}/proxy-ws?url=${encodeURIComponent(url)}`,
+      );
     });
   });
 

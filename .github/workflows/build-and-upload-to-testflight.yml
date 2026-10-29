@@ -37,6 +37,16 @@ on:
         required: false
         type: string
         default: ''
+    outputs:
+      built_commit_sha:
+        description: 'Resolved commit SHA at source_branch after the iOS build succeeded; from build.yml built_commit_sha output'
+        value: ${{ jobs.build.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit; from build.yml semantic_version output'
+        value: ${{ jobs.build.outputs.semantic_version }}
+      ios_version_code:
+        description: 'ios/MetaMask.xcodeproj/project.pbxproj CURRENT_PROJECT_VERSION at the built commit; from build.yml ios_version_code output'
+        value: ${{ jobs.build.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
       source_branch:
@@ -63,6 +73,7 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
+          - 'FIME Apple Pay Cert'
       distribute_external:
         description: 'Whether to distribute to external testers (default: true)'
         required: false
@@ -88,15 +99,22 @@ on:
 
 permissions:
   contents: read
-  id-token: write
+
+# Builds from this workflow can be signed with the RC signer, so they must not restore caches.
+cache-mode: none
 
 jobs:
   generate-build-version:
+    permissions:
+      id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS (${{ inputs.environment }})
     needs: [generate-build-version]
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       # dev maps to main-dev-testflight rather than main-dev: same app config, but signed
@@ -112,6 +130,9 @@ jobs:
 
   upload-ios-testflight:
     needs: [build]
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for the TestFlight upload in upload-to-testflight.yml
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: ${{ inputs.environment }}

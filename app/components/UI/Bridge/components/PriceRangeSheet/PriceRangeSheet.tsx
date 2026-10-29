@@ -72,8 +72,6 @@ function PricePercentRow({
   isDisabled: boolean;
   onSelect: (percent: number) => void;
 }) {
-  const tw = useTailwind();
-
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -82,28 +80,18 @@ function PricePercentRow({
       twClassName="w-full"
     >
       {percents.map((percent) => (
-        <Pressable
+        <Button
           key={percent}
-          accessibilityRole="button"
-          disabled={isDisabled}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          isDisabled={isDisabled}
           onPress={() => onSelect(percent)}
           testID={PriceRangeSheetSelectorsIDs.PERCENT(bound, percent)}
-          style={({ pressed }) =>
-            tw.style(
-              'h-12 min-w-0 flex-1 items-center justify-center rounded-xl bg-muted',
-              isDisabled && 'opacity-50',
-              pressed && !isDisabled && 'bg-muted-pressed',
-            )
-          }
+          twClassName="min-w-0 flex-1 px-0"
+          textProps={{ fontWeight: FontWeight.Medium }}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            numberOfLines={1}
-          >
-            {formatPercentLabel(percent)}
-          </Text>
-        </Pressable>
+          {formatPercentLabel(percent)}
+        </Button>
       ))}
     </Box>
   );

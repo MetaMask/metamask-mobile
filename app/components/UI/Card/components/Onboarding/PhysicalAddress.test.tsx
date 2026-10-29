@@ -522,6 +522,7 @@ describe('PhysicalAddress Component', () => {
         },
       },
       isLoading: false,
+      isFetched: true,
       error: null,
       fetchData: jest.fn(),
     });
@@ -1499,6 +1500,7 @@ describe('PhysicalAddress Component', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: false,
+        isFetched: true,
         error: null,
         fetchData: jest.fn(),
       });
@@ -1516,6 +1518,7 @@ describe('PhysicalAddress Component', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: true,
+        isFetched: false,
         error: null,
         fetchData: jest.fn(),
       });

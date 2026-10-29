@@ -61,4 +61,12 @@ export interface SrpInputGridProps {
    * @default true
    */
   includeTopMargin?: boolean;
+
+  /**
+   * When true, Paste is shown only if the clipboard has text and the inputs
+   * are empty. Clear all is still shown whenever the inputs have text.
+   * When both are empty, neither action is shown.
+   * @default false
+   */
+  showPasteOnlyWithClipboard?: boolean;
 }

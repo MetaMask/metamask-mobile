@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -10,7 +9,10 @@ import {
   type TPSLTrackingData,
 } from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
-import { isNoPositionFoundError } from '../utils/translatePerpsError';
+import {
+  isNoPositionFoundError,
+  translatePerpsError,
+} from '../utils/translatePerpsError';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { TraceName } from '../../../../util/trace';
@@ -100,7 +102,14 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           takeProfitPrice,
           stopLossPrice,
           trackingData,
-          position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
+          position,
+          ...(position.providerId ? { providerId: position.providerId } : {}),
+          // Bind the mutation to the position the user edited. The provider
+          // rechecks it against authoritative data before protection writes.
+          expectedPosition: {
+            size: position.size,
+            entryPrice: position.entryPrice,
+          },
         });
         controllerSettled = true;
 
@@ -144,7 +153,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           },
         });
 
-        const errorMessage = result.error || strings('perps.errors.unknown');
+        const errorMessage = translatePerpsError(result.error);
 
         showToast(
           PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
@@ -198,10 +207,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           },
         });
 
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : strings('perps.errors.unknown');
+        const errorMessage = translatePerpsError(error);
 
         showToast(
           PerpsToastOptions.positionManagement.tpsl.updateTPSLError(

@@ -14,6 +14,8 @@ interface UseHomepageSearchPasteOptions {
   enabled: boolean;
   onPaste: (query: string, origin?: SearchOrigin) => void;
   initiallyAvailable?: boolean;
+  // Only the search screen passes this; a paste on Home happens before `opened`.
+  getSearchSessionId?: () => string | undefined;
 }
 
 export type { SearchOrigin };
@@ -37,11 +39,15 @@ export const useHomepageSearchPaste = ({
   enabled,
   onPaste,
   initiallyAvailable = false,
+  getSearchSessionId,
 }: UseHomepageSearchPasteOptions) => {
   const { variant } = useABTest(
     HOMEPAGE_SEARCH_AB_KEY,
     HOMEPAGE_SEARCH_VARIANTS,
-    HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+    {
+      ...HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+      trackExposure: enabled,
+    },
   );
   const isSearchHeaderEnabled = variant.showHomepageSearchBar;
   const [clipboardContentAvailable, setClipboardContentAvailable] =
@@ -108,13 +114,13 @@ export const useHomepageSearchPaste = ({
         consumedClipboardRevisions.add(ClipboardManager.getRevision());
         setClipboardContentAvailable(false);
         consumedClipboardListeners.forEach((listener) => listener());
-        trackHomepageSearchPaste();
+        trackHomepageSearchPaste(getSearchSessionId?.());
         onPaste(clipboardContent, origin);
       } catch {
         setClipboardContentAvailable(false);
       }
     },
-    [onPaste],
+    [onPaste, getSearchSessionId],
   );
 
   return {

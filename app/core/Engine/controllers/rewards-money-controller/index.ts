@@ -44,6 +44,7 @@ export type {
   RewardsMoneyControllerGetReferralFunnelAction,
   RewardsMoneyControllerGetReferralCodesAction,
   RewardsMoneyControllerValidateReferralCodeAction,
+  RewardsMoneyControllerRegisterRefereeAction,
   RewardsMoneyControllerGetEarningsSummaryAction,
   RewardsMoneyControllerGetEarningsLedgerAction,
   RewardsMoneyControllerGetClaimHistoryAction,

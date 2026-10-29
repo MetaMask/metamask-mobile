@@ -156,6 +156,12 @@ export function resolvePredictFeatureFlags(
     flags.predictSportCardLivePrices,
     true,
   );
+  const isMembershipFeeWaiverEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictSubscriptionFeeWaiverEnabled,
+  );
+  const disablePolymarketV2Markets = resolveVersionGatedBooleanFlag(
+    flags.predictDisablePolymarketV2Markets,
+  );
   const parsedPredictSportsFeed = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
       flags.predictSportsFeed,
@@ -209,6 +215,8 @@ export function resolvePredictFeatureFlags(
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
     predictSportCardLivePricesEnabled,
+    isMembershipFeeWaiverEnabled,
+    disablePolymarketV2Markets,
     predictSportsFeed,
     predictHomeCategories,
     predictWimbledonTab,

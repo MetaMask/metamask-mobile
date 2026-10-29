@@ -11,7 +11,6 @@ import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '../../../reducers/notification';
 
 import usePrevious from '../../hooks/usePrevious';
-import { withTiming, Easing, runOnJS } from 'react-native-reanimated';
 
 const { TRANSACTION, SIMPLE } = NotificationTypes;
 
@@ -36,14 +35,6 @@ function Notification({
   useEffect(() => {
     dismissCompleteRef.current = false;
   }, [currentNotification?.id]);
-
-  const animatedTimingStart = useCallback((animatedRef, toValue, callback) => {
-    animatedRef.value = withTiming(
-      toValue,
-      { duration: 500, easing: Easing.linear },
-      () => callback && runOnJS(callback)(),
-    );
-  }, []);
 
   useEffect(
     () => () => {
@@ -91,7 +82,6 @@ function Notification({
         onClose={hideCurrentNotification}
         onDismissComplete={handleDismissComplete}
         dismissDuration={currentNotification.autodismiss}
-        animatedTimingStart={animatedTimingStart}
         currentNotification={currentNotification}
       />
     );

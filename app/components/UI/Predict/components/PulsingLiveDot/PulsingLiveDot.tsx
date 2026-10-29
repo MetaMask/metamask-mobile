@@ -29,9 +29,10 @@ const styles = StyleSheet.create({
 
 interface PulsingLiveDotProps {
   color?: string;
+  testID?: string;
 }
 
-const PulsingLiveDot = ({ color }: PulsingLiveDotProps) => {
+const PulsingLiveDot = ({ color, testID }: PulsingLiveDotProps) => {
   const { colors } = useTheme();
   const resolvedColor = color ?? colors.success.default;
   const rippleScale = useRef(new Animated.Value(0.35)).current;
@@ -86,7 +87,7 @@ const PulsingLiveDot = ({ color }: PulsingLiveDotProps) => {
   );
 
   return (
-    <Animated.View style={styles.liveDotContainer}>
+    <Animated.View style={styles.liveDotContainer} testID={testID}>
       <Animated.View style={rippleStyle} />
       <Animated.View style={dotStyle} />
     </Animated.View>

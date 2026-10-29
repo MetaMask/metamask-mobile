@@ -4,20 +4,21 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../../util/theme';
 import DottedUnderline from '../../../../../DottedUnderline';
-import { SECURITY_EMPTY_VALUE } from '../SecurityTab.constants';
+import { STAT_EMPTY_VALUE } from '../../../../constants/tokenStats';
 import { SecurityTabSelectors } from '../SecurityTab.testIds';
 import type { SecurityRowKey } from '../SecurityTab.types';
 
@@ -42,6 +43,15 @@ export interface SecurityRowProps {
   icon?: { name: IconName; color: IconColor };
   /** Defaults to the standard value colour; checks override with pass/fail. */
   valueColor?: TextColor;
+  /**
+   * Renders a skeleton where the value goes.
+   *
+   * Only the rows that wait on the price API set it — Liq/MC and Total
+   * liquidity. The rest come from the security payload, which the tab does not
+   * render partially, so their absence is settled by the time a row draws and
+   * the dash is the honest reading.
+   */
+  isLoading?: boolean;
   onExplain: (rowKey: SecurityRowKey) => void;
 }
 
@@ -60,6 +70,14 @@ export interface SecurityRowProps {
  * The underline colour comes from `useTheme` rather than a Tailwind class
  * because `DottedUnderline` draws an SVG stroke, which needs a resolved
  * `ColorValue`.
+ *
+ * The whole row is the press target, not just the underlined label. `BodySm`
+ * is 14px type on a 22px line height, so a target wrapping the label alone
+ * missed the 24px WCAG 2.5.8 minimum by two pixels, fourteen times over on an
+ * EVM token. The row's `py-1.5` already makes it 34px tall, so the space was
+ * there — it just wasn't part of the target. A `hitSlop` would reach the same
+ * 34px, but each row's slop would then abut its neighbour's exactly, which
+ * breaks the moment anyone raises the value or tightens the padding.
  */
 export const SecurityRow: React.FC<SecurityRowProps> = ({
   rowKey,
@@ -67,8 +85,10 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
   value,
   icon,
   valueColor,
+  isLoading,
   onExplain,
 }) => {
+  const tw = useTailwind();
   const { colors } = useTheme();
 
   const handlePress = useCallback(() => onExplain(rowKey), [onExplain, rowKey]);
@@ -76,31 +96,27 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
   const isMissing = value === null;
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      justifyContent={BoxJustifyContent.Between}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-4 py-1.5"
+    <TouchableOpacity
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={strings('token_details_v1.security_tab.explain', {
+        term: label,
+      })}
+      style={tw.style('flex-row items-center justify-between gap-4 py-1.5')}
       testID={SecurityTabSelectors.row(rowKey)}
     >
-      <TouchableOpacity
-        onPress={handlePress}
-        accessibilityRole="button"
-        accessibilityLabel={strings('token_details_v1.security_tab.explain', {
-          term: label,
-        })}
-        testID={SecurityTabSelectors.rowLabel(rowKey)}
-      >
+      <Box>
         <DottedUnderline color={colors.text.alternative}>
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Regular}
             color={TextColor.TextAlternative}
+            testID={SecurityTabSelectors.rowLabel(rowKey)}
           >
             {label}
           </Text>
         </DottedUnderline>
-      </TouchableOpacity>
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -114,22 +130,31 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
             testID={SecurityTabSelectors.rowIcon(rowKey)}
           />
         ) : null}
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={
-            isMissing
-              ? TextColor.TextAlternative
-              : (valueColor ?? TextColor.TextDefault)
-          }
-          numberOfLines={1}
-          twClassName="shrink"
-          testID={SecurityTabSelectors.rowValue(rowKey)}
-        >
-          {value ?? SECURITY_EMPTY_VALUE}
-        </Text>
+        {isLoading && isMissing ? (
+          // Sized to the `BodySm` line height it replaces so the row does not
+          // resize when the value lands.
+          <Skeleton
+            style={tw.style('h-[22px] w-12 rounded-md')}
+            testID={SecurityTabSelectors.rowSkeleton(rowKey)}
+          />
+        ) : (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={
+              isMissing
+                ? TextColor.TextAlternative
+                : (valueColor ?? TextColor.TextDefault)
+            }
+            numberOfLines={1}
+            twClassName="shrink"
+            testID={SecurityTabSelectors.rowValue(rowKey)}
+          >
+            {value ?? STAT_EMPTY_VALUE}
+          </Text>
+        )}
       </Box>
-    </Box>
+    </TouchableOpacity>
   );
 };
 

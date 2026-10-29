@@ -34,6 +34,7 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsProOrderEdit } from './usePerpsProOrderEdit';
 import { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
+import { usePerpsSharePosition } from './usePerpsSharePosition';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -88,6 +89,7 @@ export const usePerpsProPositionsPanelActions =
     const navigation = useNavigation<AppNavigationProp>();
     const { navigateToClosePosition, navigateToAdjustMargin } =
       usePerpsNavigation();
+    const { sharePosition } = usePerpsSharePosition();
     const isEligible = useSelector(selectPerpsEligibility);
     const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
     const { gate } = useComplianceGate(selectedAddress ?? '');
@@ -230,12 +232,9 @@ export const usePerpsProPositionsPanelActions =
     const handleSharePosition = useCallback(
       (position: Position) => {
         playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
-        navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
-          position,
-          marketPrice: getPositionMarkPrice(position),
-        });
+        sharePosition(position, getPositionMarkPrice(position));
       },
-      [navigation, playImpact],
+      [playImpact, sharePosition],
     );
 
     const handleEditPositionTpSl = useCallback(

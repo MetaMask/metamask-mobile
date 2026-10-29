@@ -64,6 +64,46 @@ describe('getSwapsLimitOrderPriceMarketComparison', () => {
         isNegative: false,
       });
     });
+
+    it.each(['10099.01', '55570.83576252', '136108303235.9'])(
+      'caps the percent at >9999 when limitFiat=%s is far above market',
+      (limitFiat) => {
+        const result = getSwapsLimitOrderPriceMarketComparison({
+          limitFiat,
+          marketFiat: 100,
+        });
+
+        expect(result).toEqual({
+          label: strings('bridge.limit.from_market_above_capped', {
+            percent: '9999',
+          }),
+          isNegative: false,
+        });
+      },
+    );
+
+    it('renders the capped label with a > prefix', () => {
+      const result = getSwapsLimitOrderPriceMarketComparison({
+        limitFiat: '136108303235.9',
+        marketFiat: 100,
+      });
+
+      expect(result?.label).toBe('(>+9999% from market)');
+    });
+
+    it('does not cap the percent at exactly 9999', () => {
+      const result = getSwapsLimitOrderPriceMarketComparison({
+        limitFiat: '10099',
+        marketFiat: 100,
+      });
+
+      expect(result).toEqual({
+        label: strings('bridge.limit.from_market_above', {
+          percent: '9999.00',
+        }),
+        isNegative: false,
+      });
+    });
   });
 
   describe('limit below market', () => {

@@ -22,7 +22,7 @@ const LimitOrderDetails: React.FC<LimitOrderDetailsProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="w-full pb-3 gap-3">
+    <Box testID={testID} twClassName="w-full pb-4 gap-3">
       <ExpirationRow value={expiration} onPress={onExpirationPress} />
       <CostToleranceRow value={costTolerance} onPress={onCostTolerancePress} />
     </Box>

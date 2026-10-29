@@ -164,7 +164,7 @@ const RecurringScheduleFields = ({
       onStartShouldSetResponder={() => true}
       onResponderRelease={onDismissKeypad}
     >
-      <Box padding={4} flexDirection={BoxFlexDirection.Row} gap={2}>
+      <Box paddingHorizontal={4} flexDirection={BoxFlexDirection.Row} gap={2}>
         <RecurringNumberCard
           label={strings('bridge.recurring.every')}
           errorMessage={everyErrorMessage}
@@ -195,7 +195,8 @@ const RecurringScheduleFields = ({
             <ButtonIcon
               iconName={IconName.Info}
               iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Sm}
+              size={ButtonIconSize.Xs}
+              twClassName="-ml-1"
               onPress={onRepeatInfoPress}
               testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON}
               accessibilityLabel={strings('bridge.recurring.repeat_info_title')}

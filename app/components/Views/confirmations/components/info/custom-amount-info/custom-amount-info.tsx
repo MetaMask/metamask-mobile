@@ -16,6 +16,7 @@ import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { MembershipInfo } from '../../../external/subscriptions/components/membership-info';
+import { useConfirmationFirstFrame } from '../../../context/confirmation-first-frame-context';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import {
   DepositKeyboard,
@@ -140,19 +141,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     useClearConfirmationOnBackSwipe();
 
-    // Pre-warm the Transak partner API key so the fiat fee estimate's native
-    // buy-quote lookup succeeds on first load, showing the real native fee
-    // instead of the aggregator fallback (which previously only corrected after
-    // the user entered the Transak widget flow).
-    useEnsureTransakApiKey();
-
-    useAutomaticTransactionPayToken({
-      autoSelectFiatPayment,
-      disable: disablePay,
-      preferredToken,
-    });
-    useTransactionPayMetrics();
-    useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
+    // Undefined when the confirmation renders everything immediately.
+    const firstFrame = useConfirmationFirstFrame();
+    const isDeferredInitReady = !firstFrame || firstFrame.isFirstFrameComplete;
 
     // TRAM-3623 headless ramps funnel. The adapter owns screen-viewed tracking
     // and derives ramp_surface from the tx type, so non-money flows stay inert.
@@ -593,10 +584,49 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             )
           )}
         </Box>
+        {isDeferredInitReady && (
+          <CustomAmountInfoDeferredInit
+            autoSelectFiatPayment={autoSelectFiatPayment}
+            disablePay={disablePay}
+            preferredToken={preferredToken}
+          />
+        )}
       </Box>
     );
   },
 );
+
+/**
+ * Initialization the screen doesn't need to render or accept input: automatic
+ * pay token selection, metrics and API key pre-warming. Kept in a child so a
+ * confirmation that opts into first-frame deferral can mount it after the
+ * screen has been presented, while the amount, keyboard and selectors are
+ * live from the first frame.
+ */
+function CustomAmountInfoDeferredInit({
+  autoSelectFiatPayment,
+  disablePay,
+  preferredToken,
+}: Pick<
+  CustomAmountInfoProps,
+  'autoSelectFiatPayment' | 'disablePay' | 'preferredToken'
+>) {
+  // Pre-warm the Transak partner API key so the fiat fee estimate's native
+  // buy-quote lookup succeeds on first load, showing the real native fee
+  // instead of the aggregator fallback (which previously only corrected after
+  // the user entered the Transak widget flow).
+  useEnsureTransakApiKey();
+
+  useAutomaticTransactionPayToken({
+    autoSelectFiatPayment,
+    disable: disablePay,
+    preferredToken,
+  });
+  useTransactionPayMetrics();
+  useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
+
+  return null;
+}
 
 export function CustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
@@ -680,6 +710,7 @@ export function AdvancedCustomAmountInfoSkeleton() {
             <PayWithRowSkeleton />
           </>
         )}
+
         <DepositKeyboardSkeleton />
       </View>
     </View>

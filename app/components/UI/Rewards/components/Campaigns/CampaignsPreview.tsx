@@ -1,16 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, ActivityIndicator } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import {
   Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
+  SectionHeader,
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -82,43 +77,37 @@ const CampaignsPreview: React.FC = () => {
   }, [navigation]);
 
   return (
-    <Box
-      twClassName="gap-3 p-4"
-      testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}
-    >
-      <Pressable
+    <Box testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}>
+      <SectionHeader
+        title={strings('rewards.campaigns_preview.title')}
+        isInteractive
         onPress={handleNavigateToCampaigns}
-        style={tw.style('flex-row items-center gap-1')}
-      >
+        startAccessory={
+          (isLoading || !hasLoaded) && !hasFeaturedCampaigns ? (
+            <ActivityIndicator size="small" color={colors.primary.default} />
+          ) : undefined
+        }
+      />
+      {/* paddingTop matches the Home tab, where sections pair SectionHeader
+          with a pt-3 content box. */}
+      <Box paddingTop={3} twClassName="gap-3 px-4">
         {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
-          <ActivityIndicator size="small" color={colors.primary.default} />
+          <Skeleton style={tw.style('h-50 rounded-xl')} />
         )}
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.campaigns_preview.title')}
-        </Text>
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Md}
-          color={IconColor.IconAlternative}
-        />
-      </Pressable>
 
-      {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
-        <Skeleton style={tw.style('h-50 rounded-xl')} />
-      )}
+        {!isLoading && hasLoaded && hasError && !hasFeaturedCampaigns && (
+          <RewardsErrorBanner
+            title={strings('rewards.campaigns_view.error_title')}
+            description={strings('rewards.campaigns_view.error_description')}
+            onConfirm={fetchCampaigns}
+            confirmButtonLabel={strings('rewards.campaigns_view.retry_button')}
+          />
+        )}
 
-      {!isLoading && hasLoaded && hasError && !hasFeaturedCampaigns && (
-        <RewardsErrorBanner
-          title={strings('rewards.campaigns_view.error_title')}
-          description={strings('rewards.campaigns_view.error_description')}
-          onConfirm={fetchCampaigns}
-          confirmButtonLabel={strings('rewards.campaigns_view.retry_button')}
-        />
-      )}
-
-      {featuredCampaigns.map((campaign) => (
-        <CampaignTile key={campaign.id} campaign={campaign} />
-      ))}
+        {featuredCampaigns.map((campaign) => (
+          <CampaignTile key={campaign.id} campaign={campaign} />
+        ))}
+      </Box>
     </Box>
   );
 };

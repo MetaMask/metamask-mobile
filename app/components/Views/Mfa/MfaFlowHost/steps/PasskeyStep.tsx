@@ -15,7 +15,6 @@ const PasskeyStep = ({ step, state, onAction }: StepProps<'passkey'>) => (
         ? 'mfa.passkey.title_setup'
         : 'mfa.passkey.title_verify',
     )}
-    description={strings('mfa.passkey.description')}
     error={state.error}
     footer={
       <Button
@@ -26,7 +25,7 @@ const PasskeyStep = ({ step, state, onAction }: StepProps<'passkey'>) => (
         onPress={() => onAction({ type: 'continue' })}
         testID={MfaFlowSelectorsIDs.PRIMARY_BUTTON}
       >
-        {strings('mfa.passkey.continue')}
+        {strings('mfa.failure.retry')}
       </Button>
     }
   />

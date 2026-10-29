@@ -292,6 +292,7 @@ describe('PerpsProPositionsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1166,6 +1167,7 @@ describe('PerpsProPositionsPanel', () => {
       deliveryRevision: 4,
     });
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [],
       isInitialLoading: false,
       deliveryRevision: 7,
@@ -1291,6 +1293,7 @@ describe('PerpsProPositionsPanel', () => {
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLivePositions>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1319,6 +1322,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('shows the ticker-only checkbox on the orders tab and filters from there', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1372,6 +1376,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('uses filtered count and filtered empty copy for ticker-only orders with no match', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'btc-1', symbol: 'BTC' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1398,6 +1403,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('matches the ticker-only filter on the full market symbol for HIP-3 orders', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'dex-1', symbol: 'dex1:SOL' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1427,6 +1433,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('filters orders by side from the orders tab filter bar', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
         makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
@@ -1450,6 +1457,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('shows side-filter empty copy when no orders match', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1475,6 +1483,7 @@ describe('PerpsProPositionsPanel', () => {
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLivePositions>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
         makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
@@ -1518,6 +1527,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('sorts orders by order value from the Orders tab', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({
           orderId: 'small',
@@ -1586,6 +1596,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('wires order cancel handler on the orders tab', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1610,6 +1621,7 @@ describe('PerpsProPositionsPanel', () => {
       reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
     } as unknown as ReturnType<typeof usePerpsChaseOrders>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: '59106897534', symbol: 'SOL' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1637,6 +1649,7 @@ describe('PerpsProPositionsPanel', () => {
       reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
     } as unknown as ReturnType<typeof usePerpsChaseOrders>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'unrelated-order', symbol: 'SOL' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1662,6 +1675,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('disables all order cancel buttons while any cancel is in flight', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1751,6 +1765,7 @@ describe('PerpsProPositionsPanel', () => {
   it('switches to the market of a tapped order row', () => {
     const onSelectMarket = jest.fn();
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'eth-1', symbol: 'ETH' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -2184,6 +2199,7 @@ describe('PerpsProPositionsPanel', () => {
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLivePositions>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
         makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
@@ -2245,6 +2261,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('wires the bulk cancel handler on the orders tab', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -2265,6 +2282,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('labels the bulk cancel for the whole book when no order filter is applied', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -2287,6 +2305,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('narrows the summary count when ticker-only is enabled', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -2343,6 +2362,7 @@ describe('PerpsProPositionsPanel', () => {
       renderActionSheets,
     });
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -2396,6 +2416,7 @@ describe('PerpsProPositionsPanel', () => {
       renderActionSheets,
     });
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),

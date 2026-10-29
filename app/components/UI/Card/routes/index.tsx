@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   createNativeStackNavigator,
   NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
+import ApplePaySplash from '../Views/ApplePaySplash';
+import ApplePayConfirmation from '../Views/ApplePayConfirmation';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
@@ -16,7 +18,6 @@ import {
   selectIsCardholder,
 } from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
-import LockManagerService from '../../../../core/LockManagerService';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
@@ -45,8 +46,10 @@ import ContactDetails from '../Views/ContactDetails/ContactDetails';
 import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
 import DigitalWalletInstructionsSheet from '../components/DigitalWalletInstructionsSheet';
+import ApplePayUsageSheet from '../components/ApplePayUsageSheet';
 import {
   clearNativeStackNavigatorOptions,
+  fullScreenModalSlideFromBottomNativeOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import type {
@@ -92,6 +95,16 @@ const MainRoutes = () => {
       screenOptions={mainScreenOptions}
     >
       <ScreensStack.Screen name={Routes.CARD.HOME} component={CardHome} />
+      <ScreensStack.Screen
+        name={Routes.CARD.APPLE_PAY_SPLASH}
+        component={ApplePaySplash}
+        options={fullScreenModalSlideFromBottomNativeOptions}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.APPLE_PAY_CONFIRMATION}
+        component={ApplePayConfirmation}
+        options={{ gestureEnabled: false }}
+      />
       <ScreensStack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
       <ScreensStack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
@@ -231,33 +244,28 @@ const CardModalsRoutes = () => (
       name={Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS}
       component={DigitalWalletInstructionsSheet}
     />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.APPLE_PAY_USAGE}
+      component={ApplePayUsageSheet}
+    />
   </ModalsStack.Navigator>
 );
 
-const CardRoutes = () => {
-  useEffect(() => {
-    LockManagerService.stopListening();
-    return () => {
-      LockManagerService.startListening();
-    };
-  }, []);
-
-  return (
-    <RootStack.Navigator
-      initialRouteName={Routes.CARD.HOME}
-      screenOptions={{ headerShown: false }}
-    >
-      <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
-      <RootStack.Screen
-        name={Routes.CARD.MODALS.ID}
-        component={CardModalsRoutes}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
-      />
-    </RootStack.Navigator>
-  );
-};
+const CardRoutes = () => (
+  <RootStack.Navigator
+    initialRouteName={Routes.CARD.HOME}
+    screenOptions={{ headerShown: false }}
+  >
+    <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+    <RootStack.Screen
+      name={Routes.CARD.MODALS.ID}
+      component={CardModalsRoutes}
+      options={{
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+      }}
+    />
+  </RootStack.Navigator>
+);
 
 export default withCardSDK(CardRoutes);

@@ -20,4 +20,6 @@ export interface MarketInsightsEntryCardProps {
   source: 'token_details' | 'perps' | 'unknown';
   /** Optional test ID */
   testID?: string;
+  /** Draws the card on brand refresh glass. Off on screens without the refresh. */
+  isGlass?: boolean;
 }

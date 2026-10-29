@@ -33,6 +33,7 @@ import useRegions from '../../hooks/useRegions';
 import useAnalytics from '../../../hooks/useAnalytics';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
+import useOffRampNonEvmEnabled from '../../hooks/useOffRampNonEvmEnabled';
 import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
@@ -44,6 +45,7 @@ import AssetSelectorButton from '../../components/AssetSelectorButton';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 import AmountInput from '../../components/AmountInput';
 import Keypad, { Keys } from '../../../../../Base/Keypad';
+import useCurrency from '../../../../../Base/Keypad/useCurrency';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 
@@ -96,13 +98,17 @@ import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
-import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
+import {
+  isNonEvmAddress,
+  isNonEvmChainId,
+} from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 import { regex } from '../../../../../../util/regex';
 import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/SettingsModal';
+import { formatAmountWithLocaleSeparators } from '../../../../Bridge/utils/formatAmountWithLocaleSeparators';
 
 export interface BuildQuoteParams extends RampIntent {
   showBack?: boolean;
@@ -156,6 +162,16 @@ const BuildQuote = () => {
     setIntent,
   } = useRampSDK();
 
+  // Non-EVM off-ramp gate: when enabled, allow selecting a non-EVM (e.g. Solana)
+  // account for sell. Buy already supports non-EVM accounts.
+  const isOffRampNonEvmEnabled = useOffRampNonEvmEnabled();
+
+  // EVM gas estimates are in wei and must never be applied to non-EVM balances.
+  const isNonEvmAsset = Boolean(
+    selectedAsset?.network?.chainId &&
+      isNonEvmChainId(selectedAsset.network.chainId),
+  );
+
   useEffect(() => {
     if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
       setIntent(intent);
@@ -205,6 +221,10 @@ const BuildQuote = () => {
     isFetchingFiatCurrency,
     currentFiatCurrency,
   } = useFiatCurrencies();
+  const { decimalSeparator } = useCurrency(
+    currentFiatCurrency?.symbol,
+    currentFiatCurrency?.decimals,
+  );
 
   const {
     cryptoCurrencies,
@@ -373,7 +393,9 @@ const BuildQuote = () => {
   );
 
   let maxSellAmount: bigint | null = null;
-  if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
+  if (selectedAsset && isNonEvmAsset) {
+    maxSellAmount = balanceBN ?? null;
+  } else if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
     // Use nullish checks — bigint 0n is falsy, unlike BN instances.
     maxSellAmount =
       balanceBN != null && gasPriceEstimation
@@ -424,7 +446,11 @@ const BuildQuote = () => {
   }, [balanceBN, amountBNMinimalUnit]);
 
   const hasInsufficientNativeBalanceForGas = useMemo(() => {
-    if (isBuy || (selectedAsset && selectedAsset.address === NATIVE_ADDRESS)) {
+    if (
+      isBuy ||
+      isNonEvmAsset ||
+      (selectedAsset && selectedAsset.address === NATIVE_ADDRESS)
+    ) {
       return false;
     }
 
@@ -435,7 +461,13 @@ const BuildQuote = () => {
     }
 
     return nativeTokenBalanceBN < gasPriceEstimation.estimatedGasFee;
-  }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
+  }, [
+    gasPriceEstimation,
+    isBuy,
+    isNonEvmAsset,
+    nativeTokenBalanceBN,
+    selectedAsset,
+  ]);
 
   const displayBalance = useMemo(() => {
     if (!selectedAddress) {
@@ -847,30 +879,11 @@ const BuildQuote = () => {
   // If the current view is for Sell the amount (crypto) is displayed as is
   let displayAmount = `${amount} ${selectedAsset?.symbol ?? ''}`;
 
-  // If the current ivew is for Buy we will format the amount
+  // Buy amounts use localized grouping when displayed.
   if (isBuy) {
-    // Split the amount to detect if it has decimals
-    const splitAmount = amount.split(/(\.)|(,)/);
-    // If the splitAmount array has more than 1 element it means that the amount has decimals
-    // For example:
-    //    100.50 -> splitAmount = ['100', '.', undefined, '50']
-    //    100,50 -> splitAmount = ['100', undefined, ',', '50']
-    // Note: this help us capture the input separator (dot or comma)
-    const hasDecimalsSplit = splitAmount.length > 1;
-
     displayAmount =
       isBuy && amountFocused
-        ? // If the amount is focused (being edited) the amount integer part will be shown in groups separated by spaces
-          `${formatAmount(Math.trunc(amountNumber), true)}${
-            // If the amount has decimals the decimal part will be shown
-            // using the separator and the decimal part
-            // Note, the decimal part will be displayed even if it is being typed (ends with a separator or 0)
-            hasDecimalsSplit
-              ? `${splitAmount[1] ?? splitAmount[2] ?? ''}${
-                  splitAmount[3] ?? ''
-                }`
-              : ''
-          }`
+        ? formatAmountWithLocaleSeparators(amount, decimalSeparator)
         : // If the amount is not focused it will be fully formatted
           formatAmount(amountNumber);
   }
@@ -936,7 +949,7 @@ const BuildQuote = () => {
         >
           <ScreenLayout.Content>
             <Row style={styles.selectors}>
-              <AccountSelector isEvmOnly={isSell} />
+              <AccountSelector isEvmOnly={isSell && !isOffRampNonEvmEnabled} />
               <View style={styles.spacer} />
               {isFetchingRegions ? (
                 <SkeletonText thick />
@@ -1179,13 +1192,6 @@ const BuildQuote = () => {
           testID={BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET}
           isInteractable={false}
           onClose={handleKeypadClose}
-          onStartShouldSetResponder={() =>
-            // Prevents the native gesture system from bubbling up
-            // the event to BottomSheetDialog, causing keypad to close
-            // when user click anywhere inside the keypad area that is
-            // not a pressable component.
-            true
-          }
         >
           <Box twClassName="content-end px-4 gap-4 pt-4">
             {amount && amount !== '0' ? (

@@ -37,6 +37,9 @@ export enum ProvisioningErrorCode {
   CARD_PROVIDER_NOT_FOUND = 'CARD_PROVIDER_NOT_FOUND',
   CARD_NOT_ELIGIBLE = 'CARD_NOT_ELIGIBLE',
   ENCRYPTION_FAILED = 'ENCRYPTION_FAILED',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  TIMEOUT = 'TIMEOUT',
+  WALLET_DECLINED = 'WALLET_DECLINED',
   PROVIDER_UNAVAILABLE = 'PROVIDER_UNAVAILABLE',
   INVALID_CARD_DATA = 'INVALID_CARD_DATA',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
@@ -104,6 +107,7 @@ export interface ProvisionCardParams {
 export interface ProvisioningResult {
   status: 'success' | 'canceled' | 'error';
   tokenId?: string;
+  activationState?: CardTokenStatus;
   error?: ProvisioningError;
 }
 
@@ -115,6 +119,9 @@ export type WalletAction =
   | 'contact_support'
   | 'wait';
 
+/** A device that can hold an Apple Wallet pass. */
+export type WalletPassDevice = 'phone' | 'watch';
+
 /** Wallet eligibility check result */
 export interface WalletEligibility {
   isAvailable: boolean;
@@ -124,6 +131,10 @@ export interface WalletEligibility {
   recommendedAction?: WalletAction;
   /** Token reference ID for resume flow (requires_activation status) */
   tokenReferenceId?: string;
+  /** Pass state on each Apple device that already has this card. */
+  devices?: Partial<Record<WalletPassDevice, CardTokenStatus>>;
+  /** Devices whose pass is waiting on issuer verification. */
+  pendingVerificationDevices?: WalletPassDevice[];
 }
 
 /** Card activation event from wallet */
@@ -175,4 +186,15 @@ export interface UsePushProvisioningReturn {
   canAddToWallet: boolean;
   /** True when this card is already in the wallet, including right after a successful add. */
   isCardInWallet: boolean;
+  /** Devices whose pass is waiting on issuer verification. */
+  pendingVerificationDevices: WalletPassDevice[];
+  /** True when this iPhone has a pass for the card that can be opened. */
+  canOpenInWallet: boolean;
+  /** Open this card's iPhone pass in Apple Wallet. */
+  openInWallet: () => Promise<void>;
+  /**
+   * True when Immersve Apple Pay is switched off. Callers hide every wallet
+   * entry, including manual instructions.
+   */
+  hideProvisioningUi: boolean;
 }

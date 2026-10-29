@@ -97,6 +97,8 @@ describe('CustomAmountConfirmButton', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useConfirmActionsMock.mockReturnValue({

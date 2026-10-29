@@ -14,7 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
@@ -25,6 +25,7 @@ import type {
   PerpsProSizeDenomination,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
+import usePerpsProInputDisplay from './usePerpsProInputDisplay';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 
@@ -72,8 +73,14 @@ const PerpsProSizeInput = ({
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
   const { playImpact, playSelection } = useHaptics();
-  const internalInputRef = useRef<TextInput>(null);
-  const inputRef = externalInputRef ?? internalInputRef;
+  const { captureInputLocale, inputProps, inputRef } = usePerpsProInputDisplay({
+    value,
+    onChangeText,
+    onFocus,
+    onBlur,
+    isDisabled,
+    inputRef: externalInputRef,
+  });
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {
@@ -90,9 +97,10 @@ const PerpsProSizeInput = ({
     if (isDisabled) {
       return;
     }
+    captureInputLocale();
     inputRef.current?.focus();
     onFieldPress?.();
-  }, [inputRef, isDisabled, onFieldPress]);
+  }, [captureInputLocale, inputRef, isDisabled, onFieldPress]);
 
   const handleToggleDenomination = useCallback(() => {
     if (!canPressDenominationToggle) {
@@ -102,27 +110,6 @@ const PerpsProSizeInput = ({
     playSelection().catch(() => undefined);
     onToggleDenomination?.();
   }, [canPressDenominationToggle, onToggleDenomination, playSelection]);
-
-  const handleChangeText = useCallback(
-    (nextValue: string) => {
-      if (!isDisabled) {
-        onChangeText(nextValue);
-      }
-    },
-    [isDisabled, onChangeText],
-  );
-
-  const handleFocus = useCallback(() => {
-    if (!isDisabled) {
-      onFocus?.();
-    }
-  }, [isDisabled, onFocus]);
-
-  const handleBlur = useCallback(() => {
-    if (!isDisabled) {
-      onBlur?.();
-    }
-  }, [isDisabled, onBlur]);
 
   const handleFieldPress = useCallback(() => {
     if (!isDisabled) {
@@ -204,11 +191,7 @@ const PerpsProSizeInput = ({
             ) : null}
             <Input
               ref={inputRef}
-              value={value}
-              onChangeText={handleChangeText}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              isDisabled={isDisabled}
+              {...inputProps}
               // A tap landing here is consumed by the input, so the wrapping
               // ButtonBase never fires.
               onPressIn={handleFieldPress}
@@ -301,4 +284,4 @@ const PerpsProSizeInput = ({
   );
 };
 
-export default PerpsProSizeInput;
+export default React.memo(PerpsProSizeInput);

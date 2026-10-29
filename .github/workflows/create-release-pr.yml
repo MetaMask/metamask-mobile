@@ -26,11 +26,11 @@ on:
         required: false
       GCP_RLS_SHEET_ACCOUNT_BASE64:
         required: false
+      AI_ANALYZER_LITELLM_KEY:
+        required: false
 
 permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   resolve-bases:
@@ -98,6 +98,10 @@ jobs:
     if: needs.resolve-bases.result == 'success' && needs.resolve-previous-ref.result == 'success'
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
+      contents: write
+      pull-requests: write
     steps:
       # Mint a short-lived token via the token-exchange service (OIDC). It needs:
       # - contents: write       → push the release / version-bump / changelog branches
@@ -206,45 +210,20 @@ jobs:
             git push origin "$BRANCH"
           fi
 
-      # Changelog: run-update-release-changelog-mobile.sh passes the bare X.Y.Z (stripped from
-      # release/X.Y.Z-ota) to auto-changelog, so the changelog header and the production git
-      # tag match exactly (both v<X.Y.Z>). The `-ota` suffix is a branch-name convention only.
-      - name: Checkout github-tools (release changelog)
-        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: actions/checkout@v6
-        with:
-          repository: MetaMask/github-tools
-          path: github-tools
-          ref: v1
-
-      - name: Setup Node for changelog tooling
-        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: MetaMask/action-checkout-and-setup@v3
-        with:
-          is-high-risk-environment: true
-
+      # Changelog: the action derives the bare X.Y.Z from release/X.Y.Z-ota, so the changelog
+      # header and the production git tag match exactly (both v<X.Y.Z>). The `-ota` suffix is a
+      # branch-name convention only. The action checks out the latest remote tip of the branch,
+      # which also picks up any commits Runway pushed concurrently.
       - name: Update release changelog (OTA hotfix)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        shell: bash
+        uses: MetaMask/github-tools/.github/actions/update-release-changelog@v1
         env:
-          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
-          GIT_AUTHOR_NAME: metamaskbot
-          GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
-          SEMVER: ${{ inputs.semver-version }}
-        run: |
-          set -euo pipefail
-          git config user.name metamaskbot
-          git config user.email metamaskbot@users.noreply.github.com
-          # Re-sync with the remote tip before the changelog tooling commits and pushes,
-          # since Runway may have pushed to this branch concurrently.
-          git pull --rebase origin "release/${SEMVER}-ota"
-          corepack enable
-          yarn install --immutable
-          bash .github/scripts/run-update-release-changelog-mobile.sh \
-            "release/${SEMVER}-ota" \
-            mobile \
-            "${{ github.server_url }}/${{ github.repository }}" \
-            "null"
+          AI_ANALYZER_LITELLM_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+        with:
+          release-branch: release/${{ inputs.semver-version }}-ota
+          repository-url: ${{ github.server_url }}/${{ github.repository }}
+          platform: mobile
+          github-token: ${{ steps.get-token.outputs.token }}
 
       - name: Create OTA release PR to stable (if missing)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'

@@ -1,18 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
-import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
 import {
-  createDepositErrorToast,
   ensureError,
+  showDepositErrorToast,
 } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
@@ -32,8 +30,6 @@ interface PredictDepositParams {
 
 export const usePredictDeposit = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
-  const theme = useAppThemeFromContext();
-  const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation<AppNavigationProp>();
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
@@ -75,16 +71,16 @@ export const usePredictDeposit = () => {
             },
           });
           navigation.goBack();
-          toastRef?.current?.showToast(
-            createDepositErrorToast(theme, () => deposit(params)),
-          );
+          showDepositErrorToast(() => {
+            deposit(params).catch(() => undefined);
+          });
         });
       } catch (err) {
         console.error('Failed to proceed with deposit:', err);
         navigation.goBack();
-        toastRef?.current?.showToast(
-          createDepositErrorToast(theme, () => deposit(params)),
-        );
+        showDepositErrorToast(() => {
+          deposit(params).catch(() => undefined);
+        });
 
         // Log error with deposit navigation context
         Logger.error(ensureError(err), {
@@ -103,13 +99,7 @@ export const usePredictDeposit = () => {
         });
       }
     },
-    [
-      depositWithConfirmation,
-      navigateToConfirmation,
-      navigation,
-      theme,
-      toastRef,
-    ],
+    [depositWithConfirmation, navigateToConfirmation, navigation],
   );
 
   return {

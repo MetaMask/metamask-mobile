@@ -99,6 +99,8 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
+Before the first edit on any change, follow `mms-planning` and do what it decides.
+
 **Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set, whose base skills `yarn install` installs for you (Cursor / Codex / Claude harnesses); `yarn skills` adds every domain:
 
 | Guide                                                                                      | Scope                                                                        |
@@ -108,6 +110,7 @@ scripts/                  # Build and automation scripts
 | [`tests/docs/appium-smoke-testing.md`](tests/docs/appium-smoke-testing.md)                 | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
 | [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
 | [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
+| [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md)               | Hardware + network tiers — apply the UX matrix when touching a screen        |
 
 General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set (see `.agents/skills/mms-*`). The base skills arrive with `yarn install`; `yarn skills` adds the rest.
 
@@ -118,6 +121,7 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
 - **Rive animations**: Use the Nitro-based `@rive-app/react-native` API and follow [`app/animations/README.md`](app/animations/README.md)
+- **Device capability**: Any screen you touch (new or existing) that uses animation, lists, polling, prefetch, realtime, heavy images, or blur must read `getHardwareTier()` + `useNetworkTier()`, never treat `null` as LOW/offline, never fold the two tiers, and apply the UX matrix in [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md) — see [`.cursor/rules/device-capability.mdc`](.cursor/rules/device-capability.mdc)
 - **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
 - **Commands**: ONLY use yarn (never npm/npx)
 
@@ -129,7 +133,7 @@ See detailed setup documentation:
 - **Native development**: [docs/readme/environment.md](./docs/readme/environment.md)
 - **Infura & Firebase**: [README.md](./README.md#getting-started)
 
-**Required Tools**: Node.js ^24.16.0 • Yarn ^4.14.1 • Watchman
+**Required Tools**: Node.js ^24.22.1 • Yarn ^4.14.1 • Watchman
 
 ### AI Tooling — Developer Usage Collection
 

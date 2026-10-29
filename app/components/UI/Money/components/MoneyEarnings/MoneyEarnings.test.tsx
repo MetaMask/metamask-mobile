@@ -36,6 +36,19 @@ describe('MoneyEarnings', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides the lifetime row when lifetime earnings are unavailable', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyEarnings last30DaysEarnings={LAST_30_DAYS_VALUE} />,
+    );
+
+    expect(
+      getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
+    ).toHaveTextContent(LAST_30_DAYS_VALUE);
+    expect(
+      queryByTestId(MoneyEarningsTestIds.SINCE_INCEPTION),
+    ).not.toBeOnTheScreen();
+  });
+
   it('calls onMonthlyInfoPress when the monthly label is pressed', () => {
     const onMonthlyInfoPress = jest.fn();
     const { getByTestId } = render(

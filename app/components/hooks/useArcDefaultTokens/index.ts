@@ -8,9 +8,10 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import type { RootState } from '../../../reducers';
 import Engine from '../../../core/Engine';
+import { ARC_USDC_ERC20_ASSET_ID } from '../../../enablement/assets/arc';
 
 export const ARC_USDC_ASSET_ID: CaipAssetType =
-  'eip155:5042/erc20:0x3600000000000000000000000000000000000000';
+  ARC_USDC_ERC20_ASSET_ID as CaipAssetType;
 
 export const ARC_NATIVE_ASSET_ID: CaipAssetType = 'eip155:5042/slip44:5042';
 

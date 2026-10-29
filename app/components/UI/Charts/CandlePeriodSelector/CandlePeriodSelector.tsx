@@ -135,7 +135,22 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
           ? `min-w-0 flex-1 ${periodButtonTwClassName ?? ''}`.trim()
           : periodButtonTwClassName
       }
-      textProps={textVariant ? { variant: textVariant } : undefined}
+      textProps={
+        fillWidth || textVariant
+          ? {
+              ...(textVariant ? { variant: textVariant } : {}),
+              // Equal-width chips clip longer labels (`15min` → `15mi`).
+              // Scale the label down instead of cutting the unit off.
+              ...(fillWidth
+                ? {
+                    adjustsFontSizeToFit: true,
+                    minimumFontScale: 0.7,
+                    numberOfLines: 1,
+                  }
+                : {}),
+            }
+          : undefined
+      }
       testID={
         testID
           ? getCandlePeriodSelectorSelectors.periodButton(testID, period.value)

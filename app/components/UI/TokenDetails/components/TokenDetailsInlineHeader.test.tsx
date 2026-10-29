@@ -1,15 +1,26 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
 import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass';
 
 const mockNavigate = jest.fn();
 const mockCopyContractAddress = jest.fn();
 const mockResolveTokenContractAddress = jest.fn();
 const mockIsStockToken = jest.fn(() => false);
+
+jest.mock('../../../../component-library/components-temp/CapsuleGlass', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View testID="capsule">{children}</View>
+    ),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -149,6 +160,33 @@ describe('TokenDetailsInlineHeader', () => {
           tokenSymbol: 'ETH',
           chainId: '0x1',
         }),
+      });
+    });
+
+    it('forwards tdpVersion "v3" into the security badge bottom sheet params', () => {
+      const { getByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+        tdpVersion: 'v3',
+      });
+
+      fireEvent.press(getByTestId('security-badge-verified'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({ tdpVersion: 'v3' }),
+      });
+    });
+
+    it('defaults tdpVersion to "v2" when no prop is provided', () => {
+      const { getByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+      });
+
+      fireEvent.press(getByTestId('security-badge-verified'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({ tdpVersion: 'v2' }),
       });
     });
   });
@@ -424,6 +462,55 @@ describe('TokenDetailsInlineHeader', () => {
       expect(starIndex).toBeGreaterThanOrEqual(0);
       expect(alertIndex).toBeGreaterThan(starIndex);
       expect(shareIndex).toBeGreaterThan(alertIndex);
+    });
+  });
+
+  describe('glass', () => {
+    it('stays in place with plain buttons by default', () => {
+      const { queryByTestId } = renderHeader({ onSharePress: jest.fn() });
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(queryByTestId('capsule')).toBeNull();
+    });
+
+    it('floats on its backdrop with the back button in a capsule', () => {
+      const { getAllByTestId, getByTestId } = renderHeader({ isGlass: true });
+
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        within(getAllByTestId('capsule')[0]).getByTestId('back-arrow-button'),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('back-arrow-button'));
+
+      expect(mockOnBackPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('groups the watchlist, price alert and share buttons in one capsule', () => {
+      const { Text } = jest.requireActual('react-native');
+      const { getAllByTestId } = renderHeader({
+        isGlass: true,
+        starButton: <Text testID="watchlist-star-button">★</Text>,
+        onPriceAlertPress: jest.fn(),
+        onSharePress: jest.fn(),
+      });
+
+      const [, actions] = getAllByTestId('capsule');
+      expect(within(actions).getByTestId('watchlist-star-button')).toBeTruthy();
+      expect(
+        within(actions).getByTestId('token-price-alert-button'),
+      ).toBeTruthy();
+      expect(within(actions).getByTestId('share-button')).toBeTruthy();
+    });
+
+    it('reports the floating header layout so the page can inset its content', () => {
+      const onLayout = jest.fn();
+      const { getByTestId } = renderHeader({ isGlass: true, onLayout });
+      const event = { nativeEvent: { layout: { height: 120 } } };
+
+      fireEvent(getByTestId('back-arrow-button'), 'layout', event);
+
+      expect(onLayout).toHaveBeenCalledWith(event);
     });
   });
 });

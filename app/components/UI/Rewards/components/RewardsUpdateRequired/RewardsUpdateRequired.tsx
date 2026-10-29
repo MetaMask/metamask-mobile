@@ -86,7 +86,7 @@ const RewardsUpdateRequired: React.FC = () => {
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        startIconName={IconName.Export}
+        startIconName={IconName.ArrowSquareOut}
         startIconProps={{ size: IconSize.Sm }}
         onPress={handleUpdate}
         twClassName="w-full"

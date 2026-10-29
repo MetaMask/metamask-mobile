@@ -76,6 +76,7 @@ app/core/Engine/controllers/ramps-controller           @MetaMask/money-movement
 app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/money-movement
 app/core/Engine/messengers/ramps-service-messenger     @MetaMask/money-movement
 app/selectors/rampsController                          @MetaMask/money-movement
+app/selectors/kycController                            @MetaMask/universal-kyc
 **/Ramp/**                                              @MetaMask/money-movement
 **/ramp/**                                              @MetaMask/money-movement
 **/ramps/**                                             @MetaMask/money-movement
@@ -130,7 +131,11 @@ app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-e
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
 **/identity/**                                              @MetaMask/accounts-engineers
+# Co-owned. Either team can approve, so universal-kyc is not a required reviewer.
+app/components/UI/KYC/                                 @MetaMask/universal-kyc @MetaMask/money-movement
 app/components/UI/HardwareWallet                            @MetaMask/accounts-engineers
+app/components/Views/Mfa                                    @MetaMask/accounts-engineers
+app/components/Views/SocialProfile                          @MetaMask/accounts-engineers
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
@@ -168,6 +173,10 @@ app/core/NotificationsManager.test.ts @MetaMask/engagement
 **/engagement/** @MetaMask/engagement
 app/constants/engagement.ts @MetaMask/engagement
 app/core/DeeplinkManager/handlers/ @MetaMask/engagement
+# Social sub-route classifier. Later Social handler rules replace engagement
+# on those files (last match wins). This path stays with engagement so the
+# next Social sub-route PR is reviewed for its Branch LinkHub entry.
+app/core/DeeplinkManager/util/deeplinks/socialDeeplinkPath.ts @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -257,7 +266,11 @@ app/core/Engine/messengers/social-service-messenger*                 @MetaMask/s
 app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
 app/core/Engine/messengers/ai-digest-controller-messenger*           @MetaMask/social-ai
 app/core/DeeplinkManager/handlers/legacy/handleSocialLeaderboardUrl.ts    @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/handleSocialTraderUrl.ts         @MetaMask/social-ai
 app/core/DeeplinkManager/handlers/legacy/handleSocialTraderPositionUrl.ts @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/__tests__/handleSocialLeaderboardUrl.test.ts    @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/__tests__/handleSocialTraderUrl.test.ts         @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/__tests__/handleSocialTraderPositionUrl.test.ts @MetaMask/social-ai
 app/selectors/featureFlagController/socialLeaderboard/               @MetaMask/social-ai
 app/selectors/featureFlagController/marketInsights/                  @MetaMask/social-ai
 app/selectors/featureFlagController/whatsHappening/                  @MetaMask/social-ai
@@ -326,6 +339,7 @@ app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
 app/components/Views/QRScanner                   @MetaMask/mobile-core-ux
 app/components/Views/Settings                    @MetaMask/mobile-core-ux
 app/components/Views/Settings/NotificationsSettings @MetaMask/mobile-core-ux @MetaMask/engagement
+app/components/Views/Settings/SecuritySettings/Sections/MfaSection @MetaMask/accounts-engineers
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
@@ -371,6 +385,7 @@ app/components/Views/Onboarding                             @MetaMask/web3auth
 app/components/Views/OnboardingSheet                        @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
 app/components/Views/ChoosePassword                         @MetaMask/web3auth
+app/components/Views/shared/PasswordResetWarningSheet   @MetaMask/web3auth
 app/components/Views/ManualBackupStep1                      @MetaMask/web3auth
 app/components/Views/ManualBackupStep2                      @MetaMask/web3auth
 app/components/Views/ManualBackupStep3                      @MetaMask/web3auth
@@ -404,8 +419,10 @@ tests/controller-mocking/                                       @MetaMask/qa
 tests/feature-flags/                                            @MetaMask/qa
 tests/flows/                                                    @MetaMask/qa
 tests/framework/                                                @MetaMask/qa
+tests/hyperexecute/                                             @MetaMask/qa
 tests/module-mocking/                                           @MetaMask/qa
 tests/page-objects/                                             @MetaMask/qa
+tests/reporters/providers/testmu/                               @MetaMask/qa
 tests/resources/                                                @MetaMask/qa
 tests/scripts/                                                  @MetaMask/qa
 tests/seeder/                                                   @MetaMask/qa
@@ -430,6 +447,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/qa-stats.yml                                  @MetaMask/qa
 .github/workflows/flaky-test-report.yml                         @MetaMask/qa
 .github/workflows/performance-test-runner.yml                   @MetaMask/qa
+.github/workflows/performance-test-runner-testmu.yml             @MetaMask/qa
 .github/workflows/run-performance-e2e.yml                       @MetaMask/qa
 .github/workflows/run-performance-e2e-manual.yml                @MetaMask/qa
 .github/workflows/run-system-tests.yml                          @MetaMask/qa

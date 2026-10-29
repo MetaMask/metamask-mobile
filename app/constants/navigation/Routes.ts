@@ -42,6 +42,7 @@ const Routes = {
     ENTER_ADDRESS: 'RampEnterAddress',
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
     VBA_ONBOARDING: 'RampVbaOnboarding',
+    VBA_DETAILS: 'RampVbaDetails',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -114,9 +115,12 @@ const Routes = {
   ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
   REWARDS_FLOW: 'RewardsFlow',
-  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  /** Rewards Money home, a sibling of REWARDS_DASHBOARD in the Rewards tab. */
+  REWARDS_MONEY_DASHBOARD: 'RewardsMoneyDashboard',
+  REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW:
+    'RewardsMoneyReferralAcceptedSplashView',
   REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
@@ -124,6 +128,9 @@ const Routes = {
   REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
   REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
+  REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
+  REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
+  REWARDS_EARNINGS_HISTORY_VIEW: 'RewardsEarningsHistoryView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
   REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
@@ -185,11 +192,14 @@ const Routes = {
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_INFO_SHEET_MODAL: 'RewardsInfoSheetModal',
+    REWARDS_MONEY_CLAIMS_PAUSED_MODAL: 'RewardsMoneyClaimsPausedModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
+    REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
@@ -382,6 +392,7 @@ const Routes = {
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
       LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
         'LimitOrderAccountUpgradeFeeInfoModal',
+      LIMIT_ORDER_METAMASK_FEE_INFO_MODAL: 'LimitOrderMetaMaskFeeInfoModal',
       OPEN_LIMIT_ORDER_DETAILS_MODAL: 'OpenLimitOrderDetailsModal',
       CANCEL_LIMIT_ORDER_MODAL: 'CancelLimitOrderModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
@@ -426,6 +437,7 @@ const Routes = {
       SELECT_PROVIDER: 'PerpsSelectProvider',
       MODE_SELECTION: 'PerpsModeSelection',
       OUTREACH_DETAILS: 'PerpsOutreachDetails',
+      SHARE_POSITION: 'PerpsSharePosition',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -450,7 +462,9 @@ const Routes = {
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
     MANAGE_PROFILE_LINKED_ACCOUNT: 'ManageProfileLinkedAccountView',
+    EDIT_AVATAR: 'EditProfileAvatarView',
     POSITION: 'TraderPositionView',
+    POSITION_SHEET: 'SocialPositionDetailsSheet',
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',
@@ -469,10 +483,10 @@ const Routes = {
       BUY_PREVIEW: 'PredictBuyPreview',
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
+      MARKET_UNAVAILABLE: 'PredictMarketUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
-  LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
@@ -519,10 +533,13 @@ const Routes = {
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
+    MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
+    MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
+    DEPOSIT_DEEPLINK: 'MoneyDepositDeeplink',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
@@ -556,11 +573,15 @@ const Routes = {
     ADDRESS_LIST: 'MultichainAddressList',
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
+    /** Block explorer pushed on AppFlow, above the address list. */
+    EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
     MANAGE_PROFILE: 'ManageProfile',
     MANAGE_PROFILE_FIELD: 'ManageProfileField',
+    X_ACCOUNT: 'ManageProfileXAccount',
+    LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
@@ -584,6 +605,8 @@ const Routes = {
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
+    APPLE_PAY_SPLASH: 'CardApplePaySplash',
+    APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'CardSpendingLimit',
@@ -634,6 +657,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      APPLE_PAY_USAGE: 'CardApplePayUsageSheet',
       SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },
@@ -654,6 +678,8 @@ const Routes = {
   CREATE_PRICE_ALERT: 'CreatePriceAlert',
   MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
+  /** Token Details V1 equivalent of `SECURITY_TRUST`, pushed from the Security tab. */
+  CONTRACT_SECURITY: 'ContractSecurity',
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
@@ -661,6 +687,8 @@ const Routes = {
   MFA: {
     FLOW: 'MfaFlow',
     SETTINGS: 'MfaSettings',
+    PASSKEYS: 'MfaPasskeys',
+    METHOD_DETAILS: 'MfaMethodDetails',
   },
   PRO_SUBSCRIPTION: {
     /** Root screen for the MetaMask Pro subscription flow. */

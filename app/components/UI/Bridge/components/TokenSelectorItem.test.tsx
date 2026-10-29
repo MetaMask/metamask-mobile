@@ -177,15 +177,6 @@ jest.mock('../../../../component-library/base-components/TagBase', () => {
   };
 });
 
-jest.mock('../../../../component-library/components/Tags/Tag', () => {
-  const { createElement } = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ label }: { label: string }) => createElement(Text, null, label),
-  };
-});
-
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
 

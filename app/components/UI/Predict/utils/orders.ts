@@ -1,5 +1,6 @@
 import QuickCrypto from 'react-native-quick-crypto';
 import { Side, type OrderPreview, type PredictFees } from '../types';
+import { getMinAmountReceivedWithSlippage } from '../providers/polymarket/protocol/slippage';
 
 const CENTS_PER_UNIT = 100;
 const CENT_ROUNDING_TOLERANCE = 1e-8;
@@ -37,8 +38,11 @@ export function roundUpToCents(amount: number): number {
     return 0;
   }
 
-  const amountInCents = amount * CENTS_PER_UNIT;
+  if (amount === 0) {
+    return 0;
+  }
 
+  const amountInCents = amount * CENTS_PER_UNIT;
   return Math.ceil(amountInCents - CENT_ROUNDING_TOLERANCE) / CENTS_PER_UNIT;
 }
 
@@ -79,6 +83,25 @@ export function getPredictSellNetProceeds(
     preview.minAmountReceived -
       (fees?.metamaskFee ?? 0) -
       getPredictExchangeFee(fees),
+  );
+}
+
+/**
+ * Worst-case cash-out proceeds net of fees: the signed order's slippage floor
+ * applied to the book proceeds, minus fees. This is the smallest amount the
+ * user can receive if the book fills at the slippage band limit, so it is the
+ * number disclosed before a sell retry is confirmed.
+ */
+export function getPredictSellWorstCaseProceeds(
+  preview?: OrderPreview | null,
+): number {
+  if (!preview) {
+    return 0;
+  }
+  const fees = preview.fees;
+  const worstCaseGross = getMinAmountReceivedWithSlippage(preview);
+  return roundDownToCents(
+    worstCaseGross - (fees?.metamaskFee ?? 0) - getPredictExchangeFee(fees),
   );
 }
 
@@ -149,19 +172,21 @@ export function getPredictPositionNetValue(args: {
  * the rounding remainder. BUY rows add up to the total; SELL rows subtract
  * down to it.
  */
+export interface PredictFeeBreakdownAmounts {
+  order: number;
+  metamaskFee: number;
+  exchangeFee: number;
+  depositFee?: number;
+  total: number;
+}
+
 export function buildPredictFeeBreakdownAmounts(args: {
   side: Side;
   order: number;
   metamaskFee: number;
   depositFee?: number;
   total: number;
-}): {
-  order: number;
-  metamaskFee: number;
-  exchangeFee: number;
-  depositFee?: number;
-  total: number;
-} {
+}): PredictFeeBreakdownAmounts {
   const { side, order, metamaskFee, total, depositFee } = args;
   const snap = side === Side.BUY ? roundUpToCents : roundDownToCents;
   const snappedOrder = snap(order);
@@ -233,4 +258,71 @@ export function getPredictBuyAllInCost(preview?: OrderPreview | null): number {
       (fees?.providerFee ?? 0) +
       getPredictMarketFee(fees),
   );
+}
+
+/**
+ * Builds the effective fee breakdown and, when applicable, the standard
+ * breakdown before the membership fee waiver.
+ */
+export function buildPredictFeeBreakdowns({
+  preview,
+  side,
+  order,
+  metamaskFee,
+  depositFee,
+  total,
+}: {
+  preview?: OrderPreview | null;
+  side: Side;
+  order: number;
+  metamaskFee: number;
+  depositFee?: number;
+  total: number;
+}): {
+  feeBreakdown: PredictFeeBreakdownAmounts;
+  originalFeeBreakdown?: PredictFeeBreakdownAmounts;
+} {
+  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+    side,
+    order,
+    metamaskFee,
+    depositFee,
+    total,
+  });
+
+  if (!preview?.feePolicy) {
+    return { feeBreakdown };
+  }
+
+  if (!preview?.originalFees) {
+    return { feeBreakdown };
+  }
+
+  // if a fee policy and originalFees are provided,
+  // we need to calculate the original fee breakdown
+  // this is just to show the original total fee in the UI
+  // beside the waived membership total fee
+
+  const originalFees = preview.originalFees;
+  const previewWithOriginalFees = {
+    ...preview,
+    fees: originalFees,
+  };
+  const originalTotal =
+    side === Side.BUY
+      ? getPredictBuyAllInCost(previewWithOriginalFees) + (depositFee ?? 0)
+      : getPredictSellNetProceeds(previewWithOriginalFees);
+
+  const originalFeeBreakdown = buildPredictFeeBreakdownAmounts({
+    side,
+    order,
+    metamaskFee: originalFees.metamaskFee,
+    depositFee,
+    total: originalTotal,
+  });
+
+  return {
+    feeBreakdown,
+    originalFeeBreakdown,
+  };
 }

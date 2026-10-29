@@ -117,6 +117,9 @@ export const mockedEngine = {
         }),
       },
     },
+    BridgeController: {
+      setLocation: jest.fn(),
+    },
     TransactionController: {
       addTransaction: jest.fn(),
       addTransactionBatch: jest.fn(),

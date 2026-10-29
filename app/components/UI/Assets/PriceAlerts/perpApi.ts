@@ -12,12 +12,17 @@ import {
   PriceAlertAnalytics,
   type AbsolutePriceAlert,
   type Alert,
+  type AlertDirection,
+  type AlertPeriod,
+  type PercentChangeAlert,
   type UpdateAlertParams,
+  type UpdatePercentAlertParams,
 } from './constants';
 import { assertOkResponse } from './api';
 import type { SaveAlertFlowParams } from './hooks/useAlertSaveFlow';
 
 const PERP_ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/v1/perp-alerts`;
+const PERP_PERCENT_ALERTS_URL = `${PERP_ALERTS_URL}/percent-change`;
 
 export const perpAlertsQueryKey = (marketId: string) =>
   ['perpAlerts', marketId] as const;
@@ -29,6 +34,60 @@ export interface PerpAlertSaveParams {
   threshold: number;
   recurring: boolean;
 }
+
+/** Request body for creating a perpetuals percent-change alert. */
+export interface PerpPercentAlertSaveParams {
+  /** Perpetuals market identifier (e.g. 'btc-hyperliquid-mainnet'). */
+  marketId: string;
+  threshold: number;
+  period: AlertPeriod;
+  direction: AlertDirection;
+  recurring: boolean;
+}
+
+interface PerpAlertApiBase {
+  id: string;
+  userId: string;
+  marketId: string;
+  threshold: number;
+  recurring: boolean;
+  active: boolean;
+  createdAt: string;
+}
+
+interface PerpAbsoluteAlertApiResponse extends PerpAlertApiBase {
+  type: 'perp_absolute_price';
+}
+
+interface PerpPercentAlertApiResponse extends PerpAlertApiBase {
+  type: 'perp_percent_change';
+  period: AlertPeriod;
+  direction: AlertDirection;
+}
+
+export type PerpAlertApiResponse =
+  | PerpAbsoluteAlertApiResponse
+  | PerpPercentAlertApiResponse;
+
+/**
+ * Maps the perps API discriminators and market identifier to the shared alert
+ * model consumed by the price-alert screens.
+ */
+export const normalizePerpAlerts = (alerts: PerpAlertApiResponse[]): Alert[] =>
+  alerts.map((apiAlert) => {
+    if (apiAlert.type === 'perp_percent_change') {
+      return {
+        ...apiAlert,
+        asset: apiAlert.marketId,
+        type: 'percent_change',
+      };
+    }
+    return {
+      ...apiAlert,
+      asset: apiAlert.marketId,
+      type: 'absolute_price',
+    };
+  });
 
 async function authenticatedFetch(
   url: string,
@@ -77,6 +136,48 @@ export const updatePerpAlert = (
 export const deletePerpAlert = (id: string): Promise<Response> =>
   authenticatedFetch(`${PERP_ALERTS_URL}/${id}`, { method: 'DELETE' });
 
+/** POST /v1/perp-alerts/percent-change — create a perp percent-change alert. */
+export const createPerpPercentAlert = (
+  params: PerpPercentAlertSaveParams,
+): Promise<Response> =>
+  authenticatedFetch(PERP_PERCENT_ALERTS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+/** PATCH /v1/perp-alerts/percent-change/{id} — update a percent alert. */
+export const updatePerpPercentAlert = (
+  id: string,
+  params: UpdatePercentAlertParams,
+): Promise<Response> =>
+  authenticatedFetch(`${PERP_PERCENT_ALERTS_URL}/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+/** DELETE /v1/perp-alerts/percent-change/{id} — delete a percent alert. */
+export const deletePerpPercentAlert = (id: string): Promise<Response> =>
+  authenticatedFetch(`${PERP_PERCENT_ALERTS_URL}/${id}`, {
+    method: 'DELETE',
+  });
+
+/** Routes a perps alert update to its type-specific endpoint. */
+export const updatePerpAlertByType = (
+  priceAlert: Alert,
+  params: UpdateAlertParams | UpdatePercentAlertParams,
+): Promise<Response> =>
+  priceAlert.type === 'percent_change'
+    ? updatePerpPercentAlert(priceAlert.id, params)
+    : updatePerpAlert(priceAlert.id, params);
+
+/** Routes a perps alert delete to its type-specific endpoint. */
+export const deletePerpAlertByType = (priceAlert: Alert): Promise<Response> =>
+  priceAlert.type === 'percent_change'
+    ? deletePerpPercentAlert(priceAlert.id)
+    : deletePerpAlert(priceAlert.id);
+
 const useSubmitPerpAlertMutation = <TParams>(
   mutationFn: (params: TParams) => Promise<void>,
 ) => {
@@ -96,6 +197,28 @@ export const useSubmitPerpAlert = (editingAlert?: AbsolutePriceAlert) =>
       const response = editingAlert
         ? await updatePerpAlert(editingAlert.id, { threshold, recurring })
         : await createPerpAlert({ marketId, threshold, recurring });
+      await assertOkResponse(response);
+    },
+  );
+
+/** Mutation hook for creating or updating a perp percent-change alert. */
+export const useSubmitPerpPercentAlert = (editingAlert?: PercentChangeAlert) =>
+  useSubmitPerpAlertMutation<PerpPercentAlertSaveParams>(
+    async ({ marketId, threshold, period, direction, recurring }) => {
+      const response = editingAlert
+        ? await updatePerpPercentAlert(editingAlert.id, {
+            threshold,
+            period,
+            direction,
+            recurring,
+          })
+        : await createPerpPercentAlert({
+            marketId,
+            threshold,
+            period,
+            direction,
+            recurring,
+          });
       await assertOkResponse(response);
     },
   );
@@ -155,7 +278,13 @@ const usePerpAlertSaveFlow = ({
   const patchAlertCache = useCallback(
     (
       alertId: string,
-      patch: Partial<Pick<Alert, 'threshold' | 'recurring' | 'active'>>,
+      patch: Partial<{
+        threshold: number;
+        recurring: boolean;
+        active: boolean;
+        period: AlertPeriod;
+        direction: AlertDirection;
+      }>,
     ) => {
       queryClient.setQueryData<Alert[]>(
         perpAlertsQueryKey(marketId),

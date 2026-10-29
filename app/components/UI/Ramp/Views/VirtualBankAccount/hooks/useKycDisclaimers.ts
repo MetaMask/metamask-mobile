@@ -34,7 +34,10 @@ const FETCH_TIMEOUT_MS = 10_000;
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
  * flow's continue action disabled until a `retry()` succeeds. An empty vendor
  * response is reported as an `error` (with `disclaimers` left `null`) so the
- * retry affordance is reachable. There's intentionally no static fallback copy.
+ * retry affordance is reachable. There's intentionally no static fallback for
+ * the Iron catalog itself: the screen hardcodes the MoonPay Privacy Policy
+ * link once this load succeeds (TRAM-4169), but the Iron T&C link only exists
+ * when this fetch does, so an error keeps the continue action disabled.
  *
  * @returns Disclaimer data, loading/acceptance state, and actions.
  */

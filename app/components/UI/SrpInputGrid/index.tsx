@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { Keyboard } from 'react-native';
+import { AppState, Keyboard } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -93,9 +93,58 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       onCurrentWordChange,
       autoFocus: autoFocusProp = true,
       includeTopMargin = true,
+      showPasteOnlyWithClipboard = false,
     },
     ref,
   ) => {
+    const [clipboardHasString, setClipboardHasString] = useState(false);
+    const isMountedRef = useRef(true);
+
+    const refreshClipboard = useCallback(() => {
+      if (!showPasteOnlyWithClipboard) {
+        return;
+      }
+      Clipboard.hasString()
+        .then((hasString) => {
+          if (isMountedRef.current) {
+            setClipboardHasString(hasString);
+          }
+        })
+        .catch(() => {
+          if (isMountedRef.current) {
+            setClipboardHasString(false);
+          }
+        });
+    }, [showPasteOnlyWithClipboard]);
+
+    useEffect(() => {
+      isMountedRef.current = true;
+      if (!showPasteOnlyWithClipboard) {
+        return () => {
+          isMountedRef.current = false;
+        };
+      }
+
+      refreshClipboard();
+      // UIPasteboardChangedNotification only fires for in-app copies, so
+      // also re-check when the app returns to the foreground.
+      const clipboardSubscription = Clipboard.addListener(refreshClipboard);
+      const appStateSubscription = AppState.addEventListener(
+        'change',
+        (nextAppState) => {
+          if (nextAppState === 'active') {
+            refreshClipboard();
+          }
+        },
+      );
+
+      return () => {
+        isMountedRef.current = false;
+        clipboardSubscription?.remove();
+        appStateSubscription?.remove();
+      };
+    }, [showPasteOnlyWithClipboard, refreshClipboard]);
+
     // Internal state
     const [
       nextSeedPhraseInputFocusedIndex,
@@ -200,13 +249,14 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       (index: number) => {
         setNextSeedPhraseInputFocusedIndex(index);
         focusedInputIndexRef.current = index;
+        refreshClipboard();
 
         const currentWord = seedPhrase[index] || '';
         if (!currentWord.includes(' ')) {
           onCurrentWordChange?.(currentWord);
         }
       },
-      [seedPhrase, onCurrentWordChange],
+      [seedPhrase, onCurrentWordChange, refreshClipboard],
     );
 
     const handleOnBlur = useCallback(
@@ -334,13 +384,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       [],
     );
 
-    const handlePasteOrClear = useCallback(() => {
-      if (trimmedSeedPhraseLength >= 1) {
-        handleClear();
-      } else {
-        handlePaste();
-      }
-    }, [trimmedSeedPhraseLength, handleClear, handlePaste]);
+    const hasSeedInput = trimmedSeedPhraseLength >= 1;
+    const showClearAll = hasSeedInput;
+    const showPaste =
+      !hasSeedInput && (!showPasteOnlyWithClipboard || clipboardHasString);
 
     return (
       <Box
@@ -367,7 +414,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             onSubmitEditing={dismissKeyboard}
             placeholder={placeholderText}
             isError={Boolean(errorWordIndexes[0])}
-            twClassName="min-h-[210px]"
+            twClassName="min-h-[140px] rounded-[12px]"
             testID={testIdPrefix}
             autoFocus={autoFocusProp}
             onKeyPress={(e) => handleKeyPress(e, 0)}
@@ -419,13 +466,18 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           </Box>
         )}
 
-        <Box twClassName="flex-row justify-end items-end pt-1 pb-[1px]">
-          <Button variant={ButtonVariant.Tertiary} onPress={handlePasteOrClear}>
-            {trimmedSeedPhraseLength >= 1
-              ? strings('import_from_seed.clear_all')
-              : strings('import_from_seed.paste')}
-          </Button>
-        </Box>
+        {(showPaste || showClearAll) && (
+          <Box twClassName="flex-row justify-end items-end pt-1 pb-[1px]">
+            <Button
+              variant={ButtonVariant.Tertiary}
+              onPress={showClearAll ? handleClear : handlePaste}
+            >
+              {showClearAll
+                ? strings('import_from_seed.clear_all')
+                : strings('import_from_seed.paste')}
+            </Button>
+          </Box>
+        )}
 
         {Boolean(externalError || error) && (
           <HelpText severity={HelpTextSeverity.Danger}>

@@ -13,7 +13,11 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import type { Position } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  type CandleData,
+  type Position,
+} from '@metamask/perps-controller';
 import {
   MOCK_PERPS_MARKET_INSIGHTS_REPORT,
   OPEN_POSITION_STREAM_ITEM,
@@ -25,17 +29,35 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import {
   createPerpsControllerStateHarness,
   getModifyActionLabels,
 } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
 import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
+  clearLeaderboardApiMock,
+  getLeaderboardMessengerSpy,
+  mockPerpsTraders,
+  setupLeaderboardApiMock,
+} from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
+import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
+import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
+import { LiveViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/LiveView/LiveView.testIds';
+import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
+import {
+  getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
@@ -49,6 +71,9 @@ import {
   getCandlePeriodBottomSheetSelectors as getPerpsCandlePeriodBottomSheetSelector,
 } from '../../../Charts/CandlePeriodSelector';
 import { strings } from '../../../../../../locales/i18n';
+import type { RootState } from '../../../../../reducers';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import { PERPS_SHARE_POSITION_INTERACTION_TYPE } from '../PerpsSharePositionView/PerpsSharePositionView.constants';
 
 const CANDLE_SELECTOR_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector` as const;
@@ -950,6 +975,70 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Position card and navigation', () => {
+    const indexedEthLong = {
+      positionId: 'social-eth-long',
+      tokenSymbol: 'ETH',
+      tokenName: 'Ethereum',
+      tokenAddress: 'ETH',
+      chain: 'hyperliquid',
+      positionAmount: 2.5,
+      isOpen: true,
+      boughtUsd: 5000,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 500,
+      trades: [],
+      lastTradeAt: 1_700_000_000,
+      currentValueUSD: 5100,
+      pnlValueUsd: 100,
+      pnlPercent: 20,
+      perpPositionType: 'long' as const,
+      perpLeverage: 10,
+      positionAmountWithLeverage: 2.5,
+    };
+
+    const canPostOverrides: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          PerpsController: { isEligible: true },
+          KeyringController: { isUnlocked: true },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsSocialEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              [SOCIAL_V1_AB_KEY]: SocialV1Variant.Treatment,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+          ProfileController: {
+            profile: {
+              profileId: 'profile-1',
+              username: 'trader',
+              displayName: 'trader',
+              bio: '',
+              linkedAddresses: [
+                'eip155:1:0x0000000000000000000000000000000000000001',
+              ],
+              avatarUrl: '',
+              tradingPrivacy: 'public',
+              connectedToX: false,
+              createdAt: '',
+              updatedAt: '',
+            },
+          },
+        },
+      },
+    };
+
+    afterEach(() => {
+      clearLeaderboardApiMock();
+    });
+
     it('renders position card with share button when position exists', async () => {
       renderPerpsMarketDetailsView({
         overrides: {
@@ -966,6 +1055,160 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the Share position sheet from the position card when the user can post to Social', async () => {
+      setupLeaderboardApiMock({ openPositions: [indexedEthLong] });
+      renderPerpsMarketDetailsView({
+        overrides: canPostOverrides,
+        extraRoutes: [{ name: Routes.PERPS.MODALS.ROOT }],
+      });
+
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON);
+      await waitFor(() =>
+        expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+          'SocialService:fetchOpenPositions',
+          expect.anything(),
+        ),
+      );
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.PERPS.MODALS.ROOT),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides Post to feed and opens the PnL hero card when the position is not indexed', async () => {
+      setupLeaderboardApiMock({ openPositions: [] });
+      renderPerpsMarketDetailsView({
+        overrides: canPostOverrides,
+        extraRoutes: [{ name: Routes.PERPS.PNL_HERO_CARD }],
+      });
+
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON);
+      await waitFor(() =>
+        expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+          'SocialService:fetchOpenPositions',
+          expect.anything(),
+        ),
+      );
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON),
+      ).toBeNull();
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.PERPS.PNL_HERO_CARD),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the composer from Post to feed and tracks the Post to MetaMask interaction', async () => {
+      setupLeaderboardApiMock({ openPositions: [indexedEthLong] });
+      const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+      try {
+        renderPerpsMarketDetailsView({
+          overrides: canPostOverrides,
+          extraRoutes: [{ name: Routes.SOCIAL.POST_COMPOSER }],
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON,
+          ),
+        );
+
+        expect(
+          await screen.findByTestId(
+            getRouteProbeTestId(Routes.SOCIAL.POST_COMPOSER),
+          ),
+        ).toBeOnTheScreen();
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+            properties: expect.objectContaining({
+              interaction_type:
+                PERPS_SHARE_POSITION_INTERACTION_TYPE.POST_TO_METAMASK,
+              asset: 'ETH',
+              direction: 'long',
+            }),
+          }),
+        );
+      } finally {
+        trackEventSpy.mockRestore();
+      }
+    });
+
+    it('does not load the Social profile on open when the user cannot post', async () => {
+      const getSessionProfile = jest.mocked(
+        Engine.context.AuthenticationController.getSessionProfile,
+      );
+      const fetchAndUpdateProfile = jest.mocked(
+        Engine.context.ProfileController.fetchAndUpdateProfile,
+      );
+      const signedOutSessionProfile = getSessionProfile.getMockImplementation();
+      getSessionProfile.mockResolvedValue({
+        profileId: 'session-profile-id',
+      } as Awaited<ReturnType<typeof getSessionProfile>>);
+      fetchAndUpdateProfile.mockClear();
+      try {
+        renderPerpsMarketDetailsView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                PerpsController: { isEligible: true },
+              },
+            },
+          },
+        });
+
+        await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(fetchAndUpdateProfile).not.toHaveBeenCalled();
+      } finally {
+        getSessionProfile.mockImplementation(signedOutSessionProfile);
+      }
+    });
+
+    it('opens the PnL hero card from the position card when the user cannot post to Social', async () => {
+      renderPerpsMarketDetailsView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.PNL_HERO_CARD }],
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.PERPS.PNL_HERO_CARD),
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -1261,6 +1504,385 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Social tabs', () => {
+    const socialOverrides = {
+      engine: {
+        backgroundState: {
+          PerpsController: { isEligible: true },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              aiSocialLeaderboardPerpsEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+    const ethPost = mockPerpFeedItem({ positionId: 'eth-perp-post' });
+    const ethPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${ethPost.positionId}-${ethPost.timestamp}`;
+    const statsSectionTestId = 'perps-home-section-stats';
+    const postTestId = (post: typeof ethPost) =>
+      `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.positionId}-${post.timestamp}`;
+
+    afterEach(() => {
+      clearLeaderboardApiMock();
+    });
+
+    it('shows Overview by default with the position above the tab bar', async () => {
+      setupLeaderboardApiMock({ feedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(statsSectionTestId)).toBeOnTheScreen();
+      const orderedIds = screen.UNSAFE_root.findAll(
+        (node) =>
+          node.props.testID === PerpsPositionCardSelectorsIDs.CARD ||
+          node.props.testID === PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+      ).map((node) => node.props.testID);
+      expect(
+        orderedIds.indexOf(PerpsPositionCardSelectorsIDs.CARD),
+      ).toBeLessThan(
+        orderedIds.indexOf(PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS),
+      );
+      expect(screen.queryByTestId(ethPostTestId)).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText(strings('perps.position.card.details_title')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('orders the tabs Overview, Holders, Feed', async () => {
+      setupLeaderboardApiMock();
+      const tabIds = (['overview', 'top_traders', 'feed'] as const).map(
+        getPerpsMarketDetailsTabSelector,
+      );
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+        ),
+      ).toBeOnTheScreen();
+      const orderedIds = screen.UNSAFE_root.findAll((node) =>
+        tabIds.includes(node.props.testID),
+      ).map((node) => node.props.testID);
+      expect([...new Set(orderedIds)]).toEqual(tabIds);
+    });
+
+    it('shows Market insights first in Overview, below the tab bar', async () => {
+      setupPerpsMarketInsightsEngineMock(MOCK_PERPS_MARKET_INSIGHTS_REPORT);
+      setupLeaderboardApiMock({ feedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...socialOverrides.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  ...socialOverrides.engine.backgroundState
+                    .RemoteFeatureFlagController.remoteFeatureFlags,
+                  aiSocialMarketInsightsPerpsEnabled: {
+                    enabled: true,
+                    featureVersion: '1',
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          MarketInsightsSelectorsIDs.ENTRY_CARD,
+          {},
+          { timeout: 15000 },
+        ),
+      ).toBeOnTheScreen();
+      const orderedIds = screen.UNSAFE_root.findAll(
+        (node) =>
+          node.props.testID ===
+            PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS ||
+          node.props.testID === MarketInsightsSelectorsIDs.ENTRY_CARD ||
+          node.props.testID === statsSectionTestId,
+      ).map((node) => node.props.testID);
+      expect([...new Set(orderedIds)]).toEqual([
+        PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+        MarketInsightsSelectorsIDs.ENTRY_CARD,
+        statsSectionTestId,
+      ]);
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketDetailsTabSelector('feed')),
+      );
+
+      expect(
+        screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not offer Live trades, so no fixture trades reach the market page', async () => {
+      setupLeaderboardApiMock({ feedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          getPerpsMarketDetailsTabSelector('top_traders'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(getPerpsMarketDetailsTabSelector('live_trades')),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(LiveViewSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps About inside Overview when the market has a description', async () => {
+      const description =
+        'Ethereum is a decentralized smart contract platform.';
+      setupLeaderboardApiMock({ feedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+        initialParams: {
+          market: createEthMarketForViews({ description }),
+        },
+        streamOverrides: {
+          positions: [],
+          marketData: [createEthMarketForViews({ description })],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION,
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketDetailsTabSelector('feed')),
+      );
+
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows this market feed on Feed, hides Overview, and keeps the position', async () => {
+      const messengerSpy = setupLeaderboardApiMock({ feedItems: [ethPost] });
+      const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+      try {
+        renderPerpsMarketDetailsView({
+          overrides: socialOverrides,
+          socialEnabled: true,
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(getPerpsMarketDetailsTabSelector('feed')),
+        );
+
+        expect(await screen.findByTestId(ethPostTestId)).toBeOnTheScreen();
+        expect(screen.queryByTestId(statsSectionTestId)).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
+        ).toBeOnTheScreen();
+        expect(messengerSpy).toHaveBeenCalledWith(
+          'SocialService:fetchFeed',
+          expect.objectContaining({
+            scope: 'all',
+            chains: ['eip155:999'],
+            assetIds: ['eip155:999/perp:ETH'],
+          }),
+        );
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+            properties: expect.objectContaining({
+              interaction_type: 'tap',
+              screen_name: 'perps_market_details',
+              tab_name: 'feed',
+              asset: 'ETH',
+            }),
+          }),
+        );
+      } finally {
+        trackEventSpy.mockRestore();
+      }
+    });
+
+    it('keeps the current layout with no tab bar when Perps social is off', async () => {
+      setupLeaderboardApiMock({ feedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: false,
+      });
+
+      expect(await screen.findByTestId(statsSectionTestId)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.card.details_title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('lists every loaded post on Feed with no See more', async () => {
+      const posts = Array.from({ length: 6 }, (_, index) =>
+        mockPerpFeedItem({
+          positionId: `eth-perp-post-${index}`,
+          timestamp: 1_700_000_500 - index,
+          lastTradeAt: 1_700_000_500 - index,
+        }),
+      );
+      setupLeaderboardApiMock({ feedItems: posts });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(getPerpsMarketDetailsTabSelector('feed')),
+      );
+
+      for (const post of posts) {
+        expect(await screen.findByTestId(postTestId(post))).toBeOnTheScreen();
+      }
+      expect(
+        screen.queryByText(strings('perps.home.see_more')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the Social leaderboard for this market on Holders with no See more, unavailable until Social ranks per market', async () => {
+      const messengerSpy = setupLeaderboardApiMock();
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          getPerpsMarketDetailsTabSelector('top_traders'),
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(SocialLeaderboardSelectorsIDs.UNAVAILABLE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('social_leaderboard.feed.no_data')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(getTraderRowTestId(mockPerpsTraders[0].profileId)),
+      ).not.toBeOnTheScreen();
+      expect(messengerSpy).not.toHaveBeenCalledWith(
+        'SocialService:fetchLeaderboard',
+        expect.anything(),
+      );
+      expect(
+        screen.queryByText(strings('perps.home.see_more')),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Chart loading', () => {
+    const DETAIL_SKELETON_ID = `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`;
+    const TRADINGVIEW_CHART_ID = `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`;
+    const ethCandles: CandleData = {
+      symbol: 'ETH',
+      interval: CandlePeriod.FifteenMinutes,
+      candles: [
+        {
+          time: Date.now(),
+          open: '2737.9',
+          high: '2737.9',
+          low: '2737.9',
+          close: '2737.9',
+          volume: '1',
+        },
+      ],
+    };
+
+    it('shows the candle skeleton while candle data is missing', async () => {
+      renderEligibleNoPositionPerpsDetails();
+
+      expect(await screen.findByTestId(DETAIL_SKELETON_ID)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(`${DETAIL_SKELETON_ID}-candle-0`),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(TRADINGVIEW_CHART_ID)).not.toBeOnTheScreen();
+    });
+
+    it('swaps the candle skeleton for the chart once the chart is ready', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+          settings: {
+            perpsChartPreferences: {
+              preferredCandlePeriod: CandlePeriod.FifteenMinutes,
+            },
+          },
+        },
+        streamOverrides: { positions: [], liveCandles: ethCandles },
+      });
+
+      expect(
+        await screen.findByTestId(`${TRADINGVIEW_CHART_ID}-skeleton`),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(DETAIL_SKELETON_ID)).not.toBeOnTheScreen();
+
+      act(() => {
+        screen.getByTestId(`${TRADINGVIEW_CHART_ID}-webview`).props.onMessage({
+          nativeEvent: { data: JSON.stringify({ type: 'CHART_READY' }) },
+        });
+      });
+
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId(`${TRADINGVIEW_CHART_ID}-skeleton`),
+        ).not.toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByTestId(`${TRADINGVIEW_CHART_ID}-webview`),
+      ).toBeOnTheScreen();
     });
   });
 });

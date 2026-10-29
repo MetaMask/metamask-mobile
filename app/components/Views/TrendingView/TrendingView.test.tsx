@@ -98,6 +98,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectExploreBrandRefreshEnabled } from '../../../selectors/featureFlagController/exploreBrandRefresh';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -131,6 +132,18 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     isEnabled: mockIsEnabled,
   }),
+}));
+
+const mockUseIsGlassSurfaceEnabled = jest.fn();
+jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: (selectFlag: unknown) =>
+    mockUseIsGlassSurfaceEnabled(selectFlag),
+}));
+
+const mockUseIsExploreHeaderRefreshEnabled = jest.fn();
+jest.mock('./hooks/useIsExploreHeaderRefreshEnabled', () => ({
+  useIsExploreHeaderRefreshEnabled: () =>
+    mockUseIsExploreHeaderRefreshEnabled(),
 }));
 
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -260,6 +273,8 @@ describe('TrendingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsEnabled.mockReturnValue(true);
+    mockUseIsGlassSurfaceEnabled.mockReturnValue(false);
+    mockUseIsExploreHeaderRefreshEnabled.mockReturnValue(false);
     mockAddListener.mockReturnValue(jest.fn());
     for (const key of Object.keys(mockTabRenderCounts)) {
       delete mockTabRenderCounts[key];
@@ -397,6 +412,41 @@ describe('TrendingView', () => {
     expect(searchButton).toBeOnTheScreen();
   });
 
+  it('keeps the muted search bar when the Explore brand refresh is off', () => {
+    const { queryByTestId } = renderTrendingView();
+
+    expect(
+      queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('draws the search bar as glass when the Explore brand refresh is on', () => {
+    mockUseIsGlassSurfaceEnabled.mockReturnValue(true);
+
+    const { getByTestId } = renderTrendingView();
+
+    expect(mockUseIsGlassSurfaceEnabled).toHaveBeenCalledWith(
+      selectExploreBrandRefreshEnabled,
+    );
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+    ).toBeOnTheScreen();
+  });
+
+  it('draws the browser tabs button as glass when the Explore brand refresh is on', () => {
+    mockUseIsGlassSurfaceEnabled.mockReturnValue(true);
+    mockUseIsExploreHeaderRefreshEnabled.mockReturnValue(true);
+    mockUseSelector.mockImplementation(
+      createMockSelectorImplementation({ browserTabsCount: 2 }),
+    );
+
+    const { getByTestId } = renderTrendingView();
+
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.BROWSER_TABS_BUTTON_GLASS),
+    ).toBeOnTheScreen();
+  });
+
   it('navigates to ExploreSearch route when search bar is pressed', () => {
     const { getByTestId } = renderTrendingView();
 
@@ -428,6 +478,7 @@ describe('TrendingView', () => {
       interaction_type: 'opened',
       search_query: '',
       entry_point: 'explore',
+      search_session_id: expect.any(String),
     });
   });
 

@@ -375,6 +375,22 @@ export function getTotalPayFeesUsd(
 }
 
 /**
+ * String form of a confirmation asset's display-currency balance.
+ *
+ * Pay-with rows format this amount with `$`. It is the number behind
+ * `balanceInSelectedCurrency`, which pay flows already price in USD.
+ * `fiat.balance` stays in the user's preferred currency. Returns `'0'` when
+ * the amount is missing.
+ */
+export function payBalanceUsd(amount: number | undefined): string {
+  if (amount === undefined || !Number.isFinite(amount)) {
+    return '0';
+  }
+
+  return String(amount);
+}
+
+/**
  * Truncates a fiat amount to two decimals for rendering and for the keypad
  * buffer, since the stored amount carries full precision so that Max spends
  * the entire balance.

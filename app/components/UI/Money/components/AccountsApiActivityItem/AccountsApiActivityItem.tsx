@@ -34,6 +34,9 @@ const AccountsApiActivityItem = ({
   );
 
   const handlePress = useCallback(() => {
+    // Every Accounts API row uses the custom details view. VBA bank transfers
+    // must not fall back to generic local Money deposit details, because the
+    // custom view is what renders both the bank transfer and mUSD legs.
     navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
       activity,
       enrichment,

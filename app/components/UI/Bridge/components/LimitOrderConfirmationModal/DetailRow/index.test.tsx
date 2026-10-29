@@ -31,4 +31,15 @@ describe('DetailRow', () => {
 
     expect(getByTestId('detail-row-label-accessory')).toBeOnTheScreen();
   });
+
+  it('renders an element label as is instead of the default label text', () => {
+    const { getByTestId, queryByTestId } = render(
+      <DetailRow label={<Text testID="detail-row-custom-label">Custom</Text>}>
+        <Text testID="detail-row-child">2%</Text>
+      </DetailRow>,
+    );
+
+    expect(getByTestId('detail-row-custom-label')).toHaveTextContent('Custom');
+    expect(queryByTestId(DetailRowSelectorsIDs.LABEL)).toBeNull();
+  });
 });

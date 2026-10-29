@@ -30,10 +30,11 @@ describe('configRegistry selectors', () => {
     it('returns default state when ConfigRegistryController is missing', () => {
       const state = { engine: { backgroundState: {} } };
       const result = getConfigRegistryState(state as never);
-      expect(result.configs).toEqual({ networks: {} });
+      expect(result.configs).toEqual({ networks: {}, eventsConfig: null });
       expect(result.version).toBeNull();
       expect(result.lastFetched).toBeNull();
       expect(result.etag).toBeNull();
+      expect(result.eventsConfigEtag).toBeNull();
     });
   });
 

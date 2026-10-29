@@ -3,9 +3,9 @@ import type {
   SocialV1FeedItem,
 } from '../../../UI/SocialFeed/types';
 import { COMPOSER_FEED_AUTHOR } from './mapPositionToFeedItem';
-import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
+import type { SocialPostTradePreview } from './SocialPostComposerView.types';
 
-export type TradeInFlightPreview = SocialPostComposerViewParams['preview'];
+export type TradeInFlightPreview = SocialPostTradePreview;
 
 /**
  * Builds a sparse `spotShare` card from the swap facts we have at submit

@@ -441,12 +441,26 @@ describe('PerpsProChartPanel', () => {
     ).toHaveStyle({ height: 344 });
   });
 
-  it('uses the 76px Figma market-summary height', () => {
-    renderChartPanel();
+  it('reports the market summary height for the header crossfade', () => {
+    const onSummaryLayout = jest.fn();
 
-    expect(
+    renderChartPanel({ onSummaryLayout });
+
+    fireEvent(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
-    ).toHaveStyle({ height: 76 });
+      'layout',
+      {
+        nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
+      },
+    );
+
+    expect(onSummaryLayout).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: expect.objectContaining({
+          layout: expect.objectContaining({ height: 96 }),
+        }),
+      }),
+    );
   });
 
   it('renders the Lightweight Chart path when its feature flag is disabled', () => {
@@ -467,8 +481,17 @@ describe('PerpsProChartPanel', () => {
 
     renderChartPanel({ isAdvancedChartEnabled: false });
 
+    const skeleton = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.CHART_SKELETON,
+    );
+
+    expect(skeleton).toBeOnTheScreen();
+    expect(skeleton.props.width).toBeUndefined();
+    expect(StyleSheet.flatten(skeleton.props.style).height).toBe(288);
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_SKELETON),
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.CHART_SKELETON}-candle-0`,
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -778,7 +801,9 @@ describe('PerpsProChartPanel', () => {
       screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_OHLCV),
     ).not.toBeOnTheScreen();
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_SKELETON),
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.CHART_SKELETON}-candle-0`,
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId('mock-perps-fullscreen-chart'),

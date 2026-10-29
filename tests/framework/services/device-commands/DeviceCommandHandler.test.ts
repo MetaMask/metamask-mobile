@@ -369,13 +369,16 @@ describe('DeviceCommandHandler', () => {
     expect(rmMock).not.toHaveBeenCalled();
   });
 
-  it('throws for BrowserStack devices', () => {
+  it.each([
+    ['BrowserStack', { isBrowserstack: true }],
+    ['other remote cloud provider', { isRemoteCloud: true }],
+  ])('throws for %s devices', (_provider, overrides) => {
     expect(
       () =>
         new DeviceCommandHandler({
-          currentDeviceDetails: androidDevice({ isBrowserstack: true }),
+          currentDeviceDetails: androidDevice(overrides),
         }),
-    ).toThrow('BrowserStack does not expose adb/simctl access');
+    ).toThrow('remote cloud providers do not expose adb/simctl access');
   });
 
   it('throws for unsupported platforms', () => {

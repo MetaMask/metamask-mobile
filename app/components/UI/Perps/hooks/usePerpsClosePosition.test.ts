@@ -3,6 +3,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
   ORDER_SLIPPAGE_CONFIG,
+  PERPS_ERROR_CODES,
   type OrderResult,
   type Position,
 } from '@metamask/perps-controller';
@@ -359,7 +360,7 @@ describe('usePerpsClosePosition', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'perps.close_position.error_unknown',
+          message: 'Perps close position failed',
         }),
         expect.objectContaining({
           tags: expect.objectContaining({
@@ -373,7 +374,7 @@ describe('usePerpsClosePosition', () => {
               symbol: 'BTC',
               orderType: 'market',
               isFullClose: true,
-              rawError: undefined,
+              rawError: 'perps.close_position.error_unknown',
             }),
           }),
         }),
@@ -400,7 +401,10 @@ describe('usePerpsClosePosition', () => {
         error,
       );
       expect(Logger.error).toHaveBeenCalledWith(
-        error,
+        expect.objectContaining({
+          message: 'Perps close position failed',
+          cause: error,
+        }),
         expect.objectContaining({
           tags: expect.objectContaining({
             feature: 'perps',
@@ -414,6 +418,7 @@ describe('usePerpsClosePosition', () => {
               requestedSize: undefined,
               orderType: 'market',
               isFullClose: true,
+              rawError: 'Network error',
             }),
           }),
         }),
@@ -849,6 +854,7 @@ describe('usePerpsClosePosition', () => {
               result.current.handleClosePosition({
                 position: mockPosition,
                 orderType: 'market',
+                slippage: { maxSlippageBps: 300 },
               }),
             ).rejects.toThrow();
           });
@@ -859,6 +865,32 @@ describe('usePerpsClosePosition', () => {
             2,
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .full.closeFullPositionFailed,
+          );
+        });
+
+        it('shows passive IOC failure copy without an action', async () => {
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: PERPS_ERROR_CODES.IOC_CANCEL,
+            errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
+          });
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'market',
+                slippage: { maxSlippageBps: 300 },
+              }),
+            ).rejects.toThrow();
+          });
+
+          const failureToast = mockShowToast.mock.calls[1][0];
+          expect(failureToast).not.toHaveProperty('linkButtonOptions');
+          expect(failureToast).not.toHaveProperty('hasNoTimeout', true);
+          expect(failureToast.labelOptions).toContainEqual(
+            expect.objectContaining({ label: 'perps.errors.iocCancel' }),
           );
         });
 
@@ -887,6 +919,38 @@ describe('usePerpsClosePosition', () => {
             2,
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .partial.closePartialPositionFailed,
+          );
+        });
+
+        it('shows passive PRICE_MOVED copy without an action', async () => {
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: 'Price moved too much',
+            errorCode: PERPS_ERROR_CODES.PRICE_MOVED,
+            errorDetails: {
+              code: PERPS_ERROR_CODES.PRICE_MOVED,
+              priceDeltaBps: 336,
+              maxSlippageBps: 300,
+              expectedPrice: 788.71,
+              currentPrice: 815.22,
+            },
+          });
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'market',
+              }),
+            ).rejects.toThrow();
+          });
+
+          const failureToast = mockShowToast.mock.calls[1][0];
+          expect(failureToast).not.toHaveProperty('linkButtonOptions');
+          expect(failureToast.labelOptions).toContainEqual(
+            expect.objectContaining({ label: 'perps.errors.priceMoved' }),
           );
         });
 

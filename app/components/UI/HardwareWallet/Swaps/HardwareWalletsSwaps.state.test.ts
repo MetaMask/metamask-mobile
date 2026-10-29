@@ -13,6 +13,8 @@ import {
 } from './HardwareWalletsSwaps.state';
 import { Flow } from './flowStrategy';
 import type { TxData } from '@metamask/bridge-controller';
+import { Interface } from '@ethersproject/abi';
+import type { Hex } from '@metamask/utils';
 
 type StartEvent = Extract<
   HardwareWalletsSwapsEvent,
@@ -514,6 +516,28 @@ describe('hardwareWalletsSwapsReducer', () => {
 
     expect(result.steps[0].address).toBeUndefined();
     expect(result.steps[1].address).toBeUndefined();
+  });
+
+  it('carries approvalTokenAddress only on the Approval step', () => {
+    const result = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: {
+          totalSteps: 2,
+          spenderAddress: '0x3c44CDDdb6A900fA2b585dD29e6b6F907B4C6cDc',
+          approvalTokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+          recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+        },
+      },
+    );
+
+    expect(result.steps[0].kind).toBe(HardwareWalletsSwapsStepKind.Approval);
+    expect(result.steps[0].tokenAddress).toBe(
+      '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+    );
+    expect(result.steps[1].kind).toBe(HardwareWalletsSwapsStepKind.Transaction);
+    expect(result.steps[1].tokenAddress).toBeUndefined();
   });
 
   it('assigns recipient address to the only step for single-step flows', () => {
@@ -1056,33 +1080,134 @@ describe('hardwareWalletsSwapsReducer', () => {
 });
 
 describe('buildStartPayload', () => {
+  const TOKEN_CONTRACT = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
+  const SPENDER = '0x3c44CDDdb6A900fA2b585dD29e6b6F907B4C6cDc';
+  const RECIPIENT = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
+  const PERMIT2_CONTRACT = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+  const ROUTER = '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc';
+
+  // Quote fixture: only the field buildStartPayload reads for the ultimate
+  // recipient — the V2 path `quote.dest.walletAddress` (the V1→V2 coercer
+  // moves the V1 top-level destWalletAddress there). The argument is cast to
+  // the input type because the fixture omits the rest of the V2 quote shape.
+  type QuoteInput = Parameters<typeof buildStartPayload>[0];
+  const quoteFixture = (overrides: { dest?: { walletAddress?: string } }) => ({
+    ...overrides,
+  });
+
+  const buildApproveCalldata = (spender: string): Hex =>
+    new Interface([
+      'function approve(address spender, uint256 amount)',
+    ]).encodeFunctionData('approve', [spender, 1000]) as Hex;
+
+  const buildPermit2ApproveCalldata = (token: string, spender: string): Hex =>
+    new Interface([
+      'function approve(address token, address spender, uint160 amount, uint48 expiration)',
+    ]).encodeFunctionData('approve', [token, spender, 500, 9999]) as Hex;
+
   it('builds single-step payload without approval', () => {
-    const result = buildStartPayload({
-      trade: evmTx('0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc'),
-    }) as StartEvent;
+    const result = buildStartPayload(
+      {
+        trade: evmTx('0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc'),
+      },
+      { isSwap: false },
+    ) as StartEvent;
 
     expect(result.type).toBe(HardwareWalletsSwapsEventType.Start);
     expect(result.payload.totalSteps).toBe(1);
     expect(result.payload.spenderAddress).toBeUndefined();
+    expect(result.payload.approvalTokenAddress).toBeUndefined();
     expect(result.payload.recipientAddress).toBe(
       '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc',
     );
   });
 
-  it('builds two-step payload with approval addresses', () => {
-    const result = buildStartPayload({
-      approval: evmTx('0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc'),
-      trade: evmTx('0x70997970C51812dc3A010C7d01b50e0d17dc79C8'),
-    }) as StartEvent;
+  // Approve calldata decoding: spender/token come from the decoded calldata,
+  // never from the tx recipient (approval.to is the token contract for
+  // standard approvals, the Permit2 contract for Permit2).
+  it.each([
+    {
+      name: 'standard ERC-20 approve (approval.to is the token contract, not the spender)',
+      approval: {
+        ...evmTx(TOKEN_CONTRACT),
+        data: buildApproveCalldata(SPENDER),
+      },
+    },
+    {
+      name: 'Permit2 approve (tx recipient is the Permit2 contract)',
+      approval: {
+        ...evmTx(PERMIT2_CONTRACT),
+        data: buildPermit2ApproveCalldata(TOKEN_CONTRACT, SPENDER),
+      },
+    },
+  ])('decodes spender and token addresses from $name', ({ approval }) => {
+    const result = buildStartPayload(
+      { approval, trade: evmTx(RECIPIENT) },
+      { isSwap: false },
+    ) as StartEvent;
 
     expect(result.type).toBe(HardwareWalletsSwapsEventType.Start);
     expect(result.payload.totalSteps).toBe(2);
-    expect(result.payload.spenderAddress).toBe(
-      '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
-    );
-    expect(result.payload.recipientAddress).toBe(
-      '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
-    );
+    expect(result.payload.spenderAddress).toBe(SPENDER);
+    expect(result.payload.spenderAddress).not.toBe(approval.to);
+    expect(result.payload.approvalTokenAddress).toBe(TOKEN_CONTRACT);
+    expect(result.payload.recipientAddress).toBe(RECIPIENT);
+  });
+
+  it('yields no spender and falls back to approval.to for the token address when calldata is undecodable', () => {
+    const result = buildStartPayload(
+      {
+        approval: { ...evmTx(TOKEN_CONTRACT), data: '0xdeadbeef' },
+        trade: evmTx(RECIPIENT),
+      },
+      { isSwap: false },
+    ) as StartEvent;
+
+    expect(result.payload.totalSteps).toBe(2);
+    expect(result.payload.spenderAddress).toBeUndefined();
+    expect(result.payload.approvalTokenAddress).toBe(TOKEN_CONTRACT);
+  });
+
+  describe('recipient sourcing (same-chain swap vs bridge)', () => {
+    it.each([
+      {
+        name: 'uses the quote ultimate recipient for same-chain swaps (never the aggregator router)',
+        quote: quoteFixture({ dest: { walletAddress: RECIPIENT } }),
+        trade: evmTx(ROUTER),
+        isSwap: true,
+        expected: RECIPIENT,
+      },
+      {
+        name: 'yields no recipient for same-chain swaps without a quote ultimate recipient (never the router)',
+        quote: quoteFixture({}),
+        trade: evmTx(ROUTER),
+        isSwap: true,
+        expected: undefined,
+      },
+      {
+        name: 'keeps trade.to as the recipient for cross-chain bridges (extension parity)',
+        quote: quoteFixture({}),
+        trade: evmTx(RECIPIENT),
+        isSwap: false,
+        expected: RECIPIENT,
+      },
+      {
+        name: 'uses the quote ultimate recipient for non-EVM same-chain quotes without an EVM trade shape',
+        quote: quoteFixture({ dest: { walletAddress: RECIPIENT } }),
+        trade: undefined,
+        isSwap: true,
+        expected: RECIPIENT,
+      },
+    ])('$name', ({ quote, trade, isSwap, expected }) => {
+      const result = buildStartPayload(
+        { quote, ...(trade ? { trade } : {}) } as unknown as QuoteInput,
+        { isSwap },
+      ) as StartEvent;
+
+      // Only the quote ultimate recipient — never the aggregator router
+      // (trade.to), which is entailed by each row's expected value.
+      expect(result.payload.recipientAddress).toBe(expected);
+    });
   });
 });
 

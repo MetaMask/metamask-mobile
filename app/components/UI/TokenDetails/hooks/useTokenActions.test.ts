@@ -55,11 +55,42 @@ describe('useTokenActions', () => {
     expect(result.current.onReceive).toBe(mockOnReceive);
 
     // make sure that each hook handler passed the token
-    expect(mockUseHandleOnBuy).toHaveBeenCalledWith({ token: defaultToken });
-    expect(mockUseHandleOnSend).toHaveBeenCalledWith({ token: defaultToken });
+    expect(mockUseHandleOnBuy).toHaveBeenCalledWith({
+      token: defaultToken,
+      tdpVersion: undefined,
+    });
+    expect(mockUseHandleOnSend).toHaveBeenCalledWith({
+      token: defaultToken,
+      tdpVersion: undefined,
+    });
     expect(mockUseHandleOnReceive).toHaveBeenCalledWith({
       token: defaultToken,
       networkName: 'Ethereum Mainnet',
+      tdpVersion: undefined,
+    });
+  });
+
+  it('threads tdpVersion through to each atomic hook', () => {
+    renderHook(() =>
+      useTokenActions({
+        token: defaultToken,
+        networkName: 'Ethereum Mainnet',
+        tdpVersion: 'v3',
+      }),
+    );
+
+    expect(mockUseHandleOnBuy).toHaveBeenCalledWith({
+      token: defaultToken,
+      tdpVersion: 'v3',
+    });
+    expect(mockUseHandleOnSend).toHaveBeenCalledWith({
+      token: defaultToken,
+      tdpVersion: 'v3',
+    });
+    expect(mockUseHandleOnReceive).toHaveBeenCalledWith({
+      token: defaultToken,
+      networkName: 'Ethereum Mainnet',
+      tdpVersion: 'v3',
     });
   });
 });

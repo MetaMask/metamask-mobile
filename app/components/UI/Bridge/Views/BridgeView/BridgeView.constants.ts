@@ -15,7 +15,7 @@ export enum BridgeTabKey {
 export const TAB_TO_FEATURE_ID = {
   [BridgeTabKey.Market]: FeatureId.UNIFIED_SWAP_BRIDGE,
   [BridgeTabKey.Limit]: FeatureId.LIMIT_ORDER,
-  [BridgeTabKey.Recurring]: FeatureId.RECURRING_BUY,
+  [BridgeTabKey.Recurring]: FeatureId.RECURRING_ORDER,
 };
 
 export const DEBOUNCE_WAIT = 300;
@@ -24,4 +24,8 @@ export const DEBOUNCE_WAIT = 300;
  * Feature IDs that have been migrated to use the SwapQuotesProvider
  * To migrate a feature ID, add it to this list and replace the useBridgeQuoteRequest hook with useSwapQuotes.
  */
-export const MIGRATED_FEATURE_IDS: FeatureId[] = [];
+export const MIGRATED_FEATURE_IDS: FeatureId[] = [
+  FeatureId.QUICK_BUY_EXPLORE,
+  FeatureId.QUICK_BUY_FOLLOW_TRADING,
+  FeatureId.QUICK_BUY_TOKEN_DETAILS,
+];

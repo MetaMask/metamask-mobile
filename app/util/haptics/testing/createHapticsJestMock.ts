@@ -2,6 +2,7 @@ import { ImpactMoment, NotificationMoment } from '../catalog';
 
 export interface HapticsJestModuleMock {
   fireSwitchHaptic: jest.Mock;
+  fireImpact: jest.Mock;
   playImpact: jest.Mock;
   playNotification: jest.Mock;
   playSelection: jest.Mock;
@@ -30,6 +31,7 @@ export function createHapticsJestMock(
   overrides: Partial<HapticsJestModuleMock> = {},
 ): HapticsJestModuleMock {
   const fireSwitchHaptic = jest.fn();
+  const fireImpact = jest.fn();
   const playImpact = jest.fn().mockResolvedValue(undefined);
   const playNotification = jest.fn().mockResolvedValue(undefined);
   const playSelection = jest.fn().mockResolvedValue(undefined);
@@ -43,10 +45,12 @@ export function createHapticsJestMock(
     playWarningNotification,
     playImpact,
     playSelection,
+    fireImpact,
   }));
 
   return {
     fireSwitchHaptic,
+    fireImpact,
     playImpact,
     playNotification,
     playSelection,

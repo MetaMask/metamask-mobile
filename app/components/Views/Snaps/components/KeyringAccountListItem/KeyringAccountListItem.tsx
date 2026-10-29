@@ -73,7 +73,7 @@ const KeyringAccountListItem = ({
         <View style={styles.buttonContainer}>
           <ButtonIcon
             testID={KEYRING_ACCOUNT_LIST_ITEM_BUTTON}
-            iconName={IconName.Export}
+            iconName={IconName.ArrowSquareOut}
             iconColor={IconColor.Primary}
             size={ButtonIconSizes.Lg}
             onPress={handlePress}

@@ -1,6 +1,6 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -29,15 +29,11 @@ import {
   JustifyContent,
 } from '../../../../components/UI/Box/box.types';
 import { AccountCellIds } from './AccountCell.testIds';
-import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
-import { formatWithThreshold } from '../../../../util/assets';
-import I18n from '../../../../../locales/i18n';
+import { selectInternalAccountByAccountGroupAndScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
-  selectAllAccountGroupIconSeedAddresses,
-  selectInternalAccountByAccountGroupAndScope,
-} from '../../../../selectors/multichainAccounts/accounts';
-import { RootState } from '../../../../reducers';
-import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+  useAccountGroupBalance,
+  useAccountGroupIconSeedAddress,
+} from '../useAccountGroupDisplay';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -73,6 +69,10 @@ const BalanceEndContainer = ({
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation<AppNavigationProp>();
+  const { balanceLabel, isBalanceHidden } = useAccountGroupBalance(
+    accountGroup.id,
+    { includeAccountListBalance: true },
+  );
 
   const handleMenuPress = useCallback(() => {
     navigateWithDetails(
@@ -81,44 +81,19 @@ const BalanceEndContainer = ({
     );
   }, [navigate, accountGroup]);
 
-  const selectBalanceForGroup = useMemo(
-    () => selectBalanceByAccountGroup(accountGroup.id),
-    [accountGroup.id],
-  );
-  const groupBalance = useSelector(selectBalanceForGroup);
-  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
-  const userCurrency = groupBalance?.userCurrency;
-  const privacyMode = useSelector(selectPrivacyMode);
-
-  const displayBalance = useMemo(() => {
-    if (totalBalance == null || !userCurrency) {
-      return undefined;
-    }
-    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
-      style: 'currency',
-      currency: userCurrency.toUpperCase(),
-    });
-  }, [totalBalance, userCurrency]);
-
   return (
     <>
-      <TouchableOpacity onPress={onSelectAccount}>
+      <Pressable onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
-          {/* Keep zero balances blank. `selectBalanceByAccountGroup` synthesizes
-              0 before assets load, so "$0.00" reads as a real empty wallet.
-              Product keeps the amount empty until a loaded non-zero balance
-              exists so users do not think funds disappeared. */}
           <SensitiveText
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Medium}
             length={SensitiveTextLength.Long}
-            isHidden={
-              privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
-            }
+            isHidden={isBalanceHidden}
             testID={AccountCellIds.BALANCE}
           >
-            {totalBalance ? displayBalance : null}
+            {balanceLabel ?? null}
           </SensitiveText>
           {networkImageSource && (
             <AvatarNetwork
@@ -128,9 +103,9 @@ const BalanceEndContainer = ({
             />
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       {!hideMenu && (
-        <TouchableOpacity
+        <Pressable
           testID={AccountCellIds.MENU}
           style={styles.menuButton}
           onPress={handleMenuPress}
@@ -140,7 +115,7 @@ const BalanceEndContainer = ({
             size={IconSize.Md}
             color={IconColor.IconAlternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </>
   );
@@ -201,13 +176,7 @@ const AccountCell = ({
   const { styles } = useStyles(styleSheet, {});
   const avatarAccountVariant = getAvatarAccountVariant(avatarAccountType);
 
-  // Read this cell's icon seed address from the shared map selector (O(1))
-  // instead of instantiating a per-cell deep-equal selector. `useSelector`
-  // re-renders only when this group's primitive address changes.
-  const evmAddress = useSelector(
-    (state: RootState) =>
-      selectAllAccountGroupIconSeedAddresses(state)[accountGroup.id] ?? '',
-  );
+  const evmAddress = useAccountGroupIconSeedAddress(accountGroup.id);
 
   // Network avatar derives purely from chainId — no store subscription needed.
   const networkImageSource = chainId
@@ -222,14 +191,14 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity
+      <Pressable
         onPress={onSelectAccount}
         style={styles.mainTouchable}
         testID={AccountCellIds.SELECT}
       >
         {startAccessory}
         <AvatarAccount
-          address={evmAddress ?? ''}
+          address={evmAddress}
           variant={avatarAccountVariant}
           size={AvatarAccountSize.Md}
           testID={AccountCellIds.AVATAR}
@@ -254,7 +223,7 @@ const AccountCell = ({
             />
           ) : null}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.endContainer}>
         {endContainer || (
           <BalanceEndContainer

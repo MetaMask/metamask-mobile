@@ -1,5 +1,6 @@
 export const PerpsOutreachDetailsViewSelectorsIDs = {
   SHEET: 'perps-outreach-details-sheet',
+  SAFE_AREA: 'perps-outreach-details-safe-area',
   TITLE: 'perps-outreach-details-title',
   BODY: 'perps-outreach-details-body',
   FEATURE_VIP: 'perps-outreach-details-feature-vip',

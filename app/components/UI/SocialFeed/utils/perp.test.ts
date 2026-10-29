@@ -207,6 +207,16 @@ describe('perp utils', () => {
         }),
       ).toBe(true);
     });
+
+    it('returns false for a zero-amount spot position when soldUsd is null', () => {
+      expect(
+        isClosedPosition({
+          ...basePosition,
+          positionAmount: 0,
+          soldUsd: null,
+        }),
+      ).toBe(false);
+    });
   });
 
   describe('getSupportedXyzPerpMarketSymbol', () => {

@@ -38,9 +38,14 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={3}
+          gap={4}
         >
-          <Skeleton width={32} height={32} style={tw.style('rounded-full')} />
+          <Skeleton
+            width={40}
+            height={40}
+            style={tw.style('rounded-full')}
+            testID="quick-buy-skeleton-token"
+          />
           <Box>
             <Box twClassName="h-6" justifyContent={BoxJustifyContent.Center}>
               <Skeleton width={80} height={16} style={tw.style('rounded-md')} />

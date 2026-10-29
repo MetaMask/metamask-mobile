@@ -27,10 +27,6 @@ const createStyles = () =>
     content: {
       paddingVertical: 16,
     },
-    buttonView: {
-      flexDirection: 'row',
-      paddingVertical: 16,
-    },
     base: {
       padding: 16,
     },

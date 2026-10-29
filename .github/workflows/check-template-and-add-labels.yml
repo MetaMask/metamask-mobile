@@ -3,42 +3,45 @@ name: Check template and add labels
 on:
   issues:
     types: [opened, edited, labeled, unlabeled, reopened]
+  # zizmor: ignore[dangerous-triggers] runs the default branch's workflow and script, never PR code; skips forks before requesting the label token
   pull_request_target:
     # `ready_for_review` / `converted_to_draft` flip the check between
     # "informational" (draft) and "blocking" (non-draft) the moment the author
     # changes state. `synchronize` keeps the status fresh as new commits land.
-    types: [opened, edited, labeled, unlabeled, reopened, ready_for_review, converted_to_draft, synchronize]
+    types:
+      [
+        opened,
+        edited,
+        labeled,
+        unlabeled,
+        reopened,
+        ready_for_review,
+        converted_to_draft,
+        synchronize,
+      ]
   merge_group:
 
-jobs:
-  is-fork-pull-request:
-    name: Determine whether this is a pull request from a fork
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request_target' }}
-    outputs:
-      IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Determine whether this PR is from a fork
-        id: is-fork
-        run: echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.number }}
+permissions: {}
 
+jobs:
   check-template-and-add-labels:
     runs-on: ubuntu-latest
-    needs: [is-fork-pull-request]
-    if: ${{ always() && github.event_name != 'merge_group' && (github.event_name == 'issues' || (github.event_name == 'pull_request_target' && needs.is-fork-pull-request.outputs.IS_FORK == 'false')) }}
+    # Fork PRs are skipped before the label token is requested. The script
+    # skips Dependabot PRs anyway.
+    if: >-
+      github.event_name == 'issues' ||
+      (github.event_name == 'pull_request_target' &&
+       !github.event.pull_request.head.repo.fork &&
+       github.event.pull_request.user.login != 'dependabot[bot]')
     permissions:
       contents: read
       id-token: write
     steps:
       - name: Checkout repository
-        # WARNING: do NOT add `ref:` here — pull_request_target must stay on the base branch.
         uses: actions/checkout@v6
         with:
           fetch-depth: 1 # This retrieves only the latest commit.
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v6

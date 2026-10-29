@@ -87,6 +87,60 @@ describe('e2e-timing-shards', () => {
       expect(ios[0].totalDuration).toBe(420);
     });
 
+    const perpsFiles = [
+      'tests/smoke-appium/perps/perps-add-funds.spec.ts',
+      'tests/smoke-appium/perps/perps-edit-tpsl-trigger.spec.ts',
+      'tests/smoke-appium/perps/perps-limit-long-fill.spec.ts',
+      'tests/smoke-appium/perps/perps-limit-order-cancel.spec.ts',
+      'tests/smoke-appium/perps/perps-limit-order-no-fill.spec.ts',
+      'tests/smoke-appium/perps/perps-limit-short-fill.spec.ts',
+      'tests/smoke-appium/perps/perps-position-liquidation.spec.ts',
+      'tests/smoke-appium/perps/perps-position-stop-loss.spec.ts',
+      'tests/smoke-appium/perps/perps-short-liquidation.spec.ts',
+      'tests/smoke-appium/perps/perps-short-stop-loss.spec.ts',
+      'tests/smoke-appium/perps/perps-take-profit-trigger.spec.ts',
+      'tests/smoke-appium/perps/perps-withdraw.spec.ts',
+    ];
+
+    const shardOf = (
+      shards: { index: number; files: string[] }[],
+      specName: string,
+    ) =>
+      shards.find((shard) => shard.files.some((file) => file.endsWith(specName)))
+        ?.index;
+
+    it('moves tied iOS take-profit onto shard 3 by swapping with withdraw', () => {
+      const shards = planShards(perpsFiles, {}, 'ios', 3);
+
+      expect(shardOf(shards, 'perps-take-profit-trigger.spec.ts')).toBe(3);
+      expect(shardOf(shards, 'perps-withdraw.spec.ts')).toBe(2);
+      expect(shards.every((shard) => shard.files.length === 4)).toBe(true);
+      expect(shards.map((shard) => shard.totalDuration)).toEqual([240, 240, 240]);
+    });
+
+    it('leaves measured iOS perps timings on the LPT shard', () => {
+      const shards = planShards(
+        perpsFiles,
+        {
+          'tests/smoke-appium/perps/perps-take-profit-trigger.spec.ts': {
+            ios: 189,
+          },
+          'tests/smoke-appium/perps/perps-withdraw.spec.ts': { ios: 56 },
+        },
+        'ios',
+        3,
+      );
+
+      expect(shardOf(shards, 'perps-take-profit-trigger.spec.ts')).toBe(1);
+    });
+
+    it('does not apply the iOS perps tie swap on Android', () => {
+      const shards = planShards(perpsFiles, {}, 'android', 3);
+
+      expect(shardOf(shards, 'perps-take-profit-trigger.spec.ts')).toBe(2);
+      expect(shardOf(shards, 'perps-withdraw.spec.ts')).toBe(3);
+    });
+
     it('uses median fallback for files without timings', () => {
       const withUnknown = [...files, 'tests/smoke-appium/unknown.spec.ts'];
       const shards = planShards(withUnknown, timings, 'android', 2);

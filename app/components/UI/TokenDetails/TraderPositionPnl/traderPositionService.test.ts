@@ -1,7 +1,13 @@
 import AppConstants from '../../../../core/AppConstants';
 import {
+  findPositionByTokenAddress,
+  getOpenPositionForAsset,
+  isOpenPositionEndpointUnreachable,
   getTraderPosition,
+  openPositionUrl,
+  toOpenPositionPnl,
   toTraderPosition,
+  tokenAddressesMatch,
   TraderPositionHttpError,
   TraderPositionMalformedError,
 } from './traderPositionService';
@@ -60,6 +66,7 @@ const jsonResponse = (status: number, body: unknown): Response =>
     ok: status >= 200 && status < 300,
     status,
     json: async () => body,
+    text: async () => JSON.stringify(body),
   }) as Response;
 
 describe('getTraderPosition', () => {
@@ -276,5 +283,189 @@ describe('toTraderPosition', () => {
     expect(() =>
       toTraderPosition({ ...positionBody, perpPositionType: 'both' }),
     ).toThrow(TraderPositionMalformedError);
+  });
+});
+
+const openPositionBody = {
+  positionAmount: 90,
+  isOpen: true,
+  boughtUsd: 100,
+  soldUsd: 0,
+  realizedPnl: 10,
+  costBasis: 80,
+  currentValueUSD: 150,
+  pnlValueUsd: 80,
+  pnlPercent: 12,
+  pnlStatus: 'ready',
+};
+
+describe('getOpenPositionForAsset', () => {
+  const walletAddress = '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9';
+  const assetId = 'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933';
+
+  beforeEach(() => {
+    mockCall.mockReset();
+    mockCall.mockResolvedValue('test-token');
+    mockFetch.mockReset();
+    global.fetch = mockFetch;
+  });
+
+  it('requests the wallet open position for the CAIP-19 asset', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(200, openPositionBody));
+
+    await getOpenPositionForAsset(walletAddress, assetId);
+
+    expect(openPositionUrl(walletAddress, assetId)).toBe(
+      `https://social.test/api/v2/traders/${walletAddress}/eip155%3A1%2Ferc20%3A0x6982508145454ce325ddbe47a25d4ec3d2311933/open`,
+    );
+    expect(mockFetch).toHaveBeenCalledWith(
+      `https://social.test/api/v2/traders/${walletAddress}/eip155%3A1%2Ferc20%3A0x6982508145454ce325ddbe47a25d4ec3d2311933/open`,
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer test-token' },
+      }),
+    );
+  });
+
+  it('reads the PnL payload and has no position row to share', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(200, openPositionBody));
+
+    const result = await getOpenPositionForAsset(walletAddress, assetId);
+
+    expect(result.position).toBeNull();
+    expect(result.pnl).toEqual(openPositionBody);
+  });
+
+  it('reads an in-progress payload that omits market prices', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(200, {
+        pnlStatus: 'in-progress',
+        positionAmount: 0,
+        isOpen: false,
+        boughtUsd: 0,
+        soldUsd: 0,
+        realizedPnl: 0,
+        costBasis: 0,
+      }),
+    );
+
+    const result = await getOpenPositionForAsset(walletAddress, assetId);
+
+    expect(result.pnl.pnlStatus).toBe('in-progress');
+    expect(result.pnl.currentValueUSD).toBeNull();
+    expect(result.pnl.pnlValueUsd).toBeNull();
+    expect(result.pnl.pnlPercent).toBeNull();
+  });
+
+  it('matches an EVM address ignoring case and a Solana address exactly', () => {
+    expect(tokenAddressesMatch('0xAbC', '0xabc')).toBe(true);
+    expect(tokenAddressesMatch('Es9vMFrzaCER', 'es9vmfrzacer')).toBe(false);
+    expect(
+      findPositionByTokenAddress(
+        [
+          {
+            ...toTraderPosition(positionBody),
+            tokenAddress: 'Es9vMFrzaCER',
+          },
+        ],
+        'Es9vMFrzaCER',
+      )?.tokenAddress,
+    ).toBe('Es9vMFrzaCER');
+  });
+
+  it('keeps an in-progress payload', () => {
+    const result = toOpenPositionPnl({
+      ...openPositionBody,
+      pnlStatus: 'in-progress',
+      currentValueUSD: null,
+    });
+
+    expect(result.pnlStatus).toBe('in-progress');
+    expect(result.currentValueUSD).toBeNull();
+  });
+
+  it('throws when pnlStatus is missing', () => {
+    expect(() =>
+      toOpenPositionPnl({ ...openPositionBody, pnlStatus: 'backfilling' }),
+    ).toThrow(TraderPositionMalformedError);
+  });
+
+  it('throws the HTTP status when the route is not ready', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(404, { message: 'missing' }));
+
+    await expect(
+      getOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'),
+    ).rejects.toBeInstanceOf(TraderPositionHttpError);
+  });
+
+  it('treats a request with no HTTP response as an unreachable endpoint', () => {
+    expect(
+      isOpenPositionEndpointUnreachable(
+        new TypeError('Network request failed'),
+      ),
+    ).toBe(true);
+    expect(
+      isOpenPositionEndpointUnreachable(new TraderPositionHttpError(404, '')),
+    ).toBe(false);
+    expect(
+      isOpenPositionEndpointUnreachable(
+        new TraderPositionHttpError(
+          404,
+          JSON.stringify({
+            message:
+              'Cannot GET /api/v2/traders/0x1/eip155%3A1%2Ferc20%3A0xabc/open',
+            error: 'Not Found',
+            statusCode: 404,
+          }),
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isOpenPositionEndpointUnreachable(
+        new TraderPositionHttpError(
+          404,
+          JSON.stringify({
+            errorMessage:
+              'No open position found for 0x1 in eip155:1/erc20:0xabc',
+          }),
+        ),
+      ),
+    ).toBe(false);
+    expect(
+      isOpenPositionEndpointUnreachable(
+        Object.assign(new Error('aborted'), { name: 'AbortError' }),
+      ),
+    ).toBe(false);
+  });
+
+  it('uses stand-in figures when the route is not registered', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(404, {
+        message: `Cannot GET /api/v2/traders/${walletAddress}/eip155%3A1%2Ferc20%3A0x6982508145454ce325ddbe47a25d4ec3d2311933/open`,
+        error: 'Not Found',
+        statusCode: 404,
+      }),
+    );
+
+    const result = await getOpenPositionForAsset(walletAddress, assetId);
+
+    expect(result.pnl.isOpen).toBe(true);
+    expect(result.pnl.pnlStatus).toBe('ready');
+    expect(result.earliestTradeAt).toEqual(expect.any(Number));
+  });
+
+  it('uses stand-in figures when the request never gets a response', async () => {
+    mockFetch.mockRejectedValue(new TypeError('Network request failed'));
+
+    const result = await getOpenPositionForAsset(walletAddress, assetId);
+
+    expect(result.pnl).toEqual(
+      expect.objectContaining({
+        isOpen: true,
+        pnlStatus: 'ready',
+        positionAmount: 713930,
+        currentValueUSD: 150,
+      }),
+    );
+    expect(result.earliestTradeAt).toEqual(expect.any(Number));
   });
 });

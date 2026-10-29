@@ -4,6 +4,14 @@ import { fetchSentinelFeeTokens } from '.';
 const MOCK_BASE_URL = 'https://orders.test';
 const USDC_ASSET_ID =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const USDC_TOKEN = {
+  assetId: USDC_ASSET_ID,
+  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  symbol: 'USDC',
+  decimals: 6,
+  name: 'USD Coin',
+  iconUrl: 'https://static.cx.metamask.io/usdc.png',
+};
 
 jest.mock('../limitOrders/getLimitOrdersBaseUrl', () => ({
   getLimitOrdersBaseUrl: () => MOCK_BASE_URL,
@@ -27,7 +35,7 @@ describe('fetchSentinelFeeTokens', () => {
     jest.clearAllMocks();
     fetchSpy = jest
       .spyOn(global, 'fetch')
-      .mockResolvedValue(createResponse({ 'eip155:1': [USDC_ASSET_ID] }));
+      .mockResolvedValue(createResponse({ 'eip155:1': [USDC_TOKEN] }));
   });
 
   afterEach(() => {
@@ -52,11 +60,11 @@ describe('fetchSentinelFeeTokens', () => {
     expect(requestInit?.headers).not.toHaveProperty('Content-Type');
   });
 
-  it('returns normalized Sentinel fee tokens', async () => {
+  it('returns Sentinel fee-token metadata', async () => {
     const result = await fetchSentinelFeeTokens();
 
     expect(result).toStrictEqual({
-      'eip155:1': [{ assetId: USDC_ASSET_ID, symbol: 'DUM8' }],
+      'eip155:1': [USDC_TOKEN],
     });
   });
 
@@ -69,10 +77,14 @@ describe('fetchSentinelFeeTokens', () => {
   });
 
   it('throws when the API returns a malformed payload', async () => {
-    fetchSpy.mockResolvedValue(createResponse({ 'eip155:1': ['not-caip'] }));
+    fetchSpy.mockResolvedValue(
+      createResponse({
+        'eip155:1': [{ ...USDC_TOKEN, assetId: 'not-caip' }],
+      }),
+    );
 
     await expect(fetchSentinelFeeTokens()).rejects.toThrow(
-      'invalid asset ID for eip155:1',
+      /Invalid Sentinel fee tokens response/u,
     );
   });
 });

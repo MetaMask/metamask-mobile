@@ -218,6 +218,16 @@ describe('BaseWalletAdapter', () => {
       expect(result.recommendedAction).toBe('none');
     });
 
+    it('hides Add when the card requires activation', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('requireActivation');
+
+      const result = await adapter.getEligibility('1234');
+
+      expect(result.canAddCard).toBe(false);
+      expect(result.recommendedAction).toBe('none');
+      expect(result.existingCardStatus).toBe('requires_activation');
+    });
+
     it('returns add_card when card not found', async () => {
       mockGetCardStatusBySuffix.mockResolvedValue('not found');
 

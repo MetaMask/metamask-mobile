@@ -4,8 +4,9 @@ import {
   ButtonVariant,
   IconName,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { strings } from '../../../../../locales/i18n';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 
 export interface CopyTradeButtonProps {
   testID?: string;
@@ -15,20 +16,24 @@ export interface CopyTradeButtonProps {
 const CopyTradeButton: React.FC<CopyTradeButtonProps> = ({
   testID,
   onPress,
-}) => (
-  <Button
-    variant={ButtonVariant.Secondary}
-    size={ButtonSize.Md}
-    isFullWidth
-    // Squared off to the card's own corner radius rather than the pill shape the
-    // design system defaults to, so the CTA reads as part of the card.
-    twClassName="rounded-2xl"
-    startIconName={IconName.SwapHorizontal}
-    onPress={onPress ?? (() => undefined)}
-    testID={testID}
-  >
-    {strings('social_leaderboard.feed.position_card.copy_trade')}
-  </Button>
-);
+}) => {
+  const handlePress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
+    onPress?.();
+  }, [onPress]);
+
+  return (
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Md}
+      isFullWidth
+      startIconName={IconName.SwapHorizontal}
+      onPress={handlePress}
+      testID={testID}
+    >
+      {strings('social_leaderboard.feed.position_card.copy_trade')}
+    </Button>
+  );
+};
 
 export default CopyTradeButton;

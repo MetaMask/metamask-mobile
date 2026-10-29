@@ -1,4 +1,4 @@
-import type { TraderPosition, UnrealizedPnl } from './types';
+import type { OpenPositionPnl, TraderPosition, UnrealizedPnl } from './types';
 
 const EMPTY_PNL: UnrealizedPnl = { usd: null, percent: null };
 
@@ -26,6 +26,28 @@ export const computeUnrealizedPnl = (
     return EMPTY_PNL;
   }
 
+  if (!position.isOpen) {
+    return { usd: 0, percent: null };
+  }
+
+  if (position.currentValueUSD == null) {
+    return EMPTY_PNL;
+  }
+
+  const usd = position.currentValueUSD - position.costBasis;
+  const percent =
+    position.costBasis > 0 ? (usd / position.costBasis) * 100 : null;
+
+  return { usd, percent };
+};
+
+/**
+ * Unrealized PnL from the open-position route. That payload has no perp fields.
+ * `unrealizedPnlUsd = currentValueUSD - costBasis`.
+ */
+export const computeOpenUnrealizedPnl = (
+  position: Pick<OpenPositionPnl, 'isOpen' | 'currentValueUSD' | 'costBasis'>,
+): UnrealizedPnl => {
   if (!position.isOpen) {
     return { usd: 0, percent: null };
   }

@@ -7,6 +7,7 @@ import { APP_PACKAGE_IDS } from './Constants.ts';
 import { getDriver, executeMobileDeepLink } from './AppiumUtilities';
 import { PlatformDetector } from './PlatformLocator';
 import AppiumContextHelpers from './AppiumContextHelpers';
+import { tapWebIdFallingBackToDomClick } from './IosWebViewTap.ts';
 import { createAppiumLogger } from './appiumLogger.ts';
 import {
   adbDeviceArgs,
@@ -158,6 +159,51 @@ class CdpSession {
     }
 
     return result.result?.value as T;
+  }
+
+  /**
+   * Like {@link evaluate}, but a destroyed execution context, CDP error, or
+   * timeout resolves to `null` so a reload poll can continue until its deadline.
+   */
+  async evaluateOptional<T>(expression: string): Promise<T | null> {
+    if (this.ws.readyState !== WsClient.OPEN) {
+      return null;
+    }
+
+    const id = this.nextId++;
+    return new Promise<T | null>((resolve) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        resolve(null);
+      }, 15_000);
+      this.pending.set(id, {
+        resolve: (value) => {
+          clearTimeout(timer);
+          const result = value as CdpEvaluateResult;
+          if (result.exceptionDetails) {
+            resolve(null);
+            return;
+          }
+          resolve((result.result?.value ?? null) as T | null);
+        },
+        reject: () => {
+          clearTimeout(timer);
+          resolve(null);
+        },
+      });
+      this.ws.send(
+        JSON.stringify({
+          id,
+          method: 'Runtime.evaluate',
+          params: {
+            expression,
+            returnByValue: true,
+            awaitPromise: true,
+            userGesture: false,
+          },
+        }),
+      );
+    });
   }
 
   close(): void {
@@ -928,7 +974,8 @@ export default class ChromeCdpHelpers {
    * Click an element by HTML `id` in the MetaMask in-app WebView.
    * Waits until the control exists and is not disabled (test-dapp buttons start
    * disabled until connect / contract deploy), then clicks.
-   * Android: CDP trusted click. iOS: Appium WebView context + element.click().
+   * Android: CDP trusted click. iOS: Appium WebView context, with a page-script
+   * click when LavaMoat scuttling blocks the remote-debugger element click.
    */
   static async clickByIdInWebView(
     dappUrl: string,
@@ -962,7 +1009,9 @@ export default class ChromeCdpHelpers {
       await el.waitForExist({ timeout: timeoutMs });
       await el.waitForEnabled({ timeout: timeoutMs });
       await el.scrollIntoView();
-      await el.click();
+      await tapWebIdFallingBackToDomClick(elementId, async () => {
+        await el.click();
+      });
       await AppiumContextHelpers.switchToNativeContext();
       return true;
     } catch {
@@ -1050,7 +1099,8 @@ export default class ChromeCdpHelpers {
   }
 
   /**
-   * Poll until the element's `textContent` is non-empty (truthy).
+   * Poll until the element's `textContent` is non-empty (truthy), optionally
+   * requiring `includes` as a substring (trimmed).
    * Android: single CDP session held open for the full duration.
    * iOS: Appium WebView context held open for the full duration.
    */
@@ -1058,7 +1108,18 @@ export default class ChromeCdpHelpers {
     dappUrl: string,
     elementId: string,
     timeoutMs = 10_000,
+    options?: { includes?: string },
   ): Promise<string | null> {
+    const textMatches = (text: string | null): boolean => {
+      if (!text) {
+        return false;
+      }
+      if (!options?.includes) {
+        return true;
+      }
+      return text.trim().includes(options.includes);
+    };
+
     if (PlatformDetector.isAndroid()) {
       try {
         return await this.withMetaMaskWebViewSession(
@@ -1066,13 +1127,13 @@ export default class ChromeCdpHelpers {
           async (session) => {
             const deadline = Date.now() + timeoutMs;
             while (Date.now() < deadline) {
-              const text = await session.evaluate<string | null>(
+              const text = await session.evaluateOptional<string>(
                 `(() => {
                 const el = document.getElementById(${JSON.stringify(elementId)});
                 return el ? (el.textContent ?? null) : null;
               })()`,
               );
-              if (text) return text;
+              if (textMatches(text)) return text;
               await new Promise<void>((r) => setTimeout(r, POLL_MS));
             }
             return null;
@@ -1091,7 +1152,7 @@ export default class ChromeCdpHelpers {
           const text = (await getDriver().execute(
             `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
           )) as string | null;
-          if (text) {
+          if (textMatches(text)) {
             await AppiumContextHelpers.switchToNativeContext();
             return text;
           }

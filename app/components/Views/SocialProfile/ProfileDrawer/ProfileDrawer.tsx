@@ -13,6 +13,7 @@ import {
   FontWeight,
   HeaderBase,
   IconName,
+  Skeleton,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -20,8 +21,24 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { strings } from '../../../../../locales/i18n';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../hooks/useSupportConsent';
+import { useMetamaskOrangeEntry } from '../../../../hooks/useMetamaskOrangeEntry';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getBetaSupportUrl } from '../../../../util/support/betaSupportUrl';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import ProfileAvatar from '../../SocialLeaderboard/MyProfileView/components/ProfileAvatar';
+import {
+  useMyProfile,
+  type MySocialProfile,
+} from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
+/* eslint-enable import-x/no-restricted-paths */
 import {
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
@@ -31,10 +48,20 @@ import { useQRScanner } from '../../../hooks/useQRScanner';
 import { ProfileDrawerSelectorsIDs } from './ProfileDrawer.testIds';
 import ProfileDrawerMenuRow from './ProfileDrawerMenuRow';
 
+const formatProfileHandle = (profile: MySocialProfile): string => {
+  const raw = profile.handle.trim() || profile.displayName.trim();
+  if (!raw) {
+    return '';
+  }
+  return raw.startsWith('@') ? raw : `@${raw}`;
+};
+
 const ProfileDrawer = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { openQRScanner } = useQRScanner();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   // The list stays populated while notifications are off, so gate the badge on
   // the feature flag and the user's setting, as AccountsMenu does.
@@ -58,9 +85,8 @@ const ProfileDrawer = () => {
   }, [navigation]);
 
   const handleSettings = useCallback(() => {
-    // SettingsFlow opens on the accounts menu, so name the nested screen.
     navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.ROOT,
+      screen: Routes.ACCOUNTS_MENU_VIEW,
     });
   }, [navigation]);
 
@@ -71,18 +97,58 @@ const ProfileDrawer = () => {
     });
   }, [navigation]);
 
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  // Offline or low-memory devices stay on the profile already in the
+  // controller. A refresh is a network fetch, so those cells skip it.
+  const canRefreshProfile = networkTier !== 'NONE' && hardwareTier !== 'LOW';
+  const { profile, isLoading } = useMyProfile({ enabled: canRefreshProfile });
+
   const handleCreateProfile = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE);
+    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
-  // TODO: wire Subscriptions and Help and support once those screens exist.
-  const handlePress = useCallback(() => undefined, []);
+  const handleOpenProfile = useCallback(() => {
+    navigateToSocialV1Profile(navigation);
+  }, [navigation]);
+
+  const {
+    showOrangeEntry,
+    label: orangeLabel,
+    onPress: onPressOrange,
+  } = useMetamaskOrangeEntry();
+
+  const handleHelpAndSupport = useCallback(() => {
+    const openWebview = (url: string) =>
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url,
+          title: strings('app_settings.contact_support'),
+        },
+      });
+
+    const trackGetHelp = () =>
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+
+    const betaSupportUrl = getBetaSupportUrl();
+
+    if (betaSupportUrl) {
+      openWebview(betaSupportUrl);
+      trackGetHelp();
+      return;
+    }
+
+    openSupportWithConsent(openWebview, METAMASK_SUPPORT_URL, trackGetHelp);
+  }, [navigation, openSupportWithConsent, trackEvent, createEventBuilder]);
 
   const menuItems: {
     iconName: IconName;
     label: string;
     badgeCount?: number;
-    onPress?: () => void;
+    onPress: () => void;
     testID: string;
   }[] = [
     {
@@ -98,11 +164,16 @@ const ProfileDrawer = () => {
       onPress: handleActivity,
       testID: ProfileDrawerSelectorsIDs.ACTIVITY_ROW,
     },
-    {
-      iconName: IconName.Sparkle,
-      label: strings('profile_drawer.subscriptions'),
-      testID: ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
-    },
+    ...(showOrangeEntry
+      ? [
+          {
+            iconName: IconName.MetamaskFoxOutline,
+            label: orangeLabel,
+            onPress: onPressOrange,
+            testID: ProfileDrawerSelectorsIDs.METAMASK_ORANGE,
+          },
+        ]
+      : []),
     {
       iconName: IconName.Setting,
       label: strings('profile_drawer.settings'),
@@ -112,6 +183,7 @@ const ProfileDrawer = () => {
     {
       iconName: IconName.Question,
       label: strings('profile_drawer.help_and_support'),
+      onPress: handleHelpAndSupport,
       testID: ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW,
     },
   ];
@@ -149,27 +221,90 @@ const ProfileDrawer = () => {
         contentContainerStyle={tw.style('pb-8')}
         testID={ProfileDrawerSelectorsIDs.CONTENT}
       >
-        <Pressable
-          onPress={handleCreateProfile}
-          accessibilityRole="button"
-          accessibilityLabel={strings('profile_drawer.create_profile')}
-          testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE}
-          style={({ pressed }) =>
-            tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
-          }
-        >
-          <Box alignItems={BoxAlignItems.Center} gap={3}>
-            <AvatarIcon
-              iconName={IconName.UserCircleAdd}
-              size={AvatarIconSize.Xl}
-              severity={AvatarIconSeverity.Neutral}
-              testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR}
-            />
-            <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
-              {strings('profile_drawer.create_profile')}
-            </Text>
+        {profile ? (
+          <Pressable
+            onPress={handleOpenProfile}
+            accessibilityRole="button"
+            accessibilityLabel={formatProfileHandle(profile)}
+            testID={ProfileDrawerSelectorsIDs.PROFILE_IDENTITY}
+            style={({ pressed }) =>
+              tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
+            }
+          >
+            <Box alignItems={BoxAlignItems.Center} gap={3}>
+              <ProfileAvatar
+                imageUrl={profile.imageUrl}
+                avatarPresetId={profile.avatarPresetId}
+                avatarBackgroundId={profile.avatarBackgroundId}
+                size="lg"
+                testID={ProfileDrawerSelectorsIDs.PROFILE_AVATAR}
+              />
+              <Box alignItems={BoxAlignItems.Center} gap={1} accessible={false}>
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  fontWeight={FontWeight.Bold}
+                  testID={ProfileDrawerSelectorsIDs.PROFILE_HANDLE}
+                >
+                  {formatProfileHandle(profile)}
+                </Text>
+              </Box>
+            </Box>
+          </Pressable>
+        ) : isLoading ? (
+          // Mirrors the create profile block so the menu rows don't shift once
+          // loading settles.
+          <Box
+            alignItems={BoxAlignItems.Center}
+            twClassName="px-4 pb-6 pt-2"
+            accessible={false}
+            testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING}
+          >
+            <Box alignItems={BoxAlignItems.Center} gap={3}>
+              <Skeleton hideChildren twClassName="rounded-full">
+                <AvatarIcon
+                  iconName={IconName.UserCircleAdd}
+                  size={AvatarIconSize.Xl}
+                  severity={AvatarIconSeverity.Neutral}
+                  testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING_AVATAR}
+                />
+              </Skeleton>
+              <Skeleton hideChildren>
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  fontWeight={FontWeight.Bold}
+                  testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING_HEADING}
+                >
+                  {strings('profile_drawer.create_profile')}
+                </Text>
+              </Skeleton>
+            </Box>
           </Box>
-        </Pressable>
+        ) : (
+          <Pressable
+            onPress={handleCreateProfile}
+            accessibilityRole="button"
+            accessibilityLabel={strings('profile_drawer.create_profile')}
+            testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE}
+            style={({ pressed }) =>
+              tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
+            }
+          >
+            <Box alignItems={BoxAlignItems.Center} gap={3}>
+              <AvatarIcon
+                iconName={IconName.UserCircleAdd}
+                size={AvatarIconSize.Xl}
+                severity={AvatarIconSeverity.Neutral}
+                testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR}
+              />
+              <Text
+                variant={TextVariant.HeadingLg}
+                fontWeight={FontWeight.Bold}
+              >
+                {strings('profile_drawer.create_profile')}
+              </Text>
+            </Box>
+          </Pressable>
+        )}
 
         <Box>
           {menuItems.map(({ iconName, label, badgeCount, onPress, testID }) => (
@@ -178,7 +313,7 @@ const ProfileDrawer = () => {
               iconName={iconName}
               label={label}
               badgeCount={badgeCount}
-              onPress={onPress ?? handlePress}
+              onPress={onPress}
               testID={testID}
             />
           ))}

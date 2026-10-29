@@ -8,15 +8,16 @@ import {
   NativeSyntheticEvent,
   LayoutChangeEvent,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BottomSheetFooter,
   ButtonSize,
   ContentVariant,
   FontWeight,
-  HeaderStandard,
   ListItemMultiSelect,
   Text,
   TextButton,
@@ -24,6 +25,9 @@ import {
   TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
@@ -83,6 +87,11 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const metrics = useAnalytics();
 
   useScreenPerformance({
@@ -384,86 +393,101 @@ const OptinMetrics = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
-      <HeaderStandard includesTopInset title="" />
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+        title=""
+      />
       <ScrollView
-        style={tw.style('flex-1')}
+        style={[tw.style('flex-1'), { marginTop: headerInset }]}
         scrollEventThrottle={150}
         onContentSizeChange={onContentSizeChange}
         onLayout={onLayout}
         onScroll={onScroll}
         testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
-        <Box twClassName="flex-1 gap-4 px-4 pb-6">
-          <TitleStandard
-            title={strings('privacy_policy.description_title')}
-            bottomLabel={strings('privacy_policy.description_content_1')}
-            testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
-            bottomLabelProps={{
-              testID:
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
-            }}
-          />
-          <ListItemMultiSelect
-            variant={ContentVariant.MultiLine}
-            isSelected={isBasicUsageChecked}
-            onPress={handleBasicUsageToggle}
-            twClassName="rounded-xl border border-muted"
-            title={strings('privacy_policy.gather_basic_usage_title')}
-            description={
+        <Box twClassName="flex-1 px-4 pb-6">
+          <Box marginBottom={6}>
+            <TitleStandard
+              title={strings('privacy_policy.description_title')}
+              bottomLabel={strings('privacy_policy.description_content_1')}
+              testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
+              bottomLabelProps={{
+                testID:
+                  MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
+              }}
+            />
+          </Box>
+          <Box twClassName="gap-4">
+            <ListItemMultiSelect
+              variant={ContentVariant.MultiLine}
+              isSelected={isBasicUsageChecked}
+              onPress={handleBasicUsageToggle}
+              twClassName="rounded-xl border border-muted"
+              title={strings('privacy_policy.gather_basic_usage_title')}
+              description={
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('privacy_policy.gather_basic_usage_description') +
+                    ' '}
+                  <TextButton
+                    variant={TextVariant.BodySm}
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      openLearnMore();
+                    }}
+                  >
+                    {strings('privacy_policy.gather_basic_usage_learn_more')}
+                  </TextButton>
+                </Text>
+              }
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
+              }
+            />
+            <Box twClassName="gap-2">
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
-                {strings('privacy_policy.gather_basic_usage_description') + ' '}
-                <TextButton
-                  variant={TextVariant.BodySm}
-                  onPress={(e) => {
-                    e?.stopPropagation?.();
-                    openLearnMore();
-                  }}
-                >
-                  {strings('privacy_policy.gather_basic_usage_learn_more')}
-                </TextButton>
+                {strings('privacy_policy.stay_informed')}
               </Text>
-            }
-            testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX}
-          />
-          <Box twClassName="gap-2">
+              <ListItemMultiSelect
+                variant={ContentVariant.MultiLine}
+                isSelected={isMarketingChecked}
+                onPress={handleMarketingToggle}
+                disabled={isMarketingDisabled}
+                twClassName={`rounded-xl border border-muted ${
+                  isMarketingDisabled ? 'opacity-50' : ''
+                }`}
+                title={strings('privacy_policy.checkbox_marketing')}
+                description={strings('privacy_policy.checkbox')}
+                testID={
+                  MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
+                }
+              />
+            </Box>
             <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
+              variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              {strings('privacy_policy.stay_informed')}
+              {strings('privacy_policy.settings')}{' '}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={goToDefaultSettings}
+              >
+                {strings('privacy_policy.settings_link')}
+              </TextButton>
             </Text>
-            <ListItemMultiSelect
-              variant={ContentVariant.MultiLine}
-              isSelected={isMarketingChecked}
-              onPress={handleMarketingToggle}
-              disabled={isMarketingDisabled}
-              twClassName={`rounded-xl border border-muted ${
-                isMarketingDisabled ? 'opacity-50' : ''
-              }`}
-              title={strings('privacy_policy.checkbox_marketing')}
-              description={strings('privacy_policy.checkbox')}
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
-              }
-            />
           </Box>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('privacy_policy.settings')}{' '}
-            <TextButton
-              variant={TextVariant.BodySm}
-              onPress={goToDefaultSettings}
-            >
-              {strings('privacy_policy.settings_link')}
-            </TextButton>
-          </Text>
         </Box>
       </ScrollView>
-      <BottomSheetFooter
+      <FooterGlass
         twClassName="py-2"
         primaryButtonProps={{
           children: strings('privacy_policy.continue'),

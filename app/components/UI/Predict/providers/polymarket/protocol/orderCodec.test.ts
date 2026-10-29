@@ -4,7 +4,10 @@ import { Side, type OrderPreview } from '../../../types';
 import type { Signer } from '../../types';
 import { HASH_ZERO_BYTES32, POLYGON_MAINNET_CHAIN_ID } from '../constants';
 import { OrderType, SignatureType } from '../types';
-import { POLYMARKET_V2_PROTOCOL } from './definitions';
+import {
+  POLYMARKET_POSITIONS_PROTOCOL,
+  POLYMARKET_V2_PROTOCOL,
+} from './definitions';
 import {
   buildProtocolUnsignedOrder,
   encodeWrap,
@@ -97,6 +100,21 @@ describe('polymarket protocol order codec', () => {
       'side',
       'signatureType',
     ]);
+  });
+
+  it('uses an explicit per-order builder code instead of the protocol default', () => {
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
+
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview,
+      makerAddress: ownerAddress,
+      signerAddress: safeAddress,
+      builderCode: membershipBuilderCode,
+    });
+
+    expect(order.builder).toBe(membershipBuilderCode);
   });
 
   it('builds a v2 order with 0.0025 tick size from ROUNDING_CONFIG', () => {
@@ -275,6 +293,115 @@ describe('polymarket protocol order codec', () => {
       },
       SignTypedDataVersion.V4,
     );
+  });
+
+  describe('positions protocol order signing', () => {
+    const EXCHANGE_V3 = '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa';
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
+
+    it('builds a positions order with the same field shape as the CTF order', () => {
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        preview,
+        makerAddress: safeAddress,
+        signerAddress: ownerAddress,
+        nowInSeconds: 456,
+      });
+
+      expect(order.tokenId).toBe(preview.outcomeTokenId);
+      expect(Object.keys(order)).toEqual([
+        'salt',
+        'maker',
+        'signer',
+        'tokenId',
+        'makerAmount',
+        'takerAmount',
+        'expiration',
+        'timestamp',
+        'metadata',
+        'builder',
+        'side',
+        'signatureType',
+      ]);
+    });
+
+    it('uses an explicit per-order builder code for a positions order', () => {
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        preview,
+        makerAddress: safeAddress,
+        signerAddress: ownerAddress,
+        builderCode: membershipBuilderCode,
+      });
+
+      expect(order.builder).toBe(membershipBuilderCode);
+    });
+
+    it('uses the positions protocol builder when no override is provided', () => {
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        preview,
+        makerAddress: safeAddress,
+        signerAddress: ownerAddress,
+      });
+
+      expect(order.builder).toBe(
+        POLYMARKET_POSITIONS_PROTOCOL.order.getBuilderCode(),
+      );
+    });
+
+    it('signs positions orders with domain version 3 against ExchangeV3', async () => {
+      const { signer, signTypedMessage } = createMockSigner();
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        preview,
+        makerAddress: safeAddress,
+        signerAddress: ownerAddress,
+        nowInSeconds: 456,
+      });
+
+      await expect(
+        signProtocolOrder({
+          protocol: POLYMARKET_POSITIONS_PROTOCOL,
+          signer,
+          order,
+          verifyingContract: EXCHANGE_V3,
+        }),
+      ).resolves.toBe(rawSignature);
+
+      expect(signTypedMessage).toHaveBeenCalledWith(
+        {
+          from: ownerAddress,
+          data: expect.objectContaining({
+            primaryType: 'Order',
+            domain: {
+              name: 'Polymarket CTF Exchange',
+              version: '3',
+              chainId: POLYGON_MAINNET_CHAIN_ID,
+              verifyingContract: EXCHANGE_V3,
+            },
+            message: order,
+          }),
+        },
+        SignTypedDataVersion.V4,
+      );
+    });
+
+    it('uses ExchangeV3 as the verifying contract for standard and negRisk positions orders', () => {
+      expect(
+        getProtocolVerifyingContract({
+          protocol: POLYMARKET_POSITIONS_PROTOCOL,
+          negRisk: false,
+        }),
+      ).toBe(EXCHANGE_V3);
+      expect(
+        getProtocolVerifyingContract({
+          protocol: POLYMARKET_POSITIONS_PROTOCOL,
+          negRisk: true,
+        }),
+      ).toBe(EXCHANGE_V3);
+    });
   });
 
   it('serializes signed orders into the relayer body shape', () => {

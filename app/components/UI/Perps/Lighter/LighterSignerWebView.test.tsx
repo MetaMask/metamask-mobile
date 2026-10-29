@@ -71,7 +71,25 @@ jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: { KeyringController: { isUnlocked: jest.fn(() => true) } },
-    controllerMessenger: { subscribe: jest.fn(), tryUnsubscribe: jest.fn() },
+    controllerMessenger: {
+      subscribe: jest.fn(),
+      tryUnsubscribe: jest.fn(),
+      call: jest.fn((action: string) => {
+        const account = {
+          address: `0x${'1'.repeat(40)}`,
+          type: 'eip155:eoa',
+        };
+        if (action === 'AccountsController:getSelectedAccount') {
+          return account;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [account];
+        }
+        return undefined;
+      }),
+    },
   },
 }));
 

@@ -11,6 +11,7 @@ import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 const ADDITIONAL_BUTTONS = [
   { value: 10, label: '10%' },
@@ -55,6 +56,19 @@ export function EditAmountKeyboard({
     [enableEmptyValueString, onChange],
   );
 
+  const handlePercentagePress = useCallback(
+    (percentage: number) => {
+      playImpact(ImpactMoment.QuickAmountSelection).catch(() => undefined);
+      onPercentagePress(percentage);
+    },
+    [onPercentagePress],
+  );
+
+  const handleDonePress = useCallback(() => {
+    playImpact(ImpactMoment.KeypadKey).catch(() => undefined);
+    onDonePress?.();
+  }, [onDonePress]);
+
   return (
     <View style={styles.wrapper}>
       {additionalRow}
@@ -71,7 +85,7 @@ export function EditAmountKeyboard({
               key={`${val}-${label}`}
               testID={`percentage-button-${val}`}
               style={styles.percentageButton}
-              onPress={() => onPercentagePress(val)}
+              onPress={() => handlePercentagePress(val)}
               variant={ButtonVariant.Secondary}
             >
               {label}
@@ -80,7 +94,7 @@ export function EditAmountKeyboard({
           {!hideDoneButton && onDonePress && (
             <Button
               style={styles.percentageButton}
-              onPress={onDonePress}
+              onPress={handleDonePress}
               variant={ButtonVariant.Secondary}
             >
               {strings('confirm.edit_amount_done')}

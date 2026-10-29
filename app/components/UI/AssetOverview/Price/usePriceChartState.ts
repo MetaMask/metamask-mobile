@@ -18,9 +18,7 @@ import {
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenI } from '../../Tokens/types';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
-import { Hex } from '@metamask/utils';
-import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
+import { resolveOhlcvChartAssetId } from './resolveOhlcvChartAssetId';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
@@ -121,7 +119,7 @@ const getChangePercentColor = (
 };
 
 export interface UsePriceChartStateParams {
-  asset: TokenI;
+  asset: TokenI & { caipAssetId?: string };
   currentPrice: number;
   currentCurrency: string;
   priceDiff: number;
@@ -352,25 +350,15 @@ export const usePriceChartState = ({
     [timeRange, setTimePeriod, trackEvent, createEventBuilder],
   );
 
-  const assetId = useMemo(() => {
-    // Normalize Polygon's native token address (0x...001010) to zero address
-    // before formatting to CAIP-19 assetId. formatAddressToAssetId will convert
-    // zero address to proper SLIP-44 format (e.g., eip155:137/slip44:966 for Polygon)
-    const normalizedAddress = normalizeTokenAddress(
-      asset.address,
-      asset.chainId as Hex,
-    );
-
-    try {
-      return (
-        formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
-      );
-    } catch {
-      // formatAddressToAssetId can throw for chains not supported by XChain Swaps/Bridge
-      // (e.g., Linea Sepolia, custom networks). Fall back to empty string
-      return '';
-    }
-  }, [asset.address, asset.chainId]);
+  const assetId = useMemo(
+    () =>
+      resolveOhlcvChartAssetId({
+        caipAssetId: asset.caipAssetId,
+        address: asset.address,
+        chainId: asset.chainId,
+      }),
+    [asset.caipAssetId, asset.address, asset.chainId],
+  );
   const config = TIME_RANGE_CONFIGS[timeRange];
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
 

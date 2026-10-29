@@ -1,10 +1,18 @@
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { usePredictOrderPreview } from './usePredictOrderPreview';
+import {
+  usePredictOrderPreview,
+  type RefetchPreviewResult,
+} from './usePredictOrderPreview';
 import { OrderPreview, PreviewOrderParams, Side } from '../types';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
+import { PREDICT_ERROR_CODES } from '../constants/errors';
 import Logger from '../../../../util/Logger';
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
 
 const mockPreviewOrder = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -598,6 +606,100 @@ describe('usePredictOrderPreview', () => {
       expect(mockPreviewOrder).toHaveBeenCalledWith(
         expect.objectContaining({ marketId: 'market-2' }),
       );
+    });
+  });
+
+  describe('refetchPreview', () => {
+    it('re-fetches the live book and resolves with the fresh preview', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () => usePredictOrderPreview(defaultParams),
+        { wrapper: Wrapper },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(mockPreview);
+      });
+
+      const refreshedPreview = { ...mockPreview, sharePrice: 0.62 };
+      mockPreviewOrder.mockResolvedValue(refreshedPreview);
+
+      let refetchResult: RefetchPreviewResult | undefined;
+      await act(async () => {
+        refetchResult = await result.current.refetchPreview();
+      });
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+      expect(refetchResult).toEqual({
+        status: 'ok',
+        preview: refreshedPreview,
+      });
+    });
+
+    it('resolves with unavailable when the re-fetch fails', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () => usePredictOrderPreview(defaultParams),
+        { wrapper: Wrapper },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(mockPreview);
+      });
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+      mockPreviewOrder.mockRejectedValue(new Error('API Error'));
+
+      let refetchResult: RefetchPreviewResult | undefined;
+      await act(async () => {
+        refetchResult = await result.current.refetchPreview();
+      });
+
+      expect(refetchResult).toEqual({ status: 'unavailable' });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('resolves with no_match when the book cannot match the order', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () => usePredictOrderPreview(defaultParams),
+        { wrapper: Wrapper },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(mockPreview);
+      });
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+      mockPreviewOrder.mockRejectedValue(
+        new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY),
+      );
+
+      let refetchResult: RefetchPreviewResult | undefined;
+      await act(async () => {
+        refetchResult = await result.current.refetchPreview();
+      });
+
+      expect(refetchResult).toEqual({ status: 'no_match' });
+
+      consoleErrorSpy.mockRestore();
     });
   });
 

@@ -5,6 +5,7 @@ import {
   parseArgs,
   listRunArtifacts,
   scenarioDownloadMap,
+  scenarioTeam,
   slackTeamOwnerLabel,
   linkScenarioNames,
 } from './link-scenario-artifacts.mjs';
@@ -109,6 +110,35 @@ test('slackTeamOwnerLabel names owners without notifying Slack groups', () => {
     ),
     'owner performance-team',
   );
+});
+
+test('scenarioTeam maps every owner to its GitHub label and org team', () => {
+  const cases = [
+    ['Perps add funds', 'team-perps', 'MetaMask/perps'],
+    ['Predict Deposit - Complete Flow Performance', 'team-predict', 'MetaMask/predict'],
+    ['Cross-chain swap ETH to USDC', 'team-swaps-and-bridge', 'MetaMask/swaps-engineers'],
+    ['Asset View: ETH details', 'team-assets', 'MetaMask/metamask-assets'],
+    ['Money Home after importing SRP with funded balance', 'team-earn', 'MetaMask/metamask-earn'],
+    ['Import SRP with 10 accounts', 'team-accounts', 'MetaMask/accounts-team'],
+    ['Seedless Onboarding: Apple Login New User', 'team-onboarding', 'MetaMask/web3auth'],
+    ['Measure Warm Start: Warm Start to Login Screen', 'team-mobile-platform', 'MetaMask/mobile-platform'],
+  ];
+  for (const [scenario, githubLabel, githubTeam] of cases) {
+    const team = scenarioTeam(scenario);
+    assert.equal(team.githubLabel, githubLabel, scenario);
+    assert.equal(team.githubTeam, githubTeam, scenario);
+  }
+  // No `team-*` label exists for the performance team, so an issue for these
+  // scenarios must not be routed to anyone.
+  for (const scenario of [
+    'Rewards tab time-to-content: onboarding or dashboard',
+    'Some scenario nobody owns',
+  ]) {
+    const team = scenarioTeam(scenario);
+    assert.equal(team.handle, 'performance-team');
+    assert.equal(team.githubLabel, null);
+    assert.equal(team.githubTeam, null);
+  }
 });
 
 test('linkScenarioNames renders GitHub markdown links for the run page', () => {

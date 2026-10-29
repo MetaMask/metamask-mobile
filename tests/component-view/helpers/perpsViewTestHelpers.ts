@@ -1,7 +1,9 @@
 import type { Store } from '@reduxjs/toolkit';
-import type {
-  PerpsControllerState,
-  PerpsMode,
+import {
+  DEFAULT_ORDER_BOOK_PREFERENCES,
+  type OrderBookPreferences,
+  type PerpsControllerState,
+  type PerpsMode,
 } from '@metamask/perps-controller';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../../app/core/Engine';
@@ -93,8 +95,9 @@ export function createPerpsControllerStateHarness(store: Store) {
  * update Redux selectors in component view tests.
  *
  * Returns a cleanup that restores the previous `ReduxService.store` and the
- * original `setProLayoutPreferences` / `setPerpsMode` implementations so later
- * suites on the same Jest worker do not dispatch against a disposed store.
+ * original `setProLayoutPreferences` / `setPerpsMode` /
+ * `setOrderBookPreferences` implementations so later suites on the same Jest
+ * worker do not dispatch against a disposed store.
  */
 export function wirePerpsControllerForStore(
   store: Store,
@@ -114,11 +117,14 @@ export function wirePerpsControllerForStore(
     setProLayoutPreferences: (prefs: ProLayoutPreferencesPatch) => void;
     setPerpsMode: (mode: PerpsMode) => void;
     setVisibleCandleCount: (count: number) => void;
+    setOrderBookPreferences: (patch: Partial<OrderBookPreferences>) => void;
   };
   const originalSetProLayoutPreferences =
     perpsController.setProLayoutPreferences;
   const originalSetPerpsMode = perpsController.setPerpsMode;
   const originalSetVisibleCandleCount = perpsController.setVisibleCandleCount;
+  const originalSetOrderBookPreferences =
+    perpsController.setOrderBookPreferences;
   const stateHarness = createPerpsControllerStateHarness(store);
 
   perpsController.setProLayoutPreferences = jest.fn((prefs) => {
@@ -151,10 +157,34 @@ export function wirePerpsControllerForStore(
     stateHarness.sync({ visibleCandleCount: count });
   });
 
+  perpsController.setOrderBookPreferences = jest.fn((patch) => {
+    const backgroundState = store.getState().engine.backgroundState as Record<
+      string,
+      unknown
+    >;
+    const existingPerps =
+      (backgroundState.PerpsController as
+        | Record<string, unknown>
+        | undefined) ?? {};
+    const existingPrefs =
+      (existingPerps.orderBookPreferences as
+        | Partial<OrderBookPreferences>
+        | undefined) ?? {};
+
+    stateHarness.sync({
+      orderBookPreferences: {
+        ...DEFAULT_ORDER_BOOK_PREFERENCES,
+        ...existingPrefs,
+        ...patch,
+      },
+    });
+  });
+
   return () => {
     perpsController.setProLayoutPreferences = originalSetProLayoutPreferences;
     perpsController.setPerpsMode = originalSetPerpsMode;
     perpsController.setVisibleCandleCount = originalSetVisibleCandleCount;
+    perpsController.setOrderBookPreferences = originalSetOrderBookPreferences;
     stateHarness.cleanup();
     if (previousStore) {
       ReduxService.store = previousStore;

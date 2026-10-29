@@ -19,9 +19,8 @@ import PayWithModalTokenPicker from '../../../page-objects/Confirmation/PayWithM
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet.js';
-import PredictMarketList from '../../../page-objects/Predict/PredictMarketList.js';
+import PredictHome from '../../../page-objects/Predict/PredictHome.js';
 import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
 import ActivityDetails from '../../../page-objects/Transactions/ActivityDetails.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { predictDepositFlags } from '../../../api-mocking/mock-responses/pay/feature-flag-mocks.js';
@@ -73,10 +72,10 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
 
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
-          await PredictMarketList.waitForScreenToDisplay({
-            description: 'Predict market list should be visible',
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home should be visible',
           });
-          await PredictMarketList.tapAddFundsButton();
+          await PredictHome.tapAddFunds();
 
           await TransactionPayConfirmation.expectKeyboardLoaded();
           await TransactionPayConfirmation.expectPayWithRowLoaded();
@@ -89,9 +88,9 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
           await TransactionPayConfirmation.verifyTransactionFeeVisible();
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
-          await PredictMarketList.tapBackButton();
+          await PredictHome.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await WalletView.tapActivityButton();
+          await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('predictions');

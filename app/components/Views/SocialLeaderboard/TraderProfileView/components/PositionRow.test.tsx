@@ -277,6 +277,18 @@ describe('PositionRow', () => {
       expect(screen.getByText('—')).toBeOnTheScreen();
     });
 
+    it('renders dash for PnL when boughtUsd or realizedPnl is null', () => {
+      const position = {
+        ...closedPosition,
+        boughtUsd: null,
+        realizedPnl: null,
+      };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1);
+    });
+
     it('renders negative realized PnL percent with a minus sign', () => {
       const position = { ...closedPosition, realizedPnl: -300 };
 

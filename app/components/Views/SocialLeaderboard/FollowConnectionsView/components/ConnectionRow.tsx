@@ -92,16 +92,20 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
           </Box>
         </Box>
       </Pressable>
-      <Button
-        variant={isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary}
-        size={ButtonSize.Md}
-        onPress={onFollowPress ?? (() => undefined)}
-        testID={getConnectionFollowButtonTestId(id)}
-      >
-        {isFollowing
-          ? strings('social_leaderboard.following')
-          : strings('social_leaderboard.follow')}
-      </Button>
+      {onFollowPress ? (
+        <Button
+          variant={
+            isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+          }
+          size={ButtonSize.Md}
+          onPress={onFollowPress}
+          testID={getConnectionFollowButtonTestId(id)}
+        >
+          {isFollowing
+            ? strings('social_leaderboard.following')
+            : strings('social_leaderboard.follow')}
+        </Button>
+      ) : null}
     </Box>
   );
 };

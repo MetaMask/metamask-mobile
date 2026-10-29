@@ -1,13 +1,19 @@
 import { BigNumber } from 'bignumber.js';
 import type { CreateLimitOrderParams } from '../../api/limitOrders/create';
 import {
+  LIMIT_ORDER_DIRECTION,
   LimitOrderExecutionType,
-  LimitOrderPriceComparisonDirection,
+  type LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
 import { formatLimitOrderFiatPrice } from './formatLimitOrderFiatPrice';
 import { trimTrailingZeros } from '../trimTrailingZeros';
 
 type LimitOrderTrigger = CreateLimitOrderParams['trigger'];
+
+/**
+ * Fractional digits the Bridge API keeps on a trigger price.
+ */
+const LIMIT_ORDER_RATIO_DECIMALS = 12;
 
 export interface GetLimitOrderTriggerParamsOptions {
   /**
@@ -67,18 +73,34 @@ export function getLimitOrderTriggerParams({
     return undefined;
   }
 
-  const threshold =
-    priceComparisonDirection === LimitOrderPriceComparisonDirection.AT_OR_ABOVE
-      ? 'above'
-      : 'below';
+  const { threshold, opposite } =
+    LIMIT_ORDER_DIRECTION[priceComparisonDirection];
 
-  // A price typed in counter token units is a price between the two tokens
-  // (e.g. 1 ETH is worth 0.04 BTC), which the API takes as the token value.
+  // The API reads a ratio as source tokens per destination token. A buy is
+  // quoted that way already, while a sell is quoted per source token, so its
+  // price is inverted, which also flips the side of it that fills the order.
   if (!isLimitFiatMode) {
+    if (executionType === LimitOrderExecutionType.BUY) {
+      return {
+        kind: 'ratio',
+        threshold,
+        price: trimTrailingZeros(price.toFixed()),
+      };
+    }
+
+    const sourcePerDest = new BigNumber(1).dividedBy(price);
+    const roundedSourcePerDest = sourcePerDest.decimalPlaces(
+      LIMIT_ORDER_RATIO_DECIMALS,
+    );
+
+    if (roundedSourcePerDest.lte(0)) {
+      return undefined;
+    }
+
     return {
       kind: 'ratio',
-      threshold,
-      price: trimTrailingZeros(price.toFixed()),
+      threshold: LIMIT_ORDER_DIRECTION[opposite].threshold,
+      price: trimTrailingZeros(roundedSourcePerDest.toFixed()),
     };
   }
 

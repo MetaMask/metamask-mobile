@@ -5,10 +5,12 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import Routes from '../../../../constants/navigation/Routes';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 
 export const useTokenSecurityBadgePress = (
   token: TokenDetailsRouteParams,
   securityData: TokenSecurityData | null | undefined,
+  tdpVersion: TdpVersion = 'v2',
 ) => {
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -54,6 +56,7 @@ export const useTokenSecurityBadgePress = (
         tokenSymbol: token.symbol || token.name,
         chainId: token.chainId,
         features: securityData.features,
+        tdpVersion,
       },
     });
   }, [
@@ -63,6 +66,7 @@ export const useTokenSecurityBadgePress = (
     token.name,
     token.address,
     token.chainId,
+    tdpVersion,
     navigation,
   ]);
 

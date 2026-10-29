@@ -177,12 +177,16 @@ function TradeDetails({
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   color={
-                    BigNumber(fill?.amountNumber ?? 0).isGreaterThanOrEqualTo(0)
-                      ? TextColor.SuccessDefault
-                      : TextColor.ErrorDefault
+                    fill?.amountNumber === undefined
+                      ? TextColor.TextDefault
+                      : BigNumber(fill.amountNumber).isGreaterThanOrEqualTo(0)
+                        ? TextColor.SuccessDefault
+                        : TextColor.ErrorDefault
                   }
                 >
-                  {fill?.amount}
+                  {fill?.amountNumber === undefined
+                    ? strings('perps.transactions.unknown_pnl')
+                    : fill.amount}
                 </Text>
               }
               testID={ActivityDetailsSelectorsIDs.PNL_ROW}

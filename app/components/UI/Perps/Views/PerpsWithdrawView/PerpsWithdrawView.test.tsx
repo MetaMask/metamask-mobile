@@ -282,7 +282,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(strings('perps.withdrawal.title')),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$0')).toBeOnTheScreen(); // Initial amount display matches component logic
+      expect(screen.getByLabelText('$0')).toBeOnTheScreen(); // Initial amount display matches component logic
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {

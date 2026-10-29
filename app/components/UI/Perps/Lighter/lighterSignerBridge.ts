@@ -1,4 +1,7 @@
 import QuickCrypto from 'react-native-quick-crypto';
+import type { Hex } from '@metamask/utils';
+import { HdKeyring } from '@metamask/eth-hd-keyring';
+import SimpleKeyring from '@metamask/eth-simple-keyring';
 import type {
   LighterCreateClientParams,
   LighterSignerBridge,
@@ -7,6 +10,8 @@ import type {
 
 import SecureKeychain from '../../../../core/SecureKeychain';
 import Engine from '../../../../core/Engine';
+import { getSelectedEvmAccountFromMessenger } from '@metamask/perps-controller/utils/accountUtils';
+import { deriveLighterWalletKey } from './lighterWalletKey';
 import {
   assertLighterClientParameters,
   assertLighterRegistrationMessage,
@@ -29,6 +34,13 @@ const LIGHTER_SIGNER_KEY_NAME = 'LIGHTER_SIGNER_PRIVATE_KEY';
 const PRIVATE_KEY_PATTERN = /^[0-9a-f]{64}$/u;
 const RELOAD_ERROR = 'Lighter signer WebView reloaded; retry the operation';
 export const LIGHTER_SIGNER_LOCKED_ERROR = 'Lighter signer wallet is locked';
+
+/** Matches SecureKeychainDecryptionError by name. The class stays with SecureKeychain. */
+function isSecureKeychainDecryptionError(error: unknown): error is Error {
+  return (
+    error instanceof Error && error.name === 'SecureKeychainDecryptionError'
+  );
+}
 
 const resetListeners = new Set<() => void>();
 // Keep these across bridge resets: native keychain writes can outlive callers.
@@ -128,6 +140,7 @@ async function getOrCreatePrivateKey(
   params: LighterCreateClientParams,
   owner: number,
 ): Promise<string> {
+  const { address, assertWallet } = captureWalletBinding(params, owner);
   const scope = signerKeyScope(params);
   const previous = keychainOperations.get(scope.service);
   let release!: () => void;
@@ -137,9 +150,17 @@ async function getOrCreatePrivateKey(
   keychainOperations.set(scope.service, pending);
   try {
     if (previous) await previous;
-    assertGeneration(owner);
-    const stored = await SecureKeychain.getSecureItem(scope);
-    assertGeneration(owner);
+    assertWallet();
+    let decryptionError: Error | undefined;
+    const stored = await SecureKeychain.getSecureItem(scope).catch(
+      (error: unknown) => {
+        assertWallet();
+        if (!isSecureKeychainDecryptionError(error)) throw error;
+        decryptionError = error;
+        return null;
+      },
+    );
+    assertWallet();
     if (stored) {
       if (!PRIVATE_KEY_PATTERN.test(stored.value)) {
         throw new Error('Stored Lighter signer key is invalid');
@@ -147,13 +168,25 @@ async function getOrCreatePrivateKey(
       return stored.value;
     }
 
+    const derived = await Engine.context.KeyringController.withKeyring(
+      { address: address as Hex },
+      async ({ keyring }) =>
+        deriveLighterWalletKey(keyring, address as Hex, params),
+    );
+    assertWallet();
+    // A software key can be reconstructed; candidate discovery must not fill
+    // native storage with a derived seed for every occupied venue slot.
+    if (derived !== null) return derived;
+    // Unreadable storage may still hold a legacy trading key. Only an
+    // audited software key can be reconstructed without replacing that item.
+    if (decryptionError) throw decryptionError;
     const privateKey = QuickCrypto.randomBytes(32).toString('hex');
     const storedKey = await SecureKeychain.setSecureItem(
       LIGHTER_SIGNER_KEY_NAME,
       privateKey,
       scope,
     );
-    assertGeneration(owner);
+    assertWallet();
     if (storedKey === false) {
       throw new Error('Unable to persist Lighter signer key');
     }
@@ -164,6 +197,26 @@ async function getOrCreatePrivateKey(
       keychainOperations.delete(scope.service);
     }
   }
+}
+
+function captureWalletBinding(
+  params: { walletAddress?: string },
+  owner: number,
+) {
+  const currentAddress = () =>
+    getSelectedEvmAccountFromMessenger(Engine.controllerMessenger)?.address;
+  const address = params.walletAddress ?? currentAddress();
+  if (!address || !/^0x[0-9a-fA-F]{40}$/u.test(address)) {
+    throw new Error('Lighter requires a selected Ethereum account');
+  }
+  const assertWallet = () => {
+    assertGeneration(owner);
+    if (currentAddress()?.toLowerCase() !== address.toLowerCase()) {
+      throw new Error('Lighter wallet changed while restoring its trading key');
+    }
+  };
+  assertWallet();
+  return { address: address as Hex, assertWallet };
 }
 
 async function executeWithDeadline(
@@ -299,8 +352,92 @@ const execute = (async (call: LighterWasmCall) => {
   );
 }) as LighterSignerBridge['execute'];
 
+type KeyDiscoveryMode = 'strict' | 'stored' | 'software';
+
+const getStoredKeyIndices = (
+  params: Parameters<
+    NonNullable<LighterSignerBridge['getStoredKeyIndices']>
+  >[0],
+  mode: KeyDiscoveryMode = 'strict',
+  deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS,
+): Promise<number[]> =>
+  withOwnership(async (owner, retired) => {
+    const { assertWallet } = captureWalletBinding(params, owner);
+    const stored: number[] = [];
+    const decryptionErrors: Error[] = [];
+    for (const apiKeyIndex of new Set(params.apiKeyIndices)) {
+      const clientParams = { ...params, apiKeyIndex, nonce: 0 };
+      assertLighterClientParameters(clientParams);
+      const scope = signerKeyScope(clientParams);
+      await timeoutAfter(
+        Promise.race([
+          keychainOperations.get(scope.service) ?? Promise.resolve(),
+          retired,
+        ]),
+        deadline - Date.now(),
+        'Lighter signer key discovery timed out',
+      );
+      assertWallet();
+      const item = await timeoutAfter(
+        Promise.race([
+          SecureKeychain.getSecureItem(scope).catch((error: unknown) => {
+            assertWallet();
+            if (mode === 'strict' || !isSecureKeychainDecryptionError(error))
+              throw error;
+            // Scan later slots without replacing an unreadable stored key.
+            decryptionErrors.push(error);
+            return null;
+          }),
+          retired,
+        ]),
+        deadline - Date.now(),
+        'Lighter signer key discovery timed out',
+      );
+      assertWallet();
+      if (item && PRIVATE_KEY_PATTERN.test(item.value))
+        stored.push(apiKeyIndex);
+    }
+    if (mode === 'stored' && stored.length === 0 && decryptionErrors.length > 0)
+      throw decryptionErrors[0];
+    return stored;
+  });
+
 /** Singleton bridge handed to PerpsController in the Lighter credentials. */
-export const lighterSignerBridge: LighterSignerBridge = {
+export const lighterSignerBridge = {
+  getRecoverableKeyIndices: async (params: {
+    chainId: number;
+    accountIndex: number;
+    apiKeyIndices: number[];
+    walletAddress?: string;
+  }): Promise<number[]> =>
+    withOwnership(async (owner, retired) => {
+      const deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS;
+      const { address, assertWallet } = captureWalletBinding(params, owner);
+      const canDerive = await timeoutAfter(
+        Promise.race([
+          Engine.context.KeyringController.withKeyring(
+            { address: address as Hex },
+            async ({ keyring }) =>
+              keyring.type === HdKeyring.type ||
+              keyring.type === SimpleKeyring.type,
+          ),
+          retired,
+        ]),
+        deadline - Date.now(),
+        'Lighter signer key discovery timed out',
+      );
+      assertWallet();
+      const stored = await getStoredKeyIndices(
+        params,
+        canDerive ? 'software' : 'stored',
+        deadline,
+      );
+      assertWallet();
+      return canDerive
+        ? [...new Set([...stored, ...params.apiKeyIndices])]
+        : stored;
+    }),
+  getStoredKeyIndices: (params) => getStoredKeyIndices(params),
   createClient,
   execute,
   onReset(listener: () => void): () => void {
@@ -310,4 +447,4 @@ export const lighterSignerBridge: LighterSignerBridge = {
     };
   },
   reset: resetLighterBridge,
-};
+} satisfies LighterSignerBridge;

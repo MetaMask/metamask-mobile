@@ -11,8 +11,8 @@ tests/reporters/
 ├── types.ts                            # Shared TypeScript types
 ├── providers/
 │   ├── SessionDataEnricher.ts          # Interface for provider-agnostic enrichment
-│   └── browserstack/
-│       └── BrowserStackEnricher.ts     # BrowserStack: video URLs, profiling, network logs
+│   └── testmu/
+│       └── TestMuAIEnricher.ts         # TestMu: video URLs, profiling, network logs
 ├── generators/
 │   ├── HtmlReportGenerator.ts          # HTML report generation
 │   ├── CsvReportGenerator.ts           # CSV report generation
@@ -35,9 +35,9 @@ Manages timers and attaches metrics to test results. Used as a fixture in perfor
 
 Defines the `ISessionDataEnricher` interface that all providers implement. New providers just need to implement `enrichSession()`, `canHandle()`, and `getProviderName()`.
 
-### providers/browserstack/BrowserStackEnricher.ts
+### providers/testmu/TestMuAIEnricher.ts
 
-BrowserStack-specific enricher. Fetches video URLs (with retry), profiling data, and network logs (HAR) via `BrowserStackAPI`.
+TestMu enricher. Fetches video URLs, app metrics, and network logs via `TestMuAIAPI`.
 
 ### generators/
 
@@ -57,7 +57,7 @@ To support a new device cloud, you need to create an enricher and register it.
 
 ### 1. Create an API client (if needed)
 
-Add a client under `tests/framework/services/providers/<provider>/` following the `BrowserStackAPI.ts` pattern. All HTTP calls, auth, and retries belong here — enrichers should never make raw requests.
+Add a client under `tests/framework/services/providers/<provider>/` following the `TestMuAIAPI.ts` pattern. All HTTP calls, auth, and retries belong here — enrichers should never make raw requests.
 
 ### 2. Create the enricher
 
@@ -94,12 +94,12 @@ export class MyProviderEnricher extends BaseSessionDataEnricher {
 
 ### 3. Register in PerformanceReporter.ts
 
-Update `enrichSessionsWithProviderData()` to iterate over a list of enrichers and use `canHandle()` to match sessions to providers:
+Update `enrichSessionsWithTestMuData()` to iterate over a list of enrichers and use `canHandle()` to match sessions to providers:
 
 ```typescript
 private getEnrichers(): ISessionDataEnricher[] {
   return [
-    new BrowserStackEnricher(),
+    new TestMuAIEnricher(),
     new MyProviderEnricher(),
   ];
 }
@@ -113,7 +113,7 @@ private async enrichSessionsWithProviderData(): Promise<void> {
 }
 ```
 
-Replace `detectBrowserStackRun()` with a generic check, or always call `enrichSessionsWithProviderData()` and let the registry decide.
+Call `enrichSessionsWithProviderData()` for every run and let `canHandle()` decide which sessions each enricher owns.
 
 ### 4. Add project config in playwright.config.ts
 
@@ -145,7 +145,7 @@ PerformanceReporter.onTestEnd()
     ▼
 PerformanceReporter.onEnd()
     │
-    ├─ enrichSessionsWithProviderData() → BrowserStackEnricher
+    ├─ enrichSessionsWithTestMuData() → TestMuAIEnricher
     └─ generateReports()
         ├─ HtmlReportGenerator.generate()
         ├─ CsvReportGenerator.generate()

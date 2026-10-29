@@ -14,7 +14,7 @@ import {
 import { openPerpsWithdrawPayConfirmation } from '../../../flows/perps.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import { Assertions, Utilities } from '../../../framework/index.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import PerpsHomeView from '../../../page-objects/Perps/PerpsHomeView.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
@@ -114,7 +114,7 @@ appiumTest.describe(
               await PerpsHomeView.tapBackHomeButton();
             }
             await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-            await WalletView.tapActivityButton();
+            await TabBarComponent.tapActivity();
 
             await ActivitiesView.tapTypeFilterChip();
             await ActivitiesView.tapTypeFilterOption('perps');

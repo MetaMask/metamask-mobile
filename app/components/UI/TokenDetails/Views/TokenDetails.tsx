@@ -25,9 +25,12 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { RootState } from '../../../../reducers';
 import {
@@ -36,6 +39,7 @@ import {
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
@@ -59,21 +63,28 @@ import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsV1 } from './TokenDetailsV1';
-import TokenDetailsPagePending from './TokenDetailsPagePending';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
+import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
+import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
+import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
+import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useFreshTronAssets } from '../hooks/useFreshTronAssets';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
@@ -88,10 +99,14 @@ import {
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
+import {
+  selectBridgeLimitOrderFeatureFlags,
+  selectBridgeRecurringBuyFeatureFlags,
+} from '../../../../selectors/bridge/featureFlags';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
-import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
+import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
+import TokenDetailsPagePending from './TokenDetailsPagePending';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -100,6 +115,10 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    content: {
+      flex: 1,
+      isolation: 'isolate',
     },
   });
 };
@@ -110,6 +129,10 @@ const styleSheet = (params: { theme: Theme }) => {
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  // Legacy page is always `v2` / `standard`; computed from the shared helper so
+  // both pages derive these the same way.
+  const { tdp_version, token_category } = getTdpAnalyticsBase(params, null);
 
   return useCallback(
     ({
@@ -146,6 +169,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       const eventProperties = {
         source,
         chain_id: params.chainId,
+        tdp_version,
+        token_category,
         token_symbol: params.symbol,
         token_address: params.address,
         token_name: params.name,
@@ -171,6 +196,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.name,
       params.source,
       params.symbol,
+      tdp_version,
+      token_category,
       trackEvent,
     ],
   );
@@ -224,6 +251,7 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation<AppNavigationProp>();
   useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
+
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { variant: quickBuyEntrypointVariant } = useABTest(
     SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
@@ -257,27 +285,32 @@ const TokenDetails: React.FC<{
   const walletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const limitOrderFeatureFlags = useSelector(
+    selectBridgeLimitOrderFeatureFlags,
+  );
   const recurringBuyFeatureFlags = useSelector(
     selectBridgeRecurringBuyFeatureFlags,
   );
-  const isRecurringOrderLookupEnabled = useMemo(() => {
-    if (!recurringBuyFeatureFlags?.enabled || !caip19AssetId) {
-      return false;
-    }
-
+  const orderAssetChainId = useMemo(() => {
+    if (!caip19AssetId) return undefined;
     try {
-      const { chainId } = parseCaipAssetType(caip19AssetId);
-      return recurringBuyFeatureFlags.enabledChainIds?.includes(chainId);
+      return parseCaipAssetType(caip19AssetId).chainId;
     } catch {
-      return false;
+      return undefined;
     }
-  }, [caip19AssetId, recurringBuyFeatureFlags]);
-  const { order: latestOpenRecurringOrder } =
-    useLatestOpenRecurringOrderForAsset({
-      walletAddress,
-      assetId: caip19AssetId,
-      enabled: isRecurringOrderLookupEnabled,
-    });
+  }, [caip19AssetId]);
+  const isLimitOrderLookupEnabled = Boolean(
+    limitOrderFeatureFlags?.enabled &&
+      orderAssetChainId &&
+      limitOrderFeatureFlags.enabledChainIds?.includes(orderAssetChainId),
+  );
+  const isRecurringOrderLookupEnabled = Boolean(
+    recurringBuyFeatureFlags?.enabled &&
+      orderAssetChainId &&
+      recurringBuyFeatureFlags.enabledChainIds?.includes(orderAssetChainId),
+  );
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
 
   const handleShare = useCallback(() => {
     if (!shareUrl) {
@@ -340,15 +373,43 @@ const TokenDetails: React.FC<{
     historicalPricesApiMs,
     exchangeRateApiMs,
   } = useTokenPrice({ token });
+  const isOrderLookupEnabled = !(
+    hardwareTier === 'LOW' &&
+    networkTier === 'SLOW_CELLULAR' &&
+    isLoading
+  );
+  const { mostRecentOrder } = useMostRecentOrder({
+    walletAddress,
+    assetId: caip19AssetId,
+    isLimitOrderEnabled: isOrderLookupEnabled && isLimitOrderLookupEnabled,
+    isRecurringOrderEnabled:
+      isOrderLookupEnabled && isRecurringOrderLookupEnabled,
+  });
 
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
 
+  // The glass header floats over the list and fades its backdrop in on scroll.
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
+
+  const handleListScrollOffset = useCallback(
+    (y: number) => {
+      headerScrollY.set(y);
+      onScrollOffset(y);
+    },
+    [headerScrollY, onScrollOffset],
+  );
+
   const handleMultichainScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      handleListScrollOffset(event.nativeEvent.contentOffset.y);
     },
-    [onScrollOffset],
+    [handleListScrollOffset],
   );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
@@ -415,6 +476,17 @@ const TokenDetails: React.FC<{
     setChartPricePositive(isPositive);
   }, []);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const refreshTronAssets = useFreshTronAssets(token.chainId);
+  useFocusEffect(
+    useCallback(() => {
+      if (isTronNativeToken(token)) {
+        refreshTronAssets().catch(() => undefined);
+      }
+    }, [refreshTronAssets, token]),
+  );
+  ///: END:ONLY_INCLUDE_IF
+
   const {
     balance,
     fiatBalance,
@@ -448,6 +520,7 @@ const TokenDetails: React.FC<{
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
+    tdpVersion: 'v2',
   });
 
   const { moneyBalanceCta, moneyBalanceDescription } = useMemo(() => {
@@ -573,8 +646,16 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
+  const headerSpacer = headerInset > 0 && (
+    <View
+      style={{ height: headerInset }}
+      testID={TokenDetailsTestIds.HEADER_SPACER}
+    />
+  );
+
   const renderHeader = () => (
     <>
+      {headerSpacer}
       <AssetOverviewContent
         token={token}
         balance={balance}
@@ -617,7 +698,7 @@ const TokenDetails: React.FC<{
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
-        recurringOrder={latestOpenRecurringOrder}
+        mostRecentOrder={mostRecentOrder}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -637,57 +718,70 @@ const TokenDetails: React.FC<{
 
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader
-        token={token}
-        securityData={securityData}
-        onBackPress={handleBackPress}
-        onSharePress={handleShare}
-        starButton={starButton}
-        onPriceAlertPress={
-          isPriceAlertsChainSupported &&
-          (currentPriceUsd ?? 0) > 0 &&
-          caip19AssetId
-            ? handlePriceAlertPress
-            : undefined
-        }
-        onCopyAddress={handleCopyAddress}
-        description={headerDescription}
-      />
+      <View style={styles.content} testID={TokenDetailsTestIds.CONTENT}>
+        <TokenDetailsInlineHeader
+          token={token}
+          securityData={securityData}
+          tdpVersion="v2"
+          onBackPress={handleBackPress}
+          onSharePress={handleShare}
+          starButton={starButton}
+          onPriceAlertPress={
+            isPriceAlertsChainSupported &&
+            (currentPriceUsd ?? 0) > 0 &&
+            caip19AssetId
+              ? handlePriceAlertPress
+              : undefined
+          }
+          onCopyAddress={handleCopyAddress}
+          description={headerDescription}
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          scrollY={headerScrollY}
+        />
 
-      {txIsNonEvmAsset ? (
-        <MultichainTransactionsView
-          header={renderHeader()}
-          transactions={transactions}
-          navigation={navigation}
-          selectedAddress={selectedAddress}
-          chainId={token.chainId as SupportedCaipChainId}
-          bridgeArrivalTransactions={bridgeArrivalTxs}
-          enableRefresh
-          showDisclaimer
-          location={TransactionDetailLocation.AssetDetails}
-          onScroll={handleMultichainScroll}
-        />
-      ) : (
-        <Transactions
-          header={renderHeader()}
-          onScrollThroughContent={onScrollOffset}
-          assetSymbol={token.symbol}
-          navigation={navigation}
-          transactions={transactions}
-          submittedTransactions={submittedTxs}
-          confirmedTransactions={confirmedTxs}
-          selectedAddress={selectedAddress}
-          conversionRate={conversionRate}
-          currentCurrency={txCurrentCurrency}
-          networkType={token.chainId}
-          loading={!transactionsUpdated}
-          headerHeight={280}
-          tokenChainId={token.chainId}
-          skipScrollOnClick
-          hideEmptyState
-          location={TransactionDetailLocation.AssetDetails}
-        />
-      )}
+        {txIsNonEvmAsset ? (
+          <MultichainTransactionsView
+            header={renderHeader()}
+            transactions={transactions}
+            navigation={navigation}
+            selectedAddress={selectedAddress}
+            chainId={token.chainId as SupportedCaipChainId}
+            bridgeArrivalTransactions={bridgeArrivalTxs}
+            enableRefresh
+            showDisclaimer
+            location={TransactionDetailLocation.AssetDetails}
+            onScroll={handleMultichainScroll}
+            refreshControlOffset={headerInset}
+          />
+        ) : (
+          <>
+            {/* Transactions drops its header while loading, so its spinner needs the spacer here. */}
+            {!transactionsUpdated && headerSpacer}
+            <Transactions
+              header={renderHeader()}
+              onScrollThroughContent={handleListScrollOffset}
+              assetSymbol={token.symbol}
+              navigation={navigation}
+              transactions={transactions}
+              submittedTransactions={submittedTxs}
+              confirmedTransactions={confirmedTxs}
+              selectedAddress={selectedAddress}
+              conversionRate={conversionRate}
+              currentCurrency={txCurrentCurrency}
+              networkType={token.chainId}
+              loading={!transactionsUpdated}
+              headerHeight={280}
+              tokenChainId={token.chainId}
+              skipScrollOnClick
+              hideEmptyState
+              location={TransactionDetailLocation.AssetDetails}
+              refreshControlOffset={headerInset}
+            />
+          </>
+        )}
+      </View>
+      {/* Outside the isolated content, so its sheets open above the glass header. */}
       <TokenDetailsStickyFooter
         token={token}
         securityData={securityData}
@@ -919,28 +1013,41 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
   );
 };
 
+export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
+
+  return <TokenDetailsLegacy token={token} />;
+};
+
 /**
  * TokenDetailsRouteWrapper screen
  *
  * Reads the token from React Navigation route.params and picks the page to
  * render. Swapping component types rather than returning early keeps the two
  * pages' hooks fully independent: neither page's hooks run for the other, and
- * a variant resolving asynchronously remounts instead of changing hook order.
+ * Swapping component types keeps the two pages' hooks fully independent.
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
-  const { variant, isPending } = useTokenDetailsVariant(token);
+  const { variant, isLoading } = useTokenDetailsVariant(token);
+  usePrefetchTokenDetails(token);
 
-  if (isPending) {
+  if (isLoading) {
     return <TokenDetailsPagePending token={token} />;
   }
 
+  // Only the V1 branch is wrapped. The legacy page is a sibling here rather
+  // than a child, which is what keeps it on the prod price API without
+  // needing to read the flag or pass anything down.
   return variant ? (
-    <TokenDetailsV1 token={token} variant={variant} />
+    <PriceApiHostProvider>
+      <TokenDetailsV1 token={token} variant={variant} />
+    </PriceApiHostProvider>
   ) : (
     <TokenDetailsLegacy token={token} />
   );
 };
 
-export { TokenDetailsRouteWrapper as TokenDetails };
+export { TokenDetailsLegacy, TokenDetailsRouteWrapper as TokenDetails };

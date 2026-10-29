@@ -1,7 +1,9 @@
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { RampSDK } from '../sdk';
-import useCryptoCurrencies from './useCryptoCurrencies';
+import useCryptoCurrencies, {
+  isUnsupportedStellarSellAsset,
+} from './useCryptoCurrencies';
 import useSDKMethod from './useSDKMethod';
 import { NetworkStatus } from '@metamask/network-controller';
 
@@ -81,6 +83,14 @@ describe('useCryptoCurrencies', () => {
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
     };
+  });
+
+  it('blocks Stellar for sell but not buy', () => {
+    const stellarChainId = 'stellar:pubnet';
+
+    expect(isUnsupportedStellarSellAsset(false, stellarChainId)).toBe(true);
+    expect(isUnsupportedStellarSellAsset(true, stellarChainId)).toBe(false);
+    expect(isUnsupportedStellarSellAsset(false, 'tron:728126428')).toBe(false);
   });
 
   it('calls useSDKMethod with the correct parameters for buy', () => {

@@ -10,6 +10,25 @@ import Logger from '../../../../util/Logger';
 import { captureException } from '@sentry/react-native';
 
 /**
+ * Normalize a locale identifier to the bare ISO 639 language subtag that
+ * Braze's `setLanguage` API expects.
+ *
+ * Braze only accepts language codes such as `en`, `fr` or `fil`
+ * (ISO-639-1/639-2) and its native SDKs reject locale identifiers like
+ * `en_XX` or `en-XX`. Device locales (and react-native-i18n's `I18n.locale`)
+ * frequently carry a region subtag, so they must be reduced to the language
+ * part before being sent.
+ *
+ * @param locale - Raw locale, e.g. `en`, `en_FR`, `en-FR`, `pt_BR`, `zh-CN`.
+ * @returns The lowercase language subtag, or `undefined` when the input has
+ * no recognizable language prefix.
+ */
+export function toBrazeLanguage(locale: string): string | undefined {
+  const match = locale.trim().match(/^([a-zA-Z]{2,3})(?:[-_].*)?$/);
+  return match?.[1].toLowerCase();
+}
+
+/**
  * Segment destination plugin that forwards events to the native Braze SDK
  * using a MetaMask profile ID rather than Segment's default userId.
  *
@@ -102,13 +121,23 @@ export class BrazePlugin extends EventPlugin {
   /**
    * Set the app language on Braze using the native setLanguage API.
    *
-   * Always stores the value so it can be sent when a profileId becomes
-   * available. If a profileId is already set, sends immediately.
+   * The locale is normalized to the bare ISO 639 language subtag Braze
+   * expects (e.g. `en_FR` → `en`) before storing or sending; unrecognized
+   * locales are dropped. Always stores the value so it can be sent when a
+   * profileId becomes available. If a profileId is already set, sends
+   * immediately.
    */
   setLanguage(locale: string): void {
-    this.currentLanguage = locale;
+    const language = toBrazeLanguage(locale);
+    if (!language) {
+      Logger.log(
+        `[BrazePlugin] Ignoring unsupported Braze language: ${locale}`,
+      );
+      return;
+    }
+    this.currentLanguage = language;
     if (this.brazeProfileId !== undefined) {
-      this.sendLanguageToBraze(locale);
+      this.sendLanguageToBraze(language);
     }
   }
 

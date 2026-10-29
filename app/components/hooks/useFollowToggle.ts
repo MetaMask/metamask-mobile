@@ -49,6 +49,11 @@ export interface UseFollowToggleManyResult {
 }
 
 const FOLLOWING_QUERY_KEY = ['SocialService:fetchFollowing'] as const;
+const MY_FOLLOWERS_QUERY_KEY = ['SocialService:fetchMyFollowers'] as const;
+const FOLLOWERS_QUERY_KEY = ['SocialService:fetchFollowers'] as const;
+const TRADER_FOLLOWING_QUERY_KEY = [
+  'SocialService:fetchTraderFollowing',
+] as const;
 
 type OptimisticFollowListener = () => void;
 
@@ -129,16 +134,29 @@ export const resetFollowToggleSharedStateForTests = (): void => {
 };
 
 /**
- * Invalidates the followed-traders query without importing ReactQueryService at
+ * Invalidates follow-list queries without importing ReactQueryService at
  * module load (that import pulls in Engine and breaks tests that mock Engine).
+ * Prefix keys for fetchFollowers / fetchTraderFollowing also match
+ * per-trader and mutuals variants.
  */
 const invalidateFollowingQuery = async (): Promise<void> => {
   const { default: ReactQueryService } = await import(
     '../../core/ReactQueryService'
   );
-  await ReactQueryService.queryClient.invalidateQueries({
-    queryKey: FOLLOWING_QUERY_KEY,
-  });
+  await Promise.all([
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: FOLLOWING_QUERY_KEY,
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: MY_FOLLOWERS_QUERY_KEY,
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: FOLLOWERS_QUERY_KEY,
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: TRADER_FOLLOWING_QUERY_KEY,
+    }),
+  ]);
 };
 
 /**

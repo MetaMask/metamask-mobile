@@ -5,6 +5,8 @@ import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
   VbaOnboardingStubSelectorsIDs,
 } from './VbaOnboardingStub';
+import { VbaOnboardingErrorSelectorsIDs } from '../../../KYC/components/OnboardingError';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockOnContinue = jest.fn();
@@ -23,7 +25,6 @@ describe('VbaOnboardingStub', () => {
   });
 
   it.each([
-    ['kyc_pending', 'vba-onboarding-stub-container-kyc_pending'],
     [
       'account_provisioning_error',
       'vba-onboarding-stub-container-account_provisioning_error',
@@ -40,9 +41,26 @@ describe('VbaOnboardingStub', () => {
     expect(getByTestId(testId)).toBeOnTheScreen();
   });
 
+  it('renders the account details failure without checklist rows', () => {
+    const { getByText, queryByTestId } = renderWithProvider(
+      <VbaOnboardingStub variant="error" onContinue={mockOnContinue} />,
+    );
+
+    expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
+    expect(
+      getByText(strings('virtual_bank_account.error.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('virtual_bank_account.error.description')),
+    ).toBeOnTheScreen();
+  });
+
   it('reports continue to its adapter', async () => {
     const { getByTestId } = renderWithProvider(
-      <VbaOnboardingStub variant="kyc_pending" onContinue={mockOnContinue} />,
+      <VbaOnboardingStub
+        variant="account_provisioning_error"
+        onContinue={mockOnContinue}
+      />,
     );
 
     fireEvent.press(getByTestId(VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON));

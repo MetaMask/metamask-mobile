@@ -107,8 +107,8 @@ export const BatchSellTokenRow = React.memo(
         pressTargetAccessibilityLabel={pressTargetAccessibilityLabel}
         secondaryRowContent={secondaryRowContent}
         tokenBalanceTextProps={{
-          textVariant: ComponentLibraryTextVariant.BodySMMedium,
-          textColor: ComponentLibraryTextColor.Alternative,
+          textVariant: ComponentLibraryTextVariant.BodyMDMedium,
+          textColor: ComponentLibraryTextColor.Default,
           textStyle: styles.tokenBalance,
         }}
       >

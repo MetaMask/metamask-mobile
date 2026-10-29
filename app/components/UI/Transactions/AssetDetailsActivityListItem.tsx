@@ -1,22 +1,15 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import {
-  ActivityListItemRow,
-  resolveActivityListItemTitle,
-} from '../ActivityListItemRow/ActivityListItemRow';
+import { ActivityListItemRow } from '../ActivityListItemRow/ActivityListItemRow';
 import { type ActivityListItem } from '../../../util/activity-adapters';
 import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../../Views/ActivityList/getActivityDetailsRoute';
 import ActivityListAccountImportTimeRow from '../ActivityListItemRow/ActivityListAccountImportTimeRow';
 import {
-  getActivityFromTo,
-  getActivityValue,
-  getTransactionDetailsParams,
   mapTransactionToActivityItem,
   type TransactionWithImportTime,
 } from './AssetDetailsActivityListItem.utils';
@@ -43,8 +36,6 @@ interface AssetDetailsActivityListItemProps {
   chainId?: Hex;
   tokenChainId?: Hex;
   navigation: AppNavigationProp;
-  onSpeedUpAction: (open: boolean, tx?: TransactionMeta) => void;
-  onCancelAction: (open: boolean, tx?: TransactionMeta) => void;
   accountImportTime?: number;
   groupEvmAccountAddress?: string;
   networkConfigurations?: Record<string, { nativeCurrency?: string }>;
@@ -59,8 +50,6 @@ export const AssetDetailsActivityListItem = ({
   chainId: currentChainId,
   tokenChainId,
   navigation,
-  onSpeedUpAction,
-  onCancelAction,
   accountImportTime,
   groupEvmAccountAddress,
   networkConfigurations = EMPTY_NETWORK_CONFIGURATIONS,
@@ -126,38 +115,9 @@ export const AssetDetailsActivityListItem = ({
       const detailsRoute = getActivityDetailsRoute(item);
       if (detailsRoute) {
         navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-        return;
       }
-
-      const { from, to } = getActivityFromTo(item);
-      const value = getActivityValue(item);
-      const actionKey = resolveActivityListItemTitle(item, bridgeHistoryItem);
-
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.TRANSACTION_DETAILS,
-        params: getTransactionDetailsParams({
-          item,
-          selectedTx: tx,
-          actionKey,
-          value,
-          from,
-          to,
-          currentChainId,
-          tokenChainId,
-          showSpeedUpModal: () => onSpeedUpAction(true, tx),
-          showCancelModal: () => onCancelAction(true, tx),
-        }),
-      });
     },
-    [
-      bridgeHistoryItem,
-      currentChainId,
-      navigation,
-      onCancelAction,
-      onSpeedUpAction,
-      tokenChainId,
-      tx,
-    ],
+    [navigation],
   );
 
   const handleImportTimePress = useCallback(() => {

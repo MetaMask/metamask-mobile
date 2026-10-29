@@ -55,6 +55,7 @@ permissions:
   contents: read
   actions: read
   pull-requests: write
+  id-token: write # required by MetaMask/github-tools/.github/actions/get-token
 
 jobs:
   detect-flaky-tests:
@@ -186,8 +187,21 @@ jobs:
       # Stage 2: AI analyzer review, scoped to only the modified unit test
       # files (via --changed-files), using the flaky-unit-test-analysis
       # custom mode defined in .ai-pr-analyzer/modes/. Skipped on fork PRs
-      # because AI_ANALYZER_TOKEN / AI_ANALYZER_LITELLM_KEY are not available
-      # to workflows triggered from forks.
+      # because the token-exchange OIDC token and AI_ANALYZER_LITELLM_KEY
+      # are not available to workflows triggered from forks.
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        if: >-
+          steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
+          !github.event.pull_request.head.repo.fork
+        continue-on-error: true
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
       - name: Checkout AI Analyzer
         id: ai-checkout
         if: >-
@@ -201,7 +215,7 @@ jobs:
           # https://github.com/MetaMask/ai-analyzer/releases — v2.3.0
           ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
 
       # Keyed off the analyzer's own lockfile, checked out at the pinned ref
       # just above, so the key follows the ref without repeating it. npm ci

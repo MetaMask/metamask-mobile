@@ -27,6 +27,17 @@ const resolveTranslation = (i18nKey: string): string | undefined => {
 };
 
 describe('ERROR_CODE_TO_I18N_KEY', () => {
+  it('maps IOC cancellation to user-facing slippage copy', () => {
+    const key = ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.IOC_CANCEL];
+
+    const message = resolveTranslation(key);
+
+    expect(key).toBe('perps.errors.iocCancel');
+    expect(message).not.toContain(PERPS_ERROR_CODES.IOC_CANCEL);
+    expect(message).toContain('slippage tolerance');
+    expect(message).toContain('limit order');
+  });
+
   const errorCodes = Object.values(PERPS_ERROR_CODES);
 
   it('maps every error code the controller exports', () => {
@@ -111,6 +122,12 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     const unmapped = v16Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
 
     expect(unmapped).toStrictEqual([]);
+  });
+
+  it('maps the v20 price-moved code to detailed price movement copy', () => {
+    expect(ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PRICE_MOVED]).toBe(
+      'perps.errors.priceMoved',
+    );
   });
 
   it('resolves every mapped i18n key to English copy', () => {

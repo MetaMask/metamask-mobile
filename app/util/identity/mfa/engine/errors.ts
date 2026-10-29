@@ -5,7 +5,9 @@ const HANDLING: Record<MfaFlowErrorCode, MfaErrorHandling> = {
   aal2_required: 'refresh',
   email_socially_verified: 'refresh',
   email_already_enrolled: 'refresh',
+  totp_already_enrolled: 'refresh',
   credential_not_enrolled: 'refresh',
+  credential_not_found: 'refresh',
   mfa_identity_missing: 'refresh',
   verification_token_invalid: 'refresh',
 
@@ -14,6 +16,7 @@ const HANDLING: Record<MfaFlowErrorCode, MfaErrorHandling> = {
   invalid_attestation: 'inline',
   passkey_ceremony_cancelled: 'inline',
   credential_already_enrolled: 'inline',
+  email_claimed: 'inline',
 
   flow_expired: 'restart',
   invalid_flow: 'restart',
@@ -24,7 +27,10 @@ const HANDLING: Record<MfaFlowErrorCode, MfaErrorHandling> = {
 
   max_passkeys_reached: 'failure',
   max_identifiers_reached: 'failure',
-  multi_primary_srp: 'failure',
+  multi_primary_srp: 'support',
+  // Removal only, outside the flow: the settings page shows its own error.
+  cross_type_step_up_required: 'failure',
+  last_credential: 'failure',
   invalid_response: 'failure',
   invalid_request: 'failure',
   passkey_unsupported: 'failure',
@@ -52,6 +58,16 @@ export const getFlowErrorCode = (error: unknown): MfaFlowErrorCode => {
 
 export const getErrorHandling = (code: MfaFlowErrorCode): MfaErrorHandling =>
   HANDLING[code];
+
+/**
+ * Whether the code means a bug on our side (a malformed request or response)
+ * rather than something the user or the server's rules caused.
+ *
+ * @param code - The flow error code.
+ * @returns `true` for codes worth reporting.
+ */
+export const isReportable = (code: MfaFlowErrorCode): boolean =>
+  code === 'invalid_response' || code === 'invalid_request';
 
 /**
  * Rejection of `verifyOrEnroll` and `enroll`. `mfaCode` is what

@@ -13,12 +13,16 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
 import Engine from '../../../../../core/Engine';
-import { POLYMARKET_V2_PROTOCOL } from './protocol/definitions';
+import {
+  POLYMARKET_POSITIONS_PROTOCOL,
+  POLYMARKET_V2_PROTOCOL,
+} from './protocol/definitions';
 import { OperationType } from './safe/types';
 import { getL2Headers } from './utils';
 
@@ -315,6 +319,90 @@ describe('depositWallet', () => {
     });
   });
 
+  describe('batch deadline', () => {
+    const deviceNowSeconds = 1_800_000_000;
+    const calls = [
+      {
+        target: POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+        value: '0',
+        data: '0x1234',
+      },
+    ];
+
+    function getSignedDeadline(): unknown {
+      const [params] = jest.mocked(signer.signTypedMessage).mock.calls[0];
+      return (params.data as { message: { deadline: unknown } }).message
+        .deadline;
+    }
+
+    async function submitBatch(): Promise<void> {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({ nonce: '9' }))
+        .mockResolvedValueOnce(mockResponse({ transactionID: 'relayer-2' }));
+
+      await executeDepositWalletBatch({
+        signer,
+        walletAddress: deriveDepositWalletAddress(ownerAddress),
+        calls,
+      });
+    }
+
+    let dateNowSpy: jest.SpyInstance<number, []>;
+
+    beforeEach(() => {
+      dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(deviceNowSeconds * 1000);
+    });
+
+    afterEach(() => {
+      dateNowSpy.mockRestore();
+    });
+
+    it('counts 600s from the latest Polygon block when the device clock is behind', async () => {
+      mockQuery.mockResolvedValue({
+        timestamp: `0x${(deviceNowSeconds + 120).toString(16)}`,
+      });
+
+      await submitBatch();
+
+      const expectedDeadline = String(deviceNowSeconds + 120 + 600);
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.anything(),
+        'getBlockByNumber',
+        ['latest', false],
+      );
+      expect(getSignedDeadline()).toBe(expectedDeadline);
+      expect(getFetchBody(1)).toEqual(
+        expect.objectContaining({
+          body: expect.objectContaining({
+            depositWalletParams: expect.objectContaining({
+              deadline: expectedDeadline,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('counts 600s from the device clock when it is ahead of the latest Polygon block', async () => {
+      mockQuery.mockResolvedValue({
+        timestamp: `0x${(deviceNowSeconds - 30).toString(16)}`,
+      });
+
+      await submitBatch();
+
+      expect(getSignedDeadline()).toBe(String(deviceNowSeconds + 600));
+    });
+
+    it('falls back to the device clock when the Polygon block cannot be read', async () => {
+      mockQuery.mockRejectedValue(new Error('network offline'));
+
+      await submitBatch();
+
+      expect(getSignedDeadline()).toBe(String(deviceNowSeconds + 600));
+    });
+  });
+
   it('polls by relayer id until wallet transaction hash is available', async () => {
     mockFetch.mockResolvedValue(
       mockResponse({
@@ -563,6 +651,57 @@ describe('depositWallet', () => {
     expect(mockFetch).toHaveBeenCalledWith(
       'https://clob.polymarket.com/balance-allowance/update?asset_type=COLLATERAL&signature_type=3',
       expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('syncs positions balance allowance through direct CLOB endpoint', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ ok: true }));
+
+    await syncDepositWalletPositionBalanceAllowance({
+      protocol: POLYMARKET_POSITIONS_PROTOCOL,
+      signerAddress: ownerAddress,
+      apiKey: {
+        apiKey: 'api-key',
+        secret: 'secret',
+        passphrase: 'passphrase',
+      },
+      tokenId: '1234567890',
+    });
+
+    expect(mockGetL2Headers).toHaveBeenCalledWith({
+      l2HeaderArgs: {
+        method: 'GET',
+        requestPath: '/balance-allowance/update',
+      },
+      address: ownerAddress,
+      apiKey: {
+        apiKey: 'api-key',
+        secret: 'secret',
+        passphrase: 'passphrase',
+      },
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://clob.polymarket.com/balance-allowance/update?asset_type=CONDITIONAL-V2&token_id=1234567890&signature_type=3',
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('throws contextual error when positions balance allowance sync fails', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ error: 'not allowed' }, false));
+
+    await expect(
+      syncDepositWalletPositionBalanceAllowance({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        signerAddress: ownerAddress,
+        apiKey: {
+          apiKey: 'api-key',
+          secret: 'secret',
+          passphrase: 'passphrase',
+        },
+        tokenId: '1234567890',
+      }),
+    ).rejects.toThrow(
+      'Failed to sync deposit wallet position balance allowance: 500 {"error":"not allowed"}',
     );
   });
 });

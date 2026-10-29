@@ -2,6 +2,8 @@ import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import { mobileMfaControllerAdapter } from './bindings';
 import { startMfaFlow } from './engine/activeFlow';
+import Logger from '../../Logger';
+import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { useMfa } from './useMfa';
 
 jest.mock('./engine/activeFlow', () => ({
@@ -12,10 +14,16 @@ jest.mock('./bindings', () => ({
   mobileMfaControllerAdapter: {},
 }));
 
+jest.mock('./passkeyAdapter', () => ({
+  mobilePasskeyAdapter: {},
+}));
+
+jest.mock('../../Logger', () => ({ error: jest.fn() }));
+
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 
 const enrolledCredentials: EnrolledCredential[] = [
-  { type: 'email_otp', status: 'active', verified: true },
+  { id: 'email_otp', type: 'email_otp', status: 'active', verified: true },
 ];
 
 const renderUseMfa = () =>
@@ -39,7 +47,7 @@ describe('useMfa', () => {
   });
 
   it('starts a verifyOrEnroll flow on mobile with the feature reason', async () => {
-    const reason = { operation: 'vba.activate', description: 'Why' };
+    const reason = { operation: 'vba.activate', enrollDescription: 'Why' };
 
     await renderUseMfa().verifyOrEnroll({
       reason,
@@ -56,6 +64,8 @@ describe('useMfa', () => {
       reason,
       platform: 'mobile',
       controller: mobileMfaControllerAdapter,
+      passkey: mobilePasskeyAdapter,
+      reportError: expect.any(Function),
     });
   });
 
@@ -69,6 +79,32 @@ describe('useMfa', () => {
       reason,
       platform: 'mobile',
       controller: mobileMfaControllerAdapter,
+      passkey: mobilePasskeyAdapter,
+      reportError: expect.any(Function),
+    });
+  });
+
+  it('reports bugs to Sentry with searchable tags', async () => {
+    await renderUseMfa().enroll({
+      method: 'email_otp',
+      reason: { operation: 'settings.addEmail' },
+    });
+    const { reportError } = mockStartMfaFlow.mock.calls[0][0];
+    const error = new Error('bad shape');
+
+    reportError?.(error, {
+      code: 'invalid_response',
+      operation: 'settings.addEmail',
+      step: 'otp',
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(error, {
+      tags: {
+        feature: 'mfa',
+        mfaCode: 'invalid_response',
+        operation: 'settings.addEmail',
+      },
+      context: { name: 'mfa_flow', data: { step: 'otp' } },
     });
   });
 });

@@ -45,7 +45,10 @@ export function useMaxValueRefresher() {
 
     if (shouldUpdate && maxValue.isPositive()) {
       setIsTransactionValueUpdating(true);
+      // Keep the transaction type so a send to a contract recipient remains a
+      // simple send rather than becoming a contract interaction.
       updateEditableParams(id, {
+        updateType: false,
         value: maxValueHex,
       });
       // Do it on the next tick to avoid race condition in insufficient balance alert

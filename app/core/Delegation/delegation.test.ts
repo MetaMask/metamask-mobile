@@ -123,8 +123,9 @@ describe('resolveAuthority', () => {
       signature: '0x',
     };
     const result = resolveAuthority(parentDelegation);
-    expect(result).toBeDefined();
-    expect(result).not.toBe(ROOT_AUTHORITY);
+    expect(result).toBe(
+      '0xb9d861af4ad3392b7675e74232fb11b64e12d0a9b35ed831e1118e99c65860e5',
+    );
   });
 });
 

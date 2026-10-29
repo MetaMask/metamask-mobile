@@ -10,6 +10,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  type IconProps,
   SensitiveText,
   SensitiveTextLength,
   Tag,
@@ -38,6 +39,11 @@ export interface MoneySheetOption {
    */
   label: string | MoneySheetOptionPrivacyMask;
   icon: IconName;
+  /**
+   * Extra `Icon` props for this row only (e.g. mirroring the arrow). Kept as
+   * a style passthrough because the design system has no up-left arrow icon.
+   */
+  iconProps?: Pick<IconProps, 'style'>;
   onPress?: () => void;
   testID: string;
   disabled?: boolean;
@@ -77,6 +83,7 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
             name={item.icon}
             size={IconSize.Lg}
             color={item.disabled ? IconColor.IconMuted : IconColor.IconDefault}
+            style={item.iconProps?.style}
           />
           {item.comingSoon ? (
             <View style={styles.disabledRowContent}>

@@ -1,14 +1,15 @@
 import React from 'react';
+import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
-import { useSocialFeedSurface } from '../SocialFeedSurface';
+import { useLiveCardHeader } from '../live/useLiveCardHeader';
 import type { SocialV1FeedItem } from '../types';
-import { mockedFieldLabel } from '../utils/mockedFieldLabel';
+import { formatFeedPostAge } from '../utils/formatters';
 import { isCopyTradeable } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
 import PositionCardHeader from './PositionCardHeader';
-import PositionCardShell from './PositionCardShell';
+import PositionCardShell, { type PositionCardTone } from './PositionCardShell';
 import PositionCardStats, {
   type PositionCardStatRow,
 } from './PositionCardStats';
@@ -38,6 +39,59 @@ export interface PositionCardBodyProps {
 
 const statId = getSocialFeedPositionCardStatTestId;
 
+const marketCapSuffix = () =>
+  strings('social_leaderboard.position_sheet.market_cap_suffix');
+
+/**
+ * A spot figure quoted as market cap when the fills recorded one (`Entry (MC)`,
+ * `$3.7T`), and as a unit price otherwise. Perps never have a market cap.
+ */
+const priceOrMarketCapRow = (
+  key: 'entry' | 'exit',
+  id: string,
+  priceLabel?: string,
+  marketCapLabel?: string,
+): PositionCardStatRow => {
+  const label = strings(`social_leaderboard.feed.position_card.${key}`);
+  return {
+    key,
+    label: marketCapLabel ? `${label} ${marketCapSuffix()}` : label,
+    value: marketCapLabel ?? priceLabel,
+    testID: statId(id, key),
+  };
+};
+
+export const closedAgeLabel = (
+  closedAtMs: number | undefined,
+  verb: 'closed' | 'sold',
+  now: number = Date.now(),
+): string | undefined =>
+  closedAtMs == null
+    ? undefined
+    : strings(
+        verb === 'sold'
+          ? 'social_leaderboard.feed.position_card.sold_ago'
+          : 'social_leaderboard.feed.position_card.closed_ago',
+        { age: formatFeedPostAge(closedAtMs, now) },
+      );
+
+/**
+ * Wash hue for the figures the card actually shows as P&L. An open card's
+ * `valueLabel` is its current value, so it is not proof of a result. The sign
+ * has to be the one on screen: live ticks rewrite the header without rewriting
+ * the feed snapshot.
+ */
+const cardTone = (
+  pnlLabel: string,
+  pnlValueLabel: string | undefined,
+  isPnlPositive: boolean,
+): PositionCardTone => {
+  if (!pnlLabel && !pnlValueLabel) {
+    return 'neutral';
+  }
+  return isPnlPositive ? 'positive' : 'negative';
+};
+
 /**
  * The closed-card stats, identical for perps and spot. Three short values that
  * sit side by side: what it was entered at, what it left at, and what it cost.
@@ -47,21 +101,23 @@ const statId = getSocialFeedPositionCardStatTestId;
 const closedStats = (item: {
   id: string;
   entryPriceLabel?: string;
+  entryMarketCapLabel?: string;
   exitPriceLabel?: string;
+  exitMarketCapLabel?: string;
   costLabel?: string;
 }): PositionCardStatRow[] => [
-  {
-    key: 'entry',
-    label: strings('social_leaderboard.feed.position_card.entry'),
-    value: item.entryPriceLabel,
-    testID: statId(item.id, 'entry'),
-  },
-  {
-    key: 'exit',
-    label: strings('social_leaderboard.feed.position_card.exit'),
-    value: item.exitPriceLabel,
-    testID: statId(item.id, 'exit'),
-  },
+  priceOrMarketCapRow(
+    'entry',
+    item.id,
+    item.entryPriceLabel,
+    item.entryMarketCapLabel,
+  ),
+  priceOrMarketCapRow(
+    'exit',
+    item.id,
+    item.exitPriceLabel,
+    item.exitMarketCapLabel,
+  ),
   {
     key: 'cost',
     label: strings('social_leaderboard.feed.position_card.cost'),
@@ -73,32 +129,33 @@ const closedStats = (item: {
 /**
  * The position card that forms the body of a post.
  *
- * Two shapes, not four: an open position puts its running P&L beside the title
- * and offers Copy trade, a closed one puts its settled result under the title and
- * offers nothing to copy. The asset class only decides which stat rows sit
- * between -- perps carry the auto-close bracket, spot carries hold time.
- * Composer spot shares reuse the open layout and gate Copy trade with
- * `showCopyTrade`.
+ * Two shapes, not four: both put the symbol, a side tag, and the P&L on one
+ * row. An open card captions the live price or market cap and offers Copy
+ * trade. A closed card captions when it settled and offers nothing to copy.
+ * Spot quotes entry and exit as market cap when the fills recorded one. Perps
+ * quote a price, and a closed spot card drops the side tag. Composer spot
+ * shares reuse the open layout and gate Copy trade with `showCopyTrade`.
  *
- * A closed card also takes the tone of its realized P&L, so a win and a loss
- * are distinguishable while scrolling past at speed.
+ * Dark mode washes the card with the P&L hue. A closed card also outlines in
+ * that hue, so a win and a loss still read while scrolling past at speed.
  */
 export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   item,
   onCopyTrade,
 }) => {
-  const { showMockedFields } = useSocialFeedSurface();
-  const autoCloseLabel = mockedFieldLabel(
-    item.variant === 'perpsOpen' ? item.autoCloseLabel : undefined,
-    'autoClose',
-    item.mockedFields,
-    showMockedFields,
-  );
-  const markPriceLabel = mockedFieldLabel(
-    'markPriceLabel' in item ? item.markPriceLabel : undefined,
-    'markPrice',
-    item.mockedFields,
-    showMockedFields,
+  const header = useLiveCardHeader(
+    item.id,
+    item.variant === 'perpsOpen' || item.variant === 'spotOpen'
+      ? item.live
+      : undefined,
+    {
+      priceLabel: 'markPriceLabel' in item ? item.markPriceLabel : undefined,
+      marketCapLabel:
+        item.variant === 'spotOpen' ? item.marketCapLabel : undefined,
+      pnlLabel: item.pnlLabel,
+      pnlValueLabel: item.pnlValueLabel,
+      isPnlPositive: item.isPnlPositive,
+    },
   );
 
   if (
@@ -106,64 +163,63 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
     item.variant === 'spotOpen' ||
     item.variant === 'spotShare'
   ) {
-    const entryRow: PositionCardStatRow = {
-      key: 'entry',
-      label: strings('social_leaderboard.feed.position_card.entry_price'),
-      value: item.entryPriceLabel,
-      testID: statId(item.id, 'entry'),
-    };
-    const costRow: PositionCardStatRow = {
-      key: 'cost',
-      label: strings('social_leaderboard.feed.position_card.cost'),
-      value: item.costLabel,
-      testID: statId(item.id, 'cost'),
-    };
-    // Leverage is not a row: it rides in the title, next to the direction it
-    // qualifies (`BTC · 40x Short`).
-    const stats: PositionCardStatRow[] =
-      item.variant === 'perpsOpen'
-        ? [
-            entryRow,
-            {
-              key: 'autoClose',
-              label: strings(
-                'social_leaderboard.feed.position_card.auto_close',
-              ),
-              value: autoCloseLabel,
-              testID: statId(item.id, 'autoClose'),
-            },
-            costRow,
-          ]
-        : [
-            entryRow,
-            {
-              key: 'holdTime',
-              label: strings('social_leaderboard.feed.position_card.hold_time'),
-              value: item.holdTimeLabel,
-              testID: statId(item.id, 'holdTime'),
-            },
-            costRow,
-          ];
+    const { marketCapLabel } = header;
+    // Leverage is not a row: it rides in the side tag, next to the direction
+    // it qualifies (`40x Short`).
+    const stats: PositionCardStatRow[] = [
+      priceOrMarketCapRow(
+        'entry',
+        item.id,
+        item.entryPriceLabel,
+        item.variant === 'spotOpen' ? item.entryMarketCapLabel : undefined,
+      ),
+      {
+        key: 'holdTime',
+        label: strings('social_leaderboard.feed.position_card.hold_time'),
+        value: item.holdTimeLabel,
+        testID: statId(item.id, 'holdTime'),
+      },
+      {
+        key: 'cost',
+        label: strings('social_leaderboard.feed.position_card.cost'),
+        value: item.costLabel,
+        testID: statId(item.id, 'cost'),
+      },
+    ];
 
     const showCopyTrade = isCopyTradeable(item);
 
     return (
-      <PositionCardShell>
-        <PositionCardHeader
-          layout="open"
-          avatar={item.asset.avatar}
-          symbol={item.asset.symbol}
-          direction={item.variant === 'perpsOpen' ? item.direction : undefined}
-          leverageLabel={
-            item.variant === 'perpsOpen' ? item.leverageLabel : undefined
-          }
-          side={item.variant === 'perpsOpen' ? undefined : item.side}
-          markPriceLabel={markPriceLabel}
-          valueLabel={item.valueLabel}
-          pnlLabel={item.pnlLabel}
-          pnlValueLabel={item.pnlValueLabel}
-          isPnlPositive={item.isPnlPositive}
-        />
+      <PositionCardShell
+        tone={cardTone(
+          header.pnlLabel,
+          header.pnlValueLabel,
+          header.isPnlPositive,
+        )}
+      >
+        <View ref={header.trackRef} collapsable={false}>
+          <PositionCardHeader
+            layout="open"
+            avatar={item.asset.avatar}
+            symbol={item.asset.symbol}
+            direction={
+              item.variant === 'perpsOpen' ? item.direction : undefined
+            }
+            leverageLabel={
+              item.variant === 'perpsOpen' ? item.leverageLabel : undefined
+            }
+            side={item.variant === 'perpsOpen' ? undefined : item.side}
+            subtitleLabel={
+              marketCapLabel
+                ? `${marketCapLabel} ${marketCapSuffix()}`
+                : header.priceLabel
+            }
+            pnlLabel={header.pnlLabel}
+            pnlValueLabel={header.pnlValueLabel}
+            isPnlPositive={header.isPnlPositive}
+            live={header.live}
+          />
+        </View>
         <PositionCardStats rows={stats} cardId={item.id} />
         {showCopyTrade ? (
           <CopyTradeButton
@@ -176,18 +232,24 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   }
 
   return (
-    <PositionCardShell tone={item.isPnlPositive ? 'positive' : 'negative'}>
+    <PositionCardShell
+      tone={cardTone(item.pnlLabel, item.valueLabel, item.isPnlPositive)}
+      emphasizeBorder
+    >
       <PositionCardHeader
         layout="closed"
         avatar={item.asset.avatar}
         symbol={item.asset.symbol}
         direction={item.variant === 'perpsClosed' ? item.direction : undefined}
-        side={item.variant === 'spotClosed' ? item.side : undefined}
         leverageLabel={
           item.variant === 'perpsClosed' ? item.leverageLabel : undefined
         }
-        valueLabel={item.valueLabel}
+        subtitleLabel={closedAgeLabel(
+          item.closedAtMs,
+          item.variant === 'spotClosed' ? 'sold' : 'closed',
+        )}
         pnlLabel={item.pnlLabel}
+        pnlValueLabel={item.valueLabel}
         isPnlPositive={item.isPnlPositive}
       />
       <PositionCardStats

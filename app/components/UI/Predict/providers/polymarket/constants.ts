@@ -1,10 +1,29 @@
-import { ContractConfig, RoundConfig } from './types';
+import {
+  ContractConfig,
+  PositionsProtocolContractConfig,
+  RoundConfig,
+} from './types';
 import {
   isEsportsRoundHandicapMarketType,
   isEsportsRoundOverUnderMarketType,
 } from '../../constants/sports';
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
+
+/**
+ * Gamma market version for Protocol V2 (PositionManager) markets. Every
+ * other value — "v1", missing, or unknown — stays on the CTF path. This is
+ * the Gamma version axis, not the EIP-712 domain version and not the CLOB
+ * deployment version.
+ */
+export const V2_MARKET_VERSION = 'v2';
+
+/**
+ * Gamma market version for Protocol V1 (CTF) markets, threaded explicitly
+ * from a loaded market that carries no Gamma version field so the order
+ * path never re-resolves it. Every non-"v2" value stays on the CTF path.
+ */
+export const V1_MARKET_VERSION = 'v1';
 
 export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
@@ -15,8 +34,6 @@ export const DEFAULT_CLOB_BASE_URL = 'https://clob.polymarket.com';
  */
 export const SLIPPAGE_BUY = 0.03; // 3%
 export const SLIPPAGE_SELL = 0.05; // 5%
-// BUY is floored at maxAmountSpent + tickSize. SELL has no floor — user accepts up to 99% less pUSD.
-export const SLIPPAGE_BEST_AVAILABLE = 0.99; // 99%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 
@@ -91,6 +108,20 @@ export const MATIC_CONTRACTS_V2: ContractConfig = {
   collateral: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
   conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
 };
+
+/**
+ * Protocol V2 settles on a single ExchangeV3 — there is no separate neg-risk
+ * exchange. Both slots carry ExchangeV3 so the order verifying contract is
+ * ExchangeV3 regardless of negRisk. The PositionManager owns the
+ * positions-protocol outcome balances.
+ */
+export const MATIC_POSITIONS_PROTOCOL_CONTRACTS: PositionsProtocolContractConfig =
+  {
+    exchange: '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa',
+    negRiskExchange: '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa',
+    positionManager: '0x006F54F7f9A22e0000CC2AB60031000000ae9fEF',
+    router: '0x12121212006e4CD160D18e3f00711DA5c3372600',
+  };
 
 export const USDC_E_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
 

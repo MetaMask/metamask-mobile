@@ -210,10 +210,12 @@ jobs:
             pull_requests: write
             issues: write
 
-      # https://github.com/MetaMask/ai-analyzer/releases — same private repo
-      # and secrets ai-pr-risk-analysis.yml / flaky-unit-test-detection.yml
-      # already use. Only checked out when there's something to look at, so a
-      # clean audit never pays for it.
+      # https://github.com/MetaMask/ai-analyzer/releases — private repo.
+      # Checkout uses a short-lived token from the token exchange service
+      # (MetaMask/ai-analyzer, contents: read), same as
+      # ai-pr-risk-analysis.yml and flaky-unit-test-detection.yml. Only
+      # checked out when there's something to look at, so a clean audit
+      # never pays for it.
       #
       # Pinned to a commit SHA, not a movable tag/branch (same reasoning as
       # pinning third-party Actions). Not the `v1` tag flaky-unit-test-
@@ -228,6 +230,16 @@ jobs:
       # take effect — on the previously-pinned commit those fields were
       # silently ignored and every mode got the hardcoded 15-iteration,
       # tier-heuristic default.
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
+
       - name: Checkout AI Analyzer
         id: checkout-ai-analyzer
         if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
@@ -236,7 +248,7 @@ jobs:
           repository: MetaMask/ai-analyzer
           ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348 # v2.3.0
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
 
       - name: Install AI Analyzer dependencies
         id: install-ai-analyzer-deps
@@ -401,6 +413,7 @@ jobs:
           STEP_OWNER: ${{ steps.owner.outcome }}
           STEP_NEXT_SEMVER: ${{ steps['next-semver'].outcome }}
           STEP_GET_TOKEN: ${{ steps.get-token.outcome }}
+          STEP_GET_AI_ANALYZER_TOKEN: ${{ steps.get-ai-analyzer-token.outcome }}
           STEP_CHECKOUT_AI_ANALYZER: ${{ steps['checkout-ai-analyzer'].outcome }}
           STEP_INSTALL_AI_ANALYZER_DEPS: ${{ steps['install-ai-analyzer-deps'].outcome }}
           STEP_FIX: ${{ steps.fix.outcome }}
@@ -419,6 +432,7 @@ jobs:
               ['STEP_OWNER', 'Read audit owner'],
               ['STEP_NEXT_SEMVER', 'Get the next semver version'],
               ['STEP_GET_TOKEN', 'Get token'],
+              ['STEP_GET_AI_ANALYZER_TOKEN', 'Get AI Analyzer token'],
               ['STEP_CHECKOUT_AI_ANALYZER', 'Checkout AI Analyzer'],
               ['STEP_INSTALL_AI_ANALYZER_DEPS', 'Install AI Analyzer dependencies'],
               ['STEP_FIX', 'Attempt AI-assisted fix'],

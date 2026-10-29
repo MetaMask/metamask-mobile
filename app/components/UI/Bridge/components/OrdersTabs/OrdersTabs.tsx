@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import type { CaipChainId, Hex } from '@metamask/utils';
+import { isEqual } from 'lodash';
+import type { CaipChainId } from '@metamask/utils';
 import {
   AvatarBaseShape,
   AvatarNetwork,
@@ -18,6 +18,7 @@ import {
   IconName,
   Spinner,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
@@ -33,35 +34,77 @@ import {
   selectAllowedChainRanking,
   selectOrdersNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
+import { groupOrdersByDate } from './groupOrdersByDate';
 import { OrdersEmptyState } from './OrdersEmptyState';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
-import { OrdersTabKey, type OrdersTabsProps } from './OrdersTabs.types';
+import {
+  OrdersTabKey,
+  type OrdersTabConfig,
+  type OrdersTabsProps,
+} from './OrdersTabs.types';
 
-function itemMatchesNetworkFilter<T>(
-  item: T,
+/**
+ * Networks the orders filter offers for one tab.
+ * Consumers fetch per selected network, so while one is selected the items
+ * only cover that network, and the last All networks set is kept alongside
+ * them. While All networks is showing, the items already span every loaded
+ * page, so each settled result replaces that set; the empty initial load
+ * keeps the previous set until orders arrive.
+ */
+function useOrdersTabFilterChainIds<T>(
+  { items, getItemChainId, isLoading }: OrdersTabConfig<T>,
   selectedChainId: CaipChainId | undefined,
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined,
-): boolean {
-  if (!selectedChainId || !getItemChainId) {
-    return true;
+  enabledChainIds: CaipChainId[] | undefined,
+): CaipChainId[] {
+  const itemChainIds = useMemo(() => {
+    const chainIds = [...new Set(items.map(getItemChainId))];
+    return enabledChainIds
+      ? chainIds.filter((chainId) => enabledChainIds.includes(chainId))
+      : chainIds;
+  }, [enabledChainIds, getItemChainId, items]);
+
+  const [allNetworksChainIds, setAllNetworksChainIds] = useState<CaipChainId[]>(
+    [],
+  );
+  const isInitialAllNetworksLoad =
+    !selectedChainId && Boolean(isLoading) && items.length === 0;
+
+  const filterChainIds = useMemo(() => {
+    const seenChainIds = enabledChainIds
+      ? allNetworksChainIds.filter((chainId) =>
+          enabledChainIds.includes(chainId),
+        )
+      : allNetworksChainIds;
+
+    if (selectedChainId) {
+      return [...new Set([...seenChainIds, ...itemChainIds, selectedChainId])];
+    }
+
+    return isInitialAllNetworksLoad ? seenChainIds : itemChainIds;
+  }, [
+    allNetworksChainIds,
+    enabledChainIds,
+    isInitialAllNetworksLoad,
+    itemChainIds,
+    selectedChainId,
+  ]);
+
+  if (
+    !selectedChainId &&
+    !isInitialAllNetworksLoad &&
+    !isEqual(allNetworksChainIds, filterChainIds)
+  ) {
+    setAllNetworksChainIds(filterChainIds);
   }
 
-  const itemChainId = getItemChainId(item);
-  return (
-    itemChainId !== undefined &&
-    formatChainIdToCaip(itemChainId) === selectedChainId
-  );
+  return filterChainIds;
 }
 
-function OrdersNetworkFilter({
-  enabledChainIds,
-}: {
-  enabledChainIds?: CaipChainId[];
-}) {
+function OrdersNetworkFilter({ chainIds }: { chainIds: CaipChainId[] }) {
   const navigation = useNavigation<AppNavigationProp>();
   const selectedChainId = useSelector(selectOrdersNetworkFilter);
   const chainRanking = useSelector((state: RootState) =>
-    selectAllowedChainRanking(state, enabledChainIds),
+    selectAllowedChainRanking(state, chainIds),
   );
 
   const selectedNetwork = selectedChainId
@@ -72,9 +115,14 @@ function OrdersNetworkFilter({
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds, filterTarget: 'orders' },
+      params: { enabledChainIds: chainIds, filterTarget: 'orders' },
     });
-  }, [enabledChainIds, navigation]);
+  }, [chainIds, navigation]);
+
+  // A selected network keeps the button so the user can go back to All networks.
+  if (!selectedChainId && chainRanking.length < 2) {
+    return null;
+  }
 
   return (
     <Button
@@ -110,35 +158,45 @@ function OrdersNetworkFilter({
   );
 }
 
+function useNetworkFilteredItems<T>(
+  items: T[],
+  getItemChainId: (item: T) => CaipChainId,
+  selectedChainId: CaipChainId | undefined,
+): T[] {
+  return useMemo(
+    () =>
+      selectedChainId
+        ? items.filter((item) => getItemChainId(item) === selectedChainId)
+        : items,
+    [getItemChainId, items, selectedChainId],
+  );
+}
+
 function OrdersTabPanel<T>({
-  items,
+  filteredItems,
   renderItem,
   keyExtractor,
-  getItemChainId,
+  getItemDate,
   emptyDescription,
   isLoading,
   isError,
   isFetchingNextPage,
   onRetry,
 }: {
-  items: T[];
+  filteredItems: T[];
   renderItem?: (item: T, index: number) => React.ReactElement;
   keyExtractor?: (item: T, index: number) => string;
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
+  getItemDate?: (item: T) => string | undefined;
   emptyDescription: string;
   isLoading?: boolean;
   isError?: boolean;
   isFetchingNextPage?: boolean;
   onRetry?: () => void;
 }) {
-  const selectedChainId = useSelector(selectOrdersNetworkFilter);
-
-  const filteredItems = useMemo(
+  const dateSections = useMemo(
     () =>
-      items.filter((item) =>
-        itemMatchesNetworkFilter(item, selectedChainId, getItemChainId),
-      ),
-    [getItemChainId, items, selectedChainId],
+      getItemDate ? groupOrdersByDate(filteredItems, getItemDate) : undefined,
+    [filteredItems, getItemDate],
   );
 
   if (isLoading && filteredItems.length === 0) {
@@ -168,18 +226,36 @@ function OrdersTabPanel<T>({
     return <OrdersEmptyState description={emptyDescription} />;
   }
 
+  const renderRow = (item: T, index: number) => (
+    <React.Fragment
+      key={keyExtractor ? keyExtractor(item, index) : String(index)}
+    >
+      {renderItem(item, index)}
+    </React.Fragment>
+  );
+
   // Map rows instead of FlashList so the parent page ScrollView owns
   // scrolling. A nested virtualized list with flex-1 fills the viewport
   // and captures pans, which blocks page scroll on short form screens.
   return (
-    <Box testID={OrdersTabsSelectorsIDs.CONTENT} gap={2}>
-      {filteredItems.map((item, index) => (
-        <React.Fragment
-          key={keyExtractor ? keyExtractor(item, index) : String(index)}
-        >
-          {renderItem(item, index)}
-        </React.Fragment>
-      ))}
+    <Box testID={OrdersTabsSelectorsIDs.CONTENT} gap={dateSections ? 4 : 2}>
+      {dateSections
+        ? dateSections.map((section) => (
+            <Box key={section.key} gap={2}>
+              {section.title ? (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  testID={OrdersTabsSelectorsIDs.DATE_SECTION_HEADER}
+                >
+                  {section.title}
+                </Text>
+              ) : null}
+              {section.items.map(({ item, index }) => renderRow(item, index))}
+            </Box>
+          ))
+        : filteredItems.map((item, index) => renderRow(item, index))}
       {isFetchingNextPage ? (
         <Box alignItems={BoxAlignItems.Center} paddingVertical={4}>
           <Spinner
@@ -203,12 +279,42 @@ function OrdersTabs<TOpen, THistory>({
   const [internalSelectedTab, setInternalSelectedTab] =
     useState<OrdersTabKey>(initialTab);
   const selectedTab = activeTab ?? internalSelectedTab;
+  const selectedChainId = useSelector(selectOrdersNetworkFilter);
+  const openOrdersChainIds = useOrdersTabFilterChainIds(
+    openOrders,
+    selectedChainId,
+    enabledChainIds,
+  );
+  const historyChainIds = useOrdersTabFilterChainIds(
+    history,
+    selectedChainId,
+    enabledChainIds,
+  );
+
+  const filteredOpenOrders = useNetworkFilteredItems(
+    openOrders.items,
+    openOrders.getItemChainId,
+    selectedChainId,
+  );
+  const filteredHistory = useNetworkFilteredItems(
+    history.items,
+    history.getItemChainId,
+    selectedChainId,
+  );
+  const openOrdersCount =
+    openOrders.totalCount ??
+    (openOrders.renderItem ? filteredOpenOrders.length : 0);
 
   const tabs = useMemo<TabItem[]>(
     () => [
       {
         key: OrdersTabKey.OpenOrders,
-        label: strings('bridge.orders.tabs.open_orders'),
+        label:
+          openOrdersCount > 0
+            ? strings('bridge.orders.tabs.open_orders_with_count', {
+                count: openOrdersCount,
+              })
+            : strings('bridge.orders.tabs.open_orders'),
         content: null,
         testID: OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB,
       },
@@ -219,7 +325,7 @@ function OrdersTabs<TOpen, THistory>({
         testID: OrdersTabsSelectorsIDs.HISTORY_TAB,
       },
     ],
-    [],
+    [openOrdersCount],
   );
 
   const activeIndex = selectedTab === OrdersTabKey.History ? 1 : 0;
@@ -243,13 +349,19 @@ function OrdersTabs<TOpen, THistory>({
         />
       </Box>
       <Box twClassName="mx-4 grow gap-4 py-4">
-        <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
+        <OrdersNetworkFilter
+          chainIds={
+            selectedTab === OrdersTabKey.History
+              ? historyChainIds
+              : openOrdersChainIds
+          }
+        />
         {selectedTab === OrdersTabKey.OpenOrders ? (
           <OrdersTabPanel
-            items={openOrders.items}
+            filteredItems={filteredOpenOrders}
             renderItem={openOrders.renderItem}
             keyExtractor={openOrders.keyExtractor}
-            getItemChainId={openOrders.getItemChainId}
+            getItemDate={openOrders.getItemDate}
             isLoading={openOrders.isLoading}
             isError={openOrders.isError}
             isFetchingNextPage={openOrders.isFetchingNextPage}
@@ -258,10 +370,10 @@ function OrdersTabs<TOpen, THistory>({
           />
         ) : (
           <OrdersTabPanel
-            items={history.items}
+            filteredItems={filteredHistory}
             renderItem={history.renderItem}
             keyExtractor={history.keyExtractor}
-            getItemChainId={history.getItemChainId}
+            getItemDate={history.getItemDate}
             isLoading={history.isLoading}
             isError={history.isError}
             isFetchingNextPage={history.isFetchingNextPage}

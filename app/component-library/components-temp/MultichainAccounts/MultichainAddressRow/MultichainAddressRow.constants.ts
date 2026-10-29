@@ -6,6 +6,8 @@ export const MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID =
   'multichain-address-row-network-icon';
 export const MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID =
   'multichain-address-row-network-name';
+export const MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID =
+  'multichain-address-row-account-type-label';
 export const MULTICHAIN_ADDRESS_ROW_ADDRESS_TEST_ID =
   'multichain-address-row-address';
 export const MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID =
