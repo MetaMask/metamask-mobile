@@ -16,8 +16,13 @@ import { useTheme } from '../../../../../util/theme';
 
 export const TRENDING_FILTER_RAIL_TEST_ID = 'social-v1-trending-filter-rail';
 
-/** Wide enough for the fade to cover the icon and the pills that pass under it. */
-const FADE_WIDTH = 88;
+/** Large icon button is 40px, and the rail keeps it 16px from the screen edge. */
+const FILTER_BUTTON_SIZE = 40;
+const FILTER_BUTTON_END_INSET = 16;
+/** Gradient run before the button. The wash is solid by the time a chip meets it. */
+const GRADIENT_LEAD = 56;
+const FADE_WIDTH =
+  FILTER_BUTTON_END_INSET + FILTER_BUTTON_SIZE + GRADIENT_LEAD;
 
 const styles = StyleSheet.create({
   fade: {
@@ -31,6 +36,12 @@ const styles = StyleSheet.create({
 
 const GRADIENT_START = { x: 0, y: 0.5 };
 const GRADIENT_END = { x: 1, y: 0.5 };
+/** Fade across the lead, then hold the page color over the button. */
+const GRADIENT_LOCATIONS = [0, GRADIENT_LEAD / FADE_WIDTH, 1];
+
+/** Same-color 0-alpha stop so the wash is white in light and black in dark. */
+const fadeFromPageColor = (color: string) =>
+  color.startsWith('#') && color.length === 7 ? `${color}00` : color;
 
 export interface TrendingFilterRailProps {
   children: React.ReactNode;
@@ -64,7 +75,12 @@ const TrendingFilterRail: React.FC<TrendingFilterRailProps> = ({
       <View pointerEvents="box-none" style={styles.fade}>
         <LinearGradient
           pointerEvents="none"
-          colors={['transparent', colors.background.default]}
+          colors={[
+            fadeFromPageColor(colors.background.default),
+            colors.background.default,
+            colors.background.default,
+          ]}
+          locations={GRADIENT_LOCATIONS}
           start={GRADIENT_START}
           end={GRADIENT_END}
           style={StyleSheet.absoluteFill}
@@ -75,29 +91,34 @@ const TrendingFilterRail: React.FC<TrendingFilterRailProps> = ({
           twClassName="flex-1 pr-4"
           pointerEvents="box-none"
         >
-          <ButtonIcon
-            iconName={IconName.Filter}
-            size={ButtonIconSize.Lg}
-            iconProps={{ size: IconSize.Lg }}
-            onPress={
-              onOpenFilters
-                ? () => {
-                    fireImpact(ImpactMoment.SecondaryCTA);
-                    onOpenFilters();
-                  }
-                : undefined
-            }
-            testID={testID}
-            accessibilityLabel={strings(
-              'social_leaderboard.shell.filters.title',
-            )}
-            accessibilityState={{ selected: isFilterActive }}
-            twClassName={
-              isFilterActive
-                ? 'rounded-full bg-primary-muted'
-                : 'rounded-full bg-background-muted'
-            }
-          />
+          <Box
+            testID={`${testID}-disc`}
+            twClassName="rounded-full bg-default overflow-hidden"
+          >
+            <ButtonIcon
+              iconName={IconName.Filter}
+              size={ButtonIconSize.Lg}
+              iconProps={{ size: IconSize.Lg }}
+              onPress={
+                onOpenFilters
+                  ? () => {
+                      fireImpact(ImpactMoment.SecondaryCTA);
+                      onOpenFilters();
+                    }
+                  : undefined
+              }
+              testID={testID}
+              accessibilityLabel={strings(
+                'social_leaderboard.shell.filters.title',
+              )}
+              accessibilityState={{ selected: isFilterActive }}
+              twClassName={
+                isFilterActive
+                  ? 'rounded-full bg-primary-muted'
+                  : 'rounded-full bg-background-muted'
+              }
+            />
+          </Box>
         </Box>
       </View>
     </Box>
