@@ -2,7 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import ContentDisplay, {
-  CONTENT_DISPLAY_MEASURE_TEST_ID,
+  CONTENT_DISPLAY_TEXT_TEST_ID,
   CONTENT_DISPLAY_TOGGLE_TEST_ID,
 } from './ContentDisplay';
 
@@ -27,9 +27,7 @@ const SHOW_LESS = strings('asset_overview.about_content_display.show_less');
 const fireMeasureLayout = (lineCount: number) => {
   act(() => {
     fireEvent(
-      screen.getByTestId(CONTENT_DISPLAY_MEASURE_TEST_ID, {
-        includeHiddenElements: true,
-      }),
+      screen.getByTestId(CONTENT_DISPLAY_TEXT_TEST_ID),
       'onTextLayout',
       {
         nativeEvent: {

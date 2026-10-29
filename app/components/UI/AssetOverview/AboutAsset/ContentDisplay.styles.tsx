@@ -11,14 +11,6 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
     },
 
-    // Off-screen, zero-opacity copy used only to measure the unclamped line
-    // count. Full width so it wraps exactly like the visible description.
-    measureText: {
-      position: 'absolute',
-      opacity: 0,
-      width: '100%',
-    } as TextStyle,
-
     disclaimer: {
       paddingTop: 16,
     } as TextStyle,

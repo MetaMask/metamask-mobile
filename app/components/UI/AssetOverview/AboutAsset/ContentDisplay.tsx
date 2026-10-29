@@ -14,7 +14,6 @@ import Text, {
 import styleSheet from './ContentDisplay.styles';
 import { strings } from '../../../../../locales/i18n';
 
-export const CONTENT_DISPLAY_MEASURE_TEST_ID = 'content-display-measure';
 export const CONTENT_DISPLAY_TEXT_TEST_ID = 'content-display-text';
 export const CONTENT_DISPLAY_TOGGLE_TEST_ID = 'content-display-toggle';
 
@@ -44,17 +43,20 @@ const ContentDisplay = ({
   }, [content, numberOfLines]);
 
   /**
-   * Truncation can only be measured on an unclamped copy: once `numberOfLines`
-   * is applied, `onTextLayout` reports the clamped lines, so it can never
-   * exceed the limit. This hidden copy carries no clamp, so a line count over
-   * the limit means the visible (clamped) text overflows and needs a toggle.
+   * The first layout pass runs unclamped, so its line count reflects the full
+   * text: more lines than the limit means the clamped text overflows and needs
+   * a toggle. Once measured, the clamp is applied and this is ignored.
    */
-  const handleMeasureTextLayout = useCallback(
+  const handleTextLayout = useCallback(
     (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+      if (hasMeasured) {
+        return;
+      }
+
       setIsTruncated(event.nativeEvent.lines.length > numberOfLines);
       setHasMeasured(true);
     },
-    [numberOfLines],
+    [hasMeasured, numberOfLines],
   );
 
   const toggleContent = () => {
@@ -62,25 +64,17 @@ const ContentDisplay = ({
   };
 
   const showToggle = isTruncated || isExpanded;
+  // Leave the text unclamped until it has been measured so the line count is
+  // accurate; afterwards clamp it unless the user has expanded it.
+  const clampedLines = hasMeasured && !isExpanded ? numberOfLines : undefined;
 
   return (
     <View>
-      {!hasMeasured ? (
-        <Text
-          color={TextColor.Alternative}
-          style={[styles.measureText, textStyle]}
-          onTextLayout={handleMeasureTextLayout}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          testID={CONTENT_DISPLAY_MEASURE_TEST_ID}
-        >
-          {content}
-        </Text>
-      ) : null}
       <Text
-        numberOfLines={isExpanded ? undefined : numberOfLines}
+        numberOfLines={clampedLines}
         color={TextColor.Alternative}
         style={[textStyle]}
+        onTextLayout={handleTextLayout}
         testID={CONTENT_DISPLAY_TEXT_TEST_ID}
       >
         {content}
