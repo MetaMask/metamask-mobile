@@ -788,12 +788,12 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByText('Amazing position')).toBeOnTheScreen();
     });
 
-    it('hides translation for an English Call', () => {
+    it('offers translation for an English Call', () => {
       renderShell(basePost({ sourceLanguage: 'en' }), {
         translationEnabled: true,
       });
 
-      expect(screen.queryByText('See translation')).toBeNull();
+      expect(screen.getByText('See translation')).toBeOnTheScreen();
       expect(screen.getByText('Amazing position')).toBeOnTheScreen();
     });
 
@@ -848,7 +848,34 @@ describe('SocialFeedPostShell', () => {
       expect(translate).toHaveBeenCalledWith({
         commentId: 'comment-1',
         targetLanguage: 'en',
+        targetLanguage: 'en',
       });
+    });
+
+    it('keeps the original text and shows the translated label when the comment is already English', async () => {
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'en',
+        translations: {},
+      });
+      renderShell(
+        basePost({
+          sourceLanguage: null,
+          item: mockOpenPerpsFeedItem({
+            id: 'item-1',
+            comment: 'Already English',
+          }),
+        }),
+        { translationEnabled: true },
+      );
+
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Already English')).toBeOnTheScreen();
+      expect(screen.queryByText("Couldn't translate.")).toBeNull();
     });
 
     it('keeps the original text and offers a retry when translation fails', async () => {
