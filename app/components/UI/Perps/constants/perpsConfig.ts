@@ -102,10 +102,6 @@ export const LEVERAGE_SLIDER_CONFIG = {
   MaxLeverageMediumThreshold: 50,
 } as const;
 
-export const LEVERAGE_VALIDATION_CONFIG = {
-  FallbackMaxLeverage: 10,
-} as const;
-
 /**
  * Maximum number of digits allowed in any perps price/size/percentage input.
  * Prevents overflow and keeps inputs within safe numeric range.

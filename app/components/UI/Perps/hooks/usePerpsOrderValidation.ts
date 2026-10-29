@@ -15,10 +15,7 @@ import {
   type PerpsProviderType,
   type PerpsProvider,
 } from '@metamask/perps-controller';
-import {
-  LEVERAGE_VALIDATION_CONFIG,
-  PROVIDER_CONFIG,
-} from '../constants/perpsConfig';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import {
@@ -283,7 +280,7 @@ const getProtocolErrorContext = ({
     case PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID:
       return {
         min: 1,
-        max: maxLeverage ?? LEVERAGE_VALIDATION_CONFIG.FallbackMaxLeverage,
+        max: maxLeverage ?? PERPS_CONSTANTS.DefaultMaxLeverage,
       };
     case PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION:
       return {

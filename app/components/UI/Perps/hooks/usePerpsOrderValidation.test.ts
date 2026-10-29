@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
+  PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   PERFORMANCE_CONFIG,
   VALIDATION_THRESHOLDS,
@@ -160,7 +161,7 @@ describe('usePerpsOrderValidation', () => {
       },
     );
 
-    it('uses fallback max leverage 10 in the leverage range error when market max is undefined', async () => {
+    it('uses the controller default max leverage in the leverage range error when market max is undefined', async () => {
       mockValidateOrder.mockResolvedValue({
         isValid: false,
         error: PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID,
@@ -178,7 +179,7 @@ describe('usePerpsOrderValidation', () => {
 
       await fastWaitFor(() => {
         expect(result.current.errors).toContain(
-          'Leverage must be between 1x and 10x',
+          `Leverage must be between 1x and ${PERPS_CONSTANTS.DefaultMaxLeverage}x`,
         );
       });
     });
