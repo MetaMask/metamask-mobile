@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-import { AppState } from 'react-native';
+import { useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
@@ -67,9 +66,6 @@ export function useMoneyMicrodeposits(address?: string): {
   });
   const canReceiveMicrodeposits = kycApproved || hasVbaEvidence;
   const isFocused = useIsFocused();
-  const [appIsActive, setAppIsActive] = useState(
-    AppState.currentState === 'active',
-  );
   const { tier: networkTier, isResolved: networkIsResolved } =
     useNetworkTierState();
   const knownOffline = networkIsResolved && networkTier === 'NONE';
@@ -79,14 +75,9 @@ export function useMoneyMicrodeposits(address?: string): {
     isUnlocked &&
     !knownOffline;
 
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (state) => {
-      setAppIsActive(state === 'active');
-    });
-    return () => subscription.remove();
-  }, []);
-
-  const shouldPoll = isFocused && appIsActive && !knownOffline;
+  // ReactQueryService maps AppState onto TanStack's focus manager, so the
+  // interval pauses in the background on its own.
+  const shouldPoll = isFocused && !knownOffline;
 
   const query = useQuery({
     queryKey: microdepositsQueryKey(normalizedAddress),
