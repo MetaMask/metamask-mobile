@@ -22,15 +22,15 @@ import Animated, {
 import { getHardwareTier } from '../../../../util/deviceCapability';
 
 /**
- * Hairline outline for the add-reaction control. Reaction chips use the same
- * border treatment with a muted fill and their own padding.
+ * Hairline outline for the add-reaction control and chips that are not the
+ * viewer's own reaction. The viewer's chip adds a muted fill on top.
  */
 export const REACTION_PILL_TW_CLASS = 'bg-transparent border';
 
 export interface ReactionChipProps {
   emotion: string;
   count: number;
-  /** The viewer's own reaction: outlined a step stronger. */
+  /** The viewer's own reaction: muted fill and a stronger outline. */
   isSelected?: boolean;
   onPress?: () => void;
   testID?: string;
@@ -91,8 +91,8 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
           variant: TextVariant.BodySm,
           color: TextColor.TextAlternative,
         }}
-        twClassName={`border bg-muted px-2 ${
-          isSelected ? 'border-default' : 'border-muted'
+        twClassName={`border px-2 ${
+          isSelected ? 'bg-muted border-default' : 'bg-transparent border-muted'
         }`}
         accessibilityState={{ selected: isSelected }}
         onPress={onPress}

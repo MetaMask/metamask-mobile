@@ -7,7 +7,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const map: Record<string, string> = {
       'rewards.optout.modal.confirmation_title': 'Are you sure?',
       'rewards.optout.modal.confirmation_description':
-        "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "This will erase your progress in Rewards campaigns and benefits, and can't be reversed. If you rejoin later, you'll start back at 0.",
       'rewards.optout.modal.type_to_confirm':
         "Type 'erase progress' to continue",
       'rewards.optout.modal.confirm_phrase': 'erase progress',

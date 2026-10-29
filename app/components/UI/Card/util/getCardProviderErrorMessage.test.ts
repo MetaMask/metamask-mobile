@@ -96,6 +96,60 @@ describe('getCardProviderErrorMessage', () => {
       );
     });
 
+    it('returns MFA copy for destination, code, and restart errors', () => {
+      const cases = [
+        {
+          error: new CardProviderError(
+            CardProviderErrorCode.MfaDestinationMismatch,
+            'mismatch',
+            403,
+            'MFA_METHOD_MISMATCH',
+          ),
+          key: 'card.mfa.errors.destination_mismatch',
+        },
+        {
+          error: new CardProviderError(
+            CardProviderErrorCode.InvalidOtp,
+            'bad code',
+            403,
+            'MFA_CODE_INVALID',
+          ),
+          key: 'card.mfa.errors.invalid_code',
+        },
+        {
+          error: new CardProviderError(
+            CardProviderErrorCode.AuthRestartRequired,
+            'expired',
+            403,
+            'MFA_CODE_EXPIRED',
+          ),
+          key: 'card.mfa.errors.code_expired',
+        },
+        {
+          error: new CardProviderError(
+            CardProviderErrorCode.AuthRestartRequired,
+            'locked',
+            403,
+            'MFA_ATTEMPTS_EXCEEDED',
+          ),
+          key: 'card.mfa.errors.attempts_exceeded',
+        },
+        {
+          error: new CardProviderError(
+            CardProviderErrorCode.AuthRestartRequired,
+            'No verified contact is available for verification',
+            undefined,
+            'NO_VERIFIED_CONTACT',
+          ),
+          key: 'card.mfa.errors.no_verified_contact',
+        },
+      ];
+
+      for (const { error, key } of cases) {
+        expect(getCardProviderErrorMessage(error)).toBe(`mocked_${key}`);
+      }
+    });
+
     it('returns original message for AccountDisabled', () => {
       const customMessage = 'Account has been disabled';
       const error = new CardProviderError(

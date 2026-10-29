@@ -32,6 +32,7 @@ import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
   HomeTabsParamList,
+  RewardsHomeParamList,
   ImportPrivateKeyStackParamList,
   MainStackParamList,
   SocialLeaderboardTabParams,
@@ -634,7 +635,7 @@ export type RootStackParamList = {
   TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
-  RewardsView: undefined;
+  RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
@@ -1196,8 +1197,12 @@ export type RootStackParamList = {
   // Card routes
   CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
   CardHome: CardScreensStackParamList['CardHome'];
+  CardApplePaySplash: CardScreensStackParamList['CardApplePaySplash'];
+  CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
   CardWelcome: CardScreensStackParamList['CardWelcome'];
   CardAuthentication: CardScreensStackParamList['CardAuthentication'];
+  CardMfaMethod: CardScreensStackParamList['CardMfaMethod'];
+  CardMfaCode: CardScreensStackParamList['CardMfaCode'];
   CardSpendingLimit: CardScreensStackParamList['CardSpendingLimit'];
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];
@@ -1241,6 +1246,7 @@ export type RootStackParamList = {
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
   CardDigitalWalletInstructionsModal: CardModalsNavigationParamList['CardDigitalWalletInstructionsModal'];
+  CardApplePayUsageSheet: CardModalsNavigationParamList['CardApplePayUsageSheet'];
   CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes

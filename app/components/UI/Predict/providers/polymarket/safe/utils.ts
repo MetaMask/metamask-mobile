@@ -561,6 +561,45 @@ export const getSafeTransactionCallData = async ({
   return callData;
 };
 
+/**
+ * Encodes `execTransaction` with a pre-validated owner signature (`v = 1`)
+ * instead of an ECDSA signature. The Safe accepts it only when the sender is
+ * the owner, so this calldata is for simulating a call from the owner (for
+ * example, to quote gas fee tokens before the user signs). It needs no nonce
+ * and no signature request.
+ *
+ * @param params - The parameters.
+ * @param params.ownerAddress - The Safe owner that sends the call.
+ * @param params.txn - The Safe transaction to execute.
+ * @returns The `execTransaction` calldata.
+ */
+export const getPreValidatedSafeTransactionCallData = ({
+  ownerAddress,
+  txn,
+}: {
+  ownerAddress: string;
+  txn: SafeTransaction;
+}): Hex => {
+  const preValidatedSignature = abiEncodePacked(
+    { type: 'uint256', value: ownerAddress },
+    { type: 'uint256', value: '0' },
+    { type: 'uint8', value: '1' },
+  );
+
+  return new Interface(safeAbi).encodeFunctionData('execTransaction', [
+    txn.to,
+    txn.value,
+    txn.data,
+    txn.operation,
+    '0',
+    '0',
+    '0',
+    ethers.constants.AddressZero,
+    ethers.constants.AddressZero,
+    preValidatedSignature,
+  ]) as Hex;
+};
+
 /*
  * Computes the proxy address for a given user address
  * @param userAddress User address
