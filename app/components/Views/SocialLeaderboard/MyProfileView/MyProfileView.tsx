@@ -4,6 +4,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
@@ -52,6 +53,7 @@ import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
@@ -512,51 +514,54 @@ const MyProfileView: React.FC = () => {
             hitSlop: HEADER_ICON_HIT_SLOP,
             twClassName: HEADER_ICON_BUTTON_CLASS,
           }}
+          endAccessory={
+            !isOwner && traderId ? (
+              <SocialHeaderGlassSurface twClassName="px-1">
+                <ButtonIcon
+                  iconName={IconName.Share}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleShareTraderDeeplink}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.share_profile',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON}
+                  hitSlop={HEADER_ICON_HIT_SLOP}
+                  twClassName={HEADER_ICON_BUTTON_CLASS}
+                />
+                <ButtonIcon
+                  iconName={IconName.MoreHorizontal}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleOpenProfileOptions}
+                  isDisabled={!blockProfileId}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.trader_profile.more_options',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.MORE_BUTTON}
+                  hitSlop={HEADER_ICON_HIT_SLOP}
+                  twClassName={HEADER_ICON_BUTTON_CLASS}
+                />
+              </SocialHeaderGlassSurface>
+            ) : undefined
+          }
           endButtonIconProps={
-            !isOwner && traderId
+            isOwner && displayProfile
               ? [
-                  {
-                    iconName: IconName.MoreHorizontal,
-                    iconProps: { color: IconColor.IconDefault },
-                    size: ButtonIconSize.Md,
-                    onPress: handleOpenProfileOptions,
-                    isDisabled: !blockProfileId,
-                    accessibilityLabel: strings(
-                      'social_leaderboard.trader_profile.more_options',
-                    ),
-                    testID: MyProfileViewSelectorsIDs.MORE_BUTTON,
-                    hitSlop: HEADER_ICON_HIT_SLOP,
-                    twClassName: HEADER_ICON_BUTTON_CLASS,
-                  },
                   {
                     iconName: IconName.Share,
                     iconProps: { color: IconColor.IconDefault },
                     size: ButtonIconSize.Md,
-                    onPress: handleShareTraderDeeplink,
+                    onPress: handleShareProfile,
                     accessibilityLabel: strings(
                       'social_leaderboard.my_profile.share_profile',
                     ),
-                    testID: MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON,
+                    testID: MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON,
                     hitSlop: HEADER_ICON_HIT_SLOP,
                     twClassName: HEADER_ICON_BUTTON_CLASS,
                   },
                 ]
-              : isOwner && displayProfile
-                ? [
-                    {
-                      iconName: IconName.Share,
-                      iconProps: { color: IconColor.IconDefault },
-                      size: ButtonIconSize.Md,
-                      onPress: handleShareProfile,
-                      accessibilityLabel: strings(
-                        'social_leaderboard.my_profile.share_profile',
-                      ),
-                      testID: MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON,
-                      hitSlop: HEADER_ICON_HIT_SLOP,
-                      twClassName: HEADER_ICON_BUTTON_CLASS,
-                    },
-                  ]
-                : undefined
+              : undefined
           }
           testID={MyProfileViewSelectorsIDs.HEADER}
         />
