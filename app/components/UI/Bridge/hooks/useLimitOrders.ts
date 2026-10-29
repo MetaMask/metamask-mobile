@@ -56,8 +56,6 @@ export function useLimitOrders({
     [query.data],
   );
 
-  // A plain `refetchInterval` would be answered from the data service cache
-  // until its stale time lapses, so the query is invalidated instead.
   useEffect(() => {
     if (!isEnabled || !refetchInterval) {
       return undefined;

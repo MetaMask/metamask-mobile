@@ -83,7 +83,7 @@ describe('ProfilePositionsTab', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
-    ).toHaveStyle({ paddingTop: 24 });
+    ).toHaveStyle({ paddingTop: 16 });
   });
 
   it('renders Tokens then Perpetuals sections for All', () => {

@@ -115,6 +115,16 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
+  /**
+   * Non-interactive spot beside Rate. The Rate label opens a tooltip, and the
+   * rate value opens providers, so keypad dismissal taps this instead.
+   */
+  get quoteKeypadDismissTarget(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      QuoteViewSelectorIDs.QUOTE_KEYPAD_DISMISS_TARGET,
+    );
+  }
+
   /** Token selector testID - matches TokenSelectorItem's getAssetTestId(chainId-symbol). */
   getTokenElementId(chainId: string, symbol: string): string {
     return getAssetTestId(`${chainId}-${symbol}`);
@@ -257,22 +267,23 @@ class QuoteView {
   }
 
   async dismissKeypad(): Promise<void> {
-    // Prefer the "Rate" label (not rate-arrow-button) when a quote is present —
-    // tapping BRIDGE_VIEW_SCROLL can open QuoteSelectorView (swap providers).
-    // When there is no quote (e.g. RWA geo-block), Rate is absent; fall back
-    // to the scroll view so the keypad can still be dismissed.
+    // The countdown is plain text, so the tap reaches the screen responder and
+    // closes the keypad. Rate opens a tooltip, the rate value opens providers,
+    // and the scroll view can open the quote selector. Static text can report
+    // enabled:false on iOS. If the timer is not mounted, the destination amount
+    // calls keypadRef.close() directly.
     try {
-      await Gestures.waitAndTap(this.rateLabel, {
+      await Gestures.waitAndTap(this.quoteKeypadDismissTarget, {
         checkForDisplayed: true,
-        checkEnabled: true,
+        checkEnabled: false,
         timeout: 5000,
-        elemDescription: 'Tap rate label to dismiss keypad',
+        elemDescription: 'Tap quote timer to dismiss keypad',
       });
     } catch {
-      await Gestures.waitAndTap(this.bridgeViewScroll, {
+      await Gestures.waitAndTap(this.destinationTokenInput, {
         checkForDisplayed: true,
-        checkEnabled: true,
-        elemDescription: 'Tap bridge scroll view to dismiss keypad',
+        checkEnabled: false,
+        elemDescription: 'Tap destination amount to dismiss keypad',
       });
     }
   }

@@ -172,15 +172,12 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('registers pending VBA activity as default-off and version-gated', () => {
+    it('registers pending VBA activity as in-production and default-off', () => {
       expect(getRegistryEntry('moneyVbaPendingActivityEnabled')).toMatchObject({
         name: 'moneyVbaPendingActivityEnabled',
         type: FeatureFlagType.Remote,
-        inProd: false,
-        productionDefault: {
-          enabled: false,
-          minimumVersion: '0.0.0',
-        },
+        inProd: true,
+        productionDefault: false,
         status: FeatureFlagStatus.Active,
       });
     });
@@ -412,6 +409,15 @@ describe('Feature Flag Registry', () => {
       ).toEqual({
         enabled: true,
         minimumVersion: '8.5.0',
+      });
+    });
+
+    it('keeps Social AI comment translation off until the flag is enabled', () => {
+      expect(
+        getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '8.19.0',
       });
     });
 

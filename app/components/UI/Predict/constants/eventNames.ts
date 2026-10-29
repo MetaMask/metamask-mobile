@@ -94,6 +94,12 @@ export const PredictEventProperties = {
   SLIPPAGE_BAND: 'slippage_band',
   RETRY_OUTCOME: 'retry_outcome',
 
+  // Cash Out price check before submit (PRED-484)
+  PRESUBMIT_OUTCOME: 'presubmit_outcome',
+  APPROVED_PRICE: 'approved_price',
+  WORST_FILL_PRICE: 'worst_fill_price',
+  RECONFIRMED: 'reconfirmed',
+
   // Betslip dismissal
   DISMISSAL_METHOD: 'dismissal_method',
   HAD_ENTERED_AMOUNT: 'had_entered_amount',
@@ -202,6 +208,13 @@ export const PredictEventValues = {
     NOT_FILLED: 'not_filled',
     FAILED: 'failed',
   },
+  PRESUBMIT_OUTCOME: {
+    SUBMITTED: 'submitted',
+    PRICE_MOVED: 'price_moved',
+    NO_MATCH: 'no_match',
+    QUOTE_UNAVAILABLE: 'quote_unavailable',
+    TIMEOUT: 'timeout',
+  },
   MARKET_TYPE: {
     BINARY: 'binary',
     MULTI_OUTCOME: 'multi-outcome',
@@ -276,6 +289,7 @@ export const PredictTradeStatus = {
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
   RETRY_COMPLETED: 'retry_completed',
+  PRESUBMIT_CHECKED: 'presubmit_checked',
   PAYMENT_FAILURE_PROMPTED: 'payment_failure_prompted',
   ADD_FUNDS_SUBMITTED: 'add_funds_submitted',
   ATTEMPT_STARTED: 'attempt_started',
@@ -309,6 +323,9 @@ export type PredictOneTickDecisionValue =
 
 export type PredictRetryOutcomeValue =
   (typeof PredictEventValues.RETRY_OUTCOME)[keyof typeof PredictEventValues.RETRY_OUTCOME];
+
+export type PredictPresubmitOutcomeValue =
+  (typeof PredictEventValues.PRESUBMIT_OUTCOME)[keyof typeof PredictEventValues.PRESUBMIT_OUTCOME];
 
 export type PredictOutcomeVersionValue =
   (typeof PredictEventValues.OUTCOME_VERSION)[keyof typeof PredictEventValues.OUTCOME_VERSION];

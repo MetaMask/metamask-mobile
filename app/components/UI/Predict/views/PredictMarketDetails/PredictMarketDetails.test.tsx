@@ -370,35 +370,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectNonRegTimeSportsMarketTypes: jest.fn(() => ['soccer_team_to_advance']),
 }));
 
-jest.mock('../../../../Base/TabBar', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockTabBar({ textStyle }: { textStyle: object }) {
-    return (
-      <View testID="tab-bar">
-        <Text style={textStyle}>Tab Bar</Text>
-      </View>
-    );
-  };
-});
-
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockScrollableTabView({
-    children,
-    renderTabBar,
-  }: {
-    children: React.ReactNode;
-    renderTabBar?: () => React.ReactNode;
-  }) {
-    return (
-      <View testID="scrollable-tab-view">
-        {renderTabBar?.()}
-        {children}
-      </View>
-    );
-  };
-});
-
 function createMockMarket(overrides = {}) {
   const defaultMarket = {
     id: 'market-1',

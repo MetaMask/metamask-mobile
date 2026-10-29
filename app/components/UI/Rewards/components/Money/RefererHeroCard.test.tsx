@@ -38,6 +38,7 @@ const LOCALIZED_TEXT = {
   share: 'Share',
   historyReferrals: 'Referrals',
   tradeCommissions: 'Trade commissions',
+  tradingCommissionsSection: 'Trading commissions',
   recordedEarnings: 'recorded earnings',
   shareCode: 'Share code',
   termsTitle: 'Terms and Conditions',
@@ -138,8 +139,8 @@ describe('RefererHeroCard', () => {
       },
     );
 
-  it('renders the code and the referrals total, and hides trading commissions', () => {
-    const { getByText, queryByText, queryByTestId } = renderHero({
+  it('renders the code, the referrals total, and trading commissions', () => {
+    const { getByText, getByTestId } = renderHero({
       summary: buildSummary({
         REFERRAL_REV_SHARE: { lifetime: '41750000' },
         SOCIAL_FOLLOW_TRADE: { lifetime: '9150000' },
@@ -150,11 +151,11 @@ describe('RefererHeroCard', () => {
     expect(getByText('Earn on eligible fees')).toBeOnTheScreen();
     expect(getByText('Referrals')).toBeOnTheScreen();
     expect(getByText('$41.75')).toBeOnTheScreen();
-    expect(queryByText('Trade commissions')).not.toBeOnTheScreen();
-    expect(queryByText('$9.15')).not.toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
-      queryByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
-    ).not.toBeOnTheScreen();
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
+    ).toBeOnTheScreen();
   });
 
   it('does not read the referrer totals off the self-earned branch', () => {
@@ -211,7 +212,7 @@ describe('RefererHeroCard', () => {
   it('shows a dash on metric cards when the summary failed without cached data', () => {
     const { getAllByText, queryByText } = renderHero({ earningsError: true });
 
-    expect(getAllByText('-')).toHaveLength(1);
+    expect(getAllByText('-')).toHaveLength(2);
     expect(queryByText('$0.00')).not.toBeOnTheScreen();
   });
 

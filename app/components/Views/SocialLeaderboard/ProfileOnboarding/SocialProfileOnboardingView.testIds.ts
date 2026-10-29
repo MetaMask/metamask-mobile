@@ -47,4 +47,6 @@ export const SocialProfileOnboardingSelectorsIDs = {
   READY_FALLBACK: 'social-profile-onboarding-ready-fallback',
   CONTINUE_BUTTON: 'social-profile-onboarding-continue-button',
   LETS_GO_BUTTON: 'social-profile-onboarding-lets-go-button',
+  RETRY_CREATE_BUTTON: 'social-profile-onboarding-retry-create-button',
+  CONNECT_X_ERROR: 'social-profile-onboarding-connect-x-error',
 } as const;

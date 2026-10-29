@@ -19,18 +19,28 @@ import type {
 const NOW = 1_800_000_000_000;
 
 const providerEmail: EnrolledCredential = {
+  id: 'email_otp',
   type: 'email_otp',
   status: 'active',
   verified: true,
 };
 const activeEmail: EnrolledCredential = {
+  id: 'email_otp',
   type: 'email_otp',
   status: 'active',
   email: 'a@b.co',
   verified: true,
 };
-const passkey: EnrolledCredential = { type: 'passkey', status: 'active' };
-const authenticatorApp: EnrolledCredential = { type: 'totp', status: 'active' };
+const passkey: EnrolledCredential = {
+  id: 'passkey',
+  type: 'passkey',
+  status: 'active',
+};
+const authenticatorApp: EnrolledCredential = {
+  id: 'totp',
+  type: 'totp',
+  status: 'active',
+};
 const TOTP_SETUP = {
   secret: 'JBSWY3DPEHPK3PXP',
   qrCode: 'data:image/png;base64,QR',
@@ -576,6 +586,33 @@ describe('createMfaFlow', () => {
         step: { name: 'emailEntry', prefillEmail: 'taken@b.co' },
         error: 'credential_already_enrolled',
       });
+
+      // The spent challenge is not resumed: the same address gets a new code.
+      await act(flow, { type: 'submitEmail', email: 'taken@b.co' });
+      expect(fake.controller.beginCredentialEnrollment).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(flow.getState().step).toMatchObject({
+        name: 'otp',
+        purpose: 'setup',
+        method: 'email_otp',
+      });
+    });
+
+    it('keeps email entry when another profile uses the address', async () => {
+      const fake = createFakeController([]);
+      fake.controller.beginCredentialEnrollment.mockRejectedValueOnce(
+        new MfaError('email_claimed', 'claimed'),
+      );
+      const { flow } = await startFlow(EMAIL_ONLY, fake.controller);
+
+      await act(flow, { type: 'continue' });
+      await act(flow, { type: 'submitEmail', email: 'claimed@b.co' });
+      expect(flow.getState()).toMatchObject({
+        step: { name: 'emailEntry' },
+        error: 'email_claimed',
+        busy: false,
+      });
     });
 
     it('refreshes and re-plans when the credential list was stale', async () => {
@@ -946,6 +983,28 @@ describe('createMfaFlow', () => {
       await act(flow, { type: 'dismiss' });
       const result = await outcome;
       expect(result.ok || getMfaErrorCode(result.error)).toBe(code);
+    });
+  });
+
+  describe('errors only support can fix', () => {
+    it('shows the failure screen without retry, and closes with the code', async () => {
+      const fake = createFakeController([activeEmail]);
+      fake.controller.beginCredentialVerification.mockRejectedValueOnce(
+        new MfaError('multi_primary_srp', 'unsupported wallet'),
+      );
+      const { flow, outcome } = await startFlow(EMAIL_ONLY, fake.controller);
+
+      expect(flow.getState().step).toStrictEqual({
+        name: 'failure',
+        code: 'multi_primary_srp',
+        canRetry: false,
+      });
+
+      await act(flow, { type: 'dismiss' });
+      const result = await outcome;
+      expect(result.ok || getMfaErrorCode(result.error)).toBe(
+        'multi_primary_srp',
+      );
     });
   });
 

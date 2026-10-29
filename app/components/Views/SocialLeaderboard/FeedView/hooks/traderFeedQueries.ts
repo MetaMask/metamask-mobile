@@ -9,11 +9,12 @@ import {
   FEED_PAGE_LIMIT,
   SOCIAL_FEED_INFINITE_QUERY_KIND,
 } from '../../../../UI/SocialFeed/data/socialFeedQueries';
-import {
-  toFeedScope,
-  type FeedScope,
-} from '../../../../UI/SocialFeed/data/socialFeedSource';
+import type { FeedScope } from '../../../../UI/SocialFeed/data/socialFeedSource';
 import type { FeedAudience } from '../../../../UI/SocialFeed/types';
+
+/** The feed scope V0's All / Following toggle reads. */
+export const toFeedScope = (audience: FeedAudience): FeedScope =>
+  audience === 'following' ? 'following' : 'leaderboard';
 
 /** Audiences whose first page is warmed when Follow Trading opens. */
 export const PREFETCH_FEED_AUDIENCES: readonly FeedAudience[] = [
@@ -80,7 +81,7 @@ export const prefetchTraderFeeds = async (
   await Promise.allSettled(
     PREFETCH_FEED_AUDIENCES.map((audience) => {
       const scope = toFeedScope(audience);
-      return queryClient.prefetchInfiniteQuery({
+      return queryClient.infiniteQuery({
         queryKey: buildTraderFeedQueryKey(scope),
         queryFn: ({ pageParam }: { pageParam?: string }) =>
           fetchTraderFeedPage(scope, pageParam),

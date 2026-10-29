@@ -583,6 +583,82 @@ describe('sumTopTenPercentage', () => {
   it.each([null, undefined])('returns null for %p', (financialStats) => {
     expect(sumTopTenPercentage(financialStats)).toBeNull();
   });
+
+  // TRENCHTOWN-shaped: a 99.4% AMM pool plus a handful of tiny wallets. The
+  // pool must not count, so the figure reads the wallets' share, not ~100%.
+  it('excludes non-wallet holders from the sum', () => {
+    const financialStats = {
+      ...buildSecurityData().financialStats,
+      topHolders: [
+        {
+          label: 'market',
+          name: null,
+          address: '0xamm',
+          holdingPercentage: 99.4,
+        },
+        {
+          label: 'program',
+          name: null,
+          address: '0xrtr',
+          holdingPercentage: 0.3,
+        },
+        {
+          label: 'locker',
+          name: null,
+          address: '0xlck',
+          holdingPercentage: 0.1,
+        },
+        {
+          label: 'contract',
+          name: null,
+          address: '0xctr',
+          holdingPercentage: 0.05,
+        },
+        { label: 'wallet', name: null, address: '0x1', holdingPercentage: 0.4 },
+        { label: 'wallet', name: null, address: '0x2', holdingPercentage: 0.3 },
+        { label: 'wallet', name: null, address: '0x3', holdingPercentage: 0.1 },
+      ],
+    };
+
+    expect(sumTopTenPercentage(financialStats)).toBeCloseTo(0.8);
+  });
+
+  it('sums only the top ten wallet holders', () => {
+    const financialStats = {
+      ...buildSecurityData().financialStats,
+      topHolders: Array.from({ length: 12 }, (_, index) => ({
+        label: 'wallet',
+        name: null,
+        address: `0x${index}`,
+        holdingPercentage: index < 10 ? 2 : 50,
+      })),
+    };
+
+    // The first ten wallets (2% each) count; the two 50% tail entries do not.
+    expect(sumTopTenPercentage(financialStats)).toBe(20);
+  });
+
+  it('returns null when no wallet holders remain after filtering', () => {
+    const financialStats = {
+      ...buildSecurityData().financialStats,
+      topHolders: [
+        {
+          label: 'market',
+          name: null,
+          address: '0xamm',
+          holdingPercentage: 99.4,
+        },
+        {
+          label: 'program',
+          name: null,
+          address: '0xrtr',
+          holdingPercentage: 0.6,
+        },
+      ],
+    };
+
+    expect(sumTopTenPercentage(financialStats)).toBeNull();
+  });
 });
 
 describe('emptySecurityFacts', () => {
