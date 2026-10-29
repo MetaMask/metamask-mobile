@@ -6,6 +6,7 @@ import { useConfirmNavigation } from '../useConfirmNavigation';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PayWithOption } from '../../components/confirm/confirm-component';
+import { useMoneyAccountAvailability } from '../../../../UI/Money/hooks/useMoneyAccountAvailability';
 
 const mockDepositWithConfirmation = jest
   .fn()
@@ -18,6 +19,13 @@ jest.mock('../../../../UI/Perps/hooks/usePerpsTrading', () => ({
 
 jest.mock('../useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
+}));
+
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountAvailability', () => ({
+  ...jest.requireActual(
+    '../../../../UI/Money/hooks/useMoneyAccountAvailability',
+  ),
+  useMoneyAccountAvailability: jest.fn(),
 }));
 
 jest.mock(
@@ -38,6 +46,10 @@ jest.mock('../../../../../util/Logger', () => ({
 describe('useMoneyPerpsDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAccountAvailability as jest.Mock).mockReturnValue({
+      accessBlockReason: undefined,
+      isMoneyAccountAccessible: true,
+    });
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     });
@@ -50,6 +62,30 @@ describe('useMoneyPerpsDeposit', () => {
   });
 
   const render = () => renderHookWithProvider(() => useMoneyPerpsDeposit());
+
+  it.each([
+    ['feature disabled', 'feature_disabled'],
+    ['geo-blocked', 'geo_blocked'],
+  ] as const)(
+    'rejects a deposit when Money is %s before navigation',
+    async (_label, reason) => {
+      (useMoneyAccountAvailability as jest.Mock).mockReturnValue({
+        accessBlockReason: reason,
+        isMoneyAccountAccessible: false,
+      });
+
+      const { result } = render();
+
+      await expect(
+        act(async () => {
+          await result.current.initiatePerpsDeposit();
+        }),
+      ).rejects.toMatchObject({ reason });
+
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+    },
+  );
 
   it('returns isEnabled false when flag is disabled', () => {
     const { result } = render();

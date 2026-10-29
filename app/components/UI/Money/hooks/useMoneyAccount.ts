@@ -32,6 +32,8 @@ import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmatio
 import { ensureError } from '../../../../util/errorUtils';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import useMoneyToasts from './useMoneyToasts';
+import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
+import { assertMoneyAccountAccessible } from '../utils/moneyAccountAccess';
 import {
   clearMoneyAccountDepositIntent,
   setMoneyAccountDepositIntent,
@@ -99,6 +101,7 @@ function isMoneyConfirmationActive(forceBottomSheet = false): boolean {
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { accessBlockReason } = useMoneyAccountAvailability();
   const isDepositPrefillEnabled = useMoneyAccountDepositPrefillEnabled();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
@@ -106,6 +109,8 @@ export function useMoneyAccountDeposit() {
 
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
+      assertMoneyAccountAccessible(accessBlockReason);
+
       const preferredPaymentToken = options?.preferredPaymentToken;
       const getDepositSetup = () => {
         if (!vaultConfig) {
@@ -261,6 +266,7 @@ export function useMoneyAccountDeposit() {
     },
     [
       MoneyToastOptions.deposit,
+      accessBlockReason,
       isDepositPrefillEnabled,
       navigateToConfirmation,
       navigation,
@@ -276,12 +282,15 @@ export function useMoneyAccountDeposit() {
 export function useMoneyAccountWithdrawal() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { accessBlockReason } = useMoneyAccountAvailability();
   const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateWithdrawal = useCallback(async () => {
+    assertMoneyAccountAccessible(accessBlockReason);
+
     if (!vaultConfig) {
       throw new Error(`${LOG_TAG} Missing vault config`);
     }
@@ -355,6 +364,7 @@ export function useMoneyAccountWithdrawal() {
     }
   }, [
     MoneyToastOptions.withdraw,
+    accessBlockReason,
     navigateToConfirmation,
     navigation,
     primaryMoneyAccount,

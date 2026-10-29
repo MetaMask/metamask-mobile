@@ -58,10 +58,11 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
 
 const log = createProjectLogger('money-add-money-sheet');
 
-const MoneyAddMoneySheet: React.FC = () => {
+const MoneyAddMoneySheetContent: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
@@ -330,6 +331,16 @@ const MoneyAddMoneySheet: React.FC = () => {
       </View>
     </BottomSheet>
   );
+};
+
+const MoneyAddMoneySheet: React.FC = () => {
+  const isMoneyAccountAccessible = useMoneyAccountAccessRedirect();
+
+  if (!isMoneyAccountAccessible) {
+    return null;
+  }
+
+  return <MoneyAddMoneySheetContent />;
 };
 
 export default MoneyAddMoneySheet;
