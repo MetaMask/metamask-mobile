@@ -11,7 +11,7 @@ import {
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
 import Routes from '../constants/navigation/Routes';
 import type { AppNavigationProp } from '../core/NavigationService/types';
-import { usePlusAccess } from './usePlusAccess';
+import { useHasProMembership } from './useHasProMembership';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 
 export interface UseMetamaskOrangeEntryResult {
@@ -35,19 +35,21 @@ export interface UseMetamaskOrangeEntryResult {
 export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const navigation = useNavigation<AppNavigationProp>();
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isPlusSubscriber } = usePlusAccess();
+  const hasMembership = useHasProMembership();
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
   });
   // Present as soon as the Pro flow is on. The label updates in place once
-  // Plus access is known.
+  // membership status is known.
   const showOrangeEntry = isProSubscriptionEnabled;
-  const labelKey = isPlusSubscriber
+  const labelKey = hasMembership
     ? 'accounts_menu.metamask_orange'
     : 'accounts_menu.join_metamask_orange';
 
   const onPress = useCallback(() => {
-    const destination = isPlusSubscriber
+    // Every Plus status except canceled opens the hub. Canceled, no
+    // subscription, and a still-loading membership open Benefits.
+    const destination = hasMembership
       ? {
           button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
           redirect_target: SCREEN_NAMES.PRO_HUB,
@@ -70,7 +72,7 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
     navigation.navigate(destination.route, {
       source: 'accounts_menu',
     });
-  }, [isPlusSubscriber, labelKey, navigation, trackButtonClicked]);
+  }, [hasMembership, labelKey, navigation, trackButtonClicked]);
 
   return {
     showOrangeEntry,

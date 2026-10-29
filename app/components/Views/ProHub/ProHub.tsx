@@ -34,6 +34,7 @@ import AlsoIncludedRow from './components/AlsoIncludedRow';
 import MembershipBanner from './components/MembershipBanner';
 import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
 import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
+import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
@@ -115,6 +116,7 @@ const ProHub = () => {
   const tw = useTailwind();
   const { model: membershipBanner } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
+  const hasMembership = useHasProMembership();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
   const { sinceInceptionQuery: premiumSinceInceptionQuery } =
     useMoneyPremiumAccountInterest();
@@ -140,20 +142,26 @@ const ProHub = () => {
     ],
   );
   const moneyBalanceApy = ratePercentFormatted ?? '—';
-  const showHubContent = proAccess === MoneyAccountPlusAccess.Subscriber;
+  const showHubContent =
+    hasMembership &&
+    proAccess !== MoneyAccountPlusAccess.Disabled &&
+    proAccess !== MoneyAccountPlusAccess.Unknown;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // Subscriber access stays, including a paused plan. Unknown access waits for
-  // the first fetch. A cached last plan does not keep an eligible user here.
+  // Any Plus status except canceled stays. Unknown access waits for the first
+  // fetch. A canceled plan, or no plan, leaves.
   useEffect(() => {
-    if (proAccess === MoneyAccountPlusAccess.Unknown || showHubContent) {
+    if (
+      proAccess === MoneyAccountPlusAccess.Unknown ||
+      (hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)
+    ) {
       return;
     }
     navigation.goBack();
-  }, [navigation, proAccess, showHubContent]);
+  }, [hasMembership, navigation, proAccess]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);

@@ -130,6 +130,25 @@ export const selectIsMoneyAccountPlusSubscriber = createSelector(
 );
 
 /**
+ * Selects whether the Plus subscription should open Pro Hub.
+ *
+ * Every Plus status except `canceled` uses the MetaMask Orange label and Pro
+ * Hub. A canceled plan, or no plan, stays on the join label and Benefits.
+ *
+ * @param state - The root Redux state.
+ * @returns True when the Orange row should label the membership and open Pro Hub.
+ */
+export const selectHasMoneyAccountPlusMembership = createSelector(
+  selectSubscriptions,
+  (subscriptions) =>
+    subscriptions.some(
+      (subscription) =>
+        hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS) &&
+        subscription.status !== SUBSCRIPTION_STATUSES.canceled,
+    ),
+);
+
+/**
  * Selects whether the user holds a Money Account Plus subscription they can
  * still manage. Covers every active status plus `paused`, so a subscriber
  * whose payment lapsed is routed to Pro Hub rather than the upsell and can

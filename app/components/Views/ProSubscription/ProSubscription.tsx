@@ -12,6 +12,7 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
@@ -50,6 +51,7 @@ const ProSubscription = () => {
     >();
 
   const proAccess = useMoneyAccountPlusAccess();
+  const hasMembership = useHasProMembership();
   const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
     ProSubscriptionScreen.Benefits,
   );
@@ -61,8 +63,8 @@ const ProSubscription = () => {
   >();
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
 
-  // Dismiss when the Pro flag is off, and send anyone already entitled to the
-  // hub so an existing subscriber never lands on the upsell.
+  // Dismiss when the Pro flag is off. Any Plus status except canceled already
+  // owns a membership, so send them to the hub instead of Benefits.
   useEffect(() => {
     if (proAccess === MoneyAccountPlusAccess.Disabled) {
       navigation.goBack();
@@ -70,16 +72,22 @@ const ProSubscription = () => {
     }
 
     // Checkout refreshes subscriptions before it resolves, so the user can
-    // become a subscriber while Benefits is still mounted. Keep this screen
-    // up until Success is showing.
+    // become a member while Benefits is still mounted. Keep this screen up
+    // until Success is showing.
     if (
-      proAccess === MoneyAccountPlusAccess.Subscriber &&
+      hasMembership &&
       currentScreen !== ProSubscriptionScreen.Success &&
       !isCheckoutInProgress
     ) {
       navigation.replace(Routes.PRO_HUB.ROOT);
     }
-  }, [proAccess, currentScreen, isCheckoutInProgress, navigation]);
+  }, [
+    proAccess,
+    hasMembership,
+    currentScreen,
+    isCheckoutInProgress,
+    navigation,
+  ]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -154,9 +162,11 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {(proAccess === MoneyAccountPlusAccess.Eligible ||
-        currentScreen === ProSubscriptionScreen.Success ||
-        isCheckoutInProgress) &&
+      {/* Membership statuses leave for the hub. Everyone else, including a
+          still-loading fetch, sees Benefits instead of a blank page. */}
+      {(currentScreen === ProSubscriptionScreen.Success ||
+        isCheckoutInProgress ||
+        (!hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)) &&
         screenContent}
     </SafeAreaView>
   );

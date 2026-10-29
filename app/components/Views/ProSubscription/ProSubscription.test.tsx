@@ -31,6 +31,11 @@ jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
+const mockUseHasProMembership = jest.fn(() => false);
+jest.mock('../../../hooks/useHasProMembership', () => ({
+  useHasProMembership: () => mockUseHasProMembership(),
+}));
+
 const mockGetSubscriptions = jest.fn().mockResolvedValue([]);
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -99,6 +104,7 @@ describe('ProSubscription', () => {
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Eligible,
     );
+    mockUseHasProMembership.mockReturnValue(false);
   });
 
   describe('access guard', () => {
@@ -118,10 +124,8 @@ describe('ProSubscription', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('sends an existing subscriber straight to the hub', () => {
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
+    it('sends an existing member straight to the hub', () => {
+      mockUseHasProMembership.mockReturnValue(true);
 
       render(<ProSubscription />);
 
@@ -132,9 +136,7 @@ describe('ProSubscription', () => {
       const { getByTestId, rerender } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-checkout-start'));
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
+      mockUseHasProMembership.mockReturnValue(true);
       rerender(<ProSubscription />);
 
       expect(mockReplace).not.toHaveBeenCalled();
@@ -146,24 +148,46 @@ describe('ProSubscription', () => {
 
       fireEvent.press(getByTestId('mock-checkout-start'));
       fireEvent.press(getByTestId('mock-checkout-error'));
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
+      mockUseHasProMembership.mockReturnValue(true);
       rerender(<ProSubscription />);
 
       expect(mockReplace).toHaveBeenCalledWith('ProHub');
     });
 
-    it('does not send an unresolved user to the hub', () => {
+    it('shows Benefits while Plus access is unresolved', () => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
         MoneyAccountPlusAccess.Unknown,
       );
 
-      const { queryByTestId } = render(<ProSubscription />);
+      const { getByTestId } = render(<ProSubscription />);
 
       expect(mockReplace).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(queryByTestId('mock-benefits')).toBeNull();
+      expect(getByTestId('mock-benefits')).toBeOnTheScreen();
+    });
+
+    it('sends the user to the hub once unresolved access becomes a membership', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { rerender } = render(<ProSubscription />);
+
+      mockUseHasProMembership.mockReturnValue(true);
+      rerender(<ProSubscription />);
+
+      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+    });
+
+    it('keeps Benefits open for a canceled membership', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+
+      const { getByTestId } = render(<ProSubscription />);
+
+      expect(mockReplace).not.toHaveBeenCalled();
+      expect(getByTestId('mock-benefits')).toBeOnTheScreen();
     });
   });
 
@@ -232,9 +256,7 @@ describe('ProSubscription', () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Subscriber,
-      );
+      mockUseHasProMembership.mockReturnValue(true);
       fireEvent.press(getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON));
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();

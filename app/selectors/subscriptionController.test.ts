@@ -18,6 +18,7 @@ import {
   selectDisplayedMoneyAccountPlusSubscription,
   selectHasAnyMoneyAccountPlusEntitlement,
   selectHasExistingMoneyAccountPlusSubscription,
+  selectHasMoneyAccountPlusMembership,
   selectIsMoneyAccountPlusSubscriber,
   selectIsMoneyAccountPlusTrialing,
   selectLastSelectedPaymentMethodByProduct,
@@ -400,6 +401,67 @@ describe('subscriptionController selectors', () => {
 
     it('returns false when the controller slice is absent', () => {
       expect(selectIsMoneyAccountPlusSubscriber(createState())).toBe(false);
+    });
+  });
+
+  describe('selectHasMoneyAccountPlusMembership', () => {
+    it.each([
+      SUBSCRIPTION_STATUSES.active,
+      SUBSCRIPTION_STATUSES.trialing,
+      SUBSCRIPTION_STATUSES.provisional,
+      SUBSCRIPTION_STATUSES.pastDue,
+      SUBSCRIPTION_STATUSES.paused,
+      SUBSCRIPTION_STATUSES.awaitingFunds,
+      SUBSCRIPTION_STATUSES.unpaid,
+      SUBSCRIPTION_STATUSES.incomplete,
+      SUBSCRIPTION_STATUSES.incompleteExpired,
+    ])('opens Pro Hub for a %s Money Account Plus subscription', (status) => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasMoneyAccountPlusMembership(state)).toBe(true);
+    });
+
+    it('keeps a canceled subscription on Benefits', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status: SUBSCRIPTION_STATUSES.canceled,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasMoneyAccountPlusMembership(state)).toBe(false);
+    });
+
+    it('ignores a past-due subscription for another product', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-shield',
+            products: [createProduct(PRODUCT_TYPES.SHIELD)],
+            status: SUBSCRIPTION_STATUSES.pastDue,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasMoneyAccountPlusMembership(state)).toBe(false);
+    });
+
+    it('returns false when the controller slice is absent', () => {
+      expect(selectHasMoneyAccountPlusMembership(createState())).toBe(false);
     });
   });
 
