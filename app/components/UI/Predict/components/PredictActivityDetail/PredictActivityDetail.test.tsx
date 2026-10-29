@@ -8,7 +8,29 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PredictActivityType } from '../../types';
 import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/predictBrandRefresh',
+  () => ({ selectPredictBrandRefreshEnabled: jest.fn() }),
+);
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
+
+const mockSelectPredictBrandRefreshEnabled = jest.mocked(
+  selectPredictBrandRefreshEnabled,
+);
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockCanGoBack = jest.fn();
@@ -462,6 +484,37 @@ describe('PredictActivityDetails', () => {
     fireEvent.press(backButton);
 
     // Assert
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('renders the back button without a glass capsule when the brand refresh is off', () => {
+    // Arrange & Act
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PredictActivityDetails />,
+      { state: initialState },
+    );
+
+    // Assert
+    expect(
+      getByTestId(PredictActivityDetailsSelectorsIDs.BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('capsule')).toBeNull();
+  });
+
+  it('renders the back button in a glass capsule and navigates back when the brand refresh is on', () => {
+    // Arrange
+    mockSelectPredictBrandRefreshEnabled.mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    // Act
+    fireEvent.press(
+      getByTestId(PredictActivityDetailsSelectorsIDs.BACK_BUTTON),
+    );
+
+    // Assert
+    expect(getByTestId('capsule')).toBeOnTheScreen();
     expect(mockGoBack).toHaveBeenCalled();
   });
 
