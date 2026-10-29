@@ -38,6 +38,7 @@ const tradeSheetConfig = {
     payWith: 1,
     marginInfo: 1,
     liquidationInfo: 1,
+    accountUnsupported: 1,
   },
 };
 const emptyNestedScreens = {
@@ -46,6 +47,7 @@ const emptyNestedScreens = {
   payWith: null,
   marginInfo: null,
   liquidationInfo: null,
+  accountUnsupported: null,
 };
 
 jest.mock('@metamask/design-system-react-native', () => {

@@ -24,6 +24,7 @@ import {
   resetPerpsPaymentTokenSelection,
 } from '../../utils/perpsPaymentTokenSelection';
 import {
+  PerpsTradeAccountUnsupportedScreen,
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
   PerpsTradePayWithScreen,
@@ -441,6 +442,27 @@ describe('PerpsTradeNestedScreens', () => {
           button_location: 'perps_asset_screen',
         }),
       );
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('PerpsTradeAccountUnsupportedScreen', () => {
+    it('shows the unsupported account explanation and returns to Trade', () => {
+      const onDismiss = jest.fn();
+      render(<PerpsTradeAccountUnsupportedScreen onDismiss={onDismiss} />);
+
+      expect(screen.getByText('Account not supported')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          "Hyperliquid multi-sig accounts aren't currently supported by MetaMask.",
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_GOT_IT_BUTTON),
+      );
+
+      expect(onDismiss).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });

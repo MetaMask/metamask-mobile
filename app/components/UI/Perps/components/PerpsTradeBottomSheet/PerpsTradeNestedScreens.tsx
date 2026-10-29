@@ -77,7 +77,8 @@ export const PerpsTradeLeverageScreen: React.FC<
 export type PerpsInlineInfoContentKey =
   | 'margin'
   | 'liquidation_price'
-  | 'liquidation_distance';
+  | 'liquidation_distance'
+  | 'account_not_supported';
 
 interface PerpsInlineInfoScreenProps {
   contentKey: PerpsInlineInfoContentKey;
@@ -148,6 +149,23 @@ export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = (
   const { goBack } = usePerpsTradeSheet();
 
   return <PerpsInlineInfoScreen {...props} onBack={goBack} />;
+};
+
+export const PerpsTradeAccountUnsupportedScreen: React.FC<{
+  onDismiss: () => void;
+}> = ({ onDismiss }) => {
+  const { goBack } = usePerpsTradeSheet();
+  const handleBack = useCallback(() => {
+    onDismiss();
+    goBack();
+  }, [goBack, onDismiss]);
+
+  return (
+    <PerpsInlineInfoScreen
+      contentKey="account_not_supported"
+      onBack={handleBack}
+    />
+  );
 };
 
 /**
