@@ -245,6 +245,68 @@ describe('useMyProfile', () => {
     expect(result.current.isLoading).toBe(false);
   });
 
+  it('hides a stored profile that belongs to another session', async () => {
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: 'new-session-profile',
+      isLoading: false,
+    });
+    mockFetchAndUpdateProfile.mockRejectedValue(
+      new Error('GET_PROFILE_FAILED: 404'),
+    );
+
+    const { result } = renderHook(() => useMyProfile());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockFetchAndUpdateProfile).toHaveBeenCalledWith(
+      'new-session-profile',
+    );
+    expect(result.current.profile).toBeNull();
+  });
+
+  it('shows the profile once the controller holds the current session profile', async () => {
+    const newSessionProfile = {
+      ...controllerProfile,
+      profileId: 'new-session-profile',
+      username: 'bob',
+    };
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: 'new-session-profile',
+      isLoading: false,
+    });
+    let resolveFetch: (profile: Profile) => void = () => undefined;
+    mockFetchAndUpdateProfile.mockImplementation(
+      () =>
+        new Promise<Profile>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useMyProfile());
+
+    expect(result.current.profile).toBeNull();
+
+    mockControllerState.profile = newSessionProfile;
+    await act(async () => {
+      resolveFetch(newSessionProfile);
+    });
+
+    expect(result.current.profile?.handle).toBe('bob');
+  });
+
+  it('keeps showing the stored profile while the session is unresolved', () => {
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: undefined,
+      isLoading: true,
+    });
+
+    const { result } = renderHook(() => useMyProfile());
+
+    expect(result.current.profile?.handle).toBe('alice');
+  });
+
   it('refreshes the profile through fetchAndUpdateProfile', async () => {
     const { result } = renderHook(() => useMyProfile());
 

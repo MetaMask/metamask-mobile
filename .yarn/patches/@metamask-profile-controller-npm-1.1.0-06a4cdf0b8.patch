@@ -1,0 +1,32 @@
+diff --git a/dist/ProfileController.d.ts b/dist/ProfileController.d.ts
+index 32779d2e76e5813d7c3a515c290765f4feef461d..8348d3cb059512947574497bc1ac649660b6e952 100644
+--- a/dist/ProfileController.d.ts
++++ b/dist/ProfileController.d.ts
+@@ -123,6 +123,10 @@ export declare class ProfileController extends BaseController<typeof controllerN
+      * @throws If no profile has been created yet.
+      */
+     updateProfile(input: UpdateProfileParams): Promise<void>;
++    /**
++     * Resets state to its defaults without calling the profile API.
++     */
++    clearState(): void;
+     /**
+      * Deletes the current profile and resets state, including clearing any linked X profile.
+      *
+diff --git a/dist/ProfileController.js b/dist/ProfileController.js
+index 983d0aa298a39de856244f22dba258d4048536a3..cf3e91d90da89edcc356c89a0e892d2563ca6c4d 100644
+--- a/dist/ProfileController.js
++++ b/dist/ProfileController.js
+@@ -189,6 +189,12 @@ export class ProfileController extends BaseController {
+             state.profile = this.#mapApiResponseToProfile(response);
+         });
+     }
++    /**
++     * Resets state to its defaults without calling the profile API.
++     */
++    clearState() {
++        this.update(() => getDefaultProfileControllerState());
++    }
+     /**
+      * Deletes the current profile and resets state, including clearing any linked X profile.
+      *

@@ -133,9 +133,21 @@ export const useMyProfile = ({
     refresh().catch(() => undefined);
   }, [enabled, isSessionLoading, refresh, sessionProfileId]);
 
-  const mappedControllerProfile = controllerProfile
-    ? profileControllerToMySocialProfile(controllerProfile, controllerXProfile)
-    : null;
+  // A stored profile from another session (e.g. before a wallet reset) is
+  // never shown. While the session is unresolved, the stored one stays visible.
+  const isControllerProfileFromAnotherSession = Boolean(
+    controllerProfile &&
+      trimmedSessionProfileId &&
+      controllerProfile.profileId !== trimmedSessionProfileId,
+  );
+
+  const mappedControllerProfile =
+    controllerProfile && !isControllerProfileFromAnotherSession
+      ? profileControllerToMySocialProfile(
+          controllerProfile,
+          controllerXProfile,
+        )
+      : null;
 
   return {
     profile: mappedControllerProfile

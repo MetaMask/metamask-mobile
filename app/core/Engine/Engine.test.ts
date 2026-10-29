@@ -15,6 +15,7 @@ import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller
 import { ConnectivityController } from '@metamask/connectivity-controller';
 import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
+import { getDefaultProfileControllerState } from '@metamask/profile-controller';
 import { backupVault, clearAllVaultBackups } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
@@ -1398,6 +1399,43 @@ describe('Engine', () => {
       await engine.resetState();
 
       expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('clears the persisted social profile and linked X profile', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        ...backgroundState,
+        ProfileController: {
+          profile: {
+            profileId: 'previous-profile-id',
+            username: 'previous-user',
+            displayName: 'Previous User',
+            bio: 'Previous bio',
+            linkedAddresses: [
+              'eip155:1:0x0000000000000000000000000000000000000001',
+            ],
+            avatarUrl: 'https://example.com/avatar.png',
+            tradingPrivacy: 'public',
+            connectedToX: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          xProfile: {
+            xUserId: 'x-user-id',
+            xProfileUrl: 'https://x.com/previous-user',
+            username: 'previous-user',
+            displayName: 'Previous User',
+            avatarUrl: 'https://example.com/x-avatar.png',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      });
+
+      await engine.resetState();
+
+      expect(engine.context.ProfileController.state).toStrictEqual(
+        getDefaultProfileControllerState(),
+      );
     });
 
     it('clears asset controllers kept after the legacy cleanup', async () => {
