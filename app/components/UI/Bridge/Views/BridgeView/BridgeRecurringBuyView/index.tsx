@@ -60,7 +60,6 @@ import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { getOrderTypeFromDraftPriceRange } from '../../../utils/recurringOrders';
-import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 
 const OPEN_ORDER_STATES = [RecurringOrderState.Open];
@@ -120,9 +119,6 @@ const BridgeRecurringBuyViewContent = ({
     ? (formatAddressToAssetId(destToken.address, destToken.chainId) ??
       undefined)
     : undefined;
-  // The recurring form adds no hardware-sensitive work. Its existing
-  // 20-item pagination is the short-list path for every hardware tier.
-  getHardwareTier();
   const networkTier = useNetworkTier();
   const isRemoteDataEnabled = networkTier !== 'NONE';
   const feeTokenValidation = useSentinelFeeTokenValidation({
