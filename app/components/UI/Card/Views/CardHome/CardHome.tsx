@@ -254,6 +254,8 @@ const CardHome = () => {
   useApplePaySplashPrompt({
     canAddToWallet,
     isPushProvisioningLoading,
+    countryCode: data?.walletProvisioning?.countryCode,
+    cardProcessor: data?.walletProvisioning?.cardProcessor,
   });
   const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
   const handleLearnMoreAboutApplePay = useCallback(() => {

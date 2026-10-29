@@ -497,17 +497,6 @@ const PROVISIONING_WALLETS_BY_PLATFORM: Record<
   android: ['google_wallet', 'samsung_pay'],
 };
 
-const LEGACY_BAANX_APPLE_PAY_FLAG =
-  'galileoAppleWalletInAppProvisioningEnabled';
-const LEGACY_BAANX_GOOGLE_PAY_FLAG =
-  'galileoGoogleWalletInAppProvisioningEnabled';
-const LEGACY_IMMERSVE_APPLE_PAY_FLAG =
-  'immersveAppleWalletInAppProvisioningEnabled';
-
-const LEGACY_BAANX_COUNTRY = 'US';
-const LEGACY_BAANX_PROCESSOR = 'galileo';
-const LEGACY_IMMERSVE_COUNTRIES = ['NZ', 'AU'];
-
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -615,63 +604,13 @@ const isWalletLeaf = (
   typeof value.enabled === 'boolean' &&
   typeof value.minimumVersion === 'string';
 
-const deriveLegacyProvisioningWallets = (
-  flags: CardRemoteFeatureFlags,
-  providerId: string,
-  facts: CardProvisioningFacts,
-): readonly ResolvedProvisioningWallet[] => {
-  const country = facts.countryCode?.toUpperCase();
-
-  if (providerId === CardProviderIds.Baanx) {
-    if (
-      country !== LEGACY_BAANX_COUNTRY ||
-      facts.cardProcessor !== LEGACY_BAANX_PROCESSOR
-    ) {
-      return NO_PROVISIONING_WALLETS;
-    }
-    const wallets: ResolvedProvisioningWallet[] = [];
-    if (
-      facts.platform === 'ios' &&
-      validatedVersionGatedFeatureFlag(flags?.[LEGACY_BAANX_APPLE_PAY_FLAG]) ===
-        true
-    ) {
-      wallets.push({ wallet: 'apple_wallet' });
-    }
-    if (
-      facts.platform === 'android' &&
-      validatedVersionGatedFeatureFlag(
-        flags?.[LEGACY_BAANX_GOOGLE_PAY_FLAG],
-      ) === true
-    ) {
-      wallets.push({ wallet: 'google_wallet' });
-    }
-    return wallets.length > 0 ? wallets : NO_PROVISIONING_WALLETS;
-  }
-
-  if (providerId === CardProviderIds.Immersve) {
-    if (
-      facts.platform !== 'ios' ||
-      country === undefined ||
-      !LEGACY_IMMERSVE_COUNTRIES.includes(country) ||
-      validatedVersionGatedFeatureFlag(
-        flags?.[LEGACY_IMMERSVE_APPLE_PAY_FLAG],
-      ) !== true
-    ) {
-      return NO_PROVISIONING_WALLETS;
-    }
-    return [{ wallet: 'apple_wallet' }];
-  }
-
-  return NO_PROVISIONING_WALLETS;
-};
-
 /**
  * Wallets a provider may offer for these facts.
  *
- * A valid new flag wins, including when it resolves to no wallets. Absence or
- * an unparseable top-level value uses the legacy booleans. `implementedWallets`
- * defaults to {@link IMPLEMENTED_PROVISIONING_WALLETS}; tests and the Samsung
- * Pay work pass a wider set to exercise `devices`.
+ * A valid flag wins, including when it resolves to no wallets. Absence or an
+ * unparseable top-level value offers nothing. `implementedWallets` defaults to
+ * {@link IMPLEMENTED_PROVISIONING_WALLETS}; tests and the Samsung Pay work pass
+ * a wider set to exercise `devices`.
  */
 export function resolveCardProvisioningWallets(
   flags: CardRemoteFeatureFlags,
@@ -686,7 +625,7 @@ export function resolveCardProvisioningWallets(
 
   const unwrapped = unwrapProvisioningFlag(flags?.[flagKey]);
   if (!isProvisioningFlagShape(unwrapped)) {
-    return deriveLegacyProvisioningWallets(flags, providerId, facts);
+    return NO_PROVISIONING_WALLETS;
   }
 
   if (validatedVersionGatedFeatureFlag(unwrapped) !== true) {

@@ -156,36 +156,6 @@ export const selectCardArrivalAnimationEnabledFlag = createSelector(
   },
 );
 
-export const selectGalileoAppleWalletProvisioningEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.galileoAppleWalletInAppProvisioningEnabled as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
-export const selectGalileoGoogleWalletProvisioningEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.galileoGoogleWalletInAppProvisioningEnabled as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
-export const selectImmersveAppleWalletProvisioningEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.immersveAppleWalletInAppProvisioningEnabled as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
 type PushProvisioningWallet = 'apple_wallet' | 'google_wallet';
 
 type CardProvisioningSelectorFacts = Pick<
@@ -228,26 +198,11 @@ export function selectPushProvisioningEnabled(
   state: Parameters<typeof selectRemoteFeatureFlags>[0],
   providerId: string | null | undefined,
   walletType: PushProvisioningWallet,
-  facts?: CardProvisioningSelectorFacts,
+  facts: CardProvisioningSelectorFacts,
 ): boolean {
-  if (facts) {
-    return selectCardProvisioningWallets(state, providerId, facts).some(
-      (resolved) => resolved.wallet === walletType,
-    );
-  }
-  if (providerId === CardProviderIds.Baanx && walletType === 'apple_wallet') {
-    return selectGalileoAppleWalletProvisioningEnabled(state);
-  }
-  if (providerId === CardProviderIds.Baanx && walletType === 'google_wallet') {
-    return selectGalileoGoogleWalletProvisioningEnabled(state);
-  }
-  if (
-    providerId === CardProviderIds.Immersve &&
-    walletType === 'apple_wallet'
-  ) {
-    return selectImmersveAppleWalletProvisioningEnabled(state);
-  }
-  return false;
+  return selectCardProvisioningWallets(state, providerId, facts).some(
+    (resolved) => resolved.wallet === walletType,
+  );
 }
 
 export const selectCardForgotPasswordFeatureEnabled = createSelector(

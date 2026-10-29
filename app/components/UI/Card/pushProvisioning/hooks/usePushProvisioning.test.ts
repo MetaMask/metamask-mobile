@@ -162,11 +162,6 @@ describe('usePushProvisioning', () => {
       if (selector === 'selectIsCardAuthenticated') return true;
       if (selector === 'selectCardActiveProviderId') return 'baanx';
       if (typeof selector === 'function') return selector({});
-      // Feature flags enabled by default for tests
-      if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-        return true;
-      if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-        return true;
       return undefined;
     });
     // Default adapter returns - use sync mock to avoid act() warnings
@@ -402,10 +397,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return false;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -560,10 +551,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -596,10 +583,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 
@@ -629,10 +612,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 
@@ -665,10 +644,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -699,10 +674,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -736,10 +707,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 

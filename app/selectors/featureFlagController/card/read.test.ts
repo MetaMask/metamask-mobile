@@ -803,12 +803,6 @@ const WITH_SAMSUNG: ProvisioningWallet[] = [
   'samsung_pay',
 ];
 
-const legacyProvisioningFlags = {
-  galileoAppleWalletInAppProvisioningEnabled: provisioningOn(),
-  galileoGoogleWalletInAppProvisioningEnabled: provisioningOn(),
-  immersveAppleWalletInAppProvisioningEnabled: provisioningOn(),
-};
-
 const baanxUsAppleFlag = {
   cardBaanxProvisioning: {
     enabled: true,
@@ -857,7 +851,6 @@ describe('resolveCardProvisioningWallets', () => {
 
   it('returns no wallets when the provider gate is disabled', () => {
     const flags = {
-      ...legacyProvisioningFlags,
       cardBaanxProvisioning: {
         ...baanxUsAppleFlag.cardBaanxProvisioning,
         enabled: false,
@@ -871,7 +864,6 @@ describe('resolveCardProvisioningWallets', () => {
 
   it('returns no wallets when the country entry is disabled', () => {
     const flags = {
-      ...legacyProvisioningFlags,
       cardBaanxProvisioning: {
         enabled: true,
         minimumVersion: '0.0.0',
@@ -911,7 +903,6 @@ describe('resolveCardProvisioningWallets', () => {
   it('drops the provider when its minimumVersion is above the app version', () => {
     mockGetVersion.mockReturnValue('10.0.0');
     const flags = {
-      ...legacyProvisioningFlags,
       cardBaanxProvisioning: {
         ...baanxUsAppleFlag.cardBaanxProvisioning,
         minimumVersion: '11.0.0',
@@ -938,7 +929,6 @@ describe('resolveCardProvisioningWallets', () => {
 
   it('drops a leaf whose minimumVersion is above the app version', () => {
     const flags = {
-      ...legacyProvisioningFlags,
       cardBaanxProvisioning: {
         enabled: true,
         minimumVersion: '0.0.0',
@@ -988,53 +978,45 @@ describe('resolveCardProvisioningWallets', () => {
     expect(result).toEqual([{ wallet: 'apple_wallet' }]);
   });
 
-  it('derives legacy wallets when the new key is missing', () => {
+  it('returns no wallets when the new key is missing', () => {
+    const result = resolveCardProvisioningWallets({}, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns no wallets when the new key is a string', () => {
     const result = resolveCardProvisioningWallets(
-      legacyProvisioningFlags,
+      { cardBaanxProvisioning: 'on' },
       'baanx',
       iosGalileo,
     );
 
-    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
   });
 
-  it('derives legacy wallets when the new key is a string', () => {
+  it('returns no wallets when the new key is an array', () => {
     const result = resolveCardProvisioningWallets(
-      { ...legacyProvisioningFlags, cardBaanxProvisioning: 'on' },
+      { cardBaanxProvisioning: [] },
       'baanx',
       iosGalileo,
     );
 
-    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
   });
 
-  it('derives legacy wallets when the new key is an array', () => {
+  it('returns no wallets when the new key has no countries object', () => {
     const result = resolveCardProvisioningWallets(
-      { ...legacyProvisioningFlags, cardBaanxProvisioning: [] },
+      { cardBaanxProvisioning: { enabled: true, minimumVersion: '0.0.0' } },
       'baanx',
       iosGalileo,
     );
 
-    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
   });
 
-  it('derives legacy wallets when the new key has no countries object', () => {
+  it('returns no wallets for an empty countries object', () => {
     const result = resolveCardProvisioningWallets(
       {
-        ...legacyProvisioningFlags,
-        cardBaanxProvisioning: { enabled: true, minimumVersion: '0.0.0' },
-      },
-      'baanx',
-      iosGalileo,
-    );
-
-    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
-  });
-
-  it('returns no wallets for an empty countries object and ignores legacy keys', () => {
-    const result = resolveCardProvisioningWallets(
-      {
-        ...legacyProvisioningFlags,
         cardBaanxProvisioning: {
           enabled: true,
           minimumVersion: '0.0.0',
@@ -1052,7 +1034,7 @@ describe('resolveCardProvisioningWallets', () => {
     mockVersionGate.mockReturnValue(undefined);
 
     const result = resolveCardProvisioningWallets(
-      { ...legacyProvisioningFlags, ...baanxUsAppleFlag },
+      baanxUsAppleFlag,
       'baanx',
       iosGalileo,
     );
@@ -1366,65 +1348,6 @@ describe('resolveCardProvisioningWallets', () => {
     const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
 
     expect(result).toBe(NO_PROVISIONING_WALLETS);
-  });
-
-  it('offers legacy Baanx Apple Pay only for a US galileo account', () => {
-    const apple = resolveCardProvisioningWallets(
-      {
-        galileoAppleWalletInAppProvisioningEnabled: provisioningOn(),
-        galileoGoogleWalletInAppProvisioningEnabled: provisioningOff(),
-      },
-      'baanx',
-      iosGalileo,
-    );
-    const google = resolveCardProvisioningWallets(
-      { galileoGoogleWalletInAppProvisioningEnabled: provisioningOn() },
-      'baanx',
-      { platform: 'android', countryCode: 'US', cardProcessor: 'galileo' },
-    );
-    const monavate = resolveCardProvisioningWallets(
-      legacyProvisioningFlags,
-      'baanx',
-      { ...iosGalileo, cardProcessor: 'monavate' },
-    );
-    const nonUs = resolveCardProvisioningWallets(
-      legacyProvisioningFlags,
-      'baanx',
-      { ...iosGalileo, countryCode: 'GB' },
-    );
-
-    expect(apple).toEqual([{ wallet: 'apple_wallet' }]);
-    expect(google).toEqual([{ wallet: 'google_wallet' }]);
-    expect(monavate).toBe(NO_PROVISIONING_WALLETS);
-    expect(nonUs).toBe(NO_PROVISIONING_WALLETS);
-  });
-
-  it('offers legacy Immersve Apple Pay for NZ and AU on iOS only', () => {
-    const nz = resolveCardProvisioningWallets(
-      { immersveAppleWalletInAppProvisioningEnabled: provisioningOn() },
-      'immersve',
-      { platform: 'ios', countryCode: 'NZ' },
-    );
-    const auOff = resolveCardProvisioningWallets(
-      { immersveAppleWalletInAppProvisioningEnabled: provisioningOff() },
-      'immersve',
-      { platform: 'ios', countryCode: 'AU' },
-    );
-    const sg = resolveCardProvisioningWallets(
-      legacyProvisioningFlags,
-      'immersve',
-      { platform: 'ios', countryCode: 'SG' },
-    );
-    const android = resolveCardProvisioningWallets(
-      legacyProvisioningFlags,
-      'immersve',
-      { platform: 'android', countryCode: 'AU' },
-    );
-
-    expect(nz).toEqual([{ wallet: 'apple_wallet' }]);
-    expect(auOff).toBe(NO_PROVISIONING_WALLETS);
-    expect(sg).toBe(NO_PROVISIONING_WALLETS);
-    expect(android).toBe(NO_PROVISIONING_WALLETS);
   });
 
   it('returns google wallet before samsung pay', () => {
