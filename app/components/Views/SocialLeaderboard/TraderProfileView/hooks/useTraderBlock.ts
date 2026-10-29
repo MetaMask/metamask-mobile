@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import type { BlockedProfilesResponse } from '@metamask/social-controllers';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
   reportSocialServiceFailure,
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
+import {
+  BLOCKED_PROFILE_IDS_QUERY_KEY,
+  fetchBlockedProfileIds,
+} from '../../../../../components/UI/SocialFeed/moderationApi';
 import { blockTrader, unblockTrader } from '../traderBlockApi';
-
-export const BLOCKED_PROFILES_QUERY_KEY = [
-  'SocialService:fetchBlockedProfiles',
-] as const;
 
 const TRADER_BLOCK_SOURCE = 'useTraderBlock';
 
@@ -26,9 +25,9 @@ export interface UseTraderBlockResult {
 /**
  * Block state for one trader, keyed by Clicker `profileId` (UUID).
  *
- * The initial state is read from the first page of the viewer's blocked
- * profiles (250 most recent). Writes flip an optimistic override that rolls
- * back on failure and is dropped once the refetched list agrees with it.
+ * The initial state is read from the viewer's fully paginated blocked-profile
+ * list. Writes flip an optimistic override that rolls back on failure and is
+ * dropped once the refetched list agrees with it.
  *
  * @param profileId - Trader profile id; `undefined` until the profile loads.
  * @returns Block state and block/unblock actions.
@@ -37,8 +36,9 @@ export const useTraderBlock = (
   profileId: string | undefined,
 ): UseTraderBlockResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
-  const { data, error, refetch } = useQuery<BlockedProfilesResponse>({
-    queryKey: BLOCKED_PROFILES_QUERY_KEY,
+  const { data, error, refetch } = useQuery<string[]>({
+    queryKey: BLOCKED_PROFILE_IDS_QUERY_KEY,
+    queryFn: fetchBlockedProfileIds,
     enabled: Boolean(profileId) && isUnlocked,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -52,10 +52,7 @@ export const useTraderBlock = (
     endpoint: 'blocked_profiles',
   });
 
-  const isBlockedOnServer = Boolean(
-    profileId &&
-      data?.items.some((item) => item.profile.profileId === profileId),
-  );
+  const isBlockedOnServer = Boolean(profileId && data?.includes(profileId));
   const [override, setOverride] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {

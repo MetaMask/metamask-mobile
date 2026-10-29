@@ -1,10 +1,13 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import type { BlockedProfilesResponse } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { BLOCKED_PROFILES_QUERY_KEY, useTraderBlock } from './useTraderBlock';
+import {
+  BLOCKED_PROFILE_IDS_QUERY_KEY,
+  fetchBlockedProfileIds,
+} from '../../../../../components/UI/SocialFeed/moderationApi';
+import { useTraderBlock } from './useTraderBlock';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -26,6 +29,11 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('../../../../../components/UI/SocialFeed/moderationApi', () => ({
+  BLOCKED_PROFILE_IDS_QUERY_KEY: ['social', 'moderation', 'blockedProfileIds'],
+  fetchBlockedProfileIds: jest.fn(),
+}));
+
 jest.mock('@sentry/react-native', () => ({
   addBreadcrumb: jest.fn(),
 }));
@@ -35,24 +43,11 @@ const PROFILE_ID = '11111111-1111-1111-1111-111111111111';
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
+const mockFetchBlockedProfileIds =
+  fetchBlockedProfileIds as jest.MockedFunction<typeof fetchBlockedProfileIds>;
 const mockRefetch = jest.fn();
 
-const blockedResponse = (profileIds: string[]): BlockedProfilesResponse => ({
-  items: profileIds.map((profileId) => ({
-    blockedAt: 1_710_000_000,
-    reason: null,
-    profile: {
-      profileId,
-      address: '0xabc',
-      allAddresses: ['0xabc'],
-      name: 'trader',
-      imageUrl: null,
-    },
-  })),
-  cursor: null,
-});
-
-const mockQueryData = (data: BlockedProfilesResponse | undefined) => {
+const mockQueryData = (data: string[] | undefined) => {
   mockUseQuery.mockReturnValue({
     data,
     error: null,
@@ -66,14 +61,16 @@ describe('useTraderBlock', () => {
     mockUseSelector.mockReturnValue(true);
     mockRefetch.mockResolvedValue(undefined);
     mockCall.mockResolvedValue(undefined);
-    mockQueryData(blockedResponse([]));
+    mockFetchBlockedProfileIds.mockResolvedValue([]);
+    mockQueryData([]);
   });
 
   it('queries the blocked profiles list when unlocked with a profile id', () => {
     renderHook(() => useTraderBlock(PROFILE_ID));
 
     expect(mockUseQuery).toHaveBeenCalledWith({
-      queryKey: BLOCKED_PROFILES_QUERY_KEY,
+      queryKey: BLOCKED_PROFILE_IDS_QUERY_KEY,
+      queryFn: fetchBlockedProfileIds,
       enabled: true,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
@@ -99,7 +96,7 @@ describe('useTraderBlock', () => {
   });
 
   it('reports blocked when the profile is in the blocked list', () => {
-    mockQueryData(blockedResponse([PROFILE_ID]));
+    mockQueryData([PROFILE_ID]);
 
     const { result } = renderHook(() => useTraderBlock(PROFILE_ID));
 
@@ -131,7 +128,7 @@ describe('useTraderBlock', () => {
   });
 
   it('unblocks via SocialService:unblockProfile and flips optimistically', async () => {
-    mockQueryData(blockedResponse([PROFILE_ID]));
+    mockQueryData([PROFILE_ID]);
     const { result } = renderHook(() => useTraderBlock(PROFILE_ID));
 
     let didUnblock = false;
