@@ -3,8 +3,6 @@ import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import {
   Box,
   ButtonIcon,
-  ButtonIconSize,
-  IconColor,
   IconName,
   Text,
   TextVariant,
@@ -12,7 +10,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
-import { MoneyMfaTestIds } from '../MoneyMfa/MoneyMfa.testIds';
+import MoneyMfaHeaderBadge from '../MoneyMfa/MoneyMfaHeaderBadge';
 
 export interface MoneyNativeHeaderParams {
   onMenuPress: () => void;
@@ -23,8 +21,6 @@ export interface MoneyNativeHeaderParams {
   /** Opens the 2-step verification sheet from the shield. */
   onMfaBadgePress?: () => void;
 }
-
-const MFA_BADGE_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
 /**
  * The Money header as a native iOS 26 bar: an inline "Money" title, with the
@@ -51,15 +47,7 @@ export const useMoneyNativeHeader = ({
             {strings('money.title')}
           </Text>
           {isMfaEnabled ? (
-            <ButtonIcon
-              iconName={IconName.SecurityTick}
-              size={ButtonIconSize.Sm}
-              iconProps={{ color: IconColor.SuccessDefault }}
-              onPress={onMfaBadgePress}
-              hitSlop={MFA_BADGE_HIT_SLOP}
-              accessibilityLabel={strings('money.mfa.badge_label')}
-              testID={MoneyMfaTestIds.HEADER_BADGE}
-            />
+            <MoneyMfaHeaderBadge onPress={onMfaBadgePress} />
           ) : null}
         </Box>
       ),

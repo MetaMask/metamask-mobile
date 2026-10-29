@@ -1,17 +1,14 @@
 import React from 'react';
 import type { LayoutChangeEvent } from 'react-native';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
-import { MoneyMfaTestIds } from '../MoneyMfa/MoneyMfa.testIds';
+import MoneyMfaHeaderBadge, {
+  getMoneyMfaHeaderBadgeProps,
+} from '../MoneyMfa/MoneyMfaHeaderBadge';
 
 interface MoneyHeaderCommonProps {
   /**
@@ -54,8 +51,6 @@ interface MoneyHeaderTabProps {
 export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
-const MFA_BADGE_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
-
 const MoneyHeader = (props: MoneyHeaderProps) => {
   const {
     onMenuPress,
@@ -72,14 +67,6 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     testID: MoneyHeaderTestIds.MENU_BUTTON,
     // The icon sits on a glass capsule; the default press fill covers it.
     twClassName: 'bg-transparent',
-  };
-
-  const mfaBadgeProps = {
-    iconName: IconName.SecurityTick,
-    iconProps: { color: IconColor.SuccessDefault },
-    onPress: onMfaBadgePress,
-    accessibilityLabel: strings('money.mfa.badge_label'),
-    testID: MoneyMfaTestIds.HEADER_BADGE,
   };
 
   if (props.onBack) {
@@ -103,7 +90,9 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
         // The collapsing title has no accessory slot, so the shield sits
         // with the end buttons.
         endButtonIconProps={
-          isMfaEnabled ? [mfaBadgeProps, menuButtonProps] : [menuButtonProps]
+          isMfaEnabled
+            ? [getMoneyMfaHeaderBadgeProps(onMfaBadgePress), menuButtonProps]
+            : [menuButtonProps]
         }
       />
     );
@@ -123,15 +112,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       }}
       titleAccessory={
         isMfaEnabled ? (
-          <ButtonIcon
-            iconName={IconName.SecurityTick}
-            size={ButtonIconSize.Sm}
-            iconProps={{ color: IconColor.SuccessDefault }}
-            onPress={onMfaBadgePress}
-            hitSlop={MFA_BADGE_HIT_SLOP}
-            accessibilityLabel={strings('money.mfa.badge_label')}
-            testID={MoneyMfaTestIds.HEADER_BADGE}
-          />
+          <MoneyMfaHeaderBadge onPress={onMfaBadgePress} />
         ) : undefined
       }
       endButtonIconProps={[menuButtonProps]}

@@ -14,6 +14,8 @@ import { useMoneyMfa, type MoneyMfaStatus } from '../../hooks/useMoneyMfa';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
@@ -350,6 +352,35 @@ describe('MoneyMoreSheet', () => {
         screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
       });
       expect(mockTurnOnMfa).not.toHaveBeenCalled();
+    });
+
+    it('tracks turning off from the switch', () => {
+      mockMfaStatus('enabled');
+      renderWithProvider(<MoneyMoreSheet />);
+
+      fireEvent(getMfaSwitch(), 'valueChange', false);
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.DISABLE_MFA,
+        label_key: 'money.mfa.more_sheet_title',
+        component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_MFA_TOGGLE,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_TURN_OFF_SHEET,
+      });
+    });
+
+    it('tracks turning on from the switch', () => {
+      mockMfaStatus('off');
+      renderWithProvider(<MoneyMoreSheet />);
+
+      fireEvent(getMfaSwitch(), 'valueChange', true);
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+        label_key: 'money.mfa.more_sheet_title',
+        component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_MFA_TOGGLE,
+      });
     });
 
     it('closes the sheet then turns on 2-step verification when toggled before setup', () => {
