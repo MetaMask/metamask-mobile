@@ -25,12 +25,10 @@ import {
   tallSheetHeight,
   type SheetStop,
 } from './sheetSnap';
-
 const SNAP_TIMING: WithTimingConfig = {
   duration: SHEET_SNAP_DURATION_MS,
   easing: Easing.out(Easing.cubic),
 };
-
 export interface ComposerSheetSnap {
   sheetStyle: ReturnType<typeof useAnimatedStyle>;
   handleGesture: ReturnType<typeof Gesture.Pan>;
@@ -39,7 +37,6 @@ export interface ComposerSheetSnap {
   trailingEdgeGesture: ReturnType<typeof Gesture.Pan>;
   backdropStyle: ReturnType<typeof useAnimatedStyle>;
 }
-
 export function useComposerSheetSnap(
   defaultHeight: number,
   onDismiss: () => void,
@@ -50,10 +47,8 @@ export function useComposerSheetSnap(
   const hardwareTier = getHardwareTier();
   useNetworkTier();
   const isAnimated = !prefersReducedMotion && hardwareTier !== 'LOW';
-
   const tall = tallSheetHeight(windowHeight, topInset, bottomInset);
   const restingDefault = defaultHeight > 0 ? Math.min(defaultHeight, tall) : 0;
-
   const height = useSharedValue(restingDefault);
   const translateY = useSharedValue(0);
   const defaultSV = useSharedValue(restingDefault);
@@ -68,11 +63,9 @@ export function useComposerSheetSnap(
   const interacting = useSharedValue(0);
   const bottomPaddingSV = useSharedValue(sheetBottomPadding(bottomInset));
   const appliedDefault = useRef(restingDefault);
-
   const dismiss = useCallback(() => {
     onDismiss();
   }, [onDismiss]);
-
   useEffect(() => {
     isAnimatedSV.value = isAnimated;
     windowHeightSV.value = windowHeight;
@@ -119,7 +112,6 @@ export function useComposerSheetSnap(
     windowHeight,
     windowHeightSV,
   ]);
-
   const gestures = useMemo(() => {
     const makePan = () =>
       Gesture.Pan()
@@ -179,12 +171,10 @@ export function useComposerSheetSnap(
             isFling,
             defaultIsTallCap: isDefaultAtTallCap(def, cap),
           });
-
           const timing = {
             duration: SHEET_SNAP_DURATION_MS,
             easing: Easing.out(Easing.cubic),
           };
-
           if (target === 'dismiss') {
             if (!isAnimatedSV.value) {
               interacting.value = 0;
@@ -203,7 +193,6 @@ export function useComposerSheetSnap(
             );
             return;
           }
-
           const nextHeight = target === 'tall' ? cap : def;
           stop.value = target === 'tall' ? 1 : 0;
           if (isAnimatedSV.value) {
@@ -219,7 +208,6 @@ export function useComposerSheetSnap(
             interacting.value = 0;
           }
         });
-
     return {
       handleGesture: makePan(),
       headerGesture: makePan(),
@@ -240,7 +228,6 @@ export function useComposerSheetSnap(
     translateY,
     windowHeightSV,
   ]);
-
   const sheetStyle = useAnimatedStyle(() => {
     if (!laidOut.value) {
       return {};
@@ -250,7 +237,6 @@ export function useComposerSheetSnap(
       transform: [{ translateY: translateY.value }],
     };
   });
-
   const backdropStyle = useAnimatedStyle(() => {
     if (!laidOut.value || height.value <= 0) {
       return { height: 0 };
@@ -263,7 +249,6 @@ export function useComposerSheetSnap(
       ),
     };
   });
-
   return {
     sheetStyle,
     ...gestures,
