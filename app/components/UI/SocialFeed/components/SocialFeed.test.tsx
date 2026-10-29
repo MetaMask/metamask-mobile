@@ -5,11 +5,9 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialV1FeedPost } from '../types';
-import SocialFeed, {
-  SOCIAL_FEED_NEXT_PAGE_TEST_ID,
-  type SocialFeedHeaderProps,
-} from './SocialFeed';
+import SocialFeed, { SOCIAL_FEED_NEXT_PAGE_TEST_ID } from './SocialFeed';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
@@ -50,7 +48,10 @@ jest.mock('./SocialFeedVirtualized', () => {
 const mockSelectEnabled = jest.mocked(selectSocialLeaderboardEnabled);
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
-const source = { kind: 'perp', symbol: 'BTC' } as const;
+const query: SocialFeedQuery = {
+  scope: 'all',
+  assetIds: ['eip155:999/perp:BTC'],
+};
 
 const feedState = (
   overrides: Partial<SocialFeedState> = {},
@@ -90,7 +91,7 @@ describe('SocialFeed', () => {
     mockSelectEnabled.mockReturnValue(false);
 
     const { toJSON } = renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(toJSON()).toBeNull();
@@ -103,14 +104,10 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed
-        source={source}
-        location="perps_market_details"
-        title="Trades"
-      />,
+      <SocialFeed {...query} location="perps_market_details" title="Trades" />,
     );
 
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(source, {
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
       filterPost: undefined,
     });
     expect(screen.getByText('Trades')).toBeOnTheScreen();
@@ -119,7 +116,7 @@ describe('SocialFeed', () => {
   });
 
   it('shows the empty state when the feed has no posts', () => {
-    renderWithProvider(<SocialFeed source={source} location="token_details" />);
+    renderWithProvider(<SocialFeed {...query} location="token_details" />);
 
     expect(screen.getByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeOnTheScreen();
   });
@@ -128,7 +125,7 @@ describe('SocialFeed', () => {
     mockUseSocialFeed.mockReturnValue(feedState({ isLoading: true }));
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(
@@ -143,7 +140,7 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
 
@@ -162,7 +159,7 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
 
@@ -180,7 +177,7 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(screen.getByTestId(SOCIAL_FEED_NEXT_PAGE_TEST_ID)).toBeOnTheScreen();
@@ -196,7 +193,7 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(loadMore).toHaveBeenCalled();
@@ -212,31 +209,23 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(loadMore).not.toHaveBeenCalled();
   });
 
-  it('renders the host header below the title with no pending posts', () => {
-    const renderHeader = jest.fn(
-      ({ pendingNewCount }: SocialFeedHeaderProps) => (
-        <Text>{`header ${pendingNewCount}`}</Text>
-      ),
-    );
-
+  it('renders the host header below the title', () => {
     renderWithProvider(
       <SocialFeed
-        source={source}
+        {...query}
         location="perps_market_details"
         title="Trades"
-        renderHeader={renderHeader}
+        renderHeader={() => <Text>header</Text>}
       />,
     );
-    const { onRevealPending } = renderHeader.mock.calls[0][0];
 
-    expect(screen.getByText('header 0')).toBeOnTheScreen();
-    expect(onRevealPending()).toBeUndefined();
+    expect(screen.getByText('header')).toBeOnTheScreen();
     expect(mockUseSocialFeed).toHaveBeenCalledTimes(1);
   });
 
@@ -245,19 +234,19 @@ describe('SocialFeed', () => {
 
     renderWithProvider(
       <SocialFeed
-        source={source}
+        {...query}
         location="perps_market_details"
         filterPost={filterPost}
       />,
     );
 
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(source, { filterPost });
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, { filterPost });
   });
 
   it('renders the virtualized feed for the virtualized scroll mode', () => {
     renderWithProvider(
       <SocialFeed
-        source={source}
+        {...query}
         location="social_live"
         scrollMode="virtualized"
         testID="live"

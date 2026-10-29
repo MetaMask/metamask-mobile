@@ -1,4 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
+// Must stay the first import: pins tslib 2's helpers before tslib 1 can overwrite them.
+import './app/core/installTslibHelpers';
 import { BackHandler, Platform, Settings } from 'react-native';
 
 // RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
@@ -102,7 +104,9 @@ if (hasTestOverrides) {
   );
 }
 
-// In a testing environment, configure server ports for fixture and command queue servers.
+// In a testing environment, or any build with test overrides (e.g. an rc build
+// pointed at a local fixture server), configure server ports for fixture and
+// command queue servers.
 //
 // We pass dynamic ports via launchArgs in FixtureHelper.ts, but react-native-launch-arguments
 // library behavior differs by platform:
@@ -114,7 +118,7 @@ if (hasTestOverrides) {
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
 //          Example: App connects to localhost:12345, adb reverse maps it to host port 30002.
 //          See FixtureHelper.ts for the port mapping implementation.
-if (isTestEnvironment) {
+if (isTestEnvironment || hasTestOverrides) {
   const raw = LaunchArguments.value();
 
   // Priority: LaunchArgs (E2E) → NSUserDefaults (mm CLI daemon) → hardcoded fallback

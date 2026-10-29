@@ -17,6 +17,7 @@ import {
   CardActivationEvent,
   WalletEligibility,
   ProvisioningErrorCode,
+  type WalletType,
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
@@ -24,6 +25,7 @@ import { getWalletTypeForPlatform } from '../constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   selectIsCardAuthenticated,
   selectCardActiveProviderId,
@@ -41,6 +43,22 @@ function canAddAgain(result: WalletEligibility): boolean {
   return !(
     result.existingCardStatus === 'requires_activation' &&
     result.recommendedAction !== 'add_card'
+  );
+}
+
+/**
+ * Immersve Apple Pay is off when its flag is off. Baanx keeps its manual
+ * wallet instructions, and Immersve on Android has no Google Pay flag.
+ */
+export function shouldSuppressImmersveApplePayUi(
+  providerId: string | null | undefined,
+  walletType: WalletType,
+  provisioningEnabled: boolean,
+): boolean {
+  return (
+    providerId === CardProviderIds.Immersve &&
+    walletType === 'apple_wallet' &&
+    !provisioningEnabled
   );
 }
 
@@ -100,6 +118,11 @@ export function usePushProvisioning(
   const isPushProvisioningFeatureEnabled = useSelector(
     (state: Parameters<typeof selectPushProvisioningEnabled>[0]) =>
       selectPushProvisioningEnabled(state, activeProviderId, walletType),
+  );
+  const suppressImmersveApplePay = shouldSuppressImmersveApplePayUi(
+    activeProviderId,
+    walletType,
+    isPushProvisioningFeatureEnabled,
   );
 
   const cardAdapter = useMemo(
@@ -187,6 +210,11 @@ export function usePushProvisioning(
 
   useFocusEffect(
     useCallback(() => {
+      if (suppressImmersveApplePay) {
+        setIsEligibilityCheckLoading(false);
+        return undefined;
+      }
+
       const shouldShowLoading = checkedLastFourRef.current !== lastFourDigits;
       checkedLastFourRef.current = lastFourDigits;
       void refreshEligibility({ silent: !shouldShowLoading });
@@ -194,12 +222,16 @@ export function usePushProvisioning(
       return () => {
         eligibilityRequestIdRef.current += 1;
       };
-    }, [refreshEligibility, lastFourDigits]),
+    }, [refreshEligibility, lastFourDigits, suppressImmersveApplePay]),
   );
 
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
+    if (suppressImmersveApplePay) {
+      return undefined;
+    }
+
     const subscription = AppState.addEventListener(
       'change',
       (nextState: AppStateStatus) => {
@@ -220,10 +252,10 @@ export function usePushProvisioning(
     return () => {
       subscription.remove();
     };
-  }, [refreshEligibility]);
+  }, [refreshEligibility, suppressImmersveApplePay]);
 
   useEffect(() => {
-    if (status !== 'success') {
+    if (suppressImmersveApplePay || status !== 'success') {
       return;
     }
 
@@ -268,7 +300,13 @@ export function usePushProvisioning(
     };
 
     recheckEligibility();
-  }, [status, walletAdapter, lastFourDigits, primaryAccountIdentifier]);
+  }, [
+    status,
+    walletAdapter,
+    lastFourDigits,
+    primaryAccountIdentifier,
+    suppressImmersveApplePay,
+  ]);
 
   // Create service with adapters
   const service = useMemo(
@@ -553,10 +591,11 @@ export function usePushProvisioning(
     existingCardStatus === 'requires_activation' &&
     eligibility?.recommendedAction === 'resume';
   const isCardInWallet =
-    status === 'success' ||
-    (existingCardStatus !== undefined &&
-      existingCardStatus !== 'not_found' &&
-      !resumesYellowPath);
+    !suppressImmersveApplePay &&
+    (status === 'success' ||
+      (existingCardStatus !== undefined &&
+        existingCardStatus !== 'not_found' &&
+        !resumesYellowPath));
 
   return {
     status,
@@ -569,10 +608,14 @@ export function usePushProvisioning(
     isLoading,
     canAddToWallet,
     isCardInWallet,
-    pendingVerificationDevices: eligibility?.pendingVerificationDevices ?? [],
+    pendingVerificationDevices: suppressImmersveApplePay
+      ? []
+      : (eligibility?.pendingVerificationDevices ?? []),
     canOpenInWallet:
+      !suppressImmersveApplePay &&
       Boolean(eligibility?.devices?.phone) &&
       Boolean(walletAdapter?.openCardInWallet),
     openInWallet,
+    hideProvisioningUi: suppressImmersveApplePay,
   };
 }

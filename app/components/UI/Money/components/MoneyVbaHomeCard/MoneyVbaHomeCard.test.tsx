@@ -8,8 +8,9 @@ import {
 } from './MoneyVbaHomeCardConfig';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -35,12 +36,16 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    openAsOnlyOnboardingRoute: jest.fn(),
+    openVbaEntry: jest.fn(),
   }),
 );
+jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  startVbaCufJourney: jest.fn(),
+}));
 
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
-const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
+const mockOpenVbaEntry = jest.mocked(openVbaEntry);
+const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'get_started',
@@ -150,10 +155,11 @@ describe('MoneyVbaHomeCard', () => {
           redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
         }),
       );
-      expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
-        mockNavigation,
-        VbaOnboardingRoutes.LOADING,
-        { source: expectations.source },
+      expect(mockOpenVbaEntry).toHaveBeenCalledWith(mockNavigation, {
+        source: expectations.source,
+      });
+      expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+        VBA_CUF_ENTRY_SURFACE.HOME_CARD,
       );
     },
   );
@@ -180,7 +186,7 @@ describe('MoneyVbaHomeCard', () => {
     fireEvent.press(cta);
     fireEvent.press(cta);
 
-    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledTimes(1);
+    expect(mockOpenVbaEntry).toHaveBeenCalledTimes(1);
     expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
   });
 
@@ -200,7 +206,7 @@ describe('MoneyVbaHomeCard', () => {
         label_key: 'money.vba_home_card.kyc_decision.dismiss',
       }),
     );
-    expect(mockOpenAsOnlyOnboardingRoute).not.toHaveBeenCalled();
+    expect(mockOpenVbaEntry).not.toHaveBeenCalled();
   });
 
   it('offers Dismiss only on the kyc_decision card', () => {

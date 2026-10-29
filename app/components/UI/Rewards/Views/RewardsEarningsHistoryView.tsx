@@ -21,12 +21,7 @@ import TradingActivityListView from '../components/Money/TradingActivityListView
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { useInFlightClaims } from '../hooks/useInFlightClaims';
-
-export const REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS = {
-  CONTAINER: 'rewards-earnings-history-view',
-  LIST: 'rewards-earnings-history-list',
-  SKELETON_SLOT: 'rewards-earnings-history-skeleton-slot',
-} as const;
+import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
 
 const RewardsEarningsHistoryView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();

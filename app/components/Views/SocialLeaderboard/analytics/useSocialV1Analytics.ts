@@ -181,10 +181,3 @@ export const useSocialScreenAnalytics = (
     isActive,
   );
 };
-export const useManageProfileAnalytics = () => {
-  const track = useSocialInteraction(SocialEvent.Screen.MANAGE_PROFILE);
-  return useCallback(
-    () => track(Interaction.PROFILE_EDITED, Outcome.SUCCESS),
-    [track],
-  );
-};

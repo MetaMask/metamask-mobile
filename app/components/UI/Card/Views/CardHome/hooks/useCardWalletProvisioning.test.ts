@@ -258,6 +258,24 @@ describe('useCardWalletProvisioning', () => {
     expect(showToast).not.toHaveBeenCalled();
   });
 
+  it('hides every wallet entry when Immersve Apple Pay is switched off', () => {
+    mockUsePushProvisioning.mockReturnValue({
+      initiateProvisioning: jest.fn(),
+      isProvisioning: false,
+      isLoading: false,
+      canAddToWallet: false,
+      isCardInWallet: false,
+      pendingVerificationDevices: [],
+      canOpenInWallet: false,
+      openInWallet: jest.fn(),
+      hideProvisioningUi: true,
+    });
+
+    const { result } = renderProvisioning(homeData(walletProvisioning));
+
+    expect(result.current.walletEntry).toBe('none');
+  });
+
   it('passes null provisioning when the provider has no card', () => {
     renderProvisioning(homeData(null));
 

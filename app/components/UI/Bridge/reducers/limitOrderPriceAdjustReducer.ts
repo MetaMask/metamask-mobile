@@ -19,7 +19,12 @@ export type LimitOrderPriceAdjustAction =
       isTrackingMarket: boolean;
       customValue: string;
     }
-  | { type: 'seedFromMarket'; limitPrice: string }
+  | {
+      type: 'seedFromMarket';
+      limitPrice: string;
+      executionType: LimitOrderExecutionType;
+      isLimitFiatMode: boolean;
+    }
   | { type: 'enterCustom' }
   | { type: 'exitCustom' }
   | { type: 'setCustomValue'; value: string | undefined }
@@ -88,8 +93,13 @@ export const limitOrderPriceAdjustReducer = (
         hasUserEditedLimitPrice: true,
       };
     case 'seedFromMarket':
-      // A market refresh that rounds to the same string is not a state change.
-      return state.limitPrice === action.limitPrice
+      // A seed priced for another side or denomination is stale: a pair reset
+      // queued in the same commit has already moved the state on, and a seed
+      // for the new side follows once it renders. A market refresh that rounds
+      // to the same string is not a state change either.
+      return state.executionType !== action.executionType ||
+        state.isLimitFiatMode !== action.isLimitFiatMode ||
+        state.limitPrice === action.limitPrice
         ? state
         : {
             ...state,

@@ -19,6 +19,7 @@ import {
   type GetEventResult,
   type GetFeedResult,
   type GetMarketHistoryResult,
+  type GetVenueCatalogResult,
   type GetVenueStatusResult,
   type SearchEventsResult,
 } from '../queries/marketDataQueries';
@@ -42,6 +43,14 @@ export interface PredictMarketDataServiceGetVenueStatusAction {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ) => Promise<GetVenueStatusResult>;
+}
+
+export interface PredictMarketDataServiceGetVenueCatalogAction {
+  type: 'PredictMarketDataService:getVenueCatalog';
+  handler: (
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ) => Promise<GetVenueCatalogResult>;
 }
 
 export interface PredictMarketDataServiceGetFeedAction {
@@ -85,6 +94,7 @@ export interface PredictMarketDataServiceSearchEventsAction {
 
 export type PredictMarketDataServiceActions =
   | PredictMarketDataServiceGetVenueStatusAction
+  | PredictMarketDataServiceGetVenueCatalogAction
   | PredictMarketDataServiceGetFeedAction
   | PredictMarketDataServiceGetEventAction
   | PredictMarketDataServiceGetMarketHistoryAction
@@ -145,6 +155,10 @@ export class PredictMarketDataService extends BaseDataService<
       this.getVenueStatus.bind(this),
     );
     messenger.registerActionHandler(
+      'PredictMarketDataService:getVenueCatalog',
+      this.getVenueCatalog.bind(this),
+    );
+    messenger.registerActionHandler(
       'PredictMarketDataService:getFeed',
       this.getFeed.bind(this),
     );
@@ -186,6 +200,24 @@ export class PredictMarketDataService extends BaseDataService<
             }) as Promise<Json & GetVenueStatusResult>,
         }),
     );
+  }
+
+  /** Reads the Venue's product support. Fresh for five minutes; a failed
+   * refresh leaves the last valid catalog in the cache. */
+  async getVenueCatalog(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<GetVenueCatalogResult> {
+    this.#assertVenue(venueId);
+    const descriptor = marketDataQueries.getVenueCatalog(venueId);
+    return this.fetchQuery({
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
+      queryFn: ({ signal }) =>
+        this.#marketData.fetchVenueCatalog({
+          signal: options?.signal ?? signal,
+        }) as Promise<Json & GetVenueCatalogResult>,
+    });
   }
 
   async getFeed(

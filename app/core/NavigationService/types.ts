@@ -71,8 +71,6 @@ import type { AccountConnectParams } from '../../components/Views/MultichainAcco
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import type { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import type { SuccessErrorSheetParams } from '../../components/Views/SuccessErrorSheet/interface';
-import type { OnboardingSheetParams } from '../../components/Views/OnboardingSheet';
-
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
 import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletModal/DeleteWalletModal.types';
@@ -410,7 +408,6 @@ export type RootModalFlowParamList = {
   DeleteWalletModal: DeleteWalletModalParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
-  OnboardingSheet: OnboardingSheetParams | undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
   SkipAccountSecurityModal: undefined;
   SuccessErrorSheet: SuccessErrorSheetParams | undefined;
@@ -639,7 +636,6 @@ export type RootStackParamList = {
   ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
-  ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
   TrendingView: ExploreFeedRouteParams | undefined;
@@ -849,7 +845,6 @@ export type RootStackParamList = {
   NetworkManager: undefined;
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
-  OnboardingSheet: OnboardingSheetParams | undefined;
   ImportWalletTipSheet: undefined;
   MAPicker: MAPickerSheetParams | undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
@@ -1080,6 +1075,7 @@ export type RootStackParamList = {
   };
   ManageProfileTradingActivityView: undefined;
   ManageProfileLinkedAccountView: undefined;
+  EditProfileAvatarView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;
@@ -1178,6 +1174,7 @@ export type RootStackParamList = {
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
+  MultichainAccountsExplorerWebview: WebviewStackParamList['SimpleWebview'];
   SmartAccountDetails: SmartAccountParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)

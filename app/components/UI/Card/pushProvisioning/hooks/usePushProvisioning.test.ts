@@ -727,6 +727,116 @@ describe('usePushProvisioning', () => {
     });
   });
 
+  describe('Immersve Apple Pay flag off', () => {
+    const walletState = {
+      isAvailable: true,
+      canAddCard: false,
+      existingCardStatus: 'active' as const,
+      devices: { phone: 'active' as const },
+      pendingVerificationDevices: ['phone' as const],
+    };
+
+    it('skips the wallet check and hides wallet state on iOS', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockAppleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'immersve';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).not.toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(true);
+      expect(result.current.canAddToWallet).toBe(false);
+      expect(result.current.isCardInWallet).toBe(false);
+      expect(result.current.pendingVerificationDevices).toEqual([]);
+      expect(result.current.canOpenInWallet).toBe(false);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('still checks the wallet for Immersve on Android', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      mockGoogleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'immersve';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(false);
+      expect(result.current.isCardInWallet).toBe(true);
+      expect(result.current.pendingVerificationDevices).toEqual(['phone']);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+
+    it('still checks the wallet for Baanx when its Apple Pay flag is off', async () => {
+      const originalPlatform = Platform.OS;
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      mockAppleProvisioningEnabled = false;
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardActiveProviderId') return 'baanx';
+        if (typeof selector === 'function') return selector({});
+        return undefined;
+      });
+      mockWalletAdapter.getEligibility.mockResolvedValue(walletState);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalled();
+      expect(result.current.hideProvisioningUi).toBe(false);
+      expect(result.current.isCardInWallet).toBe(true);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      unmount();
+    });
+  });
+
   describe('isCardInWallet', () => {
     it('is false when the card is not in the wallet', async () => {
       mockWalletAdapter.getEligibility.mockResolvedValue({

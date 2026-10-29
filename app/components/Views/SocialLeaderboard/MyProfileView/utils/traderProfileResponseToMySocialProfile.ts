@@ -4,7 +4,7 @@ import { preferTraderAvatarUrl } from './preferTraderAvatarUrl';
 
 export const traderProfileResponseToMySocialProfile = (
   live: TraderProfileResponse,
-  extras?: { handle?: string; shareUrl?: string; imageUrl?: string | null },
+  extras?: { handle?: string; imageUrl?: string | null },
 ): MySocialProfile => ({
   profileId: live.profile.profileId,
   displayName: live.profile.name,
@@ -14,7 +14,6 @@ export const traderProfileResponseToMySocialProfile = (
   xHandle: live.socialHandles?.twitter ?? null,
   followerCount: live.followerCount,
   followingCount: live.followingCount,
-  shareUrl: extras?.shareUrl ?? '',
   winRatePercent:
     live.stats.winRate30d != null ? live.stats.winRate30d * 100 : null,
   pnlUsd: live.stats.pnl30d ?? null,

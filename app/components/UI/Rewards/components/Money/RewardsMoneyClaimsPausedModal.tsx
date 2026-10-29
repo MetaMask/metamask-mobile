@@ -61,9 +61,14 @@ export interface ClaimsPausedLabels {
 
 export interface RewardsMoneyClaimsPausedModalParams {
   title: string;
-  description: string;
+  description?: string;
   totals?: ClaimsPausedTotals;
   labels?: ClaimsPausedLabels;
+  /**
+   * `breakdown` is the info sheet beside the earnings amount. It shows the
+   * same rows as the paused sheet, without the paused title and description.
+   */
+  variant?: 'paused' | 'breakdown';
 }
 
 function musdAmount(baseUnits: string | null | undefined): string {
@@ -122,13 +127,21 @@ interface RewardsMoneyClaimsPausedModalProps {
 }
 
 /**
- * Claims paused sheet: the shared title and description, plus the root
- * summary totals. The under-review banner stays on the generic info sheet.
+ * Claims paused sheet, and the balance breakdown opened from the earnings
+ * amount. Both show the same root summary totals. The under-review banner
+ * stays on the generic info sheet.
  */
 const RewardsMoneyClaimsPausedModal: React.FC<
   RewardsMoneyClaimsPausedModalProps
 > = ({ route }) => {
-  const { title, description, totals, labels } = route.params;
+  const {
+    title,
+    description,
+    totals,
+    labels,
+    variant = 'paused',
+  } = route.params;
+  const isBalanceBreakdown = variant === 'breakdown';
   const navigation = useNavigation<AppNavigationProp>();
 
   const handleClose = useCallback(() => {
@@ -149,15 +162,17 @@ const RewardsMoneyClaimsPausedModal: React.FC<
       >
         {title}
       </BottomSheetHeader>
-      <Box
-        twClassName="px-4"
-        testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DESCRIPTION}
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {description}
-        </Text>
-      </Box>
-      {totals && labels ? (
+      {isBalanceBreakdown ? null : (
+        <Box
+          twClassName="px-4"
+          testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DESCRIPTION}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {description}
+          </Text>
+        </Box>
+      )}
+      {!isBalanceBreakdown && totals && labels ? (
         <>
           <SectionDivider
             marginVertical={4}
@@ -175,8 +190,10 @@ const RewardsMoneyClaimsPausedModal: React.FC<
               {labels.breakdown}
             </Text>
           </Box>
-          <ClaimsPausedTotalsRows totals={totals} labels={labels} />
         </>
+      ) : null}
+      {totals && labels ? (
+        <ClaimsPausedTotalsRows totals={totals} labels={labels} />
       ) : null}
       <BottomSheetFooter
         primaryButtonProps={{

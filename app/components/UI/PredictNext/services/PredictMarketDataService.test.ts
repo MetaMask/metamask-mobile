@@ -10,12 +10,12 @@ import type { VenueMarketDataAdapter } from '../adapters/types';
 import { PREDICT_NEXT_FEATURE_NAME } from '../constants';
 import { PredictError, PredictErrorCode } from '../errors';
 import {
-  KALSHI_VENUE_ID,
   type PredictEntityId,
   type PredictFeedId,
   type PredictTimestamp,
   type PredictVenueId,
 } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import {
   PredictMarketDataService,
   type PredictMarketDataServiceMessenger,
@@ -50,6 +50,7 @@ const createService = (marketData: VenueMarketDataAdapter) => {
 
 const createMarketData = (): jest.Mocked<VenueMarketDataAdapter> => ({
   fetchVenueStatus: jest.fn(),
+  fetchVenueCatalog: jest.fn(),
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
@@ -89,6 +90,42 @@ describe('PredictMarketDataService', () => {
       'This prediction venue is not supported.',
     );
     expect(marketData.fetchVenueStatus).not.toHaveBeenCalled();
+  });
+
+  it('serves the Venue catalog from cache for five minutes', async () => {
+    const catalog = {
+      venueId: KALSHI_VENUE_ID,
+      actions: ['buy' as const],
+      feeds: { 'nfl-games': feedId },
+      searchSupported: true,
+    };
+    const marketData = createMarketData();
+    marketData.fetchVenueCatalog.mockResolvedValue(catalog);
+    const service = buildService(marketData);
+
+    const first = await service.getVenueCatalog(KALSHI_VENUE_ID);
+    jest.advanceTimersByTime(299_000);
+    await service.getVenueCatalog(KALSHI_VENUE_ID);
+
+    expect(first).toEqual(catalog);
+    expect(marketData.fetchVenueCatalog).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(2_000);
+    await service.getVenueCatalog(KALSHI_VENUE_ID);
+
+    expect(marketData.fetchVenueCatalog).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects a Venue catalog read for another Venue', async () => {
+    const marketData = createMarketData();
+    const service = buildService(marketData);
+
+    const result = service.getVenueCatalog('polymarket' as PredictVenueId);
+
+    await expect(result).rejects.toThrow(
+      'This prediction venue is not supported.',
+    );
+    expect(marketData.fetchVenueCatalog).not.toHaveBeenCalled();
   });
 
   it('forwards Event list cancellation to the adapter', async () => {

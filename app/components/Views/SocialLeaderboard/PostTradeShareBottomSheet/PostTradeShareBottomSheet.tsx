@@ -26,7 +26,7 @@ import { Image } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import createProfileIllustration from '../../../../images/socialV1/post-trade-create-profile.png';
+import createProfileIllustration from '../../../../images/socialV1/megaphone.png';
 import PostTradeEarnIllustration from '../../../../images/socialV1/post-trade-earn.svg';
 import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomSheet.testIds';
 import {

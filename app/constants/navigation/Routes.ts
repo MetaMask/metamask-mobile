@@ -115,7 +115,6 @@ const Routes = {
   ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
   REWARDS_FLOW: 'RewardsFlow',
-  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   /** Rewards Money home, a sibling of REWARDS_DASHBOARD in the Rewards tab. */
@@ -463,6 +462,7 @@ const Routes = {
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
     MANAGE_PROFILE_LINKED_ACCOUNT: 'ManageProfileLinkedAccountView',
+    EDIT_AVATAR: 'EditProfileAvatarView',
     POSITION: 'TraderPositionView',
     POSITION_SHEET: 'SocialPositionDetailsSheet',
     ONBOARDING: 'SocialLeaderboardOnboarding',
@@ -573,6 +573,8 @@ const Routes = {
     ADDRESS_LIST: 'MultichainAddressList',
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
+    /** Block explorer pushed on AppFlow, above the address list. */
+    EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
