@@ -103,6 +103,10 @@ function withOptionalSymbol(label: string, symbol?: string): string {
   return symbol ? `${label} ${symbol}` : label;
 }
 
+function isNftToken(token: TokenAmount | undefined): boolean {
+  return token?.assetType === 'erc721' || token?.assetType === 'erc1155';
+}
+
 function tokenPairSubtitle(
   sourceToken?: TokenAmount,
   destinationToken?: TokenAmount,
@@ -523,7 +527,7 @@ function resolveCoreContent(
     case 'send':
     case 'receive': {
       const token = item.data.token;
-      const symbol = token?.symbol ?? '';
+      const symbol = token?.symbol ?? (isNftToken(token) ? 'NFT' : '');
       const address = item.type === 'receive' ? item.data.from : item.data.to;
       const isMoneyDeposit = item.type === 'send' && isMoneyAccountCounterparty;
       const label = isMoneyDeposit

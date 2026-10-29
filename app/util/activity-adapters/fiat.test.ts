@@ -88,6 +88,19 @@ describe('activity adapter fiat helpers', () => {
     ).toBeUndefined();
   });
 
+  it.each(['erc721', 'erc1155'] as const)(
+    'does not invent 0 for an NFT with no fungible amount (%s)',
+    (assetType) => {
+      expect(
+        getHumanReadableTokenAmount({
+          direction: 'out',
+          symbol: 'I Love FLUF',
+          assetType,
+        }),
+      ).toBeUndefined();
+    },
+  );
+
   it('omits an EVM mapper amount whose decimals are unknown rather than treating it as atomic', () => {
     expect(
       getHumanReadableTokenAmount({

@@ -6,6 +6,7 @@ import type { Hex } from '@metamask/utils';
 import {
   isNftTransferType,
   type ActivityListItem,
+  type TokenAmount,
 } from '../../../util/activity-adapters';
 import type { RootState } from '../../../reducers';
 import { selectNftByIdentity } from '../../../selectors/nftController';
@@ -15,6 +16,8 @@ import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { useCachedEvmTransaction } from '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction';
 
 const NFT_ACTIVITY_KINDS = new Set<ActivityListItem['type']>([
+  'send',
+  'receive',
   'nftBuy',
   'nftMint',
   'nftSell',
@@ -33,6 +36,18 @@ interface NftValueTransfer {
   transferType?: string;
 }
 
+function isNftToken(token: TokenAmount | undefined): boolean {
+  return token?.assetType === 'erc721' || token?.assetType === 'erc1155';
+}
+
+function isNftActivityItem(item: ActivityListItem): boolean {
+  if (item.type === 'send' || item.type === 'receive') {
+    return isNftToken(item.data.token);
+  }
+
+  return NFT_ACTIVITY_KINDS.has(item.type);
+}
+
 function toHexChainId(chainId: string): Hex | undefined {
   try {
     return formatChainIdToHex(chainId);
@@ -47,7 +62,8 @@ function toHexChainId(chainId: string): Hex | undefined {
  *
  * Matches the transfer leg by the `from`/`to` on `item.data` so multi-NFT
  * transactions (e.g. an NFT-for-NFT trade) resolve the right token, falling back
- * to the first NFT transfer. Returns `undefined` for non-NFT or local items.
+ * to the first NFT transfer. Returns `undefined` for non-NFT items or items
+ * without an indexed transaction.
  *
  * @param item - The activity list item.
  * @returns The NFT identity, or `undefined`.
@@ -56,8 +72,19 @@ function getNftIdentity(
   item: ActivityListItem,
   transfers: NftValueTransfer[] | undefined,
 ): NftIdentity | undefined {
-  if (!NFT_ACTIVITY_KINDS.has(item.type)) {
+  if (!isNftActivityItem(item)) {
     return undefined;
+  }
+
+  const assetId = item.data.token?.assetId;
+  const assetIdMatch = assetId?.match(
+    /^(eip155:\d+)\/(?:erc721|erc1155):([^/]+)\/(.+)$/,
+  );
+  if (assetIdMatch?.[1] === item.chainId) {
+    return {
+      contractAddress: assetIdMatch[2],
+      tokenId: assetIdMatch[3],
+    };
   }
 
   const { from, to } = item.data as { from?: string; to?: string };
@@ -115,7 +142,7 @@ export function useNftActivityImage(
 ): string | undefined {
   const ipfsGateway = useIpfsGateway();
   const cachedEvmTransaction = useCachedEvmTransaction({
-    chainId: NFT_ACTIVITY_KINDS.has(item.type) ? item.chainId : undefined,
+    chainId: isNftActivityItem(item) ? item.chainId : undefined,
     txHash: item.hash,
   });
   const identity = useMemo(
