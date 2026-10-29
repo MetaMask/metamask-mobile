@@ -476,7 +476,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - MpcReactNative (0.2.1):
+  - MpcReactNative (0.2.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4314,7 +4314,7 @@ SPEC CHECKSUMS:
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: ee142214581f3bb68fbda7efcf07b835a189eeda
-  MpcReactNative: 77fa16150de156565bee77a5ac0fe1218f6dc1fa
+  MpcReactNative: 52c21920dbc2ae0fbe45f1f68ef8ce667dac8c9d
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NativeUtils: b44527bd18cae3f8c16d641d1cfcc36adcdb5604
@@ -4323,7 +4323,7 @@ SPEC CHECKSUMS:
   NitroModules: 994eaa7fc39d1fb4b76bb61054312c9796c4a649
   NitroTextDecoder: 87ccc6809d473ea811f0a36b7fe3db521ce47e0c
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
-  QuickCrypto: f0d41b4933cfff875e87628e2fade6d98ccb99e1
+  QuickCrypto: b3065b18820f67bb411c9a2ec65de4e06cfff4fd
   RCTDeprecation: 96f68ebf33f8762466b01d57d6e873c4f30efb07
   RCTRequired: 166eed8ad6d8440e73e56d09a9090366609823d2
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18

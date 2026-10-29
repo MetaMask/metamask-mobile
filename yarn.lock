@@ -11208,7 +11208,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mpc-react-native@npm:^0.2.1":
+"@metamask/mpc-react-native@npm:^0.2.2":
   version: 0.2.2
   resolution: "@metamask/mpc-react-native@npm:0.2.2"
   dependencies:
@@ -38522,7 +38522,7 @@ __metadata:
     "@metamask/money-account-controller": "npm:^3.0.0"
     "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
     "@metamask/money-account-utils": "npm:^2.1.0"
-    "@metamask/mpc-react-native": "npm:^0.2.1"
+    "@metamask/mpc-react-native": "npm:^0.2.2"
     "@metamask/multichain-account-service": "npm:^14.1.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^4.0.1"

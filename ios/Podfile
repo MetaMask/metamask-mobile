@@ -135,16 +135,6 @@ end
 
 config = use_native_modules!(config_command)
 
-# Money MPC test build only. Not for merge. Swaps in the mpc-react-native iOS
-# device library with DKLS23 scalars kept in the encoding the dev MPC server expects (MFA-832).
-pre_install do |_installer|
-  require 'fileutils'
-  package_dir = File.join(__dir__, '..', 'node_modules', '@metamask', 'mpc-react-native')
-  version = JSON.parse(File.read(File.join(package_dir, 'package.json')))['version']
-  raise "money-mpc-testflight library is built for mpc-react-native 0.2.1, found #{version}" unless version == '0.2.1'
-  FileUtils.cp(File.join(__dir__, 'money-mpc-testflight', 'libmpc_lib.a'), File.join(package_dir, 'MetamaskMpcReactNativeFramework.xcframework', 'ios-arm64', 'libmpc_lib.a'))
-end
-
 post_install do |installer|
   react_native_post_install(
     installer,

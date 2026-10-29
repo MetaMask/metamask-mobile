@@ -85,17 +85,3 @@ subprojects { subproject ->
 		}
 	}
 }
-
-// Money MPC test build only. Not for merge. Swaps in the mpc-react-native Android
-// libraries with DKLS23 scalars kept in the encoding the dev MPC server expects (MFA-832).
-def mpcPackageDir = file("${rootDir}/../node_modules/@metamask/mpc-react-native")
-def mpcVersion = new groovy.json.JsonSlurper().parse(file("${mpcPackageDir}/package.json")).version
-if (mpcVersion != '0.2.1') {
-	throw new GradleException("money-mpc-testflight libraries are built for mpc-react-native 0.2.1, found ${mpcVersion}")
-}
-['arm64-v8a', 'x86_64'].each { abi ->
-	copy {
-		from "${rootDir}/money-mpc-testflight/${abi}/libmpc_lib.a"
-		into "${mpcPackageDir}/android/src/main/jniLibs/${abi}"
-	}
-}
