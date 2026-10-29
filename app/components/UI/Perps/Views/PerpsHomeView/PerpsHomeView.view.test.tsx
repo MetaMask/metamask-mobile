@@ -740,7 +740,11 @@ describe('PerpsHomeView', () => {
       ).not.toBeOnTheScreen();
       expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
         'SocialService:fetchFeed',
-        expect.objectContaining({ chains: ['eip155:999'], limit: 3 }),
+        expect.objectContaining({
+          scope: 'trending',
+          chains: ['eip155:999'],
+          limit: 3,
+        }),
       );
       expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
         'SocialService:fetchLeaderboard',

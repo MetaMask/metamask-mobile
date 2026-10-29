@@ -3,10 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
-import {
-  setOnboardingReferralCode,
-  setPendingDeeplink,
-} from '../../../../reducers/rewards';
+import { setPendingDeeplink } from '../../../../reducers/rewards';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
@@ -22,7 +19,6 @@ interface HandleRewardsUrlParams {
  * Extensible interface for parsed rewards navigation parameters
  */
 interface RewardsNavigationParams {
-  referral?: string;
   page?: 'campaigns' | 'musd' | 'benefits';
   campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch' | 'money';
 }
@@ -43,9 +39,6 @@ const parseRewardsNavigationParams = (
   const campaignParam = urlParams.get('campaign') ?? urlParams.get('~campaign');
 
   return {
-    referral:
-      (urlParams.get('referral') as RewardsNavigationParams['referral']) ||
-      undefined,
     page: (['campaigns', 'musd', 'benefits'].includes(pageParam ?? '')
       ? pageParam
       : undefined) as RewardsNavigationParams['page'],
@@ -112,7 +105,6 @@ const shouldLeaveMountedDashboardInPlace = (rewardsPath: string): boolean => {
  *
  * Supported URL formats:
  * - https://link.metamask.io/rewards
- * - https://link.metamask.io/rewards?referral=code
  * - https://link.metamask.io/rewards?page=campaigns
  * - https://link.metamask.io/rewards?page=musd
  * - https://link.metamask.io/rewards?page=benefits
@@ -127,12 +119,6 @@ const prepareRewardsDeeplink = (rewardsPath: string) => {
   const urlParams = parseRewardsNavigationParams(rewardsPath);
   DevLogger.log('[handleRewardsUrl] Parsed URL parameters:', urlParams);
 
-  if (urlParams.referral && urlParams.referral.length > 0) {
-    ReduxService.store.dispatch(setOnboardingReferralCode(urlParams.referral));
-  } else {
-    // Clear any existing referral code
-    ReduxService.store.dispatch(setOnboardingReferralCode(null));
-  }
   if (urlParams.page || urlParams.campaign) {
     // Store the deeplink intent in Redux rather than passing it as navigation
     // params. RewardsHome uses UnmountOnBlur, so the navigator is not mounted

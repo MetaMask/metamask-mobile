@@ -15,10 +15,8 @@ import {
   selectOptinAllowedForGeoLoading,
   selectCandidateSubscriptionId,
   selectOptinAllowedForGeoError,
-  selectOnboardingReferralCode,
 } from '../../../../../../reducers/rewards/selectors';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectVipProgramEnabled } from '../../../../../../selectors/featureFlagController/vipProgram';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -208,32 +206,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       SuccessDefault: 'SuccessDefault',
       ErrorDefault: 'ErrorDefault',
     },
-    TextField: (props: {
-      testID?: string;
-      value?: string;
-      onChangeText?: (text: string) => void;
-      placeholder?: string;
-      isDisabled?: boolean;
-      endAccessory?: React.ReactNode;
-      inputProps?: { testID?: string; [key: string]: unknown };
-      [key: string]: unknown;
-    }) => {
-      const { TextInput: RNTextInput } = jest.requireActual('react-native');
-      const wrapperTestId = props.testID ?? 'text-field';
-      const inputTestId = props.inputProps?.testID ?? `${wrapperTestId}-input`;
-      return ReactActual.createElement(
-        View,
-        { testID: wrapperTestId },
-        ReactActual.createElement(RNTextInput, {
-          testID: inputTestId,
-          value: props.value,
-          onChangeText: props.onChangeText,
-          placeholder: props.placeholder,
-          editable: !props.isDisabled,
-        }),
-        props.endAccessory ?? null,
-      );
-    },
   };
 });
 
@@ -251,8 +223,6 @@ jest.mock('react-native', () => {
     Linking: {
       openURL: jest.fn(),
     },
-    ActivityIndicator: () =>
-      ReactActual.createElement(RN.View, { testID: 'activity-indicator' }),
   };
 });
 
@@ -277,21 +247,6 @@ const mockUseOptin = {
 
 jest.mock('../../../hooks/useOptIn', () => ({
   useOptin: () => mockUseOptin,
-}));
-
-const mockUseValidateReferralCode = {
-  referralCode: '',
-  setReferralCode: jest.fn(),
-  isValidating: false,
-  isValid: false,
-  isUnknownError: false,
-  validateCode: jest.fn(),
-  isVipReferralCode: false,
-};
-
-jest.mock('../../../hooks/useValidateReferralCode', () => ({
-  REFERRAL_CODE_MIN_LENGTH: 3,
-  useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 
 jest.mock('../../../hooks/useGeoRewardsMetadata', () => ({
@@ -321,16 +276,6 @@ jest.mock('../../../../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 
-jest.mock('../../RewardsVipReferralTag/RewardsVipReferralTag', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, { testID: 'rewards-vip-referral-tag' }),
-  };
-});
-
 jest.mock('../OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -340,8 +285,6 @@ jest.mock('../OnboardingStep', () => {
     default: ({
       renderStepInfo,
       renderStepImage,
-      renderAboveCTA,
-      renderBelowCTA,
       renderLegalDisclaimer,
       onNext,
       onNextDisabled,
@@ -352,8 +295,6 @@ jest.mock('../OnboardingStep', () => {
     }: {
       renderStepInfo: () => React.ReactElement;
       renderStepImage?: () => React.ReactElement;
-      renderAboveCTA?: () => React.ReactElement | null;
-      renderBelowCTA?: () => React.ReactElement;
       renderLegalDisclaimer?: () => React.ReactElement;
       onNext: () => void;
       onNextDisabled?: boolean;
@@ -370,7 +311,6 @@ jest.mock('../OnboardingStep', () => {
         },
         renderStepInfo?.(),
         renderStepImage?.(),
-        renderAboveCTA?.(),
         renderLegalDisclaimer?.(),
         ReactActual.createElement(
           View,
@@ -381,7 +321,6 @@ jest.mock('../OnboardingStep', () => {
           },
           nextButtonText || 'Next',
         ),
-        renderBelowCTA?.(),
         onNextLoadingText &&
           ReactActual.createElement(
             View,
@@ -398,9 +337,7 @@ const defaultSelectorMap = new Map<unknown, unknown>([
   [selectOptinAllowedForGeoLoading, false],
   [selectCandidateSubscriptionId, null],
   [selectOptinAllowedForGeoError, false],
-  [selectOnboardingReferralCode, null],
   [selectSelectedAccountGroupInternalAccounts, [{ address: '0x123' }]],
-  [selectVipProgramEnabled, true],
 ]);
 
 function setupSelectors(overrides: Map<unknown, unknown> = new Map()) {
@@ -420,11 +357,6 @@ describe('OnboardingMainStep', () => {
     jest.clearAllMocks();
     mockUseOptin.optinError = null;
     mockUseOptin.optinLoading = false;
-    mockUseValidateReferralCode.referralCode = '';
-    mockUseValidateReferralCode.isValidating = false;
-    mockUseValidateReferralCode.isValid = false;
-    mockUseValidateReferralCode.isUnknownError = false;
-    mockUseValidateReferralCode.isVipReferralCode = false;
     mockRewardsLegalDisclaimer.mockClear();
     setupSelectors();
   });
@@ -449,17 +381,6 @@ describe('OnboardingMainStep', () => {
       renderWithProviders(<OnboardingMainStep />);
 
       expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
-    });
-
-    it('renders the referral prompt', () => {
-      renderWithProviders(<OnboardingMainStep />);
-
-      expect(screen.getAllByTestId('referral-prompt').length).toBeGreaterThan(
-        0,
-      );
-      expect(
-        screen.getByText('mocked_rewards.onboarding.referral_prompt'),
-      ).toBeDefined();
     });
   });
 
@@ -523,22 +444,9 @@ describe('OnboardingMainStep', () => {
         'mocked_rewards.onboarding.intro_confirm_geo_loading',
       );
     });
-
-    it('displays referral validating text when validating referral code', () => {
-      mockUseValidateReferralCode.isValidating = true;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      const loadingElement = screen.getByTestId('loading-text');
-      expect(loadingElement).toBeDefined();
-      expect(loadingElement.props.children).toBe(
-        'mocked_rewards.onboarding.step4_title_referral_validating',
-      );
-    });
-
     it('prioritizes optin loading text over other loading states', () => {
       mockUseOptin.optinLoading = true;
-      mockUseValidateReferralCode.isValidating = true;
+      setupSelectors(new Map([[selectOptinAllowedForGeoLoading, true]]));
 
       renderWithProviders(<OnboardingMainStep />);
 
@@ -556,17 +464,13 @@ describe('OnboardingMainStep', () => {
   });
 
   describe('next button interaction', () => {
-    it('calls optin with bulkLink true and empty referralCode by default', () => {
+    it('calls optin with bulkLink true', () => {
       renderWithProviders(<OnboardingMainStep />);
 
       const nextButton = screen.getByTestId('next-button');
       fireEvent.press(nextButton);
 
-      expect(mockOptin).toHaveBeenCalledWith({
-        referralCode: '',
-        isPrefilled: false,
-        bulkLink: true,
-      });
+      expect(mockOptin).toHaveBeenCalledWith({ bulkLink: true });
     });
 
     it('does not call optin when canContinue returns false (geo restricted)', () => {
@@ -584,163 +488,6 @@ describe('OnboardingMainStep', () => {
           title: 'mocked_rewards.onboarding.not_supported_region_title',
         }),
       );
-    });
-  });
-
-  describe('referral code', () => {
-    it('does not show referral input by default', () => {
-      renderWithProviders(<OnboardingMainStep />);
-
-      expect(screen.queryByTestId('referral-input')).toBeNull();
-    });
-
-    it('shows referral input when prompt is pressed', () => {
-      renderWithProviders(<OnboardingMainStep />);
-
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(screen.getByTestId('referral-input')).toBeDefined();
-    });
-
-    it('shows hide code text when referral input is visible', () => {
-      renderWithProviders(<OnboardingMainStep />);
-
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(screen.getAllByTestId('referral-prompt').length).toBeGreaterThan(
-        0,
-      );
-      expect(
-        screen.getByText('mocked_rewards.onboarding.referral_hide'),
-      ).toBeDefined();
-      expect(screen.getByTestId('referral-input')).toBeDefined();
-    });
-
-    it('disables next button when referral code is invalid', () => {
-      mockUseValidateReferralCode.referralCode = 'ABCDEF';
-      mockUseValidateReferralCode.isValid = false;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      const nextButton = screen.getByTestId('next-button');
-      expect(
-        nextButton.props.accessibilityState?.disabled ??
-          nextButton.props.disabled,
-      ).toBe(true);
-    });
-
-    it('disables next button when referral has unknown error', () => {
-      mockUseValidateReferralCode.referralCode = 'ABCDEF';
-      mockUseValidateReferralCode.isUnknownError = true;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      const nextButton = screen.getByTestId('next-button');
-      expect(
-        nextButton.props.accessibilityState?.disabled ??
-          nextButton.props.disabled,
-      ).toBe(true);
-    });
-
-    it('shows error text after validation completes and code is invalid', () => {
-      mockUseValidateReferralCode.referralCode = 'BANKLESS';
-      mockUseValidateReferralCode.isValid = false;
-      mockUseValidateReferralCode.isValidating = false;
-      mockUseValidateReferralCode.isUnknownError = false;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      // Reveal the input so the input + error gating render
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(
-        screen.getByText(
-          'mocked_rewards.onboarding.step4_referral_input_error',
-        ),
-      ).toBeDefined();
-    });
-
-    it('does not show error text while validation is in flight', () => {
-      mockUseValidateReferralCode.referralCode = 'BANKLESS';
-      mockUseValidateReferralCode.isValid = false;
-      mockUseValidateReferralCode.isValidating = true;
-      mockUseValidateReferralCode.isUnknownError = false;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(
-        screen.queryByText(
-          'mocked_rewards.onboarding.step4_referral_input_error',
-        ),
-      ).toBeNull();
-    });
-
-    it('does not show error text when input is empty', () => {
-      mockUseValidateReferralCode.referralCode = '';
-      mockUseValidateReferralCode.isValid = false;
-      mockUseValidateReferralCode.isValidating = false;
-      mockUseValidateReferralCode.isUnknownError = false;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(
-        screen.queryByText(
-          'mocked_rewards.onboarding.step4_referral_input_error',
-        ),
-      ).toBeNull();
-    });
-
-    it('shows VIP tag when referral code is valid and VIP', () => {
-      mockUseValidateReferralCode.referralCode = 'VIPCODE';
-      mockUseValidateReferralCode.isValid = true;
-      mockUseValidateReferralCode.isVipReferralCode = true;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(screen.getByTestId('rewards-vip-referral-tag')).toBeDefined();
-    });
-
-    it('does not show VIP tag when the VIP program flag is off, even for a valid VIP code', () => {
-      mockUseValidateReferralCode.referralCode = 'VIPCODE';
-      mockUseValidateReferralCode.isValid = true;
-      mockUseValidateReferralCode.isVipReferralCode = true;
-      setupSelectors(new Map([[selectVipProgramEnabled, false]]));
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
-    });
-
-    it('does not show VIP tag when referral code is valid but not VIP', () => {
-      mockUseValidateReferralCode.referralCode = 'ABCDEF';
-      mockUseValidateReferralCode.isValid = true;
-      mockUseValidateReferralCode.isVipReferralCode = false;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
-    });
-
-    it('does not show VIP tag when referral code is invalid', () => {
-      mockUseValidateReferralCode.referralCode = 'BADCODE';
-      mockUseValidateReferralCode.isValid = false;
-      mockUseValidateReferralCode.isVipReferralCode = false;
-
-      renderWithProviders(<OnboardingMainStep />);
-
-      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
-
-      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
     });
   });
 

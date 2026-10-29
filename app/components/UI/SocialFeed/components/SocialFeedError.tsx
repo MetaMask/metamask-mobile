@@ -31,18 +31,25 @@ const SocialFeedError: React.FC<SocialFeedErrorProps> = ({ onRetry }) => (
     testID={SOCIAL_FEED_ERROR_TEST_ID}
   >
     <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
+      variant={TextVariant.HeadingSm}
+      fontWeight={FontWeight.Bold}
       color={TextColor.TextDefault}
       twClassName="text-center"
     >
       {strings('social_leaderboard.feed.error.title')}
     </Text>
+    <Text
+      variant={TextVariant.BodyMd}
+      color={TextColor.TextAlternative}
+      twClassName="text-center"
+    >
+      {strings('social_leaderboard.feed.error.description')}
+    </Text>
     <Button
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Sm}
       onPress={onRetry}
-      twClassName="self-center"
+      twClassName="self-center mt-1"
       testID={SOCIAL_FEED_RETRY_TEST_ID}
     >
       {strings('social_leaderboard.feed.error.retry')}

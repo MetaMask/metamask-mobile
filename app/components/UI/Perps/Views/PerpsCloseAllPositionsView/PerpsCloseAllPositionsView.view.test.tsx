@@ -123,7 +123,10 @@ describe('PerpsCloseAllPositionsView', () => {
 
     expect(
       await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
-    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(
         PerpsCloseAllPositionsViewSelectorsIDs.ORIGINAL_FEES_VALUE,

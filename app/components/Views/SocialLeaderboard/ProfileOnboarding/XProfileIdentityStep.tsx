@@ -34,17 +34,16 @@ import { useTheme } from '../../../../util/theme';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { MAX_USERNAME_LENGTH } from './generateUsername';
-import type {
-  ProfileOnboardingDraft,
-  UsernameStatus,
-} from './profileOnboardingDraft';
+import type { ProfileOnboardingDraft } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import UsernameShuffleDie from './UsernameShuffleDie';
+import UsernameStatusLine from './UsernameStatusLine';
+import type { UsernameFeedback } from './utils/getUsernameFeedback';
 
 interface XProfileIdentityStepProps {
   draft: ProfileOnboardingDraft;
-  usernameStatus: UsernameStatus;
-  usernameClaimError: string | null;
+  /** The one line under the username field, already resolved. */
+  usernameFeedback: UsernameFeedback | null;
   onToggleUsername: (enabled: boolean) => void;
   onToggleAvatar: (enabled: boolean) => void;
   onUsernameChange: (value: string) => void;
@@ -241,8 +240,7 @@ const CrossDissolve: React.FC<{
 
 const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
   draft,
-  usernameStatus,
-  usernameClaimError,
+  usernameFeedback,
   onToggleUsername,
   onToggleAvatar,
   onUsernameChange,
@@ -337,16 +335,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
               >
                 @{xUsername}
               </Text>
-              {usernameClaimError ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                  twClassName="text-center"
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {usernameClaimError}
-                </Text>
-              ) : null}
+              <UsernameStatusLine feedback={usernameFeedback} align="center" />
             </Box>
           }
           secondary={
@@ -354,9 +343,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
               <TextField
                 value={draft.username}
                 onChangeText={onUsernameChange}
-                isError={
-                  usernameStatus === 'invalid' || Boolean(usernameClaimError)
-                }
+                isError={usernameFeedback?.tone === 'error'}
                 startAccessory={
                   <Text
                     variant={TextVariant.BodyMd}
@@ -383,37 +370,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                   testID: SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                 }}
               />
-              {usernameClaimError ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {usernameClaimError}
-                </Text>
-              ) : null}
-              {usernameStatus === 'available' && !usernameClaimError ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.SuccessDefault}
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {strings(
-                    'social_leaderboard.profile_onboarding.username_available',
-                  )}
-                </Text>
-              ) : null}
-              {usernameStatus === 'invalid' ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {strings(
-                    'social_leaderboard.profile_onboarding.username_invalid',
-                  )}
-                </Text>
-              ) : null}
+              <UsernameStatusLine feedback={usernameFeedback} />
             </Box>
           }
         />

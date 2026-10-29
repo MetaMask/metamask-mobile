@@ -1,6 +1,7 @@
 import type { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -42,6 +43,8 @@ interface PerpsFeesDisplayProps {
   fontWeight?: FontWeight;
 }
 
+const strikethroughStyle = { textDecorationLine: 'line-through' as const };
+
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   feeDiscountPercentage,
   feeDiscountKind,
@@ -78,6 +81,13 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
     return formatPerpsFiat(originalFee, { ranges: PRICE_RANGES_MINIMAL_VIEW });
   }, [showStrikethrough, originalFee]);
 
+  const isPromotionalDiscount =
+    hasDiscount && feeDiscountKind === 'promotional';
+  const discountedFeeColor =
+    isPromotionalDiscount && showStrikethrough
+      ? TextColor.SuccessDefault
+      : color;
+
   return (
     <View style={styles.feeRowContent}>
       {hasDiscount ? (
@@ -85,6 +95,11 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           <PerpsFeeDiscountLabel
             feeDiscountPercentage={feeDiscountPercentage}
             feeDiscountKind={feeDiscountKind}
+            accessibilityLabel={
+              isPromotionalDiscount
+                ? strings('perps.tooltips.fees.promotional_discount')
+                : undefined
+            }
           />
         </View>
       ) : null}
@@ -92,18 +107,26 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
         <Text
           variant={variant}
           color={TextColor.TextAlternative}
-          // eslint-disable-next-line react-native/no-inline-styles
-          style={{ textDecorationLine: 'line-through' }}
+          style={strikethroughStyle}
           testID={testID ? `${testID}-original` : undefined}
+          twClassName="tabular-nums"
+          accessibilityLabel={
+            isPromotionalDiscount
+              ? strings('perps.tooltips.fees.original_fee_value', {
+                  fee: originalFeeText,
+                })
+              : undefined
+          }
         >
           {originalFeeText}
         </Text>
       ) : null}
       <Text
         variant={variant}
-        color={color}
+        color={discountedFeeColor}
         fontWeight={fontWeight}
         testID={testID}
+        twClassName="tabular-nums"
       >
         {feeText}
       </Text>

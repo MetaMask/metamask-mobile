@@ -375,7 +375,7 @@ const ManualBackupStep1 = () => {
           }
         />
         {seedPhraseHidden ? (
-          <Box twClassName="bg-default rounded-xl flex-row border border-default min-h-[230px]">
+          <Box twClassName="bg-default rounded-xl flex-row border border-muted min-h-[230px]">
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
