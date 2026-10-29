@@ -681,6 +681,20 @@ describe('MainNavigator', () => {
       expect(homeScreen).toBeDefined();
     });
 
+    it('registers the Money modal gateway when the Money account feature is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const moneyModalScreen = getScreenProps(container).find(
+        (screen) => screen.name === Routes.MONEY.MODALS.ROOT,
+      );
+
+      expect(moneyModalScreen).toBeDefined();
+      expect(moneyModalScreen?.component.name).toBe('MoneyModalGateway');
+    });
+
     it('includes TokensFullView screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,

@@ -25,14 +25,22 @@ export interface MoneyDeeplinkModalParams {
   description?: string;
 }
 
-const MoneyDeeplinkModal = () => {
+interface MoneyDeeplinkModalProps extends MoneyDeeplinkModalParams {
+  onDismiss?: () => void;
+}
+
+const MoneyDeeplinkModal = ({
+  title: titleOverride,
+  description: descriptionOverride,
+  onDismiss,
+}: MoneyDeeplinkModalProps = {}) => {
   const navigation = useNavigation<AppStackNavigationProp>();
 
   const route =
     useRoute<RouteProp<{ params: MoneyDeeplinkModalParams }, 'params'>>();
 
-  const title = route.params?.title;
-  const description = route.params?.description;
+  const title = titleOverride ?? route.params?.title;
+  const description = descriptionOverride ?? route.params?.description;
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -44,9 +52,14 @@ const MoneyDeeplinkModal = () => {
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
+      if (onDismiss) {
+        onDismiss();
+        return;
+      }
+
       navigation.navigate(Routes.WALLET.HOME);
     });
-  }, [navigation]);
+  }, [navigation, onDismiss]);
 
   const primaryButtonProps = useMemo(
     () => ({
