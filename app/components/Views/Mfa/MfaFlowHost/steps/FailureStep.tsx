@@ -30,6 +30,7 @@ const FailureStep = ({ step, state, onAction }: StepProps<'failure'>) => {
     openSupportWithConsent((link) => Linking.openURL(link), url.toString());
   };
   const dismiss = () => onAction({ type: 'dismiss' });
+  const retry = () => onAction({ type: 'retry' });
 
   const renderFooter = () => {
     if (getErrorHandling(step.code) === 'support') {
@@ -63,7 +64,7 @@ const FailureStep = ({ step, state, onAction }: StepProps<'failure'>) => {
         size={ButtonSize.Lg}
         isFullWidth
         isLoading={state.busy}
-        onPress={() => onAction({ type: 'retry' })}
+        onPress={retry}
         testID={MfaFlowSelectorsIDs.PRIMARY_BUTTON}
       >
         {strings('mfa.failure.retry')}
