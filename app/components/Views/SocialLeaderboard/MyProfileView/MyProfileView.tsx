@@ -28,7 +28,6 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
-  Share,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -76,7 +75,6 @@ import ProfileAvatar from './components/ProfileAvatar';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 
 import { useMyProfile, useMyProfileAddress, useMyProfilePosts } from './hooks';
-import { resetLocalSocialProfile } from './hooks/localSocialProfileStore';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
@@ -147,7 +145,6 @@ const MyProfileView: React.FC = () => {
       profileId: traderId,
       displayName: traderName ?? traderId,
       handle: traderName ?? traderId,
-      shareUrl: '',
       linkedAccountAddress: traderAddress,
       imageUrl: traderAvatarUri,
     };
@@ -279,11 +276,6 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
-  const handleResetProfile = useCallback(() => {
-    resetLocalSocialProfile();
-    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-  }, [navigation]);
-
   const handleShareTraderDeeplink = useCallback(() => {
     if (!traderId) {
       return;
@@ -292,19 +284,11 @@ const MyProfileView: React.FC = () => {
   }, [traderId]);
 
   const handleShareProfile = useCallback(() => {
-    if (!displayProfile?.shareUrl) {
+    if (!myProfile?.profileId) {
       return;
     }
-
-    const message = strings(
-      'social_leaderboard.my_profile.share_profile_message',
-      {
-        displayName: displayProfile.displayName,
-        profileUrl: displayProfile.shareUrl,
-      },
-    );
-    Share.share({ message }).catch(() => undefined);
-  }, [displayProfile]);
+    shareSocialProfile(myProfile.profileId);
+  }, [myProfile?.profileId]);
 
   const handleFollowPress = useCallback(async () => {
     await followWithSetup(isFollowing, () =>
@@ -529,6 +513,35 @@ const MyProfileView: React.FC = () => {
                     },
                   ]
                 : undefined
+          backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
+          endAccessory={
+            !isOwner && traderId ? (
+              <SocialHeaderGlassSurface twClassName="px-1">
+                <ButtonIcon
+                  iconName={IconName.Share}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleShareTraderDeeplink}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.share_profile',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON}
+                />
+              </SocialHeaderGlassSurface>
+            ) : isOwner && displayProfile ? (
+              <SocialHeaderGlassSurface twClassName="px-1">
+                <ButtonIcon
+                  iconName={IconName.Edit}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleOpenComposer}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.create_post',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
+                />
+              </SocialHeaderGlassSurface>
+            ) : undefined
           }
           testID={MyProfileViewSelectorsIDs.HEADER}
         />
