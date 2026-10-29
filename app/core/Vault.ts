@@ -92,10 +92,12 @@ export const recreateVaultsWithNewPassword = async (
   }
 
   await KeyringController.changePassword(newPassword);
-  await signOutCardAfterPasswordChange();
 
   if (isSeedlessFlow) {
     await Authentication.syncKeyringEncryptionKey();
   }
   Engine.setSelectedAddress(selectedAddress);
+  // Card logout is a remote call with no timeout. It must not delay the
+  // password change or sit before the seedless key sync.
+  signOutCardAfterPasswordChange().catch(() => undefined);
 };

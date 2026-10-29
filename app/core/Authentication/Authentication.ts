@@ -1721,8 +1721,10 @@ class AuthenticationService {
         globalPassword,
       });
       await KeyringController.changePassword(globalPassword);
-      await signOutCardAfterPasswordChange();
       await this.syncKeyringEncryptionKey();
+      // Card logout is a remote call with no timeout. It must not delay the
+      // unlock or sit between the password change and the key sync.
+      signOutCardAfterPasswordChange().catch(() => undefined);
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true, reset: false });

@@ -290,6 +290,7 @@ describe('Vault', () => {
         mockEngine.context.KeyringController.changePassword,
       ).toHaveBeenCalledWith('new-password');
       expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith('0x123');
+      await new Promise((resolve) => setImmediate(resolve));
       expect(Logger.error).toHaveBeenCalled();
     });
 
@@ -331,6 +332,44 @@ describe('Vault', () => {
         mockEngine.context.SeedlessOnboardingController
           .storeKeyringEncryptionKey,
       ).toHaveBeenCalled();
+      expect(
+        (
+          mockEngine.context.SeedlessOnboardingController
+            .storeKeyringEncryptionKey as jest.Mock
+        ).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        (mockEngine.context.CardController.logout as jest.Mock).mock
+          .invocationCallOrder[0],
+      );
+    });
+
+    it('finishes the password change when the Card sign-out never resolves', async () => {
+      const mockReduxState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: undefined,
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockReduxState),
+      } as unknown as ReduxStore);
+
+      mockEngine.context.CardController.logout.mockReturnValue(
+        new Promise(() => undefined),
+      );
+
+      await expect(
+        recreateVaultsWithNewPassword('old-password', 'new-password', '0x123'),
+      ).resolves.toBeUndefined();
+
+      expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith('0x123');
+      expect(mockEngine.context.CardController.logout).toHaveBeenCalledTimes(1);
     });
 
     it('should restore when seedless change password failed if seedless onboarding flow is active', async () => {
