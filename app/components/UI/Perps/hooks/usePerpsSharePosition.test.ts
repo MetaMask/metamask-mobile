@@ -310,7 +310,7 @@ describe('usePerpsSharePosition', () => {
       profileLookup.resolve(socialProfile);
     });
     await waitFor(() =>
-      expect(result.current.canPostPosition(position)).toBe(true),
+      expect(result.current.findSocialPosition(position)).toBeDefined(),
     );
 
     act(() => {

@@ -14,17 +14,13 @@ interface PerpsShareRequest {
 
 export interface UsePerpsSharePositionResult {
   sharePosition: (position: Position, marketPrice?: string) => void;
-  canPostPosition: (position: Position) => boolean;
   findSocialPosition: (position: Position) => SocialPosition | undefined;
 }
 
 export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
   const navigation = useNavigation<AppNavigationProp>();
-  const {
-    accountAddress,
-    canPost,
-    findSocialPosition: findSocialPositionForAccount,
-  } = usePerpsCanPostPosition();
+  const { accountAddress, findSocialPosition: findSocialPositionForAccount } =
+    usePerpsCanPostPosition();
 
   const openShare = useCallback(
     ({
@@ -63,15 +59,10 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
     [accountAddress, openShare],
   );
 
-  const canPostPosition = useCallback(
-    (position: Position) => canPost(position),
-    [canPost],
-  );
-
   const findSocialPosition = useCallback(
     (position: Position) => findSocialPositionForAccount(position),
     [findSocialPositionForAccount],
   );
 
-  return { sharePosition, canPostPosition, findSocialPosition };
+  return { sharePosition, findSocialPosition };
 };

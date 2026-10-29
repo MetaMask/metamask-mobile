@@ -498,7 +498,6 @@ const mockUsePerpsMarketsImpl = jest.fn<
 jest.mock('../../hooks/usePerpsSharePosition', () => ({
   usePerpsSharePosition: () => ({
     sharePosition: jest.fn(),
-    canPostPosition: () => false,
     findSocialPosition: () => undefined,
   }),
 }));

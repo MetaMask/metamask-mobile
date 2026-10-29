@@ -1161,6 +1161,40 @@ describe('PerpsMarketDetailsView', () => {
       }
     });
 
+    it('does not load the Social profile on open when the user cannot post', async () => {
+      const getSessionProfile = jest.mocked(
+        Engine.context.AuthenticationController.getSessionProfile,
+      );
+      const fetchAndUpdateProfile = jest.mocked(
+        Engine.context.ProfileController.fetchAndUpdateProfile,
+      );
+      const signedOutSessionProfile = getSessionProfile.getMockImplementation();
+      getSessionProfile.mockResolvedValue({
+        profileId: 'session-profile-id',
+      } as Awaited<ReturnType<typeof getSessionProfile>>);
+      fetchAndUpdateProfile.mockClear();
+      try {
+        renderPerpsMarketDetailsView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                PerpsController: { isEligible: true },
+              },
+            },
+          },
+        });
+
+        await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(fetchAndUpdateProfile).not.toHaveBeenCalled();
+      } finally {
+        getSessionProfile.mockImplementation(signedOutSessionProfile);
+      }
+    });
+
     it('opens the PnL hero card from the position card when the user cannot post to Social', async () => {
       renderPerpsMarketDetailsView({
         overrides: {

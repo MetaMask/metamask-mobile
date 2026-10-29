@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -839,8 +840,7 @@ describe('PerpsPositionCard', () => {
       expect(shareButton).toBeNull();
     });
 
-    it('renders Post to feed only when a post is available and keeps share on the share action', () => {
-      const onPostToFeedPress = jest.fn();
+    it('renders the Post to feed button only when one is passed', () => {
       const onSharePress = jest.fn();
       const { rerender } = render(
         <PerpsPositionCard
@@ -849,29 +849,20 @@ describe('PerpsPositionCard', () => {
         />,
       );
 
-      expect(
-        screen.queryByTestId(PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON),
-      ).toBeNull();
+      expect(screen.queryByTestId('post-to-feed-slot')).toBeNull();
 
       rerender(
         <PerpsPositionCard
           position={mockPosition}
-          onPostToFeedPress={onPostToFeedPress}
+          postToFeedButton={<Text testID="post-to-feed-slot">Post</Text>}
           onSharePress={onSharePress}
         />,
       );
 
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON),
-      );
+      expect(screen.getByTestId('post-to-feed-slot')).toBeOnTheScreen();
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
       );
-
-      expect(
-        screen.getByText('perps.position.card.post_to_feed'),
-      ).toBeOnTheScreen();
-      expect(onPostToFeedPress).toHaveBeenCalledTimes(1);
       expect(onSharePress).toHaveBeenCalledTimes(1);
     });
   });
