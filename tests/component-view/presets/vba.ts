@@ -1,7 +1,10 @@
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import ExtendedKeyringTypes from '../../../app/constants/keyringTypes';
-import { MONEY_MOVEMENT_NEOBANK_FLAG_KEY } from '../../../app/selectors/featureFlagController/moneyAccount';
+import {
+  MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+} from '../../../app/selectors/featureFlagController/moneyAccount';
 import { initialStateWallet } from './wallet';
 
 interface InitialStateVbaOptions {
@@ -34,8 +37,13 @@ export const initialStateVba = ({
       [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
         enabled: flagEnabled,
         minimumVersion: '0.0.0',
+      },
+      [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: {
+        enabled: flagEnabled,
+        minimumVersion: '0.0.0',
+        currency: 'BRL',
         regions: ['BR'],
-        regionCurrencies: { BR: 'BRL' },
+        layout: 'Pix',
       },
     })
     .withOverrides({

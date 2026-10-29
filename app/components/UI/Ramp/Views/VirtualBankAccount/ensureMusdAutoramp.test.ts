@@ -93,7 +93,7 @@ describe('ensureMusdAutoramp', () => {
     );
   });
 
-  it.each(['USD', 'EUR'] as const)(
+  it.each(['USD', 'BRL'] as const)(
     'creates the autoramp in %s',
     async (currency) => {
       await expect(ensureMusdAutoramp('0xabc', currency)).resolves.toBe(

@@ -19,7 +19,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  VBA_CHOOSABLE_SOURCE_CURRENCIES,
+  VBA_SOURCE_CURRENCIES,
   type VbaSourceCurrency,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import bankTransferImage from '../../../../../images/bank-transfer.png';
@@ -29,13 +29,11 @@ import { VbaChooseCurrencySelectorsIDs } from './VbaChooseCurrency.testIds';
 const CURRENCY_FLAGS: Record<VbaSourceCurrency, string> = {
   BRL: '🇧🇷',
   USD: '🇺🇸',
-  EUR: '🇪🇺',
 };
 
 const CURRENCY_NAME_KEYS: Record<VbaSourceCurrency, string> = {
   BRL: 'virtual_bank_account.choose_currency.currencies.brl',
   USD: 'virtual_bank_account.choose_currency.currencies.usd',
-  EUR: 'virtual_bank_account.choose_currency.currencies.eur',
 };
 
 const getCurrencyName = (currency: VbaSourceCurrency): string =>
@@ -95,7 +93,7 @@ const VbaChooseCurrency = () => {
           {strings('virtual_bank_account.choose_currency.description')}
         </Text>
         <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
-          {VBA_CHOOSABLE_SOURCE_CURRENCIES.map((currency) => {
+          {VBA_SOURCE_CURRENCIES.map((currency) => {
             const name = getCurrencyName(currency);
             return (
               <Pressable

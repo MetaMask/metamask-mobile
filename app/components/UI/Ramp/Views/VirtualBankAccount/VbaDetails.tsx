@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -26,10 +22,7 @@ import {
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type {
-  AppNavigationProp,
-  RootStackParamList,
-} from '../../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -41,12 +34,11 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
-  getVbaSourceCurrencyForCountry,
-  isVbaSourceCurrency,
-  VBA_CHOOSABLE_SOURCE_CURRENCIES,
-} from '../../../../../util/region/getVbaSourceCurrency';
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { getVbaMarketForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   pickLatestTransaction,
@@ -221,9 +213,9 @@ const buildDetailRows = (
 
 /**
  * Virtual bank account screen. This is the only place that registers the
- * wallet and creates the autoramp, in the fiat mapped from the effective
- * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
- * IP country).
+ * wallet and creates the autoramp, in the currency of the open market flag
+ * listing the effective location (`moneyMovementNeobank.regionOverride` when
+ * set, otherwise the IP country).
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -235,33 +227,14 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const {
-    chooseCurrency,
-    regionCurrencies,
-    regions,
-    defaultCurrency,
-    regionOverride,
-  } = useSelector(selectMoneyMovementNeobank);
-  const effectiveLocation = regionOverride ?? location;
-  // With chooseCurrency on, only the picked currency may create an account.
-  const regionCurrency = chooseCurrency
-    ? undefined
-    : getVbaSourceCurrencyForCountry(
-        effectiveLocation,
-        regionCurrencies,
-        regions,
-        defaultCurrency,
-      );
-  const requestedCurrency = route.params?.sourceCurrency;
-  // EUR stays out until that deposit layout exists. Ignore anything else too.
-  const pickedCurrency =
-    isVbaSourceCurrency(requestedCurrency) &&
-    VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(requestedCurrency)
-      ? requestedCurrency
-      : undefined;
-  const sourceCurrency = pickedCurrency ?? regionCurrency;
+  const { isEnabled: isGateEnabled, regionOverride } = useSelector(
+    selectMoneyMovementNeobank,
+  );
+  const markets = useSelector(selectNeobankMarkets);
+  const sourceCurrency = isGateEnabled
+    ? getVbaMarketForCountry(markets, regionOverride ?? location)?.currency
+    : undefined;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
