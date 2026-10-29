@@ -524,7 +524,8 @@ jobs:
         run-android-imported-wallet-tests-testmu,
         aggregate-results,
       ]
-    if: always() && needs.aggregate-results.result != 'skipped'
+    # Off on this branch: its runs post no summary to Slack.
+    if: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
