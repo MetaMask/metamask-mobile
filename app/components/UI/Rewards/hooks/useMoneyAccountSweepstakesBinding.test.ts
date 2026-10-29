@@ -3,7 +3,7 @@ import { useMoneyAccountSweepstakesBinding } from './useMoneyAccountSweepstakesB
 
 const mockCall = jest.fn();
 let mockSubscriptionId: string | null;
-let mockPrimaryMoneyAccount: { address: string } | undefined;
+let mockDefaultMoneyAccount: { address: string } | undefined;
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -23,14 +23,14 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: () => mockPrimaryMoneyAccount,
+  selectDefaultMoneyAccount: () => mockDefaultMoneyAccount,
 }));
 
 describe('useMoneyAccountSweepstakesBinding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubscriptionId = 'sub-1';
-    mockPrimaryMoneyAccount = {
+    mockDefaultMoneyAccount = {
       address: '0xABCDEF1234567890abcdef1234567890ABCDEF12',
     };
     mockCall.mockResolvedValue('bound');
@@ -52,7 +52,7 @@ describe('useMoneyAccountSweepstakesBinding', () => {
   });
 
   it('returns unavailable when there is no money account address', async () => {
-    mockPrimaryMoneyAccount = undefined;
+    mockDefaultMoneyAccount = undefined;
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesBinding());
 
@@ -76,7 +76,7 @@ describe('useMoneyAccountSweepstakesBinding', () => {
     expect(bindingResult).toBe('bound');
     expect(mockCall).toHaveBeenCalledWith(
       'RewardsController:registerMoneyAccountBinding',
-      mockPrimaryMoneyAccount?.address,
+      mockDefaultMoneyAccount?.address,
       'sub-1',
     );
     expect(result.current.bindingConflict).toBe(false);

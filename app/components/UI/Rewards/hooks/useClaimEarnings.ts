@@ -15,7 +15,7 @@ import {
   selectReferralMeLocalizedText,
   type MoneyDashboardPersona,
 } from '../../../../reducers/rewardsMoney/selectors';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectDefaultMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import { isMonadMainnetChainId } from '../../../../util/networks';
@@ -165,7 +165,7 @@ export function useClaimEarnings(
   );
   const claimLockRef = useRef(claimLock);
   claimLockRef.current = claimLock;
-  const moneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccount = useSelector(selectDefaultMoneyAccount);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
   const [isClaiming, setIsClaiming] = useState(false);

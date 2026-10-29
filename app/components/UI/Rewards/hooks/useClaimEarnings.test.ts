@@ -20,7 +20,7 @@ import {
   selectClaimWaitingUntil,
   selectReferralMeLocalizedText,
 } from '../../../../reducers/rewardsMoney/selectors';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectDefaultMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   selectMoneyAccountVaultConfig,
   type MoneyAccountVaultConfig,
@@ -68,7 +68,7 @@ jest.mock('../../../../reducers/rewardsMoney/selectors', () => ({
 }));
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: jest.fn(),
+  selectDefaultMoneyAccount: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
@@ -278,7 +278,7 @@ describe('useClaimEarnings', () => {
     onSubmitted.mockReset();
     onClaimsPaused.mockReset();
     (selectReferralMeLocalizedText as jest.Mock).mockReturnValue(localizedText);
-    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
+    (selectDefaultMoneyAccount as unknown as jest.Mock).mockReturnValue({
       address: MONEY_ACCOUNT,
     });
     (selectMoneyAccountVaultConfig as unknown as jest.Mock).mockReturnValue(
@@ -378,7 +378,7 @@ describe('useClaimEarnings', () => {
   });
 
   it('shows the generic failure toast and does not open a claim when there is no money account', async () => {
-    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue(
+    (selectDefaultMoneyAccount as unknown as jest.Mock).mockReturnValue(
       undefined,
     );
     const { result } = renderClaim();
