@@ -9,7 +9,7 @@ export const selectAiSocialCommentTranslationEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFlag =
-      remoteFeatureFlags?.aiSocialCommentTranslationEnabled as unknown as VersionGatedFeatureFlag;
+      remoteFeatureFlags?.aiSocialCommentTranslation as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

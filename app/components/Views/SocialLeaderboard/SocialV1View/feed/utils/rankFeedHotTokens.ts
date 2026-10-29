@@ -1,3 +1,5 @@
+import type { CaipAssetType } from '@metamask/utils';
+import { toFeedAssetId } from '../../../../../UI/SocialFeed/data/socialFeedSource';
 import type {
   SocialV1FeedItem,
   SocialV1FeedPost,
@@ -6,6 +8,9 @@ import type { SocialV1HotToken } from '../types';
 
 /** How many chips the feed rail shows. */
 export const SOCIAL_V1_HOT_TOKEN_LIMIT = 10;
+
+/** Most asset ids one chip filters by. The feed accepts 1 to 10. */
+export const SOCIAL_V1_HOT_TOKEN_ASSET_ID_LIMIT = 10;
 
 const isPerpsItem = (item: SocialV1FeedItem): boolean =>
   item.variant === 'perpsOpen' || item.variant === 'perpsClosed';
@@ -39,6 +44,11 @@ const chipLabel = (item: SocialV1FeedItem): string => {
   return name || item.asset.symbol;
 };
 
+const feedAssetIdOf = (item: SocialV1FeedItem): CaipAssetType | null => {
+  const { chain, tokenAddress, tokenSymbol } = item.asset.avatar;
+  return toFeedAssetId({ chain, tokenAddress, tokenSymbol });
+};
+
 interface RankedAsset {
   id: string;
   symbol: string;
@@ -49,33 +59,25 @@ interface RankedAsset {
   hasPerpsAvatar: boolean;
   /** True once a human name has replaced the ticker. */
   labelIsName: boolean;
-  /** First spot contract seen for this ticker, for the token feed route. */
-  chain?: string;
-  contractAddress?: string;
+  /** Posts per feed asset id, in the order the ids were first seen. */
+  assetIdCounts: Map<CaipAssetType, number>;
 }
 
-/**
- * Chain and contract for the token feed. Perp rows often have an empty
- * address; those cannot call `GET /tokens/:chain/:contractAddress/feed`.
- */
-const tokenFeedIdentity = (
-  item: SocialV1FeedItem,
-): { chain: string; contractAddress: string } | null => {
-  const chain = item.asset.avatar.chain.trim();
-  const contractAddress = item.asset.avatar.tokenAddress.trim();
-  if (!chain || !contractAddress) {
-    return null;
-  }
-  return { chain, contractAddress };
-};
+/** Most frequent first; ties keep the order the ids were first seen. */
+const topAssetIds = (counts: Map<CaipAssetType, number>): CaipAssetType[] =>
+  [...counts.entries()]
+    .sort(([, left], [, right]) => right - left)
+    .slice(0, SOCIAL_V1_HOT_TOKEN_ASSET_ID_LIMIT)
+    .map(([assetId]) => assetId);
 
 /**
  * Top assets in the loaded feed, most frequent first.
  *
  * Each post counts once. Spot and perp rows that share a display symbol
- * count as the same asset, so tapping the chip can filter every trade for
- * it. Ties break on the chip id so a later page that fills in a name does
- * not reshuffle the rail.
+ * count as the same asset, and the chip carries every feed asset id among
+ * them, so selecting it filters every trade for it. A chip with no asset id
+ * cannot filter the feed and is left out. Ties break on the chip id so a
+ * later page that fills in a name does not reshuffle the rail.
  */
 export const rankFeedHotTokens = (
   posts: readonly SocialV1FeedPost[],
@@ -92,7 +94,7 @@ export const rankFeedHotTokens = (
     const { asset } = post.item;
     const isPerps = isPerpsItem(post.item);
     const name = asset.name?.trim();
-    const contract = tokenFeedIdentity(post.item);
+    const assetId = feedAssetIdOf(post.item);
     const existing = byId.get(id);
 
     if (!existing) {
@@ -104,17 +106,18 @@ export const rankFeedHotTokens = (
         count: 1,
         hasPerpsAvatar: isPerps,
         labelIsName: Boolean(name),
-        chain: contract?.chain,
-        contractAddress: contract?.contractAddress,
+        assetIdCounts: new Map(assetId ? [[assetId, 1]] : []),
       });
       return;
     }
 
     existing.count += 1;
 
-    if (!existing.contractAddress && contract) {
-      existing.chain = contract.chain;
-      existing.contractAddress = contract.contractAddress;
+    if (assetId) {
+      existing.assetIdCounts.set(
+        assetId,
+        (existing.assetIdCounts.get(assetId) ?? 0) + 1,
+      );
     }
 
     if (!existing.labelIsName && name) {
@@ -132,14 +135,15 @@ export const rankFeedHotTokens = (
   });
 
   return [...byId.values()]
+    .filter((asset) => asset.assetIdCounts.size > 0)
     .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id))
     .slice(0, Math.max(0, limit))
-    .map(({ id, symbol, label, avatar, chain, contractAddress }) => ({
+    .map(({ id, symbol, label, avatar, assetIdCounts }) => ({
       id,
       symbol,
       label,
       avatar,
-      ...(chain && contractAddress ? { chain, contractAddress } : {}),
+      assetIds: topAssetIds(assetIdCounts),
     }));
 };
 
@@ -159,14 +163,12 @@ export const pinSelectedHotToken = (
     return [...tokens];
   }
 
-  const match = posts.find(
-    (post) => getSocialV1HotTokenId(post.item) === selectedTokenId,
+  const [pinned] = rankFeedHotTokens(
+    posts.filter(
+      (post) => getSocialV1HotTokenId(post.item) === selectedTokenId,
+    ),
+    1,
   );
-  if (!match) {
-    return [...tokens];
-  }
-
-  const [pinned] = rankFeedHotTokens([match], 1);
   if (!pinned) {
     return [...tokens];
   }

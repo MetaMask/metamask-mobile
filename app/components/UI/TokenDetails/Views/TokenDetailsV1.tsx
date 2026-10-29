@@ -574,6 +574,24 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       onTabChange: handleTabChange,
       tabs: visibleTabs,
     });
+  // An empty feed has its own 48px padding. The short-tab spacer and the
+  // sticky-footer reservation exist for interactive tab content, and they
+  // leave a blank scroll under this state. A position footer is taller than
+  // Buy alone, so its measured height is added to that 48px gap.
+  const [feedIsEmpty, setFeedIsEmpty] = useState(false);
+  const handleFeedEmptyChange = useCallback((isEmpty: boolean) => {
+    setFeedIsEmpty((current) => (current === isEmpty ? current : isEmpty));
+  }, []);
+  const isEmptyFeed = activeTab === 'feed' && feedIsEmpty;
+  const [balanceFooterHeight, setBalanceFooterHeight] = useState(0);
+  const handleBalanceFooterLayout = useCallback((height: number) => {
+    setBalanceFooterHeight((current) =>
+      current === height ? current : height,
+    );
+  }, []);
+  const emptyFeedBottomPadding = hasBalanceValue
+    ? balanceFooterHeight + 48
+    : 48;
 
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
@@ -692,16 +710,19 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           />
         );
       }
-      if (tab === 'feed' && socialEnabled && caip19AssetId) {
+      if (tab === 'feed' && showSocialTabs && caip19AssetId) {
         return (
           <TokenDetailsFeedTab
             assetId={caip19AssetId}
+            token={token}
             isActive={isActive}
             onCopyTrade={handleFeedCopyTrade}
+            hasBalance={hasBalanceValue}
+            onEmptyChange={handleFeedEmptyChange}
           />
         );
       }
-      if (tab === 'holders' && socialEnabled && caip19AssetId) {
+      if (tab === 'holders' && showSocialTabs && caip19AssetId) {
         return (
           <TokenDetailsHoldersTab assetId={caip19AssetId} isActive={isActive} />
         );
@@ -720,7 +741,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       handleRowExplain,
       handleAttributionPress,
       handleOpenContractSecurity,
-      socialEnabled,
+      showSocialTabs,
+      hasBalanceValue,
+      handleFeedEmptyChange,
       handleFeedCopyTrade,
     ],
   );
@@ -795,7 +818,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             <ScrollView
               ref={scrollViewRef}
               style={styles.scroll}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={
+                isEmptyFeed
+                  ? [
+                      styles.scrollContent,
+                      { paddingBottom: emptyFeedBottomPadding },
+                    ]
+                  : styles.scrollContent
+              }
               stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
               onScroll={onScrollViewScroll}
               scrollEventThrottle={16}
@@ -864,7 +894,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               <GestureDetector gesture={swipeGesture}>
                 <View
                   collapsable={false}
-                  style={tabContentStyle}
+                  style={isEmptyFeed ? undefined : tabContentStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
                   <TokenDetailsScrollProvider value={pageScroll.value}>
@@ -893,6 +923,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           token={token}
           tokenKey={traderPositionTokenKey}
           securityData={securityData}
+          // Measured on the first layout. Attaching this only after the feed
+          // is known empty misses that layout, leaves the height at 0, and the
+          // create-post button stays under the position bar.
+          onFooterLayout={handleBalanceFooterLayout}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design

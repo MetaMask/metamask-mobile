@@ -190,7 +190,8 @@ const ManageProfileView: React.FC = () => {
           <ManageProfileNavRow
             label={strings('social_leaderboard.manage_profile.handle')}
             value={handle}
-            disabled={editorsDisabled}
+            // v1: the handle is permanent once the profile is set up.
+            disabled={editorsDisabled || Boolean(profile?.handle)}
             onPress={() => handleOpenTextEditor('handle')}
             showTopBorder
             testID={ManageProfileViewSelectorsIDs.HANDLE_ROW}

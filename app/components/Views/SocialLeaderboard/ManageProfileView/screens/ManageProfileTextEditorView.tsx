@@ -9,6 +9,10 @@ import { strings } from '../../../../../../locales/i18n';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { useMyProfile } from '../../MyProfileView/hooks';
 import ManageProfileTextEditor from '../components/ManageProfileTextEditor';
+import {
+  getHandleAvailabilityError,
+  getHandleLocalRuleError,
+} from './handleAvailabilityError';
 import { MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG } from './manageProfileTextEditorFields';
 import { normalizeUsername } from '../../ProfileOnboarding/profileOnboardingDraft';
 import { useProfileController } from '../hooks/useProfileController';
@@ -43,13 +47,16 @@ const ManageProfileTextEditorView: React.FC = () => {
           case 'handle': {
             const username = normalizeUsername(value);
             if (username !== profile?.handle) {
+              const localRuleError = getHandleLocalRuleError(username);
+              if (localRuleError) {
+                setErrorMessage(localRuleError);
+                return;
+              }
               const availability = await checkUsernameAvailability(username);
-              if (!availability.available || !availability.valid) {
-                setErrorMessage(
-                  strings(
-                    'social_leaderboard.manage_profile.username_unavailable',
-                  ),
-                );
+              const availabilityError =
+                getHandleAvailabilityError(availability);
+              if (availabilityError) {
+                setErrorMessage(availabilityError);
                 return;
               }
             }

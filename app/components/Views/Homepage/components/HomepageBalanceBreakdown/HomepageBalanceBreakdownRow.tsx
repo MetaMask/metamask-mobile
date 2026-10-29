@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -7,7 +9,15 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  BottomSheet,
+  BottomSheetHeader,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
+  IconColor,
+  IconName,
+  IconSize,
   ListItem,
   ListItemVariant,
   SensitiveText,
@@ -15,8 +25,10 @@ import {
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../../util/assets';
@@ -33,6 +45,12 @@ import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics'
 import type { SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { getSliceLabel } from './homepageBalanceBreakdown.constants';
+
+const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
+});
 
 interface HomepageBalanceBreakdownMoneyAddButtonProps {
   accessibilityLabel: string;
@@ -53,7 +71,18 @@ const HomepageBalanceBreakdownMoneyAddButton = ({
     trackButtonClicked,
   });
 
-  return (
+  return label.length > 3 ? (
+    <ButtonIcon
+      accessibilityLabel={accessibilityLabel}
+      iconName={IconName.Add}
+      iconProps={{ size: IconSize.Sm }}
+      onPress={handleAddPress}
+      size={ButtonIconSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
+      twClassName="w-10 mx-1"
+      variant={ButtonIconVariant.Filled}
+    />
+  ) : (
     <Button
       accessibilityLabel={accessibilityLabel}
       onPress={handleAddPress}
@@ -81,7 +110,10 @@ const HomepageBalanceBreakdownRow = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const { colors } = useTheme();
   const { formatCurrency } = useFormatters();
+  const errorSheetRef = useRef<BottomSheetRef>(null);
+  const [isErrorSheetVisible, setIsErrorSheetVisible] = useState(false);
   const isLoading = slice.status === 'loading';
+  const hasError = slice.status === 'error';
   const isMoneyRow = slice.key === 'money';
   const percentageLabel =
     slice.status !== 'ready'
@@ -119,6 +151,9 @@ const HomepageBalanceBreakdownRow = ({
     !privacyMode && slice.status === 'ready' ? displayValue : undefined,
     !privacyMode ? percentageLabel : undefined,
     !privacyMode ? apyLabel : undefined,
+    hasError
+      ? strings('balance_breakdown.error.accessibility_label')
+      : undefined,
   ]
     .filter(Boolean)
     .join(', ');
@@ -128,6 +163,22 @@ const HomepageBalanceBreakdownRow = ({
   ]
     .filter(Boolean)
     .join(', ');
+  const handleErrorPress = useCallback(() => {
+    setIsErrorSheetVisible(true);
+  }, []);
+  const handleErrorSheetClose = useCallback(() => {
+    setIsErrorSheetVisible(false);
+  }, []);
+  const handleErrorSheetRequestClose = useCallback(() => {
+    errorSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  useEffect(() => {
+    if (isErrorSheetVisible) {
+      errorSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isErrorSheetVisible]);
+
   const title = (
     <Box
       alignItems={BoxAlignItems.Center}
@@ -194,27 +245,52 @@ const HomepageBalanceBreakdownRow = ({
     </Box>
   );
 
+  const balanceText = (
+    <SensitiveText
+      color={valueColor}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Medium}
+      testID={HomepageBalanceBreakdownTestIds.VALUE(slice.key)}
+      variant={TextVariant.BodyMd}
+    >
+      {displayValue}
+    </SensitiveText>
+  );
+
   const balanceValue = (
     <Skeleton
       hideChildren={isLoading}
       testID={HomepageBalanceBreakdownTestIds.SKELETON(slice.key)}
     >
-      <DottedUnderline
-        color={colors.text.alternative}
-        testID={HomepageBalanceBreakdownTestIds.VALUE_UNDERLINE(slice.key)}
-      >
-        <SensitiveText
-          color={valueColor}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Medium}
-          testID={HomepageBalanceBreakdownTestIds.VALUE(slice.key)}
-          variant={TextVariant.BodyMd}
+      {hasError ? (
+        balanceText
+      ) : (
+        <DottedUnderline
+          color={colors.text.alternative}
+          testID={HomepageBalanceBreakdownTestIds.VALUE_UNDERLINE(slice.key)}
         >
-          {displayValue}
-        </SensitiveText>
-      </DottedUnderline>
+          {balanceText}
+        </DottedUnderline>
+      )}
     </Skeleton>
   );
+
+  const errorIndicator = hasError ? (
+    <ButtonIcon
+      accessibilityLabel={strings(
+        'balance_breakdown.error.accessibility_label',
+      )}
+      iconName={IconName.Danger}
+      iconProps={{
+        color: IconColor.IconAlternative,
+        size: IconSize.Sm,
+      }}
+      onPress={handleErrorPress}
+      size={ButtonIconSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.ERROR_WARNING(slice.key)}
+      twClassName="self-center"
+    />
+  ) : null;
 
   const value = isMoneyRow ? (
     <Box
@@ -226,25 +302,79 @@ const HomepageBalanceBreakdownRow = ({
         accessibilityLabel={accessibilityLabel}
         label={moneyAddLabel}
       />
+      {errorIndicator}
       {balanceValue}
     </Box>
   ) : (
-    balanceValue
+    <Box
+      alignItems={BoxAlignItems.Center}
+      flexDirection={BoxFlexDirection.Row}
+      gap={2}
+    >
+      {errorIndicator}
+      {balanceValue}
+    </Box>
   );
 
   return (
-    <ListItem
-      accessibilityLabel={
-        isMoneyRow ? rowAccessibilityLabel : accessibilityLabel
-      }
-      isInteractive
-      onPress={onPress}
-      testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
-      title={title}
-      twClassName="min-h-10 py-0"
-      value={value}
-      variant={ListItemVariant.OneLine}
-    />
+    <>
+      <ListItem
+        accessibilityLabel={
+          isMoneyRow ? rowAccessibilityLabel : accessibilityLabel
+        }
+        isInteractive
+        onPress={onPress}
+        testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
+        title={title}
+        twClassName="min-h-10 py-0"
+        value={value}
+        variant={ListItemVariant.OneLine}
+      />
+      {hasError && isErrorSheetVisible ? (
+        <Modal
+          animationType="none"
+          onRequestClose={handleErrorSheetRequestClose}
+          presentationStyle="overFullScreen"
+          statusBarTranslucent
+          transparent
+          visible
+        >
+          <ModalSafeAreaProvider>
+            <GestureHandlerRootView
+              style={styles.gestureRoot}
+              testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET_GESTURE_ROOT(
+                slice.key,
+              )}
+            >
+              <BottomSheet
+                ref={errorSheetRef}
+                onClose={handleErrorSheetClose}
+                testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET(slice.key)}
+              >
+                <BottomSheetHeader onClose={handleErrorSheetRequestClose}>
+                  <Text variant={TextVariant.HeadingSm}>
+                    {strings('balance_breakdown.error.title')}
+                  </Text>
+                </BottomSheetHeader>
+                <Box twClassName="px-4 pb-8">
+                  <Text
+                    color={TextColor.TextAlternative}
+                    testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET_DESCRIPTION(
+                      slice.key,
+                    )}
+                    variant={TextVariant.BodyMd}
+                  >
+                    {strings('balance_breakdown.error.description', {
+                      primitive: getSliceLabel(slice.key),
+                    })}
+                  </Text>
+                </Box>
+              </BottomSheet>
+            </GestureHandlerRootView>
+          </ModalSafeAreaProvider>
+        </Modal>
+      ) : null}
+    </>
   );
 };
 
