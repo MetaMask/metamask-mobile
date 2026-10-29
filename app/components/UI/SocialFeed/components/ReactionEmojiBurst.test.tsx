@@ -53,7 +53,12 @@ describe('ReactionEmojiBurst', () => {
     mockPrefersReducedMotion.mockReturnValue(true);
 
     renderWithProvider(
-      <ReactionEmojiBurst emotion="🔥" onFinished={jest.fn()} />,
+      <ReactionEmojiBurst
+        emotion="🔥"
+        originX={12}
+        originY={18}
+        onFinished={jest.fn()}
+      />,
     );
 
     expect(screen.queryByTestId(REACTION_EMOJI_BURST_TEST_ID)).toBeNull();
@@ -63,7 +68,12 @@ describe('ReactionEmojiBurst', () => {
     mockGetHardwareTier.mockReturnValue('LOW');
 
     renderWithProvider(
-      <ReactionEmojiBurst emotion="🔥" onFinished={jest.fn()} />,
+      <ReactionEmojiBurst
+        emotion="🔥"
+        originX={12}
+        originY={18}
+        onFinished={jest.fn()}
+      />,
     );
 
     expect(screen.queryByTestId(REACTION_EMOJI_BURST_TEST_ID)).toBeNull();
