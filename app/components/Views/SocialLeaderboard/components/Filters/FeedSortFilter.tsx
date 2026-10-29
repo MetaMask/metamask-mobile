@@ -68,5 +68,6 @@ export const FeedSortFilterSheet: React.FC<FeedSortFilterSheetProps> = ({
     sheetTestID={FeedSortFilterSelectorsIDs.SHEET}
     backdropTestID={FeedSortFilterSelectorsIDs.BACKDROP}
     getOptionTestID={getFeedSortFilterOptionTestId}
+    showSelectedIcon
   />
 );

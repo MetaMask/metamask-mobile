@@ -1,5 +1,6 @@
+import { IconName, RadioButton } from '@metamask/design-system-react-native';
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TypeFilterSelector, TypeFilterSheet } from './TypeFilter';
 import {
@@ -130,5 +131,30 @@ describe('TypeFilterSheet', () => {
 
     expect(screen.getByTestId('custom-sheet')).toBeOnTheScreen();
     expect(screen.getByTestId('custom-option-perps')).toBeOnTheScreen();
+  });
+
+  it('marks the selected type with a check and leaves the other rows unmarked', () => {
+    renderWithProvider(
+      <TypeFilterSheet
+        isOpen
+        value="all"
+        onChange={jest.fn()}
+        onClose={jest.fn()}
+        showSelectedIcon
+      />,
+    );
+
+    const selected = screen.getByTestId(getTypeFilterOptionTestId('all'));
+    const unselected = screen.getByTestId(getTypeFilterOptionTestId('tokens'));
+
+    expect(selected).toHaveProp('accessibilityState', { selected: true });
+    expect(unselected).toHaveProp('accessibilityState', { selected: false });
+    expect(
+      within(selected).UNSAFE_getAllByProps({ name: IconName.Check }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      within(unselected).UNSAFE_queryAllByProps({ name: IconName.Check }),
+    ).toHaveLength(0);
+    expect(screen.UNSAFE_queryByType(RadioButton)).toBeNull();
   });
 });
