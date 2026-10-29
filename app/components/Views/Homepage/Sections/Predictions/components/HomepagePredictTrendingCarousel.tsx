@@ -1,11 +1,8 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../../shared/homeSectionGap/HomepageSectionDivider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
@@ -48,7 +45,7 @@ const HomepagePredictTrendingCarousel = ({
 
   return (
     <>
-      <SectionDivider />
+      <HomepageSectionDivider />
       <SectionHeader
         title={title}
         isInteractive

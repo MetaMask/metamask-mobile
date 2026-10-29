@@ -1,8 +1,5 @@
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../shared/homeSectionGap/HomepageSectionDivider';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import React, {
@@ -340,7 +337,7 @@ const TopTradersSection = forwardRef<
         testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
-          <SectionDivider />
+          <HomepageSectionDivider />
           <SectionHeader
             title={title}
             isInteractive
@@ -368,7 +365,7 @@ const TopTradersSection = forwardRef<
         testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
-          <SectionDivider />
+          <HomepageSectionDivider />
           <SectionHeader
             title={title}
             isInteractive
