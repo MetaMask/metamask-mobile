@@ -53,25 +53,7 @@ import {
   trackRewardsDashboardViewed,
 } from '../utils/rewardsDashboardViewedTracking';
 import { rewardsMoneyScrollClipSpacer } from './rewardsMoneyScrollClipSpacer';
-
-export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
-  CONTAINER: 'rewards-money-dashboard',
-  LOADING: 'rewards-money-dashboard-loading',
-  ERROR: 'rewards-money-dashboard-error',
-  SETTINGS_BUTTON: 'rewards-money-dashboard-settings-button',
-  TABS: 'rewards-money-dashboard-tabs',
-  WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
-  EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
-  EARNINGS_TAB_DOT: 'rewards-money-dashboard-earnings-tab-indicator-dot',
-  PERFORMANCE_TAB: 'rewards-money-dashboard-performance-tab',
-  WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
-  EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
-  PERFORMANCE_BODY: 'rewards-money-dashboard-performance-body',
-  TITLE_SECTION: 'rewards-money-dashboard-title-section',
-  SCROLL_VIEW: 'rewards-money-dashboard-scroll-view',
-  PANEL: 'rewards-money-dashboard-panel',
-  SCROLL_CLIP_SPACER: 'rewards-money-dashboard-scroll-clip-spacer',
-} as const;
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 
 type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
 

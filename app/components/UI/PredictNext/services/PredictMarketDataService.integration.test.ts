@@ -1,10 +1,7 @@
 import { BrokenCircuitError } from '@metamask/controller-utils';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
-import {
-  KALSHI_VENUE_ID,
-  type PredictEntityId,
-  type PredictFeedId,
-} from '../types';
+import { type PredictEntityId, type PredictFeedId } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const feedId = 'sports-football-nfl-games' as PredictFeedId;
 

@@ -1,4 +1,3 @@
-import { TransactionType } from '@metamask/transaction-controller';
 import type { ActivityListItem, TokenAmount } from './types';
 import { GAS_FEE_SPONSORED } from './fees';
 import {
@@ -7,7 +6,6 @@ import {
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
-  getLastEvmItemIndex,
   groupActivityListItems,
   preferLocalOrApiActivityItem,
   shouldShowPlusSign,
@@ -184,12 +182,6 @@ describe('activity list helpers', () => {
     });
 
     it('keeps a richer same-type API copy over a local Money Account row', () => {
-      const transaction = {
-        id: 'money-withdraw',
-        type: TransactionType.batch,
-        txParams: { from: '0xmoney' },
-        nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
-      };
       const local = makeItem({
         type: 'receive',
         data: {

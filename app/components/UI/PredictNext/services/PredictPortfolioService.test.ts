@@ -17,12 +17,14 @@ import {
   portfolioQueryFamilies,
 } from '../queries/portfolioQueries';
 import {
-  KALSHI_VENUE_ID,
   type PredictAmount,
   type PredictEntityId,
+  type PredictPortfolioSummary,
+  type PredictSignedAmount,
   type PredictTimestamp,
   type PredictVenueId,
 } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,
@@ -35,6 +37,7 @@ jest.mock('../../../../util/trace', () => ({
     PredictNextGetBalance: 'PredictNext Get Balance',
     PredictNextGetPositions: 'PredictNext Get Positions',
     PredictNextGetActivity: 'PredictNext Get Activity',
+    PredictNextGetPortfolioSummary: 'PredictNext Get Portfolio Summary',
   },
   TraceOperation: { PredictDataFetch: 'predict.data_fetch' },
 }));
@@ -43,6 +46,22 @@ const createPortfolio = (): jest.Mocked<VenuePortfolioAdapter> => ({
   fetchBalance: jest.fn(),
   fetchPositions: jest.fn(),
   fetchActivity: jest.fn(),
+  fetchPortfolioSummary: jest.fn(),
+});
+
+const createSummary = (
+  overrides: Partial<PredictPortfolioSummary> = {},
+): PredictPortfolioSummary => ({
+  venueId: KALSHI_VENUE_ID,
+  currency: 'USD',
+  availableBalance: '50.00' as PredictAmount,
+  positionsValue: '24.40' as PredictAmount,
+  claimableValue: '0' as PredictAmount,
+  totalValue: '74.40' as PredictAmount,
+  unrealizedPnl: '1.78' as PredictSignedAmount,
+  asOf: '2026-10-23T12:00:05.120Z' as PredictTimestamp,
+  complete: false,
+  ...overrides,
 });
 
 const createService = (portfolio: VenuePortfolioAdapter) => {
@@ -97,8 +116,12 @@ describe('PredictPortfolioService', () => {
     await expect(
       service.getActivity('other' as PredictVenueId, { limit: 20 }),
     ).rejects.toThrow('This prediction venue is not supported.');
+    await expect(
+      service.getPortfolioSummary('other' as PredictVenueId),
+    ).rejects.toThrow('This prediction venue is not supported.');
     expect(portfolio.fetchPositions).not.toHaveBeenCalled();
     expect(portfolio.fetchActivity).not.toHaveBeenCalled();
+    expect(portfolio.fetchPortfolioSummary).not.toHaveBeenCalled();
   });
 
   it('uses the Venue-qualified Balance descriptor', () => {
@@ -134,6 +157,81 @@ describe('PredictPortfolioService', () => {
       staleTime: 30_000,
       scope: 'venue',
     });
+    expect(portfolioQueries.getPortfolioSummary(KALSHI_VENUE_ID)).toEqual({
+      queryKey: [
+        'PredictPortfolioService:getPortfolioSummary',
+        KALSHI_VENUE_ID,
+      ],
+      family: ['PredictPortfolioService:getPortfolioSummary', KALSHI_VENUE_ID],
+      staleTime: 30_000,
+      scope: 'venue',
+    });
+  });
+
+  it('invalidates the Summary family alongside the other portfolio reads', () => {
+    const families = portfolioQueryFamilies(KALSHI_VENUE_ID);
+
+    expect(families).toEqual([
+      ['PredictPortfolioService:getBalance', KALSHI_VENUE_ID],
+      ['PredictPortfolioService:getPositions', KALSHI_VENUE_ID],
+      ['PredictPortfolioService:getActivity', KALSHI_VENUE_ID],
+      ['PredictPortfolioService:getPortfolioSummary', KALSHI_VENUE_ID],
+    ]);
+  });
+
+  it('reads the Summary through the adapter and caches it', async () => {
+    const portfolio = createPortfolio();
+    const summary = createSummary();
+    portfolio.fetchPortfolioSummary.mockResolvedValue(summary);
+    const service = buildService(portfolio);
+
+    const first = await service.getPortfolioSummary(KALSHI_VENUE_ID);
+    const second = await service.getPortfolioSummary(KALSHI_VENUE_ID);
+
+    expect(first).toEqual(summary);
+    expect(second).toEqual(summary);
+    expect(portfolio.fetchPortfolioSummary).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries the Summary on its own policy without failing other reads', async () => {
+    const portfolio = createPortfolio();
+    portfolio.fetchPortfolioSummary.mockRejectedValue(
+      PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE),
+    );
+    portfolio.fetchBalance.mockResolvedValue({
+      venueId: KALSHI_VENUE_ID,
+      currency: 'USD',
+      available: '50.00' as PredictAmount,
+    });
+    const service = buildService(portfolio);
+
+    await expect(
+      service.getPortfolioSummary(KALSHI_VENUE_ID),
+    ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_UNAVAILABLE });
+    const balance = await service.getBalance(KALSHI_VENUE_ID);
+
+    expect(portfolio.fetchPortfolioSummary).toHaveBeenCalledTimes(3);
+    expect(balance.available).toBe('50.00');
+  });
+
+  it('traces the Summary with its completeness only, never amounts', async () => {
+    const portfolio = createPortfolio();
+    portfolio.fetchPortfolioSummary.mockResolvedValue(createSummary());
+    const service = buildService(portfolio);
+
+    await service.getPortfolioSummary(KALSHI_VENUE_ID);
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetPortfolioSummary,
+      id: expect.stringMatching(/^getPortfolioSummary-\d+$/u),
+      data: { success: true, complete: false },
+    });
+    const traced = JSON.stringify([
+      jest.mocked(trace).mock.calls,
+      jest.mocked(endTrace).mock.calls,
+    ]);
+    expect(traced).not.toContain('74.40');
+    expect(traced).not.toContain('24.40');
   });
 
   it('retries transient errors twice after the initial attempt', async () => {
@@ -548,8 +646,9 @@ describe('PredictPortfolioService', () => {
           venueId: KALSHI_VENUE_ID,
           marketId: 'market-1' as PredictEntityId,
           side: 'yes' as const,
+          status: 'open' as const,
           shares: '75.00' as PredictAmount,
-          marketExposure: '41.25' as PredictAmount,
+          currentValue: '41.25' as PredictAmount,
         },
       ],
     });
@@ -561,6 +660,8 @@ describe('PredictPortfolioService', () => {
           id: 'market-1:2026-09-01T00:00:00.000Z' as PredictEntityId,
           venueId: KALSHI_VENUE_ID,
           marketId: 'market-1' as PredictEntityId,
+          side: 'yes' as const,
+          shares: '41.50' as PredictAmount,
           result: 'yes' as const,
           proceeds: '41.50' as PredictAmount,
           timestamp: '2026-09-01T00:00:00.000Z' as PredictTimestamp,

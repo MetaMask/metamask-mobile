@@ -28,6 +28,7 @@ import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
 import ReactionChip, { REACTION_PILL_TW_CLASS } from './ReactionChip';
+import SocialFeedPostTranslation from './SocialFeedPostTranslation';
 import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
 } from './ReactionPickerBalloon';
@@ -76,8 +77,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       postId: post.id,
       authorId: post.item.author.id,
       authorHandle: post.authorHandle,
+      commentId: post.commentId,
     }),
-    [post.authorHandle, post.id, post.item.author.id],
+    [post.authorHandle, post.commentId, post.id, post.item.author.id],
   );
   const {
     open: openOptions,
@@ -209,11 +211,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             {strings('social_leaderboard.composer.posting')}
           </Text>
         ) : null}
-        {post.item.comment ? (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {post.item.comment}
-          </Text>
-        ) : null}
+        {post.item.comment ? <SocialFeedPostTranslation post={post} /> : null}
 
         {onPositionPress ? (
           <Pressable

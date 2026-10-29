@@ -40,8 +40,10 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockIsFocused = jest.fn(() => false);
 const mockNavigation = {
   navigate: mockNavigate,
+  isFocused: mockIsFocused,
 } as unknown as NativeBottomTabNavigationProp<ParamListBase>;
 
 const resolveIcon = (
@@ -87,6 +89,19 @@ describe('useNativeSystemSlotTab', () => {
 
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
       expect(trackExploreSearchOpened).toHaveBeenCalledWith('nav_bar');
+    });
+
+    it('does not track a new search opening when the Search tab is re-tapped', () => {
+      mockIsFocused.mockReturnValueOnce(true);
+      const { result } = renderHookWithProvider(
+        () => useNativeSystemSlotTab('search'),
+        { state: initialRootState },
+      );
+
+      result.current.listeners({ navigation: mockNavigation }).tabPress();
+
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+      expect(trackExploreSearchOpened).not.toHaveBeenCalled();
     });
   });
 

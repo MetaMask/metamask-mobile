@@ -67,22 +67,10 @@ import { EarningsHistoryRow } from '../EarningsHistoryRows';
 import RewardsPausedBanner from '../RewardsPausedBanner';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 
+import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
+
 /** Rows shown under History before "see all". Matches the Performance preview. */
 const EARNINGS_HISTORY_PREVIEW_COUNT = 5;
-
-export const EARNINGS_TAB_TEST_IDS = {
-  CONTAINER: 'rewards-money-earnings-tab',
-  SUMMARY_ERROR: 'rewards-money-earnings-summary-error',
-  LAST_7_ERROR: 'rewards-money-earnings-last-7-error',
-  HISTORY_ERROR: 'rewards-money-earnings-history-error',
-  BREAKDOWN: 'rewards-money-earnings-breakdown',
-  BREAKDOWN_HEADER: 'rewards-money-earnings-breakdown-header',
-  BREAKDOWN_SKELETON: 'rewards-money-earnings-breakdown-skeleton',
-  BREAKDOWN_ROW: 'rewards-money-earnings-breakdown-row',
-  HISTORY: 'rewards-money-earnings-history',
-  HISTORY_HEADER: 'rewards-money-earnings-history-header',
-  HISTORY_EMPTY: 'rewards-money-earnings-history-empty',
-} as const;
 
 /** mUSD base units as a two-decimal amount, or a dash when there is none. */
 const musdAmount = (baseUnits: string | null | undefined): string =>

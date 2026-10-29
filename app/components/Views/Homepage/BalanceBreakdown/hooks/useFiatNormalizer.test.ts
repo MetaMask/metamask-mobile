@@ -6,7 +6,7 @@ import { useFiatNormalizer } from './useFiatNormalizer';
 
 const mockStore = configureStore([]);
 
-const USD_RATE_ASSET_ID = 'eip155:999/slip44:999';
+const NATIVE_ASSET_ID = 'eip155:999/slip44:60';
 
 function buildStore(usdRate: number | undefined, currentCurrency: string) {
   return mockStore({
@@ -18,10 +18,10 @@ function buildStore(usdRate: number | undefined, currentCurrency: string) {
             usdRate === undefined
               ? {}
               : {
-                  [USD_RATE_ASSET_ID]: {
+                  [NATIVE_ASSET_ID]: {
                     type: 'native' as const,
-                    symbol: 'usd',
-                    name: 'USD',
+                    symbol: 'ETH',
+                    name: 'Ether',
                     decimals: 18,
                   },
                 },
@@ -29,7 +29,7 @@ function buildStore(usdRate: number | undefined, currentCurrency: string) {
             usdRate === undefined
               ? {}
               : {
-                  [USD_RATE_ASSET_ID]: {
+                  [NATIVE_ASSET_ID]: {
                     assetPriceType: 'fungible' as const,
                     price: usdRate,
                     usdPrice: 1,
