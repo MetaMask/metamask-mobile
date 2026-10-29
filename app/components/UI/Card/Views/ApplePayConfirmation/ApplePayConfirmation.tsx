@@ -58,7 +58,10 @@ const ApplePayConfirmation = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('grow px-6 pt-8')}
       >
-        <Text variant={TextVariant.DisplayMd}>
+        <Text
+          variant={TextVariant.DisplayMd}
+          testID="apple-pay-confirmation-title"
+        >
           {strings('card.apple_pay_confirmation.title')}
         </Text>
         <Box twClassName="mt-6">
@@ -70,12 +73,14 @@ const ApplePayConfirmation = () => {
         <Text
           variant={TextVariant.BodyMd}
           twClassName="mt-6 text-text-alternative"
+          testID="apple-pay-confirmation-instructions"
         >
           {strings('card.apple_pay_confirmation.instructions')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           twClassName="mt-4 text-text-alternative"
+          testID="apple-pay-confirmation-marks-copy"
         >
           {strings('card.apple_pay_confirmation.marks')}
         </Text>

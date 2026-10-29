@@ -59,7 +59,11 @@ const ApplePayUsageSheet = () => {
           testID: ApplePayUsageSheetSelectors.CLOSE_BUTTON,
         }}
       >
-        <Text variant={TextVariant.HeadingSm} twClassName="text-center">
+        <Text
+          variant={TextVariant.HeadingSm}
+          twClassName="text-center"
+          testID={ApplePayUsageSheetSelectors.TITLE}
+        >
           {strings('card.apple_pay_usage.title')}
         </Text>
       </BottomSheetHeader>
@@ -73,12 +77,14 @@ const ApplePayUsageSheet = () => {
         <Text
           variant={TextVariant.BodyMd}
           twClassName="mt-4 text-center text-text-alternative"
+          testID={ApplePayUsageSheetSelectors.INSTRUCTIONS}
         >
           {strings('card.apple_pay_usage.instructions')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           twClassName="mt-3 text-center text-text-alternative"
+          testID={ApplePayUsageSheetSelectors.MARKS_COPY}
         >
           {strings('card.apple_pay_usage.marks')}
         </Text>

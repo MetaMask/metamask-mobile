@@ -5,6 +5,7 @@ import ApplePaySplash from './ApplePaySplash';
 
 const mockGoBack = jest.fn();
 const mockInitiateProvisioning = jest.fn().mockResolvedValue(undefined);
+let mockIsProvisioning = false;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -18,6 +19,7 @@ jest.mock('../CardHome/hooks/useCardWalletProvisioning', () => ({
   useCardWalletProvisioning: () => ({
     initiateProvisioning: mockInitiateProvisioning,
     canAddToWallet: true,
+    isProvisioning: mockIsProvisioning,
   }),
 }));
 
@@ -47,29 +49,35 @@ describe('ApplePaySplash', () => {
   beforeEach(() => {
     mockGoBack.mockClear();
     mockInitiateProvisioning.mockClear();
+    mockIsProvisioning = false;
   });
 
   it('shows the splash copy and adds the card to Apple Wallet', () => {
-    const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <ApplePaySplash />,
     );
 
-    expect(getByText('MetaMask with Apple Pay')).toBeOnTheScreen();
-    expect(
-      getByText(
-        'Apple Pay is an easy, secure, and private way to pay with your iPhone and Apple Watch.',
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText('There are no additional app downloads, sign ups, or fees.'),
-    ).toBeOnTheScreen();
-    expect(getByText('Get set up in seconds.')).toBeOnTheScreen();
+    expect(getByTestId('apple-pay-splash-title')).toBeOnTheScreen();
+    expect(getByTestId('apple-pay-splash-description')).toBeOnTheScreen();
+    expect(getByTestId('apple-pay-splash-no-downloads')).toBeOnTheScreen();
+    expect(getByTestId('apple-pay-splash-setup')).toBeOnTheScreen();
     expect(getByTestId('apple-pay-splash-hero')).toBeOnTheScreen();
     expect(queryByTestId('apple-pay-splash-lockup-light')).toBeNull();
 
     fireEvent.press(getByTestId('apple-pay-splash-add'));
 
     expect(mockInitiateProvisioning).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides Add to Apple Wallet while a pass is being added', () => {
+    mockIsProvisioning = true;
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ApplePaySplash />,
+    );
+
+    expect(queryByTestId('apple-pay-splash-add')).toBeNull();
+    expect(getByTestId('apple-pay-splash-spinner')).toBeOnTheScreen();
+    expect(mockInitiateProvisioning).not.toHaveBeenCalled();
   });
 
   it('uses the same outlined button as Card Home', () => {

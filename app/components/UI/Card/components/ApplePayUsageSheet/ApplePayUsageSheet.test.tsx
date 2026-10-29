@@ -56,23 +56,23 @@ describe('ApplePayUsageSheet', () => {
   });
 
   it('shows the usage copy and light payment marks', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <ApplePayUsageSheet />,
-    );
+    const { getByTestId } = renderWithProvider(<ApplePayUsageSheet />);
 
-    expect(getByText('Using Apple Pay')).toBeOnTheScreen();
+    expect(getByTestId(ApplePayUsageSheetSelectors.TITLE)).toBeOnTheScreen();
     expect(
-      getByText(
-        'Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.',
-      ),
+      getByTestId(ApplePayUsageSheetSelectors.INSTRUCTIONS),
     ).toBeOnTheScreen();
     expect(
-      getByText('Use Apple Pay anywhere you see these marks below.'),
+      getByTestId(ApplePayUsageSheetSelectors.MARKS_COPY),
     ).toBeOnTheScreen();
     expect(getByTestId(ApplePayUsageSheetSelectors.GRAPHIC)).toBeOnTheScreen();
     expect(getByTestId(ApplePayUsageSheetSelectors.HAND)).toBeOnTheScreen();
-    expect(getByText('Learn more about Apple Pay')).toBeOnTheScreen();
-    expect(getByText('Got it')).toBeOnTheScreen();
+    expect(
+      getByTestId(ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(ApplePayUsageSheetSelectors.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(ApplePayUsageSheetSelectors.MARKS_LIGHT),
     ).toBeOnTheScreen();

@@ -35,19 +35,13 @@ describe('ApplePayConfirmation', () => {
   });
 
   it('shows the success copy and light payment marks', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <ApplePayConfirmation />,
-    );
+    const { getByTestId } = renderWithProvider(<ApplePayConfirmation />);
 
-    expect(getByText('Card Added Successfully')).toBeOnTheScreen();
+    expect(getByTestId('apple-pay-confirmation-title')).toBeOnTheScreen();
     expect(
-      getByText(
-        'Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.',
-      ),
+      getByTestId('apple-pay-confirmation-instructions'),
     ).toBeOnTheScreen();
-    expect(
-      getByText('Use Apple Pay anywhere you see these marks below.'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('apple-pay-confirmation-marks-copy')).toBeOnTheScreen();
     expect(getByTestId('apple-pay-confirmation-graphic')).toBeOnTheScreen();
     expect(getByTestId('apple-pay-confirmation-hand')).toBeOnTheScreen();
     expect(getByTestId('apple-pay-confirmation-marks-light')).toBeOnTheScreen();

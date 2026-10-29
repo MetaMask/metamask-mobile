@@ -7,6 +7,8 @@ import {
   Box,
   BoxAlignItems,
   HeaderStandard,
+  IconSize,
+  Spinner,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -26,17 +28,23 @@ const ApplePaySplash = () => {
   const tw = useTailwind();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const cardHomeData = useSelector(selectCardHomeData);
-  const { initiateProvisioning } = useCardWalletProvisioning(cardHomeData, {
-    platformWalletSupported: true,
-  });
+  const { initiateProvisioning, isProvisioning } = useCardWalletProvisioning(
+    cardHomeData,
+    {
+      platformWalletSupported: true,
+    },
+  );
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleAddToWallet = useCallback(() => {
+    if (isProvisioning) {
+      return;
+    }
     initiateProvisioning().catch(() => undefined);
-  }, [initiateProvisioning]);
+  }, [initiateProvisioning, isProvisioning]);
 
   const heroWidth = Math.min(HERO_WIDTH, screenWidth - 32);
   const heroHeight = Math.min(
@@ -60,7 +68,11 @@ const ApplePaySplash = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('grow px-6')}
       >
-        <Text variant={TextVariant.DisplayMd} twClassName="px-10 text-center">
+        <Text
+          variant={TextVariant.DisplayMd}
+          twClassName="px-10 text-center"
+          testID="apple-pay-splash-title"
+        >
           {strings('card.apple_pay_splash.title')}
         </Text>
         <Box twClassName="items-center py-4">
@@ -76,26 +88,47 @@ const ApplePaySplash = () => {
           />
         </Box>
         <Box alignItems={BoxAlignItems.Center} gap={4}>
-          <Text variant={TextVariant.BodyMd} twClassName="text-center">
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-center"
+            testID="apple-pay-splash-description"
+          >
             {strings('card.apple_pay_splash.description')}
           </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="text-center">
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-center"
+            testID="apple-pay-splash-no-downloads"
+          >
             {strings('card.apple_pay_splash.no_downloads')}
           </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="text-center">
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-center"
+            testID="apple-pay-splash-setup"
+          >
             {strings('card.apple_pay_splash.setup')}
           </Text>
         </Box>
       </ScrollView>
       <SafeAreaView edges={['bottom']}>
         <Box twClassName="items-center px-4 pb-4">
-          <AddToWalletButton
-            onPress={handleAddToWallet}
-            buttonStyle="blackOutline"
-            buttonType="basic"
-            borderRadius={4}
-            testID="apple-pay-splash-add"
-          />
+          {isProvisioning ? (
+            <Box twClassName="py-3">
+              <Spinner
+                testID="apple-pay-splash-spinner"
+                spinnerIconProps={{ size: IconSize.Xl }}
+              />
+            </Box>
+          ) : (
+            <AddToWalletButton
+              onPress={handleAddToWallet}
+              buttonStyle="blackOutline"
+              buttonType="basic"
+              borderRadius={4}
+              testID="apple-pay-splash-add"
+            />
+          )}
         </Box>
       </SafeAreaView>
     </Box>
