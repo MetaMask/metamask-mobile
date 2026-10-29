@@ -12,6 +12,13 @@ PredictNext/
     PredictImplementationSwitch.tsx
     usePredictImplementation.ts
     NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
+  activity/
+    index.ts                   # Activity projections for the shared Activity list and details
+    usePredictActivityItems.ts # Activity as shared ActivityListItems
+    usePredictActivityDetailsItem.ts
+    PredictActivityDetails.tsx # Details template for prediction* kinds
+    internal/
+      legacy/                  # Legacy list hook, mapper and details templates, moved as-is
   events/
     cards/
       index.ts                 # Supported Event-card API
