@@ -27,6 +27,17 @@ const renderShell = (tone?: PositionCardTone, emphasizeBorder?: boolean) =>
     { theme: darkMockTheme },
   );
 
+const renderCompactShell = (
+  tone?: PositionCardTone,
+  emphasizeBorder?: boolean,
+) =>
+  renderWithProvider(
+    <PositionCardShell tone={tone} emphasizeBorder={emphasizeBorder} compact>
+      <Text testID={CARD_TEST_ID}>Body</Text>
+    </PositionCardShell>,
+    { theme: darkMockTheme },
+  );
+
 const renderLightShell = (tone?: PositionCardTone, emphasizeBorder?: boolean) =>
   renderWithProvider(
     <PositionCardShell tone={tone} emphasizeBorder={emphasizeBorder}>
@@ -101,6 +112,38 @@ describe('PositionCardShell', () => {
     expect(gradient.props.start.x).toBeCloseTo(0.7136, 3);
     expect(gradient.props.end.y).toBeCloseTo(1, 4);
     expect(gradient.props.end.x).toBeCloseTo(0.2864, 3);
+  });
+
+  it('starts the live compact wash on the top edge, further round than the open card', () => {
+    const gradient = gradientOf(renderCompactShell('positive'));
+
+    expect(gradient.props.start.y).toBeCloseTo(0, 4);
+    expect(gradient.props.start.x).toBeCloseTo(0.61, 3);
+    expect(gradient.props.end.y).toBeCloseTo(1, 4);
+    expect(gradient.props.end.x).toBeCloseTo(0.39, 3);
+  });
+
+  it('starts the closed compact wash on the top edge, between the compact and closed angles', () => {
+    const gradient = gradientOf(renderCompactShell('negative', true));
+
+    expect(gradient.props.start.y).toBeCloseTo(0, 4);
+    expect(gradient.props.start.x).toBeCloseTo(0.6132, 3);
+    expect(gradient.props.end.y).toBeCloseTo(1, 4);
+    expect(gradient.props.end.x).toBeCloseTo(0.3868, 3);
+  });
+
+  it('keeps a hairline border on a live compact card with a tinted wash', () => {
+    renderCompactShell('positive');
+
+    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
+    expect(cardStyleOf()?.borderWidth).toBe(1);
+  });
+
+  it('outlines a closed compact card in its P&L colour, twice as thick', () => {
+    renderCompactShell('negative', true);
+
+    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.error.default);
+    expect(cardStyleOf()?.borderWidth).toBe(2);
   });
 
   it('keeps a hairline border when the wash is tinted but the border is not emphasized', () => {
