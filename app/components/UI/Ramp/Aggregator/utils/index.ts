@@ -157,8 +157,9 @@ export function formatAmount(amount: number, useParts = false) {
     if (useParts) {
       return getIntlNumberFormatter(I18n.locale)
         .formatToParts(amount)
-        .map(({ type, value }) => (type === 'integer' ? value : ''))
-        .join(' ');
+        .filter(({ type }) => type === 'integer' || type === 'group')
+        .map(({ value }) => value)
+        .join('');
     }
     return getIntlNumberFormatter(I18n.locale).format(amount);
   } catch (e) {

@@ -239,6 +239,10 @@ jest.mock('../Engine', () => ({
       state: { vault: null },
     },
 
+    CardController: {
+      logout: jest.fn(),
+    },
+
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
       resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
@@ -3243,6 +3247,122 @@ describe('Authentication', () => {
         globalPassword: mockGlobalPassword,
       });
       expect(Authentication.resetPassword).toHaveBeenCalled();
+      expect(Engine.context.CardController.logout).toHaveBeenCalledTimes(1);
+      expect(
+        (Engine.context.KeyringController.exportEncryptionKey as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(
+        (Engine.context.CardController.logout as jest.Mock).mock
+          .invocationCallOrder[0],
+      );
+    });
+
+    it('finishes the password change when the Card sign-out never resolves', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .submitGlobalPassword as jest.Mock
+      ).mockResolvedValueOnce({ password: mockCurrentDevicePassword });
+      (
+        Engine.context.SeedlessOnboardingController
+          .syncLatestGlobalPassword as jest.Mock
+      ).mockResolvedValueOnce(undefined);
+      (
+        Engine.context.SeedlessOnboardingController
+          .checkIsPasswordOutdated as jest.Mock
+      ).mockResolvedValueOnce(true);
+
+      Engine.context.KeyringController.submitEncryptionKey = jest.fn();
+      Engine.context.KeyringController.isUnlocked = jest.fn();
+      Engine.context.KeyringController.changePassword = jest.fn();
+      Engine.context.KeyringController.exportEncryptionKey = jest.fn();
+      Engine.context.CardController.logout = jest.fn(
+        () => new Promise(() => undefined),
+      );
+
+      Engine.context.KeyringController.verifyPassword = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('submit password failed'));
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          user: { existingUser: true },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+                passwordOutdatedCache: {
+                  isExpiredPwd: true,
+                  timestamp: Date.now(),
+                },
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
+
+      await expect(
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
+      ).resolves.toBeUndefined();
+
+      expect(Authentication.resetPassword).toHaveBeenCalled();
+      expect(Engine.context.CardController.logout).toHaveBeenCalledTimes(1);
+    });
+
+    it('still syncs the password when signing out of Card fails', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .submitGlobalPassword as jest.Mock
+      ).mockResolvedValueOnce({ password: mockCurrentDevicePassword });
+      (
+        Engine.context.SeedlessOnboardingController
+          .syncLatestGlobalPassword as jest.Mock
+      ).mockResolvedValueOnce(undefined);
+      (
+        Engine.context.SeedlessOnboardingController
+          .checkIsPasswordOutdated as jest.Mock
+      ).mockResolvedValueOnce(true);
+
+      Engine.context.KeyringController.submitEncryptionKey = jest.fn();
+      Engine.context.KeyringController.isUnlocked = jest.fn();
+      Engine.context.KeyringController.changePassword = jest.fn();
+      Engine.context.KeyringController.exportEncryptionKey = jest.fn();
+      Engine.context.CardController.logout = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('logout failed'));
+
+      Engine.context.KeyringController.verifyPassword = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('submit password failed'));
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          user: { existingUser: true },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+                passwordOutdatedCache: {
+                  isExpiredPwd: true,
+                  timestamp: Date.now(),
+                },
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
+
+      await expect(
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
+      ).resolves.toBeUndefined();
+
+      expect(
+        Engine.context.KeyringController.changePassword,
+      ).toHaveBeenCalledWith(mockGlobalPassword);
+      expect(Authentication.resetPassword).toHaveBeenCalled();
     });
 
     it('throw error if vault recreation fails', async () => {
@@ -3281,6 +3401,7 @@ describe('Authentication', () => {
       await expect(
         Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
       ).rejects.toThrow('change password failed');
+      expect(Engine.context.CardController.logout).not.toHaveBeenCalled();
     });
   });
 

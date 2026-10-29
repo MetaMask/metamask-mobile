@@ -1200,14 +1200,16 @@
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
-      "description": "A few details need your attention. Review each item below, then try again.",
+      "description": "A few details need your attention. Review each item below, then contact support.",
+      "retry_description": "A few details need your attention. Review each item below, then try again.",
       "identity_document_title": "Check your identity document",
       "identity_document_description": "Make sure it is valid, clear, and fully visible",
       "selfie_title": "Retake your selfie",
       "selfie_description": "Use good lighting and show your face clearly",
       "details_title": "Review your details",
       "details_description": "Make sure your information matches your documents",
-      "button": "Try again"
+      "button": "Contact support",
+      "retry_button": "Try again"
     },
     "account_provisioning_error": {
       "title": "Couldn't create your account",
@@ -2947,6 +2949,7 @@
       "no_positions": "No open positions",
       "card": {
         "position_title": "Position",
+        "post_to_feed": "Post to feed",
         "pnl_label": "P&L",
         "return_label": "Return",
         "size_label": "Size",
@@ -3623,8 +3626,6 @@
       "title": "Share position",
       "post_to_metamask": "Post to MetaMask",
       "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
-      "post_not_ready": "This position isn't ready to post yet",
-      "post_other_account": "Only positions from your profile's wallet can be posted",
       "new_badge": "New",
       "share_externally": "Share externally"
     },
@@ -3694,7 +3695,9 @@
       "unavailable": "No markets are available right now."
     },
     "event": {
-      "your_positions": "Your positions"
+      "your_positions": "Your positions",
+      "game_lines": "Game Lines",
+      "outcome": "Outcome"
     },
     "search": {
       "placeholder": "Search markets",
@@ -5677,7 +5680,9 @@
         "unlink_money_account_button": "Unlink Money Account from Card",
         "unlink_money_account_disabled_hint": "No active linkage to remove.",
         "reset_card_arrival_description": "Clear the card arrival animation state so the reveal plays again the next time you open the Card dashboard.",
-        "reset_card_arrival_button": "Reset arrival animation"
+        "reset_card_arrival_button": "Reset arrival animation",
+        "reset_apple_pay_splash_description": "Show the Apple Pay availability splash again the next time you open Card Home while signed in.",
+        "reset_apple_pay_splash_button": "Reset Apple Pay splash"
       },
       "identity": {
         "title": "Identity",
@@ -10942,11 +10947,11 @@
     "add_wallet": "Add wallet",
     "add_wallet_srp_description": "Using a 12, 18 or 24-word seed phrase",
     "add_wallet_private_key_description": "Via a private key",
-    "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
+    "add_wallet_hardware_description": "Using Bluetooth or a QR code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
-    "link_metamask_extension": "Import accounts from MetaMask extension",
-    "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
+    "link_metamask_extension": "Import from MetaMask extension",
+    "link_metamask_extension_description": "Scan a QR code to add your accounts",
     "account_details": {
       "header_title": "Account details",
       "account_name": "Account name",
@@ -11865,6 +11870,28 @@
       "try_again": "Try again",
       "reset_success": "Password reset successful"
     },
+    "mfa": {
+      "method_title": "Verify it's you",
+      "method_description": "Choose where to send a code, then enter the full phone number or email.",
+      "method_phone": "Text message",
+      "method_email": "Email",
+      "phone_label": "Phone number",
+      "email_label": "Email",
+      "country_code": "Country code",
+      "country_code_label": "Country code, +{{code}}",
+      "continue": "Continue",
+      "code_title": "Enter your code",
+      "code_description": "Enter the code sent to {{destination}}.",
+      "start_over": "Start over",
+      "errors": {
+        "destination_mismatch": "That doesn't match the contact on your account. Check it and try again.",
+        "invalid_code": "That code is incorrect. Try again.",
+        "code_expired": "That code expired. Start over to get a new one.",
+        "attempts_exceeded": "Too many incorrect codes. Start over to try again.",
+        "restart_required": "Verification needs to start over.",
+        "no_verified_contact": "This account has no verified phone number or email to send a code to."
+      }
+    },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
@@ -11875,6 +11902,29 @@
       "didnt_receive_code": "Didn't receive the code? ",
       "resend_verification": "Resend it",
       "resend_cooldown": "Resend available in {{seconds}} seconds"
+    },
+    "apple_pay_splash": {
+      "title": "MetaMask with Apple Pay",
+      "description": "Apple Pay is an easy, secure, and private way to pay with your iPhone and Apple Watch.",
+      "no_downloads": "There are no additional app downloads, sign ups, or fees.",
+      "setup": "Get set up in seconds.",
+      "close": "Close"
+    },
+    "apple_pay_usage": {
+      "learn_more": "Learn more about Apple Pay",
+      "row_title": "How to use Apple Pay",
+      "title": "Using Apple Pay",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "got_it": "Got it"
+    },
+    "apple_pay_confirmation": {
+      "title": "Card Added Successfully",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "done": "Done"
     },
     "push_provisioning": {
       "add_to_wallet": "Add to {{walletName}}",
@@ -12209,12 +12259,12 @@
       "apply_success": "Bonus code applied!"
     },
     "optout": {
-      "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
+      "title": "Opt out of Rewards campaigns",
+      "description": "This removes your accounts from Rewards campaigns and benefits, and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
       "erase_button": "Erase progress",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "confirmation_description": "This will erase your progress in Rewards campaigns and benefits, and can't be reversed. If you rejoin later, you'll start back at 0.",
         "type_to_confirm": "Type 'erase progress' to continue",
         "confirm_phrase": "erase progress",
         "cancel": "Cancel",
