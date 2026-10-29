@@ -103,6 +103,7 @@ import PerpsTradeBottomSheet, {
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
+  PerpsTradeAccountUnsupportedScreen,
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
   PerpsTradePayWithScreen,
@@ -325,6 +326,7 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   payWith: 1,
   marginInfo: 1,
   liquidationInfo: 1,
+  accountUnsupported: 1,
 };
 /** Nested screens that size to their content instead of the Trade screen height. */
 const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
@@ -332,6 +334,7 @@ const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
   'payWith',
   'marginInfo',
   'liquidationInfo',
+  'accountUnsupported',
 ];
 
 /**
@@ -1926,7 +1929,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         isSubmittingRef.current = false;
       }
       if (!accountSupported) {
-        return;
+        return 'accountUnsupported' as const;
       }
 
       if (liquidityError) {
@@ -2958,6 +2961,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             liquidationInfo: (
               <PerpsTradeInfoScreen contentKey="liquidation_price" />
             ),
+            accountUnsupported: (
+              <PerpsTradeAccountUnsupportedScreen
+                onDismiss={closeAccountUnsupportedModal}
+              />
+            ),
           }}
         />
       </>
@@ -3578,7 +3586,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         />
       )}
       <PerpsAccountUnsupportedModal
-        isVisible={isAccountUnsupportedModalVisible}
+        isVisible={!useBottomSheet && isAccountUnsupportedModalVisible}
         onClose={closeAccountUnsupportedModal}
       />
     </SafeAreaView>
