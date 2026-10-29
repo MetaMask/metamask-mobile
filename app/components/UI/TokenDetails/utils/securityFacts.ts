@@ -61,8 +61,9 @@ interface ContractCheck {
   /** Where a payload mentioning none of the above lands. */
   otherwise: SecurityCheckOutcome;
   /**
-   * `verdict` rows carry a pass/fail glyph in green or red. `neutral` rows
-   * carry none and stay on the default text colour.
+   * `verdict` rows colour the value green on pass and red on fail, with a
+   * fail glyph only. `neutral` rows carry none and stay on the default text
+   * colour.
    *
    * `is_mintable` is the one neutral row, because it is the one check named as
    * a question rather than as the desirable state. Its pass means the mint
