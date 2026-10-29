@@ -109,6 +109,7 @@ const Routes = {
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  NFT_DETAILS: 'NftDetails',
   TRANSACTION_DETAILS: 'TransactionDetails',
   // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
   // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
