@@ -471,6 +471,23 @@ describe('Tokens', () => {
       ).toBe('');
     });
 
+    it('renders the search bar while the list is still loading', () => {
+      arrangeSearchableAssets();
+      jest
+        .spyOn(InteractionManager, 'runAfterInteractions')
+        .mockImplementation(() => ({
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        }));
+
+      const { getByTestId } = renderComponent(initialState, true);
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      ).toBeOnTheScreen();
+    });
+
     it('keeps the search bar visible when there are no tokens to list', () => {
       arrangeSearchableAssets();
       const { mockSelectSortedAssetsBySelectedAccountGroup } =

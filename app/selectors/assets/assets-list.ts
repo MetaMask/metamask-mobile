@@ -319,7 +319,7 @@ export const selectAssetsByAccountGroupId = (
 };
 
 // BIP44 MAINTENANCE: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
-const selectStakedAssets = createDeepEqualSelector(
+export const selectStakedAssets = createDeepEqualSelector(
   [
     (state: RootState) =>
       state.engine.backgroundState.AccountsController.internalAccounts.accounts,

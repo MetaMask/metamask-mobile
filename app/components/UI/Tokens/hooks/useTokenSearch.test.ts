@@ -1,6 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import type { FlashListAssetKey } from '../TokenList/TokenList';
+import {
+  selectAssetsBySelectedAccountGroup,
+  selectStakedAssets,
+} from '../../../../selectors/assets/assets-list';
 import { useTokenSearch } from './useTokenSearch';
 
 jest.mock('react-redux', () => ({
@@ -9,6 +13,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
   selectAssetsBySelectedAccountGroup: jest.fn(),
+  selectStakedAssets: jest.fn(),
 }));
 
 const ETH_KEY: FlashListAssetKey = {
@@ -53,11 +58,34 @@ const ASSETS = {
   ],
 };
 
+const STAKED_ASSETS = [
+  {
+    chainId: '0x1',
+    accountId: 'account-1',
+    stakedAsset: {
+      assetId: ETH_KEY.address,
+      chainId: '0x1',
+      symbol: 'ETH',
+      name: 'Staked Ethereum',
+    },
+  },
+];
+
+const mockSelectors = (
+  assets: Record<string, unknown> = ASSETS,
+  stakedAssets: unknown[] = STAKED_ASSETS,
+) =>
+  jest.mocked(useSelector).mockImplementation((selector: unknown) => {
+    if (selector === selectAssetsBySelectedAccountGroup) return assets;
+    if (selector === selectStakedAssets) return stakedAssets;
+    return undefined;
+  });
+
 describe('useTokenSearch', () => {
   const tokenKeys = [ETH_KEY, USDC_KEY, SOL_KEY];
 
   beforeEach(() => {
-    jest.mocked(useSelector).mockReturnValue(ASSETS);
+    mockSelectors();
   });
 
   it('returns the same array reference when the query is empty', () => {
@@ -96,6 +124,20 @@ describe('useTokenSearch', () => {
     expect(result.current).toEqual([]);
   });
 
+  it('matches the staked row by its own name', () => {
+    const { result } = renderHook(() =>
+      useTokenSearch([ETH_KEY, STAKED_ETH_KEY], 'stak'),
+    );
+
+    expect(result.current).toEqual([STAKED_ETH_KEY]);
+  });
+
+  it('does not match the native row by the staked name', () => {
+    const { result } = renderHook(() => useTokenSearch([ETH_KEY], 'staked'));
+
+    expect(result.current).toEqual([]);
+  });
+
   it('matches staked rows using the underlying asset symbol', () => {
     const { result } = renderHook(() =>
       useTokenSearch([ETH_KEY, STAKED_ETH_KEY], 'eth'),
@@ -105,7 +147,7 @@ describe('useTokenSearch', () => {
   });
 
   it('excludes keys that have no matching asset data', () => {
-    jest.mocked(useSelector).mockReturnValue({});
+    mockSelectors({}, []);
 
     const { result } = renderHook(() => useTokenSearch(tokenKeys, 'eth'));
 

@@ -74,6 +74,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 
 // Mock the navigation details creators
 jest.mock('../TokenSortBottomSheet/TokenSortBottomSheet', () => ({
+  getSortOption: () => ({ labelKey: 'wallet.sort_balance' }),
   createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
 }));
 
@@ -147,6 +148,11 @@ describe('TokenListControlBar', () => {
           networkName: 'Ethereum Mainnet',
         },
         PreferencesController: {
+          tokenSortConfig: {
+            key: 'tokenFiatAmount',
+            order: 'dsc',
+            sortCallback: 'stringNumeric',
+          },
           tokenNetworkFilter: {
             '0x1': true,
             '0x89': true,

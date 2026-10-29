@@ -14,6 +14,16 @@ class SortModal {
     );
   }
 
+  get applyButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_APPLY);
+  }
+
+  async tapApply(): Promise<void> {
+    await Gestures.waitAndTap(this.applyButton, {
+      elemDescription: 'Apply sort',
+    });
+  }
+
   async tapSortAlphabetically(): Promise<void> {
     await Gestures.waitAndTap(this.sortAlphabetically, {
       elemDescription: 'Sort Alphabetically',

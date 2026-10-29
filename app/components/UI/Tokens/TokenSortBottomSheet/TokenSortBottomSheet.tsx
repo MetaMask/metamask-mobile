@@ -1,118 +1,193 @@
-import React, { useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  Box,
+  ButtonsAlignment,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  ListItemSelect,
+  ListItemVariant,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { createNavigationDetails } from '../../../../util/navigation/navUtils';
 import { strings } from '../../../../../locales/i18n';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import currencySymbols from '../../../../util/currency-symbols.json';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
-import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
-import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
-import { createNavigationDetails } from '../../../../util/navigation/navUtils';
-import Routes from '../../../../constants/navigation/Routes';
+import { DEFAULT_TOKEN_SORT_CONFIG, type SortOrder } from '../util/sortAssets';
 
-const styles = StyleSheet.create({
-  bottomSheetTitle: {
-    alignSelf: 'center',
-    paddingTop: 16,
-    paddingBottom: 16,
+const SORT_OPTIONS = [
+  {
+    id: 'balance',
+    key: 'tokenFiatAmount',
+    sortCallback: 'stringNumeric',
+    defaultOrder: 'dsc',
+    labelKey: 'wallet.sort_balance',
+    orderLabelKeys: {
+      dsc: 'wallet.sort_high_to_low',
+      asc: 'wallet.sort_low_to_high',
+    },
+    testID: WalletViewSelectorsIDs.SORT_DECLINING_BALANCE,
   },
-  bottomSheetText: {
-    width: '100%',
+  {
+    id: 'name',
+    key: 'name',
+    sortCallback: 'alphaNumeric',
+    defaultOrder: 'asc',
+    labelKey: 'wallet.sort_name',
+    orderLabelKeys: {
+      asc: 'wallet.sort_a_to_z',
+      dsc: 'wallet.sort_z_to_a',
+    },
+    testID: WalletViewSelectorsIDs.SORT_ALPHABETICAL,
   },
-});
-
-enum SortOption {
-  FiatAmount = 0,
-  Alphabetical = 1,
-}
+] as const;
 
 export const createTokensBottomSheetNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
   Routes.SHEET.TOKEN_SORT,
 );
 
-const TokenSortBottomSheet = () => {
+type SortOptionId = (typeof SORT_OPTIONS)[number]['id'];
+
+/** Any sort key other than balance is treated as sorting by name. */
+export const getSortOption = (config: { key: string }) =>
+  config.key === 'tokenFiatAmount' ? SORT_OPTIONS[0] : SORT_OPTIONS[1];
+
+/**
+ * Bottom sheet route to pick the token sort field and direction. Changes stay
+ * in a draft until Apply; Reset restores the default sort. Tapping the
+ * selected option flips the direction.
+ */
+export const TokenSortBottomSheet = () => {
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
-
   const tokenSortConfig = useSelector(selectTokenSortConfig);
-  const currentCurrency = useSelector(selectCurrentCurrency);
+  const [draftOptionId, setDraftOptionId] = useState<SortOptionId>(
+    getSortOption(tokenSortConfig).id,
+  );
+  const [draftOrder, setDraftOrder] = useState<SortOrder>(
+    tokenSortConfig.order === 'asc' ? 'asc' : 'dsc',
+  );
+  // ROOT_MODAL_FLOW has no animation, so the opening tap can land on the
+  // overlay and dismiss the sheet. Stay non-interactive until fully open.
+  const [isReady, setIsReady] = useState(false);
 
-  const onSortControlsBottomSheetPress = (option: SortOption) => {
-    const { PreferencesController } = Engine.context;
-    switch (option) {
-      case SortOption.FiatAmount:
-        PreferencesController.setTokenSortConfig({
-          key: 'tokenFiatAmount',
-          order: 'dsc',
-          sortCallback: 'stringNumeric',
-        });
-        sheetRef.current?.onCloseBottomSheet();
-        break;
-      case SortOption.Alphabetical:
-        PreferencesController.setTokenSortConfig({
-          key: 'name',
-          sortCallback: 'alphaNumeric',
-          order: 'asc',
-        });
-        sheetRef.current?.onCloseBottomSheet();
-        break;
-      default:
-        break;
+  const handleGoBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
     }
-  };
+  }, [navigation]);
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleOptionPress = useCallback(
+    (option: (typeof SORT_OPTIONS)[number]) => {
+      if (draftOptionId === option.id) {
+        setDraftOrder((current) => (current === 'asc' ? 'dsc' : 'asc'));
+        return;
+      }
+      setDraftOptionId(option.id);
+      setDraftOrder(option.defaultOrder);
+    },
+    [draftOptionId],
+  );
+
+  const handleReset = useCallback(() => {
+    const defaultOption = getSortOption(DEFAULT_TOKEN_SORT_CONFIG);
+    setDraftOptionId(defaultOption.id);
+    setDraftOrder(DEFAULT_TOKEN_SORT_CONFIG.order);
+  }, []);
+
+  const handleApply = useCallback(() => {
+    const option =
+      draftOptionId === SORT_OPTIONS[0].id ? SORT_OPTIONS[0] : SORT_OPTIONS[1];
+    Engine.context.PreferencesController.setTokenSortConfig({
+      key: option.key,
+      order: draftOrder,
+      sortCallback: option.sortCallback,
+    });
+    sheetRef.current?.onCloseBottomSheet();
+  }, [draftOptionId, draftOrder]);
 
   return (
-    <BottomSheet shouldNavigateBack ref={sheetRef}>
-      <View>
-        <Text
-          testID={WalletViewSelectorsIDs.SORT_BY}
-          variant={TextVariant.HeadingMD}
-          style={styles.bottomSheetTitle}
-        >
-          {strings('wallet.sort_by')}
-        </Text>
-        <ListItemSelect
-          testID={WalletViewSelectorsIDs.SORT_DECLINING_BALANCE}
-          onPress={() => onSortControlsBottomSheetPress(SortOption.FiatAmount)}
-          isSelected={tokenSortConfig.key === 'tokenFiatAmount'}
-          isDisabled={false}
-          gap={8}
-          verticalAlignment={VerticalAlignment.Center}
-        >
-          <Text style={styles.bottomSheetText}>
-            {strings('wallet.declining_balance', {
-              currency:
-                currencySymbols[
-                  currentCurrency as keyof typeof currencySymbols
-                ] ?? currentCurrency,
-            })}
-          </Text>
-        </ListItemSelect>
-        <ListItemSelect
-          testID={WalletViewSelectorsIDs.SORT_ALPHABETICAL}
-          onPress={() =>
-            onSortControlsBottomSheetPress(SortOption.Alphabetical)
-          }
-          isSelected={tokenSortConfig.key !== 'tokenFiatAmount'}
-          isDisabled={false}
-          gap={8}
-          verticalAlignment={VerticalAlignment.Center}
-        >
-          <Text style={styles.bottomSheetText}>
-            {strings('wallet.alphabetically')}
-          </Text>
-        </ListItemSelect>
-      </View>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={handleGoBack}
+      onOpen={() => setIsReady(true)}
+      isInteractable={isReady}
+    >
+      <BottomSheetHeader
+        onClose={handleClose}
+        testID={WalletViewSelectorsIDs.SORT_BY}
+      >
+        {strings('wallet.sort_by')}
+      </BottomSheetHeader>
+      {SORT_OPTIONS.map((option) => {
+        const isSelected = draftOptionId === option.id;
+        return (
+          <ListItemSelect
+            key={option.id}
+            title={strings(option.labelKey)}
+            titleProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
+            variant={ListItemVariant.OneLine}
+            isSelected={isSelected}
+            showSelectedIcon={false}
+            onPress={() => handleOptionPress(option)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: isSelected }}
+            testID={option.testID}
+            endAccessory={
+              isSelected ? (
+                <Box twClassName="flex-row items-center gap-2">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings(option.orderLabelKeys[draftOrder])}
+                  </Text>
+                  <Icon
+                    name={
+                      draftOrder === 'asc'
+                        ? IconName.Arrow2Up
+                        : IconName.Arrow2Down
+                    }
+                    size={IconSize.Md}
+                    color={IconColor.IconAlternative}
+                  />
+                </Box>
+              ) : undefined
+            }
+          />
+        );
+      })}
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        primaryButtonProps={{
+          children: strings('wallet.sort_apply'),
+          onPress: handleApply,
+          testID: WalletViewSelectorsIDs.SORT_APPLY,
+        }}
+        secondaryButtonProps={{
+          children: strings('wallet.sort_reset'),
+          onPress: handleReset,
+          testID: WalletViewSelectorsIDs.SORT_RESET,
+        }}
+        twClassName="pt-4"
+      />
     </BottomSheet>
   );
 };
-
-export { TokenSortBottomSheet };

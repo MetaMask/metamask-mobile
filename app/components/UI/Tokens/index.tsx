@@ -127,7 +127,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     const [searchQuery, setSearchQuery] = useState('');
     const searchedTokenKeys = useTokenSearch(tokenKeysForList, searchQuery);
-    const isSearchVisible = isFullView && !showOnlyMusd && hasInitialLoad;
+    const clearSearch = useCallback(() => setSearchQuery(''), []);
+    const isSearchVisible = isFullView && !showOnlyMusd;
 
     const [, forceUpdate] = useState(0);
 
@@ -232,9 +233,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
       if (tokenKeysForList.length > 0 && searchedTokenKeys.length === 0) {
         return (
-          <Box twClassName="px-4 items-center">
+          <Box twClassName="flex-1 items-center justify-center px-6 py-12">
             <TabEmptyState
-              testID="tokens-no-search-results"
               icon={
                 <Icon
                   name={IconName.Search}
@@ -244,7 +244,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               }
               description={strings('wallet.no_tokens_match_search')}
               actionButtonText={strings('wallet.clear_search')}
-              onAction={() => setSearchQuery('')}
+              onAction={clearSearch}
             />
           </Box>
         );
@@ -309,6 +309,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       isFullView,
       tokenKeysForList,
       searchedTokenKeys,
+      clearSearch,
       showOnlyMusd,
       hasMusdBalanceOnAnyChainProp,
       tw,
@@ -334,7 +335,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             <TextFieldSearch
               value={searchQuery}
               onChangeText={setSearchQuery}
-              onPressClearButton={() => setSearchQuery('')}
+              onPressClearButton={clearSearch}
               placeholder={strings('wallet.search_tokens')}
               inputProps={{
                 autoComplete: 'off',
@@ -347,8 +348,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         )}
         {!showOnlyMusd && (
           <TokenListControlBar
-            hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-3` : undefined}
+            style={isFullView ? tw`px-4 pb-3 pt-2` : undefined}
           />
         )}
         {tokenContent}
