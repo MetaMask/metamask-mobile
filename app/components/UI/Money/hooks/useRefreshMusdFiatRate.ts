@@ -1,13 +1,12 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import type { Caip19AssetId } from '@metamask/assets-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../Earn/constants/musd';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // Module scoped promise to avoid multiple concurrent refreshes
 let refreshMusdFiatRatePromise: Promise<void> | undefined;
@@ -21,14 +20,9 @@ const doRefreshMusdFiatRate = async (
 
   if (!selectedEvmAccount) return;
 
-  await Engine.context.AssetsController.getAssets([selectedEvmAccount], {
-    chainIds: [toEvmCaipChainId(CHAIN_IDS.MONAD)],
-    dataTypes: ['price'],
-    forceUpdate: true,
-    assetsForPriceUpdate: [
-      MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD] as Caip19AssetId,
-    ],
-  }).catch((error: unknown) =>
+  await Engine.context.AssetsController.syncAssetsPrices([
+    MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD] as Caip19AssetId,
+  ]).catch((error: unknown) =>
     Logger.error(error as Error, {
       message: `${LOG_PREFIX} mUSD price refresh failed`,
     }),
