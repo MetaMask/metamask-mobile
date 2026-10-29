@@ -18,6 +18,7 @@ import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
+import { usePredictWithdrawGasFeeToken } from '../gas/usePredictWithdrawGasFeeToken';
 import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
@@ -47,6 +48,8 @@ export const useInsufficientBalanceAlert = ({
   const isQuotesLoading = useIsTransactionPayLoading();
   const fiatPayment = useTransactionPayFiatPayment();
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
+  const { isUnavailable: isPredictWithdrawGasFeeTokenUnavailable } =
+    usePredictWithdrawGasFeeToken();
 
   return useMemo(() => {
     if (
@@ -83,10 +86,17 @@ export const useInsufficientBalanceAlert = ({
     // rely on the combination of `excludeNativeTokenForFee` and `isGasFeeTokensEmpty`.
     // A forced gas fee token with an empty gas-station list cannot pay, and
     // native is short, so the transaction can only fail at sign time.
-    const isForcedGasFeeTokenUnavailable =
-      Boolean(isGasFeeTokenIgnoredIfBalance) &&
-      isGasFeeTokensEmpty &&
-      Boolean(selectedGasFeeToken);
+    // Predict withdraws are the exception: before signing, their gas fee token
+    // list comes from an unsigned EOA `pUSD.transfer` that always reverts, so
+    // it is always empty. Use the check against the real Safe call instead.
+    const isPredictWithdraw = hasTransactionType(transactionMetadata, [
+      TransactionType.predictWithdraw,
+    ]);
+    const isForcedGasFeeTokenUnavailable = isPredictWithdraw
+      ? isPredictWithdrawGasFeeTokenUnavailable
+      : Boolean(isGasFeeTokenIgnoredIfBalance) &&
+        isGasFeeTokensEmpty &&
+        Boolean(selectedGasFeeToken);
 
     const hasNoGasFeeTokenSelected =
       ignoreGasFeeToken ||
@@ -109,12 +119,7 @@ export const useInsufficientBalanceAlert = ({
     // case the gas station cannot cover.
     const isIgnoredType =
       hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
-      !(
-        isForcedGasFeeTokenUnavailable &&
-        hasTransactionType(transactionMetadata, [
-          TransactionType.predictWithdraw,
-        ])
-      );
+      !(isPredictWithdraw && isForcedGasFeeTokenUnavailable);
 
     const showAlert =
       hasInsufficientBalance &&
@@ -154,6 +159,7 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata,
     isTransactionValueUpdating,
     isFiatPaymentSelected,
+    isPredictWithdrawGasFeeTokenUnavailable,
     isGaslessCheckPending,
     isGaslessSupported,
     isSimulationEnabled,

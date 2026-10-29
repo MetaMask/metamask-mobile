@@ -41,6 +41,10 @@ import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
 } from './unrealizedPnL';
+import {
+  predictWithdrawGasFeeTokenKeys,
+  predictWithdrawGasFeeTokenOptions,
+} from './withdrawGasFeeToken';
 
 export const predictQueries = {
   accountState: {
@@ -105,5 +109,9 @@ export const predictQueries = {
   unrealizedPnL: {
     keys: predictUnrealizedPnLKeys,
     options: predictUnrealizedPnLOptions,
+  },
+  withdrawGasFeeToken: {
+    keys: predictWithdrawGasFeeTokenKeys,
+    options: predictWithdrawGasFeeTokenOptions,
   },
 };

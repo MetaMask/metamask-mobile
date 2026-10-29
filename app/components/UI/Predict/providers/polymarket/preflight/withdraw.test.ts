@@ -20,10 +20,16 @@ jest.mock('../utils', () => ({
   encodeErc20Transfer: jest.fn(() => '0xtransfer'),
 }));
 
+jest.mock('../safe/utils', () => ({
+  ...jest.requireActual('../safe/utils'),
+  getPreValidatedSafeTransactionCallData: jest.fn(() => '0xpreValidated'),
+}));
+
 import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
 import { getRawTokenBalance } from './core';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
-import { planWithdraw } from './withdraw';
+import { getPreValidatedSafeTransactionCallData } from '../safe/utils';
+import { buildUnsignedWithdrawTransaction, planWithdraw } from './withdraw';
 
 const mockGetRawTokenBalance = getRawTokenBalance as jest.MockedFunction<
   typeof getRawTokenBalance
@@ -76,5 +82,32 @@ describe('planWithdraw', () => {
       POLYMARKET_V2_PROTOCOL.collateral.onrampAddress,
       POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
     ]);
+  });
+});
+
+describe('buildUnsignedWithdrawTransaction', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('encodes the planned Safe withdraw with a pre-validated signature', async () => {
+    const safeAddress = '0x9999999999999999999999999999999999999999';
+
+    const result = await buildUnsignedWithdrawTransaction({
+      signer,
+      safeAddress,
+      requestedAmountRaw: 1_000_000n,
+      protocol: POLYMARKET_V2_PROTOCOL,
+      safeLegacyUsdceBalance: 0n,
+    });
+
+    expect(getPreValidatedSafeTransactionCallData).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
+      txn: expect.objectContaining({
+        to: POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+        data: '0xtransfer',
+      }),
+    });
+    expect(result).toEqual({ to: safeAddress, data: '0xpreValidated' });
   });
 });
