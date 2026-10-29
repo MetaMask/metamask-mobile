@@ -1483,6 +1483,47 @@ describe('Engine', () => {
         'Engine: failed to clear cached PredictNext account data',
       );
     });
+
+    it('forgets the Venue Selection Preference and the last Active Venue', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        ...backgroundState,
+        PredictVenueController: {
+          venueSelectionPreference: 'kalshi',
+          lastActiveVenue: 'kalshi',
+          sessionDefault: null,
+        },
+      });
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      expect(engine.context.PredictVenueController.state).toMatchObject({
+        venueSelectionPreference: null,
+        lastActiveVenue: null,
+      });
+    });
+
+    it('forgets the Venue history when the PredictNext purge fails', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        ...backgroundState,
+        PredictVenueController: {
+          venueSelectionPreference: 'kalshi',
+          lastActiveVenue: null,
+          sessionDefault: null,
+        },
+      });
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockRejectedValue(new Error('purge failed'));
+
+      await engine.resetState();
+
+      expect(
+        engine.context.PredictVenueController.state.venueSelectionPreference,
+      ).toBeNull();
+    });
   });
 
   describe('hasFunds', () => {

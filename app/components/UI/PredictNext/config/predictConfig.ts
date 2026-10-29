@@ -1,11 +1,20 @@
 import { boolean, mask, object, type Struct } from '@metamask/superstruct';
 
+/**
+ * Rollout input to Active Venue resolution. See `docs/active-venue.md`.
+ */
 export interface PredictConfig {
+  /**
+   * `false` selects the legacy Polymarket lane. It is not a kill switch:
+   * legacy availability stays with `predictTradingEnabled`.
+   */
   enabled: boolean;
+  /** Per-Venue rollout; turning a Venue off is also its kill switch. */
   venues: {
     polymarket: { enabled: boolean };
     kalshi: { enabled: boolean };
   };
+  /** Whether a Venue Selection Preference is honored. */
   venueSelection: { enabled: boolean };
 }
 

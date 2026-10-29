@@ -1,29 +1,48 @@
-import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { PredictConfig } from '../config/predictConfig';
+import { createSelector } from 'reselect';
+import type { RootState } from '../../../../reducers';
 import { selectPredictConfig } from '../selectors/predictConfig';
-import type { ActiveVenueResolution, PredictConfiguredVenue } from './types';
+import type { PredictVenueControllerState } from './PredictVenueController';
+import { getSelectableVenues, resolveActiveVenue } from './resolveActiveVenue';
+import type { ActiveVenueResolution } from './types';
+
+const selectPredictVenueControllerState = (
+  state: RootState,
+): PredictVenueControllerState | undefined =>
+  state.engine?.backgroundState?.PredictVenueController;
+
+/** The stored Venue Selection Preference, honored or not. */
+export const selectVenueSelectionPreference = createSelector(
+  selectPredictVenueControllerState,
+  (venueState) => venueState?.venueSelectionPreference ?? null,
+);
+
+const selectSessionDefaultVenue = createSelector(
+  selectPredictVenueControllerState,
+  (venueState) => venueState?.sessionDefault ?? null,
+);
 
 /**
- * Temporary rollout rule: Kalshi only when it is the sole enabled Venue.
- * PRED-1377 replaces it with Venue Selection Preference and geolocation
- * precedence behind {@link useActiveVenue}.
+ * The Active Venue: the one resolver behind every public API, the root
+ * Predict route and availability. See `docs/active-venue.md`.
  */
-export const resolveActiveVenue = (
-  config: PredictConfig,
-): PredictConfiguredVenue => {
-  if (!config.enabled) {
-    return 'polymarket';
-  }
-  return config.venues.kalshi.enabled && !config.venues.polymarket.enabled
-    ? 'kalshi'
-    : 'polymarket';
-};
+export const selectActiveVenue = createSelector(
+  selectPredictConfig,
+  selectVenueSelectionPreference,
+  selectSessionDefaultVenue,
+  (config, venueSelectionPreference, sessionDefault): ActiveVenueResolution =>
+    resolveActiveVenue({ config, venueSelectionPreference, sessionDefault }),
+);
 
-/** Resolves the Active Venue. Today's config rule is always ready. */
-export const useActiveVenue = (): ActiveVenueResolution => {
-  const config = useSelector(selectPredictConfig);
-  const venue = resolveActiveVenue(config);
+/**
+ * Venues a Venue Selection Preference may name right now; empty when there
+ * is no choice to offer.
+ */
+export const selectSelectableVenues = createSelector(
+  selectPredictConfig,
+  getSelectableVenues,
+);
 
-  return useMemo(() => ({ status: 'ready', venue }), [venue]);
-};
+/** Resolves the Active Venue. Callers below the switch use `useNextVenueId`. */
+export const useActiveVenue = (): ActiveVenueResolution =>
+  useSelector(selectActiveVenue);

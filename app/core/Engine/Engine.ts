@@ -185,6 +185,7 @@ import { profileServiceInit } from './controllers/profile-service-init';
 import { profileControllerInit } from './controllers/profile-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
+import { predictVenueControllerInit } from './controllers/predict-venue-controller-init';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
@@ -327,6 +328,8 @@ export class Engine {
         GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
         GeolocationController: geolocationControllerInit,
+        // After GeolocationController: it reads that controller's fetch.
+        PredictVenueController: predictVenueControllerInit,
         TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
@@ -670,6 +673,7 @@ export class Engine {
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictVenueController: messengerClientsByName.PredictVenueController,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
       LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
@@ -1357,6 +1361,7 @@ export class Engine {
       KycController,
       PredictOrderService,
       PredictPortfolioService,
+      PredictVenueController,
     } = this.context;
 
     // Remove all permissions.
@@ -1417,6 +1422,10 @@ export class Engine {
         'Engine: failed to clear cached PredictNext account data',
       );
     }
+
+    // The Venue Selection Preference and the last Active Venue are device
+    // Venue history, not the next person's choice.
+    PredictVenueController.clearState();
   };
 
   removeAllListeners() {
@@ -1565,6 +1574,7 @@ export default {
       BridgeStatusController,
       CardController,
       UiSlotsController,
+      PredictVenueController,
       ConfigRegistryController,
       ConnectivityController,
       NetworkConnectionBannerController,
@@ -1683,6 +1693,7 @@ export default {
       ProfileController: ProfileController.state,
       CardController: CardController.state,
       UiSlotsController: UiSlotsController.state,
+      PredictVenueController: PredictVenueController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       KycController: KycController.state,

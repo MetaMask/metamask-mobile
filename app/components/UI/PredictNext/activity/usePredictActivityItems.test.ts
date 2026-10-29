@@ -85,7 +85,7 @@ describe('usePredictActivityItems', () => {
 
   describe('while the next implementation is active', () => {
     beforeEach(() => {
-      givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+      givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
     });
 
     it('never ensures Polygon or reads legacy Activity', async () => {
@@ -118,7 +118,11 @@ describe('usePredictActivityItems', () => {
 
   describe('while the legacy implementation is active', () => {
     beforeEach(() => {
-      givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+      givenActiveVenue({
+        status: 'ready',
+        venue: 'polymarket',
+        source: 'rollout',
+      });
     });
 
     it('passes legacy Activity through on Polygon in USDC', async () => {

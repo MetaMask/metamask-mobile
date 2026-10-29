@@ -50,7 +50,11 @@ describe('PredictActivityDetails', () => {
     'predictionsAddFunds',
     'predictionsWithdrawFunds',
   ] as const)('renders the legacy templates for %s on legacy', (type) => {
-    givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+    givenActiveVenue({
+      status: 'ready',
+      venue: 'polymarket',
+      source: 'rollout',
+    });
 
     render(<PredictActivityDetails item={buildItem(type)} />);
 
@@ -60,7 +64,7 @@ describe('PredictActivityDetails', () => {
   it.each(['predictionsAddFunds', 'predictionsWithdrawFunds'] as const)(
     'renders the funding template for %s on next',
     (type) => {
-      givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+      givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
 
       render(<PredictActivityDetails item={buildItem(type)} />);
 
@@ -75,7 +79,7 @@ describe('PredictActivityDetails', () => {
     'predictionClaimWinnings',
     'predictionSettled',
   ] as const)('renders nothing for %s on next until E5', (type) => {
-    givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
 
     render(
       <>

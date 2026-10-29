@@ -937,6 +937,11 @@
     "claimById": {},
     "rewardsMoneyEnvUrl": null
   },
+  "PredictVenueController": {
+    "venueSelectionPreference": null,
+    "lastActiveVenue": null,
+    "sessionDefault": null
+  },
   "PredictController": {
     "eligibility": {
       "status": "checking",

@@ -54,7 +54,11 @@ describe('PredictImplementationSwitch', () => {
   });
 
   it('mounts only the legacy branch for Polymarket', () => {
-    givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+    givenActiveVenue({
+      status: 'ready',
+      venue: 'polymarket',
+      source: 'rollout',
+    });
 
     render(renderSwitch());
 
@@ -63,7 +67,7 @@ describe('PredictImplementationSwitch', () => {
   });
 
   it('mounts only the next branch for Kalshi', () => {
-    givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
 
     render(renderSwitch());
 
@@ -72,7 +76,7 @@ describe('PredictImplementationSwitch', () => {
   });
 
   it('hands the resolved Venue to the next branch', () => {
-    givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
 
     render(
       <PredictImplementationSwitch
@@ -105,10 +109,14 @@ describe('PredictImplementationSwitch', () => {
   });
 
   it('remounts when the Active Venue changes', () => {
-    givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+    givenActiveVenue({
+      status: 'ready',
+      venue: 'polymarket',
+      source: 'rollout',
+    });
     const view = render(renderSwitch());
 
-    givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
     view.rerender(renderSwitch());
 
     expect(mockUnmount.mock.calls).toEqual([['legacy']]);
@@ -117,10 +125,10 @@ describe('PredictImplementationSwitch', () => {
   });
 
   it('keeps the active branch mounted while the Active Venue is unchanged', () => {
-    givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
     const view = render(renderSwitch());
 
-    givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
     view.rerender(renderSwitch());
 
     expect(mockMount).toHaveBeenCalledTimes(1);
@@ -129,7 +137,7 @@ describe('PredictImplementationSwitch', () => {
 
   it.each<ActiveVenueResolution>([
     { status: 'resolving' },
-    { status: 'ready', venue: 'kalshi' },
+    { status: 'ready', venue: 'kalshi', source: 'rollout' },
   ])('serves a pinned Venue regardless of the Active Venue', (active) => {
     givenActiveVenue(active);
 
@@ -139,7 +147,11 @@ describe('PredictImplementationSwitch', () => {
   });
 
   it('keeps the legacy branch mounted when pinning ends on the same implementation', () => {
-    givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+    givenActiveVenue({
+      status: 'ready',
+      venue: 'polymarket',
+      source: 'rollout',
+    });
     const view = render(renderSwitch({ pinnedVenue: 'polymarket' }));
 
     view.rerender(renderSwitch());
