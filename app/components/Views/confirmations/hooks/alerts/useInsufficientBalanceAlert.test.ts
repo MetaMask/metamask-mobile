@@ -23,6 +23,7 @@ import {
   useTransactionPayFiatPayment,
 } from '../pay/useTransactionPayData';
 import { Hex } from '@metamask/utils';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -63,6 +64,7 @@ jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../gas/usePredictWithdrawGasFeeToken');
+jest.mock('../../../../../util/Logger');
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -75,7 +77,7 @@ describe('useInsufficientBalanceAlert', () => {
   );
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const mockUseRampNavigation = jest.mocked(useRampNavigation);
-  const mockGoToBuy = jest.fn();
+  const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
   const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
@@ -234,7 +236,7 @@ describe('useInsufficientBalanceAlert', () => {
   });
 
   it('onReject is called when callback is called', () => {
-    const onRejectMock = jest.fn();
+    const onRejectMock = jest.fn().mockResolvedValue(undefined);
     mockUseConfirmReject.mockReturnValue({
       onReject: onRejectMock,
     });
@@ -244,6 +246,28 @@ describe('useInsufficientBalanceAlert', () => {
     callback?.();
     expect(onRejectMock).toHaveBeenCalled();
     expect(onRejectMock).toHaveBeenCalledWith(undefined, true);
+  });
+
+  it('logs when the buy or reject actions fail', async () => {
+    const buyError = new Error('buy failed');
+    const rejectError = new Error('reject failed');
+    mockGoToBuy.mockRejectedValueOnce(buyError);
+    mockUseConfirmReject.mockReturnValue({
+      onReject: jest.fn().mockRejectedValue(rejectError),
+    });
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    result.current[0]?.action?.callback?.();
+    await new Promise(process.nextTick);
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      buyError,
+      'Insufficient balance alert: failed to open buy',
+    );
+    expect(Logger.error).toHaveBeenCalledWith(
+      rejectError,
+      'Insufficient balance alert: failed to reject confirmation',
+    );
   });
 
   it('return alert when balance is insufficient (with gasPrice)', () => {

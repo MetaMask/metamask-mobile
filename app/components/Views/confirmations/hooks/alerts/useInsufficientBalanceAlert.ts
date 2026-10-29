@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
@@ -140,8 +141,20 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
-            onReject(undefined, true);
+            goToBuy(undefined, {
+              surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION,
+            }).catch((error) =>
+              Logger.error(
+                error as Error,
+                'Insufficient balance alert: failed to open buy',
+              ),
+            );
+            onReject(undefined, true).catch((error) =>
+              Logger.error(
+                error as Error,
+                'Insufficient balance alert: failed to reject confirmation',
+              ),
+            );
           },
         },
         isBlocking: true,
