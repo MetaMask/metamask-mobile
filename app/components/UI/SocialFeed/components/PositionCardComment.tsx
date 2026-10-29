@@ -1,4 +1,5 @@
 import {
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -20,7 +21,8 @@ const PositionCardComment: React.FC<PositionCardCommentProps> = ({
 
   return (
     <Text
-      variant={TextVariant.BodyMd}
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Regular}
       color={TextColor.TextDefault}
       testID={testID}
     >

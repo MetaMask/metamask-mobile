@@ -213,92 +213,99 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         ) : null}
         {post.item.comment ? <SocialFeedPostTranslation post={post} /> : null}
 
-        {onPositionPress ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={handlePositionPress}
-            testID={`${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${post.id}`}
-          >
+        {/* 8px before this group. The translation line keeps about 4px under
+            its letters, so the space above the card reads near 12px. */}
+        <Box twClassName="mt-2 gap-3">
+          {onPositionPress ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={handlePositionPress}
+              testID={`${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${post.id}`}
+            >
+              <PositionCardBody
+                item={post.item}
+                onCopyTrade={copyTradeHandler}
+              />
+            </Pressable>
+          ) : (
             <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
-          </Pressable>
-        ) : (
-          <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
-        )}
+          )}
 
-        {post.gifUri ? (
-          <Box twClassName="rounded-2xl overflow-hidden">
-            <SocialFeedGif
-              uri={post.gifUri}
-              testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
-            />
-          </Box>
-        ) : null}
+          {post.gifUri ? (
+            <Box twClassName="rounded-2xl overflow-hidden">
+              <SocialFeedGif
+                uri={post.gifUri}
+                testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
+              />
+            </Box>
+          ) : null}
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          gap={3}
-        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={2}
-            twClassName="flex-1 min-w-0 flex-wrap"
+            justifyContent={BoxJustifyContent.Between}
+            gap={3}
           >
-            {chips.map((reaction) => (
-              <ReactionChip
-                key={reaction.emotion}
-                emotion={reaction.emotion}
-                count={reaction.count}
-                isSelected={reaction.emotion === userReaction}
-                onPress={() => toggleEmotion(reaction.emotion)}
-                testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
-              />
-            ))}
-            <View ref={reactionAnchorRef} collapsable={false}>
-              <ButtonBase
-                size={ButtonBaseSize.Sm}
-                twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
-                accessibilityLabel={strings(
-                  'social_leaderboard.feed.add_reaction',
-                )}
-                onPress={openPicker}
-                testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
-              >
-                <EmojiAddIcon
-                  width={16}
-                  height={16}
-                  color={colors.icon.alternative}
-                  name="emoji-add"
-                />
-              </ButtonBase>
-            </View>
-          </Box>
-
-          {/* Inert on purpose: the count is context for the reactions next to it,
-            not a way into a list of who copied. Absent on social-api builds
-            that predate it, where it would otherwise read as a false zero. */}
-          {post.copyCount !== undefined ? (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={1}
-              testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
+              gap={2}
+              twClassName="flex-1 min-w-0 flex-wrap"
             >
-              <Icon
-                name={IconName.SwapHorizontal}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {post.copyCount}
-              </Text>
+              {chips.map((reaction) => (
+                <ReactionChip
+                  key={reaction.emotion}
+                  emotion={reaction.emotion}
+                  count={reaction.count}
+                  isSelected={reaction.emotion === userReaction}
+                  onPress={() => toggleEmotion(reaction.emotion)}
+                  testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
+                />
+              ))}
+              <View ref={reactionAnchorRef} collapsable={false}>
+                <ButtonBase
+                  size={ButtonBaseSize.Sm}
+                  twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.feed.add_reaction',
+                  )}
+                  onPress={openPicker}
+                  testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+                >
+                  <EmojiAddIcon
+                    width={16}
+                    height={16}
+                    color={colors.icon.alternative}
+                    name="emoji-add"
+                  />
+                </ButtonBase>
+              </View>
             </Box>
-          ) : null}
+
+            {/* Inert on purpose: the count is context for the reactions next to it,
+            not a way into a list of who copied. Absent on social-api builds
+            that predate it, where it would otherwise read as a false zero. */}
+            {post.copyCount !== undefined ? (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+                testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
+              >
+                <Icon
+                  name={IconName.SwapHorizontal}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {post.copyCount}
+                </Text>
+              </Box>
+            ) : null}
+          </Box>
         </Box>
       </SocialTraderIdentityRow>
 
