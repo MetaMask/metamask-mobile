@@ -22,6 +22,12 @@ import { parseStandardTokenTransactionData } from '../../utils/transaction';
  * accounts) and a native balance that can't cover gas. Deposit-wallet
  * withdraws have no gas fee token because the relayer pays.
  *
+ * If the check fails (for example, an RPC error while building the Safe
+ * call), the hook returns neither pending nor unavailable, so the withdraw
+ * is allowed. That is deliberate: `checkGasFeeTokenBeforePublish` re-quotes
+ * the real signed call before publishing, so a withdraw that can't pay fails
+ * there and never goes on chain.
+ *
  * @returns `isPending` while the check runs, and `isUnavailable` when pUSD
  * can't pay the withdraw gas.
  */

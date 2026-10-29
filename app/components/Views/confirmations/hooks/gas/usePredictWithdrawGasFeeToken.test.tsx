@@ -117,6 +117,23 @@ describe('usePredictWithdrawGasFeeToken', () => {
     expect(result.current.isPending).toBe(false);
   });
 
+  it('allows the withdraw when the check fails', async () => {
+    isWithdrawGasFeeTokenAvailableMock.mockRejectedValue(
+      new Error('RPC unavailable'),
+    );
+
+    const { result } = renderUsePredictWithdrawGasFeeToken();
+
+    await waitFor(() => expect(result.current.isPending).toBe(false), {
+      timeout: 3000,
+    });
+
+    expect(result.current).toStrictEqual({
+      isPending: false,
+      isUnavailable: false,
+    });
+  });
+
   it.each([
     [
       'the native balance covers gas',
