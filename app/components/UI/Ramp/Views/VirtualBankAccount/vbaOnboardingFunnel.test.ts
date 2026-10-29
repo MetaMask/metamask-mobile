@@ -150,6 +150,17 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       ['kyc rejected', snapshot({ kycStatus: 'rejected' })],
+      ['kyc retry', snapshot({ kycStatus: 'retry' })],
+      [
+        'kyc retry after the provider flow was abandoned',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'abandoned',
+          kycStatus: 'retry',
+        }),
+      ],
     ];
 
     expect(
@@ -168,6 +179,8 @@ describe('getVbaDestinationForSnapshot', () => {
         "email and vendor terms done": "identityVerification",
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
+        "kyc retry": "kycRejected",
+        "kyc retry after the provider flow was abandoned": "kycRejected",
         "needs wallet registration": "identityVerified",
         "provider done": "identityVerification",
         "session exists without vendor disclaimers recorded": "identityVerification",

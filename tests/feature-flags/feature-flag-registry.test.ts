@@ -414,8 +414,7 @@ describe('Feature Flag Registry', () => {
 
     it('keeps Social AI comment translation off until the flag is enabled', () => {
       expect(
-        getRegistryEntry('aiSocialCommentTranslationEnabled')
-          ?.productionDefault,
+        getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
       ).toEqual({
         enabled: false,
         minimumVersion: '8.19.0',

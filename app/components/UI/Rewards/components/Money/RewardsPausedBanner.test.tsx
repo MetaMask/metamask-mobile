@@ -3,9 +3,8 @@ import { fireEvent } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import RewardsPausedBanner, {
-  REWARDS_PAUSED_BANNER_TEST_IDS,
-} from './RewardsPausedBanner';
+import RewardsPausedBanner from './RewardsPausedBanner';
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from './RewardsPausedBanner.testIds';
 
 const mockNavigate = jest.fn();
 

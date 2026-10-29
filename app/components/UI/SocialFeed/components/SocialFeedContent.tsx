@@ -1,6 +1,7 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
+import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import { useSocialFeedScreenView } from '../socialFeedTracking';
@@ -29,8 +30,6 @@ const styles = StyleSheet.create({
     height: 1,
   },
 });
-
-const noop = () => undefined;
 
 /**
  * Asks for the next page once the footer is inside the host scroll.
@@ -89,9 +88,14 @@ const LoadMoreSentinel: React.FC<{
  * an outer surface has opted into them.
  */
 const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
-  source,
+  scope,
+  chains,
+  assetIds,
+  profileId,
+  commentedOnly,
   location,
   analyticsSource,
+  showMockedFields,
   isActive,
   title,
   renderHeader,
@@ -102,6 +106,16 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   onPositionPress,
   testID,
 }) => {
+  const query = useMemo(
+    (): SocialFeedQuery => ({
+      scope,
+      chains,
+      assetIds,
+      profileId,
+      commentedOnly,
+    }),
+    [assetIds, chains, commentedOnly, profileId, scope],
+  );
   const {
     posts,
     isLoading,
@@ -110,7 +124,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     loadMore,
     error,
     refresh,
-  } = useSocialFeed(source, { filterPost });
+  } = useSocialFeed(query, { filterPost });
   const state = getSocialFeedListState({
     postCount: posts.length,
     isLoading,
@@ -139,10 +153,11 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      showMockedFields={showMockedFields}
     >
       <Box twClassName="gap-4" testID={testID}>
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
-        {renderHeader?.({ pendingNewCount: 0, onRevealPending: noop })}
+        {renderHeader?.()}
         <SocialFeedPlaceholder state={state} emptyState={emptyState} />
         {posts.length > 0 ? (
           <SocialV1FeedPostList

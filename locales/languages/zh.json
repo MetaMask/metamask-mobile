@@ -354,7 +354,7 @@
     "sign_in_with_apple": "使用 Apple 登录",
     "continue_with_telegram": "继续通过 Telegram 操作",
     "sign_in_with_telegram": "使用 Telegram 登录",
-    "your_wallet": "您已成功重设钱包！",
+    "your_wallet": "You successfully reset your wallet.",
     "delete_current": "重设当前钱包",
     "have_existing_wallet": "我已有一个钱包",
     "import_using_srp": "使用私钥助记词导入",
@@ -545,12 +545,12 @@
     "forgot_password_desc_2": "MetaMask 无法为您找回密码。",
     "forgot_password_point_1": "如果您已在启用了",
     "forgot_password_point_1_bold": "生物特征识别（如面容 ID）的设备上",
-    "forgot_password_point_1_1": "登录 MetaMask，您可以在此重设密码。",
+    "forgot_password_point_1_1": "(like Face ID), reset your password there.",
     "forgot_password_point_2": "如果您有",
     "forgot_password_point_2_bold": "私钥助记词,",
     "forgot_password_point_2_1": "您可以重设当前钱包并使用私钥助记词重新导入。",
     "reset_wallet": "重设钱包",
-    "reset_wallet_desc": "您的钱包数据将会在该设备上从 MetaMask 永久删除。此操作无法撤销。",
+    "reset_wallet_desc": "Your wallet data will be erased from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "要恢复您的钱包，您可以使用您的私钥助记词，或您的 Google 账户/ Apple 账户密码。MetaMask 没有这些信息。",
     "reset_wallet_desc_srp": "要恢复您的钱包，请确保您已备份私钥助记词。MetaMask 不会存储此信息。",
     "reset_wallet_desc_srp_1": "要恢复您的钱包，请确保您持有",
@@ -1146,6 +1146,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " 和 ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "技术支持：",
       "button": "Get account details"
     },
@@ -1168,8 +1170,6 @@
       "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "verify_description": "placeholder for verify description",
-      "enroll_description": "placeholder for enroll description",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening email verification. Please try again."
     },
@@ -1191,11 +1191,12 @@
     },
     "identity_verified": {
       "title": "身份已验证",
-      "description": "Your identity check is complete.",
+      "description": "您的身份验证已完成。",
       "button": "继续"
     },
     "creating_account": {
-      "title": "Creating your bank account"
+      "title": "正在创建您的银行账户",
+      "awaiting_provider": "正在等待 MoonPay 批准您的账户"
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
@@ -1213,31 +1214,61 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "请重试"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "联系支持团队",
+        "secondary": "完成"
+      },
+      "generic": {
+        "title": "出错了",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "请重试",
+        "secondary": "完成"
+      }
+    },
     "error": {
-      "title": "Couldn't open your account",
-      "description": "We couldn't load your bank account details.",
+      "title": "无法开通您的账户",
+      "description": "我们无法加载您的银行账户详情。",
       "button": "请重试"
+    },
+    "choose_currency": {
+      "title": "选择您的货币",
+      "description": "请选择您的银行将汇出的货币。我们会显示您要转账的收款账户详情。",
+      "footnote": "资金到达您的 Money Account 后，所有资金都会转换为 mUSD。",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "巴西雷亚尔",
+        "usd": "美元",
+        "eur": "欧元"
+      }
     },
     "vba_details": {
       "title": "Add money with Pix",
-      "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
-      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
-      "copia_cola_label": "PIX Copia e Cola",
-      "pix_key_label": "PIX key",
-      "bank_transfer_title": "Add money by bank transfer",
-      "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
-      "account_holder_label": "Account holder",
+      "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
+      "helper_text": "您的 Money Account 由 [Entity] 提供，[受监管状态，待确认]。雷亚尔到账后会转换为 mUSD。",
+      "copia_cola_label": "Pix Copia e Cola",
+      "pix_key_label": "Pix key",
+      "bank_transfer_title": "通过银行转账添加资金",
+      "bank_transfer_description": "使用这些详情从您的银行账户向 MetaMask Money 汇款。",
+      "account_holder_label": "账户持有人",
       "routing_number_label": "路由号码",
       "account_number_label": "账号",
       "bank_name_label": "银行名称",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "完成",
-      "waiting_for_details": "Your account details appear here once the account is approved.",
-      "loading_details": "Loading account details",
+      "waiting_for_details": "您的账户详情将很快显示在这里。",
+      "loading_details": "正在加载账户详情",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
-      "setup_error": "Couldn't create your account.",
+      "setup_error": "无法创建您的账户。",
       "retry": "请重试"
+    }
+  },
+  "social": {
+    "profile": {
+      "share_position": "Share position"
     }
   },
   "social_leaderboard": {
@@ -1257,7 +1288,8 @@
       "submit_report": "提交",
       "post_hidden_confirmation": "Post hidden",
       "user_blocked_confirmation": "{{username}} has been blocked",
-      "report_confirmation": "Report submitted"
+      "report_confirmation": "Report submitted",
+      "action_failed": "出现问题，请重试。"
     },
     "feed_sort": {
       "title": "排序",
@@ -1300,11 +1332,16 @@
         "feed": "动态",
         "trending": "趋势",
         "following": "正在关注",
-        "live_trades": "实时交易"
+        "live": "进行中"
       },
       "live_stream": {
         "paused": "已暂停",
-        "live": "进行中"
+        "live": "进行中",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "正在关注",
       "all": "所有",
@@ -1338,17 +1375,22 @@
       },
       "v1_empty": {
         "trending": {
-          "title": "No posts yet",
-          "description": "Trader posts will show up here."
+          "title": "暂无帖子",
+          "description": "交易者帖子将显示在此处。"
         },
         "following": {
-          "title": "No posts yet",
-          "description": "Follow traders to see their posts here."
+          "title": "暂无帖子",
+          "description": "关注交易者即可在此处查看他们的帖子。"
         },
-        "liveTrades": {
+        "live": {
           "title": "暂无交易",
-          "description": "Live trades will show up here."
+          "description": "Live activity will show up here."
         }
+      },
+      "filter_empty": {
+        "title": "No matches",
+        "description": "Try fewer filters, or clear them all.",
+        "clear": "清除筛选条件"
       },
       "empty_type": {
         "tokens": {
@@ -1364,7 +1406,8 @@
       },
       "load_more": "加载更多",
       "error": {
-        "title": "无法加载动态",
+        "title": "The feed didn't load",
+        "description": "Give it a moment, then try again.",
         "retry": "请重试"
       },
       "sub_header": {
@@ -1379,7 +1422,7 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "暂无数据",
-      "add_reaction": "Add reaction",
+      "add_reaction": "添加回应",
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "杠杆",
@@ -1390,11 +1433,19 @@
         "hold_time": "Hold time",
         "buy": "买入",
         "sell": "卖出",
-        "closed_ago": "Closed {{age}}"
+        "closed_ago": "Closed · {{age}}",
+        "sold_ago": "Sold · {{age}}"
       }
     },
+    "translation": {
+      "see_translation": "See translation",
+      "translating": "Translating...",
+      "translated_to_english": "Translated to English",
+      "failed": "Couldn't translate.",
+      "try_again": "请重试"
+    },
     "composer": {
-      "placeholder": "Share your thoughts about a position",
+      "placeholder": "Add a position and a few words to post",
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
@@ -1408,12 +1459,16 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
-      "share_position_title": "Share a position",
+      "hide_keyboard": "Hide keyboard",
+      "add_position_title": "Add a position",
       "tab_open": "未平仓",
       "tab_closed": "已平仓",
       "section_tokens": "代币",
       "section_perps": "永续合约",
-      "empty_title": "No positions to share",
+      "empty_title": "No positions to post yet",
+      "empty_help": "Why don't I see a position?",
+      "hidden_position_body": "Positions only appear here if they include at least one trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
+      "got_it": "知道了",
       "empty_description": "Create a position to share it here.",
       "empty_open": "无未平仓仓位",
       "empty_closed": "No closed positions",
@@ -1425,15 +1480,23 @@
       "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
-    "post_swap_share": {
-      "in_progress": "正在进行中...",
+    "post_trade_share": {
+      "swap_in_progress": "兑换进行中",
       "complete": "兑换完成",
       "failed": "交换失败",
-      "share_and_earn_title": "Share and earn",
-      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
-      "share_this_trade": "Share this trade",
+      "order_in_progress": "Order in progress",
+      "order_complete": "订单已完成",
+      "order_failed": "订单下达失败",
+      "post_and_earn_title": "Post and earn",
+      "post_and_earn_body": "You earn 15% on fees every time someone copies your trade",
+      "create_post": "Create post",
+      "create_profile_title": "MetaMask is now social",
+      "create_profile_body": "Create your profile and earn when others copy your trades",
+      "create_profile": "Create profile",
+      "view_activity": "查看活动",
       "try_again": "请重试",
-      "close": "关闭"
+      "close": "关闭",
+      "post_to_feed": "Post to feed"
     },
     "shell": {
       "subnav": {
@@ -1459,7 +1522,12 @@
           "timeframe": "时间范围",
           "network": "网络",
           "market_cap": "市值",
-          "volume_24h": "24 小时交易量"
+          "volume_24h": "24 小时交易量",
+          "positions": "头寸"
+        },
+        "position_status": {
+          "open": "未平仓",
+          "closed": "已平仓"
         },
         "type": {
           "all": "所有",
@@ -1601,9 +1669,9 @@
       "win_rate": "胜率",
       "pnl": "损益",
       "hold_time": "Hold time",
-      "avg_hold_time": "Avg. hold time",
+      "avg_hold_time": "平均持有时间",
       "volume": "交易量",
-      "performance_30d": "Performance (30d)",
+      "performance_30d": "表现（30 天）",
       "times_copied": "Times copied",
       "empty_following": "You aren't following anyone yet.",
       "empty_trader_following": "Not following anyone yet.",
@@ -1622,16 +1690,10 @@
       "empty_closed_tokens": "No closed tokens",
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
-      "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
-      "other_empty_title": "No posts yet",
-      "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "empty_title": "暂无帖子",
       "debug_reset_profile": "debug: reset profile",
-      "joined": "Joined {{time}}",
-      "load_profile_error": "Couldn't load your profile.",
+      "joined": "加入于 {{time}}",
+      "load_profile_error": "无法加载您的个人资料。",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
@@ -1646,39 +1708,45 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
-      "choose_x_identity": "Choose a MetaMask username and avatar",
-      "choose_x_identity_description": "This is how other traders will know who you are.",
-      "use_x_username": "Use @{{username}} as username",
-      "use_x_avatar": "Use X profile picture",
-      "edit_avatar": "Edit avatar",
-      "view_profile": "View profile",
+      "choose_x_identity": "选择 MetaMask 用户名和头像",
+      "choose_x_identity_description": "其他交易者将通过这些信息认识您。",
+      "use_x_username": "使用 @{{username}} 作为用户名",
+      "use_x_avatar": "使用 X 个人资料图片",
+      "edit_avatar": "编辑头像",
+      "view_profile": "查看个人资料",
       "claim_username": "Claim a username",
       "username_label": "用户名",
       "display_name_label": "显示名称",
-      "username_available": "Username available",
-      "username_invalid": "Use letters, numbers, and hyphens.",
-      "username_unavailable": "This handle is unavailable. Choose another one.",
-      "username_check_error": "Couldn't check that username. Check your connection and try again.",
-      "connect_x_error": "Couldn't connect X. Check your connection and try again.",
-      "save_error": "Couldn't create your profile. Check your connection and try again.",
+      "username_available": "用户名可用",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
+      "username_invalid": "Use letters, numbers, and underscores.",
+      "username_unavailable": "此用户名不可用。请选择其他用户名。",
+      "username_check_error": "无法审核该用户名。请检查您的连接并重试。",
+      "connect_x_error": "无法连接 X。请检查您的连接并重试。",
+      "save_error": "无法创建您的个人资料。请检查您的连接并重试。",
+      "try_again": "请重试",
       "shuffle_username": "Suggest a username",
-      "customize_avatar": "Choose an avatar",
+      "customize_avatar": "选择头像",
+      "avatar_option_accessibility_label": "Avatar {{number}} of {{total}}",
       "avatar_background_peach": "Peach background",
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "靛蓝色背景",
+      "avatar_background_pale_lime": "浅黄绿色背景",
       "avatar_background_lime": "Lime background",
-      "link_account": "Pick an account to link with your profile",
+      "link_account": "选择与您的个人资料关联的账户",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "选择一个账户",
-      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
-      "link_account_benefit_private": "Your account address stays private.",
-      "link_account_benefit_follow": "Other traders can follow your profile.",
-      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
-      "link_account_change_footnote": "You can change your linked account every 30 days.",
+      "link_account_benefit_trades": "您的个人资料会展示该账户过去 30 天的交易、胜率和盈亏。",
+      "link_account_benefit_private": "您的账户地址将保持私密。",
+      "link_account_benefit_follow": "其他交易者可以关注您的个人资料。",
+      "link_account_benefit_fees": "当有人复制您的交易时，您可赚取 15% 的手续费。",
+      "link_account_change_footnote": "您可以每 30 天更改一次关联账户。",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
-      "feed_awaits": "Your profile is ready!",
+      "feed_awaits": "您的个人资料已就绪！",
       "feed_awaits_description": "Make a trade, share your take, and earn 15% on fees when someone copies you.",
       "hi": "Hi!",
       "lets_go": "立即开始",
@@ -1699,6 +1767,9 @@
       "save": "保存",
       "save_error": "无法保存更改。请检查网络连接后重试。",
       "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
+      "username_invalid": "Use letters, numbers, and underscores.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -2323,7 +2394,7 @@
         "reduce_only_wrong_side": "减仓订单只能减少现有仓位。请切换至相反方向。",
         "reduce_only_too_large": "减仓订单数量大于您的未平仓仓位",
         "twap_unavailable": "该提供商不支持 TWAP 下单。",
-        "lighter_limit_tpsl_unsupported": "Take profit and stop loss can't both be set on a limit order for this provider yet"
+        "lighter_limit_tpsl_unsupported": "目前此提供商暂不支持在限价订单上同时设置止盈和止损"
       },
       "error": {
         "placement_failed": "下单失败",
@@ -2817,8 +2888,8 @@
       "depositFailed": "存款失败",
       "orderLeverageReductionFailed": "无法降低杠杆",
       "insufficientLiquidity": "流动性不足，无法执行订单。请尝试使用限价订单或稍后重试。",
-      "iocCancel": "Your order couldn't fill within your {{maxSlippage}}% slippage tolerance. Try a limit order or adjust your slippage.",
-      "iocCancelUnknownTolerance": "Your order couldn't fill within your slippage tolerance. Try a limit order or adjust your slippage.",
+      "iocCancel": "您的订单无法在您设定的 {{maxSlippage}}% 滑移范围内成交。请尝试限价订单或调整您的滑移设置。",
+      "iocCancelUnknownTolerance": "您的订单无法在您的滑移范围内成交。请尝试限价订单或调整您的滑移设置。",
       "connectionTimeout": "连接超时。请检查网络连接后重试。",
       "clientReinitializing": "服务正在重新初始化。请稍等片刻，然后重试。",
       "transferFailed": "无法转账。请重试。",
@@ -2834,7 +2905,7 @@
       "tpslUpdateFailed": "无法更新止盈/止损。请重试。",
       "orderRejected": "订单已被拒绝。请检查您的参数后重试。",
       "slippageExceeded": "价格波动过大。请尝试使用限价订单或提高滑点容差。",
-      "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
+      "priceMoved": "价格已变动 {{priceDelta}}%，超过了您 {{maxSlippage}}% 的滑移范围。请查看更新后的价格并重试。",
       "rateLimitExceeded": "请求过多。请稍候再试。",
       "serviceUnavailable": "服务暂时不可用。请稍后再试。",
       "networkErrorSimple": "发生网络错误。请检查您的连接并重试。",
@@ -2970,6 +3041,11 @@
       "expect_more_volatility": "非交易时段市场波动可能加剧",
       "after_hours_trading_banner": "非交易时段交易",
       "pay_attention_to_volatility": "请注意波动性与滑点风险",
+      "tabs": {
+        "overview": "概览",
+        "feed": "动态",
+        "top_traders": "持有者"
+      },
       "badge": {
         "experimental": "实验性",
         "equity": "股票",
@@ -3022,7 +3098,12 @@
         "provider_fee": "服务商费用",
         "bridge_fee": "跨链桥费用",
         "total": "总费用",
-        "discount_message": "作为 VIP，您可节省 {{percentage}}% 的手续费。"
+        "discount_message": "作为 VIP，您可节省 {{percentage}}% 的手续费。",
+        "member_discount_message": "作为会员，您可节省 {{percentage}}% 的手续费。",
+        "promotional_discount": "促销折扣",
+        "fee_discount": "手续费折扣",
+        "promotional_discount_message": "促销折扣：MetaMask 手续费减免 {{percentage}}%。",
+        "fee_discount_message": "您即将节省 {{percentage}}% 的 MetaMask 手续费。"
       },
       "size_skew": {
         "title": "规模偏差",
@@ -3200,7 +3281,7 @@
       "gainers": "涨幅榜",
       "losers": "跌幅榜",
       "recently_added": "最近添加",
-      "social_feed": "Social feed",
+      "social_feed": "社交动态",
       "trending": "趋势",
       "top_traders": "顶级交易员"
     },
@@ -3457,6 +3538,7 @@
       "layout": "订单簿布局",
       "layout_left": "左侧",
       "layout_right": "右侧",
+      "size_on_click": "Set order book size on click",
       "apply": "应用",
       "save": "保存",
       "collapse": "隐藏订单簿",
@@ -3521,11 +3603,18 @@
       "title": "盈亏核心数据",
       "header_title": "分享您的交易",
       "share_button": "共享",
-      "share_message_with_referral_code": "在 MetaMask 上交易 {{asset}} 永续合约。使用我的推荐码 {{code}} 注册，即可赚取额外奖励。{{link}}",
       "share_message_without_referral_code": "在 MetaMask 交易 {{asset}} 永续合约。",
       "share_failed": "图片导出失败",
-      "export_success": "已导出图片",
-      "referral_code_text": "使用我的推荐码即可赚取额外奖励。"
+      "export_success": "已导出图片"
+    },
+    "share_position": {
+      "title": "分享仓位信息",
+      "post_to_metamask": "发布到 MetaMask",
+      "post_to_metamask_description": "每当有人复制您的操作时，您可赚取 15% 的手续费。",
+      "post_not_ready": "此仓位暂无法发布",
+      "post_other_account": "只能发布来自您个人资料钱包的仓位信息",
+      "new_badge": "新增",
+      "share_externally": "分享到外部"
     },
     "market_details": {
       "fullscreen_chart": "全屏图表",
@@ -3585,7 +3674,13 @@
       "description": "无法加载您的可用余额。",
       "retry": "请重试"
     },
+    "unavailable_in_region": "您所在区域不可用",
     "home_title": "预测",
+    "home_sections": {
+      "error": "Markets couldn’t be loaded.",
+      "retry": "重试",
+      "unavailable": "No markets are available right now."
+    },
     "event": {
       "your_positions": "您的仓位"
     },
@@ -3601,12 +3696,11 @@
       "positions": "头寸",
       "activity_empty": {
         "title": "暂无活动",
-        "description": "您的成交和结算记录将显示在此处。"
+        "description": "Your trades and settlements will appear here."
       },
       "load_failed": "无法加载.",
       "load_failed_retry": "请重试",
       "outcome_shares": "{{outcome}} · {{shares}} 份",
-      "active_positions": "活跃仓位",
       "cash_out": "提现",
       "add_funds": "充值",
       "withdraw": "提取",
@@ -3617,9 +3711,29 @@
       },
       "activity": "历史记录",
       "activity_rows": {
-        "settled": "已结算",
-        "shares_at_price": "{{shares}} @ {{price}}"
-      }
+        "shares_at_price": "{{shares}} @ {{price}}",
+        "bought": "Bought {{outcome}}",
+        "sold": "已卖出 {{outcome}}",
+        "settled_outcome": "Settled · {{outcome}}"
+      },
+      "total_value": "总价值",
+      "positions_value": "头寸",
+      "claimable_value": "Claimable",
+      "unrealized_pnl": "未实现盈亏",
+      "summary_incomplete": "Partial total: some positions couldn't be valued right now.",
+      "summary_unavailable": "投资组合价值不可用",
+      "value_unavailable": "No price",
+      "unknown_market": "Market details unavailable",
+      "outcome_side": {
+        "yes": "是",
+        "no": "否"
+      },
+      "position_status": {
+        "claimable": "Claimable",
+        "settled": "已结算"
+      },
+      "pnl_with_percent": "{{amount}}（{{percent}}）",
+      "settlements_complete_from": "Settlements are complete from {{date}}. Earlier ones may be missing."
     },
     "order_preview": {
       "amount": "美元金额",
@@ -4073,6 +4187,11 @@
       "webview_title": "Polymarket 条款",
       "button": "知道了"
     },
+    "market_unavailable": {
+      "title": "市场不可用",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
+      "button": "知道了"
+    },
     "deposit": {
       "in_progress": "存款进行中",
       "adding_funds": "正在存入资金",
@@ -4199,22 +4318,26 @@
       "to_win": "预期收益",
       "order_failed_generic": "交易失败。请重试。",
       "market_busy_title": "市场繁忙",
-      "getting_price_body": "The market is moving fast, so we couldn't fill your order. Getting the latest price…",
-      "price_updated_body": "Here's the latest price. Confirm to try again:",
-      "price_moved_title": "Price moved",
-      "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
-      "no_match_title": "No match",
-      "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
-      "try_later": "Try later",
+      "getting_price_body": "市场波动很快，我们无法成交您的订单。正在获取最新价格……",
+      "price_updated_body": "这是最新价格。请确认以重试：",
+      "price_moved_title": "价格已变动",
+      "price_moved_body": "自您确认以来，价格已从 {{previousPrice}} 变动至 {{currentPrice}}。请确认以按新价格继续：",
+      "no_match_title": "无匹配",
+      "no_match_body": "目前流动性不足，无法成交您的订单。请稍后重试。",
+      "market_timeout_title": "Market timed out",
+      "market_timeout_body": "The market took too long to respond. Nothing was sold. Try again to get the latest price.",
+      "try_later": "稍后再试",
       "retry_price_label": "价格",
+      "retry_expected_fill_label": "Expected fill",
+      "retry_expected_fill_value": "{{shares}} 份额",
       "retry_proceeds_label": "您收到",
       "retry_payout_label": "预期收益",
-      "retry_worst_case_label": "Worst case ({{band}} band)",
+      "retry_worst_case_label": "最坏情况（{{band}} 区间）",
       "retry_fees_label": "费用",
-      "yes_buy_at": "Yes, buy at {{price}}",
-      "yes_sell_at": "Yes, sell at {{price}}",
-      "price_unavailable_title": "Price unavailable",
-      "price_unavailable_body": "We couldn't get the latest price. Check your connection and try again.",
+      "yes_buy_at": "是，以 {{price}} 买入",
+      "yes_sell_at": "是，以 {{price}} 卖出",
+      "price_unavailable_title": "价格不可用",
+      "price_unavailable_body": "我们无法获取最新价格。请检查您的连接并重试。",
       "order_failed_title": "订单下达失败",
       "order_failed_body": "您的订单无法成交。要再试一次吗？",
       "payment_failed_title": "付款未成功",
@@ -4986,7 +5109,7 @@
     "log_out": "退出登录",
     "notifications": "通知",
     "metamask_orange": "MetaMask Orange",
-    "join_metamask_orange": "Join MetaMask Orange",
+    "join_metamask_orange": "加入 MetaMask Orange",
     "buy": "买入",
     "scan": "扫描"
   },
@@ -5020,7 +5143,13 @@
     "trading_activity_private": "Private and unavailable to copy",
     "trading_activity_info": "More information about trading activity",
     "trading_activity_info_description": "When this is on, other traders can see and copy your trades. You earn 15% of the fees from those copy trades. Turn it off to keep your positions, performance, and stats private.",
-    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
+    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+    "x_account_disconnect_body": "Disconnecting removes your X handle from your MetaMask profile. You can reconnect at any time.",
+    "x_account_disconnect_sheet_title": "Disconnect X account?",
+    "x_account_disconnect_sheet_body": "{{handle}} will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
+    "x_account_disconnect_success": "X account has been disconnected"
   },
   "profile_drawer": {
     "close": "关闭",
@@ -5549,17 +5678,17 @@
         "reset_onboarding": "重设新手引导"
       },
       "new_wallet": {
-        "title": "New wallet",
-        "description": "Runs the Reset wallet cleanup (browser history, cookies, identity session, ramps orders and sessions), creates a new SRP with the saved password (DEV_AUTO_UNLOCK_PASSWORD, else the keychain), turns biometrics back on when the device supports them and lands on the wallet already unlocked.",
-        "button": "Wipe and create new SRP",
-        "confirm_title": "Wipe wallet and create a new SRP?",
-        "confirm_message": "The current SRP, accounts and app data are deleted. Back up the SRP first if you need it.",
-        "confirm": "Wipe and create",
+        "title": "新钱包",
+        "description": "运行“重设钱包”清理（浏览器历史记录、Cookie、身份会话、法币入金订单和会话），使用已保存的密码（DEV_AUTO_UNLOCK_PASSWORD，否则使用钥匙串）创建新的 SRP，在设备支持时重新开启生物识别，并直接进入已解锁的钱包。",
+        "button": "清除并创建新的 SRP",
+        "confirm_title": "是否清除钱包并创建新的 SRP？",
+        "confirm_message": "当前 SRP、账户和应用数据将删除。如需保留，请先备份 SRP。",
+        "confirm": "清除并创建",
         "cancel": "取消",
-        "no_password_title": "No saved password",
-        "no_password_message": "Set DEV_AUTO_UNLOCK_PASSWORD in .js.env, or enable remember me or biometrics so the keychain holds the password.",
-        "success": "New wallet ready",
-        "failure": "New wallet failed"
+        "no_password_title": "无已保存的密码",
+        "no_password_message": "请在 .js.env 中设置 DEV_AUTO_UNLOCK_PASSWORD，或启用“记住我”或生物识别，以便钥匙串保存密码。",
+        "success": "新钱包已就绪",
+        "failure": "新钱包创建失败"
       },
       "haptics": {
         "title": "振动",
@@ -5615,13 +5744,15 @@
       "enter_verification_code_desc": "为了安全起见，请输入您设备上 MetaMask 应用中显示的验证码。",
       "add_device_to_wallet": "将此设备添加到钱包",
       "points": {
-        "one": "在您的其他设备上打开 MetaMask",
-        "two": "前往",
-        "two_bold_one": "设置",
-        "two_bold_two": "添加设备",
-        "two_icon": ">",
-        "three": "使用此设备扫描二维码",
-        "four": "在您的扩展程序中输入安全码"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "添加设备",
+        "two_description_prefix": "前往",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "扫描二维码",
       "scanner": {
@@ -5716,10 +5847,15 @@
     "contact_us": "联系我们"
   },
   "support_consent": {
-    "title": "与支持团队共享设备详细信息",
-    "description": "您是否要与我们的支持中心共享您的 MetaMask 标识符和应用版本？这有助于我们更好地解决您的问题，但您可以选择不共享。",
-    "confirm": "确认",
-    "reject": "不共享"
+    "title": "与支持团队分享您的用户 ID",
+    "description": "继续即表示您同意与我们的支持中心分享您的用户 ID 和应用版本。这将帮助我们更好地解决您的问题。",
+    "confirm": "继续",
+    "reject": "不共享",
+    "save_preference": "保存我的偏好"
+  },
+  "support_consent_preference": {
+    "title": "记住我的支持偏好",
+    "description": "启用后，MetaMask 会记住您是否希望与我们的支持中心分享您的用户 ID 和应用版本。分享此信息将帮助我们更好地解决您的问题。"
   },
   "reveal_credential": {
     "seed_phrase_title": "显示私钥助记词",
@@ -6197,10 +6333,18 @@
       "feed": "动态",
       "holders": "持有者"
     },
+    "feed_tab": {
+      "empty": {
+        "no_balance_title": "Post your trade",
+        "has_balance_title": "Start your first post",
+        "description": "You'll get 15% of the fees every time someone copies your moves.",
+        "create_post": "Create MetaMask Post"
+      }
+    },
     "holders_tab": {
-      "empty": "No holders to show yet",
+      "empty": "暂无持有人可显示",
       "error": {
-        "title": "We couldn't load holders",
+        "title": "我们无法加载持有人",
         "retry": "请重试"
       }
     },
@@ -6384,6 +6528,7 @@
     "view_account": "在 Etherscan 上查看账户",
     "show_private_key": "显示私钥",
     "account_copied_to_clipboard": "公钥已复制到剪贴板",
+    "token_contract_address_copied_to_clipboard": "Token contract address copied to clipboard",
     "share_public_key": "共享我的公钥："
   },
   "enable_nft-auto-detection": {
@@ -7140,6 +7285,11 @@
   },
   "balance_breakdown": {
     "allocation": "分配",
+    "error": {
+      "accessibility_label": "Balance data unavailable",
+      "description": "There was an error fetching data for {{primitive}}. Please try again later.",
+      "title": "无法载入余额"
+    },
     "hide_balance": "隐藏总余额",
     "show_balance": "显示总余额"
   },
@@ -7498,6 +7648,7 @@
           "timestamp": "立即"
         }
       },
+      "error": "Couldn't turn on notifications. Try again.",
       "cta": "开启通知"
     },
     "received_payment_title": "已收到即时付款",
@@ -8434,22 +8585,22 @@
   "mfa": {
     "method_email": "电子邮件地址",
     "method_passkey": "Passkey",
-    "method_totp": "Authenticator app",
+    "method_totp": "身份验证应用",
     "intro": {
       "title": "Set up 2-step verification",
       "description": "We’ll set up a few ways to confirm it’s you. If you lose access to one method, you can use another.",
       "passkey_description": "Confirm with your device or password manager",
       "passkey_done": "Saved to this device",
       "email_description": "Get a 6-digit code sent to your inbox",
-      "totp_description": "Get a 6-digit code from an app like Google Authenticator",
-      "totp_done": "Set up in your authenticator app",
+      "totp_description": "从 Google Authenticator 等应用获取 6 位验证码",
+      "totp_done": "在您的身份验证应用中设置",
       "continue": "开始"
     },
     "picker": {
       "title": "Confirm with 2-step verification",
       "passkey": "Verify with Passkey",
       "email_otp": "Get a verification code",
-      "totp": "Use authenticator app",
+      "totp": "使用身份验证应用",
       "or": "或"
     },
     "email_entry": {
@@ -8463,29 +8614,28 @@
       "title": "Enter your verification code",
       "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
       "description": "We sent a 6-digit code to your email. Enter it below to verify your email.",
-      "description_totp": "Open your authenticator app and enter the 6-digit code.",
-      "verify": "验证",
+      "description_totp": "打开您的身份验证应用，输入 6 位验证码。",
       "retry": "请重试",
-      "retry_in": "Try again in {{seconds}}s",
+      "retry_in": "{{seconds}} 秒后重试",
       "sending": "Sending code...",
       "send_in": "Sending a new code in {{seconds}}s",
       "resend": "重新发送验证码",
       "resend_in": "{{seconds}} 秒后重新发送验证码",
       "resent": "We sent you a new code.",
       "paste": "粘贴",
+      "verifying": "Verifying code",
       "get_new_code": "Get new code"
     },
     "totp_setup": {
-      "title": "Set up authenticator app",
-      "description": "Add MetaMask to your authenticator app, then enter the 6-digit code it shows.",
-      "open_app": "Open authenticator app",
-      "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
-      "setup_key": "Setup key",
-      "copy": "Copy setup key",
-      "other_device": "Set up on another device",
+      "title": "设置身份验证应用",
+      "description": "In your authenticator app, add a new account and enter the setup key or scan the QR code.",
+      "setup_key": "设置密钥",
+      "copy": "复制设置密钥",
+      "copied": "Setup key copied",
+      "show_qr": "Show QR code",
       "qr_title": "扫描二维码",
-      "qr_description": "Scan this code with the authenticator app on your other device, then enter the 6-digit code it shows.",
-      "restarted": "That took too long, so we made a new setup key. Remove the earlier MetaMask entry from your authenticator app, then add this one.",
+      "qr_description": "Scan this code with your authenticator app to add your account. Then enter the 6-digit code it shows.",
+      "restarted": "耗时过长，因此我们生成了新的设置密钥。请从您的身份验证应用中移除之前的 MetaMask 输入内容，然后添加此内容。",
       "continue": "继续"
     },
     "passkey": {
@@ -8495,62 +8645,70 @@
     "failure": {
       "title": "出错了",
       "retry": "请重试",
-      "close": "关闭"
+      "close": "关闭",
+      "support_title": "We couldn't verify your details",
+      "support_description": "Contact support to continue.",
+      "contact_support": "联系支持团队",
+      "done": "完成"
     },
     "errors": {
-      "invalid_code": "That code isn’t right. Check it and try again.",
+      "invalid_code": "This code isn’t correct. Try again",
       "too_many_attempts": "Too many attempts. Request a new code.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
+      "learn_more": "了解更多。",
       "cooldown": "请求过多。请稍候再试。",
       "limit_reached": "You've reached the limit for this method.",
-      "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
       "signed_out": "Sign in to continue.",
       "unsupported": "This method isn't supported on this device.",
       "flow_in_progress": "Another verification is already in progress.",
       "generic": "出现问题，请重试。",
       "code_expired": "Your verification code expired, get a new code.",
-      "invalid_totp_code": "That code isn’t right. Check that your phone’s time is set automatically, then enter the current code.",
-      "totp_expired": "That took too long. Enter the current code from your app.",
-      "totp_too_many_attempts": "Too many attempts. Wait for a new code in your app and try again.",
-      "totp_taken": "An authenticator app is already set up for this account."
+      "invalid_totp_code": "This code isn’t correct. Try again",
+      "totp_expired": "耗时过长。请输入您应用中的当前验证码。",
+      "totp_too_many_attempts": "尝试次数过多。请等待您应用中的新验证码，然后重试。",
+      "totp_taken": "此账户已设置身份验证应用。"
     },
     "settings": {
       "title": "2-step verification",
-      "description": "Used to confirm it's you before sensitive actions.",
+      "description": "Adds protection to Money account transactions.",
       "manage": "管理",
-      "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
+      "notice": "这些方式可为 Money Account 交易提供更多保障。它们无法恢复您的钱包。",
       "add": "添加",
-      "passkeys": "Passkeys",
+      "passkeys": "通行密钥",
       "passkey_count": {
-        "one": "{{count}} passkey",
-        "other": "{{count}} passkeys"
+        "one": "{{count}} 个通行密钥",
+        "other": "{{count}} 个通行密钥"
       },
-      "add_passkey": "Add passkey",
-      "passkey_name": "Passkey #{{number}}",
-      "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
-      "added_on": "Added {{date}}",
-      "used_for": "Used for",
-      "used_for_money": "Verifying Money transactions",
-      "remove_passkey": "Remove passkey",
-      "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
-      "remove_email": "Remove email",
-      "remove_email_description": "You’ll no longer be able to log in or verify transactions by receiving a code via email.",
-      "remove_totp": "Remove authenticator app",
-      "remove_totp_description": "You’ll no longer be able to verify Money transactions with codes from your authenticator app.",
+      "add_passkey": "添加通行密钥",
+      "passkey_name": "通行密钥 #{{number}}",
+      "passkey_name_with_provider": "通行密钥 #{{number}} - {{provider}}",
+      "added_on": "添加于 {{date}}",
+      "used_for": "用途",
+      "used_for_money": "正在验证 Money 交易",
+      "remove_passkey": "移除通行密钥",
+      "remove_passkey_description": "此通行密钥将从您的所有设备中移除。删除前，请确保您有其他登录方式。",
+      "remove_email": "移除电子邮件",
+      "remove_email_description": "您将无法再通过接收电子邮件验证码来登录或验证交易。",
+      "remove_totp": "移除身份验证应用",
+      "remove_totp_description": "您将无法再使用身份验证应用中的验证码来验证 Money 交易。",
       "remove": "去除",
-      "last_passkey_title": "Passkey can’t be deleted",
-      "last_passkey_description": "This passkey is the only security method for this account. Add a second method before removing it.",
-      "last_email_title": "Email can’t be removed",
-      "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
-      "last_totp_title": "Authenticator app can’t be removed",
-      "last_totp_description": "This authenticator app is the only security method for this account. Add a second method before removing it.",
+      "last_passkey_title": "无法删除通行密钥",
+      "last_passkey_description": "此通行密钥是此账户唯一的安全方式。请在移除前添加第二种方式。",
+      "last_email_title": "无法移除电子邮件",
+      "last_email_description": "此邮箱是此账户唯一的安全方式。请在移除前添加第二种方式。",
+      "last_totp_title": "无法移除身份验证应用",
+      "last_totp_description": "此身份验证应用是此账户唯一的安全方式。请在移除前添加第二种方式。",
+      "only_passkeys_description": "Passkeys can only be removed after verifying with another type of method. Add an email or authenticator app first.",
       "got_it": "知道了",
-      "passkey_removed": "Passkey removed",
-      "email_removed": "Email verification removed",
-      "totp_removed": "Authenticator app removed",
-      "remove_failed": "Couldn’t remove this method. Try again later."
+      "passkey_added": "Passkey added",
+      "passkey_removed": "通行密钥已移除",
+      "email_verified": "Email verified",
+      "email_removed": "电子邮件验证已移除",
+      "totp_added": "Authenticator app added",
+      "totp_removed": "身份验证应用已移除",
+      "remove_failed": "无法移除此方式。请稍后再试。"
     }
   },
   "media_player": {
@@ -9151,8 +9309,8 @@
         "failed": "mUSD 兑换失败"
       },
       "education": {
-        "heading": "获取 {{percentage}}% 稳定币收益",
-        "description": "将您的稳定币兑换为 mUSD，即可赚取 {{percentage}}% 的年化奖励。",
+        "heading": "稳定币可享 {{percentage}}% 收益",
+        "description": "将您的稳定币转换为 mUSD，即可赚取 {{percentage}}% 的年化奖励。",
         "terms_apply": "具体条款适用。",
         "primary_button": "开始",
         "secondary_button": "暂时不",
@@ -9259,28 +9417,28 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Add money from your bank",
-        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "title": "从您的银行添加资金",
+        "description": "几秒内即可直接从您的银行转账。无网络费用。",
         "cta": "开始使用"
       },
       "account_is_ready": {
-        "title": "You’re all set",
-        "description": "Your virtual account details are ready.",
-        "cta": "View account details"
+        "title": "一切就绪",
+        "description": "您的虚拟账户详情已准备就绪。",
+        "cta": "查看账户详情"
       },
       "kyc_pending": {
         "title": "正在验证您的身份",
-        "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
-        "cta": "Verifying"
+        "description": "我们正在审核您的详情。审核完成后，我们会通知您。",
+        "cta": "正在验证"
       },
       "finish_verification": {
-        "title": "We need more info",
-        "description": "Provide more details to finish verifying your identity. It only takes a minute.",
+        "title": "我们需要更多信息",
+        "description": "请提供更多详情以完成身份验证。只需一分钟。",
         "cta": "继续"
       },
       "kyc_decision": {
-        "title": "We can’t verify your identity",
-        "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
+        "title": "我们无法验证您的身份",
+        "description": "我们目前无法提供银行转账。请联系支持团队寻求帮助。",
         "cta": "了解更多。",
         "dismiss": "关闭"
       }
@@ -9410,7 +9568,7 @@
       "title": "充值",
       "convert_crypto": "兑换加密货币",
       "deposit_funds": "借记卡或 Apple Pay",
-      "bank_account": "银行账户",
+      "bank_account": "Bank transfer",
       "add_musd": "添加 mUSD",
       "receive_external": "外部地址",
       "coming_soon": "即将推出",
@@ -9532,7 +9690,7 @@
     },
     "transaction": {
       "deposited": "已存款",
-      "bank_transfer": "Bank transfer",
+      "bank_transfer": "银行转账",
       "received": "已收到",
       "sent": "已发送",
       "card_transaction": "卡交易",
@@ -9561,7 +9719,13 @@
       "completed": "已完成",
       "paid_to": "支付给",
       "received_from": "来自",
-      "date": "日期"
+      "date": "日期",
+      "paid_with": "已使用以下支付方式付款：",
+      "you_deposited": "您已存款",
+      "transaction_fees": "交易费用",
+      "paid_by_metamask": "由 MetaMask 支付",
+      "total": "共计",
+      "pending": "待定"
     },
     "convert_stablecoins": {
       "title": "兑换您的稳定币",
@@ -9672,6 +9836,7 @@
     "staked_balance": "质押余额",
     "staked_ethereum": "已质押以太坊",
     "unstake": "解除质押",
+    "withdrawal_details_unavailable": "We couldn't load your withdrawal details. Try again. If the problem persists, contact MetaMask Support.",
     "stake_more": "质押更多",
     "claim": "领取",
     "staking": "Staking",
@@ -9903,7 +10068,7 @@
       "other_assets_description": "从您的代币中选择",
       "other_assets_receive_description": "请选择您要兑换的目标代币",
       "money_account": "Money Account",
-      "no_deposit_fee": "No deposit fee"
+      "no_deposit_fee": "无存款手续费"
     },
     "staking_footer": {
       "part1": "继续即表示您同意我们的 ",
@@ -10163,16 +10328,16 @@
       "limit_price": "{{symbol}} 限价",
       "not_enough_gas": "燃料不足",
       "filled": "已成交",
-      "filled_at": "于 {{date}} 成交",
+      "filled_at": "Filled on {{date}}",
       "expired": "已过期",
       "expired_after": "于 {{duration}} 后过期",
       "duration_days": "{{count}} 天",
       "duration_hours": "{{count}} 小时",
       "duration_minutes": "{{count}} 分钟",
       "canceled": "已取消",
-      "canceled_at": "已于 {{date}} 取消",
+      "canceled_at": "Canceled on {{date}}",
       "failed": "失败",
-      "failed_at": "已于 {{date}} 失败",
+      "failed_at": "Failed on {{date}}",
       "buy_when": "买入条件",
       "sell_when": "卖出条件",
       "is_at_or_below": "当价格小于或等于",
@@ -10181,7 +10346,7 @@
       "quote_unit_fallback": "{{amount}}",
       "from_market": "（较市场价 -{{percent}}%）",
       "from_market_above": "（较市场价 +{{percent}}%）",
-      "from_market_above_capped": "(>+{{percent}}% from market)",
+      "from_market_above_capped": "（较市场价 >+{{percent}}%）",
       "trigger_price_near_market": "触发价格距市场价仅 {{percent}}%，您的订单可能立即成交。",
       "market": "市场型",
       "custom": "自定义",
@@ -10200,18 +10365,19 @@
       "account_upgrade_fee_info_title": "Account upgrade fee",
       "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute limit orders. Like all on-chain actions, this has a small network fee.",
       "metamask_fee_info_title": "MetaMask 费用",
-      "metamask_fee_info_body": "MetaMask's standard fee is {{feePercentage}}%. You may be eligible for fee discounts or rebates, so we calculate your final fee at order execution.",
+      "metamask_fee_info_body": "MetaMask 的标准费率为 {{feePercentage}}%。您可能有资格享受手续费折扣或返还，因此我们会在订单执行时计算您的最终手续费。",
       "metamask_fee_info_learn_more": "了解更多。",
       "create_order": "创建订单",
       "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "正在支付",
-      "est_receiving": "Est. receiving",
+      "est_receiving": "预计到账",
       "trigger_condition": "触发条件",
       "trigger_condition_at_or_above": "≥",
       "trigger_condition_at_or_below": "≤",
       "expiry_label": "过期时间",
       "confirm_order": "确认订单",
       "status": "状态",
+      "open": "未平仓",
       "in_progress": "正在进行中",
       "submitted": "已提交",
       "cancel_order": "取消订单",
@@ -10224,7 +10390,7 @@
       "error_signing_delegations": "无法创建订单：订单无法签名。",
       "error_creating_order": "无法创建订单：订单无法下达。",
       "error_missing_trigger_price": "无法创建订单：触发价格不可用。",
-      "unsupported_fee_token_pair": "Limit orders aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
+      "unsupported_fee_token_pair": "此代币对不支持限价订单。如需继续，请至少将其中一个代币更改为：{{supportedTokens}}",
       "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
       "error_canceling_order": "无法取消您的订单。请重试。",
       "order_created_title": "订单已创建",
@@ -10536,7 +10702,7 @@
     },
     "submit": "提交",
     "default_slippage_description": "如果价格变化超过滑移百分比，您的交易将无法成功。",
-    "cost_tolerance": "Price Tolerance",
+    "cost_tolerance": "Price tolerance",
     "cost_tolerance_tooltip_content": "Includes slippage, price impact, and network fees.",
     "default_cost_tolerance_description": "如果我们无法在显示输出金额的 {{costTolerance}}% 范围内执行，您的限价订单将不会成交。",
     "exceeding_lower_cost_tolerance_error": "Enter a price tolerance greater than {{value}}%",
@@ -10606,9 +10772,9 @@
     "bridged_token": "已桥接 {{symbol}}"
   },
   "account_status": {
-    "account_already_exists": "钱包已存在",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "使用 “{{accountName}}” 的钱包已存在。您是否想尝试登录？",
-    "account_already_exists_telegram_description": "此 Telegram 账户已关联一个钱包。是否要解锁该钱包？",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "登录",
     "account_not_found": "未找到钱包",
     "account_not_found_description": "我们未找到与 “{{accountName}}” 关联的钱包。您是否想使用当前登录信息创建一个新的钱包？",
@@ -10984,7 +11150,7 @@
       "payment_creation_error": "无法创建付款，请重试。"
     },
     "order_completed": {
-      "title": "您的卡已订购成功",
+      "title": "您的卡正在寄送途中",
       "subtitle": "预计在 4 到 6 周内送达。",
       "description": "设置您的虚拟卡并将其添加到您的数字钱包，即可开始赚取mUSD返现。",
       "set_up_card_button": "设置卡",
@@ -11027,17 +11193,17 @@
       "try_again": "请重试"
     },
     "card_onboarding": {
-      "title": "消费并赚取",
-      "description": "使用 MetaMask 卡消费加密货币，\n轻松赚取高达 3% 的 \nmUSD 返现奖励。",
+      "title": "消费并赚取收益",
+      "description": "MetaMask Card 是使用加密货币消费并赚取最高 3% mUSD 返还的快捷简便方式。",
       "apply_now_button": "立即设置",
       "login_button": "登录",
       "not_now_button": "暂时不",
       "sign_up": {
-        "title": "让我们开始吧",
-        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "title": "Set up your MetaMask Card",
+        "description": "We need a few details to get your card ready.",
         "i_already_have_an_account": "我已经拥有 MetaMask 卡",
-        "i_already_have_an_account_immersve": "我已有账户",
-        "email_label": "电子邮件地址",
+        "i_already_have_an_account_immersve": "我已经拥有 MetaMask 卡",
+        "email_label": "电子邮件",
         "password_label": "MetaMask 卡新密码",
         "password_description": "与您的 MetaMask 应用解锁密码不同。长度必须至少为 15 个字符。",
         "country_label": "居住国家/地区",
@@ -11047,9 +11213,10 @@
         "join_waitlist": "加入等待列表",
         "country_not_available": "您所在的国家/地区尚未开放卡片注册功能。",
         "account_label": "账户",
-        "account_label_immersve": "卡片账户",
+        "account_label_immersve": "Spending account",
         "account_description": "您的 MetaMask 卡将与此账户关联。",
-        "account_description_immersve": "卡片进行的买入将从此账户扣款。",
+        "account_description_immersve": "Card purchases will come from this account.",
+        "phone_number_label_immersve": "电话号码",
         "account_exists_toast": "您已拥有一个卡账户。",
         "clickwrap_prefix": "点击“下一步”即表示您接受 Immersve 的 ",
         "clickwrap_and": " 和 ",
@@ -11213,7 +11380,7 @@
       },
       "complete": {
         "title": "您已通过审核！",
-        "description": "完成卡设置，即可开始使用加密货币进行消费。",
+        "description": "完成您的 MetaMask 卡设置，即可开始使用您的加密货币消费。",
         "confirm_button": "完成设置"
       },
       "account_exists": {
@@ -11598,13 +11765,13 @@
       "update_error": "消费优先级更新失败"
     },
     "card_authentication": {
-      "title": "登录您的卡",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "完成您的卡更新",
-      "description": "登录以管理您的 MetaMask 卡。",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "正在检查您的卡是如何设置的。",
       "description_resume": "从您上次中断的地方继续。此账户会继续与您的卡关联。",
       "auth_prompt_info": "登录您的卡账户以使用此功能。",
-      "country_label": "国家/地区",
+      "country_label": "居住国家/地区",
       "location_button_text": "国际",
       "location_button_text_us": "美国",
       "location_button_text_uk": "英国",
@@ -11718,7 +11885,7 @@
       "try_again": "请重试",
       "cancel": "取消",
       "verification_pending_title": "Verification pending",
-      "verification_pending_description": "Open the card in Apple Wallet to verify it on {{devices}}.",
+      "verification_pending_description": "在 Apple 钱包中打开该卡，以便在 {{devices}} 上验证。",
       "open_in_apple_wallet": "Open in Apple Wallet",
       "device_iphone": "iPhone",
       "device_apple_watch": "Apple Watch",
@@ -11749,9 +11916,9 @@
   },
   "rewards": {
     "rebate": {
-      "banner": "You’re getting {{percent}}% back on fees",
-      "tooltip_title": "Trading Rewards",
-      "tooltip_content": "Get {{percent}}% of the MetaMask fee on this trade back as a reward, paid in mUSD to your Money account. Network fees aren’t included. See the Rewards tab for details."
+      "banner": "您将获得 {{percent}}% 的手续费返还",
+      "tooltip_title": "交易奖励",
+      "tooltip_content": "将本次交易中 MetaMask 手续费的 {{percent}}% 作为奖励返还给您，以 mUSD 形式支付到您的 Money Account。不包含网络费用。详情请查看“奖励”标签页。"
     },
     "auth_fail_title": "未知错误。",
     "auth_fail_description": "为此账户进行 MetaMask 奖励计划认证时发生未知错误。请稍后再试。",
@@ -11806,12 +11973,13 @@
       "error_fetching_description": "请检查连接后重试。",
       "retry_button": "重试"
     },
-    "referral_validation_unknown_error": {
-      "title": "推荐码验证失败",
-      "description": "请检查连接后重试。"
-    },
     "active_activity_error": {
       "error_fetching_title": "活动加载失败",
+      "error_fetching_description": "请检查连接后重试。",
+      "retry_button": "重试"
+    },
+    "trading_activity_error": {
+      "error_fetching_title": "加载您的交易时出错",
       "error_fetching_description": "请检查连接后重试。",
       "retry_button": "重试"
     },
@@ -11826,6 +11994,9 @@
       "invalid_referral_code": "推荐码无效。请检查后重试。",
       "already_referred": "您已被其他用户推荐过。",
       "cannot_use_own_referral_code": "您无法使用您本人的推荐码。",
+      "referrer_cannot_be_referred": "您不能被他人推荐。",
+      "active_trader_cannot_be_referred": "由于近期的交易活动，您不能被推荐。",
+      "rate_limited": "尝试次数过多。请稍候。",
       "invalid_bonus_code": "奖励代码无效",
       "already_redeemed": "您已兑换过此奖励代码",
       "reached_maximum": "此奖励代码已达到最大使用次数"
@@ -11852,7 +12023,6 @@
       "progress_to_next_tier": "距下一等级还需 {{pointsRemaining}} 积分",
       "bps_unit": "基点",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "兑换",
       "perps_label": "永续合约",
       "points_label": "积分",
@@ -11863,7 +12033,7 @@
       "points_from_referrals_label": "通过推荐所获积分",
       "referrals_label": "VIP 推荐",
       "tier_benefits_title": "等级权益",
-      "splash_title": "欢迎来到 Gold Fox Collective",
+      "splash_title": "欢迎加入 Gold Fox Collective",
       "splash_description": "解锁专属权益、抢先体验功能及精选奖励。仅限受邀用户。",
       "splash_accept_invite": "接受邀请",
       "splash_not_now": "暂时不",
@@ -11908,9 +12078,7 @@
       "retry_button": "重试",
       "empty_title": "暂无交易。当您有交易活动后，您的 VIP 交易将显示在此处。"
     },
-    "referral_title": "推荐",
     "referral_stats_earned_from_referrals": "通过推荐所获奖励",
-    "referral_stats_referrals": "推荐",
     "loading_activity": "正在加载活动……",
     "error_loading_activity": "加载活动出错",
     "activity_empty_title": "暂无近期活动。",
@@ -11975,8 +12143,6 @@
       "step_confirm": "下一步",
       "step_finish": "立即开始",
       "step_skip": "跳过",
-      "step4_title_referral_validating": "正在验证推荐码……",
-      "step4_referral_input_error": "推荐码无效",
       "title": "开始赚取奖励",
       "description": "只需使用 MetaMask，即可赢取奖品、领取福利并探索更多赚取收益的方式。",
       "sign_up": "加入奖励计划",
@@ -11985,9 +12151,6 @@
       "legal_disclaimer_2": "使用条款",
       "legal_disclaimer_3": "。我们将为本设备上的所有账户自动开启此项功能，并追踪链上活动以自动为您发放奖励。",
       "legal_disclaimer_4": "了解详情",
-      "referral_prompt": "有推荐码吗？",
-      "referral_hide": "隐藏代码",
-      "referral_placeholder": "推荐码（可选）",
       "referral_label": "推荐码"
     },
     "settings": {
@@ -12019,13 +12182,6 @@
       "off_device_accounts_sheet_title": "缺少已注册账户",
       "off_device_accounts_sheet_description": "这些地址可能属于重新安装 MetaMask 后尚未添加的钱包。这些地址您都不认识吗？",
       "off_device_accounts_sheet_let_us_know": "请告知我们"
-    },
-    "referred_by_code": {
-      "title": "推荐码",
-      "description_linked": "邀请码已关联，当您交易时，您的推荐人将获得相应奖励。",
-      "description_not_linked": "在朋友发送推荐码给您之前就已经注册了吗？请在下方输入其推荐码，即可建立关联。",
-      "input_placeholder": "输入推荐码",
-      "invalid_code": "推荐码无效"
     },
     "bonus_code": {
       "input_placeholder": "输入奖励代码",
@@ -12072,22 +12228,6 @@
     },
     "ways_to_earn": {
       "title": "赚取方式"
-    },
-    "referral": {
-      "referral_code": "推荐码",
-      "referral_link": "推荐链接",
-      "actions": {
-        "share_referral_link": "推荐好友",
-        "share_referral_subject": "加入 MetaMask Rewards"
-      },
-      "info": {
-        "title": "将您的推荐码分享给好友",
-        "description": "推荐奖励因活动而异。详情请查看各活动规则。",
-        "vip_title": "您推荐的用户每完成一笔兑换或永续合约交易，您均可赚取收益分成。您的分成比例随等级提升而提高。",
-        "vip_referrals_label": "推荐",
-        "vip_revenue_share_label": "收益分成"
-      },
-      "referral_code_copied": "推荐码已复制到剪贴板"
     },
     "link_account_group": {
       "link_account": "添加账户",
@@ -12950,8 +13090,8 @@
     "membership_label": "专业",
     "membership_status": {
       "active": "活跃",
-      "overdue": "Overdue",
-      "deactivated": "Deactivated",
+      "overdue": "已逾期",
+      "deactivated": "已停用",
       "cancelled": "已取消",
       "unavailable": "不可用"
     },
@@ -12978,6 +13118,8 @@
       },
       "resets_on": "将于 {{date}} 重置",
       "load_error": "无法加载您的授权额度。",
+      "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
+      "unavailable": "Member pricing isn't available right now.",
       "retry": "请重试"
     },
     "physical_card": {
@@ -12988,28 +13130,28 @@
     },
     "membership_alert": {
       "low_balance": {
-        "title": "Add funds by {{date}}",
-        "description": "Your Money account is low. Add funds to keep your membership.",
+        "title": "在 {{date}} 前添加资金",
+        "description": "您的 Money Account 余额较低。请添加资金以保留您的会员资格。",
         "action": "请重试"
       },
       "renewal_failed": {
-        "title": "Renewal failed",
-        "description": "Your balance is too low. Add to your Money account to restore membership.",
+        "title": "续期失败",
+        "description": "您的余额过低。请向您的 Money Account 添加资金以恢复会员资格。",
         "action": "充值"
       },
       "payment_failed": {
-        "title": "Payment failed",
-        "description": "Add funds to your Money account to restore your membership.",
+        "title": "付款失败",
+        "description": "请向您的 Money Account 添加资金以恢复您的会员资格。",
         "action": "充值"
       },
       "inactive": {
-        "title": "Your membership is inactive",
-        "description": "Add funds to your Money account to regain access to your benefits.",
+        "title": "您的会员资格未激活",
+        "description": "请向您的 Money Account 添加资金以重新获得您的权益。",
         "action": "充值"
       },
       "cancelled": {
-        "title": "Your membership is cancelled",
-        "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
+        "title": "您的会员资格已取消",
+        "description": "请在 {{date}} 前续期，以继续享受 7% APY、3% mUSD 返还等权益。",
         "action": "续订会员资格"
       }
     },
@@ -13040,9 +13182,9 @@
       "invoices": "发票",
       "contact_support": "联系支持团队",
       "cancel_membership": "取消会员资格",
-      "resume_membership": "Resume membership",
-      "resume_in_progress": "Resuming membership",
-      "resume_failed": "We couldn't resume your membership. Please try again."
+      "resume_membership": "恢复会员资格",
+      "resume_in_progress": "正在恢复会员资格",
+      "resume_failed": "我们无法恢复您的会员资格。请重试。"
     },
     "cancel_membership": {
       "title": "Why are you canceling your plan?",

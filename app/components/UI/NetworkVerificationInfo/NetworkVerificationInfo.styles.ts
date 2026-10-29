@@ -44,13 +44,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       marginVertical: 10,
     },
-    warningContainer: {
-      marginTop: 20,
-      marginHorizontal: 4,
-    },
-    errorContinue: {
-      marginVertical: 16,
-    },
     textCentred: {
       textAlign: 'center',
     },
