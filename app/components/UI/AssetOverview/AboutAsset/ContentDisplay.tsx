@@ -33,13 +33,14 @@ const ContentDisplay = ({
   const { styles } = useStyles(styleSheet, {});
 
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isTruncated, setIsTruncated] = useState(false);
-  const [hasMeasured, setHasMeasured] = useState(false);
+  const [isTruncated, setIsTruncated] = useState<boolean | undefined>(
+    undefined,
+  );
+  const hasMeasured = isTruncated !== undefined;
 
   useEffect(() => {
     setIsExpanded(false);
-    setIsTruncated(false);
-    setHasMeasured(false);
+    setIsTruncated(undefined);
   }, [content, numberOfLines]);
 
   /**
@@ -54,7 +55,6 @@ const ContentDisplay = ({
       }
 
       setIsTruncated(event.nativeEvent.lines.length > numberOfLines);
-      setHasMeasured(true);
     },
     [hasMeasured, numberOfLines],
   );
@@ -63,7 +63,7 @@ const ContentDisplay = ({
     setIsExpanded((expanded) => !expanded);
   };
 
-  const showToggle = isTruncated || isExpanded;
+  const showToggle = Boolean(isTruncated) || isExpanded;
   // Leave the text unclamped until it has been measured so the line count is
   // accurate; afterwards clamp it unless the user has expanded it.
   const clampedLines = hasMeasured && !isExpanded ? numberOfLines : undefined;
@@ -88,7 +88,7 @@ const ContentDisplay = ({
           {disclaimer}
         </Text>
       )}
-      {showToggle ? (
+      {showToggle && (
         <TextButton
           onPress={toggleContent}
           testID={CONTENT_DISPLAY_TOGGLE_TEST_ID}
@@ -99,7 +99,7 @@ const ContentDisplay = ({
               : 'asset_overview.about_content_display.show_more',
           )}
         </TextButton>
-      ) : null}
+      )}
     </View>
   );
 };
