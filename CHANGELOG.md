@@ -40,6 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a Social feed section to Perps home (#37596)
 - Added an estimated receiving amount to limit order confirmations (#37733)
 - Added Plus subscription status alerts to the Pro Hub membership card (#36471)
+- Added a seal and struck-through original fee when a perps promotional discount applies (#38315)
+- Added error guidance for failed homepage balance primitives (#38273)
+- Added a Money account deposit deeplink for Braze fullscreen splash campaigns (#37861)
+- Added profile based promotional fee grants for eligible Perps trades (#37146)
 
 ### Changed
 
@@ -86,6 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated external-link icons (#37632)
 - Updated data availability on token details pages (#37923)
 - Updated limit orders to refresh open and history lists automatically, accept exact minimum amounts, show cancellation dates, and display a MetaMask fee information sheet during confirmation (#37677)
+- Updated the Money balance breakdown add action to adapt to localized label lengths (#38403)
+- Updated the default limit order cost tolerance to 3% and allowed it to be configured remotely (#38067)
 
 ### Removed
 
@@ -130,6 +136,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the Limit Order CTA disappearing while editing the limit price (#37643)
 - Fixed Bridge limit order trigger prices that showed inverted ratios, and updated trigger labels and expiry times (#37619)
 - Fixed incorrect fiat conversion rates shown for tokens in the send flow (#38200)
+- Fixed Predict withdraws being blocked by a "not enough POL" alert when network fees can be paid in pUSD (#38480)
+- Fixed rewards campaign deeplinks so they open the details page from both rewards homes (#38247)
+- Fixed homepage balance breakdown values when users select a non-USD currency (#38368)
+- Fixed sell limit order triggers, limit order refresh, Robinhood USDG pricing, and charts showing a previous asset's price (#38293)
+- Fixed Limit order deeplinks displaying an incorrect initial market price (#38323)
+- Fixed the Money Homepage balance breakdown component name used in analytics (#38326)
+- Fixed an issue that could leave the homepage balance muted (#38152)
+- Fixed a bug that incorrectly showed a "No deposit fee" tag on Predict deposits (#38206)
 
 ### Security
 
