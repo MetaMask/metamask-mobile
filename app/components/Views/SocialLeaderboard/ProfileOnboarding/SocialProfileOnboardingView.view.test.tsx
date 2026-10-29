@@ -513,11 +513,19 @@ describe('SocialProfileOnboardingView', () => {
     ).toHaveTextContent(
       strings('social_leaderboard.profile_onboarding.intro_title'),
     );
-    expect(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
-    ).toHaveTextContent(
+    const connectXButton = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+    );
+    expect(connectXButton).toHaveTextContent(
+      `${strings('social_leaderboard.profile_onboarding.connect_x_before_logo')}${strings('social_leaderboard.profile_onboarding.connect_x_after_logo')}`,
+    );
+    expect(connectXButton).toHaveProp(
+      'accessibilityLabel',
       strings('social_leaderboard.profile_onboarding.connect_x'),
     );
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_LOGO),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
@@ -1182,8 +1190,13 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP),
     ).toHaveTextContent(
-      /shows this account's trades[\s\S]*Earn 15% on fees[\s\S]*address stays private[\s\S]*can follow your profile/,
+      /all of this account's positions[\s\S]*Trade performance[\s\S]*Earn 15% on fees[\s\S]*address stays private[\s\S]*can follow your profile/,
     );
+    expect(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_BENEFITS}-positions-shown`,
+      ),
+    ).toBeOnTheScreen();
 
     const activitySwitch = within(
       screen.getByTestId(
@@ -1193,6 +1206,16 @@ describe('SocialProfileOnboardingView', () => {
     expect(activitySwitch).toHaveProp('value', true);
 
     fireEvent(activitySwitch, 'valueChange', false);
+    expect(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_BENEFITS}-positions-hidden`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_BENEFITS}-follow-shown`,
+      ),
+    ).toBeOnTheScreen();
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
@@ -1264,16 +1287,65 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
-  it('suggests a numbered username when the shuffled handle is taken', async () => {
+  it('shows only the numbered username when the shuffled handle is taken', async () => {
+    const pendingChecks = deferUsernameChecks();
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    const initialHandle = usernameValue();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON,
+      ),
+    );
+
+    expect(pendingChecks).toHaveLength(1);
+    expect(usernameValue()).toBe(initialHandle);
+
+    await act(async () => {
+      pendingChecks[0].resolve(false);
+    });
+
+    const numberedHandle = usernameValue();
+    expect(numberedHandle).toMatch(/_\d{3}$/);
+    expect(numberedHandle).not.toBe(pendingChecks[0].username);
+    expect(pendingChecks).toHaveLength(2);
+    expect(pendingChecks[1].username).toBe(numberedHandle);
+  });
+
+  it('shows the shuffled handle once its availability check resolves', async () => {
+    const pendingChecks = deferUsernameChecks();
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    const initialHandle = usernameValue();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON,
+      ),
+    );
+    expect(usernameValue()).toBe(initialHandle);
+
+    await act(async () => {
+      pendingChecks[0].resolve(true);
+    });
+
+    expect(usernameValue()).toBe(pendingChecks[0].username);
+    expect(pendingChecks).toHaveLength(1);
+  });
+
+  it('keeps the shuffled handle and shows the error when its check fails', async () => {
     jest
       .mocked(Engine.context.ProfileController.checkUsernameAvailability)
-      .mockResolvedValueOnce({
-        username: 'taken-handle',
-        available: false,
-        valid: true,
-        normalized: 'taken-handle',
-        errors: [],
-      });
+      .mockRejectedValueOnce(new Error('offline'));
     renderSocialProfileOnboarding();
 
     fireEvent.press(
@@ -1287,20 +1359,21 @@ describe('SocialProfileOnboardingView', () => {
       ),
     );
 
-    await screen.findByDisplayValue(/_\d{3}$/);
-    const numberedHandle = screen.getByTestId(
-      SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
-    ).props.value as string;
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_check_error'),
+      ),
+    ).toBeOnTheScreen();
+    const [[shuffledHandle]] = jest.mocked(
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).mock.calls;
+    expect(usernameValue()).toBe(shuffledHandle);
     expect(
       Engine.context.ProfileController.checkUsernameAvailability,
-    ).toHaveBeenCalledTimes(2);
-    expect(
-      Engine.context.ProfileController.checkUsernameAvailability,
-    ).toHaveBeenNthCalledWith(2, numberedHandle);
-    expect(numberedHandle).toMatch(/_\d{3}$/);
+    ).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the shuffled handle when that availability check is superseded', async () => {
+  it('keeps the current handle when the user continues before the shuffle check resolves', async () => {
     const pendingChecks = deferUsernameChecks();
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
 
@@ -1315,19 +1388,12 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON,
       ),
     );
-    await waitFor(() => {
-      expect(usernameValue()).not.toBe(initialHandle);
-    });
-    const shuffledHandle = screen.getByTestId(
-      SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
-    ).props.value as string;
-
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
     expect(pendingChecks).toHaveLength(2);
     await act(async () => {
-      pendingChecks[0].resolve(false);
+      pendingChecks[0].resolve(true);
     });
     await act(async () => {
       pendingChecks[1].resolve(true);
@@ -1347,7 +1413,7 @@ describe('SocialProfileOnboardingView', () => {
     );
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
-    ).toHaveTextContent(`@${shuffledHandle}`);
+    ).toHaveTextContent(`@${initialHandle}`);
 
     await leaveReadyStep();
 
@@ -1355,10 +1421,7 @@ describe('SocialProfileOnboardingView', () => {
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
     ).toBeOnTheScreen();
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
-      expect.objectContaining({ username: shuffledHandle }),
-    );
-    expect(getLocalSocialProfileSnapshot().profile).toEqual(
-      expect.objectContaining({ handle: shuffledHandle }),
+      expect.objectContaining({ username: initialHandle }),
     );
   });
 
