@@ -39,10 +39,6 @@ const DEVICE_KEY_SCOPE = {
   service: 'com.metamask.predict.device-key.kalshi-v1',
   accessible: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
 };
-const LEGACY_DEVICE_KEY_SCOPE = {
-  service: 'com.metamask.predict.kalshi.device-key',
-  accessible: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
-};
 const ensureKalshiDeviceKey = (
   _config: PredictConfig,
   walletUnlocked: boolean,
@@ -90,20 +86,12 @@ const publicKeyFromRaw = (raw: Uint8Array) =>
 
 describe('p256DeviceKey', () => {
   let saved: string | null;
-  let legacySaved: string | null;
 
   beforeEach(() => {
     jest.clearAllMocks();
     saved = null;
-    legacySaved = null;
-    (SecureKeychain.getSecureItem as jest.Mock).mockImplementation(
-      async (scope: { service: string }) => {
-        const value =
-          scope.service === LEGACY_DEVICE_KEY_SCOPE.service
-            ? legacySaved
-            : saved;
-        return value === null ? null : { key: 'device-key', value };
-      },
+    (SecureKeychain.getSecureItem as jest.Mock).mockImplementation(async () =>
+      saved === null ? null : { key: 'device-key', value: saved },
     );
     (SecureKeychain.setSecureItem as jest.Mock).mockImplementation(
       async (_key: string, value: string) => {
@@ -112,12 +100,8 @@ describe('p256DeviceKey', () => {
       },
     );
     (SecureKeychain.clearSecureScope as jest.Mock).mockImplementation(
-      async (scope: { service: string }) => {
-        if (scope.service === LEGACY_DEVICE_KEY_SCOPE.service) {
-          legacySaved = null;
-        } else {
-          saved = null;
-        }
+      async () => {
+        saved = null;
         return true;
       },
     );
@@ -223,50 +207,28 @@ describe('p256DeviceKey', () => {
     expect(SecureKeychain.setSecureItem).toHaveBeenCalledTimes(1);
   });
 
-  it('migrates the version 1 Kalshi key to generic profile storage', async () => {
+  it.each([
+    ['an unversioned record', { v: 1 }],
+    ['a record for another key slot', { v: 2, keySlot: 'other-v1' }],
+  ])('discards %s and creates a new key', async (_label, header) => {
     const secretKey = new Uint8Array(32);
     secretKey[31] = 1;
-    const salt = Uint8Array.from({ length: 16 }, (_, index) => index + 1);
-    legacySaved = JSON.stringify({
-      v: 1,
+    saved = JSON.stringify({
+      ...header,
       secretKey: bytesToBase64Url(secretKey),
-      salt: bytesToBase64Url(salt),
+      salt: bytesToBase64Url(new Uint8Array(16)),
     });
 
     const material = requireDeviceMaterial(
       await ensureKalshiDeviceKey(enabledConfig, true),
     );
 
-    expect(material.publicRaw).toEqual(p256.getPublicKey(secretKey, false));
-    expect(material.saltRaw).toEqual(salt);
+    expect(material.publicRaw).not.toEqual(p256.getPublicKey(secretKey, false));
     expect(JSON.parse(saved ?? '{}')).toEqual(
       expect.objectContaining({ v: 2, keySlot: 'kalshi-v1' }),
     );
-    expect(legacySaved).toBeNull();
-    expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
-      LEGACY_DEVICE_KEY_SCOPE,
-    );
-  });
-
-  it('keeps the legacy key when migration storage fails', async () => {
-    const secretKey = new Uint8Array(32);
-    secretKey[31] = 1;
-    legacySaved = JSON.stringify({
-      v: 1,
-      secretKey: bytesToBase64Url(secretKey),
-      salt: bytesToBase64Url(new Uint8Array(16)),
-    });
-    (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(false);
-
-    await expect(ensureKalshiDeviceKey(enabledConfig, true)).rejects.toThrow(
-      'Predict device key was not stored',
-    );
-
-    expect(legacySaved).not.toBeNull();
-    expect(saved).toBeNull();
-    expect(SecureKeychain.clearSecureScope).not.toHaveBeenCalledWith(
-      LEGACY_DEVICE_KEY_SCOPE,
-    );
+    expect(SecureKeychain.getSecureItem).toHaveBeenCalledTimes(1);
+    expect(SecureKeychain.getSecureItem).toHaveBeenCalledWith(DEVICE_KEY_SCOPE);
   });
 
   it('returns null and does not read the keychain when the wallet is locked', async () => {
@@ -401,7 +363,7 @@ describe('p256DeviceKey', () => {
     const waited = await waitForKalshiDeviceKey();
 
     expect(waited?.publicKey).toBe((await pending)?.publicKey);
-    expect(SecureKeychain.getSecureItem).toHaveBeenCalledTimes(2);
+    expect(SecureKeychain.getSecureItem).toHaveBeenCalledTimes(1);
   });
 
   it('returns null and touches no storage when no key is held', async () => {

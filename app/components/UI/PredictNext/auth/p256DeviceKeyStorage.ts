@@ -6,15 +6,9 @@ import Logger from '../../../../util/Logger';
 import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
 const PERSISTED_KEY_VERSION = 2;
-const LEGACY_PERSISTED_KEY_VERSION = 1;
 const P256_PUBLIC_KEY_LENGTH = 65;
 const DEVICE_KEY_ACCOUNT = 'device-key';
 const DEVICE_KEY_SERVICE_PREFIX = 'com.metamask.predict.device-key';
-const KALSHI_KEY_SLOT = 'kalshi-v1';
-const LEGACY_KALSHI_SCOPE = {
-  service: 'com.metamask.predict.kalshi.device-key',
-  accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-};
 
 type DeviceKeyProfile = VenueAuthenticationProfile['deviceKey'];
 
@@ -29,27 +23,10 @@ export async function readPersistedP256DeviceKey(
   profile: DeviceKeyProfile,
 ): Promise<StoredP256DeviceKey | null> {
   const item = await SecureKeychain.getSecureItem(getSecureScope(profile));
-  if (item?.value) {
-    return parseOrDiscard(profile, item.value, false);
-  }
-
-  if (profile.keySlot !== KALSHI_KEY_SLOT) {
+  if (!item?.value) {
     return null;
   }
-
-  const legacyItem = await SecureKeychain.getSecureItem(LEGACY_KALSHI_SCOPE);
-  if (!legacyItem?.value) {
-    return null;
-  }
-
-  const legacyKey = parseOrDiscard(profile, legacyItem.value, true);
-  if (!legacyKey) {
-    return null;
-  }
-
-  await writePersistedP256DeviceKey(profile, legacyKey);
-  await clearScope(LEGACY_KALSHI_SCOPE);
-  return legacyKey;
+  return parseOrDiscard(profile, item.value);
 }
 
 export async function writePersistedP256DeviceKey(
@@ -76,17 +53,13 @@ export async function deletePersistedP256DeviceKey(
   profile: DeviceKeyProfile,
 ): Promise<void> {
   await clearScope(getSecureScope(profile));
-  if (profile.keySlot === KALSHI_KEY_SLOT) {
-    await clearScope(LEGACY_KALSHI_SCOPE);
-  }
 }
 
 function parseOrDiscard(
   profile: DeviceKeyProfile,
   payload: string,
-  allowLegacy: boolean,
 ): StoredP256DeviceKey | null {
-  const key = parsePersistedKey(profile, payload, allowLegacy);
+  const key = parsePersistedKey(profile, payload);
   if (!key) {
     Logger.error(
       new Error('Predict device key record was discarded'),
@@ -99,11 +72,10 @@ function parseOrDiscard(
 function parsePersistedKey(
   profile: DeviceKeyProfile,
   payload: string,
-  allowLegacy: boolean,
 ): StoredP256DeviceKey | null {
   try {
     const parsed: unknown = JSON.parse(payload);
-    if (!isPersistedRecord(profile, parsed, allowLegacy)) {
+    if (!isPersistedRecord(profile, parsed)) {
       return null;
     }
 
@@ -135,10 +107,9 @@ function parsePersistedKey(
 function isPersistedRecord(
   profile: DeviceKeyProfile,
   value: unknown,
-  allowLegacy: boolean,
 ): value is {
   v: number;
-  keySlot?: string;
+  keySlot: string;
   secretKey: string;
   salt: string;
 } {
@@ -153,12 +124,8 @@ function isPersistedRecord(
     salt?: unknown;
   };
   return (
-    ((record.v === PERSISTED_KEY_VERSION &&
-      record.keySlot === profile.keySlot) ||
-      (allowLegacy &&
-        (record.v === LEGACY_PERSISTED_KEY_VERSION ||
-          (record.v === PERSISTED_KEY_VERSION &&
-            record.keySlot === 'kalshi-device-v1')))) &&
+    record.v === PERSISTED_KEY_VERSION &&
+    record.keySlot === profile.keySlot &&
     typeof record.secretKey === 'string' &&
     typeof record.salt === 'string'
   );
