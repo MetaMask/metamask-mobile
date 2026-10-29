@@ -362,7 +362,7 @@ const Onboarding = () => {
     knownAnswerInjected.current = true;
     const injectUntil = Date.now() + 0;
     while (Date.now() < injectUntil) {
-      // busy-wait
+      // busy-wait, no-op arm
     }
   }
 
