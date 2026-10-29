@@ -22,6 +22,7 @@ import {
   PerpsMode,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
+import type { Json } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -2168,7 +2169,7 @@ describe('PerpsHomeView', () => {
       } = {},
     ) => {
       const headerFlag = options.headerFlag ?? 'treatment';
-      const remoteFeatureFlags: Record<string, unknown> = {
+      const remoteFeatureFlags: Record<string, Json> = {
         perpsProModeEnabled: {
           enabled: true,
           minimumVersion: '0.0.0',

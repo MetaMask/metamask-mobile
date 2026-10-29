@@ -2,7 +2,7 @@ import '../../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { fireEvent } from '@testing-library/react-native';
-import { PerpsMode } from '@metamask/perps-controller';
+import { InitializationState, PerpsMode } from '@metamask/perps-controller';
 import { initialStateWallet } from '../../../../../../../tests/component-view/presets/wallet';
 import {
   createRouteParamsProbe,
@@ -27,7 +27,7 @@ function treatmentState(watchlist: string[]) {
         backgroundState: {
           PerpsController: {
             isEligible: true,
-            initializationState: 'initialized',
+            initializationState: InitializationState.Initialized,
             isTestnet: false,
             isFirstTimeUser: { mainnet: false, testnet: false },
             mode: PerpsMode.Pro,

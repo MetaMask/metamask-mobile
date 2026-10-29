@@ -6,7 +6,11 @@ import { fireEvent } from '@testing-library/react-native';
 import { renderWalletActionsView } from '../../../../tests/component-view/renderers/walletActions';
 import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet.testIds';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { PerpsMode, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import {
+  InitializationState,
+  PerpsMode,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import {
   renderScreenWithRoutes,
   getRouteProbeTestId,
@@ -141,7 +145,7 @@ function proHeaderEntryState({
         backgroundState: {
           PerpsController: {
             isEligible: true,
-            initializationState: 'initialized',
+            initializationState: InitializationState.Initialized,
             isTestnet: false,
             isFirstTimeUser: { mainnet: false, testnet: false },
             mode: PerpsMode.Pro,

@@ -571,7 +571,7 @@ describeForPlatforms('Wallet', () => {
         extraRoutes: [
           {
             name: Routes.PERPS.ROOT,
-            Component: PerpsRoot as unknown as React.ComponentType,
+            Component: PerpsRoot as unknown as React.ComponentType<unknown>,
           },
         ],
         overrides: {
