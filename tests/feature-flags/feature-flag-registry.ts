@@ -5038,25 +5038,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsTAT4021AbtestPerpsHeaderMarketList: {
-    name: 'perpsTAT4021AbtestPerpsHeaderMarketList',
-    type: FeatureFlagType.Remote,
-    // Not in the production client-config response yet. Safe default is 100%
-    // control so E2E stays deterministic until the flag ships.
-    inProd: false,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: { type: 'percentage_rollout', value: 1 },
-      },
-      {
-        name: 'treatment',
-        scope: { type: 'percentage_rollout', value: 0 },
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   perpsTAT3938AbtestScreenVsBottomSheet: {
     name: 'perpsTAT3938AbtestScreenVsBottomSheet',
     type: FeatureFlagType.Remote,
