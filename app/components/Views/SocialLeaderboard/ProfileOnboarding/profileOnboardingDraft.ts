@@ -106,9 +106,6 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   };
 };
 
-export const profileUrlForHandle = (handle: string): string =>
-  `https://metamask.io/${normalizeUsername(handle)}`;
-
 /**
  * Manual onboarding after Connect X must not keep the X path. A fresh manual
  * draft keeps the account already chosen for this session.
@@ -200,7 +197,6 @@ export const buildOnboardedSocialProfile = (
     xHandle: draft.path === 'x' ? draft.xUsername : null,
     connectedToX: draft.path === 'x',
     followerCount: 0,
-    shareUrl: profileUrlForHandle(handle),
     winRatePercent: null,
     pnlUsd: null,
     linkedAccountId: draft.linkedAccountId,

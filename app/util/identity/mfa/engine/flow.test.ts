@@ -223,6 +223,7 @@ describe('createMfaFlow', () => {
       email: 'new@b.co',
       codeSent: true,
     });
+    expect(flow.getState().resendAvailableAt).toBe(NOW + 60_000);
 
     await act(flow, { type: 'back' });
     expect(flow.getState().step).toStrictEqual({
@@ -238,6 +239,8 @@ describe('createMfaFlow', () => {
       codeSent: true,
     });
     expect(fake.controller.beginCredentialEnrollment).toHaveBeenCalledTimes(1);
+    // Still the countdown of the code already sent.
+    expect(flow.getState().resendAvailableAt).toBe(NOW + 60_000);
 
     await act(flow, { type: 'submitCode', code: '111111' });
     expect(fake.controller.completeCredentialEnrollment).toHaveBeenCalledWith({
@@ -508,10 +511,11 @@ describe('createMfaFlow', () => {
       });
 
       await act(flow, { type: 'resend' });
+      // The sent code starts the next cooldown.
       expect(flow.getState()).toMatchObject({
         step: { name: 'otp', codeSent: true },
         error: undefined,
-        resendAvailableAt: undefined,
+        resendAvailableAt: NOW + 60_000,
       });
     });
 

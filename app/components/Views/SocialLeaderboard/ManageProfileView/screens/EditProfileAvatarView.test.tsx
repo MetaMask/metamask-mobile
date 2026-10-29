@@ -45,7 +45,6 @@ const profile: NonNullable<UseMyProfileResult['profile']> = {
   imageUrl: null,
   avatarPresetId: 'vr',
   avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-  shareUrl: 'https://metamask.io/social/giga-whale',
 };
 
 describe('EditProfileAvatarView', () => {
