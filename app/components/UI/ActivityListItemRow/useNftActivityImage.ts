@@ -76,7 +76,7 @@ function getNftIdentity(
     return undefined;
   }
 
-  const assetId = item.data.token?.assetId;
+  const assetId = 'token' in item.data ? item.data.token?.assetId : undefined;
   const assetIdMatch = assetId?.match(
     /^(eip155:\d+)\/(?:erc721|erc1155):([^/]+)\/(.+)$/,
   );
