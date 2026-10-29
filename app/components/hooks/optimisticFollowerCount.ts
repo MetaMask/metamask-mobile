@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
 /**
  * Local follower-count adjustment for one trader.
@@ -172,6 +172,28 @@ export const commitOptimisticFollowerCount = (addressOrId: string): void => {
   followerCountSnapshots = snapshotsNext;
 };
 
+/**
+ * Removes a pending delta once `serverCount` already includes it.
+ * Leaving the entry in place would reapply it if a later refetch moved the
+ * count back across `baseline + delta`.
+ */
+const releaseAbsorbedFollowerCount = (
+  addressOrId: string,
+  serverCount: number | null | undefined,
+): void => {
+  if (typeof serverCount !== 'number' || !Number.isFinite(serverCount)) {
+    return;
+  }
+  const pending = pendingFollowerCounts[addressOrId];
+  if (!pending || !isFollowerCountAdjustmentAbsorbed(pending, serverCount)) {
+    return;
+  }
+  const pendingNext = { ...pendingFollowerCounts };
+  delete pendingNext[addressOrId];
+  pendingFollowerCounts = pendingNext;
+  emitPendingFollowerCounts();
+};
+
 /** Drops adjustments when the wallet session changes. */
 export const clearOptimisticFollowerCounts = (): void => {
   const hadPending = Object.keys(pendingFollowerCounts).length > 0;
@@ -196,6 +218,10 @@ export const useDisplayedFollowerCount = (
     getPendingFollowerCounts,
     getPendingFollowerCounts,
   );
+
+  useEffect(() => {
+    releaseAbsorbedFollowerCount(addressOrId, serverCount);
+  }, [addressOrId, serverCount]);
 
   if (typeof serverCount !== 'number' || !Number.isFinite(serverCount)) {
     return serverCount;

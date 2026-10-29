@@ -1,7 +1,13 @@
+import { renderHook } from '@testing-library/react-native';
 import {
+  clearOptimisticFollowerCounts,
+  commitOptimisticFollowerCount,
   isFollowerCountAdjustmentAbsorbed,
   nextPendingFollowerCount,
+  publishServerFollowerCount,
+  recordOptimisticFollowerCount,
   resolveDisplayedFollowerCount,
+  useDisplayedFollowerCount,
   type PendingFollowerCount,
 } from './optimisticFollowerCount';
 
@@ -75,6 +81,54 @@ describe('nextPendingFollowerCount', () => {
     const next = nextPendingFollowerCount(pendingFollow(45, 1), 46, -1);
 
     expect(next).toEqual({ baseline: 46, delta: -1 });
+  });
+});
+
+describe('useDisplayedFollowerCount', () => {
+  beforeEach(() => {
+    clearOptimisticFollowerCounts();
+  });
+
+  it('does not reapply a follow after the server count includes it and then drops', () => {
+    publishServerFollowerCount('trader-1', 45);
+    recordOptimisticFollowerCount('trader-1', 1);
+    commitOptimisticFollowerCount('trader-1');
+
+    const { result, rerender } = renderHook(
+      ({ serverCount }: { serverCount: number }) =>
+        useDisplayedFollowerCount('trader-1', serverCount),
+      { initialProps: { serverCount: 45 } },
+    );
+
+    expect(result.current).toBe(46);
+
+    rerender({ serverCount: 46 });
+    expect(result.current).toBe(46);
+
+    rerender({ serverCount: 45 });
+
+    expect(result.current).toBe(45);
+  });
+
+  it('does not reapply an unfollow after the server count includes it and then rises', () => {
+    publishServerFollowerCount('trader-1', 45);
+    recordOptimisticFollowerCount('trader-1', -1);
+    commitOptimisticFollowerCount('trader-1');
+
+    const { result, rerender } = renderHook(
+      ({ serverCount }: { serverCount: number }) =>
+        useDisplayedFollowerCount('trader-1', serverCount),
+      { initialProps: { serverCount: 45 } },
+    );
+
+    expect(result.current).toBe(44);
+
+    rerender({ serverCount: 44 });
+    expect(result.current).toBe(44);
+
+    rerender({ serverCount: 45 });
+
+    expect(result.current).toBe(45);
   });
 });
 

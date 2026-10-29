@@ -469,6 +469,27 @@ describe('useTraderProfile', () => {
       expect(result.current.profile?.followerCount).toBe(46);
     });
 
+    it('uses a later lower server count after the follow refresh', async () => {
+      mockTraderProfileSelectors();
+      let profileData = fixtureProfile;
+      mockUseQuery.mockImplementation(() =>
+        makeQueryResult({ data: profileData as never }),
+      );
+      const { result, rerender } = renderHook(() =>
+        useTraderProfile('trader-1'),
+      );
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+      profileData = { ...fixtureProfile, followerCount: 46 };
+      rerender(undefined);
+      profileData = { ...fixtureProfile, followerCount: 45 };
+      rerender(undefined);
+
+      expect(result.current.profile?.followerCount).toBe(45);
+    });
+
     it('keeps the server follower count when a refresh already includes the unfollow', async () => {
       mockTraderProfileSelectors(['trader-1']);
       let profileData = fixtureProfile;
@@ -488,6 +509,27 @@ describe('useTraderProfile', () => {
       rerender(undefined);
 
       expect(result.current.profile?.followerCount).toBe(44);
+    });
+
+    it('uses a later higher server count after the unfollow refresh', async () => {
+      mockTraderProfileSelectors(['trader-1']);
+      let profileData = fixtureProfile;
+      mockUseQuery.mockImplementation(() =>
+        makeQueryResult({ data: profileData as never }),
+      );
+      const { result, rerender } = renderHook(() =>
+        useTraderProfile('trader-1'),
+      );
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+      profileData = { ...fixtureProfile, followerCount: 44 };
+      rerender(undefined);
+      profileData = { ...fixtureProfile, followerCount: 45 };
+      rerender(undefined);
+
+      expect(result.current.profile?.followerCount).toBe(45);
     });
 
     it('ignores concurrent toggleFollow calls while one is in flight', async () => {
