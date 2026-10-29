@@ -30,7 +30,7 @@ import {
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { usePerpsDetailsItem } from './templates/Perps/usePerpsDetailsItem';
-import { usePredictDetailsItem } from '../../UI/PredictNext/activity/internal/legacy/details/usePredictDetailsItem';
+import { usePredictActivityDetailsItem } from '../../UI/PredictNext';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
@@ -57,7 +57,10 @@ function ActivityDetailsScreen() {
       fetchByHash: !perpsItem && !isPerpsLoading,
     });
   const { item: predictItem, isLoading: isPredictLoading } =
-    usePredictDetailsItem(activityItem ? undefined : txIdentifier, chainId);
+    usePredictActivityDetailsItem(
+      activityItem ? undefined : txIdentifier,
+      chainId,
+    );
   const item = perpsItem ?? activityItem ?? predictItem;
   const waiting = Boolean(
     isPerpsLoading || isPredictLoading || (!item && isActivityFetching),
