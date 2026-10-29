@@ -371,6 +371,14 @@ export interface CardWalletProvisioningInfo {
   network: 'MASTERCARD';
   /** Opaque issuer id. Immersve seriesId. Absent for Baanx. */
   primaryAccountIdentifier?: string;
+  /** ISO 3166-1 alpha-2 country the provisioning flag is resolved against. */
+  countryCode?: string;
+  /**
+   * Baanx `UserResponse.cardProvider`. Not a persisted field of its own:
+   * it rides on the home payload and is re-read on the next Card Home fetch.
+   * Absent for Immersve and when the user response omits it.
+   */
+  cardProcessor?: string;
 }
 
 export interface CardHomeData {

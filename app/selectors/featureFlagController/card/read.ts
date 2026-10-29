@@ -12,6 +12,7 @@ import {
 } from './defaults';
 import type {
   CardFeatureFlag,
+  CardProvisioningFacts,
   CardProviderChain,
   CardProviderChains,
   CardProviderFlagKeys,
@@ -19,6 +20,10 @@ import type {
   CardUkMigrationFlag,
   CardUkMigrationState,
   ImmersveProgramConfig,
+  ProvisioningDevice,
+  ProvisioningPlatform,
+  ProvisioningWallet,
+  ResolvedProvisioningWallet,
 } from './types';
 
 /**
@@ -454,4 +459,289 @@ export function getCardUkMigrationUpdateBadgeSeverity(
   }
 
   return 'info';
+}
+
+/**
+ * Remote keys for the nested provisioning flags. Sibling of
+ * {@link CARD_PROVIDER_FLAGS}: Baanx is not a `card<Provider>` switch.
+ */
+export const CARD_PROVISIONING_FLAG_KEYS: Record<string, string> = {
+  [CardProviderIds.Baanx]: 'cardBaanxProvisioning',
+  [CardProviderIds.Immersve]: 'cardImmersveProvisioning',
+};
+
+/**
+ * Wallets this build can offer. A `samsung_pay` leaf is parsed, then dropped,
+ * until the Samsung Pay work adds it here.
+ */
+export const IMPLEMENTED_PROVISIONING_WALLETS: readonly ProvisioningWallet[] = [
+  'apple_wallet',
+  'google_wallet',
+];
+
+/** Shared empty result so a miss does not allocate. */
+export const NO_PROVISIONING_WALLETS: readonly ResolvedProvisioningWallet[] =
+  Object.freeze([]);
+
+const PROVISIONING_WALLET_ORDER: readonly ProvisioningWallet[] = [
+  'apple_wallet',
+  'google_wallet',
+  'samsung_pay',
+];
+
+const PROVISIONING_WALLETS_BY_PLATFORM: Record<
+  ProvisioningPlatform,
+  readonly ProvisioningWallet[]
+> = {
+  ios: ['apple_wallet'],
+  android: ['google_wallet', 'samsung_pay'],
+};
+
+const LEGACY_BAANX_APPLE_PAY_FLAG =
+  'galileoAppleWalletInAppProvisioningEnabled';
+const LEGACY_BAANX_GOOGLE_PAY_FLAG =
+  'galileoGoogleWalletInAppProvisioningEnabled';
+const LEGACY_IMMERSVE_APPLE_PAY_FLAG =
+  'immersveAppleWalletInAppProvisioningEnabled';
+
+const LEGACY_BAANX_COUNTRY = 'US';
+const LEGACY_BAANX_PROCESSOR = 'galileo';
+const LEGACY_IMMERSVE_COUNTRIES = ['NZ', 'AU'];
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * A rollout envelope is `{ value: object }` without its own `enabled` boolean.
+ * A flag object that already has `enabled` is left alone, same as
+ * `normalizeCardUkMigrationFlag` detecting a nested `value`.
+ */
+const unwrapProvisioningFlag = (raw: unknown): unknown => {
+  if (!isPlainObject(raw) || typeof raw.enabled === 'boolean') {
+    return raw;
+  }
+  if ('value' in raw && isNonEmptyObject(raw.value)) {
+    return raw.value;
+  }
+  return raw;
+};
+
+const isProvisioningFlagShape = (value: unknown): boolean =>
+  isPlainObject(value) &&
+  typeof value.enabled === 'boolean' &&
+  typeof value.minimumVersion === 'string' &&
+  isPlainObject(value.countries);
+
+const findCountryRule = (
+  countries: Record<string, unknown>,
+  countryCode: string | undefined,
+): unknown => {
+  if (!countryCode) {
+    return undefined;
+  }
+  const wanted = countryCode.toUpperCase();
+  for (const [key, rule] of Object.entries(countries)) {
+    if (key.toUpperCase() === wanted) {
+      return rule;
+    }
+  }
+  return undefined;
+};
+
+const readEligibility = (value: unknown): Record<string, unknown> | 'fail' => {
+  if (value === undefined) {
+    return {};
+  }
+  return isPlainObject(value) ? value : 'fail';
+};
+
+const isNonEmptyStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) &&
+  value.length > 0 &&
+  value.every((entry) => typeof entry === 'string');
+
+/**
+ * Country rules first, then each key present on the wallet leaf. An unknown
+ * key, or a `cardProcessors` list that misses the fact, fails closed.
+ */
+const eligibilityPasses = (
+  countryEligibility: unknown,
+  leafEligibility: unknown,
+  cardProcessor: string | undefined,
+): boolean => {
+  const countryRules = readEligibility(countryEligibility);
+  const leafRules = readEligibility(leafEligibility);
+  if (countryRules === 'fail' || leafRules === 'fail') {
+    return false;
+  }
+
+  const merged = { ...countryRules, ...leafRules };
+  for (const [key, rule] of Object.entries(merged)) {
+    if (key !== 'cardProcessors') {
+      return false;
+    }
+    if (
+      !isNonEmptyStringArray(rule) ||
+      cardProcessor === undefined ||
+      !rule.includes(cardProcessor)
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const readSamsungDevices = (
+  leaf: Record<string, unknown>,
+): ProvisioningDevice[] | null => {
+  const { devices } = leaf;
+  if (!Array.isArray(devices)) {
+    return ['phone', 'watch'];
+  }
+  const kept = devices.filter(
+    (entry): entry is ProvisioningDevice =>
+      entry === 'phone' || entry === 'watch',
+  );
+  return kept.length > 0 ? kept : null;
+};
+
+const isWalletLeaf = (
+  value: unknown,
+): value is { enabled: boolean; minimumVersion: string } & Record<
+  string,
+  unknown
+> =>
+  isPlainObject(value) &&
+  typeof value.enabled === 'boolean' &&
+  typeof value.minimumVersion === 'string';
+
+const deriveLegacyProvisioningWallets = (
+  flags: CardRemoteFeatureFlags,
+  providerId: string,
+  facts: CardProvisioningFacts,
+): readonly ResolvedProvisioningWallet[] => {
+  const country = facts.countryCode?.toUpperCase();
+
+  if (providerId === CardProviderIds.Baanx) {
+    if (
+      country !== LEGACY_BAANX_COUNTRY ||
+      facts.cardProcessor !== LEGACY_BAANX_PROCESSOR
+    ) {
+      return NO_PROVISIONING_WALLETS;
+    }
+    const wallets: ResolvedProvisioningWallet[] = [];
+    if (
+      facts.platform === 'ios' &&
+      validatedVersionGatedFeatureFlag(flags?.[LEGACY_BAANX_APPLE_PAY_FLAG]) ===
+        true
+    ) {
+      wallets.push({ wallet: 'apple_wallet' });
+    }
+    if (
+      facts.platform === 'android' &&
+      validatedVersionGatedFeatureFlag(
+        flags?.[LEGACY_BAANX_GOOGLE_PAY_FLAG],
+      ) === true
+    ) {
+      wallets.push({ wallet: 'google_wallet' });
+    }
+    return wallets.length > 0 ? wallets : NO_PROVISIONING_WALLETS;
+  }
+
+  if (providerId === CardProviderIds.Immersve) {
+    if (
+      facts.platform !== 'ios' ||
+      country === undefined ||
+      !LEGACY_IMMERSVE_COUNTRIES.includes(country) ||
+      validatedVersionGatedFeatureFlag(
+        flags?.[LEGACY_IMMERSVE_APPLE_PAY_FLAG],
+      ) !== true
+    ) {
+      return NO_PROVISIONING_WALLETS;
+    }
+    return [{ wallet: 'apple_wallet' }];
+  }
+
+  return NO_PROVISIONING_WALLETS;
+};
+
+/**
+ * Wallets a provider may offer for these facts.
+ *
+ * A valid new flag wins, including when it resolves to no wallets. Absence or
+ * an unparseable top-level value uses the legacy booleans. `implementedWallets`
+ * defaults to {@link IMPLEMENTED_PROVISIONING_WALLETS}; tests and the Samsung
+ * Pay work pass a wider set to exercise `devices`.
+ */
+export function resolveCardProvisioningWallets(
+  flags: CardRemoteFeatureFlags,
+  providerId: string,
+  facts: CardProvisioningFacts,
+  implementedWallets: readonly ProvisioningWallet[] = IMPLEMENTED_PROVISIONING_WALLETS,
+): readonly ResolvedProvisioningWallet[] {
+  const flagKey = CARD_PROVISIONING_FLAG_KEYS[providerId];
+  if (!flagKey) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  const unwrapped = unwrapProvisioningFlag(flags?.[flagKey]);
+  if (!isProvisioningFlagShape(unwrapped)) {
+    return deriveLegacyProvisioningWallets(flags, providerId, facts);
+  }
+
+  if (validatedVersionGatedFeatureFlag(unwrapped) !== true) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  const countries = (unwrapped as { countries: Record<string, unknown> })
+    .countries;
+  const countryRule = findCountryRule(countries, facts.countryCode);
+  if (!isPlainObject(countryRule) || countryRule.enabled !== true) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  const platformRule = countryRule[facts.platform];
+  if (!isPlainObject(platformRule)) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  const allowed = PROVISIONING_WALLETS_BY_PLATFORM[facts.platform];
+  const kept: ResolvedProvisioningWallet[] = [];
+  for (const wallet of PROVISIONING_WALLET_ORDER) {
+    if (!allowed.includes(wallet) || !implementedWallets.includes(wallet)) {
+      continue;
+    }
+    const leaf = platformRule[wallet];
+    if (!isWalletLeaf(leaf)) {
+      continue;
+    }
+    if (
+      validatedVersionGatedFeatureFlag({
+        enabled: leaf.enabled,
+        minimumVersion: leaf.minimumVersion,
+      }) !== true
+    ) {
+      continue;
+    }
+    if (
+      !eligibilityPasses(
+        countryRule.eligibility,
+        leaf.eligibility,
+        facts.cardProcessor,
+      )
+    ) {
+      continue;
+    }
+    if (wallet === 'samsung_pay') {
+      const devices = readSamsungDevices(leaf);
+      if (!devices) {
+        continue;
+      }
+      kept.push({ wallet, devices });
+      continue;
+    }
+    kept.push({ wallet });
+  }
+
+  return kept.length > 0 ? kept : NO_PROVISIONING_WALLETS;
 }

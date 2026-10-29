@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { AppState, Platform, type AppStateStatus } from 'react-native';
+import { selectPushProvisioningEnabled } from '../../../../../selectors/featureFlagController/card';
 import { usePushProvisioning } from './usePushProvisioning';
 
 interface FocusEffectHarness {
@@ -112,14 +113,12 @@ jest.mock('../../hooks/useCardCapabilities', () => ({
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/card', () => ({
-  selectPushProvisioningEnabled: (
-    _state: unknown,
-    _providerId: unknown,
-    walletType: string,
-  ) =>
-    walletType === 'apple_wallet'
-      ? mockAppleProvisioningEnabled
-      : mockGoogleProvisioningEnabled,
+  selectPushProvisioningEnabled: jest.fn(
+    (_state: unknown, _providerId: unknown, walletType: string) =>
+      walletType === 'apple_wallet'
+        ? mockAppleProvisioningEnabled
+        : mockGoogleProvisioningEnabled,
+  ),
 }));
 
 describe('usePushProvisioning', () => {
@@ -501,6 +500,41 @@ describe('usePushProvisioning', () => {
       });
 
       expect(result.current.canAddToWallet).toBe(false);
+      unmount();
+    });
+
+    it('passes the card country and processor into the provisioning flag', async () => {
+      const { unmount } = renderHook(() =>
+        usePushProvisioning({
+          ...defaultOptions,
+          walletProvisioning: {
+            ...mockWalletProvisioning,
+            countryCode: 'US',
+            cardProcessor: 'galileo',
+          },
+        }),
+      );
+
+      expect(selectPushProvisioningEnabled).toHaveBeenCalledWith(
+        expect.anything(),
+        'baanx',
+        expect.any(String),
+        { countryCode: 'US', cardProcessor: 'galileo' },
+      );
+      unmount();
+    });
+
+    it('passes empty facts when provisioning info is missing', async () => {
+      const { unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, walletProvisioning: null }),
+      );
+
+      expect(selectPushProvisioningEnabled).toHaveBeenCalledWith(
+        expect.anything(),
+        'baanx',
+        expect.any(String),
+        { countryCode: undefined, cardProcessor: undefined },
+      );
       unmount();
     });
 

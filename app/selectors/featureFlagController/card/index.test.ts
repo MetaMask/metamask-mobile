@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {
   CardFeatureFlag,
   SupportedChain,
@@ -1250,6 +1251,76 @@ describe('selectPushProvisioningEnabled', () => {
     expect(
       selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet'),
     ).toBe(false);
+  });
+
+  it('follows a present provisioning flag when facts are passed', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+    const state = stateWithFlags({
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            ios: {
+              apple_wallet: { enabled: true, minimumVersion: '0.0.0' },
+            },
+          },
+        },
+      },
+      galileoAppleWalletInAppProvisioningEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const enabled = selectPushProvisioningEnabled(
+      state,
+      'baanx',
+      'apple_wallet',
+      {
+        countryCode: 'US',
+        cardProcessor: 'galileo',
+      },
+    );
+
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+    expect(enabled).toBe(true);
+  });
+
+  it('derives the legacy wallet when facts are passed and the new key is absent', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+    const state = stateWithFlags({
+      galileoAppleWalletInAppProvisioningEnabled: {
+        enabled: true,
+        minimumVersion: '7.0.0',
+      },
+    });
+
+    const galileo = selectPushProvisioningEnabled(
+      state,
+      'baanx',
+      'apple_wallet',
+      { countryCode: 'US', cardProcessor: 'galileo' },
+    );
+    const monavate = selectPushProvisioningEnabled(
+      state,
+      'baanx',
+      'apple_wallet',
+      { countryCode: 'US', cardProcessor: 'monavate' },
+    );
+
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+    expect(galileo).toBe(true);
+    expect(monavate).toBe(false);
   });
 });
 
