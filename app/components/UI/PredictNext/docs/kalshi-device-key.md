@@ -34,9 +34,10 @@ together and writes them under the slot-derived keychain service, currently
 `com.metamask.predict.device-key.kalshi-v1`, with
 `WHEN_UNLOCKED_THIS_DEVICE_ONLY`. That is the same helper and accessibility
 used for other app secrets such as Card and Ramp tokens. The current record is
-`{ v: 2, keySlot, secretKey, salt }`. A record with another version or key
-slot is discarded and replaced. The public key is derived on load, so a stored
-public key cannot drift from the private key.
+`{ v: 2, keySlot, secretKey, salt }`. An older version, a different key slot,
+or a corrupt payload is discarded and replaced. An integer version newer than
+2 stays in the keychain, and the read returns no key. The public key is
+derived on load, so a stored public key cannot drift from the private key.
 
 `SecureKeychain` encrypts with the app fox code before the value reaches the OS
 keychain. Reading it back does not require the wallet password. The module

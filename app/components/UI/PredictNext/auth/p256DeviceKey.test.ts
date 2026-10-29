@@ -209,6 +209,7 @@ describe('p256DeviceKey', () => {
 
   it.each([
     ['an unversioned record', { v: 1 }],
+    ['a fractional version', { v: 2.5 }],
     ['a record for another key slot', { v: 2, keySlot: 'other-v1' }],
   ])('discards %s and creates a new key', async (_label, header) => {
     const secretKey = new Uint8Array(32);
@@ -229,6 +230,26 @@ describe('p256DeviceKey', () => {
     );
     expect(SecureKeychain.getSecureItem).toHaveBeenCalledTimes(1);
     expect(SecureKeychain.getSecureItem).toHaveBeenCalledWith(DEVICE_KEY_SCOPE);
+  });
+
+  it('leaves a newer device key record in place', async () => {
+    const secretKey = new Uint8Array(32);
+    secretKey[31] = 1;
+    const record = {
+      v: 3,
+      keySlot: 'kalshi-v1',
+      secretKey: bytesToBase64Url(secretKey),
+      salt: bytesToBase64Url(new Uint8Array(16)),
+      extra: 'future',
+    };
+    saved = JSON.stringify(record);
+
+    const material = await ensureKalshiDeviceKey(enabledConfig, true);
+
+    expect(material).toBeNull();
+    expect(getKalshiDeviceKey()).toBeNull();
+    expect(saved).toBe(JSON.stringify(record));
+    expect(SecureKeychain.setSecureItem).not.toHaveBeenCalled();
   });
 
   it('returns null and does not read the keychain when the wallet is locked', async () => {

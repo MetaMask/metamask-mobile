@@ -77,9 +77,10 @@ export const createP256DeviceKey = (
 
 /**
  * Loads or creates the profile-bound device key while the wallet is unlocked.
- * Returns null and drops plaintext while locked. Feature gating belongs to the
- * Engine service. The persisted copy remains until the bound delete operation.
- * The private key stays in this module.
+ * Returns null and drops plaintext while locked. A record with a newer integer
+ * version stays in the keychain and this returns null. Feature gating belongs
+ * to the Engine service. The persisted copy remains until the bound delete
+ * operation. The private key stays in this module.
  */
 function ensureDeviceKey(
   profile: DeviceKeyProfile,
@@ -208,9 +209,14 @@ async function loadOrCreate(
     return toPublicMaterial(stored);
   }
 
-  const key = persisted ?? createDeviceKey(profile);
+  if (persisted.status === 'newer') {
+    return null;
+  }
+
+  const key =
+    persisted.status === 'present' ? persisted.key : createDeviceKey(profile);
   try {
-    if (!persisted) {
+    if (persisted.status !== 'present') {
       await writePersistedP256DeviceKey(profile, key);
     }
   } catch (error) {

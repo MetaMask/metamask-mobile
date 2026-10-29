@@ -22,14 +22,28 @@ export interface StoredP256DeviceKey {
   saltRaw: Uint8Array;
 }
 
+export type PersistedP256DeviceKeyRead =
+  | { status: 'present'; key: StoredP256DeviceKey }
+  | { status: 'missing' }
+  | { status: 'unusable' }
+  | { status: 'newer' };
+
 export async function readPersistedP256DeviceKey(
   profile: DeviceKeyProfile,
-): Promise<StoredP256DeviceKey | null> {
+): Promise<PersistedP256DeviceKeyRead> {
   const item = await SecureKeychain.getSecureItem(getSecureScope(profile));
   if (!item?.value) {
-    return null;
+    return { status: 'missing' };
   }
-  return parseOrDiscard(profile, item.value);
+
+  const read = parsePersistedKey(profile, item.value);
+  if (read.status === 'unusable') {
+    Logger.error(
+      new Error('Predict device key record was discarded'),
+      'Predict device key record was discarded',
+    );
+  }
+  return read;
 }
 
 export async function writePersistedP256DeviceKey(
@@ -58,28 +72,18 @@ export async function deletePersistedP256DeviceKey(
   await clearScope(getSecureScope(profile));
 }
 
-function parseOrDiscard(
-  profile: DeviceKeyProfile,
-  payload: string,
-): StoredP256DeviceKey | null {
-  const key = parsePersistedKey(profile, payload);
-  if (!key) {
-    Logger.error(
-      new Error('Predict device key record was discarded'),
-      'Predict device key record was discarded',
-    );
-  }
-  return key;
-}
-
 function parsePersistedKey(
   profile: DeviceKeyProfile,
   payload: string,
-): StoredP256DeviceKey | null {
+): Exclude<PersistedP256DeviceKeyRead, { status: 'missing' }> {
   try {
     const parsed: unknown = JSON.parse(payload);
+    const version = readPersistedVersion(parsed);
+    if (version !== undefined && version > PERSISTED_KEY_VERSION) {
+      return { status: 'newer' };
+    }
     if (!isPersistedRecord(profile, parsed)) {
-      return null;
+      return { status: 'unusable' };
     }
 
     const secretKey = fromBase64Url(parsed.secretKey);
@@ -88,23 +92,39 @@ function parsePersistedKey(
       !p256.utils.isValidSecretKey(secretKey) ||
       saltRaw.length !== P256_DEVICE_SALT_LENGTH
     ) {
-      return null;
+      return { status: 'unusable' };
     }
 
     const publicRaw = p256.getPublicKey(secretKey, false);
     if (publicRaw.length !== P256_PUBLIC_KEY_LENGTH || publicRaw[0] !== 0x04) {
-      return null;
+      return { status: 'unusable' };
     }
 
     return {
-      keySlot: profile.keySlot,
-      secretKey: copyBytes(secretKey),
-      publicRaw: copyBytes(publicRaw),
-      saltRaw: copyBytes(saltRaw),
+      status: 'present',
+      key: {
+        keySlot: profile.keySlot,
+        secretKey: copyBytes(secretKey),
+        publicRaw: copyBytes(publicRaw),
+        saltRaw: copyBytes(saltRaw),
+      },
     };
   } catch {
-    return null;
+    return { status: 'unusable' };
   }
+}
+
+/** Integer versions above this build stay unread so a downgrade cannot rotate them. */
+function readPersistedVersion(value: unknown): number | undefined {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const version = (value as { v?: unknown }).v;
+  if (typeof version !== 'number' || !Number.isInteger(version)) {
+    return undefined;
+  }
+  return version;
 }
 
 function isPersistedRecord(
