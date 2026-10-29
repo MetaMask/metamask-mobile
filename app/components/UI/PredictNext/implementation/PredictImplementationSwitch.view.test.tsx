@@ -46,8 +46,8 @@ describe('PredictImplementationSwitch', () => {
     expect(view.queryByTestId(RESOLVING_BRANCH)).not.toBeOnTheScreen();
   });
 
-  it('mounts only the legacy branch while Polymarket is enabled', async () => {
-    const view = renderSwitch({ polymarket: true, kalshi: true });
+  it('mounts only the legacy branch for a Polymarket-only rollout', async () => {
+    const view = renderSwitch({ polymarket: true, kalshi: false });
 
     expect(await view.findByTestId(LEGACY_BRANCH)).toBeOnTheScreen();
     expect(view.queryByTestId(NEXT_BRANCH)).not.toBeOnTheScreen();
