@@ -13,6 +13,7 @@ export const QuickBuySheetSelectorsIDs = {
   RATE_TAG: 'quick-buy-rate-tag',
   GAS_FEE_DEDUCTION: 'quick-buy-gas-fee-deduction',
   GASLESS_FEE_TOKEN: 'quick-buy-gasless-fee-token',
+  EST_RECEIVE_ROW: 'quick-buy-est-receive-row',
   EST_RECEIVE_LOADING: 'quick-buy-est-receive-loading',
   EST_RECEIVE_LABEL_LOADING: 'quick-buy-est-receive-label-loading',
   RATE_TAG_PRESSABLE: 'quick-buy-rate-tag-pressable',

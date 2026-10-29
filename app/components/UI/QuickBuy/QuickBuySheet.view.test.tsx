@@ -11,7 +11,7 @@ import {
   FeatureId,
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
-import { Text, TextColor } from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
@@ -49,17 +49,6 @@ const BASE_NETWORK_OPTION = 'network-option-eip155:8453';
 const SLIPPAGE_ROUTE = {
   name: Routes.BRIDGE.MODALS.ROOT,
   Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
-};
-
-const findTextColor = (
-  screen: Pick<RenderAPI, 'UNSAFE_getAllByType'>,
-  amountPattern: RegExp,
-): TextColor | undefined => {
-  const amountText = screen.UNSAFE_getAllByType(Text).find((node) => {
-    const { children } = node.props;
-    return typeof children === 'string' && amountPattern.test(children);
-  });
-  return amountText?.props.color as TextColor | undefined;
 };
 
 const typeAmount = (screen: Pick<RenderAPI, 'getByTestId'>, digits: string) => {
@@ -789,9 +778,26 @@ describeForPlatforms('QuickBuySheet', () => {
     expect(await within(amountArea).findByText(/Available/)).toBeOnTheScreen();
     expect(within(amountArea).queryByText('Add funds')).not.toBeOnTheScreen();
     await waitFor(() => {
-      expect(findTextColor(screen, /^3000000000000$/)).toBe(
-        TextColor.ErrorDefault,
+      // Animated amounts render one glyph per digit, and the animated wrapper
+      // repeats that glyph. Keep the innermost colored digit so each is counted once.
+      const coloredDigits = screen.UNSAFE_root.findAll(
+        (node) =>
+          node.props?.color === TextColor.ErrorDefault &&
+          typeof node.props.children === 'string' &&
+          /^\d+$/.test(node.props.children),
       );
+      const amountDigits = coloredDigits
+        .filter(
+          (node) =>
+            !coloredDigits.some(
+              (other) =>
+                other !== node &&
+                node.findAll((child) => child === other).length > 0,
+            ),
+        )
+        .map((node) => node.props.children as string)
+        .join('');
+      expect(amountDigits).toBe('3000000000000');
     });
 
     const confirm = screen.getByTestId(
