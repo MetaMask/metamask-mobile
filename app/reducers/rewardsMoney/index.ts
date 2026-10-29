@@ -52,6 +52,13 @@ export interface RewardsMoneyState {
    * killed session cannot leave Claim disabled.
    */
   claimLocks: Record<string, ClaimLock>;
+  /**
+   * Referral code from the `ref` param of the last deeplink the user
+   * continued past the interstitial, waiting for the invite sheet. A newer
+   * link replaces it. Dropped on rehydrate: the code belongs to the session
+   * that opened the link.
+   */
+  pendingReferralCode: string | null;
 }
 
 export type ClaimLockStatus = 'in_progress' | 'awaiting_fresh_summary';
@@ -71,6 +78,7 @@ export const initialState: RewardsMoneyState = {
   inFlightClaims: {},
   claimWaitingUntil: {},
   claimLocks: {},
+  pendingReferralCode: null,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -271,6 +279,12 @@ const rewardsMoneySlice = createSlice({
       }
       state.claimLocks[action.payload.profileId] = action.payload.lock;
     },
+    setPendingReferralCode: (state, action: PayloadAction<string>) => {
+      state.pendingReferralCode = action.payload;
+    },
+    clearPendingReferralCode: (state) => {
+      state.pendingReferralCode = null;
+    },
     resetRewardsMoneyState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -295,6 +309,7 @@ const rewardsMoneySlice = createSlice({
           // A lock belongs to the running session. Restoring one would leave
           // Claim disabled after the process that owned the claim was gone.
           claimLocks: {},
+          pendingReferralCode: null,
         };
       },
     );
@@ -317,6 +332,8 @@ export const {
   setInFlightClaims,
   setClaimWaitingUntil,
   setClaimLock,
+  setPendingReferralCode,
+  clearPendingReferralCode,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 

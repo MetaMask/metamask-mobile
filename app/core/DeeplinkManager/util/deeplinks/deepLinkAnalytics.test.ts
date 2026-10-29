@@ -752,6 +752,40 @@ describe('deepLinkAnalytics', () => {
       expect(result.sensitiveProperties).toEqual({});
     });
 
+    it('includes the normalized money referral code from ref', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/home?ref=kol-123',
+        route: DeepLinkRoute.HOME,
+        urlParams: { ref: 'kol-123' },
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const result = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(result.properties.referral_code).toBe('KOL123');
+    });
+
+    it('omits the money referral code when ref is malformed', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/home?ref=a',
+        route: DeepLinkRoute.HOME,
+        urlParams: { ref: 'a' },
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const result = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(result.properties).not.toHaveProperty('referral_code');
+    });
+
     it('creates event for invalid route with target URL', async () => {
       const mockBranch = jest.requireMock('react-native-branch');
       mockBranch.getLatestReferringParams.mockResolvedValue({

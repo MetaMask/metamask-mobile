@@ -5,7 +5,10 @@ import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import configureStore from '../../../../../util/test/configureStore';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
-import { setReferralMe } from '../../../../../reducers/rewardsMoney';
+import {
+  setPendingReferralCode,
+  setReferralMe,
+} from '../../../../../reducers/rewardsMoney';
 import { setGeoRewardsMetadata } from '../../../../../reducers/rewards';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -251,6 +254,27 @@ describe('AcceptInviteSheet', () => {
 
     sheet.props.goBack();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the deeplink referral code when the sheet closes', async () => {
+    const { store, unmount } = await renderSheet('KOL1');
+    act(() => {
+      store.dispatch(setPendingReferralCode('KOL1'));
+    });
+
+    unmount();
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+  });
+
+  it('keeps the deeplink referral code while the sheet is open', async () => {
+    const { store } = await renderSheet('KOL1');
+
+    act(() => {
+      store.dispatch(setPendingReferralCode('KOL1'));
+    });
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
 
   it('leaves native back, overlay, and swipe dismissal enabled', async () => {

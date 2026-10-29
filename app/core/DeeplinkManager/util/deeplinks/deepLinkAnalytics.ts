@@ -17,6 +17,7 @@ import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
 import { resolveSocialDeeplinkTarget } from './socialDeeplinkPath';
+import { parseMoneyReferralCode } from '../../../../components/UI/Rewards/utils/moneyReferralCode';
 
 /**
  * Type for URL parameters that can contain string or boolean values
@@ -807,6 +808,7 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
       referral: context.urlParams.referral,
+      referral_code: parseMoneyReferralCode(context.urlParams.ref) ?? undefined,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
     })
     .addSensitiveProperties(sensitiveProperties);

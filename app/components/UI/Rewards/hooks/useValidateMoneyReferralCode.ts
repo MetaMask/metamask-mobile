@@ -2,10 +2,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
+import {
+  MONEY_REFERRAL_CODE_MAX_LENGTH,
+  MONEY_REFERRAL_CODE_MIN_LENGTH,
+} from '../utils/moneyReferralCode';
+
+export {
+  MONEY_REFERRAL_CODE_MAX_LENGTH,
+  MONEY_REFERRAL_CODE_MIN_LENGTH,
+} from '../utils/moneyReferralCode';
 
 export const MONEY_REFERRAL_CODE_DEBOUNCE_MS = 1000;
-export const MONEY_REFERRAL_CODE_MIN_LENGTH = 3;
-export const MONEY_REFERRAL_CODE_MAX_LENGTH = 24;
 /** Validation itself failed, as opposed to the code being rejected. */
 export const MONEY_REFERRAL_CODE_UNKNOWN_ERROR = 'Unknown error';
 

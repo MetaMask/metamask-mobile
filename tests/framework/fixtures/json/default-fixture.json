@@ -965,6 +965,7 @@
       "earningsHistory": {},
       "earningsSummary": {},
       "inFlightClaims": {},
+      "pendingReferralCode": null,
       "referralFunnel": {},
       "referralMe": {}
     },
