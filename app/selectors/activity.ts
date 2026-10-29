@@ -15,7 +15,7 @@ import {
 } from './transactionController';
 import { selectBridgeHistoryForAccount } from './bridgeStatusController';
 import { selectEvmNetworkConfigurationsByChainId } from './networkController';
-import { selectAllTokens } from './tokensController';
+import { selectErc20MetadataLookup } from './assets/assets-controller';
 import { selectTransactionPayTransactionData } from './transactionPayController';
 import { findBridgeHistoryItem } from '../util/bridge/findBridgeHistoryItem';
 import { isHardwareAccount } from '../util/address';
@@ -132,7 +132,7 @@ export const selectLocalActivityItems = createSelector(
     selectRequiredTransactions,
     selectBridgeHistoryForAccount,
     selectEvmNetworkConfigurationsByChainId,
-    selectAllTokens,
+    selectErc20MetadataLookup,
     selectSelectedAccountGroupEvmInternalAccount,
     selectTransactionPayTransactionData,
   ],
@@ -141,7 +141,7 @@ export const selectLocalActivityItems = createSelector(
     requiredTransactions,
     bridgeHistory,
     networkConfigurations,
-    allTokens,
+    getErc20Metadata,
     groupEvmAccount,
     transactionPayData,
   ) => {
@@ -153,10 +153,6 @@ export const selectLocalActivityItems = createSelector(
     const requiredTransactionsById = new Map(
       requiredTransactions.map((transaction) => [transaction.id, transaction]),
     );
-    const tokensByChain = allTokens as Record<
-      string,
-      Record<Hex, { symbol?: string; decimals?: number; address: string }[]>
-    >;
 
     return transactionGroups.map((baseGroup) => {
       const { primaryTransaction: tx } = baseGroup;
@@ -166,10 +162,8 @@ export const selectLocalActivityItems = createSelector(
         : undefined;
       const contractAddress = tx.txParams?.to?.toLowerCase();
       const matchingToken =
-        accountAddress && txChainId && contractAddress
-          ? tokensByChain[txChainId]?.[accountAddress as Hex]?.find(
-              (token) => token.address?.toLowerCase() === contractAddress,
-            )
+        txChainId && contractAddress
+          ? getErc20Metadata(txChainId, contractAddress)
           : undefined;
       const bridgeHistoryItem = findBridgeHistoryItem({
         bridgeHistory,
