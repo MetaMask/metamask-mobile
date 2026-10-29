@@ -4,19 +4,8 @@ export type SheetSnapTarget = SheetStop | 'dismiss';
 
 export type SheetDragDirection = 'up' | 'down';
 
-/**
- * Edge drag strips. They overlay the sheet's 16px content padding so the
- * swipe target does not add a second inset.
- */
 export const SHEET_EDGE_STRIP_WIDTH = 16;
-
-/**
- * The design-system handle stays in the layout when the sheet pan is off
- * (`p-1` + `h-1` + `p-1`). The visible handle overlaps that slot.
- */
 export const HIDDEN_HANDLE_SLOT = 12;
-
-/** Downward or upward speed that commits the drag without crossing the midpoint. */
 export const SHEET_FLING_VELOCITY = 800;
 
 export const SHEET_SNAP_DURATION_MS = 180;
@@ -34,7 +23,6 @@ export interface ResolveSheetSnapInput {
 export interface SheetMidpointInput {
   stop: SheetStop;
   direction: SheetDragDirection;
-  /** Finger travel from the gesture start. Positive is downward. */
   translationY: number;
   defaultHeight: number;
   tallHeight: number;
@@ -45,11 +33,6 @@ export function gifDefaultHeight(windowHeight: number): number {
   return Math.max(280, Math.round(windowHeight * 0.42));
 }
 
-/**
- * Inner height of the tall stop. The design-system sheet adds the bottom
- * safe-area padding under this content, so the padding is removed here and
- * the outer sheet stays within 90% of the window and the sheet maximum.
- */
 export function tallSheetHeight(
   windowHeight: number,
   topInset: number,

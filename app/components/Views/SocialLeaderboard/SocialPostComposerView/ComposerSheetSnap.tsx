@@ -50,11 +50,6 @@ const EdgeStrip = ({
   );
 };
 
-/**
- * Chrome drag for one composer sheet. The design-system pan is turned off so
- * the grid and list keep their own scroll, and this view restores the handle,
- * the backdrop tap, and the height animation.
- */
 export const ComposerSheetSnap = ({
   sheetTestID,
   onDismiss,

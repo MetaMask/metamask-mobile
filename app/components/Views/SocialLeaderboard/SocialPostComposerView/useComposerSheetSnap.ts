@@ -38,13 +38,6 @@ export interface ComposerSheetSnap {
   backdropStyle: ReturnType<typeof useAnimatedStyle>;
 }
 
-/**
- * Two-stop height for the composer attachment sheets.
- *
- * Network tier is read because these sheets show a list and an animation.
- * The gesture is local, so the tier does not change the heights or the
- * sheets' existing fetches.
- */
 export function useComposerSheetSnap(
   defaultHeight: number,
   onDismiss: () => void,
