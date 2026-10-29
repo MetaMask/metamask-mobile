@@ -1145,6 +1145,10 @@ describe('VbaDetails', () => {
 
   it('refreshes an unlabeled approved account and does not create USD when it is BRL', async () => {
     mockLocation = 'US';
+    mockHydrate.mockResolvedValue({
+      kycStatus: 'approved',
+      autorampStatus: 'ready',
+    });
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Approved' }]);
     mockRefreshAutoramp.mockImplementation(async () => {
       const stamped: TestAutoramp = {
@@ -1179,12 +1183,38 @@ describe('VbaDetails', () => {
     };
     setAutoramps([pending]);
     mockRefreshAutoramp.mockResolvedValue(pending);
+    mockHydrate.mockResolvedValue({
+      kycStatus: 'approved',
+      autorampStatus: 'ready',
+    });
 
     renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
     });
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('stops polling and opens the generic error for an existing autoramp in a currency this build cannot show', async () => {
+    const eur: TestAutoramp = {
+      id: 'ar-1',
+      walletAddress: '0xabc',
+      status: 'Approved',
+      depositRailsSummary: { currency: 'EUR' },
+    };
+    setAutoramps([eur]);
+    mockRefreshAutoramp.mockResolvedValue(eur);
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+      );
+    });
+    expect(mockRefreshAutoramp).toHaveBeenCalledTimes(1);
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 

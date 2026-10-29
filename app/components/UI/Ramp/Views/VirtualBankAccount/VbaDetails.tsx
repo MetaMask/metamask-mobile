@@ -382,6 +382,20 @@ const VbaDetails = () => {
           if (ramps.refreshAutoramp) {
             await ramps.refreshAutoramp(existing.id);
           }
+          if (!stillCurrent()) {
+            return;
+          }
+          const refreshedCurrency = findUsableVbaAutoramp(
+            readAutoramps(),
+            walletAddress,
+          )?.depositRailsSummary?.currency;
+          if (refreshedCurrency && !toDrawableCurrency(refreshedCurrency)) {
+            pollingDoneRef.current = true;
+            navigateToVbaOnboardingDestination(
+              navigation,
+              ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+            );
+          }
           return;
         }
         if (!sourceCurrency) {
