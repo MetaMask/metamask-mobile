@@ -1200,14 +1200,16 @@
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
-      "description": "A few details need your attention. Review each item below, then try again.",
+      "description": "A few details need your attention. Review each item below, then contact support.",
+      "retry_description": "A few details need your attention. Review each item below, then try again.",
       "identity_document_title": "Check your identity document",
       "identity_document_description": "Make sure it is valid, clear, and fully visible",
       "selfie_title": "Retake your selfie",
       "selfie_description": "Use good lighting and show your face clearly",
       "details_title": "Review your details",
       "details_description": "Make sure your information matches your documents",
-      "button": "Try again"
+      "button": "Contact support",
+      "retry_button": "Try again"
     },
     "account_provisioning_error": {
       "title": "Couldn't create your account",
@@ -2947,6 +2949,7 @@
       "no_positions": "No open positions",
       "card": {
         "position_title": "Position",
+        "post_to_feed": "Post to feed",
         "pnl_label": "P&L",
         "return_label": "Return",
         "size_label": "Size",
@@ -3623,8 +3626,6 @@
       "title": "Share position",
       "post_to_metamask": "Post to MetaMask",
       "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
-      "post_not_ready": "This position isn't ready to post yet",
-      "post_other_account": "Only positions from your profile's wallet can be posted",
       "new_badge": "New",
       "share_externally": "Share externally"
     },
@@ -3694,7 +3695,9 @@
       "unavailable": "No markets are available right now."
     },
     "event": {
-      "your_positions": "Your positions"
+      "your_positions": "Your positions",
+      "game_lines": "Game Lines",
+      "outcome": "Outcome"
     },
     "search": {
       "placeholder": "Search markets",
