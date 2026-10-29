@@ -80,13 +80,10 @@ export function useEnsurePayToken(): (
       // for the token's chain, the pay controller resolves without it for
       // post-quote/withdraw destinations.
       try {
-        if (evmAccount && caipAssetType && AssetsController?.getAssets) {
-          await AssetsController.getAssets([evmAccount], {
-            chainIds: [caipChainId],
-            dataTypes: ['price'],
-            forceUpdate: true,
-            assetsForPriceUpdate: [caipAssetType as Caip19AssetId],
-          });
+        if (evmAccount && caipAssetType && AssetsController?.syncAssetsPrices) {
+          await AssetsController.syncAssetsPrices([
+            caipAssetType as Caip19AssetId,
+          ]);
         }
       } catch (error) {
         log('Failed to refresh pay token fiat rate', {

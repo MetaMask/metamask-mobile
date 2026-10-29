@@ -92,6 +92,8 @@ export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
 
 export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;
 
+export const SOCIAL_TERMS_ACCEPTED = `${prefix}socialTermsAccepted`;
+
 export const SOCIAL_TAB_VISITED = `${prefix}socialTabVisited`;
 
 export const SOCIAL_LEADERBOARD_SNAPSHOT_PREFIX = `${prefix}socialLeaderboardSnapshot:`;

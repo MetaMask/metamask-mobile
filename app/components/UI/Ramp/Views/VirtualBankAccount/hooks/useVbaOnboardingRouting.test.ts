@@ -339,22 +339,41 @@ describe('useOpenVbaOnboarding', () => {
     expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
   });
 
-  it('opens identity verification when retrying a still-rejected KYC session', async () => {
-    const rejectedSnapshot = {
+  it('keeps a rejected KYC session on the failure page', async () => {
+    mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
       vendorDisclaimersComplete: true,
       sessionDisclaimersComplete: true,
-      kycStatus: 'rejected' as const,
+      kycStatus: 'rejected',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current({ retryRejectedKyc: true });
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'PUSH' }),
+    );
+  });
+
+  it('opens identity verification when retrying a KYC session whose status is retry', async () => {
+    const retrySnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'retry' as const,
     };
-    mockHydrate.mockResolvedValue(rejectedSnapshot);
+    mockHydrate.mockResolvedValue(retrySnapshot);
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current({ retryRejectedKyc: true });
 
     const snapshot = {
-      ...rejectedSnapshot,
+      ...retrySnapshot,
       vendorTermsAcceptedLocally: true,
     };
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -363,6 +382,32 @@ describe('useOpenVbaOnboarding', () => {
       }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens identity verification when KYC status is retry after the provider flow was submitted', async () => {
+    const retrySnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted' as const,
+      kycStatus: 'retry' as const,
+    };
+    mockHydrate.mockResolvedValue(retrySnapshot);
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: {
+        snapshot: {
+          ...retrySnapshot,
+          vendorTermsAcceptedLocally: true,
+        },
+      },
+    });
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {

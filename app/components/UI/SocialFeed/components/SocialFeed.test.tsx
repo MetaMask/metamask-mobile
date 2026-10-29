@@ -7,10 +7,7 @@ import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialV1FeedPost } from '../types';
-import SocialFeed, {
-  SOCIAL_FEED_NEXT_PAGE_TEST_ID,
-  type SocialFeedHeaderProps,
-} from './SocialFeed';
+import SocialFeed, { SOCIAL_FEED_NEXT_PAGE_TEST_ID } from './SocialFeed';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
@@ -218,25 +215,17 @@ describe('SocialFeed', () => {
     expect(loadMore).not.toHaveBeenCalled();
   });
 
-  it('renders the host header below the title with no pending posts', () => {
-    const renderHeader = jest.fn(
-      ({ pendingNewCount }: SocialFeedHeaderProps) => (
-        <Text>{`header ${pendingNewCount}`}</Text>
-      ),
-    );
-
+  it('renders the host header below the title', () => {
     renderWithProvider(
       <SocialFeed
         {...query}
         location="perps_market_details"
         title="Trades"
-        renderHeader={renderHeader}
+        renderHeader={() => <Text>header</Text>}
       />,
     );
-    const { onRevealPending } = renderHeader.mock.calls[0][0];
 
-    expect(screen.getByText('header 0')).toBeOnTheScreen();
-    expect(onRevealPending()).toBeUndefined();
+    expect(screen.getByText('header')).toBeOnTheScreen();
     expect(mockUseSocialFeed).toHaveBeenCalledTimes(1);
   });
 

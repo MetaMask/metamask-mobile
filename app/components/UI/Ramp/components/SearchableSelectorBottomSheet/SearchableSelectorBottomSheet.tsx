@@ -109,6 +109,7 @@ function SearchableSelectorBottomSheet<T>({
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
           placeholder={searchPlaceholder}
+          inputAccessibilityLabel={searchPlaceholder}
           clearButtonProps={{ testID: 'searchable-selector-clear-button' }}
         />
       </View>

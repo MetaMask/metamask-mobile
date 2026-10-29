@@ -194,7 +194,12 @@ export type ReferralLocalizedTextKey =
   | 'rewardsPausedTitle'
   | 'rewardsPausedDescription'
   | 'rewardsPausedBanner'
-  | 'rewardsPausedLearnMore';
+  | 'rewardsPausedLearnMore'
+  | 'settingsReferralTitle'
+  | 'settingsReferralLinkedDescription'
+  | 'settingsReferralNotLinkedDescription'
+  | 'settingsReferralPlaceholder'
+  | 'settingsReferralApply';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {

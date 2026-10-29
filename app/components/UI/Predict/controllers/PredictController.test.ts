@@ -371,6 +371,7 @@ describe('PredictController', () => {
       previewMaxBuyOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       prepareWithdrawConfirmation: jest.fn(),
+      getWithdrawSimulation: jest.fn(),
       createOptimisticPositionFromPreview: jest.fn(),
       clearOptimisticPosition: jest.fn(),
       getCryptoTargetPrice: jest.fn(),
@@ -462,6 +463,7 @@ describe('PredictController', () => {
         getBenefits?: jest.MockedFunction<
           () => Promise<SubscriptionBenefitsResponse>
         >;
+        getGasFeeTokens?: jest.Mock;
       };
     } = {},
   ): ReturnValue {
@@ -545,6 +547,11 @@ describe('PredictController', () => {
         jest.fn().mockRejectedValue(new Error('Benefits unavailable')),
     );
 
+    rootMessenger.registerActionHandler(
+      'TransactionController:getGasFeeTokens',
+      mocks.getGasFeeTokens ?? jest.fn().mockResolvedValue([]),
+    );
+
     const messenger = new Messenger<
       'PredictController',
       AllPredictControllerMessengerActions,
@@ -563,6 +570,7 @@ describe('PredictController', () => {
         'NetworkController:findNetworkClientIdByChainId',
         'NetworkController:getNetworkClientById',
         'TransactionController:estimateGas',
+        'TransactionController:getGasFeeTokens',
         'KeyringController:signTypedMessage',
         'KeyringController:signPersonalMessage',
         'RemoteFeatureFlagController:getState',
@@ -10630,6 +10638,85 @@ describe('PredictController', () => {
             previousFeeWaiverOverride;
         }
       }
+    });
+  });
+
+  describe('isWithdrawGasFeeTokenAvailable', () => {
+    const ownerAddress = '0x1234567890123456789012345678901234567890';
+    const simulation = {
+      chainId: '0x89' as `0x${string}`,
+      from: ownerAddress as `0x${string}`,
+      to: '0x9999999999999999999999999999999999999999' as `0x${string}`,
+      data: '0xpreValidatedWithdraw' as `0x${string}`,
+    };
+
+    it('returns true when pUSD is a gas fee token for the Safe withdraw call', async () => {
+      mockPolymarketProvider.getWithdrawSimulation?.mockResolvedValue(
+        simulation,
+      );
+      const getGasFeeTokens = jest
+        .fn()
+        .mockResolvedValue([
+          { tokenAddress: MATIC_CONTRACTS_V2.collateral.toUpperCase() },
+        ]);
+
+      await withController(
+        async ({ controller }) => {
+          const result = await controller.isWithdrawGasFeeTokenAvailable({
+            address: ownerAddress,
+            amountRaw: '50000',
+          });
+
+          expect(result).toBe(true);
+          expect(
+            mockPolymarketProvider.getWithdrawSimulation,
+          ).toHaveBeenCalledWith({
+            amountRaw: 50000n,
+            signer: expect.objectContaining({ address: ownerAddress }),
+          });
+          expect(getGasFeeTokens).toHaveBeenCalledWith(simulation);
+        },
+        { mocks: { getGasFeeTokens } },
+      );
+    });
+
+    it('returns false when pUSD is not a gas fee token for the Safe withdraw call', async () => {
+      mockPolymarketProvider.getWithdrawSimulation?.mockResolvedValue(
+        simulation,
+      );
+      const getGasFeeTokens = jest.fn().mockResolvedValue([]);
+
+      await withController(
+        async ({ controller }) => {
+          const result = await controller.isWithdrawGasFeeTokenAvailable({
+            address: ownerAddress,
+            amountRaw: '1000',
+          });
+
+          expect(result).toBe(false);
+        },
+        { mocks: { getGasFeeTokens } },
+      );
+    });
+
+    it('returns true without quoting gas fee tokens when the withdraw needs no owner gas', async () => {
+      mockPolymarketProvider.getWithdrawSimulation?.mockResolvedValue(
+        undefined,
+      );
+      const getGasFeeTokens = jest.fn();
+
+      await withController(
+        async ({ controller }) => {
+          const result = await controller.isWithdrawGasFeeTokenAvailable({
+            address: ownerAddress,
+            amountRaw: '50000',
+          });
+
+          expect(result).toBe(true);
+          expect(getGasFeeTokens).not.toHaveBeenCalled();
+        },
+        { mocks: { getGasFeeTokens } },
+      );
     });
   });
 

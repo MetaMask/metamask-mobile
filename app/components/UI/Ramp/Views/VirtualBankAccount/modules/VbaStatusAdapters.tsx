@@ -1,12 +1,17 @@
 import React, { useCallback, useEffect } from 'react';
+import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { KycSessionStatus } from '@metamask/kyc-controller';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectMoneyMovementNeobank } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import VbaIdentityVerified from '../../../../KYC/Views/Status/IdentityVerified';
 import VbaKycPending from '../../../../KYC/Views/Status/KycPending';
 import VbaKycRejected from '../../../../KYC/Views/Status/KycRejected';
+import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
+import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
+import { selectKycSessionStatus } from '../../../../../../selectors/kycController';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
@@ -23,6 +28,21 @@ import { VBA_CUF_END_REASON } from '../vbaCufTags';
 interface VbaStatusAdapterProps {
   variant: VbaOnboardingStubVariant;
 }
+
+const isRejectedKycSession = (
+  sessionStatus: KycSessionStatus | null,
+): boolean =>
+  sessionStatus?.finalStatus === 'rejected' ||
+  sessionStatus?.kycStatus === 'rejected';
+
+/**
+ * A session can re-enter SumSub only when its status is `retry` and neither
+ * finalStatus nor kycStatus is the terminal `rejected` decision.
+ */
+const canRetryKycSession = (sessionStatus: KycSessionStatus | null): boolean =>
+  !isRejectedKycSession(sessionStatus) &&
+  (sessionStatus?.finalStatus === 'retry' ||
+    sessionStatus?.kycStatus === 'retry');
 
 const VbaStatusAdapter = ({ variant }: VbaStatusAdapterProps) => {
   const advance = useOpenVbaOnboarding(`${variant}-retry`);
@@ -75,17 +95,38 @@ export const VbaKycPendingAdapter = () => {
   return <VbaKycPending onLeave={leave} />;
 };
 
-export const VbaKycRejectedAdapter = () => {
+const VbaKycRetryAction = () => {
   const openOnboarding = useOpenVbaOnboarding('kyc_rejected-retry');
-  useEffect(() => {
-    endVbaCufJourney(false, VBA_CUF_END_REASON.KYC_REJECTED);
-  }, []);
   const handleRetry = useCallback(
     () => openOnboarding({ retryRejectedKyc: true }),
     [openOnboarding],
   );
 
-  return <VbaKycRejected onRetry={handleRetry} />;
+  return <VbaKycRejected action="retry" onAction={handleRetry} />;
+};
+
+const VbaKycRejectedSupportAction = () => {
+  const { openSupportWithConsent } = useSupportConsent();
+  const handleContactSupport = useCallback(() => {
+    openSupportWithConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+  }, [openSupportWithConsent]);
+
+  return (
+    <VbaKycRejected action="contactSupport" onAction={handleContactSupport} />
+  );
+};
+
+export const VbaKycRejectedAdapter = () => {
+  const sessionStatus = useSelector(selectKycSessionStatus);
+  useEffect(() => {
+    endVbaCufJourney(false, VBA_CUF_END_REASON.KYC_REJECTED);
+  }, []);
+
+  if (canRetryKycSession(sessionStatus)) {
+    return <VbaKycRetryAction />;
+  }
+
+  return <VbaKycRejectedSupportAction />;
 };
 
 export const VbaAccountProvisioningErrorAdapter = () => (

@@ -73,16 +73,16 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
       testID={getSocialFeedPostSkeletonTestId(index)}
     >
       <SocialFeedSkeletonPlaceholder>
-        <Item flexDirection="row" alignItems="flex-start" gap={8}>
+        <Item flexDirection="row" alignItems="flex-start" gap={12}>
           <Item {...PROFILE_AVATAR_BONE} />
-          <Item flex={1} gap={8}>
+          <Item flex={1}>
             <Item
               flexDirection="row"
               alignItems="flex-start"
               justifyContent="space-between"
               gap={8}
             >
-              <Item flex={1} gap={4}>
+              <Item flex={1} gap={8}>
                 <Item flexDirection="row" alignItems="center" gap={8}>
                   <Item {...AUTHOR_NAME_BONE} />
                   <Item {...TIMESTAMP_BONE} />
@@ -92,7 +92,7 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
               <Item {...MORE_BONE} />
             </Item>
 
-            <Item {...cardChromeStyle} gap={8}>
+            <Item marginTop={8} {...cardChromeStyle} gap={8}>
               <Item
                 flexDirection="row"
                 alignItems="center"
@@ -117,7 +117,12 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
               <Item width="100%" height={40} borderRadius={12} />
             </Item>
 
-            <Item flexDirection="row" alignItems="center" gap={8}>
+            <Item
+              flexDirection="row"
+              alignItems="center"
+              gap={8}
+              marginTop={12}
+            >
               {renderPairedBones(REACTION_BONES, 'reaction')}
             </Item>
           </Item>
