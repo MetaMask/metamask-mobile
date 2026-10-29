@@ -122,6 +122,79 @@ describe('CustomNetwork component', () => {
     expect(queryByText('Base')).toBeOnTheScreen();
   });
 
+  it('renders the list header above popular networks', () => {
+    const props = getMockCustomNetworkProps({
+      showAddedNetworks: true,
+      listHeader: 'Popular networks',
+    });
+    const mockState = getMockState();
+
+    const { getByText } = renderWithProvider(<CustomNetwork {...props} />, {
+      state: mockState,
+    });
+
+    expect(getByText('Popular networks')).toBeOnTheScreen();
+  });
+
+  it('renders the continue label for the selected network', () => {
+    const customNetworksList: Network[] = [
+      {
+        chainId: '0x1',
+        nickname: 'Ethereum Mainnet',
+        rpcPrefs: { blockExplorerUrl: 'https://etherscan.io' },
+        rpcUrl: 'https://mainnet.infura.io/v3/your-api-key',
+        ticker: 'ETH',
+      },
+    ];
+    const props = getMockCustomNetworkProps({
+      showAddedNetworks: true,
+      customNetworksList,
+      displayContinue: true,
+    });
+    const mockState = getMockState();
+
+    const { getByText } = renderWithProvider(<CustomNetwork {...props} />, {
+      state: mockState,
+    });
+
+    expect(getByText('Continue')).toBeOnTheScreen();
+  });
+
+  it('renders add and switch labels for networks when action labels are enabled', () => {
+    const customNetworksList: Network[] = [
+      {
+        chainId: '0x1',
+        nickname: 'Ethereum Mainnet',
+        rpcPrefs: { blockExplorerUrl: 'https://etherscan.io' },
+        rpcUrl: 'https://mainnet.infura.io/v3/your-api-key',
+        ticker: 'ETH',
+      },
+      {
+        chainId: '0x9999',
+        nickname: 'Test Network',
+        rpcPrefs: { blockExplorerUrl: 'https://test-network.example' },
+        rpcUrl: 'https://test-network.example/rpc',
+        ticker: 'TEST',
+      },
+    ];
+    const props = getMockCustomNetworkProps({
+      showAddedNetworks: true,
+      customNetworksList,
+      showActionLabels: true,
+    });
+    const mockState = getMockState();
+
+    const { getAllByText, getByText } = renderWithProvider(
+      <CustomNetwork {...props} />,
+      {
+        state: mockState,
+      },
+    );
+
+    expect(getAllByText('Switch')[0]).toBeOnTheScreen();
+    expect(getByText('Add')).toBeOnTheScreen();
+  });
+
   it('renders or hides "No network fee" label based on sponsorship flag', () => {
     const customNetworksList: Network[] = [
       {

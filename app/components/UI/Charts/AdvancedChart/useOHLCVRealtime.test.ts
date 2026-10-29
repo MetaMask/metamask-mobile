@@ -284,6 +284,46 @@ describe('useOHLCVRealtime', () => {
     expect(result.current.latestBar).toBeNull();
   });
 
+  it('does not report the previous asset bar on the render the asset changes', async () => {
+    const latestBarsByAssetId: [string, unknown][] = [];
+    const { rerender } = renderHook(
+      (props) => {
+        const { latestBar } = useOHLCVRealtime(props);
+        latestBarsByAssetId.push([props.assetId, latestBar]);
+        return latestBar;
+      },
+      { initialProps: arrangeDefaultOptions() },
+    );
+
+    const barUpdatedHandler = mockSubscribe.mock.calls.find(
+      (call) => call[0] === 'OHLCVService:barUpdated',
+    )?.[1];
+
+    await act(async () => {
+      barUpdatedHandler({
+        channel:
+          'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+        bar: {
+          timestamp: 1700000000,
+          open: 1,
+          high: 1,
+          low: 1,
+          close: 1,
+          volume: 5000,
+        },
+      });
+    });
+
+    const nextAssetId = 'eip155:1/slip44:60';
+    rerender({ ...arrangeDefaultOptions(), assetId: nextAssetId });
+
+    const nextAssetBars = latestBarsByAssetId
+      .filter(([assetId]) => assetId === nextAssetId)
+      .map(([, latestBar]) => latestBar);
+    expect(nextAssetBars.length).toBeGreaterThan(0);
+    expect(nextAssetBars.every((latestBar) => latestBar === null)).toBe(true);
+  });
+
   describe('/latest host', () => {
     const pollOnce = async (
       options: Parameters<typeof useOHLCVRealtime>[0],

@@ -57,11 +57,15 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
+  isUneditedXUsername,
   normalizeUsername,
   onboardingProfileFingerprint,
   type ProfileOnboardingDraft,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import { getUsernameLocalError } from './utils/getUsernameLocalError';
+import { getUsernameFeedback } from './utils/getUsernameFeedback';
+import UsernameStatusLine from './UsernameStatusLine';
 import OnboardingProgress from './OnboardingProgress';
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
@@ -370,7 +374,13 @@ const SocialProfileOnboardingView: React.FC = () => {
         if (requestId !== usernameCheckId.current) {
           return 'superseded';
         }
-        if (!availability.available || !availability.valid) {
+        if (!availability.valid) {
+          setUsernameClaimError(
+            strings('social_leaderboard.profile_onboarding.username_invalid'),
+          );
+          return 'unavailable';
+        }
+        if (!availability.available) {
           setUsernameClaimError(
             strings(
               'social_leaderboard.profile_onboarding.username_unavailable',
@@ -397,6 +407,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     (username: string) => {
       clearUsernameCheckTimer();
       if (getUsernameStatus(username) !== 'available') {
+        setUsernameClaimError(null);
         usernameCheckId.current += 1;
         return;
       }
@@ -763,6 +774,13 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
+  const usernameLocalError = getUsernameLocalError(draft, usernameStatus);
+  const usernameFeedback = getUsernameFeedback({
+    localError: usernameLocalError,
+    claimError: usernameClaimError,
+    status: usernameStatus,
+    showAvailable: !isUneditedXUsername(draft),
+  });
   const continueDisabled =
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
@@ -869,8 +887,7 @@ const SocialProfileOnboardingView: React.FC = () => {
               {step === 'x-identity' ? (
                 <XProfileIdentityStep
                   draft={draft}
-                  usernameStatus={usernameStatus}
-                  usernameClaimError={usernameClaimError}
+                  usernameFeedback={usernameFeedback}
                   onToggleUsername={handleToggleXUsername}
                   onToggleAvatar={handleToggleXAvatar}
                   onUsernameChange={handleUsernameChange}
@@ -904,10 +921,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.username}
                       onChangeText={handleUsernameChange}
-                      isError={
-                        usernameStatus === 'invalid' ||
-                        Boolean(usernameClaimError)
-                      }
+                      isError={usernameFeedback?.tone === 'error'}
                       startAccessory={
                         <Text
                           variant={TextVariant.BodyMd}
@@ -935,43 +949,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
                     />
-                    {usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {usernameClaimError}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'available' && !usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.SuccessDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_available',
-                        )}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'invalid' ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_invalid',
-                        )}
-                      </Text>
-                    ) : null}
+                    <UsernameStatusLine feedback={usernameFeedback} />
                   </Box>
                   <Box gap={2}>
                     <Text

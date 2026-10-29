@@ -384,6 +384,34 @@ jest.mock('./hooks', () => ({
   useTraderPositions: () => mockPositionsResult,
 }));
 
+const mockRefreshPosts = jest.fn().mockResolvedValue(undefined);
+let mockPostsResult = {
+  posts: [] as { id: string }[],
+  rows: [] as never[],
+  isLoading: false,
+  isFetchingNextPage: false,
+  hasNextPage: false,
+  loadMore: jest.fn(),
+  error: null as string | null,
+  refresh: mockRefreshPosts,
+};
+
+jest.mock('../MyProfileView/hooks/useMyProfilePosts', () => ({
+  useMyProfilePosts: () => mockPostsResult,
+}));
+
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ post }: { post: { id: string } }) => (
+      <View testID={`trader-profile-post-${post.id}`}>
+        <Text>{post.id}</Text>
+      </View>
+    ),
+  };
+});
+
 const channelsDisabledPreferences: SocialAIPreference = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
   pushNotificationsEnabled: false,
@@ -414,7 +442,18 @@ describe('TraderProfileView', () => {
       closedError: null,
       refetch: mockRefetchPositions,
     };
+    mockPostsResult = {
+      posts: [],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: mockRefreshPosts,
+    };
     mockRefresh.mockResolvedValue(undefined);
+    mockRefreshPosts.mockResolvedValue(undefined);
     mockRefetchPositions.mockResolvedValue(undefined);
     mockToggleFollow.mockResolvedValue(undefined);
     mockNotificationPreferences = {
@@ -789,13 +828,58 @@ describe('TraderProfileView', () => {
   it('shows empty state when no positions', () => {
     mockPositionsResult.openPositions = [];
     renderWithProvider(<TraderProfileView />);
-    expect(screen.getByText('No positions yet')).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
   });
 
   it('switches to closed tab', () => {
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(screen.getByTestId('trader-profile-tab-closed'));
-    expect(screen.getByText('No positions yet')).toBeOnTheScreen();
+    expect(screen.getByText('No closed positions')).toBeOnTheScreen();
+  });
+
+  it('shows the same posts empty state as my profile', () => {
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
+    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
+  });
+
+  it('renders a trader posts when the posts tab has them', () => {
+    mockPostsResult.posts = [{ id: 'post-1' }];
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
+    expect(screen.getByText('post-1')).toBeOnTheScreen();
+    expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
+  });
+
+  it('requests the next posts page when a scroll settles near the end', () => {
+    const loadMore = jest.fn();
+    mockPostsResult = {
+      ...mockPostsResult,
+      posts: [{ id: 'post-1' }],
+      hasNextPage: true,
+      loadMore,
+    };
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
+    fireEvent(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SCROLL),
+      'momentumScrollEnd',
+      {
+        nativeEvent: {
+          contentOffset: { y: 400, x: 0 },
+          contentSize: { height: 500, width: 400 },
+          layoutMeasurement: { height: 400, width: 400 },
+        },
+      },
+    );
+    expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
   it('renders skeleton placeholders when profile is loading', () => {
@@ -836,7 +920,7 @@ describe('TraderProfileView', () => {
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
     );
-    expect(screen.queryByText('No positions yet')).not.toBeOnTheScreen();
+    expect(screen.queryByText('No closed positions')).not.toBeOnTheScreen();
   });
 
   describe('pull-to-refresh', () => {
@@ -853,6 +937,7 @@ describe('TraderProfileView', () => {
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
       expect(mockRefetchPositions).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosts).toHaveBeenCalledTimes(1);
       expect(mockPlayImpact).toHaveBeenCalledTimes(1);
       expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
     });

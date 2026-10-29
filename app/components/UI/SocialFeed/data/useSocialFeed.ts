@@ -41,6 +41,12 @@ export interface UseSocialFeedOptions {
   /** Items per page. Part of the cache key. */
   pageSize?: number;
   /**
+   * How long loaded pages stay fresh. Defaults to TanStack's, or to never
+   * while realtime streams. A second observer of a streamed feed passes
+   * `Infinity` so it does not reload the pages under the reader.
+   */
+  staleTime?: number;
+  /**
    * Keeps only matching posts. With realtime, also drops non-matching new
    * posts before they are held or counted. Memoize it.
    */
@@ -130,6 +136,7 @@ export const useSocialFeed = (
   const {
     enabled = true,
     pageSize = FEED_PAGE_LIMIT,
+    staleTime,
     filterPost,
     realtime = false,
     paused = false,
@@ -149,6 +156,7 @@ export const useSocialFeed = (
     () => (realtime ? toSocialFeedRealtimeScope(request) : null),
     [realtime, request],
   );
+  const resolvedStaleTime = staleTime ?? (realtimeScope ? Infinity : undefined);
   const queryKey = useMemo(
     () =>
       request ? buildSocialFeedQueryKey(request, pageSize) : IDLE_QUERY_KEY,
@@ -193,7 +201,9 @@ export const useSocialFeed = (
     retry: false,
     // A stale refetch reloads every loaded page and moves rows under a reader
     // who scrolled down; realtime refreshes through its catch-up instead.
-    ...(realtimeScope ? { staleTime: Infinity } : {}),
+    ...(resolvedStaleTime !== undefined
+      ? { staleTime: resolvedStaleTime }
+      : {}),
   });
 
   useEffect(() => {

@@ -21,6 +21,8 @@ interface TraderPositionPnlSectionProps {
   token: TokenDetailsRouteParams;
   tokenKey: string;
   securityData?: TokenSecurityData | null;
+  /** Reports the laid-out height of the sticky footer. */
+  onFooterLayout?: (height: number) => void;
 }
 
 /**
@@ -33,6 +35,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   token,
   tokenKey,
   securityData,
+  onFooterLayout,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
@@ -105,6 +108,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
         quickBuyEntrypointLayout="buy_sell"
         onOpenQuickBuy={openQuickBuy}
         traderPositionPnl={traderPositionPnl}
+        onFooterLayout={onFooterLayout}
       />
       {quickBuySheet}
     </>

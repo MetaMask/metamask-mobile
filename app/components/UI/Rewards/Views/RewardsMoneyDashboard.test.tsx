@@ -13,15 +13,14 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
-import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import RewardsMoneyDashboard, {
-  REWARDS_MONEY_DASHBOARD_TEST_IDS,
-} from './RewardsMoneyDashboard';
+import RewardsMoneyDashboard from './RewardsMoneyDashboard';
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';

@@ -1,4 +1,4 @@
-import PerpsFeeDiscountLabel from '../PerpsFeesDisplay/PerpsFeeDiscountLabel';
+import PerpsFeeCaption from '../PerpsFeesDisplay/PerpsFeeCaption';
 import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import {
   Box,
@@ -104,6 +104,8 @@ interface PerpsTradeScreenProps {
   showPayWith: boolean;
   isPayWithDisabled: boolean;
   feePercentage?: string;
+  /** Pre-discount combined rate, shown struck through on a promo caption. */
+  originalFeePercentage?: string;
   /** Formatted fiat bridge fee, shown when the user pays with a token. */
   bridgeFee?: string;
   feeDiscountPercentage?: number;
@@ -309,6 +311,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   showPayWith,
   isPayWithDisabled,
   feePercentage,
+  originalFeePercentage,
   bridgeFee,
   feeDiscountPercentage,
   feeDiscountKind,
@@ -899,32 +902,14 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 twClassName="self-center"
               />
             ) : feePercentage ? (
-              <Box
-                accessible={false}
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                gap={2}
-              >
-                <PerpsFeeDiscountLabel
-                  feeDiscountPercentage={feeDiscountPercentage}
-                  feeDiscountKind={feeDiscountKind}
-                />
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  testID={PerpsTradeSheetSelectorsIDs.FEE_TEXT}
-                >
-                  {bridgeFee
-                    ? strings('perps.trade_sheet.includes_fee_with_bridge', {
-                        feePercentage,
-                        bridgeFee,
-                      })
-                    : strings('perps.trade_sheet.includes_fee', {
-                        feePercentage,
-                      })}
-                </Text>
-              </Box>
+              <PerpsFeeCaption
+                feePercentage={feePercentage}
+                originalFeePercentage={originalFeePercentage}
+                bridgeFee={bridgeFee}
+                feeDiscountPercentage={feeDiscountPercentage}
+                feeDiscountKind={feeDiscountKind}
+                testID={PerpsTradeSheetSelectorsIDs.FEE_TEXT}
+              />
             ) : null}
           </Box>
         </Box>
