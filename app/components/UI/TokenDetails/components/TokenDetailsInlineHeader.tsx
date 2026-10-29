@@ -218,9 +218,7 @@ export const TokenDetailsInlineHeader = ({
   const tokenName = token.name?.trim() || token.ticker || token.symbol;
   const tokenTicker = token.ticker || token.symbol;
   const showTickerBelowName = Boolean(
-    tokenTicker &&
-      tokenName &&
-      tokenTicker.toLowerCase() !== tokenName.toLowerCase(),
+    tokenTicker && tokenName && tokenTicker !== tokenName,
   );
   const headerTitle = showTickerBelowName ? (
     <Box flexDirection={BoxFlexDirection.Column}>

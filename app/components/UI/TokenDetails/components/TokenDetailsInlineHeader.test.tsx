@@ -280,6 +280,25 @@ describe('TokenDetailsInlineHeader', () => {
       );
     });
 
+    it('renders the ticker below the name when they differ only by case', () => {
+      const { getByText, toJSON } = renderHeader({
+        token: {
+          ...mockToken,
+          name: 'Pepe',
+          ticker: 'PEPE',
+          symbol: 'PEPE',
+        },
+      });
+
+      expect(getByText('Pepe')).toBeOnTheScreen();
+      expect(getByText('PEPE')).toBeOnTheScreen();
+
+      const serialized = JSON.stringify(toJSON());
+      expect(serialized.indexOf('Pepe')).toBeLessThan(
+        serialized.indexOf('PEPE'),
+      );
+    });
+
     it('omits the ticker line when it matches the token name', () => {
       const { getByText, queryByTestId } = renderHeader({
         token: {
