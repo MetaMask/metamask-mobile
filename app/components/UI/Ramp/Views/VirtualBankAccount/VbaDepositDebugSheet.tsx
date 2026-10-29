@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
+  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -44,6 +45,10 @@ const VbaDepositDebugSheet = ({
     sheetRef.current?.onCloseBottomSheet(onRefresh);
   }, [onRefresh]);
 
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -51,8 +56,10 @@ const VbaDepositDebugSheet = ({
       keyboardAvoidingViewEnabled={false}
       testID={VbaDepositDebugSelectorsIDs.SHEET}
     >
-      <Box twClassName="gap-3 px-4 pb-4 pt-2">
-        <Text variant={TextVariant.HeadingMd}>{'Deposit debug'}</Text>
+      <BottomSheetHeader onClose={handleClose}>
+        {'Deposit debug'}
+      </BottomSheetHeader>
+      <Box gap={3} paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {`Autoramp: ${autorampId ?? 'none'}`}
         </Text>

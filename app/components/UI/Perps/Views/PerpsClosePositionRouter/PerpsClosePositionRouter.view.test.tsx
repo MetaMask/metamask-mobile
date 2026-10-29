@@ -132,7 +132,10 @@ describe('PerpsClosePositionRouter', () => {
 
     expect(
       await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
-    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();
@@ -145,7 +148,15 @@ describe('PerpsClosePositionRouter', () => {
 
     expect(
       await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
-    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER,
+      ),
+    ).toHaveTextContent('Includes 0.145% 0.070% fee after promo');
+    expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();

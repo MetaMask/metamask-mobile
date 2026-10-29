@@ -3,6 +3,8 @@ import { Text } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 import { PredictImplementationSwitch } from './PredictImplementationSwitch';
 import { useActiveVenue } from './activeVenue';
+import { NextVenueProvider, useNextVenueId } from './NextVenueContext';
+import type { PredictVenueId } from '../types';
 import type { ActiveVenueResolution } from './types';
 
 jest.mock('./activeVenue', () => ({
@@ -20,6 +22,10 @@ const Branch = ({ name }: { name: string }) => {
   }, [name]);
   return <Text testID={name}>{name}</Text>;
 };
+
+const NextVenueProbe = () => (
+  <Text testID="next-venue">{useNextVenueId()}</Text>
+);
 
 const renderSwitch = (props: { pinnedVenue?: 'polymarket' } = {}) => (
   <PredictImplementationSwitch
@@ -63,6 +69,39 @@ describe('PredictImplementationSwitch', () => {
 
     expect(screen.getByTestId('next')).toBeOnTheScreen();
     expect(mockMount.mock.calls).toEqual([['next']]);
+  });
+
+  it('hands the resolved Venue to the next branch', () => {
+    givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+
+    render(
+      <PredictImplementationSwitch
+        legacy={null}
+        next={<NextVenueProbe />}
+        resolving={null}
+      />,
+    );
+
+    expect(screen.getByTestId('next-venue')).toHaveTextContent('kalshi');
+  });
+
+  it('reads a Venue only inside a NextVenueProvider', () => {
+    const consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    expect(() => render(<NextVenueProbe />)).toThrow(
+      'useNextVenueId must be used within a NextVenueProvider',
+    );
+    expect(() =>
+      render(
+        <NextVenueProvider venueId={'test-venue' as PredictVenueId}>
+          <NextVenueProbe />
+        </NextVenueProvider>,
+      ),
+    ).not.toThrow();
+    expect(screen.getByTestId('next-venue')).toHaveTextContent('test-venue');
+    consoleError.mockRestore();
   });
 
   it('remounts when the Active Venue changes', () => {

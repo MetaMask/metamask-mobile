@@ -13,15 +13,14 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
-import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import RewardsMoneyDashboard, {
-  REWARDS_MONEY_DASHBOARD_TEST_IDS,
-} from './RewardsMoneyDashboard';
+import RewardsMoneyDashboard from './RewardsMoneyDashboard';
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
@@ -586,13 +585,15 @@ describe('RewardsMoneyDashboard', () => {
     expect(mockUseEarningsSummary).toHaveBeenCalledWith(PROFILE_ID);
   });
 
-  it('feeds the referrer hero the referrals total and hides trading commissions', () => {
-    const { getByText, queryByTestId } = renderDashboard();
+  it('feeds the referrer hero the referrals total and trading commissions', () => {
+    const { getByText, getByTestId } = renderDashboard();
 
     expect(getByText('$41.75')).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
-      queryByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
-    ).not.toBeOnTheScreen();
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
+    ).toBeOnTheScreen();
   });
 
   it('feeds the referee hero its own cashback as rebates', () => {
@@ -621,7 +622,7 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getAllByText('-')).toHaveLength(1);
+    expect(getAllByText('-')).toHaveLength(2);
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
     expect(queryByText('$0.00')).not.toBeOnTheScreen();
     expect(

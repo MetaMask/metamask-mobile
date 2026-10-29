@@ -44,18 +44,40 @@ describe('profileOnboardingDraft', () => {
   });
 
   it('accepts letters, numbers, and underscores between 3 and 16 characters', () => {
-    expect(getUsernameStatus('ab')).toBe('invalid');
     expect(getUsernameStatus('bad-name')).toBe('invalid');
-    expect(getUsernameStatus('a'.repeat(17))).toBe('invalid');
+    expect(getUsernameStatus('bad name')).toBe('invalid');
     expect(getUsernameStatus('')).toBe('empty');
     expect(getUsernameStatus('wen_cat')).toBe('available');
     expect(getUsernameStatus('wen_cat_12')).toBe('available');
   });
 
+  it('reports a handle above the maximum length before the pattern', () => {
+    expect(getUsernameStatus('a'.repeat(17))).toBe('tooLong');
+    expect(getUsernameStatus('a'.repeat(16))).toBe('available');
+    // Length outranks the pattern.
+    expect(getUsernameStatus('bad-name-that-is-long')).toBe('tooLong');
+  });
+
+  it('reports a handle under the minimum length before any other rule', () => {
+    expect(getUsernameStatus('a')).toBe('tooShort');
+    expect(getUsernameStatus('ab')).toBe('tooShort');
+    expect(getUsernameStatus('@a')).toBe('tooShort');
+    // Length outranks the pattern.
+    expect(getUsernameStatus('a-')).toBe('tooShort');
+    expect(getUsernameStatus('abc')).toBe('available');
+  });
+
+  it('accepts underscores at the edges and repeated underscores', () => {
+    expect(getUsernameStatus('hello_')).toBe('available');
+    expect(getUsernameStatus('_hello')).toBe('available');
+    expect(getUsernameStatus('hello__world')).toBe('available');
+    expect(getUsernameStatus('_bad__name')).toBe('available');
+  });
+
   it('accepts an unedited X handle that fails the username pattern', () => {
     const draft = applyXOnboardingProfile(createInitialOnboardingDraft(), {
       ...X_IDENTITY,
-      username: '_bad__name',
+      username: 'bad-name',
     });
 
     expect(getUsernameStatus(draft.username)).toBe('invalid');
@@ -68,7 +90,7 @@ describe('profileOnboardingDraft', () => {
       canContinueUsernameStep({
         ...draft,
         useXUsername: false,
-        username: 'still_bad__name',
+        username: 'still-bad-name',
       }),
     ).toBe(false);
   });
@@ -130,7 +152,6 @@ describe('profileOnboardingDraft', () => {
     expect(profile.xHandle).toBeNull();
     expect(profile.connectedToX).toBe(false);
     expect(profile.rankingTag).toBeNull();
-    expect(profile.shareUrl).toBe('https://metamask.io/wen_cat');
   });
 
   it('keeps the mocked X handle and avatar when those toggles stay on', () => {

@@ -32,11 +32,7 @@ const RewardsTradingCommissionsView: React.FC = () => {
   return (
     <TradingActivityListView
       view="RewardsTradingCommissionsView"
-      title={
-        localizedText?.tradingCommissionsSection ??
-        localizedText?.tradeCommissions ??
-        ''
-      }
+      title={localizedText?.tradingCommissionsSection ?? ''}
       testIDs={REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS}
       list={list}
       renderItem={renderItem}

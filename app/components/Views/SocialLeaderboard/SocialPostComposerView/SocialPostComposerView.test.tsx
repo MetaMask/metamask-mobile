@@ -8,7 +8,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SocialPostComposerView from './SocialPostComposerView';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
-import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
 import {
   consumePostsTabFocus,
   getPendingPostsSnapshot,
@@ -77,7 +77,6 @@ const linkedProfile = {
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
   linkedAccountAddress: '0x1111111111111111111111111111111111111111',
 };
 
@@ -682,7 +681,7 @@ describe('SocialPostComposerView', () => {
     );
 
     expect(
-      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.SHEET),
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
   });
 

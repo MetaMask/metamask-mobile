@@ -1,10 +1,10 @@
 import type { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
-import { strings } from '../../../../../../locales/i18n';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -63,6 +63,8 @@ const formatRateValue = (rate: number | undefined): string | undefined =>
   rate === undefined || Number.isNaN(rate)
     ? undefined
     : (rate * 100).toFixed(PERPS_FEE_RATE_DISPLAY_DECIMALS);
+
+const strikethroughStyle = { textDecorationLine: 'line-through' as const };
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   feeDiscountPercentage,
@@ -134,6 +136,13 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
     takerMakerFeeText.taker !== undefined &&
     takerMakerFeeText.maker !== undefined;
 
+  const isPromotionalDiscount =
+    hasDiscount && feeDiscountKind === 'promotional';
+  const discountedFeeColor =
+    isPromotionalDiscount && showStrikethrough
+      ? TextColor.SuccessDefault
+      : color;
+
   return (
     <View
       style={[
@@ -156,6 +165,11 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           <PerpsFeeDiscountLabel
             feeDiscountPercentage={feeDiscountPercentage}
             feeDiscountKind={feeDiscountKind}
+            accessibilityLabel={
+              isPromotionalDiscount
+                ? strings('perps.tooltips.fees.promotional_discount')
+                : undefined
+            }
           />
         </View>
       ) : null}
@@ -163,9 +177,16 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
         <Text
           variant={variant}
           color={TextColor.TextAlternative}
-          // eslint-disable-next-line react-native/no-inline-styles
-          style={{ textDecorationLine: 'line-through' }}
+          style={strikethroughStyle}
           testID={testID ? `${testID}-original` : undefined}
+          twClassName="tabular-nums"
+          accessibilityLabel={
+            isPromotionalDiscount
+              ? strings('perps.tooltips.fees.original_fee_value', {
+                  fee: originalFeeText,
+                })
+              : undefined
+          }
         >
           {originalFeeText}
         </Text>
@@ -174,21 +195,23 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
         <>
           <Text
             variant={variant}
-            color={color}
+            color={discountedFeeColor}
             fontWeight={fontWeight}
             numberOfLines={1}
             style={styles.percentageRate}
             testID={testID ? `${testID}-taker` : undefined}
+            twClassName="tabular-nums"
           >
             {takerMakerFeeText.taker}
           </Text>
           <Text
             variant={variant}
-            color={color}
+            color={discountedFeeColor}
             fontWeight={fontWeight}
             numberOfLines={1}
             style={styles.percentageRate}
             testID={testID ? `${testID}-maker` : undefined}
+            twClassName="tabular-nums"
           >
             {takerMakerFeeText.maker}
           </Text>
@@ -196,9 +219,10 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
       ) : (
         <Text
           variant={variant}
-          color={color}
+          color={discountedFeeColor}
           fontWeight={fontWeight}
           testID={testID}
+          twClassName="tabular-nums"
         >
           {feeText}
         </Text>

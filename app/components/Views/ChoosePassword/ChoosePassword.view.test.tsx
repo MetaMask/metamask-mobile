@@ -12,7 +12,7 @@
  */
 import '../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { InteractionManager } from 'react-native';
+import { AccessibilityInfo, InteractionManager, Platform } from 'react-native';
 import {
   describeForPlatforms,
   itEach,
@@ -97,7 +97,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
   });
 
   itEach(socialLoginProviders)(
-    'validates short passwords on submit for $label login',
+    'keeps create password disabled until the password meets the length rule for $label login',
     async ({ provider }) => {
       const { findByTestId, findByText } = renderChoosePasswordForSocialLogin({
         routeParams: {
@@ -109,34 +109,114 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       const submitButton = await findByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
+      const lengthHelpText = strings('choose_password.must_be_at_least', {
+        number: MIN_PASSWORD_LENGTH,
+      });
 
-      expect(submitButton).toBeEnabled();
+      expect(submitButton).toBeDisabled();
 
-      fireEvent.changeText(
-        await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
-        'short',
+      const passwordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
+      fireEvent.changeText(passwordInput, 'short');
       fireEvent.changeText(
         await findByTestId(
           ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
         ),
         'short',
       );
+      fireEvent(passwordInput, 'blur');
 
-      fireEvent.press(submitButton);
+      const lengthHelp = await findByText(lengthHelpText);
+      expect(lengthHelp.props.accessibilityElementsHidden).toBe(false);
+      expect(submitButton).toBeDisabled();
 
-      expect(
-        await findByText(
-          strings('choose_password.must_be_at_least', {
-            number: MIN_PASSWORD_LENGTH,
-          }),
+      fireEvent.changeText(passwordInput, VALID_PASSWORD);
+      fireEvent.changeText(
+        await findByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
         ),
-      ).toBeOnTheScreen();
+        VALID_PASSWORD,
+      );
+
+      const hiddenLengthHelp = await findByText(lengthHelpText, {
+        includeHiddenElements: true,
+      });
+      expect(hiddenLengthHelp.props.accessibilityElementsHidden).toBe(true);
+      expect(hiddenLengthHelp).toHaveStyle({ opacity: 0 });
+      expect(submitButton).toBeEnabled();
     },
   );
 
   itEach(socialLoginProviders)(
-    'shows password mismatch error for $label login when confirm password differs',
+    'shows the length error after blurring a confirm password below the minimum length for $label login',
+    async ({ provider }) => {
+      const { findByTestId, findByText, queryByText } =
+        renderChoosePasswordForSocialLogin({
+          routeParams: {
+            oauthLoginSuccess: true,
+            provider,
+          },
+        });
+      const lengthHelpText = strings('choose_password.must_be_at_least', {
+        number: MIN_PASSWORD_LENGTH,
+      });
+
+      const passwordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, VALID_PASSWORD);
+      fireEvent.changeText(confirmPasswordInput, 'x');
+      fireEvent(confirmPasswordInput, 'blur');
+
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
+      expect(await findByText(lengthHelpText)).toBeOnTheScreen();
+    },
+  );
+
+  itEach(socialLoginProviders)(
+    'shows the length error after pressing Done on a confirm password below the minimum length for $label login',
+    async ({ provider }) => {
+      const { findByTestId, findByText, queryByText } =
+        renderChoosePasswordForSocialLogin({
+          routeParams: {
+            oauthLoginSuccess: true,
+            provider,
+          },
+        });
+      const lengthHelpText = strings('choose_password.must_be_at_least', {
+        number: MIN_PASSWORD_LENGTH,
+      });
+
+      const passwordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, VALID_PASSWORD);
+      fireEvent.changeText(confirmPasswordInput, 'x');
+
+      expect(queryByText(lengthHelpText)).toBeNull();
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
+
+      fireEvent(confirmPasswordInput, 'submitEditing');
+
+      expect(await findByText(lengthHelpText)).toBeOnTheScreen();
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
+      expect(
+        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      ).toBeDisabled();
+    },
+  );
+
+  itEach(socialLoginProviders)(
+    'shows a danger mismatch message and keeps create password disabled for $label login',
     async ({ provider }) => {
       const { findByTestId, findByText } = renderChoosePasswordForSocialLogin({
         routeParams: {
@@ -149,30 +229,74 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
         await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
         VALID_PASSWORD,
       );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
       fireEvent.changeText(
-        await findByTestId(
-          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-        ),
-        `${VALID_PASSWORD}x`,
+        confirmPasswordInput,
+        `${VALID_PASSWORD.slice(0, -1)}x`,
       );
-      const submitButton = await findByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-
-      fireEvent.press(submitButton);
 
       expect(
         await findByText(strings('choose_password.password_error')),
       ).toBeOnTheScreen();
 
-      expect(submitButton).toBeEnabled();
+      fireEvent.changeText(confirmPasswordInput, `${VALID_PASSWORD}x`);
+
+      expect(
+        await findByText(strings('choose_password.password_error')),
+      ).toBeOnTheScreen();
+
+      fireEvent(confirmPasswordInput, 'blur');
+
+      const mismatchHelp = await findByText(
+        strings('choose_password.password_error'),
+      );
+      expect(mismatchHelp).toBeOnTheScreen();
+
+      expect(
+        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      ).toBeDisabled();
     },
   );
 
   itEach(socialLoginProviders)(
-    'keeps submit enabled for $label login when passwords match',
+    'shows a mismatch error after pressing Done when confirm length differs for $label login',
     async ({ provider }) => {
-      const { findByTestId } = renderChoosePasswordForSocialLogin({
+      const { findByTestId, findByText, queryByText } =
+        renderChoosePasswordForSocialLogin({
+          routeParams: {
+            oauthLoginSuccess: true,
+            provider,
+          },
+        });
+
+      fireEvent.changeText(
+        await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        VALID_PASSWORD,
+      );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      fireEvent.changeText(confirmPasswordInput, `${VALID_PASSWORD}x`);
+
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
+
+      fireEvent(confirmPasswordInput, 'submitEditing');
+
+      expect(
+        await findByText(strings('choose_password.password_error')),
+      ).toBeOnTheScreen();
+      expect(
+        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      ).toBeDisabled();
+    },
+  );
+
+  itEach(socialLoginProviders)(
+    'enables create password without a mismatch message when passwords match for $label login',
+    async ({ provider }) => {
+      const { findByTestId, queryByText } = renderChoosePasswordForSocialLogin({
         routeParams: {
           oauthLoginSuccess: true,
           provider,
@@ -190,15 +314,110 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
         VALID_PASSWORD,
       );
 
-      await waitFor(async () => {
-        expect(
-          await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-        ).toBeEnabled();
-      });
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
 
-      expect(VALID_PASSWORD.length).toBeGreaterThanOrEqual(MIN_PASSWORD_LENGTH);
+      expect(
+        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      ).toBeEnabled();
     },
   );
+
+  it('announces confirm-password errors and names why create password stays disabled', async () => {
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    const lengthHelpText = strings('choose_password.must_be_at_least', {
+      number: MIN_PASSWORD_LENGTH,
+    });
+    const mismatchText = strings('choose_password.password_error');
+    const { findByTestId, findByText } = renderChoosePasswordForSocialLogin({
+      routeParams: {
+        oauthLoginSuccess: true,
+        provider: AuthConnection.Google,
+      },
+    });
+
+    try {
+      expect(
+        (await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)).props
+          .accessibilityHint,
+      ).toBe(lengthHelpText);
+      expect(announceSpy).not.toHaveBeenCalled();
+
+      fireEvent.changeText(
+        await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        VALID_PASSWORD,
+      );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      fireEvent.changeText(confirmPasswordInput, 'x');
+      announceSpy.mockClear();
+      fireEvent(confirmPasswordInput, 'blur');
+
+      const tooShortHelp = await findByText(lengthHelpText);
+      expect(tooShortHelp).toBeOnTheScreen();
+      expect(
+        (await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)).props
+          .accessibilityHint,
+      ).toBe(lengthHelpText);
+
+      if (Platform.OS === 'android') {
+        expect(tooShortHelp.props.accessibilityLiveRegion).toBe('polite');
+        expect(announceSpy).not.toHaveBeenCalled();
+      } else {
+        expect(tooShortHelp.props.accessibilityLiveRegion).toBeUndefined();
+        expect(announceSpy).toHaveBeenCalledTimes(1);
+        expect(announceSpy).toHaveBeenCalledWith(lengthHelpText);
+      }
+
+      announceSpy.mockClear();
+      fireEvent.changeText(
+        await findByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+        `${VALID_PASSWORD.slice(0, -1)}x`,
+      );
+
+      const mismatchHelp = await findByText(mismatchText);
+      expect(mismatchHelp).toBeOnTheScreen();
+      expect(
+        (await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)).props
+          .accessibilityHint,
+      ).toBe(mismatchText);
+
+      if (Platform.OS === 'android') {
+        expect(mismatchHelp.props.accessibilityLiveRegion).toBe('polite');
+        expect(announceSpy).not.toHaveBeenCalled();
+      } else {
+        expect(announceSpy).toHaveBeenCalledTimes(1);
+        expect(announceSpy).toHaveBeenCalledWith(mismatchText);
+      }
+
+      announceSpy.mockClear();
+      fireEvent.changeText(
+        await findByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+        `${VALID_PASSWORD}y`,
+      );
+      expect(await findByText(mismatchText)).toBeOnTheScreen();
+      expect(announceSpy).not.toHaveBeenCalled();
+
+      fireEvent.changeText(
+        await findByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+        VALID_PASSWORD,
+      );
+      expect(
+        (await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)).props
+          .accessibilityHint,
+      ).toBeUndefined();
+    } finally {
+      announceSpy.mockRestore();
+    }
+  });
 
   it('posts marketing opt-in to auth server and navigates to interest questionnaire after wallet creation', async () => {
     setupSeedlessAuthServerMocks({ marketingOptIn: true });

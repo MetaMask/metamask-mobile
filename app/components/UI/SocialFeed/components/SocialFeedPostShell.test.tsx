@@ -1,11 +1,12 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
-import { View } from 'react-native';
+import { AccessibilityInfo, View } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { translateComment } from '../translateComment';
 import {
   mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
@@ -16,6 +17,21 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+
+jest.mock('react-native-device-info', () => ({
+  getModel: () => Promise.resolve('iPhone 12'),
+  getApplicationName: () => Promise.resolve('applicationName'),
+  getVersion: jest.fn(() => '99.0.0'),
+  getSystemVersion: () => '14.5',
+  getBuildNumber: () => Promise.resolve('500'),
+  hasNotch: () => true,
+  getBrand: () => 'Apple',
+  getTotalMemorySync: () => 4 * 1024 ** 3,
+}));
+
+jest.mock('../translateComment', () => ({
+  translateComment: jest.fn().mockResolvedValue({ state: 'translationFailed' }),
+}));
 
 jest.mock('../commentReactionApi', () => ({
   reactToComment: jest.fn().mockResolvedValue({
@@ -130,6 +146,8 @@ const renderShell = (
     onPositionPress?: (post: SocialV1FeedPost) => void;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
+    /** Turns on `aiSocialCommentTranslation` for this render. */
+    translationEnabled?: boolean;
   },
 ) => {
   const queryClient = new QueryClient({
@@ -155,6 +173,24 @@ const renderShell = (
         </SocialFeedSurfaceProvider>
       )}
     </QueryClientProvider>,
+    options?.translationEnabled
+      ? {
+          state: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    aiSocialCommentTranslation: {
+                      enabled: true,
+                      minimumVersion: '0.0.0',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }
+      : undefined,
   );
 };
 
@@ -726,6 +762,134 @@ describe('SocialFeedPostShell', () => {
         ).toBeOnTheScreen();
       });
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('translation', () => {
+    const translate = translateComment as jest.Mock;
+
+    beforeEach(() => {
+      translate.mockReset();
+      translate.mockResolvedValue({ state: 'translationFailed' });
+    });
+
+    it('offers translation when the Call language is missing or not English', () => {
+      renderShell(basePost({ sourceLanguage: null }), {
+        translationEnabled: true,
+      });
+
+      expect(screen.getByText('See translation')).toBeOnTheScreen();
+    });
+
+    it('hides translation when the feature flag is off', () => {
+      renderShell(basePost({ sourceLanguage: 'ko' }));
+
+      expect(screen.queryByText('See translation')).toBeNull();
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+    });
+
+    it('hides translation for an English Call', () => {
+      renderShell(basePost({ sourceLanguage: 'en' }), {
+        translationEnabled: true,
+      });
+
+      expect(screen.queryByText('See translation')).toBeNull();
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+    });
+
+    it('hides translation on a pending post', () => {
+      renderShell(basePost({ isPending: true, sourceLanguage: 'ko' }), {
+        translationEnabled: true,
+      });
+
+      expect(screen.queryByText('See translation')).toBeNull();
+    });
+
+    it('swaps in the English text after a successful translation', async () => {
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'ko',
+        translations: { en: 'This content is in Korean.' },
+      });
+      renderShell(
+        basePost({
+          sourceLanguage: 'ko',
+          item: mockOpenPerpsFeedItem({
+            id: 'item-1',
+            comment: '이 내용은 한국어입니다.',
+          }),
+        }),
+        { translationEnabled: true },
+      );
+
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      expect(announce).toHaveBeenCalledWith('Translating...');
+      expect(screen.getByText('Translating...')).toBeOnTheScreen();
+      expect(screen.getByText('Translating...')).toHaveProp(
+        'accessibilityState',
+        { busy: true },
+      );
+      await waitFor(() => {
+        expect(
+          screen.getByText('This content is in Korean.'),
+        ).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+      expect(announce).toHaveBeenCalledWith(
+        'This content is in Korean. Translated to English',
+      );
+      announce.mockRestore();
+      expect(screen.queryByText('이 내용은 한국어입니다.')).toBeNull();
+      expect(translate).toHaveBeenCalledWith({
+        commentId: 'comment-1',
+        targetLanguage: 'en',
+      });
+    });
+
+    it('keeps the original text and offers a retry when translation fails', async () => {
+      renderShell(basePost({ sourceLanguage: 'ko' }), {
+        translationEnabled: true,
+      });
+
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      await waitFor(() => {
+        expect(screen.getByText("Couldn't translate.")).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'ko',
+        translations: { en: 'Amazing position, in English' },
+      });
+      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Amazing position, in English'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('uses an English translation already on the post', () => {
+      renderShell(
+        basePost({
+          sourceLanguage: 'ko',
+          translations: { en: 'Already translated' },
+        }),
+        { translationEnabled: true },
+      );
+
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      expect(screen.getByText('Already translated')).toBeOnTheScreen();
+      expect(translate).not.toHaveBeenCalled();
     });
   });
 });
