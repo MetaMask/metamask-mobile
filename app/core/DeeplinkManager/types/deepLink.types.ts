@@ -24,6 +24,7 @@ export interface DeeplinkUrlParams {
   attributionId?: string;
   attribution_id?: string;
   referral?: string;
+  ref?: string; // Money referral code
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;

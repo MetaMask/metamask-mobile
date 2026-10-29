@@ -12,6 +12,10 @@ import {
   setPendingSocialLoginMarketingConsentBackfill,
 } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
+import {
+  clearPendingReferralCode,
+  initialState as initialRewardsMoneyState,
+} from '../../../reducers/rewardsMoney';
 import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
@@ -92,10 +96,12 @@ const renderUsePushPrePromptVariant = ({
   completedOnboarding = true,
   hasMarketingConsent = false,
   pendingSocialLoginMarketingConsentBackfill = null,
+  pendingReferralCode = null,
 }: {
   completedOnboarding?: boolean;
   hasMarketingConsent?: boolean;
   pendingSocialLoginMarketingConsentBackfill?: string | null;
+  pendingReferralCode?: string | null;
 } = {}) =>
   renderHookWithProvider(() => usePushPrePromptVariant(), {
     state: {
@@ -105,6 +111,10 @@ const renderUsePushPrePromptVariant = ({
       },
       security: {
         dataCollectionForMarketing: hasMarketingConsent,
+      },
+      rewardsMoney: {
+        ...initialRewardsMoneyState,
+        pendingReferralCode,
       },
     },
   });
@@ -226,6 +236,44 @@ describe('usePushPrePromptVariant', () => {
     });
     expect(result.current.variant).toBeNull();
     expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
+  });
+
+  it('does not return a prompt while a deeplink referral invite is pending', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant({
+      pendingReferralCode: 'KOL1',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns the prompt once the deeplink referral invite is answered', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result, store } = renderUsePushPrePromptVariant({
+      pendingReferralCode: 'KOL1',
+    });
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+
+    await act(async () => {
+      store.dispatch(clearPendingReferralCode());
+    });
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
   });
 
   it('does not return a prompt when the default-on feature flag is disabled', async () => {

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -23,6 +23,7 @@ import {
   selectMoneyReferralAllowedForGeo,
   selectReferralMeEntry,
 } from '../../../../../reducers/rewardsMoney/selectors';
+import { clearPendingReferralCode } from '../../../../../reducers/rewardsMoney';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -107,6 +108,7 @@ export interface AcceptInviteSheetProps {
  */
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialReferralCode = route.params?.referralCode ?? '';
@@ -128,6 +130,16 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     selectMoneyReferralAllowedForGeo(state, profileId),
   );
   const referralMe = referralMeEntry?.data;
+
+  // A deeplink's code is answered once: whichever way this sheet closes, the
+  // code it was opened for must not prompt again.
+  useEffect(
+    () => () => {
+      dispatch(clearPendingReferralCode());
+    },
+    [dispatch],
+  );
+
   // Once this sheet has shown an eligible invite, accept's own refresh to
   // REFEREE is not a reason to pop. Only a first settled payload that already
   // holds REFERRER or REFEREE (stale deeplink) is.

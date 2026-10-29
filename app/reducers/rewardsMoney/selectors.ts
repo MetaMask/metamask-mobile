@@ -212,6 +212,13 @@ export function selectClaimWaitingUntil(
   return state.rewardsMoney.claimWaitingUntil?.[profileId];
 }
 
+/** Referral code a deeplink left for the invite sheet, if any. */
+export function selectPendingMoneyReferralCode(
+  state: RootState,
+): string | null {
+  return state.rewardsMoney?.pendingReferralCode ?? null;
+}
+
 /** Session lock that keeps Claim disabled after the Earnings tab unmounts. */
 export function selectClaimLock(
   state: RootState,

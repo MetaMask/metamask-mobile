@@ -419,6 +419,7 @@ describe('fixture-validation', () => {
         earningsHistory: {},
         earningsSummary: {},
         inFlightClaims: {},
+        pendingReferralCode: null,
         referralFunnel: {},
         referralMe: {},
       });

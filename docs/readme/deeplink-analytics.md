@@ -35,6 +35,7 @@ Today `DEEP_LINK_USED` is still built with `AnalyticsEventBuilder` using both `a
 | `utm_campaign`      | string? | UTM campaign parameter                                                                       |
 | `utm_term`          | string? | UTM term parameter                                                                           |
 | `utm_content`       | string? | UTM content parameter                                                                        |
+| `referral_code`     | string? | Normalized Money referral code from `ref` (undefined when missing or malformed)              |
 | `target`            | string? | Full URL for invalid routes (undefined for valid routes)                                     |
 
 ### Sensitive Properties

@@ -6,7 +6,9 @@ import type {
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 import initialRootState from '../../util/test/initial-root-state';
 import rewardsMoneyReducer, {
+  clearPendingReferralCode,
   resetRewardsMoneyState,
+  setPendingReferralCode,
   setCashbackLedger,
   setCommissions,
   setEarningsHistory,
@@ -96,6 +98,7 @@ describe('rewardsMoneyReducer', () => {
       inFlightClaims: {},
       claimWaitingUntil: {},
       claimLocks: {},
+      pendingReferralCode: null,
     });
   });
 
@@ -110,6 +113,7 @@ describe('rewardsMoneyReducer', () => {
       inFlightClaims: {},
       claimWaitingUntil: {},
       claimLocks: {},
+      pendingReferralCode: null,
     });
   });
 
@@ -365,6 +369,7 @@ describe('rewardsMoneyReducer', () => {
             summaryKey: 'stale',
           },
         },
+        pendingReferralCode: null,
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -405,6 +410,20 @@ describe('rewardsMoneyReducer', () => {
       expect(state.claimLocks).toEqual({});
     });
 
+    it('drops a pending referral code so a link from an earlier session cannot prompt', () => {
+      const persisted = {
+        ...initialState,
+        pendingReferralCode: 'KOL1',
+      };
+
+      const state = rewardsMoneyReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewardsMoney: persisted },
+      } as Action);
+
+      expect(state.pendingReferralCode).toBeNull();
+    });
+
     it('drops a last profile id left by an older persisted slice', () => {
       const persisted = {
         referralMe: {},
@@ -427,7 +446,44 @@ describe('rewardsMoneyReducer', () => {
         inFlightClaims: {},
         claimWaitingUntil: {},
         claimLocks: {},
+        pendingReferralCode: null,
       });
+    });
+  });
+
+  describe('pending referral code', () => {
+    it('stores the code a deeplink left behind', () => {
+      const state = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL1');
+    });
+
+    it('replaces an older code with the newer link', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(
+        withCode,
+        setPendingReferralCode('KOL2'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+    });
+
+    it('clears the code once it is answered', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(withCode, clearPendingReferralCode());
+
+      expect(state.pendingReferralCode).toBeNull();
     });
   });
 
@@ -457,6 +513,7 @@ describe('rewardsMoneyReducer', () => {
         inFlightClaims: {},
         claimWaitingUntil: {},
         claimLocks: {},
+        pendingReferralCode: null,
       });
     });
   });

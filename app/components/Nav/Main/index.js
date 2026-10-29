@@ -34,6 +34,7 @@ import {
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
+import PendingMoneyReferralInvite from '../../UI/Rewards/components/Money/PendingMoneyReferralInvite';
 import { CliLoginPushNudgeListener } from '../../UI/CliLoginPushNudge';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
@@ -411,6 +412,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        <PendingMoneyReferralInvite />
         <PushNotificationOnboardingRoot />
         <CliLoginPushNudgeListener />
       </View>

@@ -15,6 +15,7 @@ import {
   type DeepLinkModalParams,
 } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../utils/handleDeepLinkModalDisplay';
+import { capturePendingMoneyReferralCode } from '../utils/capturePendingMoneyReferralCode';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../util/general';
 import handleRampUrl from './legacy/handleRampUrl';
@@ -761,6 +762,8 @@ async function handleUniversalLink({
   if (!shouldProceed) {
     return false;
   }
+
+  capturePendingMoneyReferralCode(validatedUrl);
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   const actionBasedRampPath = urlObj.href.replace(BASE_URL_ACTION, '');

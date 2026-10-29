@@ -18,6 +18,7 @@ import {
   selectInFlightClaims,
   selectMoneyDashboardPersona,
   selectMoneyReferralAllowedForGeo,
+  selectPendingMoneyReferralCode,
   selectReferralFunnelEntry,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
@@ -253,6 +254,26 @@ describe('rewardsMoney selectors', () => {
       } as RootState;
 
       expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(true);
+    });
+  });
+
+  describe('selectPendingMoneyReferralCode', () => {
+    it('returns null when no deeplink left a code', () => {
+      const state = buildState();
+
+      expect(selectPendingMoneyReferralCode(state)).toBeNull();
+    });
+
+    it('returns the code a deeplink left behind', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          pendingReferralCode: 'KOL1',
+        },
+      } as RootState;
+
+      expect(selectPendingMoneyReferralCode(state)).toBe('KOL1');
     });
   });
 

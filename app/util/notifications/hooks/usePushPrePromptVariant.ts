@@ -8,6 +8,7 @@ import {
 import { selectDataCollectionForMarketingEnabled } from '../../../selectors/engagement';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectAnalyticsEnabled } from '../../../selectors/analyticsController';
+import { selectPendingMoneyReferralCode } from '../../../reducers/rewardsMoney/selectors';
 import Logger from '../../Logger';
 import {
   hasPushPrePromptBeenShown,
@@ -170,6 +171,11 @@ export function usePushPrePromptVariant(): {
   const pendingSocialLoginMarketingConsentBackfill = useSelector(
     selectPendingSocialLoginMarketingConsentBackfill,
   );
+  // The referral invite a deeplink left behind goes first; the pre-prompt
+  // resolves again once that code is answered or dropped.
+  const hasPendingMoneyReferralCode = Boolean(
+    useSelector(selectPendingMoneyReferralCode),
+  );
 
   const [startupMarketingConsent, setStartupMarketingConsent] = useState<
     boolean | null
@@ -199,7 +205,8 @@ export function usePushPrePromptVariant(): {
     Boolean(completedOnboarding) &&
     isNotificationsFeatureAvailable &&
     isNotificationsByDefaultFlagOn &&
-    isBasicFunctionalityEnabled;
+    isBasicFunctionalityEnabled &&
+    !hasPendingMoneyReferralCode;
 
   // Storage resets should affect the next app session/remount, not reopen the
   // pre-prompt while this root is already mounted.

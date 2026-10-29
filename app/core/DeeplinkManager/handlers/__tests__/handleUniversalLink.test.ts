@@ -49,6 +49,7 @@ import {
   createPredictDeeplinkIntent,
 } from '../intent/handlePredictUrl';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import { setPendingReferralCode } from '../../../../reducers/rewardsMoney';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../utils/verifySignature';
 import {
@@ -3667,6 +3668,109 @@ describe('handleUniversalLink', () => {
         // regressed to awaiting Branch (which would push this >=500 ms).
         expect(elapsed).toBeLessThan(200);
       });
+    });
+  });
+
+  describe('money referral code', () => {
+    const mockDispatch = (
+      jest.requireMock('../../../redux') as {
+        default: { store: { dispatch: jest.Mock } };
+      }
+    ).default.store.dispatch;
+
+    const buildLink = (action: string, search: string) => {
+      const linkUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${action}${search}`;
+      return {
+        url: linkUrl,
+        urlObj: {
+          ...urlObj,
+          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+          href: linkUrl,
+          pathname: `/${action}`,
+          search,
+        },
+      };
+    };
+
+    it('stores the normalized code once the link proceeds', async () => {
+      const link = buildLink(ACTIONS.REWARDS, '?ref=kol-123');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingReferralCode('KOL123'),
+      );
+      expect(handleRewardsUrl).toHaveBeenCalled();
+    });
+
+    it('stores the code in resolve mode before returning the startup intent', async () => {
+      const link = buildLink(ACTIONS.REWARDS, '?ref=KOL1');
+      const intent: DeeplinkIntent = {
+        target: { type: 'home-tab', routeName: 'RewardsView' },
+      };
+      (
+        createRewardsDeeplinkIntent as jest.MockedFunction<
+          typeof createRewardsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingReferralCode('KOL1'));
+    });
+
+    it('does not store the code when the user rejects the interstitial', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(async (params) => {
+        params.onBack?.();
+      });
+      const link = buildLink(ACTIONS.SEND, '?ref=KOL1');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setPendingReferralCode('KOL1'),
+      );
+    });
+
+    it('discards a malformed code and still opens the destination', async () => {
+      const link = buildLink(ACTIONS.REWARDS, '?ref=a');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: setPendingReferralCode.type }),
+      );
+      expect(handleRewardsUrl).toHaveBeenCalled();
     });
   });
 });
