@@ -5,8 +5,8 @@ import { formatChainIdToHex } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
 import {
   isNftTransferType,
+  isNftToken,
   type ActivityListItem,
-  type TokenAmount,
 } from '../../../util/activity-adapters';
 import type { RootState } from '../../../reducers';
 import { selectNftByIdentity } from '../../../selectors/nftController';
@@ -34,10 +34,6 @@ interface NftValueTransfer {
   contractAddress?: string;
   tokenId?: string | number;
   transferType?: string;
-}
-
-function isNftToken(token: TokenAmount | undefined): boolean {
-  return token?.assetType === 'erc721' || token?.assetType === 'erc1155';
 }
 
 function isNftActivityItem(item: ActivityListItem): boolean {

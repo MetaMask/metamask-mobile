@@ -30,6 +30,7 @@ import {
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
+  isNftToken,
   isPerpsOrderKind,
   isSpendingCapUnlimited,
   shouldShowPlusSign,
@@ -101,10 +102,6 @@ function isDomainFundsKind(type: ActivityKind): boolean {
 
 function withOptionalSymbol(label: string, symbol?: string): string {
   return symbol ? `${label} ${symbol}` : label;
-}
-
-function isNftToken(token: TokenAmount | undefined): boolean {
-  return token?.assetType === 'erc721' || token?.assetType === 'erc1155';
 }
 
 function tokenPairSubtitle(

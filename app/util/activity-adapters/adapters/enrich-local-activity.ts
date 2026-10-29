@@ -15,7 +15,11 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../components/UI/Earn/constants/musd';
-import type { ActivityListItem, TokenAmount } from '../types';
+import {
+  isNftAssetType,
+  type ActivityListItem,
+  type TokenAmount,
+} from '../types';
 import type { TransactionGroup } from './transaction-group';
 import {
   getKnownTokenMetadata,
@@ -58,12 +62,6 @@ function getNftTokenId(
   return tokenId === undefined || tokenId === null
     ? undefined
     : tokenId.toString();
-}
-
-function isNftAssetType(
-  assetType: string | undefined,
-): assetType is 'erc721' | 'erc1155' {
-  return assetType === 'erc721' || assetType === 'erc1155';
 }
 
 const evmNativeDecimals = 18;
