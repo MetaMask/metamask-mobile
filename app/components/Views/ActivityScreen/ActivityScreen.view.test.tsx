@@ -6,7 +6,11 @@ import type NetInfoMock from '../../../__mocks__/@react-native-community/netinfo
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { updateBgState } from '../../../core/redux/slices/engine';
-import { getRouteProbeTestId } from '../../../../tests/component-view/render';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
   renderActivityScreenView,
@@ -78,6 +82,7 @@ import {
 } from '../../UI/Bridge/api/limitOrders/getLimitOrders/types';
 import type { LimitOrdersQueryParams } from '../../UI/Bridge/queries/limitOrders';
 import { OpenOrderRowSelectorsIDs } from '../../UI/Bridge/components/OpenOrderRow/OpenOrderRow.testIds';
+import { BridgeTabKey } from '../../UI/Bridge/Views/BridgeView/BridgeView.constants';
 import { SwapsLimitOrderActivityPageSelectorsIDs } from '../../UI/Bridge/Views/SwapsLimitOrderActivityPage/SwapsLimitOrderActivityPage.testIds';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
@@ -1592,16 +1597,24 @@ describeForPlatforms('ActivityScreen — limit orders', () => {
    */
   const renderLimitOrdersActivity = async ({
     enabled = true,
+    enabledChainIds,
     extraRoutes = [],
   }: {
     enabled?: boolean;
+    enabledChainIds?: string[];
     extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
   } = {}) => {
     const view = renderActivityScreenViewWithRoutes({
       state: initialStateActivityWithLocalTransactions([
         buildConfirmedLocalSendTransaction(),
       ])
-        .withRemoteFeatureFlags({ swapsLimitOrder: { enabled } })
+        .withOverrides(activityLineaNetworkOverride)
+        .withRemoteFeatureFlags({
+          swapsLimitOrder: {
+            enabled,
+            ...(enabledChainIds ? { enabledChainIds } : {}),
+          },
+        })
         .build(),
       extraRoutes,
     });
@@ -1729,10 +1742,15 @@ describeForPlatforms('ActivityScreen — limit orders', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the Limit orders empty state, whose action opens swaps', async () => {
+  it('shows the Limit orders empty state, whose action opens swaps on the Limit tab', async () => {
     serveLimitOrders([]);
     const view = await renderLimitOrdersActivity({
-      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: createRouteParamsProbe(Routes.BRIDGE.ROOT),
+        },
+      ],
     });
     await selectLimitOrdersFilter(view);
 
@@ -1747,9 +1765,102 @@ describeForPlatforms('ActivityScreen — limit orders', () => {
       view.getByText(strings('activity_view.empty_state.limit_orders.action')),
     );
 
+    const paramsProbe = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.BRIDGE.ROOT),
+    );
+    expect(JSON.parse(paramsProbe.props.children)).toMatchObject({
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        initialTab: BridgeTabKey.Limit,
+        sourceToken: { chainId: '0x1', symbol: 'ETH' },
+      },
+    });
+  });
+
+  it('opens limit swaps with the selected network default pair from the empty state', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:1', 'eip155:59144'],
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: createRouteParamsProbe(Routes.BRIDGE.ROOT),
+        },
+      ],
+    });
+    await selectLimitOrdersFilter(view);
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+    fireEvent.press(
+      await view.findByTestId(networkOptionTestId('eip155:59144')),
+    );
+
+    fireEvent.press(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.action'),
+      ),
+    );
+
+    const paramsProbe = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.BRIDGE.ROOT),
+    );
+    expect(JSON.parse(paramsProbe.props.children)).toMatchObject({
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        initialTab: BridgeTabKey.Limit,
+        sourceToken: { chainId: '0xe708' },
+      },
+    });
+  });
+
+  it('offers only limit order networks in the network filter', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:59144'],
+    });
+    await selectLimitOrdersFilter(view);
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+
     expect(
-      await view.findByTestId(getRouteProbeTestId(Routes.BRIDGE.ROOT)),
+      await view.findByTestId(networkOptionTestId('eip155:59144')),
     ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(networkOptionTestId('eip155:1')),
+    ).not.toBeOnTheScreen();
+    expect(view.getByText(strings('trending.all_networks'))).toBeOnTheScreen();
+  });
+
+  it('resets a network limit orders do not support to All networks', async () => {
+    const requests = serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:59144'],
+    });
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+    fireEvent.press(await view.findByTestId(networkOptionTestId('eip155:1')));
+    await waitFor(() => {
+      expect(
+        view.queryByText(strings('activity_view.filter_all_networks')),
+      ).toBeNull();
+    });
+
+    await selectLimitOrdersFilter(view);
+
+    await waitFor(() => {
+      expect(
+        view.getAllByText(strings('activity_view.filter_all_networks')).length,
+      ).toBeGreaterThan(0);
+    });
+    await waitFor(() => {
+      expect(requests.length).toBeGreaterThan(0);
+    });
+    expect(requests.every((params) => params.chainId === undefined)).toBe(true);
   });
 
   it('does not request limit orders while offline', async () => {

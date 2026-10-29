@@ -1044,6 +1044,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         <ActivityEmptyState
           typeFilter={typeFilter ?? ActivityTypeFilter.All}
           perpsSubFilterActive={perpsSubFilterActive}
+          networkFilter={networkFilter}
         />
       </View>
     );

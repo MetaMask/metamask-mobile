@@ -7,6 +7,7 @@ import { ActivityTypeFilter } from '../../types';
  */
 export enum ActivityEmptyStateAction {
   Swap = 'swap',
+  SwapLimitOrder = 'swapLimitOrder',
   AddFunds = 'addFunds',
   MakePrediction = 'makePrediction',
   BrowsePerpsMarkets = 'browsePerpsMarkets',
@@ -91,7 +92,7 @@ export function getActivityEmptyState({
       return {
         descriptionKey: 'activity_view.empty_state.limit_orders.description',
         actionLabelKey: 'activity_view.empty_state.limit_orders.action',
-        action: ActivityEmptyStateAction.Swap,
+        action: ActivityEmptyStateAction.SwapLimitOrder,
       };
 
     case ActivityTypeFilter.MetamaskCard:

@@ -140,7 +140,7 @@ describe('getActivityEmptyState', () => {
     );
 
     it.each([true, false])(
-      'LimitOrders returns themed copy + Swap (hasFunds=%s)',
+      'LimitOrders returns themed copy + SwapLimitOrder (hasFunds=%s)',
       (hasFunds) => {
         expect(
           getActivityEmptyState({
@@ -150,7 +150,7 @@ describe('getActivityEmptyState', () => {
         ).toEqual({
           descriptionKey: 'activity_view.empty_state.limit_orders.description',
           actionLabelKey: 'activity_view.empty_state.limit_orders.action',
-          action: ActivityEmptyStateAction.Swap,
+          action: ActivityEmptyStateAction.SwapLimitOrder,
         });
       },
     );

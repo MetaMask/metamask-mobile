@@ -23,9 +23,13 @@ import type { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/use
  *
  * Order: popular EVM → non-EVM mainnets → custom.
  *
+ * @param enabledChainIds - When given, only these networks are offered (e.g.
+ * the chains limit orders support).
  * @returns Processed networks ready for the filter sheet.
  */
-export const useNetworkFilterOptions = (): ProcessedNetwork[] => {
+export const useNetworkFilterOptions = (
+  enabledChainIds?: CaipChainId[],
+): ProcessedNetwork[] => {
   const popularNetworks = useSelector(
     selectPopularNetworkConfigurationsByCaipChainId,
   );
@@ -39,9 +43,14 @@ export const useNetworkFilterOptions = (): ProcessedNetwork[] => {
   return useMemo(() => {
     const seen = new Set<CaipChainId>();
     const options: ProcessedNetwork[] = [];
+    const allowed = enabledChainIds ? new Set(enabledChainIds) : undefined;
 
     const add = (caipChainId: CaipChainId, name: string) => {
-      if (!caipChainId || seen.has(caipChainId)) {
+      if (
+        !caipChainId ||
+        seen.has(caipChainId) ||
+        (allowed && !allowed.has(caipChainId))
+      ) {
         return;
       }
       seen.add(caipChainId);
@@ -67,5 +76,5 @@ export const useNetworkFilterOptions = (): ProcessedNetwork[] => {
     customNetworks.forEach((network) => add(network.caipChainId, network.name));
 
     return options;
-  }, [popularNetworks, customNetworks, nonEvmNetworks]);
+  }, [popularNetworks, customNetworks, nonEvmNetworks, enabledChainIds]);
 };
