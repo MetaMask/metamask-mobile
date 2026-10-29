@@ -104,10 +104,6 @@ jest.mock('../../../../util/theme', () => {
 const mockStore = configureMockStore();
 
 describe('TokenListControlBar', () => {
-  const defaultProps = {
-    goToAddToken: jest.fn(),
-  };
-
   const defaultState = {
     engine: {
       backgroundState: {
@@ -201,7 +197,7 @@ describe('TokenListControlBar', () => {
     const store = mockStore({ ...defaultState, ...state });
     return render(
       <Provider store={store}>
-        <TokenListControlBar {...defaultProps} {...props} />
+        <TokenListControlBar {...props} />
       </Provider>,
     );
   };
@@ -291,18 +287,6 @@ describe('TokenListControlBar', () => {
     });
   });
 
-  describe('Button interactions', () => {
-    it('calls goToAddToken when add token button is pressed', () => {
-      const goToAddToken = jest.fn();
-      const { getByTestId } = renderComponent({ goToAddToken });
-
-      const addTokenButton = getByTestId('import-token-button');
-      fireEvent.press(addTokenButton);
-
-      expect(goToAddToken).toHaveBeenCalled();
-    });
-  });
-
   describe('Button states', () => {
     it('does not disable filter button by default', () => {
       const { getByTestId } = renderComponent();
@@ -311,35 +295,6 @@ describe('TokenListControlBar', () => {
       );
 
       expect(filterButton).toBeEnabled();
-    });
-
-    it('renders add token button as enabled', () => {
-      const { getByTestId } = renderComponent();
-      const addTokenButton = getByTestId('import-token-button');
-
-      expect(addTokenButton).toBeEnabled();
-    });
-  });
-
-  describe('showAddToken and hideSort (Cash view)', () => {
-    it('does not render add token button when showAddToken is false', () => {
-      const { queryByTestId } = renderComponent({
-        ...defaultProps,
-        showAddToken: false,
-      });
-
-      expect(queryByTestId('import-token-button')).toBeNull();
-    });
-
-    it('renders network filter when showAddToken is false', () => {
-      const { getByTestId } = renderComponent({
-        ...defaultProps,
-        showAddToken: false,
-      });
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER),
-      ).toBeOnTheScreen();
     });
   });
 });

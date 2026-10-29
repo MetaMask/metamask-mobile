@@ -1,21 +1,10 @@
 import React from 'react';
 import { ViewStyle } from 'react-native';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import BaseControlBar from '../../shared/BaseControlBar/BaseControlBar';
 
 interface TokenListControlBarProps {
-  goToAddToken: () => void;
   style?: ViewStyle;
-  /**
-   * When false, only the network filter is shown (e.g. Cash / mUSD-only view).
-   * Default true for the main token list.
-   */
-  showAddToken?: boolean;
   /**
    * When true, hide the sort button (e.g. Cash view where sorting one token type is unnecessary).
    */
@@ -23,29 +12,15 @@ interface TokenListControlBarProps {
 }
 
 export const TokenListControlBar = ({
-  goToAddToken,
   style,
-  showAddToken = true,
   hideSort = false,
-}: TokenListControlBarProps) => {
-  const additionalButtons = showAddToken ? (
-    <ButtonIcon
-      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-      size={ButtonIconSize.Md}
-      onPress={goToAddToken}
-      iconName={IconName.Add}
-    />
-  ) : undefined;
-
-  return (
-    <BaseControlBar
-      networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-      additionalButtons={additionalButtons}
-      customWrapper="outer"
-      style={style}
-      hideSort={hideSort}
-    />
-  );
-};
+}: TokenListControlBarProps) => (
+  <BaseControlBar
+    networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+    customWrapper="outer"
+    style={style}
+    hideSort={hideSort}
+  />
+);
 
 export default TokenListControlBar;

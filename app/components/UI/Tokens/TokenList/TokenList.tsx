@@ -236,6 +236,8 @@ const TokenListComponent = ({
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
         data={displayTokenKeys}
         removeClippedSubviews={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         renderItem={renderTokenListItem}
         keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
         refreshControl={

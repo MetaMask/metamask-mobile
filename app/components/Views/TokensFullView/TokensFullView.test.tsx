@@ -55,6 +55,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 
 describe('TokensFullView', () => {
   const mockGoBack = jest.fn();
+  const mockNavigate = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -62,6 +63,7 @@ describe('TokensFullView', () => {
     // Setup default mocks
     mockUseNavigation.mockReturnValue({
       goBack: mockGoBack,
+      navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
   });
 
@@ -89,5 +91,20 @@ describe('TokensFullView', () => {
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the add token screen when the header add button is pressed', () => {
+    // Arrange
+    const { getByTestId } = renderScreen(TokensFullView, {
+      name: 'TokensFullView',
+    });
+
+    // Act
+    fireEvent.press(getByTestId('import-token-button'));
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
+      assetType: 'token',
+    });
   });
 });

@@ -34,6 +34,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_HEADER_WITH_ACCOUNT_PICKER: 'wallet-header-with-account-picker',
   TOKENS_CONTAINER: 'tokens',
   TOKENS_CONTAINER_LIST: 'token-list',
+  TOKENS_SEARCH_INPUT: 'tokens-search-input',
   ACCOUNT_OVERVIEW: 'account-overview',
   ACCOUNT_ACTIONS: 'multichain-account-cell-menu',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',
