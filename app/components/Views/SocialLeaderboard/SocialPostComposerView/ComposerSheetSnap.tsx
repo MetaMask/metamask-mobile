@@ -112,7 +112,7 @@ export const ComposerSheetSnap = ({
         accessibilityRole="button"
         testID={backdropTestID}
         onPress={onDismiss}
-        style={[tw.style('absolute inset-x-0 top-0 z-10'), snap.backdropStyle]}
+        style={[tw.style('absolute inset-x-0 top-0'), snap.backdropStyle]}
       />
     </>
   );

@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export type SheetStop = 'default' | 'tall';
 
 export type SheetSnapTarget = SheetStop | 'dismiss';
@@ -44,6 +46,30 @@ export function tallSheetHeight(
     Math.max(0, windowHeight - topInset),
   );
   return Math.max(0, outerCap - bottomInset);
+}
+
+const ANDROID_DIALOG_BOTTOM_EXTRA = 16;
+
+export function sheetBottomPadding(bottomInset: number): number {
+  'worklet';
+  return Platform.OS === 'android'
+    ? bottomInset + ANDROID_DIALOG_BOTTOM_EXTRA
+    : bottomInset;
+}
+
+export function sheetBackdropHeight(
+  windowHeight: number,
+  sheetHeight: number,
+  bottomPadding: number,
+): number {
+  'worklet';
+  if (sheetHeight <= 0) {
+    return 0;
+  }
+  return Math.max(
+    0,
+    windowHeight - sheetHeight - bottomPadding - HIDDEN_HANDLE_SLOT,
+  );
 }
 
 export function isDefaultAtTallCap(

@@ -18,6 +18,8 @@ import {
   didPassSheetMidpoint,
   isDefaultAtTallCap,
   resolveSheetSnap,
+  sheetBackdropHeight,
+  sheetBottomPadding,
   sheetDragDirection,
   SHEET_SNAP_DURATION_MS,
   tallSheetHeight,
@@ -64,7 +66,7 @@ export function useComposerSheetSnap(
   const gestureStop = useSharedValue(0);
   const laidOut = useSharedValue(restingDefault > 0);
   const interacting = useSharedValue(0);
-  const bottomInsetSV = useSharedValue(bottomInset);
+  const bottomPaddingSV = useSharedValue(sheetBottomPadding(bottomInset));
   const appliedDefault = useRef(restingDefault);
 
   const dismiss = useCallback(() => {
@@ -74,7 +76,7 @@ export function useComposerSheetSnap(
   useEffect(() => {
     isAnimatedSV.value = isAnimated;
     windowHeightSV.value = windowHeight;
-    bottomInsetSV.value = bottomInset;
+    bottomPaddingSV.value = sheetBottomPadding(bottomInset);
     tallSV.value = tall;
     defaultSV.value = restingDefault;
     if (
@@ -102,7 +104,7 @@ export function useComposerSheetSnap(
     }
   }, [
     bottomInset,
-    bottomInsetSV,
+    bottomPaddingSV,
     defaultSV,
     height,
     interacting,
@@ -254,9 +256,10 @@ export function useComposerSheetSnap(
       return { height: 0 };
     }
     return {
-      height: Math.max(
-        0,
-        windowHeightSV.value - height.value - bottomInsetSV.value,
+      height: sheetBackdropHeight(
+        windowHeightSV.value,
+        height.value,
+        bottomPaddingSV.value,
       ),
     };
   });

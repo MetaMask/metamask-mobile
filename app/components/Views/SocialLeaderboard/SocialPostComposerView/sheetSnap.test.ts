@@ -1,7 +1,10 @@
+import { Platform } from 'react-native';
 import {
   didPassSheetMidpoint,
   gifDefaultHeight,
   resolveSheetSnap,
+  sheetBackdropHeight,
+  sheetBottomPadding,
   sheetDragDirection,
   SHEET_FLING_VELOCITY,
   tallSheetHeight,
@@ -35,6 +38,9 @@ describe('sheetSnap', () => {
     expect(gifDefaultHeight(400)).toBe(280);
     expect(tallSheetHeight(1000, 40, 20)).toBe(880);
     expect(tallSheetHeight(1000, 200, 20)).toBe(780);
+    expect(sheetBottomPadding(20)).toBe(Platform.OS === 'android' ? 36 : 20);
+    expect(sheetBackdropHeight(1000, 420, 20)).toBe(548);
+    expect(sheetBackdropHeight(1000, 0, 20)).toBe(0);
   });
 
   it('uses a fast velocity as a fling and finger travel otherwise', () => {
