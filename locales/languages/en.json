@@ -8245,7 +8245,10 @@
       "next": "Next",
       "hold_to_send": "Hold to send",
       "send": "Send",
-      "sent": "Sent!"
+      "sent": "Sent!",
+      "insufficient_tron_resources": "This account needs more TRX or network resources to complete the transaction.",
+      "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
+      "retry_validation": "Try again"
     },
     "notifications": {
       "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
