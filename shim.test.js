@@ -238,27 +238,24 @@ describe('E2E network shim', () => {
     );
   });
 
-  it('does not proxy data URLs', async () => {
-    underlyingFetch.mockImplementation(async (url) => {
-      if (
-        url === `${MOCK_SERVER_URL}/health-check` ||
-        (typeof url === 'string' && url.startsWith('data:'))
-      ) {
-        return { ok: true };
-      }
-      throw new TypeError('Network request failed');
-    });
+  it('resolves data URLs in pure JS without calling the native fetch', async () => {
     loadShim();
+    answerHealthCheck({ ok: true });
     await flushPromises();
 
+    // base64-encoded "foo"
     const dataUrl = 'data:application/octet-stream;base64,Zm9v';
-    await global.fetch(dataUrl);
+    const response = await global.fetch(dataUrl);
 
-    expect(underlyingFetch).toHaveBeenCalledWith(dataUrl, undefined);
+    // Must not reach the native fetch (which throws on Android) or the proxy.
+    expect(underlyingFetch).not.toHaveBeenCalledWith(dataUrl, undefined);
     expect(underlyingFetch).not.toHaveBeenCalledWith(
       `${MOCK_SERVER_URL}/proxy?url=${encodeURIComponent(dataUrl)}`,
       undefined,
     );
+    expect(response.status).toBe(200);
+    const text = await response.text();
+    expect(text).toBe('foo');
   });
 
   it('still routes unmatched WebSocket URLs through the mock proxy', async () => {
