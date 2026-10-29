@@ -965,7 +965,6 @@
   },
   "AiDigestController": {},
   "RampsController": {
-    "autorampTransactionRecords": {},
     "autoramps": [],
     "autorampTransactionRecords": {},
     "moneyAccountWalletRegistrations": [],

@@ -4,7 +4,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { useIsFocused } from '@react-navigation/native';
 import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
-import { getHardwareTier } from '../../../../util/deviceCapability';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { useMoneyMicrodeposits } from './useMoneyMicrodeposits';
@@ -22,9 +21,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTierState: jest.fn(),
 }));
-jest.mock('../../../../util/deviceCapability', () => ({
-  getHardwareTier: jest.fn(),
-}));
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
@@ -36,7 +32,6 @@ jest.mock('../../../../selectors/kycController', () => ({
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseIsFocused = jest.mocked(useIsFocused);
 const mockUseNetworkTierState = jest.mocked(useNetworkTierState);
-const mockGetHardwareTier = jest.mocked(getHardwareTier);
 const mockLoggerError = jest.mocked(Logger.error);
 
 const ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
@@ -92,7 +87,6 @@ function setup(
   });
   mockUseIsFocused.mockReturnValue(true);
   mockUseNetworkTierState.mockReturnValue({ tier, isResolved: true } as never);
-  mockGetHardwareTier.mockReturnValue('MID');
   return address;
 }
 
