@@ -1649,6 +1649,13 @@
       "closed": "Closed",
       "no_positions": "No positions yet",
       "error_loading_profile": "Couldn't load profile",
+      "more_options": "More options",
+      "profile_options": "Profile options",
+      "profile_options_description": "Blocking hides this profile's posts and positions on this device for this session. It also unfollows them.",
+      "block_user": "Block @{{name}}",
+      "unblock": "Unblock",
+      "blocked_title": "You blocked @{{name}}",
+      "blocked_description": "Their posts and positions are hidden on this device for this session.",
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
