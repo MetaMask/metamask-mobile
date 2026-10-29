@@ -810,6 +810,22 @@ describe('resolveVbaOnboarding', () => {
     );
   });
 
+  it('lets the dev KYC status override win over an existing autoramp', async () => {
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('rejected');
+    mockRampsState.autoramps = [
+      { id: 'ar-1', walletAddress: '0xabc', status: 'Approved' },
+    ];
+
+    const resolved = await resolveVbaOnboarding('money-home-card');
+
+    expect(resolved).toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'kycRejected',
+      }),
+    );
+  });
+
   it('does not treat an autoramp on another address as an existing account', async () => {
     mockRampsState.autoramps = [
       { id: 'ar-1', walletAddress: '0xdef', status: 'Approved' },

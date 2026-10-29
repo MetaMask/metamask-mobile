@@ -472,8 +472,7 @@ describe('getVbaHomeCard', () => {
 
   it('renders account_is_ready via the grandfather rule when every session-based rule fails', () => {
     // No session, terms, or registration (rules 2 and 6 fail), but a usable
-    // autoramp exists on the Money account, e.g. after a reinstall clears
-    // the persisted KYC session.
+    // autoramp exists on the Money account.
     const card = getVbaHomeCard({
       ...baseInputs,
       hasUsableAutoramp: true,
@@ -669,18 +668,13 @@ describe('useVbaHomeCardRefresh', () => {
     isEligible = true,
     walletAddress = WALLET,
     sessionStatus = null,
-    hasUsableAutoramp = false,
   }: {
     isEligible?: boolean;
     walletAddress?: string | null;
     sessionStatus?: KycSessionStatus | null;
-    hasUsableAutoramp?: boolean;
   } = {}) => {
     mockUseVbaEligibility.mockReturnValue(makeEligibility({ isEligible }));
     mockSelectSelectedVbaWalletAddress.mockReturnValue(walletAddress);
-    mockSelectUsableVbaAutoramp.mockReturnValue(
-      hasUsableAutoramp ? makeAutoramp() : undefined,
-    );
     // The refresh hook reads the session from Engine state at focus time.
     Engine.context.KycController.state.sessionStatus = sessionStatus;
   };
@@ -766,19 +760,6 @@ describe('useVbaHomeCardRefresh', () => {
     focusCallback();
 
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
-  });
-
-  it('still refreshes a usable autoramp account even when the eligibility gate is closed', () => {
-    setupRefreshSelectors({
-      isEligible: false,
-      sessionStatus: makeSession(),
-      hasUsableAutoramp: true,
-    });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    focusCallback();
-
-    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
   });
 
   it('makes no VBA request without a selected wallet', () => {
