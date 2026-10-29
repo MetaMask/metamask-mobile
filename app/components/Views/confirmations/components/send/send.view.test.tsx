@@ -1090,10 +1090,6 @@ describeForPlatforms('Send', () => {
 
         try {
           const state = initialStateWallet()
-            .withRemoteFeatureFlags({
-              tmcuActivityRedesignEnabled: true,
-              tmcuTransactionsRedesignEnabled: true,
-            })
             .withOverrides(sendViewOverrides)
             .withOverrides(buildMaxNativeSendFixture(chain))
             .build();
