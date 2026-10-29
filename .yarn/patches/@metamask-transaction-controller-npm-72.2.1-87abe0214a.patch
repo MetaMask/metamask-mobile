@@ -1,0 +1,12 @@
+diff --git a/dist/utils/eip7702.js b/dist/utils/eip7702.js
+index 03a879eacb2c1f04aceb5b62f809eaf419efa121..a45a45164121c7337352c1e42098ab898574e69e 100644
+--- a/dist/utils/eip7702.js
++++ b/dist/utils/eip7702.js
+@@ -32,6 +32,7 @@ const KEYRING_TYPES_SUPPORTING_7702 = [
+     'HD Key Tree',
+     'Simple Key Pair',
+     'Money Keyring',
++    'MPC Money Keyring',
+ ];
+ /**
+  * Check whether a given account's keyring supports EIP-7702 authorization
