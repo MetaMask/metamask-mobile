@@ -162,7 +162,7 @@ class ActivitiesView {
   }
 
   /**
-   * Selects redesigned Activity network filter by CAIP.
+   * Selects redesigned Activity network filter by CAIP (needs tmcuActivityRedesignEnabled).
    */
   async filterByNetwork(caipChainId: string): Promise<void> {
     await Assertions.expectElementToExist(this.redesignedScreen, {

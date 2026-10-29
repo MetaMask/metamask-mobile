@@ -1280,6 +1280,18 @@ const BASE_STX_FLAGS = [
 
 const BASE_TMCU_FLAGS = [
   {
+    tmcuActivityRedesignEnabled: {
+      enabled: true,
+      minimumVersion: '8.5.0',
+    },
+  },
+  {
+    tmcuTransactionsRedesignEnabled: {
+      enabled: true,
+      minimumVersion: '8.5.0',
+    },
+  },
+  {
     walletHomeOnboardingSteps: {
       enabled: true,
       minimumVersion: '0.0.0',

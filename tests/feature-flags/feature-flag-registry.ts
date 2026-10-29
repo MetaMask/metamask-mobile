@@ -8177,7 +8177,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Deprecated,
+    status: FeatureFlagStatus.Active,
   },
 
   tmcuTransactionsRedesignEnabled: {
@@ -8188,7 +8188,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Deprecated,
+    status: FeatureFlagStatus.Active,
   },
   assetsASSETS3380AbtestExploreQuickBuy: {
     name: 'assetsASSETS3380AbtestExploreQuickBuy',
