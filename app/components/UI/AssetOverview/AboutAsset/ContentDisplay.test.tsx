@@ -1,8 +1,8 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import ContentDisplay, {
-  CONTENT_DISPLAY_MEASURE_TEST_ID,
+  CONTENT_DISPLAY_TEXT_TEST_ID,
   CONTENT_DISPLAY_TOGGLE_TEST_ID,
 } from './ContentDisplay';
 
@@ -24,25 +24,25 @@ const DISCLAIMER =
 const SHOW_MORE = strings('asset_overview.about_content_display.show_more');
 const SHOW_LESS = strings('asset_overview.about_content_display.show_less');
 
-const fireMeasureLayout = (lineCount: number) => {
-  const measureText = screen.getByTestId(CONTENT_DISPLAY_MEASURE_TEST_ID, {
-    includeHiddenElements: true,
-  });
-
-  fireEvent(measureText, 'textLayout', {
-    nativeEvent: {
-      lines: Array.from({ length: lineCount }, (_, index) => ({
-        text: `line ${index + 1}`,
-      })),
-    },
+const fireTextLayout = (displayedText: string) => {
+  act(() => {
+    fireEvent(
+      screen.getByTestId(CONTENT_DISPLAY_TEXT_TEST_ID),
+      'onTextLayout',
+      {
+        nativeEvent: {
+          lines: [{ text: displayedText, x: 0, y: 0, width: 100, height: 20 }],
+        },
+      },
+    );
   });
 };
 
 describe('ContentDisplay', () => {
-  it('hides the toggle when measured line count is within numberOfLines', () => {
+  it('hides the toggle when laid-out text matches the full description', () => {
     render(<ContentDisplay content={DESCRIPTION} />);
 
-    fireMeasureLayout(1);
+    fireTextLayout(DESCRIPTION);
 
     expect(
       screen.queryByTestId(CONTENT_DISPLAY_TOGGLE_TEST_ID),
@@ -51,10 +51,10 @@ describe('ContentDisplay', () => {
     expect(screen.queryByText(SHOW_LESS)).not.toBeOnTheScreen();
   });
 
-  it('shows Show more when measured line count exceeds numberOfLines', () => {
+  it('shows Show more when laid-out text is shorter than the description', () => {
     render(<ContentDisplay content={DESCRIPTION} />);
 
-    fireMeasureLayout(4);
+    fireTextLayout(DESCRIPTION.slice(0, 10));
 
     expect(
       screen.getByTestId(CONTENT_DISPLAY_TOGGLE_TEST_ID),
@@ -65,7 +65,7 @@ describe('ContentDisplay', () => {
 
   it('removes the line clamp and shows Show less after pressing the toggle', () => {
     render(<ContentDisplay content={DESCRIPTION} />);
-    fireMeasureLayout(4);
+    fireTextLayout(DESCRIPTION.slice(0, 10));
 
     fireEvent.press(screen.getByTestId(CONTENT_DISPLAY_TOGGLE_TEST_ID));
 
@@ -76,7 +76,7 @@ describe('ContentDisplay', () => {
 
   it('restores the line clamp and Show more after pressing the toggle again', () => {
     render(<ContentDisplay content={DESCRIPTION} />);
-    fireMeasureLayout(4);
+    fireTextLayout(DESCRIPTION.slice(0, 10));
     fireEvent.press(screen.getByTestId(CONTENT_DISPLAY_TOGGLE_TEST_ID));
 
     fireEvent.press(screen.getByTestId(CONTENT_DISPLAY_TOGGLE_TEST_ID));
@@ -88,7 +88,7 @@ describe('ContentDisplay', () => {
 
   it('renders disclaimer after expanding truncated content', () => {
     render(<ContentDisplay content={DESCRIPTION} disclaimer={DISCLAIMER} />);
-    fireMeasureLayout(4);
+    fireTextLayout(DESCRIPTION.slice(0, 10));
 
     expect(screen.queryByText(DISCLAIMER)).not.toBeOnTheScreen();
 
