@@ -3257,6 +3257,40 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
+    it('keeps a market order when unrelated Scale support finishes during account support', async () => {
+      let resolveSupport: ((support: 'supported') => void) | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const scaleOptions: RenderProFormScaleOptions = { pending: true };
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        scaleOptions,
+      );
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid'),
+      );
+      scaleOptions.pending = false;
+      form.rerender({});
+      await act(async () => {
+        resolveSupport?.('supported');
+        await submission;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
     it('skips geo handling and execution when compliance gate blocks', async () => {
       mockComplianceGate.mockResolvedValue(undefined);
       mockIsEligible = false;

@@ -1995,32 +1995,50 @@ export const usePerpsProOrderForm = ({
     orderForm,
     reduceOnly,
     triggerPrice: normalizedTriggerPrice,
-    scaleStartPrice,
-    scaleEndPrice,
-    scaleTotalOrders,
-    scaleSizeSkew,
-    chaseMaxDistance,
-    chaseMaxDistanceUnit,
     selectedAddress: normalizedSelectedAddress,
     orderProviderId,
-    scaleProviderId,
     marketProviderId: market.providerId,
     network,
     marginMode,
     marginModeContextKey,
     maxSlippageBps: resolvedMaxSlippageBps,
-    isTriggeredOrdersEnabled,
-    isTriggerAvailabilityPending,
-    supportedTriggerOrderTypes,
-    resolvedTriggerProviderId,
-    isTwapEnabled,
-    isTwapAvailabilityPending,
-    resolvedTwapProviderId,
-    isScaleOrdersEnabled,
-    isScaleOrderSupportPending,
-    isChaseEnabled,
-    isChaseAvailabilityPending,
-    chaseProviderId,
+    ...(isTriggerOrderType(orderForm.type)
+      ? {
+          isTriggeredOrdersEnabled,
+          isTriggerAvailabilityPending,
+          supportedTriggerOrderTypes,
+          resolvedTriggerProviderId,
+        }
+      : {}),
+    ...(isTwapOrder
+      ? {
+          isTwapEnabled,
+          isTwapAvailabilityPending,
+          resolvedTwapProviderId,
+          twapDuration,
+          twapRandomize,
+        }
+      : {}),
+    ...(isScaleOrder
+      ? {
+          scaleStartPrice,
+          scaleEndPrice,
+          scaleTotalOrders,
+          scaleSizeSkew,
+          scaleProviderId,
+          isScaleOrdersEnabled,
+          isScaleOrderSupportPending,
+        }
+      : {}),
+    ...(isChaseOrder
+      ? {
+          chaseMaxDistance,
+          chaseMaxDistanceUnit,
+          isChaseEnabled,
+          isChaseAvailabilityPending,
+          chaseProviderId,
+        }
+      : {}),
   });
   const currentComplianceState =
     orderForm.type === 'chase'
