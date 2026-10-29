@@ -25,15 +25,11 @@ interface TranslationState {
 }
 
 /**
- * Shown under a Call whose language is missing or not English.
+ * Shown under every saved Call, including English.
  * A pending composer post stays as written until the Call exists on the server.
  */
-export const showsTranslationControl = (post: SocialV1FeedPost): boolean => {
-  if (!post.item.comment || !post.commentId || post.isPending) {
-    return false;
-  }
-  return post.sourceLanguage?.toLowerCase() !== ENGLISH;
-};
+export const showsTranslationControl = (post: SocialV1FeedPost): boolean =>
+  Boolean(post.item.comment && post.commentId && !post.isPending);
 
 const TranslationAction = ({
   label,
@@ -180,13 +176,15 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
         if (requestId.current !== id || currentIdentity.current !== identity) {
           return;
         }
-        const text =
-          result.state === 'translated' ? result.translations[ENGLISH] : '';
-        if (!text) {
+        if (result.state !== 'translated') {
           setTranslation({ identity, phase: 'failed', translatedText: null });
           return;
         }
-        setTranslation({ identity, phase: 'translated', translatedText: text });
+        setTranslation({
+          identity,
+          phase: 'translated',
+          translatedText: result.translations[ENGLISH] || null,
+        });
       })
       .catch(() => {
         if (requestId.current === id && currentIdentity.current === identity) {
