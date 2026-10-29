@@ -15,7 +15,7 @@ export interface PredictActivityItemsResult {
   isFetchingMore: boolean;
 }
 
-const settled = async () => undefined;
+const settled = () => Promise.resolve();
 
 const NO_ACTIVITY: PredictActivityItemsResult = {
   items: [],
