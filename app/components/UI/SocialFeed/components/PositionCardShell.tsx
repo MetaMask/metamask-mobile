@@ -9,7 +9,7 @@ import { useTheme } from '../../../../util/theme';
  * reach the card's borders. Kept next to the padding it negates -- the two have
  * to move together, and they live in different components.
  */
-export const POSITION_CARD_BLEED_TW_CLASS = '-mx-4';
+export const POSITION_CARD_BLEED_TW_CLASS = '-mx-3';
 
 /**
  * Card accent. An open position is neutral because its outcome is still
@@ -33,12 +33,9 @@ const TONE_BORDER_TW_CLASS: Record<PositionCardTone, string> = {
 const GRADIENT_START = { x: 0, y: 0 };
 const GRADIENT_END = { x: 1, y: 1 };
 
-/**
- * A short highlight in the top-left that is already fading by a third of the way
- * across, so most of the card reads as the page behind it.
- */
-const GRADIENT_LOCATIONS = [0, 0.32, 1];
-const GRADIENT_ALPHAS = [0.09, 0.05, 0];
+/** A 15% tint in the top-left corner fading out linearly (MMDS spec). */
+const GRADIENT_LOCATIONS = [0, 1];
+const GRADIENT_ALPHAS = [0.15, 0];
 
 const styles = StyleSheet.create({
   surface: StyleSheet.absoluteFill,
@@ -84,7 +81,7 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
 
   return (
     <Box
-      twClassName={`rounded-2xl p-4 gap-3 overflow-hidden ${TONE_BORDER_TW_CLASS[tone]}`}
+      twClassName={`rounded-xl p-3 gap-2 overflow-hidden ${TONE_BORDER_TW_CLASS[tone]}`}
     >
       <LinearGradient
         colors={tintStops(baseColor)}

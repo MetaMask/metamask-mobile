@@ -23,7 +23,7 @@ const DEFAULT_OPTIONAL_TIMEOUT_MS = 2_000;
 const DEFAULT_REQUIRED_TIMEOUT_MS = 20_000;
 const POLL_MS = 250;
 
-/** Generous until BrowserStack TTC baselines exist. */
+/** Generous until TestMu TTC baselines exist. */
 export const ONBOARDING_APP_TTC_THRESHOLD: PlatformThreshold = {
   ios: 15_000,
   android: 15_000,

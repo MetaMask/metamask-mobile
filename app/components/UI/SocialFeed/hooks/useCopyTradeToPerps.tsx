@@ -14,9 +14,13 @@ export interface UseCopyTradeToPerpsResult {
 /**
  * Copy trade for an open perp: opens the Perps order sheet with the trader's
  * direction and leverage, behind the compliance gate and geo block.
+ *
+ * With a `commentId`, the order view records a copy-trade intent for an order
+ * placed on this market.
  */
 export const useCopyTradeToPerps = (
   item: SocialV1FeedItem,
+  commentId?: string,
 ): UseCopyTradeToPerpsResult => {
   const { openPerpsOrder, geoBlockSheet } = useOpenPerpsOrder();
 
@@ -25,8 +29,15 @@ export const useCopyTradeToPerps = (
       return;
     }
     const { direction, leverage, tradeSymbol } = item;
-    openPerpsOrder({ direction, asset: tradeSymbol, leverage });
-  }, [item, openPerpsOrder]);
+    openPerpsOrder({
+      direction,
+      asset: tradeSymbol,
+      leverage,
+      ...(commentId
+        ? { copyTradeOrigin: { commentId, asset: tradeSymbol } }
+        : {}),
+    });
+  }, [commentId, item, openPerpsOrder]);
 
   return {
     onCopyTrade: item.variant === 'perpsOpen' ? handleCopyTrade : undefined,

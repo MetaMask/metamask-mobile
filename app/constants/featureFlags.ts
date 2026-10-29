@@ -10,6 +10,18 @@ export function isBftcConsolidationBuildEnabled(): boolean {
 }
 
 /**
+ * Build-time gate for the Money MPC keyring stub. When enabled, the Money MPC
+ * keyring builders are registered with the `KeyringController`.
+ *
+ * The variable is inlined from `.js.env` at build time; restart Metro after
+ * changing it. Registration stays fenced while no released build can hold a
+ * Money MPC keyring in its vault — see `buildMpcMoneyKeyringBuilder`.
+ */
+export function isMpcMoneyKeyringBuildEnabled(): boolean {
+  return process.env.MM_MONEY_MPC_KEYRING_ENABLED === 'true';
+}
+
+/**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
  * in app/selectors/featureFlagController/
@@ -32,8 +44,12 @@ export enum FeatureFlagNames {
   ledgerDmk = 'ledgerDmk',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
+  predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
+  moneyBrandRefresh = 'moneyBrandRefresh',
+  perpsBrandRefresh = 'perpsBrandRefresh',
+  exploreBrandRefresh = 'exploreBrandRefresh',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

@@ -30,8 +30,14 @@ on:
         description: 'Whether Smart E2E mode, action, and analyzer engine contract tests should run.'
         value: ${{ jobs.detect-changes.outputs.run_smart_e2e_contracts }}
       run_performance:
-        description: 'Whether performance E2E tests should be forced to run via the run-performance-tests PR label'
+        description: 'Whether a PR label requested performance E2E. True for run-performance-tests or any run-performance-*-tests area label.'
         value: ${{ jobs.detect-changes.outputs.run_performance }}
+      performance_tags:
+        description: 'JSON array of performance tags from PR labels. ["ALL"] runs the full suite. [] runs none.'
+        value: ${{ jobs.detect-changes.outputs.performance_tags }}
+      performance_tags_reasoning:
+        description: 'Why the PR performance tags were selected'
+        value: ${{ jobs.detect-changes.outputs.performance_tags_reasoning }}
       use_main_builds_for_test_only_prs:
         description: 'Whether test-only E2E runs should reuse Android/iOS builds from main and fall back to fresh native builds when unavailable; false for normal E2E runs.'
         value: ${{ jobs.detect-changes.outputs.use_main_builds_for_test_only_prs }}
@@ -51,6 +57,8 @@ jobs:
       run_smart_e2e_selection: ${{ steps.set-e2e-outputs.outputs.run_smart_e2e_selection }}
       run_smart_e2e_contracts: ${{ steps.filter.outputs.smart_e2e_contracts }}
       run_performance: ${{ steps.set-e2e-outputs.outputs.run_performance }}
+      performance_tags: ${{ steps.set-e2e-outputs.outputs.performance_tags }}
+      performance_tags_reasoning: ${{ steps.set-e2e-outputs.outputs.performance_tags_reasoning }}
       use_main_builds_for_test_only_prs: ${{ steps.set-e2e-outputs.outputs.use_main_builds_for_test_only_prs }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
@@ -98,6 +106,7 @@ jobs:
             echo "LABEL_BLOCKS_MERGE=false"
             echo "SKIP_SMART_SELECTION=false"
             echo "RUN_PERFORMANCE=false"
+            echo "PERFORMANCE_AREA_LABELS="
             echo "RUN_APPIUM_IOS_LABEL=false"
           } >> "$GITHUB_OUTPUT"
 
@@ -125,6 +134,21 @@ jobs:
             echo "RUN_PERFORMANCE=true" >> "$GITHUB_OUTPUT"
             echo "-> RUN_PERFORMANCE=true due to 'run-performance-tests' label on PR"
           fi
+
+          AREA_LABELS=""
+          while IFS= read -r label; do
+            case "$label" in
+              run-performance-account-list-tests|run-performance-onboarding-tests|run-performance-login-tests|run-performance-swaps-tests|run-performance-launch-tests|run-performance-asset-loading-tests|run-performance-predict-tests|run-performance-perps-tests|run-performance-money-tests|run-performance-rewards-tests)
+                if [ -n "$AREA_LABELS" ]; then
+                  AREA_LABELS="${AREA_LABELS},${label}"
+                else
+                  AREA_LABELS="$label"
+                fi
+                echo "-> performance area label: $label"
+                ;;
+            esac
+          done <<< "$LABELS"
+          echo "PERFORMANCE_AREA_LABELS=$AREA_LABELS" >> "$GITHUB_OUTPUT"
 
           if echo "$LABELS" | grep -qx "run-appium-ios-tests"; then
             echo "RUN_APPIUM_IOS_LABEL=true" >> "$GITHUB_OUTPUT"
@@ -157,6 +181,7 @@ jobs:
           SKIP_SMART_SELECTION: ${{ steps.check-labels.outputs.SKIP_SMART_SELECTION }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}
           RUN_PERFORMANCE_LABEL: ${{ steps.check-labels.outputs.RUN_PERFORMANCE }}
+          PERFORMANCE_AREA_LABELS: ${{ steps.check-labels.outputs.PERFORMANCE_AREA_LABELS }}
           RUN_APPIUM_IOS_LABEL: ${{ steps.check-labels.outputs.RUN_APPIUM_IOS_LABEL }}
           E2E_SMOKE_INFRA_COUNT: ${{ steps.filter.outputs.e2e_smoke_infra_count }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}

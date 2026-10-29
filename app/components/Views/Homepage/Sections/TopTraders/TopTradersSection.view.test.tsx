@@ -331,10 +331,10 @@ describeForPlatforms('Homepage TopTradersSection', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Follow is intercepted when notifications are off
+  // Follow runs, then trading-signals setup opens when notifications are off
   // -------------------------------------------------------------------------
 
-  it('routes a Follow tap to the trading signals setup when both notification channels are off', async () => {
+  it('follows and then opens trading signals setup when both notification channels are off', async () => {
     clearLeaderboardApiMock();
     setupLeaderboardApiMock({
       notificationPrefs: { pushEnabled: false, inAppEnabled: false },
@@ -355,7 +355,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
         getRouteProbeTestId(Routes.SOCIAL.TRADING_SIGNALS_SETUP),
       ),
     ).toBeOnTheScreen();
-    expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
       'SocialController:followTrader',
       expect.anything(),
     );

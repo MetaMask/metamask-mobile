@@ -51,7 +51,7 @@ perfTest.describe(
 
         const rewardsContentTimer = new TimerHelper(
           'Time since the user taps Rewards until Rewards content is visible (onboarding or dashboard)',
-          { ios: 8000, android: 5000 },
+          { ios: 8000, android: 3000 },
           currentDeviceDetails.platform,
         );
 

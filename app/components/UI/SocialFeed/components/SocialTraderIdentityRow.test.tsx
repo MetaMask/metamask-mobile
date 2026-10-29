@@ -47,7 +47,7 @@ describe('SocialTraderIdentityRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the handle, invented verified badge, cohort, and 30-day P&L', () => {
+  it('renders the handle, invented verified badge, and 30-day P&L', () => {
     renderWithProvider(
       <SocialFeedSurfaceProvider showMockedFields>
         <SocialTraderIdentityRow
@@ -67,10 +67,10 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
     ).toBeOnTheScreen();
-    expect(screen.getByText('*')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.COHORT),
-    ).toHaveTextContent('🐬');
+      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER),
+    ).toHaveTextContent('*');
+    expect(screen.queryByText('🐬')).toBeNull();
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
     ).toHaveTextContent('$50K P&L (30d)');
@@ -91,13 +91,15 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
     ).toBeNull();
-    expect(screen.queryByText('*')).toBeNull();
+    expect(
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER),
+    ).toBeNull();
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.HANDLE),
     ).toHaveTextContent('cented');
   });
 
-  it('omits the stat line and cohort when the trader has no stats', () => {
+  it('omits the stat line when the trader has no stats', () => {
     renderWithProvider(
       <SocialTraderIdentityRow
         author={authorWithoutStats()}
@@ -110,9 +112,6 @@ describe('SocialTraderIdentityRow', () => {
 
     expect(
       screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.COHORT),
     ).toBeNull();
   });
 

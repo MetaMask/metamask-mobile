@@ -7,7 +7,6 @@ import {
   RouteProp,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
@@ -19,17 +18,9 @@ import { CardProviderIds } from '../../../../../core/Engine/controllers/card-con
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
-import {
-  Box,
-  FontFamily,
-  FontWeight,
-  Text,
-  TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import MarketingMoment from '../../../MarketingMoment';
+import { CompleteSelectors } from './Complete.testIds';
 
 /**
  * Route params for Complete screen
@@ -50,6 +41,9 @@ const Complete = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const handleNotNow = () => {
+    navigation.goBack();
+  };
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
@@ -119,52 +113,36 @@ const Complete = () => {
     }
   };
 
-  const renderFormFields = () => (
-    <>
-      <Box twClassName="flex flex-1 items-center justify-center">
+  return (
+    <MarketingMoment
+      title={strings('card.card_onboarding.complete.title')}
+      titleProps={{ testID: CompleteSelectors.TITLE }}
+      description={strings('card.card_onboarding.complete.description')}
+      descriptionProps={{
+        testID: CompleteSelectors.DESCRIPTION,
+        twClassName: 'text-center px-4',
+      }}
+      artwork={
         <Image
           source={MM_CARD_ONBOARDING_SUCCESS}
           resizeMode="contain"
-          style={tw.style('w-full h-full')}
+          style={tw.style('h-full w-full')}
+          testID={CompleteSelectors.IMAGE}
         />
-      </Box>
-      <Text
-        fontFamily={FontFamily.Accent}
-        fontWeight={FontWeight.Regular}
-        twClassName="text-[36px] text-center leading-1"
-      >
-        {strings('card.card_onboarding.complete.title')}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-center text-text-alternative px-4"
-      >
-        {strings('card.card_onboarding.complete.description')}
-      </Text>
-    </>
-  );
-
-  const renderActions = () => (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      isDisabled={isLoading}
-      isLoading={isLoading}
-      isFullWidth
-      testID="complete-confirm-button"
-    >
-      {strings('card.card_onboarding.complete.confirm_button')}
-    </Button>
-  );
-
-  return (
-    <OnboardingStep
-      title=""
-      description=""
-      formFields={renderFormFields()}
-      actions={renderActions()}
-      headerMode="back"
+      }
+      primaryAction={{
+        label: strings('card.card_onboarding.complete.confirm_button'),
+        onPress: handleContinue,
+        isDisabled: isLoading,
+        isLoading,
+        testID: CompleteSelectors.CONFIRM_BUTTON,
+      }}
+      secondaryAction={{
+        label: strings('card.card_onboarding.not_now_button'),
+        onPress: handleNotNow,
+        isDisabled: isLoading,
+        testID: CompleteSelectors.NOT_NOW_BUTTON,
+      }}
     />
   );
 };

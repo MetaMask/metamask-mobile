@@ -27,6 +27,7 @@ interface DetailRowProps {
   value: string;
   valueColor?: TextColor;
   testID: string;
+  twClassName?: string;
 }
 
 const getPnlColor = (value: string): TextColor | undefined => {
@@ -44,12 +45,13 @@ const DetailRow: React.FC<DetailRowProps> = ({
   value,
   valueColor,
   testID,
+  twClassName,
 }) => (
   <Box
     testID={testID}
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="py-1"
+    twClassName={twClassName ? `py-1 ${twClassName}` : 'py-1'}
   >
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
       {label}
@@ -110,6 +112,7 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
         testID={`${testID}-hold-time`}
         label={strings('asset_overview.position_pnl.hold_time')}
         value={holdTime}
+        twClassName="mb-2"
       />
     </Box>
   </Box>

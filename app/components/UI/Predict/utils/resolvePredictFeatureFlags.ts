@@ -156,6 +156,9 @@ export function resolvePredictFeatureFlags(
     flags.predictSportCardLivePrices,
     true,
   );
+  const isMembershipFeeWaiverEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictSubscriptionFeeWaiverEnabled,
+  );
   const parsedPredictSportsFeed = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
       flags.predictSportsFeed,
@@ -209,6 +212,7 @@ export function resolvePredictFeatureFlags(
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
     predictSportCardLivePricesEnabled,
+    isMembershipFeeWaiverEnabled,
     predictSportsFeed,
     predictHomeCategories,
     predictWimbledonTab,

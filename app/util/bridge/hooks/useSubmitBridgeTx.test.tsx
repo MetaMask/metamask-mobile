@@ -8,7 +8,10 @@ import {
   DummyQuotesNoApproval,
   DummyQuotesWithApproval,
 } from '../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
-import { QuoteResponse } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
@@ -16,6 +19,7 @@ import { useABTest } from '../../../hooks';
 import { createActiveABTestAssignment } from '../../analytics/activeABTestAssignments';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
+import { recordSocialTrade } from '../../social/socialActivityStorage';
 
 type BridgeQuoteResponse = QuoteResponse;
 interface MockABTestResult {
@@ -41,6 +45,11 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
+
+jest.mock('../../social/socialActivityStorage', () => ({
+  ...jest.requireActual('../../social/socialActivityStorage'),
+  recordSocialTrade: jest.fn(),
+}));
 
 jest.mock('../../../selectors/networkController', () => {
   const original = jest.requireActual('../../../selectors/networkController');
@@ -104,6 +113,28 @@ const expectedDefaultQuotesReceivedContext = expect.objectContaining({
   custom_slippage: false,
   slippage_limit: 0,
 });
+const mockRecordSocialTrade = jest.mocked(recordSocialTrade);
+const SOCIAL_BRIDGE_LOCATIONS: MetaMetricsSwapsEventSource[] = [
+  MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
+  MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
+];
+
+const createQuoteResponse = (withIntent = false): BridgeQuoteResponse => {
+  const baseQuote = DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0];
+
+  return {
+    ...baseQuote,
+    ...DummyQuoteMetadata,
+    ...(withIntent
+      ? {
+          quote: {
+            ...baseQuote.quote,
+            intent: {},
+          },
+        }
+      : {}),
+  } as unknown as BridgeQuoteResponse;
+};
 
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
@@ -784,5 +815,85 @@ describe('useSubmitBridgeTx', () => {
       'fiat_value',
       BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
+  });
+
+  it.each(SOCIAL_BRIDGE_LOCATIONS)(
+    'records social activity after submitTx from %s',
+    async (location) => {
+      const callOrder: string[] = [];
+      mockRecordSocialTrade.mockImplementation(() => {
+        callOrder.push('record');
+      });
+      mockSubmitTx.mockImplementation(async () => {
+        callOrder.push('submitTx');
+        return {} as TransactionMeta;
+      });
+      const { result } = renderHook(() => useSubmitBridgeTx(), {
+        wrapper: createWrapper(),
+      });
+
+      await result.current.submitBridgeTx({
+        quoteResponse: createQuoteResponse(),
+        location,
+      });
+
+      expect(mockRecordSocialTrade).toHaveBeenCalledWith();
+      expect(callOrder).toStrictEqual(['submitTx', 'record']);
+    },
+  );
+
+  it.each(SOCIAL_BRIDGE_LOCATIONS)(
+    'records social activity after submitIntent from %s',
+    async (location) => {
+      const callOrder: string[] = [];
+      mockRecordSocialTrade.mockImplementation(() => {
+        callOrder.push('record');
+      });
+      mockSubmitIntent.mockImplementation(async () => {
+        callOrder.push('submitIntent');
+        return {} as TransactionMeta;
+      });
+      const { result } = renderHook(() => useSubmitBridgeTx(), {
+        wrapper: createWrapper(),
+      });
+
+      await result.current.submitBridgeTx({
+        quoteResponse: createQuoteResponse(true),
+        location,
+      });
+
+      expect(mockRecordSocialTrade).toHaveBeenCalledWith();
+      expect(callOrder).toStrictEqual(['submitIntent', 'record']);
+    },
+  );
+
+  it('does not record activity for a non-social bridge location', async () => {
+    mockSubmitTx.mockResolvedValueOnce({} as TransactionMeta);
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await result.current.submitBridgeTx({
+      quoteResponse: createQuoteResponse(),
+      location: MetaMetricsSwapsEventSource.TokenView,
+    });
+
+    expect(mockRecordSocialTrade).not.toHaveBeenCalled();
+  });
+
+  it('does not record activity when bridge submission throws', async () => {
+    mockSubmitTx.mockRejectedValueOnce(new Error('submit failed'));
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await expect(
+      result.current.submitBridgeTx({
+        quoteResponse: createQuoteResponse(),
+        location: MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
+      }),
+    ).rejects.toThrow('submit failed');
+
+    expect(mockRecordSocialTrade).not.toHaveBeenCalled();
   });
 });

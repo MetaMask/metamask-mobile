@@ -17,10 +17,9 @@ import {
   Box,
   BoxFlexDirection,
   TextField,
-  Button,
   ButtonSize,
-  ButtonVariant,
 } from '@metamask/design-system-react-native';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { ThemeContext } from '../../../util/theme';
 import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
 import {
@@ -637,27 +636,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </HelpText>
           )}
         </Box>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ctaSize}
-          onPress={unlockWithPassword}
-          isDisabled={password.length === 0 || loading}
-          testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-          isLoading={loading}
-          isFullWidth
-        >
-          {strings('login.unlock_button')}
-        </Button>
-        <Button
-          variant={ButtonVariant.Tertiary}
-          size={ctaSize}
-          onPress={toggleWarningModal}
-          isDisabled={loading}
-          testID={LoginViewSelectors.RESET_WALLET}
-          isFullWidth
-        >
-          {strings('login.forgot_password')}
-        </Button>
+        <FooterGlass
+          twClassName="px-0"
+          primaryButtonProps={{
+            children: strings('login.unlock_button'),
+            size: ctaSize,
+            onPress: unlockWithPassword,
+            isDisabled: password.length === 0 || loading,
+            isLoading: loading,
+            testID: LoginViewSelectors.LOGIN_BUTTON_ID,
+          }}
+          tertiaryButtonProps={{
+            children: strings('login.forgot_password'),
+            size: ctaSize,
+            onPress: toggleWarningModal,
+            isDisabled: loading,
+            testID: LoginViewSelectors.RESET_WALLET,
+          }}
+        />
       </OnboardingLoginCanvas>
     </ErrorBoundary>
   );

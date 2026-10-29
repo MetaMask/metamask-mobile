@@ -4,6 +4,8 @@ import {
   isIosSimulatorBooted,
   parseIosDevicePoolSize,
   prepareIosSimulatorPool,
+  waitForIosSimulatorPostBootSettle,
+  warmLaunchIosApp,
 } from './ios-simulator-lib.mjs';
 
 interface ExecFileResult {
@@ -421,5 +423,93 @@ describe('prepareIosSimulatorPool', () => {
     expect(bootedUdids).toEqual(
       expect.arrayContaining([CLONE_UDID_0, CLONE_UDID_1]),
     );
+  });
+});
+
+describe('waitForIosSimulatorPostBootSettle', () => {
+  const originalSettleMs = process.env.IOS_SIMULATOR_POST_BOOT_SETTLE_MS;
+
+  afterEach(() => {
+    if (originalSettleMs === undefined) {
+      delete process.env.IOS_SIMULATOR_POST_BOOT_SETTLE_MS;
+    } else {
+      process.env.IOS_SIMULATOR_POST_BOOT_SETTLE_MS = originalSettleMs;
+    }
+  });
+
+  it('returns immediately when the settle cap is zero', async () => {
+    process.env.IOS_SIMULATOR_POST_BOOT_SETTLE_MS = '0';
+    const pause = jest.fn(async () => undefined);
+
+    await waitForIosSimulatorPostBootSettle({
+      udid: BASE_UDID,
+      isReady: async () => false,
+      pause,
+    });
+
+    expect(pause).not.toHaveBeenCalled();
+  });
+
+  it('returns as soon as SpringBoard is running', async () => {
+    process.env.IOS_SIMULATOR_POST_BOOT_SETTLE_MS = '30000';
+    const pause = jest.fn(async () => undefined);
+
+    await waitForIosSimulatorPostBootSettle({
+      udid: BASE_UDID,
+      isReady: async () => true,
+      pause,
+    });
+
+    expect(pause).not.toHaveBeenCalled();
+  });
+
+  it('keeps polling until the cap when SpringBoard stays down', async () => {
+    process.env.IOS_SIMULATOR_POST_BOOT_SETTLE_MS = '2500';
+    const pause = jest.fn(async () => undefined);
+
+    await waitForIosSimulatorPostBootSettle({
+      udid: BASE_UDID,
+      isReady: async () => false,
+      pause,
+    });
+
+    expect(pause.mock.calls.map(([ms]) => ms)).toEqual([1000, 1000, 500]);
+  });
+});
+
+describe('warmLaunchIosApp', () => {
+  const originalSettleMs = process.env.IOS_APP_WARM_LAUNCH_SETTLE_MS;
+
+  afterEach(() => {
+    if (originalSettleMs === undefined) {
+      delete process.env.IOS_APP_WARM_LAUNCH_SETTLE_MS;
+    } else {
+      process.env.IOS_APP_WARM_LAUNCH_SETTLE_MS = originalSettleMs;
+    }
+  });
+
+  it('dwells briefly after the process appears, then terminates', async () => {
+    process.env.IOS_APP_WARM_LAUNCH_SETTLE_MS = '15000';
+    const pause = jest.fn(async () => undefined);
+    const calls: string[][] = [];
+    const execFileImpl: ExecFileImpl = async (_command, args) => {
+      calls.push([...args]);
+      return { stdout: '', stderr: '' };
+    };
+
+    await warmLaunchIosApp({
+      udid: BASE_UDID,
+      bundleId: 'io.metamask.MetaMask',
+      execFileImpl,
+      isAppRunning: async () => true,
+      pause,
+    });
+
+    expect(calls).toEqual([
+      ['simctl', 'launch', BASE_UDID, 'io.metamask.MetaMask'],
+      ['simctl', 'terminate', BASE_UDID, 'io.metamask.MetaMask'],
+    ]);
+    expect(pause).toHaveBeenCalledTimes(1);
+    expect(pause).toHaveBeenCalledWith(2000);
   });
 });

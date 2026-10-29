@@ -125,11 +125,15 @@ describe('useVbaArrivalTime', () => {
     ],
   }: {
     /** Overrides for the eligibility result; spread so `undefined` wins. */
-    eligibility?: { location?: string | undefined };
+    eligibility?: {
+      location?: string | undefined;
+      isRegionEligible?: boolean;
+    };
     paymentMethods?: PaymentMethod[];
   } = {}) => {
     mockUseVbaEligibility.mockReturnValue({
       location: 'BR',
+      isRegionEligible: true,
       ...eligibility,
     } as ReturnType<typeof useVbaEligibility>);
     mockUseMoneyAccountDepositAssetId.mockReturnValue(
@@ -168,8 +172,18 @@ describe('useVbaArrivalTime', () => {
     );
   });
 
-  it('disables the query when the IP geolocation is not a VBA-served region', () => {
-    setup({ eligibility: { location: 'PT' } });
+  it('queries the catalog with a US country code when that country is allowed', () => {
+    setup({ eligibility: { location: 'US-NY', isRegionEligible: true } });
+
+    renderHook(() => useVbaArrivalTime());
+
+    expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
+      expect.objectContaining({ regionCode: 'us' }),
+    );
+  });
+
+  it('disables the query when the IP geolocation is not an allowed VBA region', () => {
+    setup({ eligibility: { location: 'PT', isRegionEligible: false } });
 
     renderHook(() => useVbaArrivalTime());
 
@@ -179,7 +193,7 @@ describe('useVbaArrivalTime', () => {
   });
 
   it('disables the query when the IP geolocation is unknown', () => {
-    setup({ eligibility: { location: undefined } });
+    setup({ eligibility: { location: undefined, isRegionEligible: false } });
 
     renderHook(() => useVbaArrivalTime());
 

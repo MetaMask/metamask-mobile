@@ -2810,6 +2810,27 @@ describe('ActivityListItemRowPendingActions', () => {
     expect(getByText(strings('transaction.cancel'))).toBeOnTheScreen();
   });
 
+  it('hides speed-up for swaps, bridges, and their approvals', () => {
+    for (const type of [
+      TransactionType.swap,
+      TransactionType.bridge,
+      TransactionType.swapApproval,
+      TransactionType.bridgeApproval,
+    ]) {
+      const props = makePendingActionProps({
+        tx: makePendingActionTx({ type }),
+      });
+
+      const { queryByText, unmount } = render(
+        <ActivityListItemRowPendingActions {...props} />,
+      );
+
+      expect(queryByText(strings('transaction.speedup'))).toBeNull();
+
+      unmount();
+    }
+  });
+
   it('renders QR signing and QR cancel actions for approved QR hardware transactions', () => {
     const props = makePendingActionProps({
       isQRHardwareAccount: true,

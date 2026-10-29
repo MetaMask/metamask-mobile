@@ -22,7 +22,7 @@ perfTest.describe(
 
         const assetViewScreen = new TimerHelper(
           'Time since the user clicks on the asset view button until the user sees the token overview screen',
-          { ios: 6000, android: 6500 },
+          { ios: 6000, android: 4000 },
           currentDeviceDetails.platform,
         );
 
@@ -30,9 +30,6 @@ perfTest.describe(
         await WalletView.tapOnToken('ETH');
 
         await assetViewScreen.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            TokenOverview.priceChartContainer,
-          );
           await AppiumAssertions.expectElementToBeVisible(
             TokenOverview.container,
           );

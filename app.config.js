@@ -71,6 +71,7 @@ module.exports = {
           './app/fonts/MMSans-Medium.otf',
           './app/fonts/MMSans-Bold.otf',
           './app/fonts/MMPoly-Regular.otf',
+          './app/fonts/GrotzecCond/GrotzecCond-Bold.otf',
         ],
       },
     ],

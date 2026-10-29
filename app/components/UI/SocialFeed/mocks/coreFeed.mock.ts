@@ -29,7 +29,6 @@ interface FeedCardOverrides {
   replyCount?: number;
   firstTradeAt?: number | null;
   holdTimeMs?: number | null;
-  entryPriceUsd?: number | null;
 }
 
 /** Extra fields present on raw feed payloads but not yet on `CoreFeedItem`. */

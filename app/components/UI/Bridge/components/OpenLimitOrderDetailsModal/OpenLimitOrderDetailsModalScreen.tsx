@@ -3,9 +3,9 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { formatTimestampToDateTime } from '../../../../../util/date';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
-import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
 import { OpenLimitOrderDetailsModal } from './OpenLimitOrderDetailsModal';
 import type { OpenLimitOrderDetailsModalParams } from './types';
@@ -15,7 +15,7 @@ export const OpenLimitOrderDetailsModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<OpenLimitOrderDetailsModalParams>();
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
-  const { triggerPrice, triggerToken } = getTriggerPrice(
+  const { triggerPrice, triggerToken, triggerDirection } = getTriggerPrice(
     order,
     sourceToken,
     destinationToken,
@@ -44,7 +44,11 @@ export const OpenLimitOrderDetailsModalScreen = () => {
       })}
       triggerPrice={triggerPrice}
       triggerToken={triggerToken}
-      expiry={formatLimitOrderDate(order.timingData.expiresAt)}
+      triggerDirection={triggerDirection}
+      expiry={
+        formatTimestampToDateTime(Date.parse(order.timingData.expiresAt)) ??
+        '--'
+      }
       onCancelOrder={
         order.isCancellable === false ? undefined : handleCancelOrder
       }

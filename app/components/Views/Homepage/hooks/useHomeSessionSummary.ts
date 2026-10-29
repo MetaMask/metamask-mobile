@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import NavigationService from '../../../../core/NavigationService';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { resolvePreviousScreenName } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
 
 interface UseHomeSessionSummaryParams {
@@ -15,6 +17,7 @@ interface UseHomeSessionSummaryParams {
  * - `total_sections_viewed` — distinct sections that reached ≥50% visibility
  * - `total_sections_loaded` — sections enabled via feature flags
  * - `entry_point` — how the user arrived (app_opened, home_tab, navigated_back)
+ * - `previous_screen` — route focused when this visit opened
  * - `session_time` — seconds spent on the homepage this visit
  *
  * All session state is held in refs — no re-renders occur on scroll or blur.
@@ -59,8 +62,15 @@ const useHomeSessionSummary = ({
   }, [visitId, entryPoint, totalSectionsLoaded, appSessionId]);
 
   useFocusEffect(
-    useCallback(
-      () => () => {
+    useCallback(() => {
+      // Captured while this visit is still the focused route. The blur event
+      // runs after navigation has moved on, so reading the route then would
+      // name this screen as its own previous screen.
+      const entryPreviousScreen = resolvePreviousScreenName(
+        NavigationService.getCurrentRoute(),
+      );
+
+      return () => {
         const snap = latestRef.current;
         if (snap.visitId === 0) return;
         const sessionTime = Math.round(
@@ -79,12 +89,19 @@ const useHomeSessionSummary = ({
               app_session_id: snap.appSessionId,
               visit_number: snap.visitId,
               max_scroll_depth_visit: getVisitMaxDepth(),
+              ...(entryPreviousScreen
+                ? { previous_screen: entryPreviousScreen }
+                : {}),
             })
             .build(),
         );
-      },
-      [trackEvent, createEventBuilder, getViewedSectionCount, getVisitMaxDepth],
-    ),
+      };
+    }, [
+      trackEvent,
+      createEventBuilder,
+      getViewedSectionCount,
+      getVisitMaxDepth,
+    ]),
   );
 };
 

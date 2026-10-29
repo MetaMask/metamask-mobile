@@ -22,6 +22,18 @@ import { useNetworkTier } from '../../hooks/useNetworkTier';
 const tier = useNetworkTier(); // 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null
 ```
 
+For flows that must distinguish NetInfo's initial loading state from a
+resolved but unclassified transport, use `useNetworkTierState()`:
+
+```ts
+import { useNetworkTierState } from '../../hooks/useNetworkTier';
+
+const { tier, isResolved } = useNetworkTierState();
+```
+
+`isResolved` is `false` only while NetInfo still reports its initial
+`unknown` state. A resolved `null` tier remains an unknown cohort.
+
 Maps `useNetInfo()` in the calling component. No extra NetInfo listener. Network changes, so this is a hook, not `getNetworkTier()`.
 
 These tiers are **transport / generation heuristics**, not measured network quality. `WIFI` does not guarantee a fast or unmetered link, and `4g` / `5g` ignore congestion, signal strength, and latency — do not treat `WIFI` / `FAST_CELLULAR` as proof that network-heavy work is cheap.

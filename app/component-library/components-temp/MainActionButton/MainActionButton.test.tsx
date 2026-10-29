@@ -14,6 +14,18 @@ import {
   MAINACTIONBUTTON_TEST_ID,
 } from './MainActionButton.constants';
 
+let mockIsGlassEnabled = false;
+jest.mock('../../hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual('../../hooks/useLiquidGlass');
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
+
 describe('MainActionButton', () => {
   it('renders with required props', () => {
     const { getByTestId } = render(
@@ -150,6 +162,14 @@ describe('MainActionButton', () => {
   });
 
   describe('glass', () => {
+    beforeEach(() => {
+      mockIsGlassEnabled = true;
+    });
+
+    afterEach(() => {
+      mockIsGlassEnabled = false;
+    });
+
     it('keeps the opaque surface by default', () => {
       const { queryByTestId } = render(
         <MainActionButton

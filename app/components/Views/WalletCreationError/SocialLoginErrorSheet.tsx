@@ -10,15 +10,14 @@ import {
   Text,
   TextVariant,
   TextColor,
-  Button,
   ButtonSize,
-  ButtonVariant,
   Icon,
   IconName,
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
 
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -130,14 +129,14 @@ const SocialLoginErrorSheet = ({
           {'.'}
         </Text>
 
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleTryAgain}
-        >
-          {strings('wallet_creation_error.try_again')}
-        </Button>
+        <FooterGlass
+          twClassName="w-full px-0"
+          primaryButtonProps={{
+            children: strings('wallet_creation_error.try_again'),
+            size: ButtonSize.Lg,
+            onPress: handleTryAgain,
+          }}
+        />
       </Box>
     </SafeAreaView>
   );

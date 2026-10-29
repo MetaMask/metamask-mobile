@@ -377,6 +377,32 @@ describe('TokensSection', () => {
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
   });
 
+  it('only notifies Homepage after primary content becomes ready', () => {
+    const onContentReadyChange = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).not.toHaveBeenCalled();
+
+    mockUseIsZeroBalanceAccount.mockReturnValue(true);
+
+    rerender(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).toHaveBeenCalledWith(true);
+  });
+
   it('renders "Tokens" title for zero balance account', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 

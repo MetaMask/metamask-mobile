@@ -4,7 +4,7 @@
 /**
  * Ad-hoc per-scenario Hermes CPU-profile analysis.
  *
- * Only Hermes `.cpuprofile` files are analyzed. BrowserStack app-profiling
+ * Only Hermes `.cpuprofile` files are analyzed. TestMu app-profiling
  * JSON (CPU %, memory, slow frames, and detected issues) is intentionally
  * excluded.
  *
@@ -74,6 +74,7 @@ const transformHermesProfile =
 
 const DEFAULT_REPO = 'MetaMask/metamask-mobile';
 const DEFAULT_WORKFLOW = 'run-performance-e2e-manual.yml';
+const ANALYSIS_WORKFLOW = 'analyze-app-profiling.yml';
 const DEFAULT_BRANCH = 'main';
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const MAX_PROFILE_BYTES = 50 * 1024 * 1024;
@@ -98,11 +99,17 @@ const TAIL_RUNS = 2;
 // stop when the budget is gone. `--max-runs-per-week` can still cap it.
 const DEFAULT_ANALYSIS_BUDGET_MINUTES = 25;
 const BUDGET_EXHAUSTED = 'analysis time budget exhausted';
+// Playwright project names of the TestMu performance lane. Longest prefix
+// first: profile files are named `<project>-<scenario>.cpuprofile`.
 const KNOWN_PROJECTS = [
-  'android-onboarding-seedless',
-  'browserstack-android',
-  'android-onboarding',
+  'testmu-android-onboarding-seedless',
+  'testmu-android-onboarding',
+  'testmu-android',
 ];
+// The TestMu runner publishes profiles and raw results under a `testmu-he-`
+// prefix (performance-test-runner.yml).
+const HERMES_PROFILE_ARTIFACT_PATTERN = 'testmu-he-hermes-cpuprofiles-*';
+const RAW_RESULTS_ARTIFACT_PATTERN = 'testmu-he-*-test-results-*';
 const SKILL_ANALYZER_CANDIDATES = [
   '.claude/skills/mms-swaps-cpu-profile-audit/scripts/analyze-cpuprofile.cjs',
   '.cursor/rules/mms-swaps-cpu-profile-audit/scripts/analyze-cpuprofile.cjs',
@@ -494,7 +501,7 @@ function tryReadCollectedReport(repo, analysisRunId) {
   }
 }
 
-function listCompletedAnalysisRuns(repo) {
+function listWorkflowRunsForCollection(repo, workflow, branch = null) {
   return JSON.parse(
     runGh([
       'run',
@@ -502,12 +509,37 @@ function listCompletedAnalysisRuns(repo) {
       '--repo',
       repo,
       '--workflow',
-      'analyze-app-profiling.yml',
+      workflow,
+      ...(branch ? ['--branch', branch] : []),
       '--limit',
       '80',
       '--json',
       'databaseId,conclusion,createdAt,status',
     ]) || '[]',
+  );
+}
+
+/**
+ * Runs that may hold an `app-profiling-analysis` artifact, newest first.
+ * Chained analyses run inside the performance run they analyze, so their
+ * report lives there; that run can still fail (a flaky scenario) after a
+ * valid report was uploaded. Standalone analyses (Monday, manual dispatch,
+ * and reports from before the analysis was chained) live in
+ * `analyze-app-profiling.yml` runs and only count when they succeeded.
+ */
+function listCompletedAnalysisRuns(
+  repo,
+  { listRuns = listWorkflowRunsForCollection } = {},
+) {
+  const standalone = listRuns(repo, ANALYSIS_WORKFLOW).map((run) => ({
+    ...run,
+    requiresSuccess: true,
+  }));
+  const chained = listRuns(repo, DEFAULT_WORKFLOW, DEFAULT_BRANCH).map(
+    (run) => ({ ...run, requiresSuccess: false }),
+  );
+  return [...standalone, ...chained].sort(
+    (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
   );
 }
 
@@ -524,7 +556,8 @@ function loadCollectedReports(
   for (const analysisRun of analysisRuns) {
     if (
       analysisRun.status !== 'completed' ||
-      analysisRun.conclusion !== 'success'
+      (analysisRun.requiresSuccess !== false &&
+        analysisRun.conclusion !== 'success')
     ) {
       continue;
     }
@@ -579,10 +612,10 @@ function sourcemapVariant(filePath) {
 
 function profileSourcemapVariant(profilePath) {
   const { project } = parseProfileFileName(profilePath);
-  if (project.startsWith('android-onboarding')) {
+  if (project.startsWith('testmu-android-onboarding')) {
     return 'without-srp';
   }
-  if (project === 'browserstack-android') {
+  if (project === 'testmu-android') {
     return 'with-srp';
   }
   return null;
@@ -752,7 +785,7 @@ function findHermesProfiles(directory, output = []) {
       entry.endsWith('.cpuprofile') &&
       fullPath
         .split(path.sep)
-        .some((segment) => segment.startsWith('hermes-cpuprofiles'))
+        .some((segment) => segment.includes('hermes-cpuprofiles'))
     ) {
       output.push(fullPath);
     }
@@ -1399,7 +1432,7 @@ The deterministic report is already generated from the installed
 \`mms-swaps-cpu-profile-audit\` parser. Add optional context only.
 
 Rules:
-- Use the skill-generated timing evidence only. Do not discuss BrowserStack
+- Use the skill-generated timing evidence only. Do not discuss TestMu
   CPU, memory, slow frames, app profiling, network calls, or quality gates.
 - Logical segment 1 is the plain \`.cpuprofile\`; \`.segment-2\`,
   \`.segment-3\`, etc. continue the same scenario.
@@ -1561,7 +1594,7 @@ function buildMarkdown(report) {
     lines.push('## Downloads', '', ...downloadLines, '');
   }
   lines.push(
-    '_Hermes CPU sampling only. BrowserStack app-profiling metrics are excluded._',
+    '_Hermes CPU sampling only. TestMu app-profiling metrics are excluded._',
     '',
   );
   return lines.join('\n');
@@ -1624,7 +1657,7 @@ function buildSlack(report) {
   }
   lines.push(
     '',
-    '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling excluded.',
+    '_Source:_ Hermes CPU sampling only; TestMu app-profiling excluded.',
   );
   if (report.meta.symbolicatedProfileCount < report.meta.profileCount) {
     lines.push(
@@ -1965,7 +1998,7 @@ function buildWindowMarkdown(window) {
     );
   }
   lines.push(
-    '_Hermes CPU sampling only. BrowserStack app-profiling metrics are excluded._',
+    '_Hermes CPU sampling only. TestMu app-profiling metrics are excluded._',
     '',
   );
   return lines.join('\n');
@@ -2041,7 +2074,7 @@ function buildWindowSlack(window) {
   }
   lines.push(
     '',
-    '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
+    '_Source:_ Hermes CPU sampling only; TestMu app-profiling data excluded.',
   );
   if (meta.symbolicatedProfileCount < meta.profileCount) {
     lines.push(
@@ -2336,17 +2369,22 @@ function downloadRunInputs({ runId, repo, workingDirectory }) {
   const sourceDirectory = path.join(workingDirectory, 'source-profiles');
   const sourcemapDirectory = path.join(workingDirectory, 'source-sourcemaps');
 
-  // New runs expose small dedicated artifacts. Existing 6-hour runs keep
-  // the same named profiles inside their raw test-result artifacts.
+  // Small dedicated artifacts first; older runs keep the same named profiles
+  // inside their raw test-result artifacts.
   const dedicated = downloadArtifactPattern(
     runId,
-    'hermes-cpuprofiles-*',
+    HERMES_PROFILE_ARTIFACT_PATTERN,
     sourceDirectory,
     repo,
   );
   if (!dedicated || findHermesProfiles(sourceDirectory).length === 0) {
-    console.log('📥 Falling back to raw *-test-results-* artifacts');
-    downloadArtifactPattern(runId, '*-test-results-*', sourceDirectory, repo);
+    console.log(`📥 Falling back to raw ${RAW_RESULTS_ARTIFACT_PATTERN} artifacts`);
+    downloadArtifactPattern(
+      runId,
+      RAW_RESULTS_ARTIFACT_PATTERN,
+      sourceDirectory,
+      repo,
+    );
   }
 
   // Sourcemaps are accepted only from the same workflow run. Repacked APKs
@@ -3045,6 +3083,7 @@ export {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  listCompletedAnalysisRuns,
   loadCollectedReports,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,
@@ -3059,6 +3098,8 @@ export {
   findSkillAnalyzer,
   runSkillAnalyzer,
   parseProfileFileName,
+  HERMES_PROFILE_ARTIFACT_PATTERN,
+  RAW_RESULTS_ARTIFACT_PATTERN,
   summarizeHermesProfile,
   mergeFrameLists,
   groupProfiles,

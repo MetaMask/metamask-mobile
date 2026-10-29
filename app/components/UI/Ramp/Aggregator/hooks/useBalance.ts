@@ -15,6 +15,7 @@ import {
   hexToBigInt,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  toTokenMinimalUnit,
   weiToFiat,
 } from '../../../../../util/number/bigint';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -33,7 +34,7 @@ const defaultReturn = {
 
 interface Asset {
   address?: string;
-  decimals: number;
+  decimals?: number;
   chainId?: string;
   assetId?: string;
 }
@@ -91,6 +92,25 @@ export default function useBalance(asset?: Asset) {
     balance = `${assetBalance?.amount ?? ''} ${
       assetBalance?.unit ?? ''
     }`.trim();
+
+    // Non-EVM balances arrive as a decimal string. Convert to minimal units so
+    // the entered amount (also in minimal units, via toTokenMinimalUnit) can be
+    // compared against it. EVM tokens are not tracked here (assetBalance is
+    // undefined) and fall through to the EVM logic below.
+    if (assetBalance?.amount != null && assetBalance.amount !== '') {
+      // Decimals are chain-specific (SOL 9, TRX 6, XLM 7). Guessing a fallback
+      // could produce a dangerously incorrect available balance.
+      if (asset.decimals == null) {
+        return { balance, balanceFiat, balanceBN: null };
+      }
+
+      try {
+        balanceBN = toTokenMinimalUnit(assetBalance.amount, asset.decimals);
+      } catch {
+        balanceBN = null;
+      }
+      return { balance, balanceFiat, balanceBN };
+    }
   }
 
   ///: END:ONLY_INCLUDE_IF

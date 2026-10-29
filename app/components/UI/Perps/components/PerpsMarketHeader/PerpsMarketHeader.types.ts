@@ -54,8 +54,8 @@ export interface PerpsMarketHeaderProps {
    */
   scrollY?: SharedValue<number>;
   /**
-   * Height of the scrollable price section above the header's threshold
-   * (e.g. `PRICE_SECTION_HEIGHT` from `PerpsMarketSummary`).
+   * Height of the scrollable price section above the header's threshold,
+   * measured from the market summary row.
    */
   priceSectionHeight?: SharedValue<number>;
   /**

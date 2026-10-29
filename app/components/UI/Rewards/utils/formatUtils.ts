@@ -9,6 +9,7 @@ import {
 } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
+import { MUSD_DECIMALS } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -82,6 +83,73 @@ export const formatRewardsTimeOnly = (
     minute: '2-digit',
   }).format(date);
 
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * Short relative time for a past instant.
+ * @example 'just now', '5m ago', '3h ago', '4d ago'
+ */
+export const formatRewardsRelativeTime = (
+  date: Date,
+  now: Date = new Date(),
+): string => {
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / MINUTE_MS);
+  const diffHours = Math.floor(diffMs / HOUR_MS);
+  const diffDays = Math.floor(diffMs / DAY_MS);
+
+  if (diffMins < 1) {
+    return 'just now';
+  }
+  if (diffMins < 60) {
+    return `${diffMins}m ago`;
+  }
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
+  return `${diffDays}d ago`;
+};
+
+const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * Day-level relative label for a UTC `YYYY-MM-DD` bucket.
+ * A commission group has no time of day, so this never invents one.
+ * @example 'today', '1d ago', '4d ago'
+ */
+export const formatRewardsRelativeDay = (
+  day: string,
+  now: Date = new Date(),
+): string => {
+  const match = UTC_DAY.exec(day);
+  if (!match) {
+    return '';
+  }
+
+  const dayUtc = Date.UTC(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+  );
+  const todayUtc = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+  );
+  const diffDays = Math.round((todayUtc - dayUtc) / DAY_MS);
+
+  if (diffDays <= 0) {
+    return 'today';
+  }
+  return `${diffDays}d ago`;
+};
+
 /**
  * Formats a "YYYY-MM-DD" date string into a localized format without timezone shifts.
  * @param isoDate - The date string in "YYYY-MM-DD" format.
@@ -147,6 +215,51 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   const minuteString = minutes > 0 ? `${minutes}m` : '';
 
   return `${dayString}${hourString}${minuteString}`?.trim();
+};
+
+/** `{count}` templates from referral `localized_text`, one per unit and plural. */
+export interface DurationTemplates {
+  day: string | undefined;
+  days: string | undefined;
+  hour: string | undefined;
+  hours: string | undefined;
+}
+
+/**
+ * Largest whole unit still ahead of now: days, otherwise hours.
+ * Missing, invalid, or past ends are null so the caller hides the line.
+ * The phrase is the matching `{count}` template with the number filled in.
+ */
+export const formatDuration = (
+  endIso: string | null | undefined,
+  templates: DurationTemplates,
+  nowMs: number = Date.now(),
+): string | null => {
+  if (!endIso) {
+    return null;
+  }
+  const endMs = new Date(endIso).getTime();
+  if (Number.isNaN(endMs) || endMs <= nowMs) {
+    return null;
+  }
+  const remainingMs = endMs - nowMs;
+  const unit = remainingMs >= DAY_MS ? 'day' : 'hour';
+  const value =
+    unit === 'day'
+      ? Math.floor(remainingMs / DAY_MS)
+      : Math.max(1, Math.floor(remainingMs / HOUR_MS));
+  const template =
+    unit === 'day'
+      ? value === 1
+        ? templates.day
+        : templates.days
+      : value === 1
+        ? templates.hour
+        : templates.hours;
+  if (!template?.includes('{count}')) {
+    return null;
+  }
+  return template.replaceAll('{count}', String(value));
 };
 
 /**
@@ -340,14 +453,25 @@ export const validateEmail = (email: string): boolean => {
 
 // ── USD formatting ──────────────────────────────────────────────────────
 
+interface FormatUsdOptions {
+  /**
+   * Pins both fraction bounds so every amount on a screen uses the same
+   * number of decimals. Omitted, integers stay bare (`$1`) and other values
+   * use two decimals.
+   */
+  maximumFractionDigits?: number;
+}
+
 /**
  * Formats a numeric string as a USD amount using locale-aware fiat formatting.
  *
  * @example formatUsd('11500.000000') // '$11,500.00'
  * @example formatUsd(12500.5)        // '$12,500.50'
+ * @example formatUsd('1', { maximumFractionDigits: 2 }) // '$1.00'
  */
 export const formatUsd = (
   value: string | number | null | undefined,
+  options?: FormatUsdOptions,
 ): string => {
   const fiatAmount = new BigNumber(value ?? NaN);
 
@@ -355,7 +479,64 @@ export const formatUsd = (
     return '—';
   }
 
-  return formatFiat(fiatAmount, 'USD');
+  return formatFiat(fiatAmount, 'USD', options?.maximumFractionDigits);
+};
+
+/**
+ * Formats a USD amount with a +/- sign prefix. Returns '—' for null.
+ *
+ * @example formatSignedUsd('5000.000000')  // '+$5,000.00'
+ * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
+ * @example formatSignedUsd(null)           // '—'
+ */
+export const formatSignedUsd = (
+  value: string | number | null,
+  options?: FormatUsdOptions,
+): string => {
+  if (value === null) return '—';
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  if (Number.isNaN(num)) return '—';
+  const sign = num > 0 ? '+' : '';
+  return `${sign}${formatUsd(value, options)}`;
+};
+
+/**
+ * Formats a Money API mUSD amount as USD. Amounts cross that boundary as
+ * base-unit integer strings, because they exceed what a JSON number holds
+ * exactly, so they are shifted by {@link MUSD_DECIMALS} before formatting.
+ *
+ * Null for a missing or unparseable amount, so a caller can omit the line
+ * rather than print a placeholder where money should be.
+ *
+ * Pass `signed` to prefix a positive amount the way {@link formatSignedUsd} does.
+ *
+ * @example formatMusdBaseUnits('41750000') // '$41.75'
+ * @example formatMusdBaseUnits('41750000', { signed: true }) // '+$41.75'
+ * @example formatMusdBaseUnits('1000000', { maximumFractionDigits: 2 }) // '$1.00'
+ * @example formatMusdBaseUnits(null)       // null
+ */
+export const formatMusdBaseUnits = (
+  baseUnits: string | null | undefined,
+  options?: { signed?: boolean } & FormatUsdOptions,
+): string | null => {
+  if (baseUnits === null || baseUnits === undefined || baseUnits === '') {
+    return null;
+  }
+
+  const amount = new BigNumber(baseUnits).shiftedBy(-MUSD_DECIMALS);
+
+  if (!amount.isFinite()) {
+    return null;
+  }
+
+  const usd = amount.toString();
+  const fractionOptions =
+    options?.maximumFractionDigits === undefined
+      ? undefined
+      : { maximumFractionDigits: options.maximumFractionDigits };
+  return options?.signed
+    ? formatSignedUsd(usd, fractionOptions)
+    : formatUsd(usd, fractionOptions);
 };
 
 interface FormatCompactValueOptions {
@@ -421,21 +602,6 @@ export const formatCompactUsd = (
   });
 
   return `${sign}$${compactValue}`;
-};
-
-/**
- * Formats a USD amount with a +/- sign prefix. Returns '—' for null.
- *
- * @example formatSignedUsd('5000.000000')  // '+$5,000.00'
- * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
- * @example formatSignedUsd(null)           // '—'
- */
-export const formatSignedUsd = (value: string | number | null): string => {
-  if (value === null) return '—';
-  const num = typeof value === 'number' ? value : parseFloat(value);
-  if (Number.isNaN(num)) return '—';
-  const sign = num > 0 ? '+' : '';
-  return `${sign}${formatUsd(value)}`;
 };
 
 // ── Percent / rate formatting ───────────────────────────────────────────

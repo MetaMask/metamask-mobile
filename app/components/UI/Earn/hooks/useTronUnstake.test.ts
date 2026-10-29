@@ -8,6 +8,7 @@ import {
   computeStakeFee,
   TronUnstakeResult,
 } from '../utils/tron-staking-snap';
+import { TronSpecialAssetsStatus } from '../../../../selectors/assets/assets-list';
 import { TokenI } from '../../Tokens/types';
 
 const mockSelectSelectedInternalAccountByScope = jest.fn();
@@ -31,6 +32,8 @@ jest.mock(
 );
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../selectors/assets/assets-list'),
   selectTronSpecialAssetsBySelectedAccountGroup: () =>
     mockSelectTronSpecialAssetsBySelectedAccountGroup(),
 }));
@@ -110,6 +113,7 @@ describe('useTronUnstake', () => {
       stakedTrxForEnergy: { symbol: 'strx-energy', balance: '50' },
       stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '50' },
       totalStakedTrx: 100,
+      status: TronSpecialAssetsStatus.Ready,
       trxReadyForWithdrawal: undefined,
       trxStakingRewards: undefined,
       trxInLockPeriod: undefined,

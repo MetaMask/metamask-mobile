@@ -60,17 +60,23 @@ const renderTabBar = (
   );
 
 describe('TokenDetailsV1TabBar', () => {
-  it('renders the Feed, Overview and Security tabs in order', () => {
+  it('renders the Feed, Holders, Overview and Security tabs in order', () => {
     const { getAllByText, getByTestId } = renderTabBar('overview');
 
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toBeTruthy();
     expect(
-      getAllByText(/^(active|inactive):(overview|security|feed)$/).map(
+      getAllByText(/^(active|inactive):(overview|security|feed|holders)$/).map(
         (node) => node.props.children,
       ),
-    ).toStrictEqual(['inactive:feed', 'active:overview', 'inactive:security']);
+    ).toStrictEqual([
+      'inactive:feed',
+      'inactive:holders',
+      'active:overview',
+      'inactive:security',
+    ]);
     expect(TOKEN_DETAILS_V1_TABS).toStrictEqual([
       'feed',
+      'holders',
       'overview',
       'security',
     ]);
@@ -311,32 +317,20 @@ describe('useTokenDetailsV1ScrollStabilization', () => {
 
     expect(onScroll).toHaveBeenCalledWith(scrollEvent);
   });
-
-  it('updates tab content minHeight based on the scroll view layout height', () => {
-    const { result } = renderHook(() => useTokenDetailsV1ScrollStabilization());
-
-    act(() => {
-      result.current.handleScrollViewLayout({
-        nativeEvent: { layout: { height: 900, y: 0, x: 0, width: 375 } },
-      } as LayoutChangeEvent);
-    });
-
-    expect(
-      result.current.tabContentContainerStyle.minHeight,
-    ).toBeGreaterThanOrEqual(900);
-  });
 });
 
 describe('resolveSwipeTargetTab', () => {
   it('swipes to the neighbouring tab when translation exceeds threshold', () => {
-    expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
+    expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('holders');
+    expect(resolveSwipeTargetTab('holders', -120, 0)).toBe('overview');
     expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
-    expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
+    expect(resolveSwipeTargetTab('holders', 120, 0)).toBe('feed');
+    expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('holders');
     expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
   });
 
   it('swipes to the neighbouring tab on a fast fling even with small travel', () => {
-    expect(resolveSwipeTargetTab('feed', -10, -600)).toBe('overview');
+    expect(resolveSwipeTargetTab('feed', -10, -600)).toBe('holders');
   });
 
   it('ignores indecisive gestures below the translation and velocity thresholds', () => {

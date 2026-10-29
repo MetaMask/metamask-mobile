@@ -5,6 +5,7 @@ import type { Caip19AssetId } from '@metamask/assets-controller';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { merge } from 'lodash';
@@ -23,13 +24,45 @@ import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegat
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { ToastSeverity } from '@metamask/design-system-react-native';
+import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
+import { FeatureId } from '@metamask/bridge-controller';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { OrderType } from '../../types/advancedOrders';
+
+const expectAdvancedOrderProperties = (
+  event: { category: string },
+  properties: {
+    location: string;
+    feature_id: FeatureId;
+    order_type: OrderType;
+    error?: string;
+  },
+) => {
+  const { createEventBuilder } = useAnalytics();
+
+  expect(createEventBuilder).toHaveBeenCalledWith(event);
+  const callIndex = jest
+    .mocked(createEventBuilder)
+    .mock.calls.map((call) => call[0])
+    .lastIndexOf(event);
+  const added = jest.mocked(createEventBuilder).mock.results[callIndex].value
+    .addProperties.mock.calls[0][0] as Record<string, unknown>;
+
+  expect(added).toEqual(properties);
+  expect(added).toHaveProperty('order_type');
+  expect(added).not.toHaveProperty('type');
+  expect(added).not.toHaveProperty('orderType');
+};
 
 const mockGoBack = jest.fn();
 const mockToast = jest.fn();
+const mockSetLimitOrdersTab = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -56,6 +89,10 @@ jest.mock('../../hooks/useFiatToUsdRate', () => ({
 
 jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
   useSentinelFeeTokenValidation: jest.fn(),
+}));
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: () => ({ setLimitOrdersTab: mockSetLimitOrdersTab }),
 }));
 
 jest.mock('../../api/limitOrders/getDelegations', () => ({
@@ -163,6 +200,7 @@ const mockParams: LimitOrderConfirmationModalParams = {
   sourceToken: mockSourceToken,
   destToken: mockDestToken,
   payingAmount: '0.1 ETH',
+  estReceivingAmount: '341.22 USDC',
   triggerPrice: '$3,412.20',
   triggerToken: mockDestToken,
   expiry: '7 days',
@@ -268,9 +306,10 @@ describe('LimitOrderConfirmationModalScreen', () => {
     mockUseSentinelFeeTokenValidation.mockReturnValue({
       isValid: false,
       reason: 'unsupported-pair',
+      supportedTokenSymbols: ['ETH', 'USDC'],
       retry: jest.fn(),
     });
-    const { getByTestId } = renderScreen();
+    const { getByTestId, getByText } = renderScreen();
 
     fireEvent.press(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
@@ -280,6 +319,13 @@ describe('LimitOrderConfirmationModalScreen', () => {
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      getByText(
+        strings('bridge.limit.unsupported_fee_token_pair', {
+          supportedTokens: 'ETH, USDC',
+        }),
+      ),
+    ).toBeOnTheScreen();
     expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
   });
 
@@ -374,6 +420,31 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it.each([
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      'bridge.limit.trigger_condition_at_or_above',
+    ],
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      'bridge.limit.trigger_condition_at_or_below',
+    ],
+  ])(
+    'signs the trigger price of an order placed %s the limit price',
+    (priceComparisonDirection, expectedPrefixKey) => {
+      mockUseParams.mockReturnValue({
+        ...mockParams,
+        triggerInput: { ...mockTriggerInput, priceComparisonDirection },
+      });
+
+      const { getByTestId } = renderScreen();
+
+      expect(
+        getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
+      ).toHaveTextContent(strings(expectedPrefixKey));
+    },
+  );
+
   it('displays the cost tolerance from bridge state', () => {
     const { getByText } = renderScreen(
       createBridgeTestState({
@@ -391,7 +462,31 @@ describe('LimitOrderConfirmationModalScreen', () => {
       }),
     );
 
-    expect(getByText('2%')).toBeOnTheScreen();
+    expect(getByText('3%')).toBeOnTheScreen();
+  });
+
+  it('displays the remote default cost tolerance when none is set in bridge state', () => {
+    const { getByText } = renderScreen(
+      merge(
+        {},
+        createBridgeTestState({
+          bridgeReducerOverrides: { limitOrderCostTolerance: undefined },
+        }),
+        {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  swapsLimitOrder: { defaultPriceTolerance: 1.5 },
+                },
+              },
+            },
+          },
+        },
+      ),
+    );
+
+    expect(getByText('1.5%')).toBeOnTheScreen();
   });
 
   // The limit order screen writes the live comparison to
@@ -697,6 +792,20 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it('switches the orders list to the Open orders tab once the order is created', async () => {
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockSetLimitOrdersTab).toHaveBeenCalledWith(
+        OrdersTabKey.OpenOrders,
+      );
+    });
+  });
+
   it('clears the token amounts and preserves the remaining form state once the order is created', async () => {
     const { getByTestId, store } = renderScreen(
       createBridgeTestState({
@@ -764,6 +873,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockToast).not.toHaveBeenCalled();
+    expect(mockSetLimitOrdersTab).not.toHaveBeenCalled();
     expect(store.getState().bridge.sourceAmount).toBe('0.1');
     expect(store.getState().bridge.destAmount).toBe('341.22');
   });
@@ -848,7 +958,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
 
     expect(mockUseFetchLimitOrdersDelegations).toHaveBeenCalledWith({
       ...mockOrder,
-      costTolerance: '2',
+      costTolerance: '3',
     });
   });
 
@@ -941,5 +1051,109 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(
       queryByTestId(LimitOrderConfirmationModalSelectorsIDs.TRIGGER_COMPARISON),
     ).toBeNull();
+  });
+
+  describe('advanced order events', () => {
+    it('tracks ADVANCED_ORDER_COMPLETED with an order_type key after the order is created', async () => {
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(
+        MetaMetricsEvents.ADVANCED_ORDER_COMPLETED,
+        {
+          location: 'Main View',
+          feature_id: FeatureId.LIMIT_ORDER,
+          order_type: OrderType.BUY_ABOVE,
+        },
+      );
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when account auto-upgrade fails', async () => {
+      mockAutoUpgradeEIP7702Account.mockRejectedValue(
+        new Error('Upgrade failed'),
+      );
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'delegation_failed',
+      });
+    });
+
+    // CV cannot cover MixPanel properties: this screen's hook mocks live in
+    // the existing unit file, and CV forbids mocking useAnalytics.
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when the delegations cannot be fetched', async () => {
+      mockFetchLimitOrdersDelegations.mockRejectedValue(new Error('boom'));
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockSignLimitOrderDelegations).not.toHaveBeenCalled();
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'delegation_failed',
+      });
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when the delegations cannot be signed', async () => {
+      mockSignLimitOrderDelegations.mockRejectedValue(
+        new Error('keyring locked'),
+      );
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateLimitOrder).not.toHaveBeenCalled();
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'delegation_failed',
+      });
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when the order cannot be created', async () => {
+      mockCreateLimitOrder.mockRejectedValue(new Error('boom'));
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'boom',
+      });
+    });
   });
 });

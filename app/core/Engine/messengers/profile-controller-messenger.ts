@@ -20,13 +20,16 @@ export function getProfileControllerMessenger(
   rootMessenger.delegate({
     messenger: controllerMessenger,
     actions: [
+      'ProfileService:getProfile',
       'ProfileService:createProfile',
       'ProfileService:replaceProfile',
       'ProfileService:updateProfile',
       'ProfileService:deleteProfile',
       'ProfileService:checkUsernameAvailability',
+      'ProfileService:getXAuthUrl',
       'ProfileService:connectX',
       'ProfileService:getXAccount',
+      'ProfileService:disconnectX',
     ],
   });
   return controllerMessenger;

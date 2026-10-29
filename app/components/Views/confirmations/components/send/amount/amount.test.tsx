@@ -21,7 +21,7 @@ import { useSendContext } from '../../../context/send-context';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { InitSendLocation } from '../../../constants/send';
 import { Amount } from './amount';
-import { getFontSizeForInputLength } from './amount.styles';
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 
 jest.mock('../../../context/send-context', () => ({
   useSendContext: jest.fn(),

@@ -5,7 +5,11 @@ import type { TokenAmount } from '../../../../util/activity-adapters';
 
 const formatToken = (
   token: TokenAmount | undefined,
-  options?: { showPlus?: boolean; signZero?: boolean },
+  options?: {
+    showPlus?: boolean;
+    signZero?: boolean;
+    useSubscriptNotation?: boolean;
+  },
 ) => {
   const { result } = renderHook(() => useFormatActivityTokenAmount());
   return result.current(token, options);
@@ -93,6 +97,59 @@ describe('useFormatActivityTokenAmount', () => {
         direction: 'in',
       } as TokenAmount),
     ).toBe('+<0.00001 ETH');
+  });
+
+  describe('with subscript notation', () => {
+    it('condenses the leading zeros of a tiny amount', () => {
+      expect(
+        formatToken(
+          {
+            amount: '12345678900',
+            decimals: 18,
+            symbol: 'ETH',
+            direction: 'out',
+          },
+          { useSubscriptNotation: true },
+        ),
+      ).toBe('-0.0₇1234 ETH');
+    });
+
+    it('signs a condensed incoming amount', () => {
+      expect(
+        formatToken(
+          {
+            amount: '1000000000000',
+            decimals: 18,
+            symbol: 'ETH',
+            direction: 'in',
+          },
+          { useSubscriptNotation: true },
+        ),
+      ).toBe('+0.0₅1 ETH');
+    });
+
+    it('omits the trailing separator when the token has no symbol', () => {
+      expect(
+        formatToken(
+          { amount: '1000000000000', decimals: 18, direction: 'in' },
+          { useSubscriptNotation: true },
+        ),
+      ).toBe('+0.0₅1');
+    });
+
+    it('formats an amount with fewer than four leading zeros as usual', () => {
+      expect(
+        formatToken(
+          {
+            amount: '745596683158496',
+            decimals: 18,
+            symbol: 'ETH',
+            direction: 'in',
+          },
+          { useSubscriptNotation: true },
+        ),
+      ).toBe('+0.0007456 ETH');
+    });
   });
 
   it('omits the plus sign when showPlus is false', () => {

@@ -498,6 +498,11 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.MONEY);
     });
 
+    it('maps Money account deposit action to its dedicated route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.MONEY_ACCOUNT_DEPOSIT);
+      expect(result).toBe(DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT);
+    });
+
     it('maps PRIVACY action to PRIVACY route', () => {
       const result = mapSupportedActionToRoute(ACTIONS.PRIVACY);
       expect(result).toBe(DeepLinkRoute.PRIVACY);
@@ -533,6 +538,13 @@ describe('deepLinkAnalytics', () => {
         'https://link.metamask.io/deposit?provider=ramp',
       );
       expect(result).toBe(DeepLinkRoute.INVALID);
+    });
+
+    it('extracts Money account deposit route from URL', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/money-account-deposit',
+      );
+      expect(result).toBe(DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT);
     });
 
     it('extract transaction route', () => {

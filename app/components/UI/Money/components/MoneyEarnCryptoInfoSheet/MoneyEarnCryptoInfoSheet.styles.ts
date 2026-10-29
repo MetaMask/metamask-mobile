@@ -4,8 +4,8 @@ const styleSheet = () =>
   StyleSheet.create({
     content: {
       paddingHorizontal: 16,
-      paddingBottom: 16,
-      gap: 12,
+      paddingBottom: 8,
+      gap: 16,
     },
   });
 

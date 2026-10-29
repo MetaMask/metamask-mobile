@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
+import Routes from '../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SocialPostComposerView from './SocialPostComposerView';
@@ -8,6 +10,7 @@ import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.tes
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
 import {
   commitSocialV1PendingPost,
+  consumeSocialV1FocusTrending,
   getSocialV1ComposedPosts,
   getSocialV1PendingPost,
   resetSocialV1ComposedFeedStore,
@@ -47,6 +50,7 @@ jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 let mockRouteParams: unknown;
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockCreateSwapComment = jest.fn();
@@ -89,6 +93,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
+      dispatch: mockDispatch,
       isFocused: jest.fn(() => true),
       addListener: jest.fn(() => jest.fn()),
     }),
@@ -392,6 +397,7 @@ describe('SocialPostComposerView', () => {
     });
     expect(getSocialV1PendingPost()).not.toBeNull();
     expect(mockGoBack).toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
 
     commitSocialV1PendingPost();
 
@@ -463,6 +469,33 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
     ).toBeNull();
+  });
+
+  it('replaces the composer with Social V1 Trending after posting when openFeedAfterPost is set', async () => {
+    mockRouteParams = {
+      position: openSpot,
+      entryPoint: 'perps',
+      openFeedAfterPost: true,
+    };
+
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.SOCIAL.V1),
+      );
+    });
+    expect(mockCreateSwapComment).toHaveBeenCalledWith({
+      commentText: '',
+      positionUid: 'eth-spot',
+      source: 'metamask-mobile',
+    });
+    expect(getSocialV1PendingPost()).not.toBeNull();
+    expect(consumeSocialV1FocusTrending()).toBe(true);
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('opens the share sheet from the Position chip', () => {
@@ -568,5 +601,45 @@ describe('SocialPostComposerView', () => {
     expect(getSocialV1ComposedPosts()).toHaveLength(0);
     expect(mockShowToast).toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('posts a Hyperliquid order id without a transaction hash', async () => {
+    mockRouteParams = {
+      tradeInFlight: {
+        orderId: '42',
+        chain: 'hyperliquid',
+        tokenAddress: 'ETH',
+      },
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+        leverageLabel: '40x',
+      },
+    };
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockCreateSwapComment).toHaveBeenCalledWith({
+        commentText: '',
+        tradeInFlight: {
+          orderId: '42',
+          chain: 'hyperliquid',
+          tokenAddress: 'ETH',
+        },
+        source: 'metamask-mobile',
+      });
+    });
   });
 });

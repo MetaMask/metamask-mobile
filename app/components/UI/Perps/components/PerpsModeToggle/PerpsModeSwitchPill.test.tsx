@@ -36,16 +36,19 @@ const darkThemeContext = {
 const renderPill = ({
   isPro = false,
   isDark = false,
+  isCapsule = false,
   onSwitchRequest = jest.fn(),
 }: {
   isPro?: boolean;
   isDark?: boolean;
+  isCapsule?: boolean;
   onSwitchRequest?: () => void;
 } = {}) => {
   const pill = (
     <PerpsModeSwitchPill
       currentModeLabel={isPro ? 'Pro' : 'Lite'}
       isPro={isPro}
+      isCapsule={isCapsule}
       onSwitchRequest={onSwitchRequest}
       accessibilityLabel="Currently active mode"
       accessibilityHint="Switches mode"
@@ -123,6 +126,34 @@ describe('PerpsModeSwitchPill', () => {
     expect(gradients[0].props.colors).toEqual(
       getPerpsProPillGradientColors(isDark),
     );
+  });
+
+  describe('capsule', () => {
+    it('keeps the Lite outline in the capsule', () => {
+      renderPill({ isCapsule: true });
+
+      expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({
+        borderWidth: BORDER_WIDTH,
+        height: 40,
+      });
+    });
+
+    it('leaves the outline to the pill, so the capsule draws no border of its own', () => {
+      renderPill({ isCapsule: true });
+
+      expect(screen.getByTestId(`${PILL_TEST_ID}-capsule`)).toHaveStyle({
+        borderWidth: 0,
+      });
+    });
+
+    it('keeps the Pro gold outline in the capsule', () => {
+      renderPill({ isPro: true, isCapsule: true });
+
+      expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({
+        borderColor: PERPS_PRO_GOLD,
+        borderWidth: BORDER_WIDTH,
+      });
+    });
   });
 
   it('leaves the pill unfilled by a gradient in Lite mode', () => {

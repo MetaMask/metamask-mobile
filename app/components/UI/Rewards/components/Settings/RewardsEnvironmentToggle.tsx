@@ -26,8 +26,9 @@ import {
   resetRewardsState,
   setCandidateSubscriptionId,
 } from '../../../../../reducers/rewards';
+import { resetRewardsMoneyState } from '../../../../../reducers/rewardsMoney';
 
-const ENV_OPTIONS: string[] = [
+const REWARDS_ENV_OPTIONS: string[] = [
   AppConstants.REWARDS_API_URL.DEV,
   AppConstants.REWARDS_API_URL.UAT,
   AppConstants.REWARDS_API_URL.PRD,
@@ -35,67 +36,211 @@ const ENV_OPTIONS: string[] = [
 
 if (
   process.env.REWARDS_API_URL &&
-  !ENV_OPTIONS.includes(process.env.REWARDS_API_URL)
+  !REWARDS_ENV_OPTIONS.includes(process.env.REWARDS_API_URL)
 ) {
-  ENV_OPTIONS.push(process.env.REWARDS_API_URL);
+  REWARDS_ENV_OPTIONS.push(process.env.REWARDS_API_URL);
 }
 
+const MONEY_ENV_OPTIONS: string[] = [
+  AppConstants.REWARDS_MONEY_API_URL.DEV,
+  AppConstants.REWARDS_MONEY_API_URL.UAT,
+  AppConstants.REWARDS_MONEY_API_URL.PRD,
+];
+
+if (
+  process.env.REWARDS_MONEY_API_URL &&
+  !MONEY_ENV_OPTIONS.includes(process.env.REWARDS_MONEY_API_URL)
+) {
+  MONEY_ENV_OPTIONS.push(process.env.REWARDS_MONEY_API_URL);
+}
+
+type OpenSheet = 'rewards' | 'money' | null;
+
+interface EnvironmentUrlFieldProps {
+  label: string;
+  triggerTestID: string;
+  optionTestIDPrefix: string;
+  closeButtonTestID: string;
+  currentEnv: string | null;
+  defaultEnv: string | null;
+  options: string[];
+  isSheetOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onSelect: (env: string) => void;
+  sheetRef: React.RefObject<BottomSheetRef | null>;
+}
+
+const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
+  label,
+  triggerTestID,
+  optionTestIDPrefix,
+  closeButtonTestID,
+  currentEnv,
+  defaultEnv,
+  options,
+  isSheetOpen,
+  onOpen,
+  onClose,
+  onSelect,
+  sheetRef,
+}) => (
+  <Box twClassName="gap-2">
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Button
+      testID={triggerTestID}
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Md}
+      isFullWidth
+      onPress={onOpen}
+      accessibilityLabel={`${label}: ${currentEnv ?? '...'}`}
+    >
+      {currentEnv ?? '...'}
+    </Button>
+    {isSheetOpen ? (
+      <BottomSheet shouldNavigateBack={false} ref={sheetRef} onClose={onClose}>
+        <HeaderStandard
+          title={label}
+          onClose={() => sheetRef.current?.onCloseBottomSheet()}
+          closeButtonProps={{ testID: closeButtonTestID }}
+        />
+        {options.map((env) => (
+          <ListItemSelect
+            key={env}
+            testID={`${optionTestIDPrefix}${env}`}
+            onPress={() => onSelect(env)}
+            isSelected={env === currentEnv}
+            isDisabled={false}
+            gap={8}
+            verticalAlignment={VerticalAlignment.Center}
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="flex-1"
+            >
+              <Text variant={TextVariant.BodyMd}>{env}</Text>
+              {env === defaultEnv ? (
+                <Box twClassName="px-2 py-0.5 rounded bg-muted">
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('rewards.settings.environment_default')}
+                  </Text>
+                </Box>
+              ) : null}
+            </Box>
+          </ListItemSelect>
+        ))}
+      </BottomSheet>
+    ) : null}
+  </Box>
+);
+
 const RewardsEnvironmentToggle: React.FC = () => {
-  const [canChangeEnv, setCanChangeEnv] = useState<boolean | null>(null);
-  const [currentEnv, setCurrentEnv] = useState<string | null>(null);
-  const [defaultEnv, setDefaultEnv] = useState<string | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [canChangeRewards, setCanChangeRewards] = useState<boolean | null>(
+    null,
+  );
+  const [canChangeMoney, setCanChangeMoney] = useState<boolean | null>(null);
+  const [currentRewardsEnv, setCurrentRewardsEnv] = useState<string | null>(
+    null,
+  );
+  const [defaultRewardsEnv, setDefaultRewardsEnv] = useState<string | null>(
+    null,
+  );
+  const [currentMoneyEnv, setCurrentMoneyEnv] = useState<string | null>(null);
+  const [defaultMoneyEnv, setDefaultMoneyEnv] = useState<string | null>(null);
+  const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
 
   const dispatch = useDispatch();
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const rewardsSheetRef = useRef<BottomSheetRef>(null);
+  const moneySheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
-    const allowed = Engine.controllerMessenger.call(
-      'RewardsController:canChangeRewardsEnvUrl',
-    );
-    setCanChangeEnv(allowed);
-    if (allowed) {
-      const env = Engine.controllerMessenger.call(
-        'RewardsController:getRewardsEnvUrl',
+    const rewardsAllowed =
+      Engine.controllerMessenger.call(
+        'RewardsController:canChangeRewardsEnvUrl',
+      ) === true;
+    setCanChangeRewards(rewardsAllowed);
+    if (rewardsAllowed) {
+      setCurrentRewardsEnv(
+        Engine.controllerMessenger.call('RewardsController:getRewardsEnvUrl'),
       );
-      setCurrentEnv(env);
-      const def = Engine.controllerMessenger.call(
-        'RewardsController:getDefaultRewardsEnvUrl',
+      setDefaultRewardsEnv(
+        Engine.controllerMessenger.call(
+          'RewardsController:getDefaultRewardsEnvUrl',
+        ),
       );
-      setDefaultEnv(def);
+    }
+
+    const moneyAllowed =
+      Engine.controllerMessenger.call(
+        'RewardsMoneyController:canChangeRewardsMoneyEnvUrl',
+      ) === true;
+    setCanChangeMoney(moneyAllowed);
+    if (moneyAllowed) {
+      setCurrentMoneyEnv(
+        Engine.controllerMessenger.call(
+          'RewardsMoneyController:getRewardsMoneyEnvUrl',
+        ),
+      );
+      setDefaultMoneyEnv(
+        Engine.controllerMessenger.call(
+          'RewardsMoneyController:getDefaultRewardsMoneyEnvUrl',
+        ),
+      );
     }
   }, []);
 
-  const handleEnvSelect = useCallback(
+  const handleRewardsEnvSelect = useCallback(
     async (env: string) => {
-      if (env !== currentEnv) {
+      if (env !== currentRewardsEnv) {
         await Engine.controllerMessenger.call(
           'RewardsController:setRewardsEnvUrl',
           env,
         );
-        setCurrentEnv(env);
-        // Mirror the delete-wallet reset flow: cancel any in-flight bulk link
-        // saga and wipe the Redux rewards slice so stale data from the previous
-        // environment doesn't bleed into the new one.
+        setCurrentRewardsEnv(env);
         dispatch(cancelBulkLink());
         dispatch(resetRewardsState());
-        // resetRewardsState() sets candidateSubscriptionId back to 'pending',
-        // but useCandidateSubscriptionId only re-fetches on 'retry'. Override
-        // to 'retry' so the hook immediately re-fetches for the new env and
-        // the onboarding skeleton resolves instead of getting stuck.
         dispatch(setCandidateSubscriptionId('retry'));
       }
-      sheetRef.current?.onCloseBottomSheet();
+      rewardsSheetRef.current?.onCloseBottomSheet();
     },
-    [currentEnv, dispatch],
+    [currentRewardsEnv, dispatch],
   );
 
-  // Don't render until the data service has been queried, or if env change is not allowed
-  if (canChangeEnv === null || !canChangeEnv) return null;
+  const handleMoneyEnvSelect = useCallback(
+    async (env: string) => {
+      if (env !== currentMoneyEnv) {
+        await Engine.controllerMessenger.call(
+          'RewardsMoneyController:setRewardsMoneyEnvUrl',
+          env,
+        );
+        setCurrentMoneyEnv(env);
+        // Controller caches flush inside setRewardsMoneyEnvUrl; the Redux
+        // slice still holds the previous host's referral me and would keep
+        // routing as if nothing changed.
+        dispatch(resetRewardsMoneyState());
+      }
+      moneySheetRef.current?.onCloseBottomSheet();
+    },
+    [currentMoneyEnv, dispatch],
+  );
+
+  if (canChangeRewards === null && canChangeMoney === null) {
+    return null;
+  }
+
+  if (!canChangeRewards && !canChangeMoney) {
+    return null;
+  }
 
   return (
     <>
-      {/* Divider */}
       <Box twClassName="my-4 border-b border-border-muted" />
       <Box
         testID="rewards-environment-toggle"
@@ -104,60 +249,38 @@ const RewardsEnvironmentToggle: React.FC = () => {
         <Text variant={TextVariant.HeadingMd} twClassName="mt-2">
           {strings('rewards.settings.environment_selector')}
         </Text>
-        <Button
-          testID="rewards-environment-toggle-trigger"
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          isFullWidth
-          onPress={() => setIsSheetOpen(true)}
-          accessibilityLabel={`${strings('rewards.settings.environment_selector')}: ${currentEnv ?? '...'}`}
-        >
-          {currentEnv ?? '...'}
-        </Button>
-
-        {isSheetOpen && (
-          <BottomSheet
-            shouldNavigateBack={false}
-            ref={sheetRef}
-            onClose={() => setIsSheetOpen(false)}
-          >
-            <HeaderStandard
-              title={strings('rewards.settings.environment_selector')}
-              onClose={() => sheetRef.current?.onCloseBottomSheet()}
-              closeButtonProps={{ testID: 'environment-sheet-close-button' }}
-            />
-            {ENV_OPTIONS.map((env) => (
-              <ListItemSelect
-                key={env}
-                testID={`environment-option-${env}`}
-                onPress={() => handleEnvSelect(env)}
-                isSelected={env === currentEnv}
-                isDisabled={false}
-                gap={8}
-                verticalAlignment={VerticalAlignment.Center}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName="flex-1"
-                >
-                  <Text variant={TextVariant.BodyMd}>{env}</Text>
-                  {env === defaultEnv && (
-                    <Box twClassName="px-2 py-0.5 rounded bg-muted">
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings('rewards.settings.environment_default')}
-                      </Text>
-                    </Box>
-                  )}
-                </Box>
-              </ListItemSelect>
-            ))}
-          </BottomSheet>
-        )}
+        {canChangeRewards ? (
+          <EnvironmentUrlField
+            label={strings('bottom_nav.rewards')}
+            triggerTestID="rewards-environment-toggle-trigger"
+            optionTestIDPrefix="environment-option-"
+            closeButtonTestID="environment-sheet-close-button"
+            currentEnv={currentRewardsEnv}
+            defaultEnv={defaultRewardsEnv}
+            options={REWARDS_ENV_OPTIONS}
+            isSheetOpen={openSheet === 'rewards'}
+            onOpen={() => setOpenSheet('rewards')}
+            onClose={() => setOpenSheet(null)}
+            onSelect={handleRewardsEnvSelect}
+            sheetRef={rewardsSheetRef}
+          />
+        ) : null}
+        {canChangeMoney ? (
+          <EnvironmentUrlField
+            label={strings('bottom_nav.money')}
+            triggerTestID="rewards-money-environment-toggle-trigger"
+            optionTestIDPrefix="money-environment-option-"
+            closeButtonTestID="money-environment-sheet-close-button"
+            currentEnv={currentMoneyEnv}
+            defaultEnv={defaultMoneyEnv}
+            options={MONEY_ENV_OPTIONS}
+            isSheetOpen={openSheet === 'money'}
+            onOpen={() => setOpenSheet('money')}
+            onClose={() => setOpenSheet(null)}
+            onSelect={handleMoneyEnvSelect}
+            sheetRef={moneySheetRef}
+          />
+        ) : null}
       </Box>
     </>
   );

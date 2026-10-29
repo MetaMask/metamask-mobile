@@ -37,6 +37,16 @@ on:
         required: false
         type: string
         default: ''
+    outputs:
+      built_commit_sha:
+        description: 'Resolved commit SHA at source_branch after the iOS build succeeded; from build.yml built_commit_sha output'
+        value: ${{ jobs.build.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit; from build.yml semantic_version output'
+        value: ${{ jobs.build.outputs.semantic_version }}
+      ios_version_code:
+        description: 'ios/MetaMask.xcodeproj/project.pbxproj CURRENT_PROJECT_VERSION at the built commit; from build.yml ios_version_code output'
+        value: ${{ jobs.build.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
       source_branch:

@@ -10,6 +10,11 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+
+jest.mock('../../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 import type {
   PerpsProScaleOrderModel,
   PerpsProSizeInputModel,

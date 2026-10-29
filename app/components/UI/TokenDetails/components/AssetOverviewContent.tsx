@@ -60,8 +60,8 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import type { RecurringOrder } from '../../Bridge/api/recurringOrders.types';
+import type { MostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
 import { TokenDetailsOrdersSection } from './TokenDetailsOrdersSection';
-import { getMostRecentOrderType } from '../utils/getMostRecentOrderType';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
@@ -172,7 +172,7 @@ export interface AssetOverviewContentProps {
     hasPerpsMarket: boolean;
     isLoading: boolean;
   }) => void;
-  recurringOrder?: RecurringOrder;
+  mostRecentOrder?: MostRecentOrder;
 }
 
 /**
@@ -219,7 +219,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   onExitAction,
   isPricePositive,
   onPerpsMarketResolved,
-  recurringOrder,
+  mostRecentOrder,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -296,15 +296,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [navigation, onExitAction],
   );
 
-  const mostRecentOrderType = getMostRecentOrderType({ recurringOrder });
-
   const { goToSwaps } = useSwapBridgeNavigation({
     sourcePage: 'TokenDetails',
     location: SwapBridgeNavigationLocation.TokenView,
   });
 
   const handleOrdersHeaderPress = useCallback(() => {
-    if (!mostRecentOrderType) {
+    if (!mostRecentOrder) {
       return;
     }
 
@@ -316,9 +314,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       undefined,
       true,
       undefined,
-      mostRecentOrderType,
+      mostRecentOrder.type,
     );
-  }, [mostRecentOrderType, onExitAction, goToSwaps]);
+  }, [mostRecentOrder, onExitAction, goToSwaps]);
 
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
@@ -515,9 +513,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
             />
           )}
-          {recurringOrder ? (
+          {mostRecentOrder ? (
             <TokenDetailsOrdersSection
-              latestRecurringOrder={recurringOrder}
+              mostRecentOrder={mostRecentOrder}
               onOrdersHeaderPress={handleOrdersHeaderPress}
               onRecurringOrderPress={handleRecurringOrderPress}
             />

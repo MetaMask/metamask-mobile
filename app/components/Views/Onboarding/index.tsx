@@ -22,6 +22,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BaseNotification from '../../../component-library/components-temp/BaseNotification';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
@@ -140,9 +141,7 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  Button,
   ButtonSize,
-  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -1270,26 +1269,23 @@ const Onboarding = () => {
           setStartFoxAnimation={setStartFoxAnimation}
           onInteractiveContentReady={handleOnboardingInteractiveContentReady}
         >
-          <Button
-            variant={ButtonVariant.Primary}
-            onPress={() => handleCtaActions('create')}
-            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-          >
-            {strings('onboarding.start_exploring_now')}
-          </Button>
-          <Button
-            variant={ButtonVariant.Tertiary}
-            onPress={() => handleCtaActions('existing')}
-            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-          >
-            {SEEDLESS_ONBOARDING_ENABLED
-              ? strings('onboarding.import_using_srp_social_login')
-              : strings('onboarding.import_using_srp')}
-          </Button>
+          <FooterGlass
+            twClassName="px-0"
+            primaryButtonProps={{
+              children: strings('onboarding.start_exploring_now'),
+              onPress: () => handleCtaActions('create'),
+              size: Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg,
+              testID: OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+            }}
+            tertiaryButtonProps={{
+              children: SEEDLESS_ONBOARDING_ENABLED
+                ? strings('onboarding.import_using_srp_social_login')
+                : strings('onboarding.import_using_srp'),
+              onPress: () => handleCtaActions('existing'),
+              size: Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg,
+              testID: OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+            }}
+          />
         </OnboardingAnimation>
       </Box>
     ),

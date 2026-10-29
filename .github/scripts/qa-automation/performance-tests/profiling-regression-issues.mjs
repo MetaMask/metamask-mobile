@@ -477,7 +477,7 @@ export function buildRegressionIssue({
     '',
     '### Device',
     '',
-    `BrowserStack device of the scheduled performance suite (project \`${finding.projectName}\`)`,
+    `TestMu device of the scheduled performance suite (project \`${finding.projectName}\`)`,
     '',
     '### Operating system',
     '',

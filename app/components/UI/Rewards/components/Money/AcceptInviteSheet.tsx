@@ -1,0 +1,426 @@
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Label,
+  Text,
+  TextColor,
+  TextField,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import type { RootState } from '../../../../../reducers';
+import {
+  canAcceptMoneyReferralInvite,
+  selectReferralMeEntry,
+} from '../../../../../reducers/rewardsMoney/selectors';
+import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
+import { selectSessionProfileId } from '../../../../../selectors/identity';
+import {
+  useAcceptMoneyReferralCode,
+  type ReferralRefusalReason,
+} from '../../hooks/useAcceptMoneyReferralCode';
+import {
+  MONEY_REFERRAL_CODE_MAX_LENGTH,
+  MONEY_REFERRAL_CODE_MIN_LENGTH,
+  useValidateMoneyReferralCode,
+} from '../../hooks/useValidateMoneyReferralCode';
+
+export const ACCEPT_INVITE_SHEET_TEST_IDS = {
+  CONTAINER: 'accept-invite-sheet',
+  CLOSE: 'accept-invite-sheet-close',
+  BODY: 'accept-invite-sheet-body',
+  CODE_FIELD: 'accept-invite-sheet-code-field',
+  CODE_INPUT: 'accept-invite-sheet-code-input',
+  CODE_ERROR: 'accept-invite-sheet-code-error',
+  DECLINE: 'accept-invite-sheet-decline',
+  ACCEPT: 'accept-invite-sheet-accept',
+} as const;
+
+/** Alphanumeric upper-case only, capped at the Money code max length. */
+const normalizeInviteCodeInput = (value: string) =>
+  value
+    .replace(/[^a-zA-Z0-9]/gu, '')
+    .toUpperCase()
+    .slice(0, MONEY_REFERRAL_CODE_MAX_LENGTH);
+
+/**
+ * Invite copy, resolved per key.
+ *
+ * The server owns this screen's words: it fills every `localized_text` key
+ * from its own defaults, so a missing key means there is no referral-me
+ * payload at all. Only keys that an existing Mobile string already says have
+ * a fallback — this screen adds no locale keys.
+ */
+function useInviteCopy(localizedText: ReferralLocalizedText | undefined) {
+  return useMemo(
+    () => ({
+      title: localizedText?.inviteTitle ?? '',
+      body: localizedText?.inviteMessageBody ?? '',
+      codeLabel:
+        localizedText?.inviteReferralCode ??
+        strings('rewards.referral.referral_code'),
+      decline:
+        localizedText?.inviteDecline ?? strings('rewards.vip.splash_not_now'),
+      accept:
+        localizedText?.inviteAccept ??
+        strings('rewards.vip.referee_splash_continue'),
+    }),
+    [localizedText],
+  );
+}
+
+export interface AcceptInviteSheetProps {
+  route: {
+    params?: RewardsMoneyInviteSheetParams;
+  };
+}
+
+/**
+ * Root modal for accepting a Money referral invite.
+ *
+ * Opened for a plain user or a cashback-experiment member. Registration
+ * belongs to `useAcceptMoneyReferralCode`: it keeps the sheet open on a
+ * refusal and dismisses it itself once the role has been read back.
+ *
+ * Header close / swipe / overlay dismiss without declining; the Decline CTA
+ * is the explicit declined path. While a registration is in flight the sheet
+ * is not interactable, so overlay, swipe, and hardware back cannot unmount it
+ * before the accepted splash opens.
+ */
+const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const initialReferralCode = route.params?.referralCode ?? '';
+  const hasTrackedOfferViewedRef = useRef(false);
+  const hasRespondedRef = useRef(false);
+  const acceptInFlightRef = useRef(false);
+
+  const profileId = useSelector(selectSessionProfileId);
+  const isProfileResolved = Boolean(profileId);
+  const referralMeEntry = useSelector((state: RootState) =>
+    selectReferralMeEntry(state, profileId),
+  );
+  const referralMe = referralMeEntry?.data;
+  // Once this sheet has shown an eligible invite, accept's own refresh to
+  // REFEREE is not a reason to pop. Only a first settled payload that already
+  // holds REFERRER or REFEREE (stale deeplink) is.
+  const hasSeenEligibleInviteRef = useRef(false);
+  if (referralMe && canAcceptMoneyReferralInvite(referralMe)) {
+    hasSeenEligibleInviteRef.current = true;
+  }
+  const shouldDismissForReferralVariant =
+    referralMe !== null &&
+    referralMe !== undefined &&
+    !canAcceptMoneyReferralInvite(referralMe) &&
+    !hasSeenEligibleInviteRef.current;
+  const copy = useInviteCopy(referralMe?.localized_text);
+  // A resolved profile with no referral-me row is not a settled invite.
+  // `loading` is only set once the fetch starts, so a missing entry would
+  // otherwise count as on screen. If that payload then arrives already
+  // referred, the sheet closes itself and the funnel would keep a viewed
+  // event with no answer. Hold until the payload exists.
+  const isCopyPending =
+    !isProfileResolved ||
+    referralMeEntry == null ||
+    referralMeEntry.loading ||
+    referralMeEntry.data == null;
+
+  const {
+    referralCode,
+    setReferralCode,
+    isValidating,
+    isValid,
+    isUnknownError,
+  } = useValidateMoneyReferralCode(initialReferralCode);
+  const {
+    acceptReferralCode,
+    isLoading: isAccepting,
+    errorMessage: registerError,
+    acceptBlockedUntil,
+    clearError,
+  } = useAcceptMoneyReferralCode();
+
+  const hasCodeToValidate =
+    referralCode.length >= MONEY_REFERRAL_CODE_MIN_LENGTH;
+  // A code the server rejected, as opposed to validation that could not run.
+  const isRejectedCode =
+    hasCodeToValidate && !isValidating && !isValid && !isUnknownError;
+  const errorMessage =
+    registerError ||
+    (isRejectedCode
+      ? strings('rewards.error_messages.invalid_referral_code')
+      : isUnknownError
+        ? strings('rewards.error_messages.something_went_wrong')
+        : '');
+
+  // A code that could not be validated is still offered to the server, which
+  // is the authority on it; a rejected one would only be refused again.
+  const isRateLimited =
+    acceptBlockedUntil !== null && Date.now() < acceptBlockedUntil;
+  const canAccept =
+    hasCodeToValidate &&
+    !isValidating &&
+    !isRejectedCode &&
+    !isAccepting &&
+    !isRateLimited;
+
+  // An offer is viewed only once this sheet is showing one: never on a
+  // payload still in flight, and never for a stale deeplink or an existing
+  // referee, which close themselves without the user seeing an invite. Those
+  // closes answer nothing, so a viewed interaction here would have no answer
+  // to pair with.
+  const isOfferOnScreen = !isCopyPending && !shouldDismissForReferralVariant;
+
+  useEffect(() => {
+    if (!isOfferOnScreen || hasTrackedOfferViewedRef.current) {
+      return;
+    }
+    hasTrackedOfferViewedRef.current = true;
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      )
+        .addProperties({
+          interaction_type: 'viewed',
+          ...(initialReferralCode
+            ? { referral_code: initialReferralCode }
+            : {}),
+        })
+        .build(),
+    );
+  }, [createEventBuilder, initialReferralCode, isOfferOnScreen, trackEvent]);
+
+  // One answer per sheet, and the first one recorded is the answer: a close
+  // that follows Accept or Decline is the sheet acting on that press, not a
+  // second interaction. An answer also requires the matching viewed
+  // interaction, since the sheet can be dismissed while its copy is pending.
+  // `refused` is not an answer: the sheet stays open, so it does not lock
+  // this guard.
+  const trackResponded = useCallback(
+    (interactionType: 'accepted' | 'declined' | 'dismissed') => {
+      if (hasRespondedRef.current) {
+        return;
+      }
+      hasRespondedRef.current = true;
+      if (!hasTrackedOfferViewedRef.current) {
+        return;
+      }
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+        )
+          .addProperties({
+            referral_code: referralCode,
+            interaction_type: interactionType,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, referralCode, trackEvent],
+  );
+
+  // Failed Accept: the user tried to take the invite and the server turned
+  // them away. Does not lock the one-answer guard, so a later answer or
+  // another failed Accept can still fire.
+  const trackRefused = useCallback(
+    (refusalReason: ReferralRefusalReason) => {
+      if (!hasTrackedOfferViewedRef.current) {
+        return;
+      }
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+        )
+          .addProperties({
+            referral_code: referralCode,
+            interaction_type: 'refused',
+            refusal_reason: refusalReason,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, referralCode, trackEvent],
+  );
+
+  const handleChangeReferralCode = useCallback(
+    (code: string) => {
+      clearError();
+      setReferralCode(normalizeInviteCodeInput(code));
+    },
+    [clearError, setReferralCode],
+  );
+
+  // Only this button refuses the invite. Every other way out of the sheet
+  // leaves the offer standing, so it reports `dismissed` instead.
+  const handleDecline = useCallback(() => {
+    // Dismissing mid-registration would leave the write unattended, and it is
+    // about to dismiss the sheet itself.
+    if (isAccepting || acceptInFlightRef.current) {
+      return;
+    }
+    trackResponded('declined');
+    sheetRef.current?.onCloseBottomSheet();
+  }, [isAccepting, trackResponded]);
+
+  const handleClose = useCallback(() => {
+    if (isAccepting || acceptInFlightRef.current) {
+      return;
+    }
+    trackResponded('dismissed');
+    sheetRef.current?.onCloseBottomSheet();
+  }, [isAccepting, trackResponded]);
+
+  const handleAccept = useCallback(() => {
+    if (!canAccept || acceptInFlightRef.current) {
+      return;
+    }
+    // Accept is about to refresh me to REFEREE. Record that this sheet was
+    // the invite, so that write cannot be read as a stale deeplink.
+    hasSeenEligibleInviteRef.current = true;
+    // Registration is the accept. A refused write leaves the sheet open, so
+    // `accepted` must not lock the funnel until the hook reports accepted.
+    acceptInFlightRef.current = true;
+    acceptReferralCode(referralCode)
+      .then((result) => {
+        if (result.accepted) {
+          trackResponded('accepted');
+          return;
+        }
+        if (result.refusalReason) {
+          trackRefused(result.refusalReason);
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        acceptInFlightRef.current = false;
+      });
+  }, [
+    acceptReferralCode,
+    canAccept,
+    referralCode,
+    trackRefused,
+    trackResponded,
+  ]);
+
+  const handleGoBack = useCallback(() => {
+    if (isAccepting || acceptInFlightRef.current) {
+      return;
+    }
+    // Reached by a swipe, the overlay and hardware back, and also by the sheet
+    // finishing a close this screen asked for — which the one-answer guard
+    // above is what keeps from overwriting that answer.
+    trackResponded('dismissed');
+    navigation.goBack();
+  }, [isAccepting, navigation, trackResponded]);
+
+  useEffect(() => {
+    if (shouldDismissForReferralVariant) {
+      // Deliberately not `handleGoBack`: no offer was on screen to answer, so
+      // this close is not a response and no viewed was recorded for it.
+      navigation.goBack();
+    }
+  }, [navigation, shouldDismissForReferralVariant]);
+
+  // `roles` decides whether this profile may still accept an invite. Do not
+  // flash an unusable invite while closing a stale deeplink for an existing
+  // referrer or referee.
+  if (shouldDismissForReferralVariant) {
+    return null;
+  }
+
+  return (
+    <BottomSheet
+      ref={sheetRef}
+      goBack={handleGoBack}
+      isInteractable={!isAccepting}
+      testID={ACCEPT_INVITE_SHEET_TEST_IDS.CONTAINER}
+    >
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{ testID: ACCEPT_INVITE_SHEET_TEST_IDS.CLOSE }}
+      >
+        {copy.title}
+      </BottomSheetHeader>
+      <Box twClassName="px-4">
+        {Boolean(copy.body) && (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            testID={ACCEPT_INVITE_SHEET_TEST_IDS.BODY}
+          >
+            {copy.body}
+          </Text>
+        )}
+        <Box
+          twClassName="mt-4 mb-6 flex flex-col gap-y-2"
+          testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_FIELD}
+        >
+          <Label fontWeight={FontWeight.Medium}>{copy.codeLabel}</Label>
+          <TextField
+            value={referralCode}
+            onChangeText={handleChangeReferralCode}
+            isDisabled={isAccepting}
+            isError={Boolean(errorMessage)}
+            autoFocus={referralCode.length === 0}
+            inputProps={{
+              autoCapitalize: 'characters',
+              autoCorrect: false,
+              autoComplete: 'off',
+              maxLength: MONEY_REFERRAL_CODE_MAX_LENGTH,
+              accessibilityLabel: copy.codeLabel,
+              testID: ACCEPT_INVITE_SHEET_TEST_IDS.CODE_INPUT,
+            }}
+          />
+          {Boolean(errorMessage) && (
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-error-default mt-1"
+              testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_ERROR}
+            >
+              {errorMessage}
+            </Text>
+          )}
+        </Box>
+      </Box>
+      <Box twClassName="gap-3 px-4">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isLoading={isAccepting}
+          isDisabled={!canAccept}
+          onPress={handleAccept}
+          testID={ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT}
+        >
+          {copy.accept}
+        </Button>
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isDisabled={isAccepting}
+          onPress={handleDecline}
+          testID={ACCEPT_INVITE_SHEET_TEST_IDS.DECLINE}
+        >
+          {copy.decline}
+        </Button>
+      </Box>
+    </BottomSheet>
+  );
+};
+
+export default AcceptInviteSheet;

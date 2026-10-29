@@ -3383,7 +3383,7 @@ describe('PerpsStreamManager', () => {
       mockPerpsConnectionManager.isCurrentlyConnecting.mockReturnValue(true);
       const callback = jest.fn();
       const streamManager = new PerpsStreamManager(
-        'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        'http://127.0.0.1:9332/v4/perpetuals',
       );
 
       const unsubscribe = streamManager.marketData.subscribe({ callback });
@@ -3407,7 +3407,7 @@ describe('PerpsStreamManager', () => {
         isInitialized: false,
       } as never);
       const streamManager = new PerpsStreamManager(
-        'https://terminal.api.cx.metamask.io/v2/perpetuals',
+        'https://terminal.api.cx.metamask.io/v4/perpetuals',
       );
 
       const unsubscribe = streamManager.marketData.subscribe({

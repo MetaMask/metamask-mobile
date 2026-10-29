@@ -48,11 +48,18 @@ const AlertsContext = React.createContext<AlertsContextParams>({
 interface AlertsContextProviderProps {
   alerts: Alert[];
   children: React.ReactNode;
+  /**
+   * True while the alert checks have not published their first result. The
+   * provider stays mounted so children keep their state, but confirmation is
+   * blocked until a real result arrives.
+   */
+  isPending?: boolean;
 }
 
 export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({
   children,
   alerts,
+  isPending = false,
 }) => {
   const [alertModalVisible, setAlertModalVisible] = useState(false);
 
@@ -92,7 +99,11 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({
 
   const initialAlertKey = fieldAlerts[0]?.key ?? '';
 
-  const [alertKey, setAlertKey] = useState(initialAlertKey);
+  // While pending there are no field alerts to derive a key from yet, so defer
+  // to `initialAlertKey` until the user explicitly selects one.
+  const [alertKey, setAlertKey] = useState<string | undefined>(
+    isPending ? undefined : initialAlertKey,
+  );
 
   const {
     hasBlockingAlerts,
@@ -106,14 +117,14 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({
 
   const contextValue = useMemo(
     () => ({
-      alertKey,
+      alertKey: alertKey ?? initialAlertKey,
       alertModalVisible,
       alerts: alertsMemo,
       dangerAlerts,
       fieldAlerts,
       generalAlerts,
       hasAlerts: alertsMemo.length > 0,
-      hasBlockingAlerts,
+      hasBlockingAlerts: isPending || hasBlockingAlerts,
       hasDangerAlerts: dangerAlerts.length > 0,
       hideAlertModal: () => setAlertModalVisible(false),
       setAlertKey: (key: string) => setAlertKey(key),
@@ -135,7 +146,9 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({
       hasBlockingAlerts,
       hasUnconfirmedDangerAlerts,
       hasUnconfirmedFieldDangerAlerts,
+      initialAlertKey,
       isAlertConfirmed,
+      isPending,
       setAlertConfirmed,
       unconfirmedDangerAlerts,
       unconfirmedFieldDangerAlerts,

@@ -35,7 +35,10 @@ const HomepageBalanceBreakdown = ({
     const slice = slices[key];
     const hasBalance = slice.status === 'ready' && slice.valueFiat !== 0;
 
-    return slice.isVisible && (key === 'money' || hasBalance);
+    return (
+      slice.isVisible &&
+      (key === 'money' || hasBalance || slice.status === 'error')
+    );
   });
 
   return (
@@ -45,7 +48,7 @@ const HomepageBalanceBreakdown = ({
       ) : (
         <HomepageBalanceBreakdownHero hero={hero} />
       )}
-      {children ? <Box twClassName="mt-4 gap-4">{children}</Box> : null}
+      {children ? <Box twClassName="mt-6 gap-4">{children}</Box> : null}
       {!hideRows ? (
         <Box
           testID={HomepageBalanceBreakdownTestIds.ROWS}

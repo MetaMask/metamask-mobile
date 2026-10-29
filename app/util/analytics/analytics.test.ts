@@ -79,6 +79,11 @@ import {
 } from '../../selectors/analyticsController';
 import Logger from '../Logger';
 import { getPerpsModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsModeAnalytics';
+import NavigationService from '../../core/NavigationService';
+import {
+  recordFocusedRoute,
+  resetNavigationAnalyticsAttributionForTests,
+} from './navigationAnalyticsAttribution';
 
 const mockedGetAnalyticsIdFromStorage =
   getAnalyticsIdFromStorage as jest.MockedFunction<
@@ -109,6 +114,7 @@ describe('analytics', () => {
     );
     mockedSelectAnalyticsEnabled.mockReturnValue(true);
     mockedSelectAnalyticsOptedIn.mockReturnValue(true);
+    resetNavigationAnalyticsAttributionForTests();
   });
 
   describe('trackEvent', () => {
@@ -123,6 +129,43 @@ describe('analytics', () => {
         'trackEvent',
         event,
       );
+    });
+
+    it('adds previous_screen from the focused route before queueing', () => {
+      const getCurrentRoute = jest
+        .spyOn(NavigationService, 'getCurrentRoute')
+        .mockReturnValue({
+          key: 'tokens',
+          name: 'TokensFullView',
+          params: { accountAddress: '0xabc' },
+        });
+      recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+      const event =
+        AnalyticsEventBuilder.createEventBuilder('Home Viewed').build();
+
+      try {
+        analytics.trackEvent(event);
+
+        expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+          'trackEvent',
+          expect.objectContaining({
+            name: 'Home Viewed',
+            properties: expect.objectContaining({
+              previous_screen: 'WalletView',
+            }),
+          }),
+        );
+        expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+          'trackEvent',
+          expect.objectContaining({
+            properties: expect.not.objectContaining({
+              accountAddress: '0xabc',
+            }),
+          }),
+        );
+      } finally {
+        getCurrentRoute.mockRestore();
+      }
     });
 
     it('injects Lite/Pro mode onto Perps events before queueing', () => {

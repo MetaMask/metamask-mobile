@@ -343,9 +343,12 @@ describe('V2 unified-buy BuildQuote', () => {
       includePaymentSelectionRoute: true,
     });
 
+    await findByText('Debit/Credit Card');
     fireEvent.press(await findByTestId(BUILD_QUOTE_TEST_IDS.PAYMENT_PILL));
 
-    expect(await findByText('Pay with')).toBeOnTheScreen();
+    await waitFor(async () => {
+      expect(await findByText('Pay with')).toBeOnTheScreen();
+    });
     expect(await findByText('Apple Pay')).toBeOnTheScreen();
   });
 

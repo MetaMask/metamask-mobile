@@ -31,7 +31,7 @@ Notes:
 
 #### Performance-test APKs (programmatic profiling)
 
-BrowserStack performance builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. In those APKs the app profiles itself: `index.js` calls `initializeAppProfiling()`, which arms Hermes as soon as JS runs and dumps a trace every time the app is backgrounded. Outside performance APKs it is a no-op, and so are `startAppProfiling` / `stopAppProfiling` if you call them directly.
+Performance-test builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. In those APKs the app profiles itself: `index.js` calls `initializeAppProfiling()`, which arms Hermes as soon as JS runs and dumps a trace every time the app is backgrounded. Outside performance APKs it is a no-op, and so are `startAppProfiling` / `stopAppProfiling` if you call them directly.
 
 On Android this goes through `MetaMaskHermesProfiler`, a native module in
 `android/app/src/main/java/io/metamask/nativeModules/HermesProfiler/` that is

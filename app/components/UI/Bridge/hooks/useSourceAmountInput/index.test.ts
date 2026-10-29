@@ -7,6 +7,7 @@ import { useSourceAmountInput } from './index';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { playSelection } from '../../../../../util/haptics';
 import { useTokenFiatRate } from '../useTokenFiatRate';
+import { formatFiatInputAmount } from '../../utils/sourceAmountInputMode';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../../components/TokenInputArea', () => ({
@@ -99,6 +100,57 @@ describe('useSourceAmountInput haptics', () => {
     });
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('useSourceAmountInput token fiat rate', () => {
+  const sourceToken = {
+    address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+    symbol: 'ETH',
+    chainId: '0x1' as const,
+    decimals: 18,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+    mockUseTokenFiatRate.mockReturnValue(2000);
+  });
+
+  it('converts between fiat and token amounts at the rate it is given', () => {
+    const { result } = renderHook(() =>
+      useSourceAmountInput({
+        isFiatToggleEnabled: true,
+        sourceAmount: '1',
+        sourceToken,
+        tokenFiatRate: 2500,
+        onSourceAmountChange: jest.fn(),
+      }),
+    );
+
+    act(() => {
+      result.current.handleToggle();
+    });
+
+    expect(formatFiatInputAmount).toHaveBeenCalledWith('1', 2500);
+    expect(formatFiatInputAmount).not.toHaveBeenCalledWith('1', 2000);
+  });
+
+  it('converts at the polled token rate when given none', () => {
+    const { result } = renderHook(() =>
+      useSourceAmountInput({
+        isFiatToggleEnabled: true,
+        sourceAmount: '1',
+        sourceToken,
+        onSourceAmountChange: jest.fn(),
+      }),
+    );
+
+    act(() => {
+      result.current.handleToggle();
+    });
+
+    expect(formatFiatInputAmount).toHaveBeenCalledWith('1', 2000);
   });
 });
 

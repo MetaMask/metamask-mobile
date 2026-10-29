@@ -10,6 +10,7 @@ import {
 import {
   PERPS_MARKET_ABOUT_EVENT_PROPERTY,
   PERPS_MARKET_ABOUT_INTERACTION_TYPE,
+  PERPS_MARKET_ABOUT_VISIBILITY_THRESHOLD,
 } from '../components/PerpsMarketAboutSection/PerpsMarketAboutSection.constants';
 
 jest.mock('./usePerpsEventTracking');
@@ -293,6 +294,87 @@ describe('usePerpsMarketAboutTracking', () => {
       });
 
       expect(mockImperativeTrack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('viewed event inside a nested container', () => {
+    const containerTop = 1000;
+    const aboutTop = 300;
+    const aboutHeight = 200;
+    const viewportHeight = 300;
+    const firstVisibleOffset =
+      containerTop +
+      aboutTop +
+      aboutHeight * PERPS_MARKET_ABOUT_VISIBILITY_THRESHOLD -
+      viewportHeight;
+
+    const renderTracking = () =>
+      renderHook(() =>
+        usePerpsMarketAboutTracking({
+          symbol: 'ETH',
+          marketType: 'crypto',
+          description: 'Ethereum is a smart contract platform.',
+        }),
+      );
+
+    it('stays absent until About crosses the threshold in scroll-content coordinates', () => {
+      const { result } = renderTracking();
+
+      act(() => {
+        result.current.handleAboutContainerLayout(
+          createLayoutEvent(containerTop, 2000),
+        );
+        result.current.handleAboutLayout(
+          createLayoutEvent(aboutTop, aboutHeight),
+        );
+      });
+
+      act(() => {
+        result.current.handleAboutScroll(
+          createScrollEvent(firstVisibleOffset - 1, viewportHeight),
+        );
+      });
+      expect(mockImperativeTrack).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.handleAboutScroll(
+          createScrollEvent(firstVisibleOffset, viewportHeight),
+        );
+      });
+      expect(mockImperativeTrack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire while tracking is off and waits for a fresh layout after it turns back on', () => {
+      const { result } = renderTracking();
+
+      act(() => {
+        result.current.handleAboutLayout(
+          createLayoutEvent(aboutTop, aboutHeight),
+        );
+        result.current.setAboutTrackingEnabled(false);
+        result.current.handleAboutScroll(
+          createScrollEvent(firstVisibleOffset, viewportHeight),
+        );
+      });
+      expect(mockImperativeTrack).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.setAboutTrackingEnabled(true);
+        result.current.handleAboutScroll(
+          createScrollEvent(firstVisibleOffset, viewportHeight),
+        );
+      });
+      expect(mockImperativeTrack).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.handleAboutLayout(
+          createLayoutEvent(aboutTop, aboutHeight),
+        );
+        result.current.handleAboutScroll(
+          createScrollEvent(firstVisibleOffset, viewportHeight),
+        );
+      });
+      expect(mockImperativeTrack).toHaveBeenCalledTimes(1);
     });
   });
 });

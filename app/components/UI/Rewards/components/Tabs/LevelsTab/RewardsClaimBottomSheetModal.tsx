@@ -272,7 +272,7 @@ const RewardsClaimBottomSheetModal = ({
             {formatUrl(claimUrl)}
           </Text>
           <Icon
-            name={IconName.Export}
+            name={IconName.ArrowSquareOut}
             size={IconSize.Sm}
             twClassName="text-primary-default"
           />

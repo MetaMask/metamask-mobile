@@ -25,6 +25,18 @@ let mockIsGlass = false;
 jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({
   useIsGlassSurfaceEnabled: () => mockIsGlass,
 }));
+jest.mock('../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlass,
+    }),
+  };
+});
 
 jest.mock('./walletHomeOnboardingProgressAnimation', () => {
   const actual = jest.requireActual('./walletHomeOnboardingProgressAnimation');

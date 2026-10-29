@@ -293,6 +293,49 @@ export const runQuoteDataCases = ({
       });
     });
 
+    it('formats destination amounts for 24-decimal tokens', () => {
+      const nearQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          dest: {
+            ...mockQuoteWithMetadata.quote.dest,
+            amount: '1000000000000000000000000',
+          },
+        },
+      };
+
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: nearQuote,
+        sortedQuotes: [nearQuote],
+        activeQuote: nearQuote,
+      }));
+
+      const { result } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeReducerOverrides: {
+            sourceToken: {
+              symbol: 'SOL',
+              chainId: SolScope.Mainnet,
+              address:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111',
+              decimals: 9,
+            },
+            destToken: {
+              symbol: 'NEAR',
+              chainId: SolScope.Mainnet,
+              address:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+              decimals: 24,
+            },
+          },
+        }),
+      );
+
+      expect(result.current.destTokenAmount).toBe('1');
+    });
+
     it('does not start a quote fetch trace when resolving quote data', () => {
       renderUseBridgeQuoteData();
 

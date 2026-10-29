@@ -17,6 +17,13 @@ jest.mock('../hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
 }));
 
+jest.mock(
+  '../../../../../util/notifications/hooks/useSessionProfileId',
+  () => ({
+    useSessionProfileId: () => ({ profileId: undefined, isLoading: false }),
+  }),
+);
+
 describe('ManageProfileTradingActivityView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -25,6 +32,11 @@ describe('ManageProfileTradingActivityView', () => {
       profile: undefined,
       linkedAddresses: [],
       updateProfile: jest.fn().mockResolvedValue(undefined),
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
     });
   });
@@ -72,6 +84,11 @@ describe('ManageProfileTradingActivityView', () => {
       },
       linkedAddresses: [],
       updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
     });
 

@@ -63,19 +63,11 @@ export type RewardsMoneyControllerValidateReferralCodeAction = {
  * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
  * with a plain `Error`. A `401` is not retried.
  *
- * The confirm button may wait for this first request, for at most 2 to 3
- * seconds. If the quote has not arrived by then, or the request fails,
- * unblock the confirm button and let the user continue with no rebate tag.
- * One quiet retry may run while the screen stays open. Wait
- * `retryAfterSeconds` when the error has one, then add a small random
- * delay: a `503` sends a fixed `Retry-After: 2`, and without that jitter
- * every client retries in the same second. When the header is missing,
- * `retryAfterSeconds` is `undefined` and the caller chooses the wait. Stop
- * after that second attempt, or when the user leaves the screen. A success
- * on the retry shows the rebate tag. The retry does not hold the confirm
- * button. A `429` (`RATE_LIMITED`) shares the profile read budget, 60
- * requests per 30 seconds, with the Earnings reads, so this screen sends
- * the first quote plus that one retry. A `503` (`UNAVAILABLE`) means the
+ * A `503` or `429` whose `Retry-After` is at most 5 seconds is retried once
+ * inside the data service, after that delay plus up to a second of jitter.
+ * The promise includes that wait. Callers must not retry again. A `429`
+ * (`RATE_LIMITED`) shares the profile read budget, 60 requests per 30
+ * seconds, with the Earnings reads. A `503` (`UNAVAILABLE`) means the
  * server is unavailable, whether the body reason is `SERVER_BUSY` or
  * `JWKS_UNAVAILABLE`.
  *
@@ -97,19 +89,11 @@ export type RewardsMoneyControllerGetSwapsRebateQuoteAction = {
  * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
  * with a plain `Error`. A `401` is not retried.
  *
- * The confirm button may wait for this first request, for at most 2 to 3
- * seconds. If the quote has not arrived by then, or the request fails,
- * unblock the confirm button and let the user continue with no rebate tag.
- * One quiet retry may run while the screen stays open. Wait
- * `retryAfterSeconds` when the error has one, then add a small random
- * delay: a `503` sends a fixed `Retry-After: 2`, and without that jitter
- * every client retries in the same second. When the header is missing,
- * `retryAfterSeconds` is `undefined` and the caller chooses the wait. Stop
- * after that second attempt, or when the user leaves the screen. A success
- * on the retry shows the rebate tag. The retry does not hold the confirm
- * button. A `429` (`RATE_LIMITED`) shares the profile read budget, 60
- * requests per 30 seconds, with the Earnings reads, so this screen sends
- * the first quote plus that one retry. A `503` (`UNAVAILABLE`) means the
+ * A `503` or `429` whose `Retry-After` is at most 5 seconds is retried once
+ * inside the data service, after that delay plus up to a second of jitter.
+ * The promise includes that wait. Callers must not retry again. A `429`
+ * (`RATE_LIMITED`) shares the profile read budget, 60 requests per 30
+ * seconds, with the Earnings reads. A `503` (`UNAVAILABLE`) means the
  * server is unavailable, whether the body reason is `SERVER_BUSY` or
  * `JWKS_UNAVAILABLE`.
  *
@@ -119,6 +103,18 @@ export type RewardsMoneyControllerGetSwapsRebateQuoteAction = {
 export type RewardsMoneyControllerGetPerpsRebateQuoteAction = {
   type: `RewardsMoneyController:getPerpsRebateQuote`;
   handler: RewardsMoneyController['getPerpsRebateQuote'];
+};
+
+/**
+ * Enrols the session profile under a referrer's code. Drops that profile's
+ * cached referral me after the write succeeds, so a later read cannot
+ * return the pre-registration roles for the rest of the cache window. A
+ * read already in flight cannot write its payload back. The new role is
+ * read through `getReferralMe({ forceFresh: true })`.
+ */
+export type RewardsMoneyControllerRegisterRefereeAction = {
+  type: `RewardsMoneyController:registerReferee`;
+  handler: RewardsMoneyController['registerReferee'];
 };
 
 export type RewardsMoneyControllerGetEarningsSummaryAction = {
@@ -161,6 +157,7 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerValidateReferralCodeAction
   | RewardsMoneyControllerGetSwapsRebateQuoteAction
   | RewardsMoneyControllerGetPerpsRebateQuoteAction
+  | RewardsMoneyControllerRegisterRefereeAction
   | RewardsMoneyControllerGetEarningsSummaryAction
   | RewardsMoneyControllerGetEarningsLedgerAction
   | RewardsMoneyControllerGetClaimHistoryAction

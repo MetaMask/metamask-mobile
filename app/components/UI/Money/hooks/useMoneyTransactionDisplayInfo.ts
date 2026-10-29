@@ -16,6 +16,7 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../../selectors/networkController';
 import type { RootState } from '../../../../reducers';
+import { selectMoneyVbaActivityDepositFromAddresses } from '../selectors/featureFlags';
 import {
   getMusdDisplayAmountFromTransactionMeta,
   isIncomingMoneyTransactionMeta,
@@ -38,6 +39,7 @@ import {
   perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
 import type { MoneyActivityTransactionMeta } from '../constants/moneyActivity';
+import { completedVbaDepositDisplayInfo } from '../utils/completedVbaDepositDisplayInfo';
 import {
   classifyMoneyActivity,
   getMoneyActivityStatus,
@@ -55,6 +57,8 @@ export interface MoneyTransactionDisplayInfo {
   isIncoming: boolean;
   icon: IconName;
   status: MoneyActivityStatus;
+  /** Render the primary token amount alongside fiat for completed VBA rows. */
+  showPrimaryAmount?: boolean;
 }
 
 function getMoneySubtitle(tx: TransactionMeta): string | undefined {
@@ -178,10 +182,13 @@ function isNativeTokenAddress(tokenAddress: string, chainId: Hex): boolean {
  */
 export function useMoneyTransactionDisplayInfo(
   tx: TransactionMeta,
-  _moneyAddress: string | undefined,
+  moneyAddress: string | undefined,
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
   const paymentMethodName = useFiatPaymentMethodName(tx);
+  const moneyVbaActivityDepositFromAddresses = useSelector(
+    selectMoneyVbaActivityDepositFromAddresses,
+  );
   const needsMarketRates = useMemo(
     () => activityFiatLineNeedsMarketRates(tx),
     [tx],
@@ -224,9 +231,24 @@ export function useMoneyTransactionDisplayInfo(
     const sourceTokenSymbol = isMusdToken(payTokenAddress)
       ? MUSD_TOKEN.symbol
       : (payToken?.symbol ?? nativeTicker);
-    const kind = classifyMoneyActivity(tx);
+    const kind = classifyMoneyActivity(
+      tx,
+      moneyVbaActivityDepositFromAddresses,
+      moneyAddress,
+    );
     const status = getMoneyActivityStatus(tx);
     const isIncoming = isIncomingMoneyTransactionMeta(tx);
+
+    if (kind === 'vba_deposit') {
+      const transferInformation = tx.transferInformation;
+      return {
+        ...completedVbaDepositDisplayInfo({
+          amount: transferInformation?.amount ?? '',
+          decimals: transferInformation?.decimals ?? MUSD_DECIMALS,
+        }),
+        showPrimaryAmount: true,
+      };
+    }
 
     let primaryAmount = getMusdDisplayAmountFromTransactionMeta(tx);
     if (!primaryAmount) {
@@ -301,6 +323,8 @@ export function useMoneyTransactionDisplayInfo(
     currencyRates,
     tokenMarketData,
     payToken,
+    moneyVbaActivityDepositFromAddresses,
+    moneyAddress,
     payTokenAddress,
     nativeTicker,
   ]);

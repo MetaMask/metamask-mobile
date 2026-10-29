@@ -14,7 +14,10 @@ import {
 import { handleWebShare } from '../../../util/browser/handleWebShare';
 import { handleWebDownload } from '../../../util/browser/handleWebDownload';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
-import { PhishingDetectorResultType } from '@metamask/phishing-controller';
+import {
+  PhishingDetectorResultType,
+  RequestSourceFlow,
+} from '@metamask/phishing-controller';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 
 const mockInjectJavaScript = jest.fn();
@@ -497,9 +500,13 @@ describe('BrowserTab', () => {
       });
 
       // The full URL (with path) must be forwarded to the scanner, not the origin.
-      expect(getPhishingTestResultAsync).toHaveBeenCalledWith(fullUrl);
+      expect(getPhishingTestResultAsync).toHaveBeenCalledWith(
+        fullUrl,
+        RequestSourceFlow.Browser,
+      );
       expect(getPhishingTestResultAsync).not.toHaveBeenCalledWith(
         'https://shared-host.example',
+        expect.anything(),
       );
       // Loading the flagged page is cancelled.
       expect(result).toBe(false);
@@ -747,6 +754,102 @@ describe('BrowserTab', () => {
       });
       expect(mockInjectJavaScript).not.toHaveBeenCalledWith(
         expect.stringContaining('window.location.href'),
+      );
+    });
+  });
+
+  describe('WebView onNavigationStateChange SPA URL resolution', () => {
+    const portfolioUrl = 'https://meyfi.meey.dev/portfolio';
+    const emailVerifyUrl = 'https://meyfi.meey.dev/portfolio/email-verify';
+
+    const commitPage = async (
+      webView: { props: Record<string, unknown> },
+      url: string,
+    ) => {
+      const onLoadEnd = webView.props.onLoadEnd as (event: {
+        nativeEvent: Record<string, unknown>;
+      }) => void;
+
+      await act(async () => {
+        onLoadEnd({
+          nativeEvent: {
+            url,
+            title: url,
+            canGoBack: false,
+            canGoForward: false,
+          },
+        });
+      });
+    };
+
+    it('updates the address bar when a same-origin path changes without a page load', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, portfolioUrl);
+
+      const bridge = mockBackgroundBridgeInstances.at(-1);
+      bridge?.onDisconnect.mockClear();
+      mockProps.updateTabInfo.mockClear();
+
+      const { onNavigationStateChange } = webView.props;
+
+      await act(async () => {
+        onNavigationStateChange({
+          url: emailVerifyUrl,
+          title: 'Email verify',
+          loading: false,
+          canGoBack: true,
+          canGoForward: false,
+        });
+      });
+
+      expect(bridge?.onDisconnect).not.toHaveBeenCalled();
+      expect(mockProps.updateTabInfo).toHaveBeenCalledWith(1, {
+        url: emailVerifyUrl,
+      });
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('browser-url-display-text'),
+        ).toHaveTextContent(emailVerifyUrl);
+      });
+    });
+
+    it('leaves the address bar on the current path while a same-origin navigation is loading', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, portfolioUrl);
+
+      mockProps.updateTabInfo.mockClear();
+
+      const { onNavigationStateChange } = webView.props;
+
+      await act(async () => {
+        onNavigationStateChange({
+          url: emailVerifyUrl,
+          title: 'Email verify',
+          loading: true,
+          canGoBack: true,
+          canGoForward: false,
+        });
+      });
+
+      expect(mockProps.updateTabInfo).not.toHaveBeenCalled();
+      expect(screen.getByTestId('browser-url-display-text')).toHaveTextContent(
+        portfolioUrl,
       );
     });
   });

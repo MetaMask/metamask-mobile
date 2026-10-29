@@ -19,6 +19,12 @@ import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationS
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
 import { CardFlow } from '../../UI/Card/util/metrics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../UI/Money/constants/moneyEvents';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -130,6 +136,28 @@ jest.mock('../../../selectors/identity', () => ({
   selectIsBackupAndSyncEnabled: jest.fn(),
 }));
 
+const mockUseProSubscriptionEnabled = jest.fn(() => ({
+  isProSubscriptionEnabled: false,
+}));
+jest.mock('../../../hooks/useProSubscriptionEnabled', () => ({
+  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+}));
+
+const mockUsePlusAccess = jest.fn(() => ({
+  isPlusSubscriber: false,
+  isPlusAccessUnknown: false,
+}));
+jest.mock('../../../hooks/usePlusAccess', () => ({
+  usePlusAccess: () => mockUsePlusAccess(),
+}));
+
+const mockTrackButtonClicked = jest.fn();
+jest.mock('../../UI/Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: () => ({
+    trackButtonClicked: mockTrackButtonClicked,
+  }),
+}));
+
 // Mirrors the Rewards utils.ts mocking shape: mocking the helper (rather than
 // the inline `///: ONLY_INCLUDE_IF(beta)` fence) lets Jest exercise both the
 // beta and consent branches, since babel-jest leaves the fence as a comment.
@@ -149,6 +177,13 @@ describe('AccountsMenu', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: false,
+    });
+    mockUsePlusAccess.mockReturnValue({
+      isPlusSubscriber: false,
+      isPlusAccessUnknown: false,
+    });
     mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
     mockActiveProviderId = 'baanx';
     mockUseCardUkMigrationState.mockReturnValue({
@@ -572,6 +607,77 @@ describe('AccountsMenu', () => {
         read_count: 3,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('MetaMask Orange row', () => {
+    it('stays hidden while the Orange flow is off', () => {
+      const { queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('stays hidden while membership access is unresolved', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUsePlusAccess.mockReturnValue({
+        isPlusSubscriber: false,
+        isPlusAccessUnknown: true,
+      });
+
+      const { queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('invites a non-member to join and opens the subscription flow', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).toHaveTextContent('accounts_menu.join_metamask_orange');
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+        component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+        label_key: 'accounts_menu.join_metamask_orange',
+        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
+    });
+
+    it('labels a member MetaMask Orange and opens the hub', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUsePlusAccess.mockReturnValue({
+        isPlusSubscriber: true,
+        isPlusAccessUnknown: false,
+      });
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).toHaveTextContent('accounts_menu.metamask_orange');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'accounts_menu',
+      });
     });
   });
 

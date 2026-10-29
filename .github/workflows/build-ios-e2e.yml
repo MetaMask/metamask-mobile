@@ -346,7 +346,7 @@ jobs:
           echo "🧶 Yarn Version:"
           yarn -v || echo "Yarn not found"
           echo "📦 CocoaPods Version:"
-          pod --version || echo "CocoaPods not found"
+          (cd ios && bundle exec pod --version) || echo "CocoaPods not found"
           echo "🛠️ Xcode Path:"
           xcode-select -p || echo "Xcode not found"
           echo "📱 Booted iOS Simulators:"

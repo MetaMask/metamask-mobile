@@ -62,7 +62,7 @@ perfTest.describe(
         await LoginView.tapLoginButton();
         await timer1.measure(async () => {
           await AppiumAssertions.expectElementToBeVisible(
-            WalletView.hamburgerMenuButton,
+            WalletView.accountIcon,
             {
               description: 'Wallet balance should be visible',
               timeout: 30 * 1000, // 30 seconds

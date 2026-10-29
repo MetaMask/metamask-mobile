@@ -46,6 +46,10 @@ const isLinkedAccountInSelectedGroup = (
   );
 };
 
+export const isSocialProfileOnboardingRequired = (
+  linkedAccountAddress?: string | null,
+): boolean => !linkedAccountAddress?.trim();
+
 /**
  * Decides whether tapping Post opens the composer, sends the user to Social
  * profile onboarding, or blocks because the linked wallet is gone.

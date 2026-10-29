@@ -1,7 +1,6 @@
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
+  ButtonBase,
+  ButtonBaseSize,
   Text,
   TextColor,
   TextVariant,
@@ -20,10 +19,20 @@ import Animated, {
   ZoomIn,
   ZoomOut,
 } from 'react-native-reanimated';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+
+/**
+ * The engagement-row pill: a hairline-outlined `ButtonBase`, shared by the
+ * reaction chips and the add-reaction button so the row reads as one set.
+ */
+export const REACTION_PILL_TW_CLASS = 'bg-transparent border';
 
 export interface ReactionChipProps {
   emotion: string;
   count: number;
+  /** The viewer's own reaction: outlined a step stronger. */
+  isSelected?: boolean;
+  onPress?: () => void;
   testID?: string;
 }
 
@@ -32,15 +41,21 @@ const POP_OUT = ZoomOut.duration(140);
 const SHIFT = LinearTransition.springify().damping(18).stiffness(220);
 
 /**
- * One emoji + count in the engagement row. New chips pop in; count changes
- * bounce; removal shrinks out.
+ * One emoji + count in the engagement row. Tapping it toggles the viewer's
+ * reaction to that emoji. New chips pop in; count changes bounce; removal
+ * shrinks out.
  */
 const ReactionChip: React.FC<ReactionChipProps> = ({
   emotion,
   count,
+  isSelected = false,
+  onPress,
   testID,
 }) => {
   const prefersReducedMotion = useReducedMotion();
+  // A pop per chip is cheap, but it is still motion a LOW device pays for on
+  // every reaction in a scrolling list. Unknown hardware keeps the default.
+  const isAnimated = !prefersReducedMotion && getHardwareTier() !== 'LOW';
   const scale = useSharedValue(1);
   const skipCountBounce = useRef(true);
 
@@ -49,14 +64,14 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
       skipCountBounce.current = false;
       return;
     }
-    if (prefersReducedMotion) {
+    if (!isAnimated) {
       return;
     }
     scale.value = withSequence(
       withTiming(1.2, { duration: 90 }),
       withSpring(1, { damping: 12, stiffness: 240 }),
     );
-  }, [count, prefersReducedMotion, scale]);
+  }, [count, isAnimated, scale]);
 
   const bounceStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -64,23 +79,27 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
 
   return (
     <Animated.View
-      entering={prefersReducedMotion ? FadeIn.duration(0) : POP_IN}
-      exiting={prefersReducedMotion ? FadeOut.duration(0) : POP_OUT}
-      layout={prefersReducedMotion ? undefined : SHIFT}
+      entering={isAnimated ? POP_IN : FadeIn.duration(0)}
+      exiting={isAnimated ? POP_OUT : FadeOut.duration(0)}
+      layout={isAnimated ? SHIFT : undefined}
       style={bounceStyle}
-      testID={testID}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-        twClassName="pl-2"
+      <ButtonBase
+        size={ButtonBaseSize.Sm}
+        startAccessory={<Text variant={TextVariant.BodySm}>{emotion}</Text>}
+        textProps={{
+          variant: TextVariant.BodySm,
+          color: TextColor.TextAlternative,
+        }}
+        twClassName={`${REACTION_PILL_TW_CLASS} px-2.5 ${
+          isSelected ? 'border-default' : 'border-muted'
+        }`}
+        accessibilityState={{ selected: isSelected }}
+        onPress={onPress}
+        testID={testID}
       >
-        <Text variant={TextVariant.BodySm}>{emotion}</Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
-          {count}
-        </Text>
-      </Box>
+        {String(count)}
+      </ButtonBase>
     </Animated.View>
   );
 };

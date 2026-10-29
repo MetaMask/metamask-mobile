@@ -4,6 +4,7 @@ import {
   BoxFlexDirection,
   FontWeight,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Tag,
@@ -21,8 +22,8 @@ import ProfileAvatar from './ProfileAvatar';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import { formatJoinedLabel } from '../utils/formatJoinedLabel';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
-import MyProfileStats from './MyProfileStats';
 
 const RANKING_TAG_DISPLAY: Record<
   ProfileRankingTag,
@@ -40,7 +41,6 @@ interface MyProfileHeaderProps {
   isOwner?: boolean;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
-  onStatsPress?: () => void;
 }
 
 const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
@@ -50,7 +50,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   isOwner = true,
   onFollowersPress,
   onFollowingPress,
-  onStatsPress,
 }) => {
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
@@ -61,6 +60,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   const rankingTag = overlayedStats.rankingTag
     ? RANKING_TAG_DISPLAY[overlayedStats.rankingTag]
     : null;
+  const joinedLabel = formatJoinedLabel(profile.joinedAt);
 
   return (
     <Box paddingHorizontal={4} paddingBottom={4}>
@@ -215,7 +215,24 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Pressable>
       </Box>
 
-      <MyProfileStats stats={overlayedStats} onPress={onStatsPress} />
+      {joinedLabel ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          paddingTop={2}
+          testID={MyProfileViewSelectorsIDs.JOINED}
+        >
+          <Icon
+            name={IconName.Clock}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {joinedLabel}
+          </Text>
+        </Box>
+      ) : null}
     </Box>
   );
 };

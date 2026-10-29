@@ -107,7 +107,7 @@ const MoneyMoreSheet = () => {
     },
     {
       label: strings('money.more_sheet.what_you_get'),
-      icon: IconName.Export,
+      icon: IconName.ArrowSquareOut,
       onPress: handleWhatYouGet,
       testID: MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION,
     },

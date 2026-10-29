@@ -14,6 +14,7 @@ import { formatTokenBalance } from '.';
 import { formatCurrency } from './currencyUtils';
 import { formatPriceRangeLabel, PRICE_RANGE_MISSING_VALUE } from './priceRange';
 import { convertApiTokenToBridgeToken } from './tokenUtils';
+import { OrderType } from '../types/advancedOrders';
 
 export function getRecurringOrderTokens(order: RecurringOrder): {
   sourceToken: BridgeToken;
@@ -175,3 +176,16 @@ export function formatRecurringExecutionPrice({
     currentCurrency,
   );
 }
+
+export const getOrderTypeFromPriceRange = (
+  priceRange: RecurringOrder['priceRange'],
+): OrderType => {
+  switch (priceRange?.tokenSide) {
+    case 'dest':
+      return priceRange.min ? OrderType.BUY_ABOVE : OrderType.BUY_BELOW;
+    case 'source':
+      return priceRange.max ? OrderType.SELL_BELOW : OrderType.SELL_ABOVE;
+    default:
+      return OrderType.SELL_ABOVE;
+  }
+};

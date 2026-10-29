@@ -5,6 +5,7 @@ import {
   Caip25CaveatType,
   Caip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
@@ -157,6 +158,9 @@ const { isUUID: mockIsUUID } = jest.requireMock(
 jest.mock('../../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
 }));
+
+const { getPhishingTestResultAsync: mockGetPhishingTestResultAsync } =
+  jest.requireMock('../../../../util/phishingDetection');
 
 jest.mock('../../../../util/metrics', () => ({
   trackDappViewedEvent: jest.fn(),
@@ -724,6 +728,13 @@ describe('MultichainAccountConnect', () => {
           />,
           { state: createMockState() },
         );
+
+        await waitFor(() => {
+          expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
+            'https://safe-site.com',
+            RequestSourceFlow.DappConnection,
+          );
+        });
 
         const warningText = queryByText(
           `MetaMask flagged the site you're trying to visit as potentially deceptive.`,

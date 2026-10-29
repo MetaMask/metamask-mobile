@@ -17,6 +17,7 @@ import arrowdoublerightSVG from './assets/arrow-double-right.svg';
 import arrowdownSVG from './assets/arrow-down.svg';
 import arrowleftSVG from './assets/arrow-left.svg';
 import arrowrightSVG from './assets/arrow-right.svg';
+import arrowsquareoutSVG from './assets/arrow-square-out.svg';
 import arrowupSVG from './assets/arrow-up.svg';
 import attachmoneySVG from './assets/attach-money.svg';
 import bankSVG from './assets/bank.svg';
@@ -126,6 +127,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ArrowDown]: arrowdownSVG,
   [IconName.ArrowLeft]: arrowleftSVG,
   [IconName.ArrowRight]: arrowrightSVG,
+  [IconName.ArrowSquareOut]: arrowsquareoutSVG,
   [IconName.ArrowUp]: arrowupSVG,
   [IconName.AttachMoney]: attachmoneySVG,
   [IconName.Bank]: bankSVG,

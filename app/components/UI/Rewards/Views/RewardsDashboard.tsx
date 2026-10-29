@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { runAfterInteractions } from '../utils/runAfterInteractions';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
@@ -14,23 +15,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  selectActiveTab,
   selectHasAcceptedVipInvite,
   selectHasAcceptedVipRefereeInvite,
   selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
-  selectPendingDeeplink,
-  selectCampaignsFetching,
 } from '../../../../reducers/rewards/selectors';
-import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
@@ -43,18 +40,18 @@ import {
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSessionProfileId } from '../../../../selectors/identity';
+import type { RootState } from '../../../../reducers';
+import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  RewardsDashboardKind,
+  trackRewardsDashboardViewed,
+} from '../utils/rewardsDashboardViewedTracking';
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
-import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
-import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
-import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
 import { navigateToRewardsRoute } from '../utils';
-import { getLatestActiveCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
-import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
@@ -66,18 +63,14 @@ import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitc
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
-import { handleDeeplink } from '../../../../core/DeeplinkManager';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
-const MUSD_MONEY_URL = 'metamask://money';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
-  const dispatch = useDispatch();
-  const pendingDeeplink = useSelector(selectPendingDeeplink);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
@@ -88,31 +81,13 @@ const RewardsDashboard: React.FC = () => {
   const hasAcceptedVipRefereeInvite = useSelector(
     selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
-  const activeTab = useSelector(selectActiveTab);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const profileId = useSelector(selectSessionProfileId);
+  const referralMe = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
+  );
+  const { createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
-  const {
-    campaigns,
-    hasLoaded: campaignsHasLoaded,
-    hasError: campaignsHasError,
-    isLoading: isCampaignsLoading,
-  } = useRewardCampaigns();
-  const isCampaignsFetching = useSelector(selectCampaignsFetching);
-  // `campaignsFetching` is dispatched by the focus effect, so it only becomes
-  // readable one render later — on the first commit after a (re)mount the
-  // deeplink effect below always sees `false`, even though a fetch is already
-  // under way. Waiting until a fetch has actually been *observed* closes that
-  // window without depending on the order the two effects happen to run in.
-  const hasObservedCampaignsFetchRef = useRef(false);
-  useEffect(() => {
-    if (isCampaignsFetching) {
-      hasObservedCampaignsFetchRef.current = true;
-    }
-  }, [isCampaignsFetching]);
-  const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
-
-  useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
   useGetPredictThePitchOutcomeToast();
@@ -124,127 +99,6 @@ const RewardsDashboard: React.FC = () => {
   // non-enrolled users; only dashboard-specific hooks remain here.
   useGeoRewardsMetadata({});
   useReferralDetails();
-
-  // Handle deeplink-driven navigation into a rewards sub-page. The dashboard is
-  // what mounts on a rewards deeplink (the Rewards tab); the sub-pages are
-  // registered as a group at the root MainNavigator level, so a direct
-  // navigate(<screen>) resolves them. We read the pending deeplink from Redux —
-  // rather than navigation params — because the Rewards tab is UnmountOnBlur, so
-  // params would be lost while on another tab. Once handled, the pending deeplink
-  // is cleared so it doesn't re-fire on subsequent mounts.
-  useEffect(() => {
-    if (!pendingDeeplink) {
-      return;
-    }
-
-    let handled = true;
-    if (pendingDeeplink.page === 'campaigns') {
-      navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGNS_VIEW);
-    } else if (pendingDeeplink.campaign === 'ondo') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-      );
-    } else if (pendingDeeplink.campaign === 'season1') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
-      );
-    } else if (pendingDeeplink.campaign === 'perps-comp') {
-      // The deeplink carries no campaign id, so it has to be resolved against
-      // the campaign list — and resolving against a list that is not yet
-      // authoritative would drop the deeplink for good, because a null result
-      // still counts as handled. The list is only authoritative once every one
-      // of these is false:
-      //  - no subscription yet: fetchCampaigns short-circuits to an empty list
-      //    and still marks it loaded, so "no campaigns" means "not signed in",
-      //    not "no campaigns exist".
-      //  - no fetch observed yet this mount: the list in Redux survives the
-      //    tab unmounting, so it can be a previous fetch's result that the
-      //    in-flight refresh has not replaced yet.
-      //  - a fetch is in flight: campaignsLoading is suppressed once campaigns
-      //    exist, so only campaignsFetching catches a refresh over a stale list.
-      //  - never loaded, or failed/in-flight with nothing cached.
-      const waitingForCampaigns =
-        !subscriptionId ||
-        !hasObservedCampaignsFetchRef.current ||
-        isCampaignsFetching ||
-        !campaignsHasLoaded ||
-        (campaigns.length === 0 && (campaignsHasError || isCampaignsLoading));
-
-      if (waitingForCampaigns) {
-        handled = false;
-      } else {
-        const perpsCampaign = getLatestActiveCampaignOfType(
-          campaigns,
-          CampaignType.PERPS_TRADING,
-        );
-        if (perpsCampaign) {
-          navigateToRewardsRoute(
-            navigation,
-            Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-            { campaignId: perpsCampaign.id },
-          );
-        }
-        // No running perps campaign: stay on the dashboard, which is rewards
-        // home. Navigating would surface a past campaign, or an upcoming one
-        // whose details page has nothing to show yet.
-      }
-    } else if (pendingDeeplink.campaign === 'predict-the-pitch') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-      );
-    } else if (pendingDeeplink.campaign === 'money') {
-      // Failed and in-flight fetches also flip campaignsHasLoaded, so an empty
-      // series is only trustworthy once a successful fetch has settled.
-      const waitingForCampaigns =
-        !campaignsHasLoaded ||
-        (moneyAccountSeries.campaigns.length === 0 &&
-          (campaignsHasError || isCampaignsLoading));
-
-      if (waitingForCampaigns) {
-        handled = false;
-      } else {
-        const entry = resolveMoneyAccountSweepstakesEntryRoute({
-          series: moneyAccountSeries,
-        });
-
-        if (entry.kind === 'details') {
-          navigateToRewardsRoute(
-            navigation,
-            Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
-            { campaignId: entry.campaignId },
-          );
-        }
-        // entry.kind === 'dashboard': stay on dashboard (upcoming / empty)
-      }
-    } else if (pendingDeeplink.page === 'musd') {
-      handleDeeplink({ uri: MUSD_MONEY_URL });
-    } else if (pendingDeeplink.page === 'benefits') {
-      // Benefits full view is registered at the root MainNavigator level.
-      navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
-    } else {
-      // Unrecognized page/campaign: do not clear the pending deeplink so the
-      // intent is preserved and can be retried, rather than silently dropped.
-      handled = false;
-    }
-
-    if (handled) {
-      dispatch(setPendingDeeplink(null));
-    }
-  }, [
-    navigation,
-    dispatch,
-    pendingDeeplink,
-    subscriptionId,
-    campaigns,
-    campaignsHasLoaded,
-    campaignsHasError,
-    isCampaignsLoading,
-    isCampaignsFetching,
-    moneyAccountSeries,
-  ]);
 
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
@@ -278,7 +132,11 @@ const RewardsDashboard: React.FC = () => {
     bySelectedAccountGroup: optInBySelectedAccountGroup,
     currentAccountGroupPartiallySupported,
     currentAccountGroupOptedInStatus,
+    refresh: refreshOptInSummary,
   } = useRewardOptinSummary();
+  const refreshOptInSummaryRef = useRef(refreshOptInSummary);
+  refreshOptInSummaryRef.current = refreshOptInSummary;
+  const skipNextOptInFocusRefresh = useRef(true);
 
   // Use the bulk link state hook for resuming interrupted opt-in processes
   const { wasInterrupted, isRunning, resumeBulkLink } = useBulkLinkState();
@@ -310,10 +168,28 @@ const RewardsDashboard: React.FC = () => {
   // The saga is idempotent - it re-fetches opt-in status to skip already-linked accounts.
   useFocusEffect(
     useCallback(() => {
-      if (wasInterrupted && !isRunning) {
-        resumeBulkLink();
-      }
+      const handle = runAfterInteractions(() => {
+        if (wasInterrupted && !isRunning) {
+          resumeBulkLink();
+        }
+      });
+      return () => handle.cancel();
     }, [wasInterrupted, isRunning, resumeBulkLink]),
+  );
+
+  // The opt-in summary fetches on mount. Later visits no longer remount the
+  // tab, so refresh when it is focused again, after the shell has painted.
+  useFocusEffect(
+    useCallback(() => {
+      if (skipNextOptInFocusRefresh.current) {
+        skipNextOptInFocusRefresh.current = false;
+        return undefined;
+      }
+      const handle = runAfterInteractions(() => {
+        void refreshOptInSummaryRef.current();
+      });
+      return () => handle.cancel();
+    }, []),
   );
 
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
@@ -373,12 +249,14 @@ const RewardsDashboard: React.FC = () => {
 
   useEffect(() => {
     if (!hasTrackedDashboardViewed.current) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED).build(),
-      );
+      trackRewardsDashboardViewed(createEventBuilder, {
+        dashboard: RewardsDashboardKind.REWARDS,
+        hasSubscription: Boolean(subscriptionId),
+        referralMe,
+      });
       hasTrackedDashboardViewed.current = true;
     }
-  }, [trackEvent, createEventBuilder]);
+  }, [createEventBuilder, referralMe, subscriptionId]);
 
   // Hidden VIP unlock: 5 taps on the title within 3s, once per dashboard visit,
   // only attempted when the user isn't already VIP. A non-null
@@ -436,7 +314,7 @@ const RewardsDashboard: React.FC = () => {
       vipUnlockTimerRef.current = null;
     }
 
-    (async () => {
+    void (async () => {
       try {
         // The controller flips `subscription.features.vip.enabled` as a side
         // effect when the VIP dashboard fetch returns a non-null payload, so
@@ -470,14 +348,6 @@ const RewardsDashboard: React.FC = () => {
         : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
-        .addProperties({ tab: activeTab })
-        .build(),
-    );
-  }, [activeTab, trackEvent, createEventBuilder]);
 
   const headerEndAccessory = (
     <Box twClassName="flex-row gap-2">

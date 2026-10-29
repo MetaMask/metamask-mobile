@@ -461,6 +461,21 @@ describe('planEnroll', () => {
       planEnroll('passkey', buildContext({ platform: 'extension' })),
     ).toStrictEqual({ ok: false, code: 'passkey_unsupported' });
   });
+
+  it('refuses a second authenticator app', () => {
+    expect(
+      planEnroll(
+        'totp',
+        buildContext({ credentials: [{ type: 'totp', status: 'active' }] }),
+      ),
+    ).toStrictEqual({ ok: false, code: 'totp_already_enrolled' });
+  });
+
+  it('does not offer the authenticator app on the extension yet', () => {
+    expect(
+      planEnroll('totp', buildContext({ platform: 'extension' })),
+    ).toStrictEqual({ ok: false, code: 'passkey_unsupported' });
+  });
 });
 
 describe('getEnrollmentMaxSessionAgeMs', () => {

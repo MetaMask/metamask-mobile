@@ -2,7 +2,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
 
 import type { WatchlistTokenWithBalance } from '../../Assets/watchlist/utils/addBalanceToTokens';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import I18n from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import type { BridgeToken } from '../types';

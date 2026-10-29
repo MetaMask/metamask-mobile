@@ -68,9 +68,12 @@ export class DeviceCommandHandler implements PlatformDeviceCommandHandler {
   private createPlatformHandler(
     options: DeviceCommandHandlerOptions,
   ): PlatformDeviceCommandHandler {
-    if (options.currentDeviceDetails.isBrowserstack) {
+    if (
+      options.currentDeviceDetails.isBrowserstack ||
+      options.currentDeviceDetails.isRemoteCloud
+    ) {
       throw new Error(
-        'DeviceCommandHandler only supports local emulator/simulator devices; BrowserStack does not expose adb/simctl access.',
+        'DeviceCommandHandler only supports local emulator/simulator devices; remote cloud providers do not expose adb/simctl access.',
       );
     }
 

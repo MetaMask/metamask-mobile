@@ -403,6 +403,8 @@ describe('Migration #29', () => {
             },
             SwapsController: { chainCache: {} },
             TokenListController: { tokensChainsCache: {} },
+            // Checked before TokensController, so must be valid to reach it.
+            TokenRatesController: { contractExchangeRatesByChainId: {} },
             TokensController: null,
           },
         },

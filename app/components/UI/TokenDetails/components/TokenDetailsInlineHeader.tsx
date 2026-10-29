@@ -33,6 +33,7 @@ import StockBadge from '../../shared/StockBadge/StockBadge';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 
 export const TokenDetailsInlineHeader = ({
   token,
@@ -44,6 +45,7 @@ export const TokenDetailsInlineHeader = ({
   onCopyAddress,
   titleEndAccessory,
   description,
+  tdpVersion,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -59,10 +61,16 @@ export const TokenDetailsInlineHeader = ({
    * price here once the page has scrolled.
    */
   description?: ReactNode;
+  /**
+   * Token Details page analytics version (`'v3'` for the new V1/memecoin page,
+   * `'v2'` for legacy). Forwarded to the security badge bottom sheet so its
+   * events report the correct `tdp_version`.
+   */
+  tdpVersion?: TdpVersion;
 }) => {
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
-    useTokenSecurityBadgePress(token, securityData);
+    useTokenSecurityBadgePress(token, securityData, tdpVersion);
 
   const isNativeToken = token.isETH || token.isNative;
   const contractAddress = useMemo(() => {

@@ -43,6 +43,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictPortfolioEnabled: false,
       predictHomeRedesignEnabled: false,
       predictSportCardLivePricesEnabled: true,
+      isMembershipFeeWaiverEnabled: false,
       predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
       predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
@@ -351,6 +352,66 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictSportCardLivePricesEnabled).toBe(false);
+    });
+  });
+
+  describe('isMembershipFeeWaiverEnabled', () => {
+    it('defaults to false when the remote flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.isMembershipFeeWaiverEnabled).toBe(false);
+    });
+
+    it('returns true when the remote flag is enabled and the version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag)
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSubscriptionFeeWaiverEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.isMembershipFeeWaiverEnabled).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag)
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSubscriptionFeeWaiverEnabled: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.isMembershipFeeWaiverEnabled).toBe(false);
     });
   });
 

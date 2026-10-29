@@ -441,12 +441,26 @@ describe('PerpsProChartPanel', () => {
     ).toHaveStyle({ height: 344 });
   });
 
-  it('uses the 76px Figma market-summary height', () => {
-    renderChartPanel();
+  it('reports the market summary height for the header crossfade', () => {
+    const onSummaryLayout = jest.fn();
 
-    expect(
+    renderChartPanel({ onSummaryLayout });
+
+    fireEvent(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
-    ).toHaveStyle({ height: 76 });
+      'layout',
+      {
+        nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
+      },
+    );
+
+    expect(onSummaryLayout).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: expect.objectContaining({
+          layout: expect.objectContaining({ height: 96 }),
+        }),
+      }),
+    );
   });
 
   it('renders the Lightweight Chart path when its feature flag is disabled', () => {

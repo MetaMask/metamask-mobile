@@ -21,6 +21,7 @@ import type {
   MfaFlowErrorCode,
   MfaFlowState,
   MfaFlowStep,
+  MfaMethod,
   MfaReason,
 } from '../../../../../util/identity/mfa/engine/types';
 import shieldImage from '../../../../../images/mfa-shield.png';
@@ -58,13 +59,19 @@ export const MfaShield = () => {
   );
 };
 
-export const StepError = ({ code }: { code: MfaFlowErrorCode }) => (
+export const StepError = ({
+  code,
+  method,
+}: {
+  code: MfaFlowErrorCode;
+  method?: MfaMethod;
+}) => (
   <HelpText
     severity={HelpTextSeverity.Danger}
     fontWeight={FontWeight.Medium}
     testID={MfaFlowSelectorsIDs.ERROR}
   >
-    {getErrorMessage(code)}
+    {getErrorMessage(code, method)}
   </HelpText>
 );
 

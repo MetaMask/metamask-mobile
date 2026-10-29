@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { InteractionManager } from 'react-native';
 import { useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -170,6 +171,21 @@ function setupDefaults({
     hasError: false,
   });
 }
+
+beforeAll(() => {
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((task) => {
+      if (typeof task === 'function') {
+        task();
+      }
+      return {
+        then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+        done: () => Promise.resolve(),
+        cancel: jest.fn(),
+      } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+    });
+});
 
 describe('useCampaignOutcomeToast', () => {
   beforeEach(() => {

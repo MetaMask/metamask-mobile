@@ -37,7 +37,10 @@ import {
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
-import AppiumUtilities, { getDriver } from '../framework/AppiumUtilities';
+import AppiumUtilities, {
+  getDriver,
+  isOptionalElementVisible,
+} from '../framework/AppiumUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import { isPerformanceSuiteActive } from '../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
@@ -330,6 +333,12 @@ export const closeOnboardingModals = async (
   }
 };
 
+/**
+ * Ceiling on how long probing for an optional sheet may take when it is absent.
+ * See {@link isOptionalElementVisible}.
+ */
+const OPTIONAL_SHEET_MAX_ABSENT_MS = 2_000;
+
 /** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
 const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
 const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
@@ -352,9 +361,9 @@ export const dismissOnboardingInterestQuestionnaire =
         }
 
         if (
-          await Utilities.isElementVisible(
-            OnboardingInterestQuestionnaireView.skipButton,
-            250,
+          await isOptionalElementVisible(
+            () => OnboardingInterestQuestionnaireView.skipButton,
+            OPTIONAL_SHEET_MAX_ABSENT_MS,
           )
         ) {
           await Gestures.waitAndTap(
@@ -671,11 +680,15 @@ export const loginToApp = async (password?: string): Promise<void> => {
  */
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
-    const sheetTitle = Matchers.getElementByExactText('Never miss a move');
-    // Short poll: sheet is absent when notifications are pre-granted (e.g. Perps).
-    if (!(await Utilities.isElementVisible(sheetTitle, 500))) {
+    // The sheet is absent when notifications are pre-granted (e.g. Perps).
+    const sheetPresent = await isOptionalElementVisible(
+      () => Matchers.getElementByExactText('Never miss a move'),
+      OPTIONAL_SHEET_MAX_ABSENT_MS,
+    );
+    if (!sheetPresent) {
       return;
     }
+    const sheetTitle = Matchers.getElementByExactText('Never miss a move');
 
     try {
       try {
@@ -708,12 +721,15 @@ export const closePredictModal = async (
 ): Promise<boolean> => {
   const timeoutMs = options.timeoutMs ?? 2_000;
 
-  try {
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByExactText('PREDICT AND WIN'),
-      { timeout: timeoutMs, description: 'Predict GTM modal' },
-    );
+  const modalPresent = await isOptionalElementVisible(
+    () => Matchers.getElementByExactText('PREDICT AND WIN'),
+    timeoutMs,
+  );
+  if (!modalPresent) {
+    return false;
+  }
 
+  try {
     const notNow = Matchers.getElementByExactText('Not now');
     await Assertions.expectElementToBeVisible(notNow, {
       timeout: 2_000,
@@ -957,10 +973,9 @@ export const loginAndOpenAccountList = async (
 export const selectAccountByDevice = async (
   deviceName: string,
 ): Promise<void> => {
-  const deviceAccountMapping = AppiumUtilities.buildDeviceAccountMapping();
-  const accountName = deviceAccountMapping[deviceName];
+  const accountName = AppiumUtilities.resolveDeviceAccount(deviceName);
 
-  if (!(deviceName in deviceAccountMapping)) {
+  if (accountName === undefined) {
     throw new Error(`Account name not found for device: ${deviceName}`);
   }
 

@@ -1,11 +1,9 @@
-import { AppState } from 'react-native';
-import { take, fork, cancel } from 'redux-saga/effects';
+import { take } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import { UserActionType, checkForDeeplink } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
 import {
   authStateMachine,
-  appLockStateMachine,
   startAppServices,
   initializeSDKServices,
   initializeSDKServicesSaga,
@@ -17,7 +15,6 @@ import {
   __setMainNavigatorReadyForTesting,
   __resetSDKServicesInitializationForTesting,
   requestAuthOnAppStart,
-  appStateListenerTask,
 } from './';
 import {
   NavigationActionType,
@@ -32,7 +29,7 @@ import {
 import { resetUnlockAppStartTypeForTesting } from '../../core/Performance/unlockTraces';
 import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 import Engine from '../../core/Engine';
-import LockManagerService from '../../core/LockManagerService';
+import AppLockService from '../../core/AppLock/AppLockService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
 import { setCompletedOnboarding } from '../../actions/onboarding';
@@ -40,8 +37,6 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
-import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { providerErrors } from '@metamask/rpc-errors';
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
 jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
@@ -171,6 +166,7 @@ jest.mock('../../core/Authentication', () => ({
   __esModule: true,
   default: {
     unlockWallet: jest.fn().mockResolvedValue(undefined),
+    tryBiometricUnlock: jest.fn().mockResolvedValue(undefined),
     lockApp: jest.fn().mockResolvedValue(undefined),
     checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
   },
@@ -180,19 +176,15 @@ jest.mock('../../util/environment', () => ({
   getDevAutoUnlockPassword: jest.fn(),
 }));
 
-jest.mock('../../core/LockManagerService', () => ({
+jest.mock('../../core/AppLock/AppLockService', () => ({
   __esModule: true,
   default: {
-    startListening: jest.fn(),
-    stopListening: jest.fn(),
+    initialize: jest.fn(),
+    start: jest.fn(),
+    stop: jest.fn(),
     isAutoLockPending: jest.fn(() => false),
   },
 }));
-
-// Add this mock with the other mocks (around line 151)
-jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
-  jest.fn(),
-);
 
 const defaultMockState = {
   onboarding: {
@@ -230,35 +222,13 @@ describe('requestAuthOnAppStart', () => {
     jest.clearAllMocks();
   });
 
-  it('calls Authentication.unlockWallet', async () => {
+  it('calls Authentication.tryBiometricUnlock', async () => {
     await expectSaga(requestAuthOnAppStart).run();
-    expect(Authentication.unlockWallet).toHaveBeenCalled();
+    expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
   });
 
-  it('navigates to rehydrate when seedless password is outdated', async () => {
-    // Arrange
-    (
-      Authentication.checkIsSeedlessPasswordOutdated as jest.Mock
-    ).mockResolvedValueOnce(true);
-
-    // Act
-    await expectSaga(requestAuthOnAppStart).run();
-
-    // Assert
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.REHYDRATE,
-          params: { isSeedlessPasswordOutdated: true },
-        },
-      ],
-    });
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
-  });
-
-  it('navigates to Login when Authentication.unlockWallet throws', async () => {
-    // Mock Authentication.unlockWallet to throw an error
-    (Authentication.unlockWallet as jest.Mock).mockRejectedValueOnce(
+  it('navigates to Login when Authentication.tryBiometricUnlock throws', async () => {
+    (Authentication.tryBiometricUnlock as jest.Mock).mockRejectedValueOnce(
       new Error('fail'),
     );
     await expectSaga(requestAuthOnAppStart).run();
@@ -280,9 +250,7 @@ describe('requestAuthOnAppStart', () => {
     expect(Authentication.unlockWallet).toHaveBeenCalledWith({
       password: 'test-password',
     });
-    expect(
-      Authentication.checkIsSeedlessPasswordOutdated,
-    ).not.toHaveBeenCalled();
+    expect(Authentication.tryBiometricUnlock).not.toHaveBeenCalled();
   });
 
   it('falls back to normal app-start authentication when dev auto-unlock is not configured', async () => {
@@ -294,10 +262,8 @@ describe('requestAuthOnAppStart', () => {
 
     await expectSaga(requestAuthOnAppStart).run();
 
-    expect(Authentication.unlockWallet).toHaveBeenCalledWith();
-    expect(Authentication.unlockWallet).not.toHaveBeenCalledWith({
-      password: 'test-password',
-    });
+    expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
+    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 
   it('falls back to normal app-start authentication when no vault exists', async () => {
@@ -305,210 +271,39 @@ describe('requestAuthOnAppStart', () => {
 
     await expectSaga(requestAuthOnAppStart).run();
 
-    expect(Authentication.unlockWallet).toHaveBeenCalledWith();
-    expect(Authentication.unlockWallet).not.toHaveBeenCalledWith({
-      password: 'test-password',
-    });
+    expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
+    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 });
 
 describe('authStateMachine', () => {
   beforeEach(() => {
-    mockNavigate.mockClear();
-    mockReset.mockClear();
-  });
-
-  it('forks appLockStateMachine when logged in', async () => {
-    const generator = authStateMachine();
-    expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
-    expect(generator.next().value).toEqual(fork(appLockStateMachine));
-  });
-
-  it('cancels appLockStateMachine when logged out', async () => {
-    const generator = authStateMachine();
-    // Logged in
-    generator.next();
-    // Fork appLockStateMachine
-    generator.next();
-    expect(generator.next().value).toEqual(take(UserActionType.LOGOUT));
-    expect(generator.next().value).toEqual(cancel());
-  });
-});
-
-// Add these tests (after the appLockStateMachine describe block)
-describe('appStateListenerTask', () => {
-  let appStateCallback: (state: string) => void;
-
-  beforeEach(() => {
     jest.clearAllMocks();
-
-    // Capture the AppState callback when addEventListener is called
-    (AppState.addEventListener as jest.Mock).mockImplementation(
-      (_, callback) => {
-        appStateCallback = callback;
-        return { remove: jest.fn() };
-      },
-    );
   });
 
-  it('creates event channel to listen to app state changes', async () => {
-    await expectSaga(appStateListenerTask).silentRun(50);
+  it('waits for login before starting AppLockService', () => {
+    const generator = authStateMachine();
 
-    expect(AppState.addEventListener).toHaveBeenCalledWith(
-      'change',
-      expect.any(Function),
-    );
+    expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
+    expect(AppLockService.start).not.toHaveBeenCalled();
   });
 
-  it('calls unlockWallet when app becomes active', async () => {
-    // Simulate app state change to 'active' after saga starts
-    setTimeout(() => {
-      appStateCallback('active');
-    }, 10);
+  it('starts AppLockService when logged in and waits for logout', () => {
+    const generator = authStateMachine();
+    generator.next();
 
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    expect(Authentication.unlockWallet).toHaveBeenCalled();
+    expect(generator.next().value).toEqual(take(UserActionType.LOGOUT));
+    expect(AppLockService.start).toHaveBeenCalledTimes(1);
+    expect(AppLockService.stop).not.toHaveBeenCalled();
   });
 
-  it('navigates to rehydrate when seedless password is outdated', async () => {
-    // Arrange
-    (
-      Authentication.checkIsSeedlessPasswordOutdated as jest.Mock
-    ).mockResolvedValueOnce(true);
+  it('stops AppLockService when logged out and waits for the next login', () => {
+    const generator = authStateMachine();
+    generator.next();
+    generator.next();
 
-    // Act
-    setTimeout(() => {
-      appStateCallback('active');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    // Assert
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.REHYDRATE,
-          params: { isSeedlessPasswordOutdated: true },
-        },
-      ],
-    });
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
-  });
-
-  describe('when the app is already active', () => {
-    const originalCurrentState = AppState.currentState;
-
-    afterEach(() => {
-      Object.defineProperty(AppState, 'currentState', {
-        value: originalCurrentState,
-        configurable: true,
-        writable: true,
-      });
-    });
-
-    it('calls unlockWallet without waiting for another app state change', async () => {
-      // A lock applied after the resume leaves no `active` event to wait for,
-      // which would otherwise strand the user on the lock screen.
-      Object.defineProperty(AppState, 'currentState', {
-        value: 'active',
-        configurable: true,
-        writable: true,
-      });
-
-      await expectSaga(appStateListenerTask).silentRun(50);
-
-      expect(Authentication.unlockWallet).toHaveBeenCalled();
-      expect(AppState.addEventListener).not.toHaveBeenCalled();
-    });
-  });
-
-  it('does not call unlockWallet when app is in background', async () => {
-    // Simulate app state change to 'background'
-    setTimeout(() => {
-      appStateCallback('background');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
-  });
-
-  it('does not call unlockWallet when app is inactive', async () => {
-    // Simulate app state change to 'inactive'
-    setTimeout(() => {
-      appStateCallback('inactive');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
-  });
-
-  it('calls lockApp, navigates to login, and tracks error when unlockWallet fails', async () => {
-    const mockError = new Error('Authentication failed');
-    (Authentication.unlockWallet as jest.Mock).mockRejectedValueOnce(mockError);
-
-    // Simulate app becoming active
-    setTimeout(() => {
-      appStateCallback('active');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    expect(Authentication.unlockWallet).toHaveBeenCalled();
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
-    });
-    expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
-      'Lockscreen: Authentication failed',
-      'Authentication failed',
-    );
-  });
-});
-
-describe('appLockStateMachine', () => {
-  const mockApprovalControllerClear = Engine.context.ApprovalController
-    .clearRequests as jest.Mock;
-
-  beforeEach(() => {
-    mockNavigate.mockClear();
-    mockReset.mockClear();
-    mockApprovalControllerClear.mockClear();
-  });
-
-  it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
-    await expectSaga(appLockStateMachine)
-      .dispatch({ type: UserActionType.LOCKED_APP })
-      // Verify appStateListenerTask is called
-      .call(appStateListenerTask)
-      .run();
-
-    // Verify navigation to LockScreen
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
-  });
-
-  it('clears pending approvals via ApprovalController.clearRequests when app is locked', async () => {
-    await expectSaga(appLockStateMachine)
-      .dispatch({ type: UserActionType.LOCKED_APP })
-      .run();
-
-    expect(mockApprovalControllerClear).toHaveBeenCalledWith(
-      providerErrors.userRejectedRequest(),
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
-  });
-
-  it('navigates to LockScreen even when ApprovalController.clearRequests throws', async () => {
-    mockApprovalControllerClear.mockImplementationOnce(() => {
-      throw new Error('clear failed');
-    });
-
-    await expectSaga(appLockStateMachine)
-      .dispatch({ type: UserActionType.LOCKED_APP })
-      .run();
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+    expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
+    expect(AppLockService.stop).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -562,7 +357,7 @@ describe('startAppServices', () => {
       .run();
 
     // Verify authentication is requested
-    expect(Authentication.unlockWallet).toHaveBeenCalled();
+    expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
   });
 
   // SDKConnect/WC2 initialization starts from the unlocked deeplink saga path.
@@ -721,7 +516,7 @@ describe('handleDeeplinkSaga', () => {
     AppStateEventProcessor.pendingDeeplinkSource = null;
     mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
     mockGetCurrentRoute.mockReturnValue(undefined);
-    (LockManagerService.isAutoLockPending as jest.Mock).mockReturnValue(false);
+    (AppLockService.isAutoLockPending as jest.Mock).mockReturnValue(false);
   });
 
   describe('without deeplink', () => {
@@ -858,7 +653,7 @@ describe('handleDeeplinkSaga', () => {
           expect(SDKConnect.init).not.toHaveBeenCalled();
         });
 
-        it.each([Routes.ONBOARDING.LOGIN, Routes.LOCK_SCREEN])(
+        it.each([Routes.ONBOARDING.LOGIN])(
           'leaves a pending deeplink in place when onboarding completes on %s',
           async (routeName) => {
             AppStateEventProcessor.pendingDeeplink =
@@ -882,15 +677,35 @@ describe('handleDeeplinkSaga', () => {
           },
         );
 
+        it('leaves a pending deeplink in place while resume unlock is in progress', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          (AppLockService.isAutoLockPending as jest.Mock).mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              onboarding: { completedOnboarding: true },
+              user: { existingUser: true },
+            })
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).not.toHaveBeenCalled();
+        });
+
         it('leaves a pending deeplink in place while auto-lock is still pending', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://link.metamask.io/privacy';
           Engine.context.KeyringController.isUnlocked = jest
             .fn()
             .mockReturnValue(true);
-          (LockManagerService.isAutoLockPending as jest.Mock).mockReturnValue(
-            true,
-          );
+          (AppLockService.isAutoLockPending as jest.Mock).mockReturnValue(true);
 
           await expectSaga(handleDeeplinkSaga)
             .withState({

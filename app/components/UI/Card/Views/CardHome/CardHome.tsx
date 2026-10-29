@@ -747,6 +747,21 @@ const CardHome = () => {
           </Box>
         )}
 
+        {!isLoading &&
+          pendingDevicesLabel.length > 0 &&
+          !isUkMigrationForced && (
+            <Box
+              twClassName="mx-4 mt-2"
+              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
+            >
+              <CardMessageBox
+                messageType={CardMessageBoxType.WalletVerificationPending}
+                values={{ devices: pendingDevicesLabel }}
+                onConfirm={canOpenInWallet ? handleOpenInWallet : undefined}
+              />
+            </Box>
+          )}
+
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Animated.View
             style={[tw.style('w-full relative'), arrival.cardStyle]}
@@ -848,36 +863,6 @@ const CardHome = () => {
                 values={{ amount: refundFiatLabel }}
                 onConfirm={actions.redeemCreditAction}
               />
-            </Box>
-          )}
-
-        {!isLoading &&
-          pendingDevicesLabel.length > 0 &&
-          !isUkMigrationForced && (
-            <Box
-              twClassName="w-full px-4 pt-4"
-              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
-            >
-              <Text variant={TextVariant.BodyMd}>
-                {strings('card.push_provisioning.verification_pending_title')}
-              </Text>
-              <Text variant={TextVariant.BodySm} style={tw.style('mt-1')}>
-                {strings(
-                  'card.push_provisioning.verification_pending_description',
-                  { devices: pendingDevicesLabel },
-                )}
-              </Text>
-              {canOpenInWallet && (
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  size={ButtonSize.Sm}
-                  isFullWidth
-                  onPress={handleOpenInWallet}
-                  testID={CardHomeSelectors.VERIFICATION_PENDING_OPEN_WALLET}
-                >
-                  {strings('card.push_provisioning.open_in_apple_wallet')}
-                </Button>
-              )}
             </Box>
           )}
 

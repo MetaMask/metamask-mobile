@@ -64,6 +64,24 @@ describe('toSocialFeedPosts', () => {
     expect(post.item.comment).toBe('this is alpha');
   });
 
+  it('carries the detected copy count onto the post', () => {
+    const [post] = toSocialFeedPosts([buildRow({ copyCount: 4 })]);
+
+    expect(post.copyCount).toBe(4);
+  });
+
+  it('keeps a reported zero copy count', () => {
+    const [post] = toSocialFeedPosts([buildRow({ copyCount: 0 })]);
+
+    expect(post.copyCount).toBe(0);
+  });
+
+  it('omits the copy count when the API did not send one', () => {
+    const [post] = toSocialFeedPosts([buildRow()]);
+
+    expect(post).not.toHaveProperty('copyCount');
+  });
+
   it('omits commentId when the row has no Call', () => {
     const [post] = toSocialFeedPosts([buildRow()]);
 

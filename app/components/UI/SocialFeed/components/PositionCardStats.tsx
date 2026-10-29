@@ -37,7 +37,8 @@ export interface PositionCardStatsProps {
 
 const StatValue: React.FC<{
   row: PositionCardStatRow;
-}> = ({ row }) => (
+  variant: TextVariant;
+}> = ({ row, variant }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
@@ -45,7 +46,7 @@ const StatValue: React.FC<{
   >
     {row.leadingValueAccessory}
     <Text
-      variant={TextVariant.BodySm}
+      variant={variant}
       fontWeight={FontWeight.Medium}
       color={TextColor.TextDefault}
       numberOfLines={1}
@@ -68,7 +69,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
   return (
     // The shell's own gap sits above the divider; matching it below keeps the
     // rule optically centred between the header and the first stat row.
-    <Box twClassName="gap-3">
+    <Box twClassName="gap-2">
       <PositionCardDivider
         testID={getSocialFeedPositionCardSectionDividerTestId(cardId)}
       />
@@ -94,27 +95,30 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
               >
                 {row.label}
               </Text>
-              <StatValue row={row} />
+              <StatValue row={row} variant={TextVariant.BodySm} />
             </Box>
           ))}
         </Box>
       ) : (
-        <Box twClassName="gap-2">
+        <Box>
           {rows.map((row) => (
             <Box
               key={row.key}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
+              gap={1}
+              twClassName="py-0.5"
               testID={row.testID}
             >
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
                 {row.label}
               </Text>
-              <StatValue row={row} />
+              <StatValue row={row} variant={TextVariant.BodyXs} />
             </Box>
           ))}
         </Box>

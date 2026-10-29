@@ -10,6 +10,8 @@
  * REAL (runs production code paths):
  *   - HyperLiquidProvider — its order / close / validation logic, asset
  *     mapping, all in-memory state transitions
+ *   - `buildPerpsFeeResolutionHarness` additionally runs PerpsController's
+ *     real fee resolver and provider pricing path
  *
  * MOCKED (the I/O boundary — never makes real network/SDK calls):
  *   - HyperLiquidClientService     — SDK clients, network mode
@@ -124,6 +126,8 @@ jest.mock('@metamask/perps-controller/utils/hyperLiquidValidation', () => ({
 
 import {
   HyperLiquidProvider,
+  PerpsController,
+  type PerpsTradingFeeGrant,
   type PerpsPlatformDependencies,
 } from '@metamask/perps-controller';
 import { HyperLiquidClientService } from '@metamask/perps-controller/services/HyperLiquidClientService';
@@ -321,6 +325,21 @@ export interface PerpsHarnessOptions {
   cachedPrices?: Record<string, string>;
 }
 
+type PerpsRewardsDependencies = NonNullable<
+  PerpsPlatformDependencies['rewards']
+>;
+type GetPerpsDiscountForAccount = NonNullable<
+  PerpsRewardsDependencies['getPerpsDiscountForAccount']
+>;
+type GetPerpsTradingFeeGrant = NonNullable<
+  PerpsRewardsDependencies['getPerpsTradingFeeGrant']
+>;
+
+export interface PerpsFeeResolutionHarness {
+  controller: PerpsController;
+  getPerpsTradingFeeGrant: jest.MockedFunction<GetPerpsTradingFeeGrant>;
+}
+
 export function buildPerpsIntegrationHarness(
   options: PerpsHarnessOptions = {},
 ): PerpsIntegrationHarness {
@@ -494,5 +513,44 @@ export function buildPerpsIntegrationHarness(
       exchangeClient,
       infrastructure,
     },
+  };
+}
+
+/**
+ * Builds a real PerpsController around the Shape A I/O mocks so fee previews
+ * exercise Core's RewardsIntegrationService and provider fee calculation.
+ */
+export function buildPerpsFeeResolutionHarness(
+  grant: PerpsTradingFeeGrant,
+): PerpsFeeResolutionHarness {
+  const { mocks } = buildPerpsIntegrationHarness();
+  const rewards = mocks.infrastructure.rewards;
+  const getPerpsDiscountForAccount = rewards?.getPerpsDiscountForAccount;
+  const getPerpsTradingFeeGrant = rewards?.getPerpsTradingFeeGrant;
+  if (!getPerpsDiscountForAccount || !getPerpsTradingFeeGrant) {
+    throw new Error('Perps rewards infrastructure is required');
+  }
+
+  const mockGetPerpsDiscountForAccount =
+    getPerpsDiscountForAccount as jest.MockedFunction<GetPerpsDiscountForAccount>;
+  const mockGetPerpsTradingFeeGrant =
+    getPerpsTradingFeeGrant as jest.MockedFunction<GetPerpsTradingFeeGrant>;
+  mockGetPerpsDiscountForAccount.mockResolvedValue(null);
+  mockGetPerpsTradingFeeGrant.mockResolvedValue(grant);
+
+  const controller = new PerpsController({
+    messenger: createMockMessenger(),
+    state: {
+      activeProvider: 'hyperliquid',
+      isTestnet: false,
+      isEligible: true,
+    },
+    infrastructure: mocks.infrastructure,
+    deferEligibilityCheck: true,
+  });
+
+  return {
+    controller,
+    getPerpsTradingFeeGrant: mockGetPerpsTradingFeeGrant,
   };
 }

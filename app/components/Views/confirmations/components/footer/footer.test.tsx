@@ -144,6 +144,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     (useAlerts as jest.Mock).mockReturnValue({
@@ -269,6 +271,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -440,6 +444,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const moneyAccountDepositConfirmation = {
@@ -480,6 +486,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const moneyAccountWithdrawConfirmation = {
@@ -520,6 +528,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const { queryByTestId } = renderWithProvider(<Footer />, {

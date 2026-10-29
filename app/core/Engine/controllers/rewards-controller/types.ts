@@ -4,6 +4,10 @@ import {
 } from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+export type {
+  PerpsFeeResolverScope,
+  PerpsTradingFeeGrant,
+} from '@metamask/perps-controller';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
 export interface LoginResponseDto {
@@ -267,6 +271,21 @@ export type VipFeesResponseDto = {
   vipTier: number;
   fees: VipFeesGroupDto | null;
   updatedAt: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TradingFeeGrantDto = {
+  programId: string;
+  hyperliquid: {
+    builderCode: string;
+    builderFeeBips: string;
+  };
+  expiresAt: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TradingFeeGrantResponseDto = {
+  grant: TradingFeeGrantDto | null;
 };
 
 export type VipTransactionType = 'PERPS' | 'SWAP';

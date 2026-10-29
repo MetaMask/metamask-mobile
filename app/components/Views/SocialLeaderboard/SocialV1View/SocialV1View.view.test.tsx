@@ -10,19 +10,33 @@
  */
 import '../../../../../tests/component-view/mocks';
 
-import { fireEvent, screen, within } from '@testing-library/react-native';
+import React from 'react';
+import {
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
 import {
   clearLeaderboardApiMock,
+  getLeaderboardMessengerSpy,
   setupLeaderboardApiMock,
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
-import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
+import {
+  getRouteProbeTestId,
+  renderScreenWithRoutes,
+} from '../../../../../tests/component-view/render';
+import { initialStateSocialLeaderboard } from '../../../../../tests/component-view/presets/socialLeaderboard';
 import { renderSocialV1ViewWithRoutes } from '../../../../../tests/component-view/renderers/socialLeaderboard';
+import { AccessRestrictedProvider } from '../../../UI/Compliance';
 import { mockPerpFeedItem } from '../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { getSocialFeedPositionCardCopyTradeTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import { SocialFeedPostShellSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedPostShell.testIds';
+import { TopTradersViewSelectorsIDs } from '../TopTradersView/TopTradersView.testIds';
+import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 
 const OPEN_PERP_POSITION_ID = 'cv-open-perp';
@@ -184,5 +198,55 @@ describe('SocialV1View copy trade', () => {
     expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT)),
     ).toBeNull();
+  });
+});
+
+describe('SocialV1View initial tab', () => {
+  const feedPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`;
+  const getCalledActions = () =>
+    getLeaderboardMessengerSpy().mock.calls.map(([action]) => action);
+
+  const SocialV1ViewWithAccessRestricted = () => (
+    <AccessRestrictedProvider>
+      <SocialV1View />
+    </AccessRestrictedProvider>
+  );
+
+  const renderWithInitialTab = (initialTab: string) =>
+    renderScreenWithRoutes(
+      SocialV1ViewWithAccessRestricted,
+      { name: Routes.SOCIAL.V1 },
+      [],
+      { state: initialStateSocialLeaderboard().build() },
+      { initialTab },
+    );
+
+  beforeEach(() => {
+    setupLeaderboardApiMock({ feedItems: [openPerpFeedItem] });
+  });
+
+  afterEach(() => {
+    clearLeaderboardApiMock();
+  });
+
+  it('opens on Leaderboard instead of Trending when the initial tab is leaderboard', async () => {
+    renderWithInitialTab('leaderboard');
+
+    expect(
+      await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).toBeOnTheScreen();
+    await waitFor(() =>
+      expect(getCalledActions()).toContain('SocialService:fetchFeed'),
+    );
+    expect(screen.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
+  });
+
+  it('opens on Trending when the initial tab is not a Social V1 tab', async () => {
+    renderWithInitialTab('feed');
+
+    expect(await screen.findByTestId(feedPostTestId)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).not.toBeOnTheScreen();
   });
 });

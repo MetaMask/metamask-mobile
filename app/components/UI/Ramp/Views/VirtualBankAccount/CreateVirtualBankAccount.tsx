@@ -21,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { isPositiveNumberOrZero } from '../../../Money/utils/number';
@@ -93,14 +94,27 @@ const CreateVirtualBankAccount = ({
     }
 
     setIsAdvancing(true);
+    let didAdvance = false;
     try {
       // Persist vendor terms locally. Email creates the vendor session and
       // records these accepted ids before continuing.
       if (await acceptDisclaimers()) {
         await onSuccess();
+        didAdvance = true;
       }
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: {
+          name: 'CreateVirtualBankAccount',
+          data: { step: 'agreeAndContinue' },
+        },
+      });
     } finally {
-      setIsAdvancing(false);
+      // A successful advance unmounts this screen, so keep the button busy.
+      if (!didAdvance) {
+        setIsAdvancing(false);
+      }
     }
   }, [acceptDisclaimers, isAdvancing, onSuccess]);
 
@@ -267,6 +281,10 @@ const CreateVirtualBankAccount = ({
           size={ButtonSize.Lg}
           isFullWidth
           isLoading={isAccepting || isAdvancing}
+          // The loading state toggles whether Fabric flattens this row. If that
+          // lands in the same commit that removes the screen, Android crashes
+          // re-parenting the label ("The specified child already has a parent").
+          contentWrapperProps={{ collapsable: false }}
           isDisabled={!canAgreeAndContinue}
           onPress={handleAgreeAndContinue}
           testID={

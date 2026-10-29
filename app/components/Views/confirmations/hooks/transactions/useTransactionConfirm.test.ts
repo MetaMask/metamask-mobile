@@ -433,6 +433,29 @@ describe('useTransactionConfirm', () => {
       });
     });
 
+    it('returns to the adjust-margin sheet after a deposit started there', async () => {
+      useParamsMock.mockReturnValue({
+        launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.anything(),
+      );
+    });
+
     it('money home if perps deposit with MoneyAccount payWithOption', async () => {
       useParamsMock.mockReturnValue({
         payWithOption: PayWithOption.MoneyAccount,

@@ -6,6 +6,10 @@ import { OrdersTabConfig } from '../../components/OrdersTabs';
 
 interface CreateLimitOrdersTabOptions {
   orders: LimitOrder[];
+  /**
+   * How many orders match the tab's query across every page.
+   */
+  totalCount?: number;
   isLoading: boolean;
   isError: boolean;
   isFetchingNextPage: boolean;
@@ -33,6 +37,7 @@ export const getHistoryLimitOrderDate = (order: LimitOrder) =>
 
 export function createLimitOrdersTab({
   orders,
+  totalCount,
   isLoading,
   isError,
   isFetchingNextPage,
@@ -41,6 +46,7 @@ export function createLimitOrdersTab({
 }: CreateLimitOrdersTabOptions): OrdersTabConfig<LimitOrder> {
   return {
     items: orders,
+    totalCount,
     renderItem: (order) => <LimitOrderTabRow order={order} />,
     keyExtractor: (order) => order.id,
     getItemChainId: getLimitOrderChainId,

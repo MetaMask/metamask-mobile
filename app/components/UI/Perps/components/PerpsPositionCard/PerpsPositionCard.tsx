@@ -95,6 +95,8 @@ interface PerpsPositionCardProps {
   testID?: string;
   /** Market size decimals, used to derive Hyperliquid price precision for TP/SL display. */
   szDecimals?: number | null;
+  /** `tabs`: market details above the social tabs — no Details header, roomier rows. */
+  variant?: 'default' | 'tabs';
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -108,7 +110,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onSharePress,
   testID,
   szDecimals,
+  variant = 'default',
 }) => {
+  const isTabsVariant = variant === 'tabs';
+  const detailRowClassName = isTabsVariant ? 'h-12' : undefined;
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
   const privacyMode = useSelector(selectPrivacyMode);
   const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
@@ -305,7 +310,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <Box paddingHorizontal={4}>
           {/* P&L Section - Two cards side by side */}
-          <Box flexDirection={BoxFlexDirection.Row} gap={2} twClassName="mb-2">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            gap={2}
+            twClassName={isTabsVariant ? 'mt-1 mb-2' : 'mb-2'}
+          >
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
               testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
@@ -447,7 +456,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             isInteractive
             onPress={handleAutoCloseButtonPress}
             disabled={!onAutoClosePress}
-            twClassName="flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 mb-3"
+            twClassName={`flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 ${
+              isTabsVariant ? 'mb-2' : 'mb-3'
+            }`}
             testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
           >
             <Box twClassName="flex-1 gap-1">
@@ -474,11 +485,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </Card>
         </Box>
 
-        <SectionDivider />
-        <SectionHeader title={strings('perps.position.card.details_title')} />
+        {isTabsVariant ? null : (
+          <>
+            <SectionDivider />
+            <SectionHeader
+              title={strings('perps.position.card.details_title')}
+            />
+          </>
+        )}
         <Box testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}>
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.direction_label')}
             value={`${
               direction === 'long'
@@ -492,6 +510,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.entry_label')}
             value={
               <SensitiveText
@@ -512,7 +531,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
             keyLabel={strings('perps.position.card.liquidation_price_label')}
-            twClassName={isCross ? 'h-auto min-h-10 py-2' : undefined}
+            twClassName={
+              isCross
+                ? `h-auto py-2 ${isTabsVariant ? 'min-h-12' : 'min-h-10'}`
+                : detailRowClassName
+            }
             keyEndAccessory={
               isCross ? (
                 <PerpsCrossMarginInfoButton
@@ -529,6 +552,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.funding_payments_label')}
             value={
               <SensitiveText

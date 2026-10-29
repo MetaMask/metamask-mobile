@@ -73,6 +73,7 @@ function renderKeypadHook(
       customPercent: overrides.customPercent ?? '5',
       isLimitFiatMode: overrides.isLimitFiatMode ?? true,
       limitPrice: overrides.limitPrice ?? '100',
+      limitPriceDecimals: overrides.limitPriceDecimals ?? 2,
       nativeToken: overrides.nativeToken ?? nativeToken,
       onCustomPercentChange: mockOnCustomPercentChange,
       onLimitPriceChange: mockOnLimitPriceChange,
@@ -175,6 +176,45 @@ describe('useSwapsLimitOrderKeypad', () => {
     });
   });
 
+  it('reports the custom percent keypad as open until the keypad closes', () => {
+    const { result } = renderKeypadHook();
+
+    expect(result.current.isCustomPercentKeypadOpen).toBe(false);
+
+    act(() => {
+      result.current.keypadRef.current = {
+        open: jest.fn(),
+        close: jest.fn(),
+        isOpen: () => false,
+      };
+      result.current.focusCustomPercent();
+    });
+
+    expect(result.current.isCustomPercentKeypadOpen).toBe(true);
+
+    act(() => {
+      result.current.handleKeypadClose();
+    });
+
+    expect(result.current.isCustomPercentKeypadOpen).toBe(false);
+    expect(result.current.isCustomPercentFocused).toBe(true);
+  });
+
+  it('does not report the custom percent keypad as open for the limit price', () => {
+    const { result } = renderKeypadHook();
+
+    act(() => {
+      result.current.keypadRef.current = {
+        open: jest.fn(),
+        close: jest.fn(),
+        isOpen: () => false,
+      };
+      result.current.focusLimitPrice();
+    });
+
+    expect(result.current.isCustomPercentKeypadOpen).toBe(false);
+  });
+
   it('routes keypad changes to the amount handler by default', () => {
     const { result } = renderKeypadHook();
     const keypadData: KeypadChangeData = {
@@ -234,6 +274,7 @@ describe('useSwapsLimitOrderKeypad', () => {
     const { result } = renderKeypadHook({
       isLimitFiatMode: false,
       limitPrice: '0.05',
+      limitPriceDecimals: 18,
     });
 
     act(() => {
@@ -245,6 +286,29 @@ describe('useSwapsLimitOrderKeypad', () => {
       currency: 'ETH',
       decimals: 18,
     });
+  });
+
+  it('accepts as many limit price decimals as a cheap token needs', () => {
+    const { result } = renderKeypadHook({
+      limitPrice: '0.0000038',
+      limitPriceDecimals: 9,
+    });
+
+    act(() => {
+      result.current.focusLimitPrice();
+    });
+
+    expect(result.current.keypadProps).toEqual({
+      value: '0.0000038',
+      currency: 'SWAPS_FIAT_INPUT',
+      decimals: 9,
+    });
+    expect(mockUseSourceAmountCursor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onSourceAmountChange: mockOnLimitPriceChange,
+        sourceTokenDecimals: 9,
+      }),
+    );
   });
 
   it('closes the keypad through the keypad ref', () => {

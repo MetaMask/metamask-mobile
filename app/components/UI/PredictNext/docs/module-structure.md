@@ -74,7 +74,7 @@ Use one `index.ts` at a meaningful module boundary. Consumers outside the module
 import { EventCardGame, EventCardStandard } from '../../events/cards';
 ```
 
-The boundary exports only APIs that callers are supported in depending on. Avoid barrels at every directory level and do not create a PredictNext root barrel before stable external consumers require one.
+The boundary exports only APIs that callers are supported in depending on. Avoid barrels at every directory level. The only root-level file is the curated external entry point described below. It is not a barrel that re-exports modules.
 
 ### Keep implementation private
 
@@ -97,6 +97,14 @@ A public domain component should:
 
 Internal composability alone does not make a component public.
 
+## External API and the legacy branch
+
+Code outside Predict uses the PredictNext public API described in [the public API contract](./public-api-contract.md) and [ADR-0002](./adr/0002-permanent-public-api-private-legacy.md). During the dual-codebase period, that API is consumer-shaped: availability, entry actions, Predict-owned components, and projections typed in the consumer's own terms. Canonical domain types become public only when every supported Venue can supply them truthfully.
+
+Code outside PredictNext imports only from `app/components/UI/PredictNext/index.ts`. That file names each public export explicitly and grows only when a ticket migrates a real caller. Do not use `export *`. Named composition wiring (Engine service initialization and messengers, navigator registration) is the allowlisted exception. Inside PredictNext, modules keep importing each other through their module-root `index.ts` files.
+
+Put the temporary Venue switch and legacy pass-through under the owning module, for example `portfolio/internal/legacy/`. Predict-specific code that currently lives in shared surfaces, such as Homepage Predictions, moves into legacy `Predict/` unchanged, and the PredictNext wrapper renders it. Keep dependencies one-way: legacy code never imports PredictNext public wrappers.
+
 ## Adding or moving a module
 
 1. Start from the active Jira vertical slice and identify one owner.
@@ -106,4 +114,4 @@ Internal composability alone does not make a component public.
 5. Move colocated tests without changing their behavior.
 6. Update this document when the implemented ownership map changes.
 
-Do not create empty feature directories, a `widgets` category, speculative compatibility modules, or broad restricted-import lint rules. Add enforcement only after convention proves insufficient.
+Do not create empty feature directories, a `widgets` category, speculative compatibility modules, or broad restricted-import lint rules. Add enforcement only after convention proves insufficient. External imports of legacy `UI/Predict/` already have. By the end of PRED-1340, an `import-x/no-restricted-paths` fence restricts code outside Predict to the PredictNext entry point plus the named composition allowlist (see the public API contract).

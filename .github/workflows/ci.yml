@@ -65,10 +65,6 @@ concurrency:
     }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
-env:
-  # String "true" except on pull_request, where unit and CV skip Istanbul coverage.
-  COLLECT_COVERAGE: ${{ github.event_name != 'pull_request' }}
-
 jobs:
   get_requirements:
     name: Get workflow and job requirements
@@ -343,9 +339,10 @@ jobs:
       # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
       matrix:
         include:
-          # Stay on 8x16: peak RAM above the 8 GB line.
-          - scripts: lint # 12.3 GB peak
-            profile: namespace-profile-metamask-ci-linux
+          # `lint` is not in this matrix. It runs as `lint-shards` below so the
+          # wall clock is one shard. The aggregate job name stays exactly
+          # Run `lint`, backticks included: the name the scripts job template
+          # renders for the lint script (MCWP-813).
           - scripts: lint:tsc # 8.9 GB peak
             profile: namespace-profile-metamask-ci-linux
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
@@ -402,6 +399,112 @@ jobs:
           else
             echo "No changes detected"
           fi
+
+  # Same files, rules, and exit semantics as `yarn lint`, split by file size.
+  # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
+  # file set and bin-packs by size. Per-file cache stays off the persisted
+  # paths: #33370 reverted it because cross-file and type-aware rules go stale.
+  lint-shards:
+    name: Run lint (${{ matrix.shard }})
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      # The "4" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard.
+      # messenger-action-types:check runs only on shard 1. That leg is required,
+      # so a failure still fails the aggregate Run `lint` job and Check all jobs pass.
+      - name: Lint shard
+        run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
+        env:
+          # Namespace large is 16x32 (MCWP-812): 24576. ubuntu-latest matches
+          # the other test jobs at 20480. Local yarn lint stays at 12288.
+          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '24576' || '20480' }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  # Same check name the scripts matrix rendered for `lint`: backticks included.
+  # Shard jobs are `Run lint (N)` and do not use that name.
+  lint:
+    name: Run `lint`
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    needs:
+      - get_requirements
+      - lint-shards
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        needs.get_requirements.result == 'success' &&
+        needs.get_requirements.outputs.skip_everything != 'true'
+      }}
+    steps:
+      - name: Require every lint shard to pass
+        env:
+          LINT_SHARDS_RESULT: ${{ needs.lint-shards.result }}
+        run: |
+          if [ "$LINT_SHARDS_RESULT" != "success" ]; then
+            echo "lint shards result: $LINT_SHARDS_RESULT"
+            exit 1
+          fi
+          echo "lint shards passed"
 
   smart-e2e-contract-tests:
     name: Smart E2E contract tests
@@ -1027,6 +1130,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: false
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
@@ -1055,18 +1159,13 @@ jobs:
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
-      # COLLECT_COVERAGE is false on pull_request. Other events keep reporters
-      # so merge can build lcov for Sonar.
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent ${{ env.COLLECT_COVERAGE == 'true' && '--coverageReporters=json' || '--coverage=false' }} --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=12288
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
-          mkdir -p ./tests/coverage
-          if [ "$COLLECT_COVERAGE" = "true" ]; then
-            mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
-          fi
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
@@ -1215,15 +1314,9 @@ jobs:
           done
 
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
-      # PRs do not collect unit/CV coverage, so skip the merged lcov, the
-      # coverage threshold, and the Sonar lcov artifact. The job still succeeds
-      # and SonarCloud static analysis runs afterwards.
       - run: yarn test:merge-coverage
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
       - run: yarn test:validate-coverage
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
       - name: Upload lcov.info (artifact stores)
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: lcov.info
@@ -1256,10 +1349,8 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate CV test coverage report
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - name: Upload cv-test-coverage-html (artifact stores)
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-coverage-html
@@ -1268,7 +1359,6 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Upload cv-test-coverage-summary (artifact stores)
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-coverage-summary
@@ -1298,10 +1388,8 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate unit test coverage summary
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
       - name: Upload unit-test-coverage-summary (artifact stores)
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: unit-test-coverage-summary
@@ -1339,9 +1427,9 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        # Trying 4 shards: between the pre-#36684 count (3) and #36684 (6).
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
-        shard: [1, 2, 3, 4]
+        # The shard list length must match the denominator in --shard below.
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1365,21 +1453,17 @@ jobs:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
         run: mkdir -p tests/results
-      # test:view:ci already collects coverage. PRs append --coverage=false.
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/4 \
+            --shard=${{ matrix.shard }}/6 \
             --json \
-            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json ${{ env.COLLECT_COVERAGE != 'true' && '--coverage=false' || '' }}
+            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
-          mkdir -p ./tests/coverage
-          if [ "$COLLECT_COVERAGE" = "true" ]; then
-            mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
-          fi
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
@@ -1547,33 +1631,22 @@ jobs:
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Smart E2E Selection performance contract:
-    # - ["ALL"] → run every performance test
-    # - ["@Tag", ...] → run those tests
-    # - [] → run none
-    # - blank output → run none
-    # - selection error → run none
-    # The run-performance-tests label still forces ["ALL"].
-    # PRs targeting release/* or stable only run performance tests via the label.
+    # PR performance runs only from labels, on non-fork PRs whose base is
+    # not stable. run-performance-tests runs the full suite. Each
+    # run-performance-<area>-tests label runs that area. Smart E2E Selection
+    # does not start this job. Scheduled and manual runs use
+    # run-performance-e2e-manual.yml.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
         !cancelled() &&
-        (
-          needs.get_requirements.outputs.run_performance == 'true' ||
-          (
-            github.event.pull_request.base.ref == 'main' &&
-            needs.smart-e2e-selection.result == 'success' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != ''
-          )
-        )
+        needs.get_requirements.outputs.run_performance == 'true'
       }}
-    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
+    needs: [get_requirements, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: ${{ needs.get_requirements.outputs.run_performance == 'true' && '["ALL"]' || needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
-      performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
+      performance_tags: ${{ needs.get_requirements.outputs.performance_tags }}
+      performance_tags_reasoning: ${{ needs.get_requirements.outputs.performance_tags_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
@@ -1908,13 +1981,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: Download lcov.info (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && env.COLLECT_COVERAGE == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           name: lcov.info
           path: coverage/
       - name: Download lcov.info (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && env.COLLECT_COVERAGE == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/download-artifact@v7
         with:
           name: lcov.info
@@ -2015,7 +2088,6 @@ jobs:
           MAX_ATTEMPTS=20
           SLEEP_INTERVAL=15
           ERROR_STREAK=0
-          COVERAGE_ONLY_STREAK=0
           ERROR_STREAK_TO_FAIL=8
           for i in $(seq 1 $MAX_ATTEMPTS); do
             RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
@@ -2027,37 +2099,14 @@ jobs:
               echo "Quality Gate passed."
               exit 0
             elif [[ "$STATUS" == "ERROR" ]]; then
-              # PRs do not upload unit/CV lcov. A gate that fails only on coverage
-              # metrics must not fail the check. Any other ERROR condition still fails.
-              COVERAGE_ONLY=$(echo "$RESPONSE" | jq -r '
-                def is_coverage: (.metricKey // "") | test("coverage");
-                (.projectStatus.conditions // []) as $c
-                | if ($c | length) == 0 then "unknown"
-                  elif ($c | map(select(.status == "ERROR" and (is_coverage | not))) | length) > 0 then "no"
-                  elif ($c | map(select(.status == "ERROR" and is_coverage)) | length) > 0 then "yes"
-                  else "unknown"
-                  end
-              ' 2>/dev/null || echo "unknown")
-              if [[ "$COVERAGE_ONLY" == "yes" ]]; then
-                COVERAGE_ONLY_STREAK=$((COVERAGE_ONLY_STREAK + 1))
-                ERROR_STREAK=0
-                if [[ $COVERAGE_ONLY_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
-                  echo "Quality Gate ERROR is coverage-only across $COVERAGE_ONLY_STREAK polls. PR unit/CV coverage is not collected."
-                  exit 0
-                fi
-                echo "Got coverage-only ERROR ($COVERAGE_ONLY_STREAK/$ERROR_STREAK_TO_FAIL). It may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
-              else
-                COVERAGE_ONLY_STREAK=0
-                ERROR_STREAK=$((ERROR_STREAK + 1))
-                if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
-                  echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
-                  exit 1
-                fi
-                echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
+              ERROR_STREAK=$((ERROR_STREAK + 1))
+              if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
+                exit 1
               fi
+              echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
             else
               ERROR_STREAK=0
-              COVERAGE_ONLY_STREAK=0
               echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
             fi
 
@@ -2130,6 +2179,8 @@ jobs:
       - check-diff
       - dedupe
       - scripts
+      - lint-shards
+      - lint
       - unit-tests
       - component-view-tests
       - merge-unit-and-component-view-tests

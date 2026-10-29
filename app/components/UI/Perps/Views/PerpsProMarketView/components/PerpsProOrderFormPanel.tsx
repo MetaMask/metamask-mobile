@@ -230,6 +230,7 @@ const PerpsProOrderFormPanel = ({
     onTPSLPress,
     notices,
     summary,
+    rebateQuote,
     scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading,
@@ -255,6 +256,7 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
+    feeDiscountKind,
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
@@ -431,6 +433,7 @@ const PerpsProOrderFormPanel = ({
         onTPSLPress={onTPSLPress}
         notices={notices}
         summary={summary}
+        rebateQuote={rebateQuote}
         placeOrderLabel={strings('perps.pro_order_form.place_order')}
         placeOrderIntent={direction}
         isPlaceOrderDisabled={isPlaceOrderDisabled}
@@ -528,6 +531,7 @@ const PerpsProOrderFormPanel = ({
                     protocolFeeRate: feeProtocolFeeRate,
                     originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
                     feeDiscountPercentage,
+                    feeDiscountKind,
                   }
                 : undefined
             }

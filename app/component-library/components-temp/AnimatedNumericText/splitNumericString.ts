@@ -7,11 +7,13 @@ export interface SplitNumericString {
 /**
  * Matches the first run of digits plus internal group/decimal separators,
  * including a trailing decimal separator so a half-typed "12." stays in the
- * numeric run. Locale grouping whitespace and apostrophes must be followed by
- * three digits so ticker suffixes such as "1INCH" are not consumed.
+ * numeric run. Subscript digits stay in that run (`$0.0₇5`), as does one
+ * trailing magnitude letter (`K`, `M`, `B`, `T`) when it is not followed by
+ * another letter. Locale grouping whitespace and apostrophes must be followed
+ * by three digits so ticker suffixes such as "1INCH" are not consumed.
  */
 const NUMERIC_RUN_PATTERN =
-  /\d+(?:(?:[.,]\d*)|(?:[ '\u00A0\u2019\u202F]\d{3}))*/u;
+  /\d+(?:(?:[.,](?:\d|[\u2080-\u2089])*)|(?:[ '\u00A0\u2019\u202F]\d{3}))*(?:[KMBT](?![A-Za-z]))?/u;
 
 /**
  * Splits a display string into the part worth animating and the static text

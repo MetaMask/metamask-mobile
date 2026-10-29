@@ -288,14 +288,6 @@ jest.mock('./Views/OrderDetails', () => {
   return MockView;
 });
 
-const mockStartListening = jest.fn();
-const mockStopListening = jest.fn();
-
-jest.mock('../../../core/LockManagerService', () => ({
-  startListening: () => mockStartListening(),
-  stopListening: () => mockStopListening(),
-}));
-
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
@@ -322,17 +314,6 @@ describe('TokenListRoutes', () => {
   it('renders correctly', () => {
     const { toJSON } = renderWithProviders();
     expect(toJSON()).toBeTruthy();
-  });
-
-  it('stops lock manager listening on mount', () => {
-    renderWithProviders();
-    expect(mockStopListening).toHaveBeenCalled();
-  });
-
-  it('starts lock manager listening on unmount', () => {
-    const { unmount } = renderWithProviders();
-    unmount();
-    expect(mockStartListening).toHaveBeenCalled();
   });
 });
 

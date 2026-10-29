@@ -5,6 +5,8 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, screen, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
@@ -12,13 +14,28 @@ import {
   createScreenVsBottomSheetAssignmentForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionRouter } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { ScreenVsBottomSheetVariant } from '../../abTestConfig';
 import {
   PerpsClosePositionBottomSheetSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  PerpsFeeDiscountLabelSelectorsIDs,
 } from '../../Perps.testIds';
 
 const TIMEOUT_MS = 5000;
+
+const GRANT_FEE_QUOTE = {
+  feeRate: 0.0007,
+  feeAmount: 1.75,
+  protocolFeeRate: 0.00045,
+  protocolFeeAmount: 1.125,
+  metamaskFeeRate: 0.00025,
+  metamaskFeeAmount: 0.625,
+  chargesMetamaskBuilderFee: true,
+  feeSource: 'grant',
+  metamaskFeeDiscountBips: 7500,
+  undiscountedMetamaskFeeRate: 0.001,
+} as const;
 
 const renderWithVariant = (variant?: ScreenVsBottomSheetVariant) => {
   const position = createLongPositionForViews();
@@ -50,8 +67,12 @@ const renderWithVariant = (variant?: ScreenVsBottomSheetVariant) => {
 };
 
 describe('PerpsClosePositionRouter', () => {
+  const calculateFees = Engine.context.PerpsController
+    .calculateFees as jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    calculateFees.mockReset().mockResolvedValue({});
   });
 
   it('renders the full-page close flow when no assignment exists', async () => {
@@ -102,5 +123,43 @@ describe('PerpsClosePositionRouter', () => {
         ),
       ).toBeNull();
     });
+  });
+
+  it('presents a Core grant quote in the full-page close flow', async () => {
+    calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+
+    renderWithVariant(ScreenVsBottomSheetVariant.Control);
+
+    expect(
+      await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('presents a Core grant quote in the close bottom sheet', async () => {
+    calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+
+    renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
+
+    expect(
+      await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER,
+      ),
+    ).toHaveTextContent('Includes 0.145% 0.070% fee after promo');
+    expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
+    expect(calculateFees).toHaveBeenCalled();
   });
 });

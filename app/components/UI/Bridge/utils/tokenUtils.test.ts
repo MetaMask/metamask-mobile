@@ -4,7 +4,9 @@ import {
   getNativeSourceToken,
   getDefaultDestToken,
   getDefaultTokenPairForChains,
+  isNetworkSupportedForNonMarketSwapTab,
   isSameBridgeToken,
+  isTokenSupportedForNonMarketSwapTab,
   tokenMatchesQuery,
 } from './tokenUtils';
 import { getSecurityWarnings } from './tokenSecurityUtils';
@@ -291,6 +293,62 @@ describe('tokenUtils', () => {
         getNativeSourceToken('eip155:999999'),
       );
       expect(result?.destToken).toBeUndefined();
+    });
+  });
+
+  describe('isNetworkSupportedForNonMarketSwapTab', () => {
+    beforeEach(() => {
+      jest
+        .mocked(isNonEvmChainId)
+        .mockImplementation(
+          (chainId) =>
+            typeof chainId === 'string' && chainId.startsWith('solana:'),
+        );
+    });
+
+    it('returns true for an enabled EVM network', () => {
+      expect(isNetworkSupportedForNonMarketSwapTab('0x1', ['eip155:1'])).toBe(
+        true,
+      );
+    });
+
+    it('returns false for a disabled network', () => {
+      expect(
+        isNetworkSupportedForNonMarketSwapTab('0x1', ['eip155:8453']),
+      ).toBe(false);
+    });
+
+    it('returns false for a non-EVM network', () => {
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
+
+      expect(
+        isNetworkSupportedForNonMarketSwapTab(solanaChainId, [solanaChainId]),
+      ).toBe(false);
+    });
+  });
+
+  describe('isTokenSupportedForNonMarketSwapTab', () => {
+    it('returns true for a non-RWA token on an enabled network', () => {
+      expect(
+        isTokenSupportedForNonMarketSwapTab(createMockToken(), ['eip155:1']),
+      ).toBe(true);
+    });
+
+    it('returns false for an RWA token on an enabled network', () => {
+      expect(
+        isTokenSupportedForNonMarketSwapTab(
+          createMockToken({
+            name: 'Ondo Tokenized Apple',
+          }),
+          ['eip155:1'],
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false for a token on a disabled network', () => {
+      expect(
+        isTokenSupportedForNonMarketSwapTab(createMockToken(), ['eip155:8453']),
+      ).toBe(false);
     });
   });
 

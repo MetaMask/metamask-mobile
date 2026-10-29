@@ -32,6 +32,7 @@ import {
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ButtonGlass from '../../../component-library/components-temp/ButtonGlass';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
@@ -239,17 +240,18 @@ const OnboardingSheet = () => {
           </Text>
           <Box twClassName="flex-1 h-px bg-border-muted" />
         </Box>
-        <Button
+        <ButtonGlass
           variant={ButtonVariant.Secondary}
           onPress={createWallet ? onPressCreateAction : onPressImportAction}
           testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
           isFullWidth
           size={ButtonSize.Lg}
+          containerStyle={tw.style('self-stretch')}
         >
           {createWallet
             ? strings('onboarding.continue_with_srp')
             : strings('onboarding.import_srp')}
-        </Button>
+        </ButtonGlass>
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}

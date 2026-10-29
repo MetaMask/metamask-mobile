@@ -41,6 +41,7 @@ import {
   GetSeriesParams,
   PredictActivityPage,
   PredictCategory,
+  PredictFeePolicy,
   PredictMarket,
   PredictPosition,
   PredictPositionStatus,
@@ -89,6 +90,8 @@ import {
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
+  GetWithdrawSimulationParams,
+  GetWithdrawSimulationResponse,
 } from '../types';
 import {
   COLLATERAL_TOKEN_DECIMALS,
@@ -171,7 +174,10 @@ import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
 import { buildTradeAllowancesTx } from './preflight/trade';
-import { buildWithdrawTransaction } from './preflight/withdraw';
+import {
+  buildUnsignedWithdrawTransaction,
+  buildWithdrawTransaction,
+} from './preflight/withdraw';
 import {
   executeDepositWalletBatch,
   getDepositWalletRelayerTransactionId,
@@ -557,11 +563,13 @@ export class PolymarketProvider implements PredictProvider {
     feeCollection,
     fakOrdersEnabled,
     signer,
+    feePolicy,
   }: {
     preview: OrderPreview;
     feeCollection: PredictFeatureFlags['feeCollection'];
     fakOrdersEnabled: boolean;
     signer: Signer;
+    feePolicy?: PredictFeePolicy;
   }): OrderPreview {
     const orderType = this.#shouldUseFakOrderType({
       permit2Enabled: feeCollection.permit2Enabled,
@@ -575,6 +583,7 @@ export class PolymarketProvider implements PredictProvider {
       ...preview,
       feeRateBps: getPreviewFeeRateBpsForProtocol(),
       orderType,
+      ...(feePolicy ? { feePolicy } : {}),
     };
 
     return this.isRateLimited(signer.address)
@@ -725,6 +734,7 @@ export class PolymarketProvider implements PredictProvider {
       signerAddress: isDepositWallet
         ? tradingWalletAddress
         : getAddress(signer.address),
+      builderCode: preview.feePolicy?.builderCode,
       signatureType: isDepositWallet
         ? SignatureType.POLY_1271
         : SignatureType.POLY_GNOSIS_SAFE,
@@ -765,11 +775,7 @@ export class PolymarketProvider implements PredictProvider {
     let executor: string | undefined;
     let permit2FeeReady = false;
 
-    if (
-      preview.fees !== undefined &&
-      preview.fees.totalFee > 0 &&
-      shouldUsePermit2
-    ) {
+    if (shouldUsePermit2 && preview.fees && preview.fees.totalFee > 0) {
       const feeAmount = BigInt(
         parseUnits(preview.fees.totalFee.toString(), 6).toString(),
       );
@@ -2297,6 +2303,7 @@ export class PolymarketProvider implements PredictProvider {
       feeCollection,
       fakOrdersEnabled,
       signer: params.signer,
+      feePolicy: params.feePolicy,
     });
   }
 
@@ -2321,6 +2328,7 @@ export class PolymarketProvider implements PredictProvider {
       feeCollection,
       fakOrdersEnabled,
       signer,
+      feePolicy: params.feePolicy,
     });
   }
 
@@ -3517,6 +3525,50 @@ export class PolymarketProvider implements PredictProvider {
       callData: signedWithdrawTransaction.params.data,
       amount,
       walletType: accountState.walletType,
+    };
+  }
+
+  /**
+   * Builds the Safe withdraw call that `signWithdraw` would sign, with a
+   * pre-validated owner signature, so gas fee tokens can be quoted before the
+   * user signs. Deposit-wallet withdraws return `undefined` because the
+   * relayer pays their gas.
+   *
+   * @param params - The parameters.
+   * @param params.amountRaw - The pUSD amount to withdraw, in raw units.
+   * @param params.signer - The Safe owner.
+   * @returns The call to simulate, or `undefined` for deposit wallets.
+   */
+  public async getWithdrawSimulation({
+    amountRaw,
+    signer,
+  }: GetWithdrawSimulationParams): Promise<GetWithdrawSimulationResponse> {
+    const protocol = this.#getProtocol();
+    const accountState =
+      this.#getCachedAccountState(signer.address) ??
+      (await this.getAccountState({ ownerAddress: signer.address }));
+
+    if (accountState.walletType === 'deposit-wallet') {
+      return undefined;
+    }
+
+    const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
+      safeAddress: accountState.address,
+      protocol,
+    });
+    const { to, data } = await buildUnsignedWithdrawTransaction({
+      signer,
+      safeAddress: accountState.address,
+      requestedAmountRaw: amountRaw,
+      protocol,
+      safeLegacyUsdceBalance,
+    });
+
+    return {
+      chainId: CHAIN_IDS.POLYGON,
+      from: signer.address as Hex,
+      to,
+      data,
     };
   }
 

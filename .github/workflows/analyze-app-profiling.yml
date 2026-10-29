@@ -3,8 +3,14 @@
 # Downloads Hermes CPU profiles from a performance E2E run, groups every
 # segment and retry by scenario, symbolicates with verified same-run Android
 # sourcemaps when available, then emits deterministic skill timing. Claude
-# adds optional short context only. BrowserStack app-profiling metrics are
+# adds optional short context only. TestMu app-profiling metrics are
 # intentionally not used.
+#
+# Per-run analyses are called (`workflow_call`) by the last job of
+# `run-performance-e2e-manual.yml`, so they run inside the performance run,
+# on its ref, and publish their artifacts there. In that context `github.*`
+# describes the performance run, so chained behaviour keys on
+# `inputs.performance_run_id` / `inputs.performance_event` instead.
 #
 # Cadence:
 # - After a *scheduled* 6-hour performance run: collect `report.json`, compare
@@ -30,7 +36,7 @@
 #   week vs the week before). Slack lists only regressions / spikes / new
 #   hot frames, plus the GitHub issues opened during that week with a
 #   one-line brief and link each. Stable scenarios are omitted. On main
-#   this posts to #mm-qa-legends-ai-alerts.
+#   this posts to #metamask-performance.
 #
 # `lookback_hours` remains available on workflow_dispatch for an ad-hoc
 # window. `--weekly` is the Monday path.
@@ -45,10 +51,25 @@ on:
   schedule:
     # Monday after the previous UTC week has closed (Mon 00:00 → Mon 00:00).
     - cron: '0 9 * * 1'
-  workflow_run:
-    workflows: ['Run Performance E2E Tests Manually']
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      performance_run_id:
+        description: 'Performance run that produced the Hermes profiles (the caller run)'
+        required: true
+        type: string
+      performance_event:
+        description: 'Event that started the performance run (schedule or workflow_dispatch)'
+        required: true
+        type: string
+      performance_result:
+        description: 'Result of the performance E2E job (success, failure, cancelled)'
+        required: true
+        type: string
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: true
+      E2E_CLAUDE_API_KEY:
+        required: false
   workflow_dispatch:
     inputs:
       run_id:
@@ -87,26 +108,26 @@ on:
         type: boolean
         default: false
       post_to_slack:
-        description: 'Send the analysis summary to Slack (#mm-qa-legends-ai-alerts on main)'
+        description: 'Send the analysis summary to Slack (#metamask-performance for weekly reports on main; #mm-qa-legends-ai-alerts otherwise)'
         required: false
         type: boolean
         default: true
 
-permissions:
-  contents: read
-  actions: read
-  pull-requests: read
-  # Scheduled findings open or comment on tracking issues.
-  issues: write
+permissions: {}
 
 env:
-  # A workflow_run listener always runs from the default branch, so
-  # `github.ref` would route a chained branch run to the channel. The branch
-  # that actually produced the profiles is the one that decides.
-  # C0C3WSWNKS5 is #mm-qa-legends-ai-alerts.
+  # A chained run executes on the performance run's ref, so `github.ref_name`
+  # is the branch that produced the profiles. A scheduled performance run
+  # reports `schedule` too, so weekly mode also requires an unchained run.
+  # Weekly main reports go to #metamask-performance (C07KB8HRZ4J); other main
+  # digests go to #mm-qa-legends-ai-alerts (C0C3WSWNKS5). Branch runs go to a
+  # personal DM.
   SLACK_TARGET: >-
-    ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch) || github.ref_name) == 'main'
-        && 'C0C3WSWNKS5'
+    ${{ (github.ref_name == 'main'
+          && inputs.performance_run_id == ''
+          && (github.event_name == 'schedule' || inputs.weekly == true)
+          && 'C07KB8HRZ4J')
+        || (github.ref_name == 'main' && 'C0C3WSWNKS5')
         || 'UEYQL2PEV' }}
   # #metamask-performance. Posted only when slack-performance.md exists,
   # which is when this run opened a GitHub bug.
@@ -114,8 +135,9 @@ env:
 
 concurrency:
   # Weekly jobs share one group. Per-run collection keys on the performance
-  # run so a chain and a dispatch of the same id collapse.
-  group: analyze-app-profiling-${{ github.event_name == 'schedule' && 'weekly' || github.event.inputs.weekly == 'true' && 'weekly' || github.event.workflow_run.id || github.event.inputs.run_id || github.run_id }}
+  # run so a chain and a dispatch of the same id collapse. The chained id
+  # comes first because a scheduled caller also reports `schedule`.
+  group: analyze-app-profiling-${{ inputs.performance_run_id || (github.event_name == 'schedule' && 'weekly') || (inputs.weekly && 'weekly') || inputs.run_id || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -123,10 +145,12 @@ jobs:
   # chained run would simply go quiet and look like nothing was ever requested.
   report-upstream-failure:
     name: Report unsuccessful performance run
+    permissions:
+      contents: read
     if: >-
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.event == 'workflow_dispatch' &&
-      github.event.workflow_run.conclusion != 'success'
+      inputs.performance_run_id != '' &&
+      inputs.performance_event == 'workflow_dispatch' &&
+      inputs.performance_result != 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -143,10 +167,10 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           # Link to the performance run that failed, not to this reporter.
-          GITHUB_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ inputs.performance_run_id }}
           GITHUB_RUN_LABEL: 'Failed performance run'
-          PERFORMANCE_RUN_ID: ${{ github.event.workflow_run.id }}
-          PERFORMANCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          PERFORMANCE_RUN_ID: ${{ inputs.performance_run_id }}
+          PERFORMANCE_CONCLUSION: ${{ inputs.performance_result }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/analyze-app-profiling
@@ -163,12 +187,17 @@ jobs:
 
   analyze:
     name: Analyze per-scenario profiling
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      # Scheduled findings open or comment on tracking issues.
+      issues: write
     if: >-
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       (github.event.workflow_run.event == 'workflow_dispatch' ||
-        github.event.workflow_run.event == 'schedule'))
+      inputs.performance_run_id == '' ||
+      (inputs.performance_result == 'success' &&
+       (inputs.performance_event == 'workflow_dispatch' ||
+        inputs.performance_event == 'schedule'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
     outputs:
@@ -208,17 +237,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
-          # A chained run analyzes the performance run that just finished.
-          RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+          # A chained run analyzes the performance run that called it.
+          RUN_ID: ${{ inputs.performance_run_id || inputs.run_id }}
           LOOKBACK_HOURS: ${{ inputs.lookback_hours }}
           SCENARIO: ${{ inputs.scenario }}
           SKIP_AI: ${{ inputs.skip_ai }}
-          WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
-          SCHEDULED_EXCEPTION: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
+          WEEKLY: ${{ inputs.performance_run_id == '' && (github.event_name == 'schedule' || inputs.weekly == true) }}
+          SCHEDULED_EXCEPTION: ${{ inputs.performance_event == 'schedule' }}
           # Issues are opened only for scheduled runs of `main`; a chained
           # branch run must not file bugs against the repository. The Monday
           # report only reads issues, so it always lists them.
-          SCHEDULED_EXCEPTION_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SCHEDULED_EXCEPTION_BRANCH: ${{ github.ref_name }}
           MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
           MAX_ANALYSIS_MINUTES: ${{ inputs.max_analysis_minutes }}
         run: |
@@ -259,8 +288,8 @@ jobs:
       - name: Record upload flags
         id: flags
         env:
-          WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
-          SCHEDULED_EXCEPTION: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
+          WEEKLY: ${{ inputs.performance_run_id == '' && (github.event_name == 'schedule' || inputs.weekly == true) }}
+          SCHEDULED_EXCEPTION: ${{ inputs.performance_event == 'schedule' }}
         run: |
           set -euo pipefail
           UPLOAD_PROFILES=true
@@ -322,14 +351,13 @@ jobs:
       - name: Post Slack analysis failure
         if: >-
           failure() &&
-          !(github.event_name == 'workflow_run' &&
-            github.event.workflow_run.event == 'schedule')
+          inputs.performance_event != 'schedule'
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GITHUB_RUN_LABEL: 'Failed analysis job'
-          ANALYZED_RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+          ANALYZED_RUN_ID: ${{ inputs.performance_run_id || inputs.run_id }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/analyze-app-profiling
@@ -346,6 +374,7 @@ jobs:
 
   upload-scenario-profiles:
     name: Upload ${{ matrix.scenario }}
+    permissions: {}
     needs: analyze
     if: >-
       needs.analyze.result == 'success' &&
@@ -373,6 +402,9 @@ jobs:
 
   publish-summary:
     name: Post profiling summary
+    permissions:
+      contents: read
+      actions: read # list this run's artifacts for the scenario links
     needs:
       - analyze
       - upload-scenario-profiles
@@ -413,14 +445,12 @@ jobs:
         if: >-
           needs.upload-scenario-profiles.result != 'failure' &&
           (
-            github.event_name == 'schedule' ||
-            (github.event_name == 'workflow_dispatch' && inputs.post_to_slack) ||
-            (github.event_name == 'workflow_run' &&
-             (
-               (github.event.workflow_run.event == 'workflow_dispatch' &&
-                needs.upload-scenario-profiles.result == 'success') ||
-               github.event.workflow_run.event == 'schedule'
-             ))
+            (inputs.performance_run_id == '' && github.event_name == 'schedule') ||
+            (inputs.performance_run_id == '' &&
+             github.event_name == 'workflow_dispatch' && inputs.post_to_slack) ||
+            (inputs.performance_event == 'workflow_dispatch' &&
+             needs.upload-scenario-profiles.result == 'success') ||
+            inputs.performance_event == 'schedule'
           )
         continue-on-error: true
         env:
@@ -440,6 +470,8 @@ jobs:
 
   report-scenario-upload-failure:
     name: Report scenario artifact upload failure
+    permissions:
+      contents: read
     needs:
       - analyze
       - upload-scenario-profiles
@@ -447,7 +479,9 @@ jobs:
       always() &&
       needs.analyze.result == 'success' &&
       needs.upload-scenario-profiles.result == 'failure' &&
-      (github.event_name != 'workflow_dispatch' || inputs.post_to_slack)
+      (inputs.performance_run_id != '' ||
+       github.event_name != 'workflow_dispatch' ||
+       inputs.post_to_slack)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

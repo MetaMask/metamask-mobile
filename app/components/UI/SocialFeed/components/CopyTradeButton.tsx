@@ -22,7 +22,7 @@ const CopyTradeButton: React.FC<CopyTradeButtonProps> = ({
     isFullWidth
     // Squared off to the card's own corner radius rather than the pill shape the
     // design system defaults to, so the CTA reads as part of the card.
-    twClassName="rounded-2xl"
+    twClassName="rounded-xl"
     startIconName={IconName.SwapHorizontal}
     onPress={onPress ?? (() => undefined)}
     testID={testID}
