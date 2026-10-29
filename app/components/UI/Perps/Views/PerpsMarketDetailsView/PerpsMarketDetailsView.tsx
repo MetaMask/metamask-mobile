@@ -146,6 +146,7 @@ import {
   usePerpsMarketAboutTracking,
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsAccountSupport } from '../../hooks/usePerpsAccountSupport';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -355,6 +356,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     navigateToClosePosition,
   } = usePerpsNavigation();
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
+  const {
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport();
 
   // Use position management hook for bottom sheet state and handlers
   const {
@@ -1346,6 +1352,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           return;
         }
 
+        if (useBottomSheet && !(await checkAccountSupport())) {
+          return;
+        }
+
         // While cross margin is off, an existing cross position cannot be traded.
         if (
           !isCrossMarginEnabled &&
@@ -1407,6 +1417,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       marketData,
       chartLibrary,
       useBottomSheet,
+      checkAccountSupport,
     ],
   );
 
@@ -2615,6 +2626,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           testID={
             PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
           }
+        />
+      )}
+      {isAccountUnsupportedModalVisible && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={closeAccountUnsupportedModal}
+          contentKey="account_not_supported"
         />
       )}
 

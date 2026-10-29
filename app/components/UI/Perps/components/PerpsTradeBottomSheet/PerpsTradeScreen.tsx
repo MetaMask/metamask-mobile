@@ -166,7 +166,7 @@ interface PerpsTradeScreenProps {
    * parent can record the picker being opened.
    */
   onPayWithPress: () => void;
-  onSubmit: () => void;
+  onSubmit: () => void | Promise<void | 'accountUnsupported'>;
 }
 
 export interface PerpsTradeError {
@@ -439,6 +439,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   const handlePayWithPress = () => {
     onPayWithPress();
     navigateWithHaptic('payWith');
+  };
+  const handleSubmit = async () => {
+    if ((await onSubmit()) === 'accountUnsupported') {
+      navigateTo('accountUnsupported');
+    }
   };
   const limitPriceDisplay = limitPrice
     ? isLimitPriceFocused
@@ -955,7 +960,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               isFullWidth
               isDisabled={isSubmitDisabled}
               isLoading={isSubmitting}
-              onPress={onSubmit}
+              onPress={handleSubmit}
               testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {submitLabel ?? directionLabel}
