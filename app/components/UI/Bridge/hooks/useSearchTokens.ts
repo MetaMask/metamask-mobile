@@ -226,7 +226,7 @@ export const useSearchTokens = ({
                 // TODO use location from navigation context
                 location: 'Main View',
                 feature_id: featureId,
-                query: trimmedQuery,
+                search_query: trimmedQuery,
               })
               .build(),
           );

@@ -382,8 +382,26 @@ describe('EmptyShellTabPage', () => {
       scroll.getByTestId(FeedSortFilterSelectorsIDs.SELECTOR),
     ).toBeOnTheScreen();
     expect(
-      scroll.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
-    ).toBeOnTheScreen();
+      scroll.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: false }));
+  });
+
+  it('marks the Following filter button selected when a filter is applied', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        isFilterActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: true }));
   });
 
   it('omits the Popular traders carousel on Following', () => {

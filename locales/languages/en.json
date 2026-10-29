@@ -1246,10 +1246,10 @@
     },
     "vba_details": {
       "title": "Add money with Pix",
-      "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
+      "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
       "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
-      "copia_cola_label": "PIX Copia e Cola",
-      "pix_key_label": "PIX key",
+      "copia_cola_label": "Pix Copia e Cola",
+      "pix_key_label": "Pix key",
       "bank_transfer_title": "Add money by bank transfer",
       "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
       "account_holder_label": "Account holder",
@@ -1288,7 +1288,8 @@
       "submit_report": "Submit",
       "post_hidden_confirmation": "Post hidden",
       "user_blocked_confirmation": "{{username}} has been blocked",
-      "report_confirmation": "Report submitted"
+      "report_confirmation": "Report submitted",
+      "action_failed": "Something went wrong. Try again."
     },
     "feed_sort": {
       "title": "Sort",
@@ -1436,6 +1437,13 @@
         "sold_ago": "Sold · {{age}}"
       }
     },
+    "translation": {
+      "see_translation": "See translation",
+      "translating": "Translating...",
+      "translated_to_english": "Translated to English",
+      "failed": "Couldn't translate.",
+      "try_again": "Try again"
+    },
     "composer": {
       "placeholder": "Add a position and a few words to post",
       "post": "Post",
@@ -1443,7 +1451,7 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Position",
       "chip_gif": "GIF",
-      "gifs_title": "GIFs",
+      "gifs_title": "Add a GIF",
       "gifs_close": "Close GIFs",
       "gifs_search_placeholder": "Search GIFs",
       "gifs_empty": "No GIFs found",
@@ -1514,7 +1522,12 @@
           "timeframe": "Time frame",
           "network": "Network",
           "market_cap": "Market cap",
-          "volume_24h": "24h volume"
+          "volume_24h": "24h volume",
+          "positions": "Positions"
+        },
+        "position_status": {
+          "open": "Open",
+          "closed": "Closed"
         },
         "type": {
           "all": "All",
@@ -1674,7 +1687,6 @@
       "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
-      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
       "section_tokens": "Tokens",
       "section_perpetuals": "Perpetuals",
@@ -1685,7 +1697,6 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
-      "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
@@ -1712,6 +1723,8 @@
       "username_label": "Username",
       "display_name_label": "Display name",
       "username_available": "Username available",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
       "username_invalid": "Use letters, numbers, and underscores.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_check_error": "Couldn't check that username. Check your connection and try again.",
@@ -1759,6 +1772,9 @@
       "save": "Save",
       "save_error": "Couldn't save changes. Check your connection and try again.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
+      "username_invalid": "Use letters, numbers, and underscores.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -1889,6 +1905,12 @@
       "order_summary": "Order summary",
       "includes_fee": "Includes {{feePercentage}}% fee",
       "includes_fee_with_bridge": "Includes {{feePercentage}}% fee + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_with_bridge": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_discounted": "Includes {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_discounted_with_bridge": "Includes {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_a11y": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%",
+      "includes_fee_after_promo_a11y_with_bridge": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, plus {{bridgeFee}} bridge fee",
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
@@ -3090,8 +3112,9 @@
         "discount_message": "You're saving {{percentage}}% on fees as a VIP.",
         "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
         "promotional_discount": "Promotional discount",
+        "original_fee_value": "was {{fee}}",
         "fee_discount": "Fee discount",
-        "promotional_discount_message": "Promotional discount: {{percentage}}% off the MetaMask fee.",
+        "promotional_discount_message": "{{percentage}}% off the MetaMask fee.",
         "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."
       },
       "size_skew": {
@@ -3685,12 +3708,11 @@
       "positions": "Positions",
       "activity_empty": {
         "title": "No activity yet",
-        "description": "Your fills and settlements will appear here."
+        "description": "Your trades and settlements will appear here."
       },
       "load_failed": "Couldn't load.",
       "load_failed_retry": "Try again",
       "outcome_shares": "{{outcome}} · {{shares}} shares",
-      "active_positions": "Active positions",
       "cash_out": "Cash Out",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
@@ -3701,9 +3723,29 @@
       },
       "activity": "History",
       "activity_rows": {
-        "settled": "Settled",
-        "shares_at_price": "{{shares}} @ {{price}}"
-      }
+        "shares_at_price": "{{shares}} @ {{price}}",
+        "bought": "Bought {{outcome}}",
+        "sold": "Sold {{outcome}}",
+        "settled_outcome": "Settled · {{outcome}}"
+      },
+      "total_value": "Total value",
+      "positions_value": "Positions",
+      "claimable_value": "Claimable",
+      "unrealized_pnl": "Unrealized P&L",
+      "summary_incomplete": "Partial total: some positions couldn't be valued right now.",
+      "summary_unavailable": "Portfolio value unavailable",
+      "value_unavailable": "No price",
+      "unknown_market": "Market details unavailable",
+      "outcome_side": {
+        "yes": "Yes",
+        "no": "No"
+      },
+      "position_status": {
+        "claimable": "Claimable",
+        "settled": "Settled"
+      },
+      "pnl_with_percent": "{{amount}} ({{percent}})",
+      "settlements_complete_from": "Settlements are complete from {{date}}. Earlier ones may be missing."
     },
     "order_preview": {
       "amount": "USD amount",
@@ -6243,10 +6285,10 @@
           "title": "Market capitalization",
           "description": "Current market capitalization of the circulating token supply."
         },
-          "liquidity": {
-            "title": "Total liquidity",
-            "description": "Value currently available in the token's trading pools."
-          },
+        "liquidity": {
+          "title": "Total liquidity",
+          "description": "Value currently available in the token's trading pools."
+        },
         "volume_24h": {
           "title": "24-hour trading volume",
           "description": "Value traded over the last 24 hours."
@@ -6263,38 +6305,38 @@
           "title": "Liquidity to market capitalization",
           "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
         },
-          "tax": {
-            "title": "Buy and sell tax",
-            "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
-          },
-          "high_low_24h": {
-            "title": "24-hour high and low",
-            "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
-          },
-          "circulating_supply": {
-            "title": "Circulating supply",
-            "description": "Amount of this token currently circulating."
-          },
-          "lp_burned_locked": {
-            "title": "Liquidity pool tokens burned or locked",
-            "description": "Share of the primary pool liquidity that is burned or locked."
-          },
-          "primary_pool": {
-            "title": "Primary pool",
-            "description": "The main trading pool reported for this token."
-          },
-          "volume_flags": {
-            "title": "Volume flags",
-            "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
-          },
-          "listed_on_exchange": {
-            "title": "Listed on exchange",
-            "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
-          },
-          "created": {
-            "title": "Created",
-            "description": "Date the token contract was created, when reported by its source."
-          }
+        "tax": {
+          "title": "Buy and sell tax",
+          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+        },
+        "high_low_24h": {
+          "title": "24-hour high and low",
+          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+        },
+        "circulating_supply": {
+          "title": "Circulating supply",
+          "description": "Amount of this token currently circulating."
+        },
+        "lp_burned_locked": {
+          "title": "Liquidity pool tokens burned or locked",
+          "description": "Share of the primary pool liquidity that is burned or locked."
+        },
+        "primary_pool": {
+          "title": "Primary pool",
+          "description": "The main trading pool reported for this token."
+        },
+        "volume_flags": {
+          "title": "Volume flags",
+          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+        },
+        "listed_on_exchange": {
+          "title": "Listed on exchange",
+          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+        },
+        "created": {
+          "title": "Created",
+          "description": "Date the token contract was created, when reported by its source."
+        }
       }
     },
     "tabs": {
@@ -8615,7 +8657,11 @@
     "failure": {
       "title": "Something went wrong",
       "retry": "Try again",
-      "close": "Close"
+      "close": "Close",
+      "support_title": "We couldn't verify your details",
+      "support_description": "Contact support to continue.",
+      "contact_support": "Contact support",
+      "done": "Done"
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
@@ -8623,9 +8669,9 @@
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
+      "learn_more": "Learn more",
       "cooldown": "Too many requests. Wait a moment and try again.",
       "limit_reached": "You've reached the limit for this method.",
-      "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
       "signed_out": "Sign in to continue.",
       "unsupported": "This method isn't supported on this device.",
       "flow_in_progress": "Another verification is already in progress.",

@@ -11,7 +11,6 @@ export const MyProfileViewSelectorsIDs = {
   SHARE_TRADER_BUTTON: 'my-profile-view-share-trader-button',
   MORE_BUTTON: 'my-profile-view-more-button',
   CREATE_POST_BUTTON: 'my-profile-view-create-post-button',
-  DEBUG_RESET_PROFILE_BUTTON: 'my-profile-view-debug-reset-profile-button',
   INSIGHTS_BUTTON: 'my-profile-view-insights-button',
   AVATAR: 'my-profile-view-avatar',
   EDIT_AVATAR_BUTTON: 'my-profile-view-edit-avatar-button',

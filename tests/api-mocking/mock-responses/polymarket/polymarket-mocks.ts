@@ -342,7 +342,7 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /^https:\/\/clob\.polymarket\.com\/prices-history/,
+    url: /^https:\/\/data-api\.polymarket\.com\/v2\/prices-history/,
     responseCode: 500,
     response: {
       error: 'Internal Server Error',
@@ -896,19 +896,20 @@ export const POLYMARKET_CLOB_MARKET_INFO_MOCKS = async (
 };
 
 /**
- * Minimal CLOB prices-history payload for game charts.
+ * Minimal Data API v2 prices-history payload for game charts.
  * PredictGameChart treats empty series as still loading (`!hasChartData` → spinner).
  */
 const POLYMARKET_MOCK_PRICE_HISTORY_RESPONSE = {
-  history: [
-    { t: 1_729_814_400, p: 0.55 },
-    { t: 1_729_900_800, p: 0.58 },
-    { t: 1_729_987_200, p: 0.615 },
+  data: [
+    { timestamp: 1_729_814_400, price: 0.55, resolution_seconds: 86_400 },
+    { timestamp: 1_729_900_800, price: 0.58, resolution_seconds: 86_400 },
+    { timestamp: 1_729_987_200, price: 0.615, resolution_seconds: 0 },
   ],
+  pagination: { limit: 10_000, offset: 0, has_more: false, next_cursor: null },
 };
 
 /**
- * Mock for Polymarket CLOB prices-history API
+ * Mock for Polymarket Data API v2 prices-history
  * Returns a short history series so PredictGameChart exits the loading state.
  */
 export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
@@ -916,7 +917,9 @@ export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getProxiedDataApiUrl(request.url);
-      return Boolean(url?.includes('clob.polymarket.com/prices-history'));
+      return Boolean(
+        url?.includes('data-api.polymarket.com/v2/prices-history'),
+      );
     })
     .asPriority(PRIORITY.BASE)
     .thenReply(200, JSON.stringify(POLYMARKET_MOCK_PRICE_HISTORY_RESPONSE), {
@@ -2764,7 +2767,7 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
-  await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for CLOB prices-history API (chart series)
+  await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for Data API v2 prices-history (chart series)
   await POLYMARKET_TEAMS_MOCKS(mockServer); // Mock for gamma-api /teams (sports league team metadata)
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_CLOB_MARKET_INFO_MOCKS(mockServer);

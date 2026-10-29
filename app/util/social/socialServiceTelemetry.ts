@@ -18,7 +18,8 @@ export type SocialSurface =
   | 'trader_profile'
   | 'trader_position'
   | 'followed_traders'
-  | 'follow';
+  | 'follow'
+  | 'moderation';
 
 /**
  * SocialService / SocialController operations we instrument.
@@ -35,9 +36,11 @@ export type SocialEndpoint =
   | 'trader_profile'
   | 'follow'
   | 'unfollow'
+  | 'moderation_block'
   | 'blocked_profiles'
   | 'block'
-  | 'unblock';
+  | 'unblock'
+  | 'blocked_content';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.

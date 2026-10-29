@@ -17,6 +17,7 @@ import {
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
 import { LiveViewSelectorsIDs } from '../LiveView/LiveView.testIds';
+import { SocialFeedRealtimeSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedRealtime';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 import type { SocialShellTab } from '../shell/types';
 import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
@@ -41,6 +42,13 @@ let mockRouteParams: {
   showNotificationsBanner?: boolean;
   initialTab?: SocialShellTab;
 } = {};
+
+jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
+  useSocialBlockLists: () => ({
+    blockedProfileIds: new Set(),
+    blockedCommentIds: new Set(),
+  }),
+}));
 
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
@@ -82,15 +90,16 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const { View } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
+  const { SocialFeedRealtimeContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedRealtime/SocialFeedRealtimeContext',
+  );
 
   interface MockSocialFeedProps {
     location?: string;
     realtime?: boolean;
+    paused?: boolean;
     filterPost?: (post: unknown) => boolean;
-    renderHeader?: (props: {
-      pendingNewCount: number;
-      onRevealPending: () => void;
-    }) => React.ReactNode;
+    renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
   }
@@ -102,10 +111,16 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
       return ReactActual.createElement(
         View,
         { testID: props.testID },
-        props.renderHeader?.({
-          pendingNewCount: 0,
-          onRevealPending: jest.fn(),
-        }),
+        ReactActual.createElement(
+          SocialFeedRealtimeContext.Provider,
+          {
+            value: {
+              paused: props.paused ?? false,
+              pendingNewCount: 0,
+            },
+          },
+          props.renderHeader?.(),
+        ),
         ReactActual.createElement(View, { testID: props.scrollTestID }),
       );
     },
@@ -476,7 +491,6 @@ describe('SocialV1View', () => {
           profileId: 'viewer-profile',
           displayName: 'Giga Whale',
           handle: 'giga_whale',
-          shareUrl: '',
         },
         isLoading: false,
         error: null,
@@ -530,7 +544,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON),
+      screen.getByTestId(SocialFeedRealtimeSelectorsIDs.LIVE_BUTTON),
     ).toBeOnTheScreen();
   });
 
@@ -596,6 +610,28 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
+  });
+
+  it('opens Trending Custom filters with Positions and without Verification', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON),
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'open')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'closed')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('verification', 'verified')),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('type', 'predictions')),
+    ).toBeNull();
   });
 
   it('opens the filters bottom sheet from the Following filter button', () => {
@@ -813,7 +849,6 @@ describe('SocialV1View', () => {
         displayName: 'Test User',
         handle: 'test-user',
         imageUrl: 'https://example.com/avatar.png',
-        shareUrl: 'https://metamask.io/social/test-user',
       },
       isLoading: false,
       error: null,

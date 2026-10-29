@@ -24,10 +24,10 @@ import type {
   PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
 import {
-  KALSHI_VENUE_ID,
   type PredictEntityId,
   type PredictTimestamp,
 } from '../../../components/UI/PredictNext/types';
+import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getPredictLiveDataServiceMessenger,

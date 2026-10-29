@@ -1,8 +1,13 @@
 import {
+  mockClosedPerpsFeedItem,
+  mockClosedSpotFeedItem,
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
 } from '../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
-import type { SocialV1FeedPost } from '../../../../UI/SocialFeed/types';
+import type {
+  SocialV1FeedPost,
+  SocialV1SpotShareFeedItem,
+} from '../../../../UI/SocialFeed/types';
 import { DEFAULT_FILTERS } from './filterDefaults';
 import { filterSocialV1FeedPosts } from './filterSocialV1FeedPosts';
 import type { SocialShellFilters } from './types';
@@ -105,6 +110,71 @@ describe('filterSocialV1FeedPosts', () => {
     );
 
     expect(result.map((item) => item.id)).toStrictEqual(['perp']);
+  });
+
+  it('keeps only open posts for the open position chip', () => {
+    const closed = post({
+      id: 'closed',
+      item: mockClosedSpotFeedItem({ id: 'closed-item' }),
+    });
+
+    const result = filterSocialV1FeedPosts(
+      [...all, closed],
+      filters({ positionStatus: 'open' }),
+    );
+
+    expect(result.map((item) => item.id)).toStrictEqual([
+      'spot',
+      'perp',
+      'shrimp',
+    ]);
+  });
+
+  it('keeps only closed posts for the closed position chip', () => {
+    const closedPerp = post({
+      id: 'closed-perp',
+      item: mockClosedPerpsFeedItem({ id: 'closed-perp-item' }),
+    });
+    const closedSpot = post({
+      id: 'closed-spot',
+      item: mockClosedSpotFeedItem({ id: 'closed-spot-item' }),
+    });
+
+    const result = filterSocialV1FeedPosts(
+      [...all, closedPerp, closedSpot],
+      filters({ positionStatus: 'closed' }),
+    );
+
+    expect(result.map((item) => item.id)).toStrictEqual([
+      'closed-perp',
+      'closed-spot',
+    ]);
+  });
+
+  it('drops a composer share from both open and closed', () => {
+    const open = mockOpenSpotFeedItem({ id: 'share-source' });
+    const shareItem: SocialV1SpotShareFeedItem = {
+      id: 'share-item',
+      variant: 'spotShare',
+      author: open.author,
+      timestamp: open.timestamp,
+      asset: open.asset,
+      side: open.side,
+      valueLabel: open.valueLabel,
+      pnlLabel: open.pnlLabel,
+      isPnlPositive: open.isPnlPositive,
+    };
+    const share = post({ id: 'share', item: shareItem });
+
+    expect(
+      filterSocialV1FeedPosts([share], filters({ positionStatus: 'open' })),
+    ).toStrictEqual([]);
+    expect(
+      filterSocialV1FeedPosts([share], filters({ positionStatus: 'closed' })),
+    ).toStrictEqual([]);
+    expect(
+      filterSocialV1FeedPosts([share], filters({ positionStatus: 'all' })),
+    ).toHaveLength(1);
   });
 
   it('ignores leftover verification and 24h volume', () => {

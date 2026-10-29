@@ -20,6 +20,7 @@ import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
 import { addTransaction } from '../../util/transaction-controller';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
+import { getWalletConnectSessionId } from './wc-analytics';
 import { getOriginProvenance, RemoteTransport } from '../OriginProvenance';
 
 jest.mock('../../util/transaction-controller', () => ({
@@ -1201,7 +1202,10 @@ describe('WalletConnect2Session', () => {
         updateConfirmationMetric({
           id: 'wc-tx-id-1',
           params: {
-            properties: { request_source: 'WalletConnect' },
+            properties: {
+              request_source: 'WalletConnect',
+              remote_session_id: getWalletConnectSessionId('test-channel'),
+            },
           },
         }),
       );

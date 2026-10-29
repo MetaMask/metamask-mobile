@@ -1,26 +1,23 @@
 import React, { useCallback, useState } from 'react';
 import {
   Image,
+  Modal,
   Pressable,
   useWindowDimensions,
   type ListRenderItem,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FlatList } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, FlatList } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
   Skeleton,
   Text,
   TextButton,
   TextColor,
   TextFieldSearch,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
@@ -40,7 +37,6 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
   onClose,
 }) => {
   const tw = useTailwind();
-  const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const { gifs, isLoading, error, loadMore, retry } = useKlipyGifs(query, true);
@@ -64,19 +60,12 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
         testID={GifPickerSheetSelectorsIDs.item(item.id)}
         style={tw.style('flex-1')}
       >
-        <Box twClassName="relative overflow-hidden rounded-xl">
+        <Box twClassName="overflow-hidden rounded-xl">
           <Image
             source={{ uri: item.previewUrl }}
             style={tw.style('w-full', { aspectRatio: 4 / 3 })}
             accessibilityIgnoresInvertColors
           />
-          {item.title ? (
-            <Box twClassName="absolute bottom-2 left-2 max-w-[85%] rounded-md bg-muted px-2 py-1">
-              <Text variant={TextVariant.BodySm} numberOfLines={1}>
-                {item.title}
-              </Text>
-            </Box>
-          ) : null}
         </Box>
       </Pressable>
     ),
@@ -89,103 +78,110 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
       : strings('social_leaderboard.composer.gifs_error');
 
   return (
-    <Box
-      twClassName="border-t border-muted bg-default"
-      style={tw.style({ height: panelHeight })}
-      testID={GifPickerSheetSelectorsIDs.SHEET}
+    <Modal
+      visible
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={onClose}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-2 pt-2"
-      >
-        <Box twClassName="w-10" />
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="flex-1 text-center"
-        >
-          {strings('social_leaderboard.composer.gifs_title')}
-        </Text>
-        <ButtonIcon
-          iconName={IconName.Close}
-          size={ButtonIconSize.Md}
-          onPress={onClose}
-          testID={GifPickerSheetSelectorsIDs.CLOSE_BUTTON}
-          accessibilityLabel={strings('social_leaderboard.composer.gifs_close')}
-        />
-      </Box>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={tw.style('flex-1')}>
+          <BottomSheet
+            onClose={onClose}
+            testID={GifPickerSheetSelectorsIDs.SHEET}
+          >
+            <Box style={tw.style({ height: panelHeight })}>
+              <BottomSheetHeader
+                onClose={onClose}
+                closeButtonProps={{
+                  testID: GifPickerSheetSelectorsIDs.CLOSE_BUTTON,
+                  accessibilityLabel: strings(
+                    'social_leaderboard.composer.gifs_close',
+                  ),
+                }}
+              >
+                {strings('social_leaderboard.composer.gifs_title')}
+              </BottomSheetHeader>
 
-      <Box twClassName="px-4 py-2">
-        <TextFieldSearch
-          value={query}
-          onChangeText={setQuery}
-          onPressClearButton={() => setQuery('')}
-          placeholder={strings(
-            'social_leaderboard.composer.gifs_search_placeholder',
-          )}
-          autoFocus={false}
-          inputProps={{
-            testID: GifPickerSheetSelectorsIDs.SEARCH_INPUT,
-            accessibilityLabel: strings(
-              'social_leaderboard.composer.gifs_search_placeholder',
-            ),
-          }}
-        />
-      </Box>
+              <Box twClassName="px-4 py-2">
+                <TextFieldSearch
+                  value={query}
+                  onChangeText={setQuery}
+                  onPressClearButton={() => setQuery('')}
+                  placeholder={strings(
+                    'social_leaderboard.composer.gifs_search_placeholder',
+                  )}
+                  autoFocus={false}
+                  inputProps={{
+                    testID: GifPickerSheetSelectorsIDs.SEARCH_INPUT,
+                    accessibilityLabel: strings(
+                      'social_leaderboard.composer.gifs_search_placeholder',
+                    ),
+                  }}
+                />
+              </Box>
 
-      {error && gifs.length === 0 ? (
-        <Box
-          twClassName="flex-1 items-center justify-center gap-2 px-4"
-          testID={GifPickerSheetSelectorsIDs.ERROR}
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {errorMessage}
-          </Text>
-          {error === 'missing_api_key' ? null : (
-            <TextButton
-              onPress={retry}
-              testID={GifPickerSheetSelectorsIDs.RETRY}
-            >
-              {strings('social_leaderboard.composer.retry')}
-            </TextButton>
-          )}
-        </Box>
-      ) : isLoading && gifs.length === 0 ? (
-        <Box twClassName="flex-row flex-wrap gap-2 px-4">
-          {SKELETON_KEYS.map((key) => (
-            <Box key={key} twClassName="w-[48%]">
-              <Skeleton height={120} width="100%" />
+              {error && gifs.length === 0 ? (
+                <Box
+                  twClassName="flex-1 items-center justify-center gap-2 px-4"
+                  testID={GifPickerSheetSelectorsIDs.ERROR}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {errorMessage}
+                  </Text>
+                  {error === 'missing_api_key' ? null : (
+                    <TextButton
+                      onPress={retry}
+                      testID={GifPickerSheetSelectorsIDs.RETRY}
+                    >
+                      {strings('social_leaderboard.composer.retry')}
+                    </TextButton>
+                  )}
+                </Box>
+              ) : isLoading && gifs.length === 0 ? (
+                <Box twClassName="flex-row flex-wrap gap-2 px-4">
+                  {SKELETON_KEYS.map((key) => (
+                    <Box key={key} twClassName="w-[48%]">
+                      <Skeleton height={120} width="100%" />
+                    </Box>
+                  ))}
+                </Box>
+              ) : gifs.length === 0 ? (
+                <Box
+                  twClassName="flex-1 items-center justify-center px-4"
+                  testID={GifPickerSheetSelectorsIDs.EMPTY}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('social_leaderboard.composer.gifs_empty')}
+                  </Text>
+                </Box>
+              ) : (
+                <FlatList
+                  data={gifs}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderItem}
+                  numColumns={2}
+                  style={tw.style('flex-1')}
+                  contentContainerStyle={tw.style('gap-2 pb-3')}
+                  columnWrapperStyle={tw.style('gap-2 px-4')}
+                  keyboardShouldPersistTaps="handled"
+                  onEndReached={loadMore}
+                  onEndReachedThreshold={0.4}
+                  testID={GifPickerSheetSelectorsIDs.LIST}
+                />
+              )}
             </Box>
-          ))}
-        </Box>
-      ) : gifs.length === 0 ? (
-        <Box
-          twClassName="flex-1 items-center justify-center px-4"
-          testID={GifPickerSheetSelectorsIDs.EMPTY}
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.composer.gifs_empty')}
-          </Text>
-        </Box>
-      ) : (
-        <FlatList
-          data={gifs}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          numColumns={2}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('gap-2', {
-            paddingBottom: Math.max(insets.bottom, 12),
-          })}
-          columnWrapperStyle={tw.style('gap-2 px-4')}
-          keyboardShouldPersistTaps="handled"
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.4}
-          testID={GifPickerSheetSelectorsIDs.LIST}
-        />
-      )}
-    </Box>
+          </BottomSheet>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </Modal>
   );
 };
 
