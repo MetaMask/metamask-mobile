@@ -19,14 +19,17 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
+  PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
   PredictMarket,
   PredictOutcome,
+  PredictPosition,
   PredictSignedAmount,
   PredictTimestamp,
+  PredictVenueId,
 } from '../../../app/components/UI/PredictNext/types';
 
 interface GameEventOptions {
@@ -527,23 +530,24 @@ export const composePredictNextPortfolioTrading = () => {
 
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
-) => ({
-  venueId: 'kalshi',
-  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
-  side: 'yes' as const,
-  shares: '75.00',
-  marketExposure: '41.25',
-  realizedPnl: '-2.50' as PredictSignedAmount,
-  updatedAt: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
-  context: {
-    eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
-    eventTitle: 'Lakers vs Celtics',
-    marketQuestion: 'Will the Lakers win?',
-    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES' as PredictEntityId,
-    outcomeLabel: 'Lakers',
-  },
-  ...overrides,
-});
+): PredictPosition =>
+  ({
+    venueId: 'kalshi' as PredictVenueId,
+    marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+    side: 'yes' as const,
+    shares: '75.00' as PredictAmount,
+    marketExposure: '41.25' as PredictAmount,
+    realizedPnl: '-2.50' as PredictSignedAmount,
+    updatedAt: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
+    context: {
+      eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
+      eventTitle: 'Lakers vs Celtics',
+      marketQuestion: 'Will the Lakers win?',
+      outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES' as PredictEntityId,
+      outcomeLabel: 'Lakers',
+    },
+    ...overrides,
+  }) as PredictPosition;
 
 export const makePredictNextFill = (
   overrides: Record<string, unknown> = {},
