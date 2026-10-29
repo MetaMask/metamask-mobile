@@ -527,8 +527,8 @@ describe('resolveSecurityChecks', () => {
     });
   });
 
-  // The one check whose pass means the capability is present, which is why its
-  // row carries no tick — see `resolveCheckPresentation`.
+  // The one check whose pass means the capability is present, so the row
+  // stays uncoloured with no fail glyph — see `resolveCheckPresentation`.
   describe('is mintable', () => {
     it('answers yes when IS_MINTABLE is present', () => {
       const checks = resolveSecurityChecks([feature('IS_MINTABLE', 'Info')]);
