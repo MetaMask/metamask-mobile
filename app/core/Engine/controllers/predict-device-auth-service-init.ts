@@ -7,7 +7,6 @@ import {
   PredictDeviceAuthService,
   type PredictDeviceAuthServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
-import { resolveCanonicalProfileId } from '../../../util/identity/resolveCanonicalProfileId';
 import type { PredictDeviceAuthServiceInitMessenger } from '../messengers/predict-device-auth-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
 
@@ -47,24 +46,31 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
       request: params ? { method, params } : { method },
     });
 
-  const getCanonicalProfileId = (): string | undefined => {
-    const authentication = initMessenger.call(
-      'AuthenticationController:getState',
+  let canonicalProfileId: string | undefined;
+  const rememberCanonicalProfileId = (profileId: string | undefined): void => {
+    canonicalProfileId = profileId || undefined;
+  };
+  const refreshCanonicalProfileId = async (): Promise<void> => {
+    const profile = await initMessenger.call(
+      'AuthenticationController:getSessionProfile',
     );
-    const keyring = initMessenger.call('KeyringController:getState');
-    return resolveCanonicalProfileId(authentication, keyring);
+    rememberCanonicalProfileId(profile.canonicalProfileId);
   };
 
   let isSignedIn = initMessenger.call(
     'AuthenticationController:getState',
   ).isSignedIn;
-  let canonicalProfileId = getCanonicalProfileId();
   const controller = new PredictDeviceAuthService(controllerMessenger, {
     profile: KALSHI_AUTHENTICATION_PROFILE,
     getIssuerUrl: getConfiguredIssuerUrl,
-    getAccessToken: () =>
-      initMessenger.call('AuthenticationController:getBearerToken'),
-    getCanonicalProfileId,
+    getAccessToken: async () => {
+      const accessToken = await initMessenger.call(
+        'AuthenticationController:getBearerToken',
+      );
+      await refreshCanonicalProfileId();
+      return accessToken;
+    },
+    getCanonicalProfileId: () => canonicalProfileId,
     getSrpIdentifier: async () => {
       const identifier = await invokeMessageSigningSnap('getPublicKey');
       if (typeof identifier !== 'string' || identifier.length === 0) {
@@ -114,16 +120,21 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     const currentAuthentication = initMessenger.call(
       'AuthenticationController:getState',
     );
-    const current = getCanonicalProfileId();
-    if (
-      (isSignedIn && !currentAuthentication.isSignedIn) ||
-      current !== canonicalProfileId
-    ) {
+    if (isSignedIn && !currentAuthentication.isSignedIn) {
+      rememberCanonicalProfileId(undefined);
       controller.clear();
     }
     isSignedIn = currentAuthentication.isSignedIn;
-    canonicalProfileId = current;
   });
+  initMessenger.subscribe(
+    'AuthenticationController:profileSignIn',
+    ({ profileId, profileIdChanged }) => {
+      if (profileIdChanged) {
+        controller.clear();
+      }
+      rememberCanonicalProfileId(profileId);
+    },
+  );
   initMessenger.subscribe('RemoteFeatureFlagController:stateChange', () => {
     const state = initMessenger.call('RemoteFeatureFlagController:getState');
     const config = parsePredictConfig(state.remoteFeatureFlags?.predictConfig);

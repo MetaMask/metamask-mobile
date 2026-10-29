@@ -39,13 +39,25 @@ describe('predictDeviceAuthServiceInit', () => {
         venueSelection: { enabled: false },
       },
     };
-    const subscribers = new Map<string, () => void>();
-    const subscribe = jest.fn((event: string, callback: () => void) => {
-      subscribers.set(event, callback);
-    });
+    const subscribers = new Map<string, (payload?: unknown) => void>();
+    const subscribe = jest.fn(
+      (event: string, callback: (payload?: unknown) => void) => {
+        subscribers.set(event, callback);
+      },
+    );
     const call = jest.fn((type: string) => {
       if (type === 'AuthenticationController:getState') {
         return authentication;
+      }
+      if (type === 'AuthenticationController:getBearerToken') {
+        return Promise.resolve('access-token');
+      }
+      if (type === 'AuthenticationController:getSessionProfile') {
+        return Promise.resolve({
+          canonicalProfileId:
+            authentication.srpSessionData['entropy-source-id'].profile
+              .canonicalProfileId,
+        });
       }
       if (type === 'KeyringController:getState') {
         return {
@@ -79,30 +91,27 @@ describe('predictDeviceAuthServiceInit', () => {
     expect(subscribe.mock.calls.map(([event]) => event)).toEqual([
       'KeyringController:lock',
       'AuthenticationController:stateChange',
+      'AuthenticationController:profileSignIn',
       'RemoteFeatureFlagController:stateChange',
     ]);
   });
 
-  it('reads dependency state before completing service initialization', () => {
+  it('reads signed-in state before completing service initialization', () => {
     const { call } = initialize();
     const firstAuthenticationRead = call.mock.invocationCallOrder.find(
       (_, index) =>
         call.mock.calls[index]?.[0] === 'AuthenticationController:getState',
     );
-    const firstKeyringRead = call.mock.invocationCallOrder.find(
-      (_, index) =>
-        call.mock.calls[index]?.[0] === 'KeyringController:getState',
-    );
     const serviceConstruction = jest.mocked(PredictDeviceAuthService).mock
       .invocationCallOrder[0];
 
     expect(firstAuthenticationRead).toBeDefined();
-    expect(firstKeyringRead).toBeDefined();
     expect(firstAuthenticationRead as number).toBeLessThan(
       serviceConstruction as number,
     );
-    expect(firstKeyringRead as number).toBeLessThan(
-      serviceConstruction as number,
+    expect(call).not.toHaveBeenCalledWith('KeyringController:getState');
+    expect(call).not.toHaveBeenCalledWith(
+      'AuthenticationController:getSessionProfile',
     );
   });
 
@@ -123,7 +132,7 @@ describe('predictDeviceAuthServiceInit', () => {
     expect(mockClear).toHaveBeenCalledTimes(1);
   });
 
-  it('clears credentials when the canonical profile changes', () => {
+  it('keeps credentials when session data changes without a profile sign-in', () => {
     const { authentication, subscribers } = initialize();
     authentication.srpSessionData[
       'entropy-source-id'
@@ -131,7 +140,48 @@ describe('predictDeviceAuthServiceInit', () => {
 
     subscribers.get('AuthenticationController:stateChange')?.();
 
+    expect(mockClear).not.toHaveBeenCalled();
+  });
+
+  it('clears credentials when profile sign-in replaces the canonical profile', () => {
+    const { subscribers } = initialize();
+
+    subscribers.get('AuthenticationController:profileSignIn')?.({
+      profileId: 'replacement-profile-id',
+      profileAliases: [],
+      profileIdChanged: true,
+    });
+
     expect(mockClear).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps credentials when profile sign-in does not change the canonical profile', () => {
+    const { subscribers } = initialize();
+
+    subscribers.get('AuthenticationController:profileSignIn')?.({
+      profileId: 'canonical-profile-id',
+      profileAliases: [],
+      profileIdChanged: false,
+    });
+
+    expect(mockClear).not.toHaveBeenCalled();
+  });
+
+  it('remembers the session profile id after the bearer token is read', async () => {
+    const { call } = initialize();
+    const deps = jest.mocked(PredictDeviceAuthService).mock.calls[0]?.[1] as {
+      getAccessToken: () => Promise<string>;
+      getCanonicalProfileId: () => string | undefined;
+    };
+
+    expect(deps.getCanonicalProfileId()).toBeUndefined();
+
+    await expect(deps.getAccessToken()).resolves.toBe('access-token');
+
+    expect(deps.getCanonicalProfileId()).toBe('canonical-profile-id');
+    expect(call).toHaveBeenCalledWith(
+      'AuthenticationController:getSessionProfile',
+    );
   });
 
   it('clears credentials when Predict authentication is disabled', () => {

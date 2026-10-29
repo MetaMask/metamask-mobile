@@ -1,8 +1,14 @@
+import Logger from '../../../../util/Logger';
 import {
   PredictDeviceAuthService,
   type PredictDeviceAuthServiceMessenger,
 } from './PredictDeviceAuthService';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
 
 const mockGetA2t = jest.fn();
 const mockClearSession = jest.fn();
@@ -120,5 +126,21 @@ describe('PredictDeviceAuthService', () => {
 
     expect(mockClearSession).toHaveBeenCalledTimes(1);
     expect(mockDeleteDeviceKey).toHaveBeenCalledTimes(1);
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('logs and resolves when deleting the persisted key fails', async () => {
+    const { service } = createService();
+    mockDeleteDeviceKey.mockRejectedValueOnce(
+      new Error('device key delete failed'),
+    );
+
+    await expect(service.reset()).resolves.toBeUndefined();
+
+    expect(mockClearSession).toHaveBeenCalledTimes(1);
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'device key delete failed' }),
+      'Failed to reset Predict device authentication',
+    );
   });
 });

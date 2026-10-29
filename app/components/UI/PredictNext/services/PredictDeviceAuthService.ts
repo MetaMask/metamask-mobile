@@ -1,5 +1,7 @@
 import type { Messenger } from '@metamask/messenger';
 
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import { resolveA2tIssuerUrl } from '../auth/a2tIssuerUrl';
 import { A2tSession } from '../auth/a2tSession';
 import {
@@ -158,7 +160,15 @@ export class PredictDeviceAuthService {
   }
 
   async reset(): Promise<void> {
-    this.#session.clear();
-    await this.#deviceKey.delete();
+    try {
+      this.#session.clear();
+      await this.#deviceKey.delete();
+    } catch (error) {
+      // A failed key delete must not abort wallet reset.
+      Logger.error(
+        ensureError(error, 'PredictDeviceAuthService.reset'),
+        'Failed to reset Predict device authentication',
+      );
+    }
   }
 }

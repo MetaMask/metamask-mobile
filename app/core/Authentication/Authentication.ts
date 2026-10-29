@@ -2036,16 +2036,7 @@ class AuthenticationService {
         // Cancel any running bulk link saga before resetting rewards state
         ReduxService.store.dispatch(cancelBulkLink());
 
-        try {
-          await Engine.controllerMessenger.call(
-            'PredictDeviceAuthService:reset',
-          );
-        } catch (error) {
-          Logger.error(
-            ensureError(error, 'Failed to reset Predict device authentication'),
-            'Failed to reset Predict device authentication',
-          );
-        }
+        await Engine.controllerMessenger.call('PredictDeviceAuthService:reset');
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 

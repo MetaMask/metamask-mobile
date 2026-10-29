@@ -8,12 +8,14 @@ import type { GlobalActions, GlobalEvents, RootMessenger } from '../types';
 
 type InitActionType =
   | 'AuthenticationController:getBearerToken'
+  | 'AuthenticationController:getSessionProfile'
   | 'AuthenticationController:getState'
   | 'KeyringController:getState'
   | 'RemoteFeatureFlagController:getState'
   | 'SnapController:handleRequest';
 
 type InitEventType =
+  | 'AuthenticationController:profileSignIn'
   | 'AuthenticationController:stateChange'
   | 'KeyringController:lock'
   | 'RemoteFeatureFlagController:stateChange';
@@ -49,12 +51,14 @@ export const getPredictDeviceAuthServiceInitMessenger = (
     messenger,
     actions: [
       'AuthenticationController:getBearerToken',
+      'AuthenticationController:getSessionProfile',
       'AuthenticationController:getState',
       'KeyringController:getState',
       'RemoteFeatureFlagController:getState',
       'SnapController:handleRequest',
     ],
     events: [
+      'AuthenticationController:profileSignIn',
       'AuthenticationController:stateChange',
       'KeyringController:lock',
       'RemoteFeatureFlagController:stateChange',

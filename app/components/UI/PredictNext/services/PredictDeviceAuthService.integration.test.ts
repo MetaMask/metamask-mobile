@@ -102,7 +102,7 @@ describe('PredictDeviceAuthService integration', () => {
     harness.authenticationState.srpSessionData[
       'entropy-source-id'
     ].profile.canonicalProfileId = 'replacement-profile-id';
-    harness.emit('AuthenticationController:stateChange');
+    harness.emit('AuthenticationController:profileSignIn');
 
     await expect(
       harness.messenger.call('PredictDeviceAuthService:getA2t'),

@@ -320,6 +320,7 @@ type PredictDeviceAuthRootMessenger = Messenger<
 
 type PredictDeviceAuthLifecycleEvent =
   | 'KeyringController:lock'
+  | 'AuthenticationController:profileSignIn'
   | 'AuthenticationController:stateChange'
   | 'RemoteFeatureFlagController:stateChange';
 
@@ -399,13 +400,19 @@ export const buildPredictDeviceAuthIntegrationHarness = (
     },
   };
   const subscribers = new Map<PredictDeviceAuthLifecycleEvent, () => void>();
+  let canonicalProfileId =
+    authenticationState.srpSessionData['entropy-source-id']?.profile
+      .canonicalProfileId;
   const controller = new PredictDeviceAuthService(controllerMessenger, {
     profile: KALSHI_AUTHENTICATION_PROFILE,
     getIssuerUrl: () => 'https://issuer.example',
-    getAccessToken: async () => 'access-token',
-    getCanonicalProfileId: () =>
-      authenticationState.srpSessionData['entropy-source-id']?.profile
-        .canonicalProfileId,
+    getAccessToken: async () => {
+      canonicalProfileId =
+        authenticationState.srpSessionData['entropy-source-id']?.profile
+          .canonicalProfileId;
+      return 'access-token';
+    },
+    getCanonicalProfileId: () => canonicalProfileId,
     getSrpIdentifier: async () => '0xabc',
     signSrpMessage: async () => 'srp-signature',
     isEnabled: () => {
@@ -425,20 +432,20 @@ export const buildPredictDeviceAuthIntegrationHarness = (
   });
   subscribers.set('KeyringController:lock', () => controller.clear());
   let wasSignedIn = authenticationState.isSignedIn;
-  let canonicalProfileId =
-    authenticationState.srpSessionData['entropy-source-id']?.profile
-      .canonicalProfileId;
   subscribers.set('AuthenticationController:stateChange', () => {
-    const nextCanonicalProfileId =
-      authenticationState.srpSessionData['entropy-source-id']?.profile
-        .canonicalProfileId;
-    if (
-      (wasSignedIn && !authenticationState.isSignedIn) ||
-      nextCanonicalProfileId !== canonicalProfileId
-    ) {
+    if (wasSignedIn && !authenticationState.isSignedIn) {
+      canonicalProfileId = undefined;
       controller.clear();
     }
     wasSignedIn = authenticationState.isSignedIn;
+  });
+  subscribers.set('AuthenticationController:profileSignIn', () => {
+    const nextCanonicalProfileId =
+      authenticationState.srpSessionData['entropy-source-id']?.profile
+        .canonicalProfileId;
+    if (nextCanonicalProfileId !== canonicalProfileId) {
+      controller.clear();
+    }
     canonicalProfileId = nextCanonicalProfileId;
   });
   subscribers.set('RemoteFeatureFlagController:stateChange', () => {

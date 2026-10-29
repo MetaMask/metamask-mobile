@@ -1475,6 +1475,9 @@ describe('Engine', () => {
       jest
         .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
         .mockRejectedValue(new Error('purge failed'));
+      jest
+        .spyOn(engine.context.PredictDeviceAuthService, 'reset')
+        .mockResolvedValue(undefined);
 
       await expect(engine.resetState()).resolves.toBeUndefined();
 
@@ -1482,6 +1485,23 @@ describe('Engine', () => {
         expect.objectContaining({ message: 'purge failed' }),
         'Engine: failed to clear cached PredictNext account data',
       );
+    });
+
+    it('resets PredictNext device auth when the account-data purge fails', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockRejectedValue(new Error('purge failed'));
+      const resetSpy = jest
+        .spyOn(engine.context.PredictDeviceAuthService, 'reset')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(resetSpy).toHaveBeenCalledTimes(1);
     });
   });
 

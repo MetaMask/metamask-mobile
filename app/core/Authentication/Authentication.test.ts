@@ -5334,7 +5334,7 @@ describe('Authentication', () => {
       );
     });
 
-    it('locks the app when resetting Predict device authentication fails', async () => {
+    it('logs the wallet reset failure when Predict device authentication reset rejects', async () => {
       jest
         .mocked(Engine.controllerMessenger.call)
         .mockRejectedValueOnce(new Error('auth reset failed'));
@@ -5344,14 +5344,12 @@ describe('Authentication', () => {
         Authentication as unknown as { resetWalletState: () => Promise<void> }
       ).resetWalletState();
 
-      expect(Authentication.lockApp).toHaveBeenCalledWith({
-        navigateToLogin: false,
-      });
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'auth reset failed' }),
-        'Failed to reset Predict device authentication',
+      expect(Authentication.lockApp).not.toHaveBeenCalled();
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.stringContaining('Failed to createNewVaultAndKeychain'),
       );
-      expect(loggerSpy).not.toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
       expect(
         Engine.context.CardController.setResetInProgress,
