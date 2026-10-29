@@ -131,6 +131,20 @@ export const selectMoneyVbaCompletedActivityEnabled = createSelector(
   },
 );
 
+/**
+ * Selects whether the Money account status debug page can be opened via
+ * deeplink. When off, the deeplink falls through to Money Home.
+ */
+export const selectMoneyAccountDebugEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyAccountDebugEnabled as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,

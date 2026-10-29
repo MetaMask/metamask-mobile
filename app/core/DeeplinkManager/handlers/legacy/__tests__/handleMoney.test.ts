@@ -11,6 +11,7 @@ import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
 import { selectIsMoneyAccountGeoEligible } from '../../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyAccountDebugEnabledFlag } from '../../../../../components/UI/Money/selectors/featureFlags';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectRawRemoteFeatureFlags,
@@ -45,6 +46,10 @@ jest.mock('../../../../../reducers/user', () => ({
 
 jest.mock('../../../../../components/UI/Money/selectors/eligibility', () => ({
   selectIsMoneyAccountGeoEligible: jest.fn(),
+}));
+
+jest.mock('../../../../../components/UI/Money/selectors/featureFlags', () => ({
+  selectMoneyAccountDebugEnabledFlag: jest.fn(),
 }));
 
 jest.mock(
@@ -152,6 +157,7 @@ describe('handleMoney', () => {
     jest
       .mocked(selectMoneyOnboardingStepperAnimationEnabled)
       .mockReturnValue(true);
+    jest.mocked(selectMoneyAccountDebugEnabledFlag).mockReturnValue(true);
   });
 
   it('navigates to disabled deeplink modal when type 1 flag is disabled', () => {
@@ -290,6 +296,22 @@ describe('handleMoney', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACCOUNT_STATUS);
+  });
+
+  it('navigates to MONEY.HOME instead of MONEY.ACCOUNT_STATUS when the debug flag is disabled', () => {
+    jest.mocked(selectMoneyAccountDebugEnabledFlag).mockReturnValue(false);
+
+    handleMoney({ actionPath: `/${MONEY_ACCOUNT_STATUS_DEEPLINK_PATH}` });
+
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.ACCOUNT_STATUS);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
   });
 
   it('navigates to MONEY.HOME for an unrecognised action path', () => {

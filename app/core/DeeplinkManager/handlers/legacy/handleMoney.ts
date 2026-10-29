@@ -1,5 +1,6 @@
 /* eslint-disable jsdoc/check-indentation */
 import { selectIsMoneyAccountGeoEligible } from '../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyAccountDebugEnabledFlag } from '../../../../components/UI/Money/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -151,7 +152,8 @@ export const handleMoney = ({ actionPath }: { actionPath?: string } = {}) => {
     }
 
     if (
-      getMoneyDeeplinkPath(actionPath) === MONEY_ACCOUNT_STATUS_DEEPLINK_PATH
+      getMoneyDeeplinkPath(actionPath) === MONEY_ACCOUNT_STATUS_DEEPLINK_PATH &&
+      selectMoneyAccountDebugEnabledFlag(state)
     ) {
       NavigationService.navigation.navigate(Routes.MONEY.ACCOUNT_STATUS);
       return;
