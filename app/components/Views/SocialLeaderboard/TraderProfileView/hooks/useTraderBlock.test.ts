@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useQuery } from '@metamask/react-data-query';
+import { useQuery } from '@tanstack/react-query';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import {
@@ -27,7 +27,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('@metamask/react-data-query');
+jest.mock('@tanstack/react-query');
 
 jest.mock('../../../../../components/UI/SocialFeed/moderationApi', () => ({
   BLOCKED_PROFILE_IDS_QUERY_KEY: ['social', 'moderation', 'blockedProfileIds'],

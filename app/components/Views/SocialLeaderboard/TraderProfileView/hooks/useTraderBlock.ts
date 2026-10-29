@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useQuery } from '@metamask/react-data-query';
+import { useQuery } from '@tanstack/react-query';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
   reportSocialServiceFailure,
