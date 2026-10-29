@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { usePredictActivityItems } from './usePredictActivityItems';
-import { usePredictActivity } from '../../../UI/Predict/hooks/usePredictActivity';
-import type { PredictActivity } from '../../../UI/Predict/types';
+import { usePredictActivity } from '../../../../Predict/hooks/usePredictActivity';
+import type { PredictActivity } from '../../../../Predict/types';
 
-jest.mock('../../../UI/Predict/hooks/usePredictActivity', () => ({
+jest.mock('../../../../Predict/hooks/usePredictActivity', () => ({
   usePredictActivity: jest.fn(),
 }));
 

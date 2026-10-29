@@ -1,7 +1,6 @@
 import type { CaipChainId } from '@metamask/utils';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PredictActivity } from '../../../components/UI/Predict/types';
-import { mapPredictActivity } from './predict-activity';
+import type { PredictActivity } from '../../../../Predict/types';
+import { mapPredictActivity } from './mapPredictActivity';
 
 const POLYGON: CaipChainId = 'eip155:137';
 const USDC_ASSET_ID =

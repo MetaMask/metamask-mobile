@@ -1,5 +1,5 @@
-import { strings } from '../../../../../../locales/i18n';
-import type { ActivityListItem } from '../../../../../util/activity-adapters';
+import { strings } from '../../../../../../../../locales/i18n';
+import type { ActivityListItem } from '../../../../../../../util/activity-adapters';
 
 type PredictActivityType =
   | 'predictionsAddFunds'

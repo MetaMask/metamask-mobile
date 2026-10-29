@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
-import { mapPredictActivity } from '../../../../../util/activity-adapters';
-import { usePredictActivity } from '../../../../UI/Predict/hooks/usePredictActivity';
-import { POLYGON_MAINNET_CAIP_CHAIN_ID } from '../../../../UI/Predict/providers/polymarket/constants';
-import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
-import type { PredictActivity } from '../../../../UI/Predict/types';
-import { equalsIgnoreCase } from '../../../../../util/string';
+import { mapPredictActivity } from '../mapPredictActivity';
+import { usePredictActivity } from '../../../../../Predict/hooks/usePredictActivity';
+import { POLYGON_MAINNET_CAIP_CHAIN_ID } from '../../../../../Predict/providers/polymarket/constants';
+import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import type { PredictActivity } from '../../../../../Predict/types';
+import { equalsIgnoreCase } from '../../../../../../../util/string';
 
 const predictQuoteAsset = { symbol: 'USDC' };
 

@@ -12,19 +12,18 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
   ActivityDetailsStatus,
-} from '../../components';
-import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+} from '../../../../../../Views/ActivityDetails/components';
+import { ActivityDetailsSelectorsIDs } from '../../../../../../Views/ActivityDetails/ActivityDetails.testIds';
 import {
   formatPredictDate,
   type PredictActivityListItem,
 } from './PredictDetails.types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuse Predict token icon until shared asset icon is available.
-import UsdcIcon from '../../../../UI/Predict/components/PredictActivityDetail/usdc.svg';
+import UsdcIcon from '../../../../../Predict/components/PredictActivityDetail/usdc.svg';
 
 const imageStyle = StyleSheet.create({
   fill: { height: '100%', width: '100%' },
