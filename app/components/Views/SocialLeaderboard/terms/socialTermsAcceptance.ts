@@ -1,5 +1,6 @@
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
+import ReduxService from '../../../../core/redux/ReduxService';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import StorageWrapper from '../../../../store/storage-wrapper';
 
@@ -65,6 +66,18 @@ export const ensureSocialTermsAccepted = (
   if (hasAcceptedSocialTerms()) {
     return true;
   }
-  navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  try {
+    const hasExistingProfile = Boolean(
+      ReduxService.store.getState().engine.backgroundState.ProfileController
+        ?.profile?.profileId,
+    );
+    if (hasExistingProfile) {
+      navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });
+    } else {
+      navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+    }
+  } catch {
+    navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  }
   return false;
 };

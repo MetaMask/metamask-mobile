@@ -1,5 +1,6 @@
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
+import ReduxService from '../../../../core/redux/ReduxService';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   SOCIAL_TERMS_VERSION,
@@ -29,6 +30,10 @@ describe('socialTermsAcceptance', () => {
   beforeEach(async () => {
     await resetSocialTermsAcceptance();
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('hasAcceptedSocialTerms', () => {
@@ -124,6 +129,25 @@ describe('socialTermsAcceptance', () => {
 
       expect(ensureSocialTermsAccepted(navigate)).toBe(false);
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    });
+
+    it('opens terms-only onboarding for users with an existing profile', () => {
+      mockGetItemSync.mockReturnValue(null);
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              ProfileController: { profile: { profileId: 'existing-profile' } },
+            },
+          },
+        }),
+      } as typeof ReduxService.store);
+      const navigate = jest.fn();
+
+      expect(ensureSocialTermsAccepted(navigate)).toBe(false);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
+        termsOnly: true,
+      });
     });
   });
 });

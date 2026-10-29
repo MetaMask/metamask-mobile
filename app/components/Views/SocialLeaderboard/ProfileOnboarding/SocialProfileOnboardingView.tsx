@@ -17,7 +17,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -252,6 +257,8 @@ const ReadyCardFallback: React.FC<{
 
 const SocialProfileOnboardingView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route =
+    useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   // Zero the insets this screen already accounts for. MarketingMoment pads
@@ -276,6 +283,9 @@ const SocialProfileOnboardingView: React.FC = () => {
   // Path the user picked while the terms sheet is open; null when it is closed.
   const [pendingTermsPath, setPendingTermsPath] =
     useState<ProfileOnboardingPath | null>(null);
+  const [pendingTermsOnly, setPendingTermsOnly] = useState(
+    () => route.params?.termsOnly === true,
+  );
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
@@ -317,6 +327,12 @@ const SocialProfileOnboardingView: React.FC = () => {
   useEffect(() => {
     trackInteraction(Interaction.STEP_VIEWED);
   }, [analyticsStep, trackInteraction]);
+
+  useEffect(() => {
+    if (pendingTermsOnly) {
+      trackInteraction(Interaction.SHEET_DISPLAYED, { step: Step.TERMS });
+    }
+  }, [pendingTermsOnly, trackInteraction]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -556,7 +572,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
 
   const handleTermsAgree = useCallback(() => {
-    if (!pendingTermsPath) {
+    if (!pendingTermsPath && !pendingTermsOnly) {
       return;
     }
     trackInteraction(Interaction.BUTTON_CLICKED, {
@@ -564,6 +580,11 @@ const SocialProfileOnboardingView: React.FC = () => {
       step: Step.TERMS,
     });
     acceptSocialTerms().catch(() => undefined);
+    if (pendingTermsOnly) {
+      setPendingTermsOnly(false);
+      navigation.goBack();
+      return;
+    }
     const path = pendingTermsPath;
     setPendingTermsPath(null);
     if (path === 'x') {
@@ -571,15 +592,27 @@ const SocialProfileOnboardingView: React.FC = () => {
     } else {
       startManualPath();
     }
-  }, [beginConnectX, pendingTermsPath, startManualPath, trackInteraction]);
+  }, [
+    beginConnectX,
+    navigation,
+    pendingTermsOnly,
+    pendingTermsPath,
+    startManualPath,
+    trackInteraction,
+  ]);
 
   const handleTermsClose = useCallback(() => {
     trackInteraction(Interaction.SHEET_DISMISSED, {
       outcome: Outcome.DISMISSED,
       step: Step.TERMS,
     });
+    if (pendingTermsOnly) {
+      setPendingTermsOnly(false);
+      navigation.goBack();
+      return;
+    }
     setPendingTermsPath(null);
-  }, [trackInteraction]);
+  }, [navigation, pendingTermsOnly, trackInteraction]);
 
   const handleToggleXUsername = useCallback(
     (enabled: boolean) => {
@@ -1196,7 +1229,7 @@ const SocialProfileOnboardingView: React.FC = () => {
           ) : null}
         </Box>
       </KeyboardAvoidingView>
-      {pendingTermsPath ? (
+      {pendingTermsPath || pendingTermsOnly ? (
         <SocialTermsSheet
           html={socialTermsOfUseContent}
           onAgree={handleTermsAgree}

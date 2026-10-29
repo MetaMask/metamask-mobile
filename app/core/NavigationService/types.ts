@@ -1060,7 +1060,12 @@ export type RootStackParamList = {
       }
     | undefined;
   SocialPostComposerView: SocialPostComposerViewParams | undefined;
-  SocialProfileOnboardingView: undefined;
+  SocialProfileOnboardingView:
+    | {
+        /** Opens only the terms sheet for users with an existing profile. */
+        termsOnly?: boolean;
+      }
+    | undefined;
   MyProfileView: SocialV1ProfileViewParams | undefined;
   SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
   FollowConnectionsView: {
