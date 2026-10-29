@@ -195,7 +195,7 @@ const EarnSection = ({
     trackComponentViewed: trackEarnComponentViewed,
     trackSurfaceClicked: trackEarnSurfaceClicked,
   } = useEarnAnalytics(analyticsContext);
-  const hasTrackedNonHomepageViewRef = useRef(false);
+  const hasTrackedExploreViewRef = useRef(false);
   const {
     isVisible: isExploreSectionVisible,
     onLayout: onExploreSectionLayout,
@@ -242,16 +242,16 @@ const EarnSection = ({
   // Explore view tracking
   useEffect(() => {
     if (!enabled) {
-      hasTrackedNonHomepageViewRef.current = false;
+      hasTrackedExploreViewRef.current = false;
       return;
     }
     if (
       isLoading ||
       !isExploreSectionVisible ||
-      hasTrackedNonHomepageViewRef.current
+      hasTrackedExploreViewRef.current
     )
       return;
-    hasTrackedNonHomepageViewRef.current = true;
+    hasTrackedExploreViewRef.current = true;
     trackEarnComponentViewed({
       component_name: earnSectionComponentName,
     });
