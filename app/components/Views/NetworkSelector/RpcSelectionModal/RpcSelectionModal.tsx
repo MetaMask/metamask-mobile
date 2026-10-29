@@ -2,11 +2,13 @@ import React, { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
@@ -151,11 +153,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
     networkConfigurations[chainId as `0x${string}`]?.rpcEndpoints || [];
 
   return (
-    <BottomSheet
-      ref={rpcMenuSheetRef}
-      onClose={closeRpcModal}
-      shouldNavigateBack={false}
-    >
+    <BottomSheet ref={rpcMenuSheetRef} onClose={closeRpcModal}>
       <BottomSheetHeader style={styles.baseHeader}>
         <Text variant={TextVariant.HeadingMd}>
           {strings('app_settings.select_rpc_url')}{' '}
