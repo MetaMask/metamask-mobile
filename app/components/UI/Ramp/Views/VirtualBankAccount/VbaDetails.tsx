@@ -32,20 +32,13 @@ import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  findUsableVbaAutoramp,
-  selectSelectedVbaWalletAddress,
-  selectUsableVbaAutoramp,
-} from '../../../../../selectors/rampsController';
+import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
   selectMoneyMovementNeobank,
   selectNeobankMarkets,
 } from '../../../../../selectors/featureFlagController/moneyAccount';
-import {
-  getVbaMarketForCountry,
-  isVbaSourceCurrency,
-} from '../../../../../util/region/getVbaSourceCurrency';
+import { getVbaMarketForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   pickLatestTransaction,
@@ -222,8 +215,7 @@ const buildDetailRows = (
  * Virtual bank account screen. This is the only place that registers the
  * wallet and creates the autoramp, in the currency of the open market flag
  * listing the effective location (`moneyMovementNeobank.regionOverride` when
- * set, otherwise the IP country). An existing autoramp's currency wins, and
- * no second currency is ever created on the Money account.
+ * set, otherwise the IP country).
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -240,14 +232,9 @@ const VbaDetails = () => {
     selectMoneyMovementNeobank,
   );
   const markets = useSelector(selectNeobankMarkets);
-  const usableAutoramp = useSelector(selectUsableVbaAutoramp);
-  const existingCurrency = usableAutoramp?.depositRailsSummary?.currency;
-  const newSignupCurrency = isGateEnabled
+  const sourceCurrency = isGateEnabled
     ? getVbaMarketForCountry(markets, regionOverride ?? location)?.currency
     : undefined;
-  const sourceCurrency = isVbaSourceCurrency(existingCurrency)
-    ? existingCurrency
-    : newSignupCurrency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
@@ -346,20 +333,6 @@ const VbaDetails = () => {
         );
       }
       if (!autoramp) {
-        const existing = findUsableVbaAutoramp(readAutoramps(), walletAddress);
-        if (existing) {
-          const existingFailure = getAccountCreateFiatFailureResult(
-            existing.status,
-          );
-          if (existingFailure) {
-            throw new AccountCreateRegistrationError(existingFailure);
-          }
-          // A refresh can set its currency, which re-keys this screen.
-          if (ramps.refreshAutoramp) {
-            await ramps.refreshAutoramp(existing.id);
-          }
-          return;
-        }
         if (!sourceCurrency) {
           if (!stillCurrent()) {
             return;

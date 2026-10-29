@@ -393,14 +393,16 @@ export const resolveVbaOnboarding = async (
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
     endVbaCufChildTrace(hydrateTraceId, true);
-    // An existing autoramp opens the account even when a reinstall lost the
-    // funnel facts.
-    const hasExistingAccount = Boolean(
-      findUsableVbaAutoramp(
-        Engine.context.RampsController.state?.autoramps ?? [],
-        walletAddress,
-      ),
-    );
+    // An existing autoramp opens the account even when the funnel facts are
+    // missing.
+    const hasExistingAccount =
+      getVbaKycStatusOverride() === null &&
+      Boolean(
+        findUsableVbaAutoramp(
+          Engine.context.RampsController.state?.autoramps ?? [],
+          walletAddress,
+        ),
+      );
     return {
       status: 'ready',
       destinationId: hasExistingAccount

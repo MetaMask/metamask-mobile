@@ -165,8 +165,7 @@ export function getVbaHomeCard({
     return { type: 'none' };
   }
 
-  // A stale session, or a reinstall that cleared it, must not hide an
-  // existing account.
+  // A stale session must not hide an existing account.
   if (hasUsableAutoramp) {
     return { type: 'account_is_ready' };
   }
@@ -388,7 +387,6 @@ export const shouldRefreshKycSessionOnFocus = (
  */
 export const useVbaHomeCardRefresh = (): void => {
   const { isEligible } = useVbaEligibility();
-  const hasUsableAutoramp = Boolean(useSelector(selectUsableVbaAutoramp));
   // Device-capability matrix: every hardware tier skips network work on a
   // known-offline network; `null` (unknown) takes the product default.
   const networkTier = useNetworkTier();
@@ -398,11 +396,7 @@ export const useVbaHomeCardRefresh = (): void => {
 
   useFocusEffect(
     useCallback(() => {
-      if (
-        (!hasUsableAutoramp && !isEligible) ||
-        !walletAddress ||
-        networkTierRef.current === 'NONE'
-      ) {
+      if (!isEligible || !walletAddress || networkTierRef.current === 'NONE') {
         return undefined;
       }
       const sessionStatus = Engine.context.KycController.state.sessionStatus;
@@ -433,6 +427,6 @@ export const useVbaHomeCardRefresh = (): void => {
         });
       });
       return undefined;
-    }, [hasUsableAutoramp, isEligible, walletAddress]),
+    }, [isEligible, walletAddress]),
   );
 };
