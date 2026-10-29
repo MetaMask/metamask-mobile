@@ -18,6 +18,7 @@ import { usePerpsLiveFocusedPrice } from '../../hooks/stream';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import HeaderSubpageGlass from '../../../../../component-library/components-temp/HeaderSubpageGlass';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 interface PerpsOrderHeaderProps {
@@ -134,10 +135,15 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       return undefined;
     }
 
-    return (
+    const selectButton = (
       <SelectButton
         testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
-        variant={SelectButtonVariant.Primary}
+        // Secondary has no fill of its own, so the glass shows through.
+        variant={
+          isBrandRefresh
+            ? SelectButtonVariant.Secondary
+            : SelectButtonVariant.Primary
+        }
         size={SelectButtonSize.Md}
         placeholder={orderTypeLabel}
         value={orderTypeLabel}
@@ -145,7 +151,18 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
         isDisabled={isLoading}
       />
     );
-  }, [handleOrderTypePress, isLoading, orderType, orderTypeLabel]);
+    return isBrandRefresh ? (
+      <CapsuleGlass>{selectButton}</CapsuleGlass>
+    ) : (
+      selectButton
+    );
+  }, [
+    handleOrderTypePress,
+    isBrandRefresh,
+    isLoading,
+    orderType,
+    orderTypeLabel,
+  ]);
 
   return (
     <HeaderSubpageGlass
