@@ -4696,6 +4696,7 @@
       "all": "All types",
       "transactions": "Transactions",
       "buy_sell": "Buy/Sell",
+      "limit_orders": "Limit orders",
       "perps": "Perps",
       "predictions": "Predictions",
       "metamask_card": "Card"
@@ -4738,6 +4739,10 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
+      },
+      "limit_orders": {
+        "description": "Your filled limit orders will show up here.",
+        "action": "Swap tokens"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",

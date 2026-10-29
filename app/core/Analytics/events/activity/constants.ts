@@ -22,6 +22,7 @@ export enum ActivityScreenTabName {
   All = 'all',
   Transactions = 'transactions',
   BuySell = 'buy_sell',
+  LimitOrders = 'limit_orders',
   Perps = 'perps',
   Predictions = 'predictions',
   MetamaskCard = 'metamask_card',

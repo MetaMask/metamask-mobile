@@ -14,6 +14,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../hooks/useTrackFilterClicked', () => ({
   useTrackFilterClicked: () => mockTrackFilterClicked,
 }));

@@ -2,7 +2,11 @@ export const ActivityListSelectorsIDs = {
   CONTAINER: 'activity-list',
   LOADING_INDICATOR: 'activity-list-loading',
   LOAD_MORE_INDICATOR: 'activity-list-load-more',
+  LIMIT_ORDERS_CONTAINER: 'activity-list-limit-orders',
 } as const;
+
+export const activityListLimitOrderRowTestId = (orderId: string): string =>
+  `activity-limit-order-${orderId}`;
 
 export const activityListRowItemTestId = (index: number): string =>
   `transaction-item-${index}`;

@@ -1,12 +1,14 @@
 import type { ActivityKind } from '../../../util/activity-adapters';
 import {
   ACTIVITY_TYPE_FILTER_KINDS,
+  ACTIVITY_TYPE_FILTER_ORDER,
   ActivityTypeFilter,
   PERPS_ACTIVITY_FILTER_KINDS,
   PERPS_ACTIVITY_FILTER_ORDER,
   PerpsActivityFilter,
   activityKindMatchesTypeFilter,
   getPerpsSubFilterKinds,
+  getSelectableActivityTypeFilters,
   resolveInitialActivityTypeFilter,
 } from './types';
 
@@ -112,6 +114,35 @@ describe('activityKindMatchesTypeFilter', () => {
         activityKindMatchesTypeFilter(kind, ActivityTypeFilter.Transactions),
       ).toBe(true);
     }
+  });
+
+  it('matches no activity kind for Limit orders, which has its own source', () => {
+    for (const kind of ['swap', 'bridge', 'send'] as ActivityKind[]) {
+      expect(
+        activityKindMatchesTypeFilter(kind, ActivityTypeFilter.LimitOrders),
+      ).toBe(false);
+    }
+  });
+});
+
+describe('getSelectableActivityTypeFilters', () => {
+  it('offers Limit orders right after Buy/Sell when limit orders are enabled', () => {
+    const filters = getSelectableActivityTypeFilters(true);
+
+    expect(filters).toEqual(ACTIVITY_TYPE_FILTER_ORDER);
+    expect(filters.indexOf(ActivityTypeFilter.LimitOrders)).toBe(
+      filters.indexOf(ActivityTypeFilter.BuySell) + 1,
+    );
+  });
+
+  it('drops only Limit orders when limit orders are disabled', () => {
+    expect(getSelectableActivityTypeFilters(false)).toEqual([
+      ActivityTypeFilter.Transactions,
+      ActivityTypeFilter.BuySell,
+      ActivityTypeFilter.Perps,
+      ActivityTypeFilter.Predictions,
+      ActivityTypeFilter.MetamaskCard,
+    ]);
   });
 });
 
