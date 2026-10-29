@@ -28,6 +28,7 @@ export const perpsControllerInit: MessengerClientInitFunction<
     ...defaultState,
     proLayoutPreferences: {
       ...defaultState.proLayoutPreferences,
+      // Order book pinned right, and the inline chart starts open.
       ...MOBILE_PRO_LAYOUT_DEFAULTS,
     },
   };

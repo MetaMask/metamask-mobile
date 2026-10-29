@@ -513,15 +513,18 @@ export const PERPS_CONNECTION_SOURCE = {
 /**
  * Pro-mode layout defaults that intentionally differ from the shared controller
  * defaults. Mobile shows the order-book column pinned right; Extension opens its
- * slide-in panel closed on the left. Confirmed as a deliberate per-platform
- * split, so mobile overrides rather than changing the shared default.
+ * slide-in panel closed on the left. The inline chart starts expanded so Pro
+ * mode opens on the chart. Confirmed as a deliberate per-platform split, so
+ * mobile overrides rather than changing the shared default.
  *
- * Applied to fresh installs at controller init; migration 151 moves installs
- * that were created before the split.
+ * Applied to fresh installs at controller init. Migration 151 moves order-book
+ * installs created before that split. Migration 161 opens the chart once for
+ * installs that still have the earlier collapsed value on disk.
  */
 export const MOBILE_PRO_LAYOUT_DEFAULTS = {
   orderBookExpanded: true,
   orderBookPosition: 'right',
+  chartExpanded: true,
 } as const;
 /** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;
