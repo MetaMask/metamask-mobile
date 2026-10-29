@@ -1305,7 +1305,7 @@ describe('handleUniversalLink', () => {
         createPerpsDeeplinkIntent as jest.MockedFunction<
           typeof createPerpsDeeplinkIntent
         >
-      ).mockReturnValueOnce(intent);
+      ).mockResolvedValueOnce(intent);
 
       const result = await handleUniversalLink({
         instance,
