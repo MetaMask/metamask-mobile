@@ -848,7 +848,6 @@ describe('SocialFeedPostShell', () => {
       expect(translate).toHaveBeenCalledWith({
         commentId: 'comment-1',
         targetLanguage: 'en',
-        targetLanguage: 'en',
       });
     });
 
