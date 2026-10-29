@@ -261,7 +261,6 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
             value={selectedType}
             onChange={handleTypeChange}
             onClose={closeTypeSheet}
-            showSelectedIcon
           />
         </>
       )}

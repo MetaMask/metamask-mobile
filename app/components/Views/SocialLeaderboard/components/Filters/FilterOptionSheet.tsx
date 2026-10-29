@@ -1,10 +1,8 @@
 import {
-  ActionListItem,
   BottomSheetDialog,
   BottomSheetHeader,
   Box,
   ListItemSelect,
-  RadioButton,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
@@ -35,10 +33,6 @@ export interface FilterOptionSheetProps<T extends string> {
   sheetTestID: string;
   backdropTestID: string;
   getOptionTestID: (value: T) => string;
-  /**
-   * Selected row uses ListItemSelect's check. Otherwise the row keeps a radio.
-   */
-  showSelectedIcon?: boolean;
 }
 
 type FilterOptionSheetInnerProps<T extends string> = Omit<
@@ -56,7 +50,6 @@ function FilterOptionSheetInner<T extends string>({
   sheetTestID,
   backdropTestID,
   getOptionTestID,
-  showSelectedIcon = false,
 }: FilterOptionSheetInnerProps<T>) {
   const { colors } = useTheme();
 
@@ -118,30 +111,13 @@ function FilterOptionSheetInner<T extends string>({
               <Box twClassName="pb-4">
                 {options.map((option) => {
                   const isSelected = option === value;
-                  if (showSelectedIcon) {
-                    return (
-                      <ListItemSelect
-                        key={option}
-                        title={getLabel(option)}
-                        isSelected={isSelected}
-                        showSelectedIcon
-                        onPress={() => handleSelect(option)}
-                        accessibilityState={{ selected: isSelected }}
-                        testID={getOptionTestID(option)}
-                      />
-                    );
-                  }
                   return (
-                    <ActionListItem
+                    <ListItemSelect
                       key={option}
-                      label={getLabel(option)}
+                      title={getLabel(option)}
+                      isSelected={isSelected}
+                      showSelectedIcon
                       onPress={() => handleSelect(option)}
-                      endAccessory={
-                        <RadioButton
-                          isChecked={isSelected}
-                          onPress={() => handleSelect(option)}
-                        />
-                      }
                       accessibilityState={{ selected: isSelected }}
                       testID={getOptionTestID(option)}
                     />

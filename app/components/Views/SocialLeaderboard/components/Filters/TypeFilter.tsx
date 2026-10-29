@@ -48,8 +48,6 @@ export interface TypeFilterSheetProps {
   sheetTestID?: string;
   backdropTestID?: string;
   getOptionTestID?: (value: SocialTypeFilter) => string;
-  /** Selected row uses a check. Otherwise the row keeps a radio. */
-  showSelectedIcon?: boolean;
 }
 
 /** Bottom sheet with the position-type options (All types / Tokens / Perps). */
@@ -61,7 +59,6 @@ export const TypeFilterSheet: React.FC<TypeFilterSheetProps> = ({
   sheetTestID = TypeFilterSelectorsIDs.SHEET,
   backdropTestID = TypeFilterSelectorsIDs.BACKDROP,
   getOptionTestID = getTypeFilterOptionTestId,
-  showSelectedIcon = false,
 }) => (
   <FilterOptionSheet
     isOpen={isOpen}
@@ -74,6 +71,5 @@ export const TypeFilterSheet: React.FC<TypeFilterSheetProps> = ({
     sheetTestID={sheetTestID}
     backdropTestID={backdropTestID}
     getOptionTestID={getOptionTestID}
-    showSelectedIcon={showSelectedIcon}
   />
 );

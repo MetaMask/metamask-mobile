@@ -1,4 +1,4 @@
-import { IconName, RadioButton } from '@metamask/design-system-react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import React from 'react';
 import { fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -55,7 +55,6 @@ describe('FeedSortFilterSheet', () => {
     expect(
       within(unselected).UNSAFE_queryAllByProps({ name: IconName.Check }),
     ).toHaveLength(0);
-    expect(screen.UNSAFE_queryByType(RadioButton)).toBeNull();
 
     fireEvent.press(
       screen.getByTestId(getFeedSortFilterOptionTestId('popular')),
