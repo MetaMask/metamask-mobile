@@ -13,9 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // External dependencies
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import Text from '../../../component-library/components/Texts/Text/Text';
 import { View } from 'react-native-animatable';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { formatAddress, getAddressAccountType } from '../../../util/address';
@@ -25,6 +23,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../component-library/hooks';
 import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
@@ -135,7 +136,7 @@ const EditAccountName = () => {
     <SafeAreaView style={styles.screen}>
       <View style={styles.inputsContainer}>
         <View style={styles.inputContainer}>
-          <Text variant={TextVariant.BodyLGMedium}>
+          <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
             {strings('address_book.name')}
           </Text>
           <TextField
@@ -146,7 +147,7 @@ const EditAccountName = () => {
           />
         </View>
         <View style={styles.inputContainer}>
-          <Text variant={TextVariant.BodyLGMedium}>
+          <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
             {strings('address_book.address')}
           </Text>
           {selectedAccount?.address ? (

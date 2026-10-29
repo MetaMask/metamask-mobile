@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import OnboardingSheet from '.';
-import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../core/AppConstants';
-import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
+import AppConstants from '../../../../core/AppConstants';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock callback functions
 const mockOnPressCreate = jest.fn();
@@ -12,7 +12,6 @@ const mockOnPressContinueWithGoogle = jest.fn();
 const mockOnPressContinueWithApple = jest.fn();
 
 const mockNavigate = jest.fn();
-const mockUseRoute = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -45,25 +44,25 @@ jest.mock('@react-navigation/native', () => {
       goBack: jest.fn(),
       setOptions: jest.fn(),
     }),
-    useRoute: () => mockUseRoute(),
   };
 });
 
 const mockUseScreenPerformance = jest.fn();
 const mockUseNavigationPerformance = jest.fn();
 
-jest.mock('../../../hooks/performance/useScreenPerformance', () => ({
+jest.mock('../../../../hooks/performance/useScreenPerformance', () => ({
   useScreenPerformance: (...args: unknown[]) =>
     mockUseScreenPerformance(...args),
 }));
 
-jest.mock('../../../hooks/performance/useNavigationPerformance', () => ({
+jest.mock('../../../../hooks/performance/useNavigationPerformance', () => ({
   useNavigationPerformance: (...args: unknown[]) =>
     mockUseNavigationPerformance(...args),
 }));
 
 describe('OnboardingSheet', () => {
-  const defaultParams = {
+  const defaultProps = {
+    onDismiss: jest.fn(),
     onPressCreate: mockOnPressCreate,
     onPressImport: mockOnPressImport,
     onPressContinueWithGoogle: mockOnPressContinueWithGoogle,
@@ -73,17 +72,16 @@ describe('OnboardingSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRoute.mockReturnValue({ params: defaultParams });
   });
 
   describe('Rendering', () => {
     it('renders correctly with createWallet=false (import mode)', () => {
-      const { getByText } = render(<OnboardingSheet />);
+      const { getByText } = render(<OnboardingSheet {...defaultProps} />);
       expect(getByText(strings('onboarding.import_srp'))).toBeOnTheScreen();
     });
 
     it('emits onboarding sheet screen and navigation performance hooks', () => {
-      render(<OnboardingSheet />);
+      render(<OnboardingSheet {...defaultProps} />);
 
       expect(mockUseScreenPerformance).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -101,10 +99,9 @@ describe('OnboardingSheet', () => {
     });
 
     it('renders correctly with createWallet=true (create mode)', () => {
-      mockUseRoute.mockReturnValue({
-        params: { ...defaultParams, createWallet: true },
-      });
-      const { getByText } = render(<OnboardingSheet />);
+      const { getByText } = render(
+        <OnboardingSheet {...defaultProps} createWallet />,
+      );
       expect(
         getByText(strings('onboarding.continue_with_srp')),
       ).toBeOnTheScreen();
@@ -112,10 +109,8 @@ describe('OnboardingSheet', () => {
   });
 
   describe('Behavior Tests', () => {
-    it('renders with undefined route params and safely handles button presses', () => {
-      mockUseRoute.mockReturnValue({ params: undefined });
-
-      const { getByText } = render(<OnboardingSheet />);
+    it('renders without login callbacks and safely handles button presses', () => {
+      const { getByText } = render(<OnboardingSheet onDismiss={jest.fn()} />);
 
       fireEvent.press(getByText(strings('onboarding.sign_in_with_google')));
       fireEvent.press(getByText(strings('onboarding.sign_in_with_apple')));
@@ -129,7 +124,7 @@ describe('OnboardingSheet', () => {
 
     describe('Google button interactions', () => {
       it('calls onPressContinueWithGoogle with createWallet=false when import mode', () => {
-        const { getByText } = render(<OnboardingSheet />);
+        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
         const googleButton = getByText(
           strings('onboarding.sign_in_with_google'),
         );
@@ -139,7 +134,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithApple with createWallet=false when import mode', () => {
-        const { getByText } = render(<OnboardingSheet />);
+        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
         const appleButton = getByText(strings('onboarding.sign_in_with_apple'));
         fireEvent.press(appleButton);
         expect(mockOnPressContinueWithApple).toHaveBeenCalledWith(false);
@@ -147,10 +142,9 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithGoogle with createWallet=true when create mode', () => {
-        mockUseRoute.mockReturnValue({
-          params: { ...defaultParams, createWallet: true },
-        });
-        const { getByText } = render(<OnboardingSheet />);
+        const { getByText } = render(
+          <OnboardingSheet {...defaultProps} createWallet />,
+        );
         const googleButton = getByText(
           strings('onboarding.continue_with_google'),
         );
@@ -160,10 +154,9 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithApple with createWallet=true when create mode', () => {
-        mockUseRoute.mockReturnValue({
-          params: { ...defaultParams, createWallet: true },
-        });
-        const { getByText } = render(<OnboardingSheet />);
+        const { getByText } = render(
+          <OnboardingSheet {...defaultProps} createWallet />,
+        );
         const appleButton = getByText(
           strings('onboarding.continue_with_apple'),
         );
@@ -175,7 +168,7 @@ describe('OnboardingSheet', () => {
 
     describe('SRP button interactions', () => {
       it('calls onPressImport when createWallet=false and SRP button is pressed', () => {
-        const { getByText } = render(<OnboardingSheet />);
+        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
         const srpButton = getByText(strings('onboarding.import_srp'));
 
         fireEvent.press(srpButton);
@@ -185,10 +178,9 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressCreate when createWallet=true and SRP button is pressed', () => {
-        mockUseRoute.mockReturnValue({
-          params: { ...defaultParams, createWallet: true },
-        });
-        const { getByText } = render(<OnboardingSheet />);
+        const { getByText } = render(
+          <OnboardingSheet {...defaultProps} createWallet />,
+        );
         const srpButton = getByText(strings('onboarding.continue_with_srp'));
 
         fireEvent.press(srpButton);
@@ -204,7 +196,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('navigates to Terms of Use when terms link is pressed', () => {
-        const { getByTestId } = render(<OnboardingSheet />);
+        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
 
         const termsLink = getByTestId('terms-of-use-link');
         fireEvent.press(termsLink);
@@ -218,7 +210,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('navigates to Privacy Notice when privacy link is pressed', () => {
-        const { getByTestId } = render(<OnboardingSheet />);
+        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
 
         const privacyLink = getByTestId('privacy-notice-link');
         fireEvent.press(privacyLink);

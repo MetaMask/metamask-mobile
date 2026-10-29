@@ -1,6 +1,7 @@
 import {
   parsePredictActivityPage,
   parsePredictBalance,
+  parsePredictPortfolioSummary,
   parsePredictPositionsPage,
 } from '../../contracts/v1/portfolio';
 import {
@@ -232,6 +233,21 @@ export class KalshiRemoteAdapter {
               (position) => position.venueId !== this.venueId,
             )
           ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+      fetchPortfolioSummary: async (options) => {
+        try {
+          const value = await client.fetchPortfolioSummary(
+            this.venueId,
+            options,
+          );
+          const result = parsePredictPortfolioSummary(value);
+          if (result.venueId !== this.venueId) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;

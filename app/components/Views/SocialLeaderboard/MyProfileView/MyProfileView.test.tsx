@@ -23,10 +23,6 @@ import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
-import {
-  getLocalSocialProfileSnapshot,
-  restoreDefaultLocalSocialProfile,
-} from './hooks/localSocialProfileStore';
 
 const mockGoBack = jest.fn();
 const mockFocusEffect: { current: (() => void) | null } = { current: null };
@@ -287,16 +283,11 @@ const profile: UseMyProfileResult['profile'] = {
   xHandle: 'giga-whale',
   followerCount: 4,
   followingCount: 0,
-  shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
 };
 
 describe('MyProfileView', () => {
-  afterEach(() => {
-    restoreDefaultLocalSocialProfile();
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasNotificationPreferences = true;
@@ -562,20 +553,6 @@ describe('MyProfileView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('resets the local profile and opens onboarding from the header', () => {
-    renderWithProvider(<MyProfileView />);
-
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    );
-
-    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    ).toHaveProp('accessibilityLabel', 'debug: reset profile');
-  });
-
   it('opens the post composer from the owner profile header', () => {
     renderWithProvider(<MyProfileView />);
 
@@ -590,7 +567,7 @@ describe('MyProfileView', () => {
     expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
   });
 
-  it('shares the placeholder owner profile URL', async () => {
+  it('shares the owner profile deeplink from the share profile button', () => {
     const shareSpy = jest
       .spyOn(Share, 'share')
       .mockResolvedValue({ action: Share.sharedAction });
@@ -600,13 +577,20 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
     );
 
-    await waitFor(() =>
-      expect(shareSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(profile.shareUrl),
-        }),
-      ),
-    );
+    expect(shareSpy).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/social/profile?traderId=current-user',
+    });
+  });
+
+  it('does not render a reset profile button on the owner profile header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.queryByLabelText('debug: reset profile'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('requests the next posts page when a scroll settles near the end', () => {

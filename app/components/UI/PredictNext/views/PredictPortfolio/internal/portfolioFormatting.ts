@@ -8,12 +8,38 @@ export const formatUsdAmount = (value: string): string => {
   return `$${amount.toFormat(2, BigNumber.ROUND_HALF_UP)}`;
 };
 
-/** Formats a signed decimal-string amount as USD with an explicit sign, e.g. "-1.25" → "-$1.25". */
+/** Formats a signed decimal-string amount as USD with an explicit sign, e.g.
+ * "-1.25" → "-$1.25". A value that rounds to zero is unsigned: "$0.00". */
 export const formatSignedUsdAmount = (value: string): string => {
-  const amount = new BigNumber(value);
+  const amount = new BigNumber(value).decimalPlaces(2, BigNumber.ROUND_HALF_UP);
+  if (amount.isZero()) {
+    return '$0.00';
+  }
   return amount.isNegative()
-    ? `-$${amount.abs().toFormat(2, BigNumber.ROUND_HALF_UP)}`
-    : `+$${amount.toFormat(2, BigNumber.ROUND_HALF_UP)}`;
+    ? `-$${amount.abs().toFormat(2)}`
+    : `+$${amount.toFormat(2)}`;
+};
+
+/** Formats a signed percent-unit decimal string, e.g. "-24.05" → "-24.05%".
+ * A value that rounds to zero is unsigned: "0.00%". */
+export const formatSignedPercent = (value: string): string => {
+  const percent = new BigNumber(value).decimalPlaces(
+    2,
+    BigNumber.ROUND_HALF_UP,
+  );
+  if (percent.isZero()) {
+    return '0.00%';
+  }
+  return `${percent.isNegative() ? '-' : '+'}${percent.abs().toFixed(2)}%`;
+};
+
+/** Text tone for a signed PnL amount: neutral when it rounds to zero. */
+export const pnlToneClassName = (value: string): string => {
+  const amount = new BigNumber(value).decimalPlaces(2, BigNumber.ROUND_HALF_UP);
+  if (amount.isZero()) {
+    return 'text-alternative';
+  }
+  return amount.isNegative() ? 'text-error-default' : 'text-success-default';
 };
 
 /** Whether a decimal-string amount is non-zero, for omitting empty financial values. */
@@ -37,6 +63,16 @@ const timestampFormat = new Intl.DateTimeFormat(undefined, {
   hour: 'numeric',
   minute: '2-digit',
 });
+
+const dateFormat = new Intl.DateTimeFormat(undefined, {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
+/** Formats an ISO timestamp as a calendar date, e.g. "Aug 27, 2026". */
+export const formatActivityDate = (timestamp: string): string =>
+  dateFormat.format(new Date(timestamp));
 
 /** Formats an ISO timestamp for an Activity row, e.g. "Mar 5, 2:45 PM". */
 export const formatActivityTimestamp = (timestamp: string): string =>

@@ -106,23 +106,29 @@ describe('E2E network shim', () => {
    * @param {object} [options]
    * @param {boolean} [options.hasTestOverrides] - Mocked `hasTestOverrides`.
    * @param {boolean} [options.isPerformanceTest] - Mocked `isPerformanceTest`.
+   * @param {boolean} [options.isTestEnvironment] - Mocked `isTestEnvironment`.
+   * @param {object} [options.launchArguments] - Extra launch arguments.
    * @param {string} [options.platform] - `Platform.OS` the shim sees.
    */
   const loadShim = ({
     hasTestOverrides = true,
     isPerformanceTest = false,
+    isTestEnvironment = true,
+    launchArguments = {},
     platform = 'ios',
   } = {}) =>
     jest.isolateModules(() => {
       /* eslint-disable import-x/no-commonjs */
       jest.doMock('./app/util/test/utils.js', () => ({
         ...jest.requireActual('./app/util/test/utils.js'),
-        isTestEnvironment: true,
+        isTestEnvironment,
         hasTestOverrides,
         isPerformanceTest,
       }));
       jest.doMock('react-native-launch-arguments', () => ({
-        LaunchArguments: { value: () => ({ mockServerPort: 8000 }) },
+        LaunchArguments: {
+          value: () => ({ mockServerPort: 8000, ...launchArguments }),
+        },
       }));
       jest.doMock('@walletconnect/react-native-compat', () => ({}));
       jest.doMock('expo', () => ({}));
@@ -179,6 +185,45 @@ describe('E2E network shim', () => {
     Object.assign(global, savedGlobals);
     jest.useRealTimers();
     jest.restoreAllMocks();
+  });
+
+  describe('fixture and command queue server ports', () => {
+    const launchArguments = {
+      fixtureServerPort: '30002',
+      commandQueueServerPort: '30003',
+    };
+    let testConfig;
+
+    beforeEach(() => {
+      ({ testConfig } = jest.requireActual('./app/util/test/utils.js'));
+      for (const key of Object.keys(testConfig)) {
+        delete testConfig[key];
+      }
+    });
+
+    it.each([
+      ['a test environment', { isTestEnvironment: true }],
+      [
+        'a build with test overrides outside a test environment',
+        { isTestEnvironment: false, hasTestOverrides: true },
+      ],
+    ])('reads them from launch arguments in %s', (_label, options) => {
+      loadShim({ ...options, launchArguments });
+
+      expect(testConfig.fixtureServerPort).toBe('30002');
+      expect(testConfig.commandQueueServerPort).toBe('30003');
+    });
+
+    it('leaves them unset without a test environment or test overrides', () => {
+      loadShim({
+        isTestEnvironment: false,
+        hasTestOverrides: false,
+        launchArguments,
+      });
+
+      expect(testConfig.fixtureServerPort).toBeUndefined();
+      expect(testConfig.commandQueueServerPort).toBeUndefined();
+    });
   });
 
   it('routes fetch through the mock server proxy', async () => {
