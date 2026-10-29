@@ -6481,6 +6481,253 @@ describe('CardController — sign-in resolution and migration', () => {
       expect(mockTokenStore.remove).toHaveBeenCalledWith(CardProviderIds.Baanx);
     });
 
+    it('keeps the session on an MFA step and links the wallet after the code', async () => {
+      const { controller, immersve } = buildSignInController();
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      (immersve.submitCredentials as jest.Mock)
+        .mockResolvedValueOnce({
+          done: false,
+          nextStep: {
+            type: 'mfa_select',
+            options: [
+              { method: 'email', maskedDestination: 'j***@example.com' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          done: true,
+          tokenSet: {
+            ...mockTokenSet,
+            providerUserId: 'imv-user',
+            accountAddress: ADDR_A,
+          },
+        });
+
+      const pending = await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      expect(pending.nextStep).toMatchObject({ type: 'mfa_select' });
+      expect(controller.getCurrentAuthStep()).toMatchObject({
+        type: 'mfa_select',
+      });
+      expect(controller.getSignInLink()).toBeNull();
+
+      await controller.submitCredentials({ type: 'mfa_code', code: '123456' });
+
+      expect(controller.getSignInLink()).toMatchObject({
+        status: 'linked',
+        address: ADDR_A,
+        providerId: CardProviderIds.Immersve,
+        providerUserId: 'imv-user',
+      });
+      expect(controller.getCurrentAuthStep()).toBeNull();
+    });
+
+    it('clears the session when MFA requires a restart and keeps it for a bad code', async () => {
+      const { controller, immersve } = buildSignInController();
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [{ method: 'phone', maskedDestination: '+64 *****1234' }],
+        },
+      });
+
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      (immersve.submitCredentials as jest.Mock).mockRejectedValueOnce(
+        new CardProviderError(
+          CardProviderErrorCode.InvalidOtp,
+          'Invalid MFA code',
+          403,
+          'MFA_CODE_INVALID',
+        ),
+      );
+      await expect(
+        controller.submitCredentials({ type: 'mfa_code', code: '000000' }),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.InvalidOtp });
+      expect(controller.getCurrentAuthStep()).toMatchObject({
+        type: 'mfa_select',
+      });
+
+      (immersve.submitCredentials as jest.Mock).mockRejectedValueOnce(
+        new CardProviderError(
+          CardProviderErrorCode.AuthRestartRequired,
+          'Login must be restarted (MFA_CODE_EXPIRED)',
+          403,
+          'MFA_CODE_EXPIRED',
+        ),
+      );
+      await expect(
+        controller.submitCredentials({ type: 'mfa_code', code: '000000' }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.AuthRestartRequired,
+      });
+      expect(controller.getCurrentAuthStep()).toBeNull();
+    });
+
+    it('abandonAuth drops the in-progress MFA session', async () => {
+      const { controller, immersve } = buildSignInController();
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
+        },
+      });
+
+      await controller.authenticateWithWallet({
+        option: {
+          providerId: CardProviderIds.Immersve,
+          method: 'siwe',
+        },
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      controller.abandonAuth();
+
+      expect(controller.getCurrentAuthStep()).toBeNull();
+      await expect(
+        controller.submitCredentials({ type: 'mfa_code', code: '123456' }),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+    });
+
+    it('abandonAuth clears a migration so the next sign-in links the wallet', async () => {
+      const { controller, immersve } = buildSignInController();
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
+        },
+      });
+
+      controller.beginMigration();
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+      controller.abandonAuth();
+
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: true,
+        tokenSet: {
+          ...mockTokenSet,
+          providerUserId: 'imv-user',
+          accountAddress: ADDR_A,
+        },
+      });
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      expect(controller.getSignInLink()?.status).toBe('linked');
+    });
+
+    it('uses nextSessionId for the following MFA post', async () => {
+      const { controller, immersve } = buildSignInController();
+      (immersve.submitCredentials as jest.Mock)
+        .mockResolvedValueOnce({
+          done: false,
+          nextSessionId: 'login-req-2',
+          nextStep: {
+            type: 'mfa_select',
+            options: [
+              { method: 'email', maskedDestination: 'j***@example.com' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          done: false,
+          nextStep: {
+            type: 'mfa_code',
+            method: 'email',
+            maskedDestination: 'j***@example.com',
+            expiresAt: null,
+          },
+        });
+
+      await controller.authenticateWithWallet({
+        option: {
+          providerId: CardProviderIds.Immersve,
+          method: 'siwe',
+        },
+        address: ADDR_A,
+        country: 'GB',
+      });
+      await controller.submitCredentials({
+        type: 'mfa_method',
+        method: 'email',
+        destination: 'jane@example.com',
+      });
+
+      expect(immersve.submitCredentials).toHaveBeenLastCalledWith(
+        expect.objectContaining({ id: 'login-req-2' }),
+        expect.objectContaining({ type: 'mfa_method' }),
+      );
+    });
+
+    it('records a started link when migration finishes on the MFA code', async () => {
+      const { controller, immersve } = buildSignInController();
+      (immersve.submitCredentials as jest.Mock)
+        .mockResolvedValueOnce({
+          done: false,
+          nextStep: {
+            type: 'mfa_select',
+            options: [
+              { method: 'email', maskedDestination: 'j***@example.com' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          done: true,
+          tokenSet: {
+            ...mockTokenSet,
+            providerUserId: 'imv-user',
+            accountAddress: ADDR_A,
+          },
+        });
+
+      controller.beginMigration();
+      await controller.authenticateWithWallet({
+        option: {
+          providerId: CardProviderIds.Immersve,
+          method: 'siwe',
+        },
+        address: ADDR_A,
+        country: 'GB',
+      });
+      await controller.submitCredentials({ type: 'mfa_code', code: '123456' });
+
+      expect(controller.getSignInLink()).toMatchObject({
+        status: 'started',
+        stage: 'identity',
+        address: ADDR_A,
+      });
+    });
+
     it('logoutProvider clears tokens without touching the active session', async () => {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       const { controller, baanx } = buildSignInController({

@@ -138,6 +138,7 @@ const PopularTradersCarousel: React.FC = () => {
         title={title}
         isInteractive
         onPress={handleViewAll}
+        twClassName="py-0"
         testID={PopularTradersCarouselSelectorsIDs.HEADER}
       />
       <Box paddingTop={3}>
