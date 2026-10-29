@@ -79,8 +79,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       postId: post.id,
       authorId: post.item.author.id,
       authorHandle: post.authorHandle,
+      commentId: post.commentId,
     }),
-    [post.authorHandle, post.id, post.item.author.id],
+    [post.authorHandle, post.commentId, post.id, post.item.author.id],
   );
   const {
     open: openEntryOptions,

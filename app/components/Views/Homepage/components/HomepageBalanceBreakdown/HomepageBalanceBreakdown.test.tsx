@@ -1,6 +1,14 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { TextColor } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonIcon,
+  ButtonVariant,
+  ButtonIconVariant,
+  IconName,
+  IconSize,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
@@ -222,7 +230,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and iconless rows in screenshot order', () => {
-    const { getByTestId, getAllByTestId } = render(
+    const { getByTestId, getAllByTestId, UNSAFE_getByType } = render(
       <HomepageBalanceBreakdown />,
     );
 
@@ -268,7 +276,11 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('USD 10.00');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).toHaveTextContent('Add');
+    ).toBeOnTheScreen();
+    expect(UNSAFE_getByType(Button).props.children).toBe('Add');
+    expect(UNSAFE_getByType(Button).props.variant).toBe(
+      ButtonVariant.Secondary,
+    );
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
@@ -296,7 +308,9 @@ describe('HomepageBalanceBreakdown', () => {
   it('localizes balance percentages and APY numbers', () => {
     I18n.locale = 'de-DE';
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+    const { getByTestId, UNSAFE_getByType } = render(
+      <HomepageBalanceBreakdown />,
+    );
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('money')),
@@ -304,6 +318,11 @@ describe('HomepageBalanceBreakdown', () => {
     expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveTextContent(
       'APY von 4,1 %',
     );
+    expect(UNSAFE_getByType(ButtonIcon).props.iconName).toBe(IconName.Add);
+    expect(UNSAFE_getByType(ButtonIcon).props.variant).toBe(
+      ButtonIconVariant.Filled,
+    );
+    expect(UNSAFE_getByType(ButtonIcon).props.iconProps.size).toBe(IconSize.Sm);
   });
 
   it('omits slices hidden by their product flags', () => {
@@ -476,13 +495,11 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
     ).toHaveTextContent('USD 0.00');
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).toHaveTextContent('Add');
-    expect(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY)).toHaveStyle({
-      borderRadius: 9999,
-      height: 28,
-    });
+    const moneyAddButton = getByTestId(
+      HomepageBalanceBreakdownTestIds.MONEY_BUY,
+    );
+    expect(moneyAddButton).toBeOnTheScreen();
+    expect(moneyAddButton).toHaveTextContent('Add');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,

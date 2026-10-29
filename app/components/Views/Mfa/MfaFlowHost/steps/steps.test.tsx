@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { AccessibilityInfo, Keyboard, TextInput } from 'react-native';
+import { AccessibilityInfo, Keyboard, Linking, TextInput } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type {
@@ -256,6 +256,27 @@ describe('EmailEntryStep', () => {
       type: 'submitEmail',
       email: 'a@b.co',
     });
+  });
+
+  it('links the help article when the email is already in use', () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const { getByTestId, getByText } = render(
+      <EmailEntryStep
+        {...buildState({ name: 'emailEntry' }, { error: 'email_claimed' })}
+        reason={reason}
+        onAction={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByText('This email is already in use. Try a different one.', {
+        exact: false,
+      }),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.ERROR_LINK));
+    expect(openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/configure/wallet/email-in-use',
+    );
   });
 
   it.each([
@@ -709,7 +730,7 @@ describe('PasskeyStep', () => {
 describe('FailureStep', () => {
   it('offers a retry when the error allows it', () => {
     const onAction = jest.fn();
-    const { getByTestId, getByText, queryByText } = render(
+    const { getByTestId, getByText, queryByText, queryByTestId } = render(
       <FailureStep
         {...buildState({
           name: 'failure',
@@ -723,14 +744,14 @@ describe('FailureStep', () => {
 
     expect(getByText('Something went wrong')).toBeOnTheScreen();
     expect(queryByText('Something went wrong. Try again.')).toBeNull();
+    expect(queryByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON)).toBeNull();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
-    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
   });
 
   it('only offers to close for a final error', () => {
-    const { queryByTestId, getByText } = render(
+    const onAction = jest.fn();
+    const { queryByTestId, getByTestId, getByText } = render(
       <FailureStep
         {...buildState({
           name: 'failure',
@@ -738,14 +759,17 @@ describe('FailureStep', () => {
           canRetry: false,
         })}
         reason={reason}
-        onAction={jest.fn()}
+        onAction={onAction}
       />,
     );
 
+    expect(getByText('Something went wrong')).toBeOnTheScreen();
     expect(
       getByText("You've reached the limit for this method."),
     ).toBeOnTheScreen();
     expect(queryByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON)).toBeNull();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
   });
 
   it('sends an error only support can fix to support', () => {

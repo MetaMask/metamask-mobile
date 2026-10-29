@@ -5,6 +5,7 @@ import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   navigateToVbaOnboardingDestination,
+  openVbaEntry,
   resolveVbaOnboarding,
   useOpenVbaOnboarding,
 } from './useVbaOnboardingRouting';
@@ -75,10 +76,16 @@ const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockStartSession = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
+const mockRampsState: {
+  autoramps: { id: string; walletAddress: string; status: string }[];
+} = { autoramps: [] };
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     RampsController: {
+      get state() {
+        return mockRampsState;
+      },
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
@@ -1018,6 +1025,109 @@ describe('navigateToVbaOnboardingDestination account create error', () => {
           ],
         }),
       }),
+    );
+  });
+});
+
+describe('openVbaEntry', () => {
+  const devGlobal = globalThis as { __DEV__?: boolean };
+  const originalDev = devGlobal.__DEV__;
+  const dispatch = jest.fn();
+  const entryNavigation = {
+    dispatch,
+    getState: () => ({
+      index: 0,
+      routeNames: [Routes.HOME_TABS, Routes.RAMP.VBA_ONBOARDING],
+      routes: [{ name: Routes.HOME_TABS }],
+    }),
+  } as unknown as AppNavigationProp;
+  const lastResetRoutes = () =>
+    dispatch.mock.calls[dispatch.mock.calls.length - 1][0].payload.routes;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    devGlobal.__DEV__ = true;
+    mockGetState.mockReturnValue({ address: '0xabc' });
+    mockHydrate.mockResolvedValue(EMPTY_VBA_ONBOARDING_SNAPSHOT);
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
+    mockRampsState.autoramps = [
+      { id: 'ar-1', walletAddress: '0xabc', status: 'Approved' },
+    ];
+  });
+
+  afterAll(() => {
+    devGlobal.__DEV__ = originalDev;
+  });
+
+  it('opens details directly and hydrates in the background for an approved account', () => {
+    openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
+
+    expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+    expect(mockHydrate).toHaveBeenCalledWith({
+      walletAddress: '0xabc',
+      refreshKyc: true,
+      refreshAutoramps: true,
+    });
+  });
+
+  it('logs a failed background hydrate without leaving details', async () => {
+    mockHydrate.mockRejectedValue(new Error('offline'));
+
+    openVbaEntry(entryNavigation);
+    await Promise.resolve();
+
+    expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
+      }),
+    );
+  });
+
+  it.each([
+    ['the autoramp is not approved yet', 'Created', '0xabc'],
+    ['the approved autoramp belongs to another wallet', 'Approved', '0xdef'],
+  ])('opens the loading screen when %s', (_case, status, walletAddress) => {
+    mockRampsState.autoramps = [{ id: 'ar-1', walletAddress, status }];
+
+    openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({
+        name: Routes.RAMP.VBA_ONBOARDING,
+        state: {
+          index: 0,
+          routes: [
+            {
+              name: VbaOnboardingRoutes.LOADING,
+              params: { source: 'vba-action-row-details' },
+            },
+          ],
+        },
+      }),
+    );
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('opens the loading screen when a dev KYC override is set', () => {
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('rejected');
+
+    openVbaEntry(entryNavigation);
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+    );
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('opens the loading screen when no wallet is selected', () => {
+    mockGetState.mockReturnValue({});
+
+    openVbaEntry(entryNavigation);
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
     );
   });
 });

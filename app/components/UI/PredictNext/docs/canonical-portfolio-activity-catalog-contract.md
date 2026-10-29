@@ -3,7 +3,7 @@
 - **Status:** Proposed by PRED-1402. Rules marked _Proposed, needs product sign-off_ are recommended defaults, not agreements.
 - **Scope:** Account-scoped Position, Portfolio Summary, and Activity reads, and the public Venue catalog.
 - **Venues:** Kalshi implements it in the Predict API now (PRED-1378, PRED-1380, PRED-1403). Polymarket implements the same contract in the Predict API under PRED-1356.
-- **Adoption:** PRED-1404 changes `types/`, `contracts/v1/`, services, queries, fixtures, and screens to match this contract. Until then, code and tests remain the executable contract.
+- **Adoption:** PRED-1404 adopted it in mobile: `types/`, `contracts/v1/portfolio.ts`, `PredictPortfolioService` (including `getPortfolioSummary`), `portfolioQueries`, `usePortfolioSummary`, the fixtures in `contracts/v1/fixtures/portfolio-contract/`, and the Portfolio screen.
 
 ## Why
 
@@ -467,17 +467,19 @@ The Polymarket backend adapter supplies every field from upstream records, not f
 
 ## Shared Activity kinds
 
-| Canonical entry           | Shared `ActivityKind`                                            | `data.token`               |
-| ------------------------- | ---------------------------------------------------------------- | -------------------------- |
-| `trade`, `action: 'buy'`  | `predictionPlaced`                                               | `amount`, direction `out`  |
-| `trade`, `action: 'sell'` | `predictionCashedOut`                                            | `amount`, direction `in`   |
-| `settlement`              | New Settlement kind, for example `predictionSettled` (PRED-1405) | `proceeds`, direction `in` |
+| Canonical entry           | Shared `ActivityKind` | `data.token`               |
+| ------------------------- | --------------------- | -------------------------- |
+| `trade`, `action: 'buy'`  | `predictionPlaced`    | `amount`, direction `out`  |
+| `trade`, `action: 'sell'` | `predictionCashedOut` | `amount`, direction `in`   |
+| `settlement`              | `predictionSettled`   | `proceeds`, direction `in` |
 
 - Legacy Polymarket keeps `predictionClaimWinnings` until PRED-1356. Canonical types never use "claim winnings".
 - `eventTitle` and `icon` come from `context` when present.
 - `status` is `success`, because canonical Activity contains only executed Trades and completed Settlements.
 - `hash` carries the canonical `id`, not a transaction hash.
-- Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. PRED-1405 resolves this with the `@metamask/client-utils` owners.
+- `predictionSettled` items also carry `outcomeLabel`, `marketQuestion`, `side`, `result`, `shares` and `realizedPnl` (when present) as plain decimal strings, so the details screen renders a Settlement without a lookup.
+- Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. Kalshi items use the venue constant `KALSHI_VENUE_CHAIN_ID` (`kalshi:mainnet`) from `app/util/activity-adapters`, which only keys the details source. Rows hide the network badge for `prediction*` kinds, and only `eip155:` chains get a hex chain ID or a transaction fetch.
+- Mobile declares `predictionSettled` locally in `app/util/activity-adapters/types.ts` (PRED-1405) and upstreams it to `@metamask/client-utils` in parallel. The local entry is deleted when a client-utils bump brings the kind in.
 
 ## Open decisions for product
 

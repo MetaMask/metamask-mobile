@@ -28,7 +28,7 @@ import {
 } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import {
   getLocalSocialProfileSnapshot,
-  restoreDefaultLocalSocialProfile,
+  clearLocalSocialProfile,
 } from '../MyProfileView/hooks/localSocialProfileStore';
 import { displayNameFromUsername } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
@@ -246,7 +246,7 @@ describe('SocialProfileOnboardingView', () => {
 
   afterEach(async () => {
     await resetSocialTermsAcceptance();
-    restoreDefaultLocalSocialProfile();
+    clearLocalSocialProfile();
     netInfoMock.__resetMockNetInfo();
     jest.mocked(Engine.context.ProfileController.createProfile).mockClear();
     jest
@@ -630,6 +630,87 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('checks availability for a handle with a trailing underscore', async () => {
+    renderSocialProfileOnboarding();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    const usernameInput = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
+    );
+    fireEvent.changeText(usernameInput, 'hello_');
+
+    expect(
+      screen.queryByText('Use letters, numbers, and underscores.'),
+    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.checkUsernameAvailability,
+      ).toHaveBeenCalledWith('hello_');
+    });
+    expect(
+      await screen.findByText('Username available', { exact: true }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
+        .props.accessibilityState?.disabled,
+    ).not.toBe(true);
+  });
+
+  it('shows the minimum length message instead of the unavailable message', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValue({
+        username: 'hello_',
+        available: false,
+        valid: true,
+        normalized: 'hello_',
+        errors: [],
+      });
+    renderSocialProfileOnboarding();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    const usernameInput = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
+    );
+
+    fireEvent.changeText(usernameInput, 'hello_');
+    expect(
+      await screen.findByText(
+        'This handle is unavailable. Choose another one.',
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.changeText(usernameInput, 'h');
+    expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
+    expect(
+      screen.queryByText('This handle is unavailable. Choose another one.'),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Username available')).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
+        .props.accessibilityState?.disabled,
+    ).toBe(true);
+
+    fireEvent.changeText(usernameInput, 'ab');
+    expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
+
+    fireEvent.changeText(usernameInput, 'hello_');
+    expect(
+      await screen.findByText(
+        'This handle is unavailable. Choose another one.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText('Use at least 3 characters.'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('stays on the username step when the availability check fails', async () => {
     jest
       .mocked(Engine.context.ProfileController.checkUsernameAvailability)
@@ -846,6 +927,29 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
+  it('does not announce a kept X handle as available before the server answers', async () => {
+    signIn();
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+
+    expect(screen.getByText('@degangirl')).toBeOnTheScreen();
+    expect(screen.queryByText('Username available')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS),
+    ).not.toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).not.toHaveBeenCalled();
+  });
+
   it('starts a fresh manual flow after leaving the X path', async () => {
     signIn();
     renderSocialProfileOnboarding([
@@ -928,9 +1032,11 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
 
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );
@@ -945,9 +1051,11 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );
@@ -1449,8 +1557,8 @@ describe('SocialProfileOnboardingView', () => {
   it('continues with an X handle that fails the username pattern until it is edited', async () => {
     jest.mocked(Engine.context.ProfileController.connectX).mockResolvedValue({
       xUserId: 'x-user-1',
-      xProfileUrl: 'https://x.com/_bad__name',
-      username: '_bad__name',
+      xProfileUrl: 'https://x.com/bad-name',
+      username: 'bad-name',
       displayName: 'Bad Name',
       avatarUrl: '',
       createdAt: '2026-01-01T00:00:00.000Z',
@@ -1466,7 +1574,7 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByText('@_bad__name')).toBeOnTheScreen();
+    expect(screen.getByText('@bad-name')).toBeOnTheScreen();
     expect(
       screen.queryByText('Use letters, numbers, and underscores.'),
     ).not.toBeOnTheScreen();
@@ -1491,16 +1599,18 @@ describe('SocialProfileOnboardingView', () => {
       ),
     ).toBeOnTheScreen();
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );
     const usernameInput = await screen.findByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     );
-    fireEvent.changeText(usernameInput, '_bad__name');
+    fireEvent.changeText(usernameInput, 'bad-name');
 
     expect(
       await screen.findByText('Use letters, numbers, and underscores.'),
