@@ -30,7 +30,7 @@ describe('ReactionEmojiBurst', () => {
     mockGetHardwareTier.mockReturnValue('HIGH');
   });
 
-  it('scatters two to four copies of the reacted emoji', () => {
+  it('scatters four to seven copies of the reacted emoji', () => {
     renderWithProvider(
       <ReactionEmojiBurst
         emotion="🔥"
@@ -44,8 +44,8 @@ describe('ReactionEmojiBurst', () => {
       REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
       { includeHiddenElements: true },
     );
-    expect(particles.length).toBeGreaterThanOrEqual(2);
-    expect(particles.length).toBeLessThanOrEqual(4);
+    expect(particles.length).toBeGreaterThanOrEqual(4);
+    expect(particles.length).toBeLessThanOrEqual(7);
     expect(particles[0]).toHaveTextContent('🔥');
   });
 
@@ -81,16 +81,16 @@ describe('createBurstParticles', () => {
       return next;
     };
 
-  it('draws at most four particles', () => {
-    const particles = createBurstParticles(sequence(...Array(40).fill(0.99)));
+  it('draws at most seven particles', () => {
+    const particles = createBurstParticles(sequence(...Array(50).fill(0.99)));
 
-    expect(particles).toHaveLength(4);
+    expect(particles).toHaveLength(7);
   });
 
-  it('draws at least two particles and launches them together', () => {
-    const particles = createBurstParticles(sequence(...Array(20).fill(0)));
+  it('draws at least four particles and launches them together', () => {
+    const particles = createBurstParticles(sequence(...Array(30).fill(0)));
 
-    expect(particles).toHaveLength(2);
+    expect(particles).toHaveLength(4);
     expect(particles[0].duration).toBe(1000);
     expect(particles[0].delay).toBe(0);
     expect(particles[1].delay).toBe(0);
@@ -99,32 +99,35 @@ describe('createBurstParticles', () => {
   it('gives each particle its own path, size, and distance', () => {
     const particles = createBurstParticles(
       sequence(
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
         0.5,
-        0.1,
-        0.2,
-        0.3,
-        0.4,
         0.5,
-        0.6,
-        0.7,
-        0.15,
-        0.8,
-        0.25,
-        0.9,
-        0.35,
-        0.05,
-        0.95,
-        0.2,
-        0.4,
-        0.6,
-        0.8,
-        0.1,
-        0.3,
-        0.9,
+        0.5,
+        0.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
       ),
     );
 
-    expect(particles).toHaveLength(3);
+    expect(particles).toHaveLength(4);
     expect(particles[0].delay).toBe(0);
     expect(particles[1].delay).toBe(0);
     expect(particles[0].endX).not.toBeCloseTo(particles[1].endX);

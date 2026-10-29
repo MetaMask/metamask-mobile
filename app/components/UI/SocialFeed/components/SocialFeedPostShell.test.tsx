@@ -464,8 +464,8 @@ describe('SocialFeedPostShell', () => {
           REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
           { includeHiddenElements: true },
         );
-        expect(particles.length).toBeGreaterThanOrEqual(2);
-        expect(particles.length).toBeLessThanOrEqual(4);
+        expect(particles.length).toBeGreaterThanOrEqual(4);
+        expect(particles.length).toBeLessThanOrEqual(7);
         expect(particles[0]).toHaveTextContent('🔥');
       });
     });

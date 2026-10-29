@@ -15,8 +15,8 @@ export const REACTION_EMOJI_BURST_TEST_ID = 'social-v1-reaction-burst';
 export const REACTION_EMOJI_BURST_PARTICLE_TEST_ID =
   'social-v1-reaction-burst-particle';
 
-const MIN_PARTICLES = 2;
-const MAX_PARTICLES = 4;
+const MIN_PARTICLES = 4;
+const MAX_PARTICLES = 7;
 const MIN_DURATION_MS = 1000;
 const MAX_DURATION_MS = 1200;
 const SMOOTH_OUT = Easing.out(Easing.cubic);
@@ -32,7 +32,7 @@ export interface BurstParticleSpec {
 }
 
 /**
- * Two to four copies. All launch on the tap frame and each picks its own
+ * Four to seven copies. All launch on the tap frame and each picks its own
  * angle, distance, size, and short duration.
  */
 export const createBurstParticles = (
