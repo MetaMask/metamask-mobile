@@ -103,6 +103,22 @@ describe('MoneyDeeplinkModal', () => {
       ).toHaveTextContent(DEFAULT_DESCRIPTION);
     });
 
+    it('renders explicit content instead of route params', () => {
+      const title = 'Money account unavailable';
+      const description = 'Enable Money account access to continue.';
+
+      const { getByTestId } = renderWithProvider(
+        <MoneyDeeplinkModal title={title} description={description} />,
+      );
+
+      expect(getByTestId(MoneyDeeplinkModalTestIds.TITLE)).toHaveTextContent(
+        title,
+      );
+      expect(
+        getByTestId(MoneyDeeplinkModalTestIds.DESCRIPTION),
+      ).toHaveTextContent(description);
+    });
+
     it('renders an empty title when title param is undefined', () => {
       mockUseRoute.mockReturnValue({
         params: { description: DEFAULT_DESCRIPTION },
@@ -156,6 +172,18 @@ describe('MoneyDeeplinkModal', () => {
   });
 
   describe('navigation', () => {
+    it('uses the supplied dismiss behavior instead of navigating to wallet home', () => {
+      const onDismiss = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <MoneyDeeplinkModal onDismiss={onDismiss} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyDeeplinkModalTestIds.CLOSE_BUTTON));
+
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('closes sheet and navigates to wallet home when primary button is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyDeeplinkModal />);
 
