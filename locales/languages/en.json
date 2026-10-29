@@ -11876,8 +11876,7 @@
       "description": "Apple Pay is an easy, secure, and private way to pay with your iPhone and Apple Watch.",
       "no_downloads": "There are no additional app downloads, sign ups, or fees.",
       "setup": "Get set up in seconds.",
-      "close": "Close",
-      "continue": "Continue"
+      "close": "Close"
     },
     "apple_pay_usage": {
       "learn_more": "Learn more about Apple Pay",

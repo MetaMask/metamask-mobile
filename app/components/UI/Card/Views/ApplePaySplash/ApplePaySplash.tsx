@@ -6,15 +6,16 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
-  Button,
-  ButtonBaseSize,
-  ButtonVariant,
   HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import { selectCardHomeData } from '../../../../../selectors/cardController';
+import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
+import { useCardWalletProvisioning } from '../CardHome/hooks/useCardWalletProvisioning';
 import hero from './assets/hero.png';
 
 const HERO_WIDTH = 874 / 3;
@@ -24,10 +25,18 @@ const ApplePaySplash = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
   const tw = useTailwind();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const cardHomeData = useSelector(selectCardHomeData);
+  const { initiateProvisioning } = useCardWalletProvisioning(cardHomeData, {
+    platformWalletSupported: true,
+  });
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleAddToWallet = useCallback(() => {
+    initiateProvisioning().catch(() => undefined);
+  }, [initiateProvisioning]);
 
   const heroWidth = Math.min(HERO_WIDTH, screenWidth - 32);
   const heroHeight = Math.min(
@@ -79,16 +88,14 @@ const ApplePaySplash = () => {
         </Box>
       </ScrollView>
       <SafeAreaView edges={['bottom']}>
-        <Box twClassName="px-4 pb-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonBaseSize.Lg}
-            isFullWidth
-            onPress={handleClose}
-            testID="apple-pay-splash-continue"
-          >
-            {strings('card.apple_pay_splash.continue')}
-          </Button>
+        <Box twClassName="items-center px-4 pb-4">
+          <AddToWalletButton
+            onPress={handleAddToWallet}
+            buttonStyle="blackOutline"
+            buttonType="basic"
+            borderRadius={4}
+            testID="apple-pay-splash-add"
+          />
         </Box>
       </SafeAreaView>
     </Box>

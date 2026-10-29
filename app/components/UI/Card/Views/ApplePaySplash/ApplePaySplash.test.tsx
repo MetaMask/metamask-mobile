@@ -4,20 +4,52 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ApplePaySplash from './ApplePaySplash';
 
 const mockGoBack = jest.fn();
+const mockInitiateProvisioning = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: jest.fn(),
   }),
 }));
+
+jest.mock('../CardHome/hooks/useCardWalletProvisioning', () => ({
+  useCardWalletProvisioning: () => ({
+    initiateProvisioning: mockInitiateProvisioning,
+    canAddToWallet: true,
+  }),
+}));
+
+jest.mock('../../pushProvisioning/components/AddToWalletButton', () => {
+  const ReactActual = jest.requireActual<typeof import('react')>('react');
+  const { Pressable } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    AddToWalletButton: ({
+      onPress,
+      testID,
+      buttonStyle,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+      buttonStyle?: string;
+    }) =>
+      ReactActual.createElement(Pressable, {
+        testID,
+        onPress,
+        accessibilityHint: buttonStyle,
+      }),
+  };
+});
 
 describe('ApplePaySplash', () => {
   beforeEach(() => {
     mockGoBack.mockClear();
+    mockInitiateProvisioning.mockClear();
   });
 
-  it('shows the splash copy and continues to Card Home', () => {
+  it('shows the splash copy and adds the card to Apple Wallet', () => {
     const { getByText, getByTestId, queryByTestId } = renderWithProvider(
       <ApplePaySplash />,
     );
@@ -34,11 +66,19 @@ describe('ApplePaySplash', () => {
     expect(getByText('Get set up in seconds.')).toBeOnTheScreen();
     expect(getByTestId('apple-pay-splash-hero')).toBeOnTheScreen();
     expect(queryByTestId('apple-pay-splash-lockup-light')).toBeNull();
-    expect(getByText('Continue')).toBeOnTheScreen();
 
-    fireEvent.press(getByTestId('apple-pay-splash-continue'));
+    fireEvent.press(getByTestId('apple-pay-splash-add'));
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockInitiateProvisioning).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the same outlined button as Card Home', () => {
+    const { getByTestId } = renderWithProvider(<ApplePaySplash />);
+
+    expect(getByTestId('apple-pay-splash-add')).toHaveProp(
+      'accessibilityHint',
+      'blackOutline',
+    );
   });
 
   it('returns to Card Home when closed', () => {
