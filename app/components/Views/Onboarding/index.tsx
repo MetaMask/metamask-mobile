@@ -360,7 +360,7 @@ const Onboarding = () => {
   const knownAnswerInjected = useRef(false);
   if (!knownAnswerInjected.current) {
     knownAnswerInjected.current = true;
-    const injectUntil = Date.now() + 0;
+    const injectUntil = Date.now() + 200;
     while (Date.now() < injectUntil) {
       // busy-wait
     }
