@@ -11686,18 +11686,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-controller@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/profile-controller@npm:1.1.0"
+"@metamask/profile-controller@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "@metamask/profile-controller@npm:1.2.1"
   dependencies:
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^34.0.3"
+    "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
-  checksum: 10/3bb2de0d802dc72c664f16d2051ef52f0a63cc2e3c575b8727feededa8c5006c019902001d363754794d77adf7e1c229bae43fe84a9151663bfe1b6941fb9861
+    "@metamask/utils": "npm:^12.0.1"
+  checksum: 10/a42e453fa3ed5a68dea68a5721b335ee91f49671a111a19307a4ddd0a9e4d23b66bf263de7b20f8005129d22288595cbadf64516e16ad703622e73d726580e93
   languageName: node
   linkType: hard
 
@@ -38506,7 +38506,7 @@ __metadata:
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
-    "@metamask/profile-controller": "npm:^1.1.0"
+    "@metamask/profile-controller": "npm:^1.2.1"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/providers": "npm:^18.3.1"

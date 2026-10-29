@@ -439,7 +439,7 @@
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
     "@metamask/preinstalled-example-snap": "^0.8.1",
-    "@metamask/profile-controller": "^1.1.0",
+    "@metamask/profile-controller": "^1.2.1",
     "@metamask/profile-metrics-controller": "^5.1.0",
     "@metamask/profile-sync-controller": "^36.0.0",
     "@metamask/ramps-controller": "^28.0.0",
