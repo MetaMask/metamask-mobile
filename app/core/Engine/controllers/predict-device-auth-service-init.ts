@@ -55,6 +55,14 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
       request: params ? { method, params } : { method },
     });
 
+  // Cached canonical profile id. Bearer-token reads refresh it from
+  // getSessionProfile, and profileSignIn writes it when pairing changes the
+  // id or returns new aliases. The installed profile-sync-controller emits
+  // that event only from #doPair, so a normal single-SRP sign-in does not.
+  // Sign-out and reset still clear this cache, and the session reuses a
+  // cached A2T only while this id matches the one it was issued for. This
+  // trusts those updates. The previous code read the id from
+  // AuthenticationController state on each check.
   let canonicalProfileId: string | undefined;
   const rememberCanonicalProfileId = (profileId: string | undefined): void => {
     canonicalProfileId = profileId || undefined;
