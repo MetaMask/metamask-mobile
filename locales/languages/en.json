@@ -1451,7 +1451,7 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Position",
       "chip_gif": "GIF",
-      "gifs_title": "GIFs",
+      "gifs_title": "Add a GIF",
       "gifs_close": "Close GIFs",
       "gifs_search_placeholder": "Search GIFs",
       "gifs_empty": "No GIFs found",

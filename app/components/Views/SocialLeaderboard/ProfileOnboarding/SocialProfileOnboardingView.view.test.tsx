@@ -916,9 +916,11 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
 
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );
@@ -933,9 +935,11 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );
@@ -1479,9 +1483,11 @@ describe('SocialProfileOnboardingView', () => {
       ),
     ).toBeOnTheScreen();
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );
