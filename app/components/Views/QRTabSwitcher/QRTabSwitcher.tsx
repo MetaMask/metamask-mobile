@@ -5,8 +5,14 @@ import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import QRScanner from '../QRScanner';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import AccountsImported from '../AddDeviceToWallet/AccountsImported';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DeviceAdded from '../AddDeviceToWallet/DeviceAdded';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
+import {
+  releaseQrSyncAccountsReviewHold,
+  useQrSyncAccountsReviewSnapshot,
+} from '../../../core/QrSync/qrSyncAccountsReview';
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
@@ -160,8 +166,18 @@ const QRTabSwitcher = () => {
 
   useQrSyncImportNavigation({ enabled: isAddDeviceOrigin });
 
+  const { review, holdInstructions } = useQrSyncAccountsReviewSnapshot();
+
+  useEffect(() => {
+    if (!isAddDeviceOrigin || presentation !== 'instructions') {
+      return;
+    }
+    releaseQrSyncAccountsReviewHold();
+  }, [isAddDeviceOrigin, presentation]);
+
   const showDeviceAddedLoader =
     isAddDeviceOrigin &&
+    !holdInstructions &&
     (presentation === 'device-linked' ||
       keepWaitingScreenAfterCancelRef.current);
 
@@ -267,6 +283,14 @@ const QRTabSwitcher = () => {
       }
     }
   };
+
+  if (isAddDeviceOrigin && holdInstructions) {
+    return null;
+  }
+
+  if (isAddDeviceOrigin && review) {
+    return <AccountsImported returnFromScanner />;
+  }
 
   if (showDeviceAddedLoader) {
     return <DeviceAdded />;

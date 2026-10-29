@@ -16,11 +16,18 @@ import { useTheme } from '../../../util/theme';
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 import { useLiquidGlass } from '../../hooks/useLiquidGlass';
 
+export type HeaderGlassEdge = 'top' | 'bottom';
+
 export interface HeaderGlassBackdropProps {
   /** How far the content has scrolled from its resting top; omit to keep the effect on. */
   scrollDistance?: SharedValue<number>;
   /** Scroll distance over which the effect fades in. */
   fadeInDistance?: number;
+  /**
+   * Which edge stays opaque. Headers fade out below; footers fade out above.
+   * @default 'top'
+   */
+  edge?: HeaderGlassEdge;
   testID?: string;
 }
 
@@ -59,6 +66,13 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: -BLUR_TAIL_HEIGHT,
   },
+  blurTailBottom: {
+    position: 'absolute',
+    top: -BLUR_TAIL_HEIGHT,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   gradientTail: {
     position: 'absolute',
     top: 0,
@@ -66,38 +80,59 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: -GRADIENT_TAIL_HEIGHT,
   },
+  gradientTailBottom: {
+    position: 'absolute',
+    top: -GRADIENT_TAIL_HEIGHT,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   effect: {
+    height: EFFECT_HEIGHT,
+  },
+  effectBottom: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     height: EFFECT_HEIGHT,
   },
 });
 
 /**
- * The background behind a header floating over content: blurred and darkened
- * on iOS, a dark gradient elsewhere. Fills its parent and fades out below it.
+ * The background behind a header or footer floating over content: blurred and
+ * darkened on iOS, a dark gradient elsewhere. Fades out past `edge`.
  */
+const forEdge = <T,>(edge: HeaderGlassEdge, values: readonly T[]): T[] =>
+  edge === 'bottom' ? [...values].reverse() : [...values];
+
 const HeaderGlassBackdrop = ({
   scrollDistance,
   fadeInDistance = DEFAULT_FADE_IN_DISTANCE,
+  edge = 'top',
   testID,
 }: HeaderGlassBackdropProps) => {
   const { colors } = useTheme();
   const { isGlassEnabled, isBlurEnabled, glassColorScheme } = useLiquidGlass();
   const canBlur = isGlassEnabled || isBlurEnabled;
-  const opacities = canBlur ? BLUR_TINT_OPACITIES : GRADIENT_OPACITIES;
   const tintColors = useMemo(
     () =>
-      opacities.map((opacity) =>
-        colorWithOpacity(colors.background.default, opacity),
+      forEdge(edge, canBlur ? BLUR_TINT_OPACITIES : GRADIENT_OPACITIES).map(
+        (opacity) => colorWithOpacity(colors.background.default, opacity),
       ),
-    [colors.background.default, opacities],
+    [canBlur, colors.background.default, edge],
   );
   const maskColors = useMemo(
     () =>
-      BLUR_MASK_OPACITIES.map((opacity) =>
+      forEdge(edge, BLUR_MASK_OPACITIES).map((opacity) =>
         colorWithOpacity(colors.background.default, opacity),
       ),
-    [colors.background.default],
+    [colors.background.default, edge],
   );
+  const tailStyle = edge === 'bottom' ? styles.blurTailBottom : styles.blurTail;
+  const gradientTailStyle =
+    edge === 'bottom' ? styles.gradientTailBottom : styles.gradientTail;
+  const effectStyle = edge === 'bottom' ? styles.effectBottom : styles.effect;
 
   const progress = useDerivedValue(() =>
     scrollDistance
@@ -118,12 +153,12 @@ const HeaderGlassBackdrop = ({
     return (
       <Animated.View
         pointerEvents="none"
-        style={[styles.gradientTail, fadeStyle]}
+        style={[gradientTailStyle, fadeStyle]}
       >
         <LinearGradient
           colors={tintColors}
           locations={GRADIENT_LOCATIONS}
-          style={styles.effect}
+          style={effectStyle}
           testID={testID}
         />
       </Animated.View>
@@ -131,8 +166,8 @@ const HeaderGlassBackdrop = ({
   }
 
   return (
-    <View pointerEvents="none" style={styles.blurTail}>
-      <View style={styles.effect}>
+    <View pointerEvents="none" style={tailStyle}>
+      <View style={effectStyle}>
         <MaskedView
           style={StyleSheet.absoluteFill}
           maskElement={

@@ -64,6 +64,7 @@ import FooterGlass from '../../../component-library/components-temp/FooterGlass'
 import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { dismissQrSyncAccountsReview } from '../../../core/QrSync/qrSyncAccountsReview';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import {
   Box,
@@ -454,12 +455,18 @@ const ImportFromSecretRecoveryPhrase = () => {
   );
 
   const onBackPress = () => {
-    if (isQrSyncImport) {
+    if (isQrSyncImport && currentStep === 1) {
+      dismissQrSyncAccountsReview();
       Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
         () => undefined,
       );
+      navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET, undefined, {
+        pop: true,
+      });
+      return;
     }
-    if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
+
+    if (currentStep === 0) {
       navigation.goBack();
     } else {
       animateToStep(currentStep - 1);
