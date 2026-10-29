@@ -3,10 +3,8 @@ import { Modal, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { PerpsAccountUnsupportedModalSelectorsIDs } from '../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
-
-export const PERPS_ACCOUNT_UNSUPPORTED_MODAL_GESTURE_ROOT_TEST_ID =
-  'perps-account-unsupported-modal-gesture-root';
 
 interface PerpsAccountUnsupportedModalProps {
   isVisible: boolean;
@@ -36,7 +34,7 @@ const PerpsAccountUnsupportedModal = ({
         <ModalSafeAreaProvider>
           <GestureHandlerRootView
             style={tw.style('flex-1')}
-            testID={PERPS_ACCOUNT_UNSUPPORTED_MODAL_GESTURE_ROOT_TEST_ID}
+            testID={PerpsAccountUnsupportedModalSelectorsIDs.GESTURE_ROOT}
           >
             <PerpsBottomSheetTooltip
               isVisible

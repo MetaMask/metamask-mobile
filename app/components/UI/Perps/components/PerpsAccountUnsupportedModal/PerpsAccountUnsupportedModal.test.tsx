@@ -1,9 +1,8 @@
 import React from 'react';
 import { Modal } from 'react-native';
 import { render, screen, within } from '@testing-library/react-native';
-import PerpsAccountUnsupportedModal, {
-  PERPS_ACCOUNT_UNSUPPORTED_MODAL_GESTURE_ROOT_TEST_ID,
-} from './PerpsAccountUnsupportedModal';
+import { PerpsAccountUnsupportedModalSelectorsIDs } from '../../Perps.testIds';
+import PerpsAccountUnsupportedModal from './PerpsAccountUnsupportedModal';
 
 jest.mock('../PerpsBottomSheetTooltip', () => {
   const { View } = jest.requireActual('react-native');
@@ -20,7 +19,7 @@ describe('PerpsAccountUnsupportedModal', () => {
 
     expect(
       screen.queryByTestId(
-        PERPS_ACCOUNT_UNSUPPORTED_MODAL_GESTURE_ROOT_TEST_ID,
+        PerpsAccountUnsupportedModalSelectorsIDs.GESTURE_ROOT,
       ),
     ).not.toBeOnTheScreen();
   });
@@ -29,7 +28,7 @@ describe('PerpsAccountUnsupportedModal', () => {
     render(<PerpsAccountUnsupportedModal isVisible onClose={jest.fn()} />);
 
     const gestureRoot = screen.getByTestId(
-      PERPS_ACCOUNT_UNSUPPORTED_MODAL_GESTURE_ROOT_TEST_ID,
+      PerpsAccountUnsupportedModalSelectorsIDs.GESTURE_ROOT,
     );
     expect(
       within(gestureRoot).getByTestId('account-unsupported-tooltip'),
