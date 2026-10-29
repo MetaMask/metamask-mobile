@@ -1,11 +1,11 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import VbaEmailAdapter from '../../../KYC/Views/EmailAdapter';
-import VbaIdentityVerified from '../../../KYC/Views/Status/IdentityVerified';
 import VbaIdentityVerificationModule from '../../../KYC/Views/SumSub/IdentityVerification';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
+  VbaIdentityVerifiedAdapter,
   VbaKycPendingAdapter,
   VbaKycRejectedAdapter,
 } from './modules/VbaStatusAdapters';
@@ -39,7 +39,7 @@ const InstrumentedKycPending = withScreenPerformance(
   VBA_SCREEN_ID.KYC_PENDING,
 );
 const InstrumentedIdentityVerified = withScreenPerformance(
-  VbaIdentityVerified,
+  VbaIdentityVerifiedAdapter,
   VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.IDENTITY_VERIFIED,
 );
