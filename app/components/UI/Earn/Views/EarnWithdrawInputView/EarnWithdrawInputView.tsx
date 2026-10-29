@@ -46,7 +46,6 @@ import {
   EVENT_PROVIDERS,
 } from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
-import EarnHeaderSubtitle from '../../components/EarnHeaderSubtitle';
 import EarnMaintenanceBanner from '../../components/EarnMaintenanceBanner';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
@@ -78,7 +77,6 @@ import { EVM_SCOPE } from '../../constants/networks';
 import { formatChainIdForAnalytics } from '../../utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronUnstake from '../../hooks/useTronUnstake';
-import useTronStakeApy from '../../hooks/useTronStakeApy';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
@@ -130,7 +128,6 @@ const EarnWithdrawInputView = () => {
     confirmUnstake: tronConfirmUnstake,
     tronAccountId,
   } = useTronUnstake({ token });
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI
@@ -411,13 +408,6 @@ const EarnWithdrawInputView = () => {
     }
     navigation.goBack();
   }, [navigation, trackEvent, createEventBuilder, navBarEventOptions]);
-
-  const headerSubtitle = receiptTokenToUse ? (
-    <EarnHeaderSubtitle
-      earnToken={receiptTokenToUse}
-      aprOverride={isTronEnabled ? tronApyPercent : null}
-    />
-  ) : undefined;
 
   // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
   // This ref will allow one insufficient funds error to fire per visit to the page.
@@ -904,7 +894,6 @@ const EarnWithdrawInputView = () => {
     <Box twClassName="flex-1 bg-default">
       <HeaderStandard
         title={title}
-        subtitle={headerSubtitle ?? undefined}
         onBack={navBarOptions.hasBackButton ? handleHeaderBackPress : undefined}
         backButtonProps={
           navBarOptions.hasBackButton
@@ -922,7 +911,6 @@ const EarnWithdrawInputView = () => {
           ) : undefined
         }
         includesTopInset
-        style={headerSubtitle ? styles.headerWithSubtitle : undefined}
       />
       {isPooledStakingWithdrawal &&
         isPooledStakingServiceInterruptionBannerEnabled && (
@@ -984,13 +972,30 @@ const EarnWithdrawInputView = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
+        {!isTronEnabled && isNonZeroAmount && (
+          <View style={styles.reviewButtonContainer}>
+            <Button
+              testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
+              label={buttonLabel}
+              size={ButtonSize.Lg}
+              labelTextVariant={TextVariant.BodyMDMedium}
+              variant={ButtonVariants.Primary}
+              loading={isSubmittingStakeWithdrawalTransaction}
+              isDisabled={isWithdrawButtonDisabled}
+              width={ButtonWidthTypes.Full}
+              onPress={handleWithdrawPress}
+            />
+          </View>
+        )}
         {!isPreviewVisible && (
           <>
-            <QuickAmounts
-              amounts={quickAmounts}
-              onAmountPress={handleQuickAmountPressWithTracking}
-              onMaxPress={onRightActionPress}
-            />
+            {(isTronEnabled || !isNonZeroAmount) && (
+              <QuickAmounts
+                amounts={quickAmounts}
+                onAmountPress={handleQuickAmountPressWithTracking}
+                onMaxPress={onRightActionPress}
+              />
+            )}
             <Keypad
               value={isFiat ? amountFiatNumber : amountToken}
               onChange={handleKeypadChangeWithValidation}
@@ -1021,21 +1026,6 @@ const EarnWithdrawInputView = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {!isTronEnabled && (
-          <View style={styles.reviewButtonContainer}>
-            <Button
-              testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
-              label={buttonLabel}
-              size={ButtonSize.Lg}
-              labelTextVariant={TextVariant.BodyMDMedium}
-              variant={ButtonVariants.Primary}
-              loading={isSubmittingStakeWithdrawalTransaction}
-              isDisabled={isWithdrawButtonDisabled}
-              width={ButtonWidthTypes.Full}
-              onPress={handleWithdrawPress}
-            />
-          </View>
-        )}
       </ScreenLayout>
     </Box>
   );

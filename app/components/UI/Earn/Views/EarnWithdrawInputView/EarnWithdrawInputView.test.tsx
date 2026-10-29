@@ -465,11 +465,12 @@ describe('EarnWithdrawInputView', () => {
     );
   });
 
-  it('renders withdraw input view with review button', async () => {
+  it('renders quick amounts and hides the review button when the amount is zero', async () => {
     render(EarnWithdrawInputView);
 
     await waitFor(async () => {
-      expect(screen.getByTestId('review-button')).toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.queryByTestId('review-button')).not.toBeOnTheScreen();
     });
   });
 
@@ -627,18 +628,21 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('withdraw button states', () => {
-    it('displays `Enter amount` if input is 0', () => {
+    it('hides the review button and keeps quick amounts when the amount is zero', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('Enter amount')).toBeOnTheScreen();
+      expect(screen.queryByText('Enter amount')).not.toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
     });
 
-    it('displays `Review` on withdraw button if input is valid', () => {
+    it('replaces quick amounts with Review when the amount is greater than zero', () => {
       render(EarnWithdrawInputView);
 
       fireEvent.press(screen.getByText('1'));
 
       expect(screen.getByText('Review')).toBeOnTheScreen();
+      expect(screen.queryByText('25%')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Max')).not.toBeOnTheScreen();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
