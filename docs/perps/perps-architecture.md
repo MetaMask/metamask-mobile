@@ -594,8 +594,12 @@ Rewards opt-in and VIP enrollment are not required.
    team if the grant controls are unavailable.
 
 5. Open a Hyperliquid mainnet order or close preview. A winning grant should
-   display **Promotional discount**, without a VIP badge. Grants do not apply
-   to Hyperliquid testnet or other providers.
+   display the promotional seal without a VIP badge. The Lite order and close
+   captions show the original rate struck through beside the green discounted
+   rate and "fee after promo" copy. The Pro fees row shows the struck original
+   fee beside the green discounted fee, and the fees sheet shows the
+   promotional seal and discount message. Grants do not apply to Hyperliquid
+   testnet or other providers.
 
 Core selects the lowest applicable fee across the grant, VIP, membership, and
 default fee. Use a profile without a better competing discount when validating

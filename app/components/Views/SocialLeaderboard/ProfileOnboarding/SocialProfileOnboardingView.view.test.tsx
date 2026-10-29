@@ -28,7 +28,7 @@ import {
 } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import {
   getLocalSocialProfileSnapshot,
-  restoreDefaultLocalSocialProfile,
+  clearLocalSocialProfile,
 } from '../MyProfileView/hooks/localSocialProfileStore';
 import { displayNameFromUsername } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
@@ -235,7 +235,7 @@ const restoreProfileControllerMocks = () => {
 
 describe('SocialProfileOnboardingView', () => {
   afterEach(() => {
-    restoreDefaultLocalSocialProfile();
+    clearLocalSocialProfile();
     netInfoMock.__resetMockNetInfo();
     jest.mocked(Engine.context.ProfileController.createProfile).mockClear();
     jest
@@ -916,9 +916,11 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
 
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );
@@ -933,9 +935,11 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );
@@ -1479,9 +1483,11 @@ describe('SocialProfileOnboardingView', () => {
       ),
     ).toBeOnTheScreen();
     fireEvent(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
-      ),
+      within(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+        ),
+      ).getByRole('switch'),
       'valueChange',
       false,
     );

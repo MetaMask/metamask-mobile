@@ -150,6 +150,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
   // which cannot hoist onto the CJS v11 the rest of the repo resolves.
   '@metamask/utils',
+  // 2.1+ ships ESM-only under dist/*.js (2.0.x used a CJS build).
+  '@shopify/flash-list',
   '@tommasini/react-native-scrollable-tab-view',
   '@veriff/react-native-sdk',
   '@sumsub/react-native-mobilesdk-module',
