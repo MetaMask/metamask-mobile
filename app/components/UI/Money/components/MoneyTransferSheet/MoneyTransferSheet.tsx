@@ -35,10 +35,11 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
 
 type TransferAction = 'withdraw' | 'perps' | 'predict' | 'rescueSend';
 
-const MoneyTransferSheet = () => {
+const MoneyTransferSheetContent = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -253,6 +254,16 @@ const MoneyTransferSheet = () => {
       </View>
     </BottomSheet>
   );
+};
+
+const MoneyTransferSheet = () => {
+  const isMoneyAccountAccessible = useMoneyAccountAccessRedirect();
+
+  if (!isMoneyAccountAccessible) {
+    return null;
+  }
+
+  return <MoneyTransferSheetContent />;
 };
 
 export default MoneyTransferSheet;

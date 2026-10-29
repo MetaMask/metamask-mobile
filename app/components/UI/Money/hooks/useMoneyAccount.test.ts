@@ -31,6 +31,7 @@ import {
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
+import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
 import useMoneyToasts from './useMoneyToasts';
 import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
@@ -107,6 +108,10 @@ jest.mock(
     useMoneyAccountDepositPrefillEnabled: jest.fn(),
   }),
 );
+jest.mock('./useMoneyAccountAvailability', () => ({
+  ...jest.requireActual('./useMoneyAccountAvailability'),
+  useMoneyAccountAvailability: jest.fn(),
+}));
 
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
@@ -154,6 +159,9 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
 >;
 const mockUseMoneyAccountDepositPrefillEnabled = jest.mocked(
   useMoneyAccountDepositPrefillEnabled,
+);
+const mockUseMoneyAccountAvailability = jest.mocked(
+  useMoneyAccountAvailability,
 );
 const mockIsDepositPrefillEnabled = jest.fn(
   (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
@@ -266,6 +274,10 @@ describe('useMoneyAccountDeposit', () => {
       return 0;
     });
     setupSelectors();
+    mockUseMoneyAccountAvailability.mockReturnValue({
+      accessBlockReason: undefined,
+      isMoneyAccountAccessible: true,
+    });
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
     mockGetMoneyAccountDepositAssetAddress.mockReturnValue('0xmusd' as Hex);
@@ -310,6 +322,31 @@ describe('useMoneyAccountDeposit', () => {
       }),
     );
   });
+
+  it.each([
+    ['feature disabled', 'feature_disabled'],
+    ['geo-blocked', 'geo_blocked'],
+  ] as const)(
+    'rejects a deposit when Money is %s before navigation or submission',
+    async (_label, reason) => {
+      mockUseMoneyAccountAvailability.mockReturnValue({
+        accessBlockReason: reason,
+        isMoneyAccountAccessible: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountDeposit());
+
+      await expect(
+        act(async () => {
+          await result.current.initiateDeposit();
+        }),
+      ).rejects.toMatchObject({ reason });
+
+      expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+      expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+      expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    },
+  );
 
   it('throws when the primary money account is missing', async () => {
     setupSelectors({ primaryMoneyAccount: undefined });
@@ -936,6 +973,10 @@ describe('useMoneyAccountWithdrawal', () => {
       return 0;
     });
     setupSelectors();
+    mockUseMoneyAccountAvailability.mockReturnValue({
+      accessBlockReason: undefined,
+      isMoneyAccountAccessible: true,
+    });
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
     mockBuildWithdrawBatch.mockResolvedValue({
@@ -973,6 +1014,31 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['feature disabled', 'feature_disabled'],
+    ['geo-blocked', 'geo_blocked'],
+  ] as const)(
+    'rejects a withdrawal when Money is %s before navigation or submission',
+    async (_label, reason) => {
+      mockUseMoneyAccountAvailability.mockReturnValue({
+        accessBlockReason: reason,
+        isMoneyAccountAccessible: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+      await expect(
+        act(async () => {
+          await result.current.initiateWithdrawal();
+        }),
+      ).rejects.toMatchObject({ reason });
+
+      expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+      expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
+      expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    },
+  );
 
   it('throws when the primary money account is missing', async () => {
     setupSelectors({ primaryMoneyAccount: undefined });

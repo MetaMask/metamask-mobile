@@ -6,6 +6,7 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import Engine from '../../../../core/Engine';
 import { useMoneyAccountMusdRescueSend } from './useMoneyAccountMusdRescueSend';
+import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
@@ -71,7 +72,15 @@ jest.mock('./useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({ navigateToMoneyHome: mockNavigateToMoneyHome }),
 }));
 
+jest.mock('./useMoneyAccountAvailability', () => ({
+  ...jest.requireActual('./useMoneyAccountAvailability'),
+  useMoneyAccountAvailability: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseMoneyAccountAvailability = jest.mocked(
+  useMoneyAccountAvailability,
+);
 const mockAddTransactionBatch = addTransactionBatch as jest.MockedFunction<
   typeof addTransactionBatch
 >;
@@ -158,6 +167,10 @@ beforeEach(() => {
     musdBalance: LIQUID_BALANCE_RAW,
     vmusdValueInMusd: '0',
   } as never);
+  mockUseMoneyAccountAvailability.mockReturnValue({
+    accessBlockReason: undefined,
+    isMoneyAccountAccessible: true,
+  });
   setupSelectors();
 });
 
@@ -170,6 +183,26 @@ afterEach(async () => {
 });
 
 describe('useMoneyAccountMusdRescueSend', () => {
+  it.each([
+    ['feature disabled', 'feature_disabled'],
+    ['geo-blocked', 'geo_blocked'],
+  ] as const)(
+    'rejects a rescue send when Money is %s before submission',
+    async (_label, reason) => {
+      mockUseMoneyAccountAvailability.mockReturnValue({
+        accessBlockReason: reason,
+        isMoneyAccountAccessible: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+      await expect(initiate(result)).rejects.toMatchObject({ reason });
+
+      expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+      expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+    },
+  );
+
   it('builds a single ERC-20 transfer from the money account to the mUSD contract', async () => {
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 

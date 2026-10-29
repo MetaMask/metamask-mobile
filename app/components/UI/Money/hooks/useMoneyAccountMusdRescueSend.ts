@@ -28,6 +28,8 @@ import Logger from '../../../../util/Logger';
 import { calcTokenValue } from '../../../../util/transactions';
 import useMoneyToasts from './useMoneyToasts';
 import { useMoneyNavigation } from './useMoneyNavigation';
+import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
+import { assertMoneyAccountAccessible } from '../utils/moneyAccountAccess';
 
 const LOG_TAG = '[Money Account mUSD Rescue Send]';
 
@@ -36,6 +38,8 @@ const ERC20_TRANSFER_ABI = ['function transfer(address to, uint256 amount)'];
 /** Names the safety gate that rejected a rescue send initiation. */
 export type MusdRescueSendBlockReason =
   | 'in-flight'
+  | 'feature_disabled'
+  | 'geo_blocked'
   | 'missing-money-account'
   | 'missing-vault-config'
   | 'unsupported-chain'
@@ -94,6 +98,7 @@ export interface PreparedMusdRescueSend {
 export function useMoneyAccountMusdRescueSend() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { accessBlockReason } = useMoneyAccountAvailability();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
   const { navigateToMoneyHome } = useMoneyNavigation();
 
@@ -118,6 +123,8 @@ export function useMoneyAccountMusdRescueSend() {
       /** Lowercase-addressable list of eligible same-SRP recipient addresses. */
       sameSrpAddresses: string[];
     }): Promise<PreparedMusdRescueSend> => {
+      assertMoneyAccountAccessible(accessBlockReason);
+
       const moneyAccountAddress = primaryMoneyAccount?.address;
       if (!moneyAccountAddress) {
         throw Object.assign(
@@ -226,7 +233,7 @@ export function useMoneyAccountMusdRescueSend() {
         amountRaw,
       };
     },
-    [primaryMoneyAccount, vaultConfig],
+    [accessBlockReason, primaryMoneyAccount, vaultConfig],
   );
 
   /**
