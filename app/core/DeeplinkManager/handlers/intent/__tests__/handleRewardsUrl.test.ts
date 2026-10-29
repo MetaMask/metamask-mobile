@@ -208,6 +208,98 @@ describe('handleRewardsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
 
+    it('dispatches pending deeplink and navigates to rewards view with campaign=perps-comp param', async () => {
+      await handleRewardsUrl({ rewardsPath: '?campaign=perps-comp' });
+
+      expect(setPendingDeeplink).toHaveBeenCalledWith({
+        page: undefined,
+        campaign: 'perps-comp',
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+    });
+
+    // The duplicate RewardsHome is pushed by the root navigator one frame
+    // after this handler returns. A component-view test cannot observe that
+    // deferred root navigate, so the guard is covered here.
+    it('does not navigate to rewards home when the dashboard is already mounted', async () => {
+      NavigationService.navigation = {
+        navigate: mockNavigate,
+        getRootState: () => ({
+          routes: [
+            {
+              name: 'Home',
+              state: {
+                routes: [
+                  {
+                    name: Routes.REWARDS_VIEW,
+                    state: {
+                      routes: [{ name: Routes.REWARDS_DASHBOARD }],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      } as unknown as typeof NavigationService.navigation;
+
+      await handleRewardsUrl({ rewardsPath: '?campaign=perps-comp' });
+
+      expect(setPendingDeeplink).toHaveBeenCalledWith({
+        page: undefined,
+        campaign: 'perps-comp',
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate to rewards home when the money dashboard is already mounted', async () => {
+      NavigationService.navigation = {
+        navigate: mockNavigate,
+        getRootState: () => ({
+          routes: [
+            {
+              name: 'Home',
+              state: {
+                routes: [
+                  {
+                    name: Routes.REWARDS_VIEW,
+                    state: {
+                      routes: [{ name: Routes.REWARDS_MONEY_DASHBOARD }],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      } as unknown as typeof NavigationService.navigation;
+
+      await handleRewardsUrl({ rewardsPath: '?campaign=perps-comp' });
+
+      expect(setPendingDeeplink).toHaveBeenCalledWith({
+        page: undefined,
+        campaign: 'perps-comp',
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('still navigates to rewards home for a bare rewards link when the dashboard is mounted', async () => {
+      NavigationService.navigation = {
+        navigate: mockNavigate,
+        getRootState: () => ({
+          routes: [
+            {
+              name: Routes.REWARDS_DASHBOARD,
+            },
+          ],
+        }),
+      } as unknown as typeof NavigationService.navigation;
+
+      await handleRewardsUrl({ rewardsPath: '' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+    });
+
     it('dispatches referral code and pending deeplink when both are present', async () => {
       await handleRewardsUrl({
         rewardsPath: '?referral=abc123&page=campaigns',
