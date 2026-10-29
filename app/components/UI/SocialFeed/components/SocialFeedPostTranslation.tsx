@@ -175,7 +175,7 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
     const id = requestId.current + 1;
     requestId.current = id;
     setTranslation({ identity, phase: 'pending', translatedText: null });
-    translateComment({ commentId, targetLanguage: ENGLISH })
+    translateComment({ commentId })
       .then((result) => {
         if (requestId.current !== id || currentIdentity.current !== identity) {
           return;

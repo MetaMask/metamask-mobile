@@ -24,19 +24,17 @@ describe('translateComment', () => {
 
   it('calls SocialController:translateComment and returns the translation', async () => {
     mockCall.mockResolvedValue({
-      state: 'translated',
       sourceLanguage: 'ko',
       translations: { en: 'Hello' },
+      text: 'Hello',
     });
 
     const result = await translateComment({
       commentId: 'comment-1',
-      targetLanguage: 'en',
     });
 
     expect(mockCall).toHaveBeenCalledWith('SocialController:translateComment', {
       commentId: 'comment-1',
-      targetLanguage: 'en',
     });
     expect(result).toStrictEqual({
       state: 'translated',
@@ -49,7 +47,7 @@ describe('translateComment', () => {
     mockCall.mockResolvedValue({ state: 'translationFailed' });
 
     await expect(
-      translateComment({ commentId: 'comment-1', targetLanguage: 'en' }),
+      translateComment({ commentId: 'comment-1' }),
     ).resolves.toStrictEqual({ state: 'translationFailed' });
   });
 
@@ -57,7 +55,7 @@ describe('translateComment', () => {
     mockCall.mockRejectedValue(new Error('endpoint does not exist yet'));
 
     await expect(
-      translateComment({ commentId: 'comment-1', targetLanguage: 'en' }),
+      translateComment({ commentId: 'comment-1' }),
     ).resolves.toStrictEqual({ state: 'translationFailed' });
   });
 });

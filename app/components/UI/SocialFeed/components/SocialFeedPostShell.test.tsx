@@ -847,7 +847,6 @@ describe('SocialFeedPostShell', () => {
       expect(screen.queryByText('이 내용은 한국어입니다.')).toBeNull();
       expect(translate).toHaveBeenCalledWith({
         commentId: 'comment-1',
-        targetLanguage: 'en',
       });
     });
 
