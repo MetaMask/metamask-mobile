@@ -4,6 +4,7 @@ import {
   fireEvent,
   render as renderRoot,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
@@ -337,6 +338,19 @@ describe('PerpsTradeScreen errors', () => {
     ).toBeOnTheScreen();
     expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
     expect(screen.queryByText('Cross')).not.toBeOnTheScreen();
+  });
+
+  it('shows unsupported account content inside the trade sheet', async () => {
+    const onSubmit = jest.fn().mockResolvedValue('accountUnsupported');
+    render(<PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigateTo).toHaveBeenCalledWith('accountUnsupported');
+    });
   });
 
   it('shows the payment asset icon beside the pay with value', () => {
