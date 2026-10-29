@@ -65,4 +65,6 @@ export interface PerpsMarketHeaderProps {
    * falls back to the live mid-price stream.
    */
   currentPrice?: number;
+  /** Status bar space the floating header pads, when the screen runs under it. */
+  topInset?: number;
 }

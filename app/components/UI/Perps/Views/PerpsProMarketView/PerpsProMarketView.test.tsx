@@ -27,6 +27,15 @@ import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { playSelection } from '../../../../../util/haptics';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/perpsBrandRefresh',
+  () => ({
+    selectPerpsBrandRefreshEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('../../../../../util/haptics');
 
 const mockSetTitleSectionHeight = jest.fn();
@@ -1641,6 +1650,67 @@ describe('PerpsProMarketView', () => {
       renderView();
 
       expect(mockRecordMarketViewed).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('brand refresh insets', () => {
+    const edgeInsets = { top: 47, bottom: 34 };
+    const headerGlassTestID = `${PerpsProMarketViewSelectorsIDs.HEADER}-glass`;
+
+    const renderWithInsets = () =>
+      renderWithProvider(<PerpsProMarketView edgeInsets={edgeInsets} />, {
+        state: { engine: { backgroundState } },
+      });
+
+    afterEach(() => {
+      jest.mocked(selectPerpsBrandRefreshEnabled).mockReturnValue(false);
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(false);
+    });
+
+    it('reserves the floating header height and clears the home indicator', () => {
+      jest.mocked(selectPerpsBrandRefreshEnabled).mockReturnValue(true);
+
+      const { getByTestId } = renderWithInsets();
+      const scrollView = getByTestId(
+        PerpsProMarketViewSelectorsIDs.SCROLL_VIEW,
+      );
+
+      expect(
+        within(scrollView).getByTestId(
+          PerpsProMarketViewSelectorsIDs.HEADER_SPACER,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(scrollView).getByTestId(
+          PerpsProMarketViewSelectorsIDs.BOTTOM_INSET_SPACER,
+        ),
+      ).toHaveStyle({ height: 34 });
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 47 });
+    });
+
+    it('lets the service banner pad the status bar instead of the header', () => {
+      jest.mocked(selectPerpsBrandRefreshEnabled).mockReturnValue(true);
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(true);
+
+      const { getByTestId } = renderWithInsets();
+
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 0 });
+    });
+
+    it('adds no spacers with the flag off', () => {
+      const { queryByTestId } = renderView();
+
+      expect(
+        queryByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SPACER),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsProMarketViewSelectorsIDs.BOTTOM_INSET_SPACER),
+      ).toBeNull();
+      expect(queryByTestId(headerGlassTestID)).toBeNull();
     });
   });
 });

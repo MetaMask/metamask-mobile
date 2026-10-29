@@ -11,7 +11,6 @@ import {
   ButtonSemantic,
   ButtonSemanticSeverity,
   FilterButton,
-  HeaderSubpage,
   IconColor,
   IconName,
   ListItemSelect,
@@ -50,6 +49,8 @@ import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTo
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import HeaderSubpageGlass from '../../../../../component-library/components-temp/HeaderSubpageGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
   type UnitDisplay,
@@ -108,6 +109,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const route =
     useRoute<RouteProp<{ params: OrderBookRouteParams }, 'params'>>();
   const { symbol, marketData: routeMarketData } = route.params || {};
@@ -408,7 +410,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     }
 
     return (
-      <HeaderSubpage
+      <HeaderSubpageGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         twClassName="min-h-14 h-auto bg-default justify-center"
         onBack={handleBack}
@@ -445,6 +449,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     currentPrice,
     groupingSelectButton,
     displaySymbol,
+    isBrandRefresh,
   ]);
 
   // Handle grouping selection

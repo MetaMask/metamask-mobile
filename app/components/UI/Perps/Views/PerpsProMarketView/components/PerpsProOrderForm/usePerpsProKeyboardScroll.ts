@@ -21,6 +21,8 @@ export interface PerpsProKeyboardScrollOptions {
   onRequestScrollBy?: (delta: number) => void;
   /** Measured to locate the top of the visible band. */
   scrollViewRef?: React.RefObject<ScrollView | null>;
+  /** Height covered by a header floating over the scroll view's top edge. */
+  viewportTopInset?: number;
 }
 
 /**
@@ -84,7 +86,7 @@ export function getKeyboardScrollDelta({
 export function usePerpsProKeyboardScroll(
   options: PerpsProKeyboardScrollOptions = {},
 ): PerpsProKeyboardScroll {
-  const { onRequestScrollBy, scrollViewRef } = options;
+  const { onRequestScrollBy, scrollViewRef, viewportTopInset = 0 } = options;
   const cardRef = useRef<View | null>(null);
   // A ref so focus changes need not re-render the form.
   const isFocusedRef = useRef(false);
@@ -147,10 +149,18 @@ export function usePerpsProKeyboardScroll(
           return;
         }
 
-        scrollView.measureInWindow((_sx, viewportTop) => scroll(viewportTop));
+        scrollView.measureInWindow((_sx, viewportTop) =>
+          scroll(viewportTop + viewportTopInset),
+        );
       });
     },
-    [cancelPendingAlignment, onRequestScrollBy, scrollViewRef, windowHeight],
+    [
+      cancelPendingAlignment,
+      onRequestScrollBy,
+      scrollViewRef,
+      viewportTopInset,
+      windowHeight,
+    ],
   );
 
   // Last reported height; 0 while dismissed. Lets a re-tap realign with no
