@@ -14,6 +14,7 @@ import {
 } from './HardwareWalletsSwaps.state';
 import { CancelTargetType, Flow, type FlowStrategy } from './flowStrategy';
 import { useHwSwapLifecycle } from './useHwSwapLifecycle';
+import { registerHwSubmissionOutcomeListener } from './hwSubmissionOutcome';
 
 const SAFETY_NET_TIMEOUT_MS = 120_000;
 
@@ -31,11 +32,13 @@ jest.mock('./useHwConnectionMonitoring', () => ({
 }));
 
 const mockSubmit = jest.fn();
+let mockSubmittedTransaction: { id?: string; hash?: string } | null = null;
 jest.mock('./useHardwareWalletSubmit', () => ({
   useHardwareWalletSubmit: () => ({
     submit: mockSubmit,
     canRetry: () => true,
     clearCachedSubmission: jest.fn(),
+    submittedTransaction: mockSubmittedTransaction,
   }),
 }));
 
@@ -43,8 +46,27 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   resetHardwareWalletsSwaps: jest.fn(() => ({
     type: 'bridge/resetHardwareWalletsSwaps',
   })),
+  resetBridgeState: jest.fn(() => ({ type: 'bridge/resetBridgeState' })),
+  resetBridgeTokenInputs: jest.fn(() => ({
+    type: 'bridge/resetBridgeTokenInputs',
+  })),
+  incrementBridgeBalanceRefreshKey: jest.fn(() => ({
+    type: 'bridge/incrementBridgeBalanceRefreshKey',
+  })),
   updateHardwareWalletsSwaps: jest.fn((action) => action),
   selectHardwareWalletsSwaps: jest.fn(),
+}));
+
+const mockBridgeControllerResetState = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        resetState: () => mockBridgeControllerResetState(),
+      },
+    },
+  },
 }));
 
 const mockDispatch = jest.fn((action: unknown) => action);
@@ -55,6 +77,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useIsFocused: jest.fn(),
@@ -94,6 +117,7 @@ const getMockShowToast = () =>
 const strategy: FlowStrategy = {
   flow: Flow.Send,
   isSendFlow: true,
+  isQuickBuy: false,
   isSwap: false,
   walletAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
   trackerOptions: {
@@ -243,5 +267,137 @@ describe('useHwSwapLifecycle safety net', () => {
 
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(getMockShowToast()).not.toHaveBeenCalled();
+  });
+});
+
+describe('useHwSwapLifecycle Quick Buy entry point', () => {
+  const quickBuyStrategy: FlowStrategy = {
+    flow: Flow.Bridge,
+    isSendFlow: false,
+    isQuickBuy: true,
+    isSwap: true,
+    walletAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    trackerOptions: { flow: Flow.Bridge },
+    submitOptions: {},
+    cancelTarget: { type: CancelTargetType.GoBack },
+  };
+
+  const renderQuickBuyLifecycle = (lifecycleStrategy = quickBuyStrategy) =>
+    renderHook(() =>
+      useHwSwapLifecycle({
+        strategy: lifecycleStrategy,
+        setPendingOperationAddress: jest.fn(),
+        isQrHardwareWallet: false,
+      }),
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    } as never);
+    mockUseIsFocused.mockReturnValue(true);
+    mockSubmit.mockResolvedValue(undefined);
+    mockSubmittedTransaction = { id: 'tx-1', hash: '0xhash' };
+  });
+
+  afterEach(() => {
+    mockSubmittedTransaction = null;
+  });
+
+  it('goes back on success without its own toast or the post-trade modal', () => {
+    mockUseSelector.mockReturnValue(allStepsSignedWaiting);
+
+    renderQuickBuyLifecycle();
+
+    expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(getMockShowToast()).not.toHaveBeenCalled();
+  });
+
+  it('reports the submitted outcome once, even after unmount', () => {
+    mockUseSelector.mockReturnValue(allStepsSignedWaiting);
+    const listener = jest.fn();
+    const { unmount } = renderQuickBuyLifecycle({
+      ...quickBuyStrategy,
+      submitOptions: {
+        submissionParams: {
+          quoteResponse: {} as never,
+          outcomeListenerId: registerHwSubmissionOutcomeListener(listener),
+        },
+      },
+    });
+
+    unmount();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledWith({
+      status: 'submitted',
+      transaction: mockSubmittedTransaction,
+    });
+  });
+
+  it('reports a failed outcome when unmounted before submitting', () => {
+    mockUseSelector.mockReturnValue(initialHardwareWalletsSwapsState);
+    const listener = jest.fn();
+    const { unmount } = renderQuickBuyLifecycle({
+      ...quickBuyStrategy,
+      submitOptions: {
+        submissionParams: {
+          quoteResponse: {} as never,
+          outcomeListenerId: registerHwSubmissionOutcomeListener(listener),
+        },
+      },
+    });
+
+    expect(listener).not.toHaveBeenCalled();
+    unmount();
+
+    expect(listener).toHaveBeenCalledWith({ status: 'failed' });
+  });
+
+  it('goes back on cancel', () => {
+    mockUseSelector.mockReturnValue(initialHardwareWalletsSwapsState);
+    const { result } = renderQuickBuyLifecycle();
+
+    act(() => {
+      result.current.handleCancel();
+    });
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('resets the bridge slice on unmount', () => {
+    mockUseSelector.mockReturnValue(initialHardwareWalletsSwapsState);
+    const { unmount } = renderQuickBuyLifecycle();
+
+    unmount();
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/resetBridgeState',
+    });
+    expect(mockBridgeControllerResetState).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reset the bridge slice on unmount for the swap entry point', () => {
+    mockUseSelector.mockReturnValue(initialHardwareWalletsSwapsState);
+    const { unmount } = renderQuickBuyLifecycle({
+      ...quickBuyStrategy,
+      isQuickBuy: false,
+      cancelTarget: {
+        type: CancelTargetType.Navigate,
+        route: Routes.BRIDGE.BRIDGE_VIEW,
+      },
+    });
+
+    unmount();
+
+    expect(mockDispatch).not.toHaveBeenCalledWith({
+      type: 'bridge/resetBridgeState',
+    });
+    expect(mockBridgeControllerResetState).not.toHaveBeenCalled();
   });
 });

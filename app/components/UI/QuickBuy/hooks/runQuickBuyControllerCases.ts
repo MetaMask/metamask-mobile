@@ -5,6 +5,10 @@ import { act } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
+import { BridgeEntryPoint } from '../../HardwareWallet/Swaps/flowStrategy';
+import { notifyHwSubmissionOutcome } from '../../HardwareWallet/Swaps/hwSubmissionOutcome';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { useDisplayCurrencyValue } from '../../Bridge/hooks/useDisplayCurrencyValue';
 import { useFormattedNetworkFee } from '../../Bridge/hooks/useFormattedNetworkFee';
 import {
@@ -18,6 +22,8 @@ import {
   selectIsSlippageUserOverride,
   selectIsSubmittingTx,
   selectSlippage,
+  resetHardwareWalletsSwaps,
+  updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
@@ -122,6 +128,12 @@ const mockTrackAmountSelected = jest.fn();
 const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
 const mockTrackTradeSubmitted = jest.fn();
 const mockTrackTradeCompleted = jest.fn();
+const mockPreserveBridgeStateOnUnmount = jest.fn();
+const mockNavigate = (
+  jest.requireMock('@react-navigation/native') as {
+    useNavigation: () => { navigate: jest.Mock };
+  }
+).useNavigation().navigate;
 const mockTrackQuoteSelected = jest.fn();
 const mockTrackPayWithSelected = jest.fn();
 const mockTrackReceiveTokenSelected = jest.fn();
@@ -237,6 +249,7 @@ export const setupDefaultMocks = () => {
     trackTradeSubmitted: mockTrackTradeSubmitted,
     trackTradeCompleted: mockTrackTradeCompleted,
     markTradeSubmitted: jest.fn(),
+    preserveBridgeStateOnUnmount: mockPreserveBridgeStateOnUnmount,
   } as ReturnType<typeof useQuickBuyAnalytics>);
 
   // Each useSelector call is dispatched to the corresponding mocked selector.
@@ -3131,6 +3144,133 @@ export const runQuickBuyControllerCases = ({
           undefined, // inputPrimaryDenomination
           '1.5',
         );
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockPreserveBridgeStateOnUnmount).not.toHaveBeenCalled();
+      });
+
+      describe('hardware wallet accounts', () => {
+        const startHardwareWalletConfirm = async (
+          copyTradeOrigin?: CopyTradeOrigin,
+        ) => {
+          const { isHardwareAccount } = jest.requireMock(
+            '../../../../util/address',
+          );
+          isHardwareAccount.mockReturnValue(true);
+          const activeQuote = createActiveQuote({
+            quote: {
+              requestId: 'quote-request-1',
+              dest: { normalizedAmount: '5' },
+            },
+          });
+          setupQuoteSourceMock(
+            createQuoteState({ activeQuote, destTokenAmount: '5' }),
+          );
+          const onClose = jest.fn();
+          const { result } = renderHook(
+            createTarget(),
+            onClose,
+            { source: 'profile_position' },
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
+
+          let confirmPromise: Promise<void> = Promise.resolve();
+          await act(async () => {
+            confirmPromise = result.current.handleConfirm();
+          });
+          const [, params] = mockNavigate.mock.calls[0];
+          return {
+            activeQuote,
+            onClose,
+            confirmPromise,
+            outcomeListenerId: params.submissionParams
+              .outcomeListenerId as string,
+          };
+        };
+
+        it('signs on the HW screen instead of submitting directly', async () => {
+          const { activeQuote, onClose } = await startHardwareWalletConfirm();
+
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).not.toHaveBeenCalled();
+          expect(
+            Engine.context.BridgeStatusController.submitIntent,
+          ).not.toHaveBeenCalled();
+          expect(mockPreserveBridgeStateOnUnmount).toHaveBeenCalledTimes(1);
+          expect(resetHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+          expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith(
+            expect.objectContaining({
+              payload: expect.objectContaining({ totalSteps: 1 }),
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+            {
+              bridgeEntryPoint: BridgeEntryPoint.QuickBuy,
+              submissionParams: {
+                quoteResponse: activeQuote,
+                postTradeModalParams: expect.objectContaining({
+                  destAmount: '5',
+                  destToken: expect.objectContaining({ symbol: 'TARGET' }),
+                }),
+                outcomeListenerId: expect.any(String),
+              },
+            },
+          );
+          expect(onClose).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockTrackTradeCompleted).not.toHaveBeenCalled();
+        });
+
+        it('runs the regular post-submit handling once the HW session submits', async () => {
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, {
+              status: 'submitted',
+              transaction: { id: 'tx-1', hash: '0xhash' } as TransactionMeta,
+            });
+            await confirmPromise;
+          });
+
+          expect(mockRecordSocialTrade).toHaveBeenCalledTimes(1);
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'success', tx_hash: '0xhash' }),
+          );
+        });
+
+        it('treats a HW session that ends without submitting as a failed trade', async () => {
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, { status: 'failed' });
+            await confirmPromise;
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockRecordSocialTrade).not.toHaveBeenCalled();
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'failed' }),
+          );
+        });
+
+        it('posts the copy-trade intent before signing', async () => {
+          await startHardwareWalletConfirm({
+            commentId: '7f1a9c2e-5b8d-4e3f-9a6c-1d2e3f4a5b6c',
+          });
+
+          expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+            'SocialService:createCopyTradeIntent',
+            expect.objectContaining({
+              execution: { product: 'swaps', quoteId: 'quote-request-1' },
+            }),
+          );
+        });
       });
 
       it('records social activity after a resolved social Quick Buy', async () => {

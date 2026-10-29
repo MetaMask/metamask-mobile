@@ -522,6 +522,20 @@ describe('useQuickBuyAnalytics', () => {
       expect(mockBridgeControllerResetState).toHaveBeenCalled();
     });
 
+    it('skips the bridge reset on unmount after preserveBridgeStateOnUnmount', () => {
+      const { result, unmount } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
+
+      act(() => {
+        result.current.preserveBridgeStateOnUnmount();
+      });
+      unmount();
+
+      expect(mockResetBridgeState).not.toHaveBeenCalled();
+      expect(mockBridgeControllerResetState).not.toHaveBeenCalled();
+    });
+
     it('does not fire DISMISSED or reset bridge when shared analytics props update', () => {
       const { rerender } = renderHook(
         ({ context }) => useQuickBuyAnalytics(TRADER, CAIP19, context),
