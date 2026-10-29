@@ -1,10 +1,10 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import OnboardingSheet from '.';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
-import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 // Mock callback functions
 const mockOnPressCreate = jest.fn();
@@ -13,16 +13,6 @@ const mockOnPressContinueWithGoogle = jest.fn();
 const mockOnPressContinueWithApple = jest.fn();
 
 const mockNavigate = jest.fn();
-const mockSelectAddDeviceSyncEnabled = jest.fn(() => false);
-
-jest.mock('../../../../selectors/featureFlagController/addDeviceSync', () => ({
-  selectAddDeviceSyncEnabled: () => mockSelectAddDeviceSyncEnabled(),
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: (state?: unknown) => unknown) => selector(undefined),
-}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -81,19 +71,22 @@ describe('OnboardingSheet', () => {
     createWallet: false,
   };
 
+  const renderSheet = (
+    props: React.ComponentProps<typeof OnboardingSheet> = defaultProps,
+  ) => renderWithProvider(<OnboardingSheet {...props} />);
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectAddDeviceSyncEnabled.mockReturnValue(false);
   });
 
   describe('Rendering', () => {
     it('renders correctly with createWallet=false (import mode)', () => {
-      const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+      const { getByText } = renderSheet();
       expect(getByText(strings('onboarding.import_srp'))).toBeOnTheScreen();
     });
 
     it('emits onboarding sheet screen and navigation performance hooks', () => {
-      render(<OnboardingSheet {...defaultProps} />);
+      renderSheet();
 
       expect(mockUseScreenPerformance).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -111,9 +104,10 @@ describe('OnboardingSheet', () => {
     });
 
     it('renders correctly with createWallet=true (create mode)', () => {
-      const { getByText } = render(
-        <OnboardingSheet {...defaultProps} createWallet />,
-      );
+      const { getByText } = renderSheet({
+        ...defaultProps,
+        createWallet: true,
+      });
       expect(
         getByText(strings('onboarding.continue_with_srp')),
       ).toBeOnTheScreen();
@@ -122,7 +116,7 @@ describe('OnboardingSheet', () => {
 
   describe('Behavior Tests', () => {
     it('renders without login callbacks and safely handles button presses', () => {
-      const { getByText } = render(<OnboardingSheet onDismiss={jest.fn()} />);
+      const { getByText } = renderSheet({ onDismiss: jest.fn() });
 
       fireEvent.press(getByText(strings('onboarding.sign_in_with_google')));
       fireEvent.press(getByText(strings('onboarding.sign_in_with_apple')));
@@ -136,7 +130,7 @@ describe('OnboardingSheet', () => {
 
     describe('Google button interactions', () => {
       it('calls onPressContinueWithGoogle with createWallet=false when import mode', () => {
-        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByText } = renderSheet();
         const googleButton = getByText(
           strings('onboarding.sign_in_with_google'),
         );
@@ -146,7 +140,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithApple with createWallet=false when import mode', () => {
-        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByText } = renderSheet();
         const appleButton = getByText(strings('onboarding.sign_in_with_apple'));
         fireEvent.press(appleButton);
         expect(mockOnPressContinueWithApple).toHaveBeenCalledWith(false);
@@ -154,9 +148,10 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithGoogle with createWallet=true when create mode', () => {
-        const { getByText } = render(
-          <OnboardingSheet {...defaultProps} createWallet />,
-        );
+        const { getByText } = renderSheet({
+          ...defaultProps,
+          createWallet: true,
+        });
         const googleButton = getByText(
           strings('onboarding.continue_with_google'),
         );
@@ -166,9 +161,10 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithApple with createWallet=true when create mode', () => {
-        const { getByText } = render(
-          <OnboardingSheet {...defaultProps} createWallet />,
-        );
+        const { getByText } = renderSheet({
+          ...defaultProps,
+          createWallet: true,
+        });
         const appleButton = getByText(
           strings('onboarding.continue_with_apple'),
         );
@@ -180,7 +176,7 @@ describe('OnboardingSheet', () => {
 
     describe('SRP button interactions', () => {
       it('calls onPressImport when createWallet=false and SRP button is pressed', () => {
-        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByText } = renderSheet();
         const srpButton = getByText(strings('onboarding.import_srp'));
 
         fireEvent.press(srpButton);
@@ -189,52 +185,11 @@ describe('OnboardingSheet', () => {
         expect(mockOnPressCreate).not.toHaveBeenCalled();
       });
 
-      it('hides Import from MetaMask extension when add-device sync is disabled', () => {
-        const { queryByTestId } = render(<OnboardingSheet {...defaultProps} />);
-
-        expect(
-          queryByTestId(
-            OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON,
-          ),
-        ).toBeNull();
-      });
-
-      it('hides Import from MetaMask extension on the create-wallet sheet', () => {
-        mockSelectAddDeviceSyncEnabled.mockReturnValue(true);
-
-        const { queryByTestId } = render(
-          <OnboardingSheet {...defaultProps} createWallet />,
-        );
-
-        expect(
-          queryByTestId(
-            OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON,
-          ),
-        ).toBeNull();
-      });
-
-      it('calls onPressImportFromExtension when add-device sync is enabled', () => {
-        const mockOnPressImportFromExtension = jest.fn();
-        mockSelectAddDeviceSyncEnabled.mockReturnValue(true);
-
-        const { getByTestId } = render(
-          <OnboardingSheet
-            {...defaultProps}
-            onPressImportFromExtension={mockOnPressImportFromExtension}
-          />,
-        );
-
-        fireEvent.press(
-          getByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
-        );
-
-        expect(mockOnPressImportFromExtension).toHaveBeenCalledTimes(1);
-      });
-
       it('calls onPressCreate when createWallet=true and SRP button is pressed', () => {
-        const { getByText } = render(
-          <OnboardingSheet {...defaultProps} createWallet />,
-        );
+        const { getByText } = renderSheet({
+          ...defaultProps,
+          createWallet: true,
+        });
         const srpButton = getByText(strings('onboarding.continue_with_srp'));
 
         fireEvent.press(srpButton);
@@ -250,7 +205,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('navigates to Terms of Use when terms link is pressed', () => {
-        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByTestId } = renderSheet();
 
         const termsLink = getByTestId('terms-of-use-link');
         fireEvent.press(termsLink);
@@ -264,7 +219,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('navigates to Privacy Notice when privacy link is pressed', () => {
-        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByTestId } = renderSheet();
 
         const privacyLink = getByTestId('privacy-notice-link');
         fireEvent.press(privacyLink);

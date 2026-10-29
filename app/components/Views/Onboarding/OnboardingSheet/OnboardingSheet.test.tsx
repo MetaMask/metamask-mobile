@@ -1,9 +1,9 @@
 import React, { ComponentType } from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { fireEvent } from '@testing-library/react-native';
 
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import OnboardingSheet, { OnboardingSheetProps } from '.';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { AuthConnection } from '../../../../core/OAuthService/OAuthInterface';
@@ -28,34 +28,14 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const mockSelectAddDeviceSyncEnabled = jest.fn(() => false);
-
-jest.mock('../../../../selectors/featureFlagController/addDeviceSync', () => ({
-  selectAddDeviceSyncEnabled: () => mockSelectAddDeviceSyncEnabled(),
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: (state?: unknown) => unknown) => selector(undefined),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    goBack: jest.fn(),
-  }),
-}));
-
 describe('OnboardingSheet', () => {
-  const renderSheet = (props: Partial<OnboardingSheetProps> = {}) =>
-    render(
-      <ThemeContext.Provider value={mockTheme}>
-        <NavigationContainer>
-          <OnboardingSheet onDismiss={jest.fn()} {...props} />
-        </NavigationContainer>
-      </ThemeContext.Provider>,
-    );
+  const renderSheet = (
+    props: Partial<OnboardingSheetProps> = {},
+    theme = mockTheme,
+  ) =>
+    renderWithProvider(<OnboardingSheet onDismiss={jest.fn()} {...props} />, {
+      theme,
+    });
 
   it('invokes Telegram login callback with createWallet true', () => {
     const onPressContinueWithTelegram = jest.fn();
@@ -96,14 +76,9 @@ describe('OnboardingSheet', () => {
   });
 
   it('renders the dark Apple icon when the theme is dark', () => {
-    const { getByTestId, UNSAFE_getAllByType } = render(
-      <ThemeContext.Provider
-        value={{ ...mockTheme, themeAppearance: AppThemeKey.dark }}
-      >
-        <NavigationContainer>
-          <OnboardingSheet onDismiss={jest.fn()} />
-        </NavigationContainer>
-      </ThemeContext.Provider>,
+    const { getByTestId, UNSAFE_getAllByType } = renderSheet(
+      {},
+      { ...mockTheme, themeAppearance: AppThemeKey.dark },
     );
 
     expect(
@@ -117,8 +92,6 @@ describe('OnboardingSheet', () => {
   });
 
   it('disables sibling actions while Google login is loading', () => {
-    mockSelectAddDeviceSyncEnabled.mockReturnValueOnce(true);
-
     const { getByTestId } = renderSheet({
       onPressContinueWithTelegram: jest.fn(),
       loadingProvider: AuthConnection.Google,
@@ -132,9 +105,6 @@ describe('OnboardingSheet', () => {
     ).toBeDisabled();
     expect(
       getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
-    ).toBeDisabled();
-    expect(
-      getByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
     ).toBeDisabled();
   });
 });
