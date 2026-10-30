@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
@@ -16,13 +17,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
 }));
-
-jest.mock(
-  '../../../../../util/notifications/hooks/useSessionProfileId',
-  () => ({
-    useSessionProfileId: () => ({ profileId: undefined, isLoading: false }),
-  }),
-);
 
 describe('ManageProfileTradingActivityView', () => {
   beforeEach(() => {
@@ -123,6 +117,52 @@ describe('ManageProfileTradingActivityView', () => {
       screen.getByTestId(
         `${ManageProfileTradingActivitySelectorsIDs.BENEFITS}-private-shown`,
       ),
+    ).toBeOnTheScreen();
+  });
+
+  it('restores the switch and shows the save error when the update fails', async () => {
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(new Error('profile update failed'));
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: {
+        profileId: 'profile-123',
+        username: 'alice',
+        displayName: 'Alice',
+        bio: '',
+        linkedAddresses: [],
+        avatarUrl: '',
+        tradingPrivacy: 'public',
+        connectedToX: false,
+        createdAt: '',
+        updatedAt: '',
+      },
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability: jest.fn(),
+    });
+
+    renderWithProvider(<ManageProfileTradingActivityView />);
+
+    await act(async () => {
+      fireEvent(
+        screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
+        'valueChange',
+        false,
+      );
+    });
+
+    expect(
+      screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
+    ).toHaveProp('value', true);
+    expect(
+      screen.getByText(strings('social_leaderboard.manage_profile.save_error')),
     ).toBeOnTheScreen();
   });
 });
