@@ -1217,7 +1217,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
         if (useBottomSheet) {
           const support = await checkAccountSupport(market.providerId);
-          if (support !== 'supported') {
+          if (support !== 'supported' || !navigation.isFocused()) {
             return;
           }
         }
