@@ -11,26 +11,17 @@ export const POSITION_FLAG_LABEL_KEYS = {
 } as const;
 
 /**
- * True when the server excluded this position from P&L and copy-trade.
- * Any non-empty `flags` list counts, including unrecognized values.
- * `null`, omitted, and empty lists are not flagged.
- */
-export const isPositionFlagged = (
-  position: Pick<Position, 'flags'> | null | undefined,
-): boolean => Boolean(position?.flags?.length);
-
-/**
  * Returns the i18n key for a position's exclusion label, or `null` when the
- * position has no flags.
+ * position has no flags and should stay interactive.
  *
  * Preference: insider, then developer, then a generic excluded label for any
  * other non-empty flags list.
  */
 export const getPositionFlagLabelKey = (position: Position): string | null => {
-  if (!isPositionFlagged(position)) {
+  const flags = position.flags;
+  if (!flags?.length) {
     return null;
   }
-  const flags = position.flags ?? [];
   if (flags.includes(INSIDER_POSITION_FLAG)) {
     return POSITION_FLAG_LABEL_KEYS.insider;
   }

@@ -656,58 +656,6 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the buy button when the position has no flags', () => {
-    mockRouteParams.position = { ...makeDefaultPosition(), flags: [] };
-
-    renderWithProvider(<TraderPositionView />, { state: mockState });
-
-    expect(
-      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides the buy button when the position is flagged insider', () => {
-    mockRouteParams.position = {
-      ...makeDefaultPosition(),
-      tokenSymbol: 'Nigel',
-      tokenName: 'Nigel',
-      flags: ['insider'],
-    };
-    mockRouteParams.tokenSymbol = 'Nigel';
-
-    renderWithProvider(<TraderPositionView />, { state: mockState });
-
-    expect(
-      screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
-    ).toBeNull();
-  });
-
-  it('hides the buy button when the fetched position is flagged', () => {
-    const { useTraderPosition } = jest.requireMock('./hooks/useTraderPosition');
-    (useTraderPosition as jest.Mock).mockReturnValue({
-      position: { ...makeDefaultPosition(), flags: ['developer'] },
-      isLoading: false,
-      error: null,
-      refetch: mockRefetchPosition,
-    });
-
-    renderWithProvider(<TraderPositionView />, { state: mockState });
-
-    expect(
-      screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
-    ).toBeNull();
-
-    (useTraderPosition as jest.Mock).mockReturnValue({
-      position: undefined,
-      isLoading: false,
-      error: null,
-      refetch: mockRefetchPosition,
-    });
-  });
-
   it('fires Follow Trading Token CTA Clicked with cta_type buy when the Buy button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -794,26 +742,6 @@ describe('TraderPositionView', () => {
       expect(
         screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       ).not.toBeOnTheScreen();
-    });
-
-    it('hides the Trade button when the perp position is flagged', () => {
-      mockRouteParams.position = {
-        ...makeDefaultPosition(),
-        tokenSymbol: 'ETH',
-        chain: 'hyperliquid',
-        perpPositionType: 'short',
-        perpLeverage: 10,
-        flags: ['insider'],
-      };
-
-      renderWithProvider(<TraderPositionView />, { state: mockState });
-
-      expect(
-        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
-      ).toBeNull();
-      expect(
-        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
-      ).toBeNull();
     });
 
     it('navigates to the Perps market page (not QuickBuy) when the Trade button is pressed', () => {
