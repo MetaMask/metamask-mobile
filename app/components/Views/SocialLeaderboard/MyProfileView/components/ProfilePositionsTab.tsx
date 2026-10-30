@@ -67,8 +67,8 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   const tw = useTailwind();
   const [isUncountedSheetOpen, setIsUncountedSheetOpen] = useState(false);
   const { tokens, perps, uncounted } = useMemo(() => {
-    // Only other traders grey flagged rows (`showFlaggedState`). The same
-    // gate decides whether those rows leave the Tokens/Perps sections.
+    // Only other traders (`showFlaggedState`) move flagged rows into the
+    // pinned section. The rows themselves stay full color.
     // This list is already one Open or Closed tab, so the pin is per tab.
     const split = showFlaggedState
       ? partitionUncountedPositions(positions)
@@ -107,7 +107,9 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         position={position}
         isClosed={isClosed}
         showTradeDate={isClosed}
-        showFlaggedState={showFlaggedState}
+        // Legacy showFlaggedState greys the row. #38564 replaces this line
+        // with flaggedPresentation="subline" for the full-color "· Insider" label.
+        showFlaggedState={false}
         onPress={
           showFlaggedState && getPositionFlagLabelKey(position)
             ? undefined
@@ -225,17 +227,21 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel={uncountedAccessibilityLabel}
                 onPress={handleOpenUncountedSheet}
-                // pt-4 + pb-2 plus Body Sm's 22pt line is the 46pt header.
-                style={tw.style('px-4 pt-4 pb-2')}
+                style={tw.style(
+                  'min-h-11 self-start items-center justify-center px-4 py-2',
+                )}
                 testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER}
               >
-                <DottedUnderline color={colors.text.default}>
+                <DottedUnderline
+                  color={colors.text.default}
+                  twClassName="self-start shrink-0"
+                >
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextDefault}
                     numberOfLines={1}
-                    twClassName="-mt-0.5"
+                    twClassName="-mt-0.5 shrink-0"
                   >
                     {strings(
                       'social_leaderboard.my_profile.not_counted_in_pnl',

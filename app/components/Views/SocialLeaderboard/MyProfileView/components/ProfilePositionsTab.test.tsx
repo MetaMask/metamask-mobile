@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import type { Position } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
@@ -44,12 +45,15 @@ jest.mock('../../TraderProfileView/components/PositionRow', () => {
     default: ({
       position,
       onPress,
+      showFlaggedState,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
+      showFlaggedState?: boolean;
     }) => (
       <Pressable
         testID={`position-row-${position.tokenSymbol}`}
+        accessibilityState={{ disabled: Boolean(showFlaggedState) }}
         onPress={() => onPress?.(position)}
       >
         <Text>{position.tokenSymbol}</Text>
@@ -254,6 +258,17 @@ describe('ProfilePositionsTab', () => {
       }),
     ).toBeOnTheScreen();
     expect(
+      StyleSheet.flatten(
+        screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER)
+          .props.style,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        alignSelf: 'flex-start',
+        minHeight: 44,
+      }),
+    );
+    expect(
       screen.getAllByTestId(/position-row-/).map((row) => row.props.testID),
     ).toEqual([
       'position-row-LOW',
@@ -261,6 +276,12 @@ describe('ProfilePositionsTab', () => {
       'position-row-Nigel',
       'position-row-Moodeng',
     ]);
+    expect(
+      screen.getByTestId('position-row-Nigel').props.accessibilityState,
+    ).toEqual({ disabled: false });
+    expect(
+      screen.getByTestId('position-row-Moodeng').props.accessibilityState,
+    ).toEqual({ disabled: false });
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
     ).toBeNull();
