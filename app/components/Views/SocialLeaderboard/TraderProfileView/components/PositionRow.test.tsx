@@ -225,8 +225,11 @@ describe('PositionRow', () => {
 
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
 
+    const row = screen.getByTestId('position-row-STARKBOT');
+
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onPress).toHaveBeenCalledWith(basePosition);
+    expect(row).toHaveProp('accessibilityRole', 'button');
   });
 
   it('shows the insider label and ignores onPress for the excluded presentation', () => {
@@ -305,6 +308,9 @@ describe('PositionRow', () => {
     `);
     expect(
       opacityOf(screen.getByTestId('position-row-STARKBOT')),
+    ).toBeUndefined();
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
     ).toBeUndefined();
     expect(colorOf(screen.getByText('+182.00%'))).toBe(unflaggedPercentColor);
     expect(screen.queryByText('Insider allocation - excluded')).toBeNull();

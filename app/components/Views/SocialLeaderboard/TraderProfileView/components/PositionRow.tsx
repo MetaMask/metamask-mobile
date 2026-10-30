@@ -215,8 +215,8 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
       justifyContent={BoxJustifyContent.Between}
       twClassName={isExcluded ? 'px-4 py-3 opacity-50' : 'px-4 py-3'}
       testID={isPressable ? undefined : testID}
-      accessible={accessibilityLabel != null}
-      accessibilityLabel={accessibilityLabel}
+      accessible={!isPressable && accessibilityLabel != null}
+      accessibilityLabel={isPressable ? undefined : accessibilityLabel}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -279,7 +279,12 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
 
   if (isPressable) {
     return (
-      <TouchableOpacity onPress={handlePress} testID={testID}>
+      <TouchableOpacity
+        onPress={handlePress}
+        testID={testID}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+      >
         {content}
       </TouchableOpacity>
     );
