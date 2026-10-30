@@ -176,6 +176,174 @@ describe('ProfilePositionsTab', () => {
     expect(onPositionPress).toHaveBeenCalledWith(openSpot);
   });
 
+  it('pins flagged positions under Not counted in P&L in input order', () => {
+    const low: Position = {
+      ...openSpot,
+      positionId: 'low',
+      tokenSymbol: 'LOW',
+      currentValueUSD: 1,
+    };
+    const flaggedHigh: Position = {
+      ...openSpot,
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      flags: ['insider'],
+      currentValueUSD: 999,
+    };
+    const mid: Position = {
+      ...openSpot,
+      positionId: 'mid',
+      tokenSymbol: 'MID',
+      currentValueUSD: 50,
+    };
+    const flaggedDev: Position = {
+      ...openSpot,
+      positionId: 'moodeng',
+      tokenSymbol: 'Moodeng',
+      flags: ['developer'],
+      currentValueUSD: 2,
+    };
+
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[low, flaggedHigh, mid, flaggedDev]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Not counted in P&L')).toBeOnTheScreen();
+    expect(
+      screen.getAllByTestId(/position-row-/).map((row) => row.props.testID),
+    ).toEqual([
+      'position-row-LOW',
+      'position-row-MID',
+      'position-row-Nigel',
+      'position-row-Moodeng',
+    ]);
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
+    ).toBeNull();
+  });
+
+  it('hides the uncounted section when nothing is flagged', () => {
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[openSpot, openPerp]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+      />,
+    );
+
+    expect(screen.queryByText('Not counted in P&L')).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+    ).toBeNull();
+    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
+  });
+
+  it('leaves flagged rows in the normal sections when the flagged state is off', () => {
+    const flagged = { ...openSpot, flags: ['insider'] };
+
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[flagged]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+      />,
+    );
+
+    expect(screen.queryByText('Not counted in P&L')).toBeNull();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
+  });
+
+  it('applies the Tokens filter inside the uncounted section', () => {
+    const flaggedToken: Position = {
+      ...openSpot,
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      flags: ['insider'],
+    };
+    const flaggedPerp: Position = {
+      ...openPerp,
+      positionId: 'moodeng-perp',
+      tokenSymbol: 'Moodeng',
+      flags: ['developer'],
+    };
+
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[flaggedPerp, openSpot, flaggedToken]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="tokens"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+      />,
+    );
+
+    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
+    expect(screen.getByTestId('position-row-Nigel')).toBeOnTheScreen();
+    expect(screen.queryByTestId('position-row-Moodeng')).toBeNull();
+    expect(screen.getByText('Not counted in P&L')).toBeOnTheScreen();
+    expect(screen.queryByText('Perpetuals')).toBeNull();
+  });
+
+  it('shows only the uncounted section when every visible row is flagged', () => {
+    const flagged = { ...openSpot, flags: ['insider'] };
+
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[flagged]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
+  });
+
   it('does not notify when a flagged row is pressed with showFlaggedState', () => {
     const flagged = { ...openSpot, flags: ['insider'] };
 
