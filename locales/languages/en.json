@@ -1706,7 +1706,7 @@
       "not_counted_sheet_developer_label": "Contract creator",
       "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
       "not_counted_sheet_unsupported_label": "Unsupported token",
-      "not_counted_sheet_unsupported_body": "Lending contracts and similar tokens move funds in ways that make P&L look wildly off.",
+      "not_counted_sheet_unsupported_body": "We can't measure P&L for deposit tokens like lending pools.",
       "not_counted_sheet_dismiss": "Got it",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
