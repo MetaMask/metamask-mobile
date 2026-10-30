@@ -17,6 +17,10 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+import {
+  REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
+  REACTION_EMOJI_BURST_TEST_ID,
+} from './ReactionEmojiBurst';
 
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 
@@ -457,6 +461,15 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByTestId(chipTestId)).toHaveProp('accessibilityState', {
         selected: true,
       });
+      await waitFor(() => {
+        const particles = screen.getAllByTestId(
+          REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
+          { includeHiddenElements: true },
+        );
+        expect(particles.length).toBeGreaterThanOrEqual(4);
+        expect(particles.length).toBeLessThanOrEqual(7);
+        expect(particles[0]).toHaveTextContent('🔥');
+      });
     });
 
     it('removes the reader from their own chip when it is pressed', async () => {
@@ -473,6 +486,7 @@ describe('SocialFeedPostShell', () => {
       await waitFor(() => {
         expect(screen.getByTestId(chipTestId)).toHaveTextContent('🔥1');
       });
+      expect(screen.queryByTestId(REACTION_EMOJI_BURST_TEST_ID)).toBeNull();
     });
   });
 
