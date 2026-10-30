@@ -14,8 +14,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import DottedUnderline from '../../../../UI/DottedUnderline';
+import { useTheme } from '../../../../../util/theme';
 import PositionRow from '../../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeletons';
 import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
@@ -29,6 +32,7 @@ import {
   getProfilePositionsEmptyMessageKey,
   type ProfileAssetFilter,
 } from '../utils/splitPositionsByType';
+import UncountedPositionsSheet from './UncountedPositionsSheet';
 
 const POSITION_SKELETON_KEYS = ['s1', 's2', 's3', 's4'] as const;
 
@@ -58,6 +62,8 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   onRetry,
   showFlaggedState,
 }) => {
+  const { colors } = useTheme();
+  const [isUncountedSheetOpen, setIsUncountedSheetOpen] = useState(false);
   const { tokens, perps, uncounted } = useMemo(() => {
     // Only other traders grey flagged rows (`showFlaggedState`). The same
     // gate decides whether those rows leave the Tokens/Perps sections.
@@ -78,6 +84,19 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   const emptyMessage = strings(
     getProfilePositionsEmptyMessageKey(isClosed ? 'closed' : 'open', filter),
   );
+
+  const uncountedAccessibilityLabel = strings(
+    uncounted.length === 1
+      ? 'social_leaderboard.my_profile.not_counted_section_a11y_one'
+      : 'social_leaderboard.my_profile.not_counted_section_a11y_other',
+    { count: uncounted.length },
+  );
+  const handleOpenUncountedSheet = useCallback(() => {
+    setIsUncountedSheetOpen(true);
+  }, []);
+  const handleCloseUncountedSheet = useCallback(() => {
+    setIsUncountedSheetOpen(false);
+  }, []);
 
   const renderRows = (sectionPositions: Position[]) =>
     sectionPositions.map((position) => (
@@ -200,19 +219,34 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           ) : null}
           {uncounted.length > 0 ? (
             <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                accessibilityRole="header"
-                twClassName="px-4 pt-2 pb-1"
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={uncountedAccessibilityLabel}
+                onPress={handleOpenUncountedSheet}
+                testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER}
               >
-                {strings('social_leaderboard.my_profile.not_counted_in_pnl')}
-              </Text>
+                <Box twClassName="min-h-[46px] justify-center px-4 pt-4 pb-2">
+                  <DottedUnderline color={colors.text.default}>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextDefault}
+                    >
+                      {strings(
+                        'social_leaderboard.my_profile.not_counted_in_pnl',
+                      )}
+                    </Text>
+                  </DottedUnderline>
+                </Box>
+              </Pressable>
               {renderRows(uncounted)}
             </Box>
           ) : null}
         </>
       )}
+      {isUncountedSheetOpen ? (
+        <UncountedPositionsSheet onClose={handleCloseUncountedSheet} />
+      ) : null}
     </Box>
   );
 };
