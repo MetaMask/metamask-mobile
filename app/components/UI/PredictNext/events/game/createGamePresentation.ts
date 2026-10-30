@@ -8,6 +8,12 @@ import type {
 } from '../../types';
 
 export type GameSelection = 'away' | 'home';
+
+/**
+ * The order Teams appear in across a Game's UI: header, cards and line
+ * pickers. Kalshi football lists the away Team first.
+ */
+export const GAME_TEAM_ORDER: readonly GameSelection[] = ['away', 'home'];
 export type GamePresentationVariant = 'compact' | 'featured' | 'detail';
 
 export interface GameStatusLine {

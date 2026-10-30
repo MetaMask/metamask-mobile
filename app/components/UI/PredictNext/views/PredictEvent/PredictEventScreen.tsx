@@ -280,6 +280,10 @@ export const PredictEventScreen = () => {
     () => (liveEvent ? findWinnerMarketQuotes(liveEvent) : undefined),
     [liveEvent],
   );
+  const eventGame = useMemo(
+    () => (liveEvent ? getEventGame(liveEvent) : undefined),
+    [liveEvent],
+  );
   const winnerMarketIds = useMemo(
     () =>
       new Set(
@@ -482,10 +486,11 @@ export const PredictEventScreen = () => {
       return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
         <TotalMarketGroupCard {...groupProps} />
       ) : (
-        <SpreadMarketGroupCard {...groupProps} />
+        <SpreadMarketGroupCard {...groupProps} game={eventGame} />
       );
     },
     [
+      eventGame,
       handleGroupMarketSelect,
       handleMarketRulesPress,
       handleMarketOrder,

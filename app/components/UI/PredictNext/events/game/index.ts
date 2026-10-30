@@ -1,4 +1,8 @@
-export { createGamePresentation, getEventGame } from './createGamePresentation';
+export {
+  createGamePresentation,
+  GAME_TEAM_ORDER,
+  getEventGame,
+} from './createGamePresentation';
 export {
   findGameSelectionQuote,
   type GameSelectionQuote,

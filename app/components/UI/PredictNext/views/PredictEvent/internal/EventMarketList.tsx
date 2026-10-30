@@ -201,10 +201,10 @@ const EventMarketListContent = ({
       return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
         <TotalMarketGroupCard {...groupProps} />
       ) : (
-        <SpreadMarketGroupCard {...groupProps} />
+        <SpreadMarketGroupCard {...groupProps} game={getEventGame(event)} />
       );
     },
-    [handleGroupMarketSelect, onOrder, onRulesPress, selectedMarketIds],
+    [event, handleGroupMarketSelect, onOrder, onRulesPress, selectedMarketIds],
   );
   const renderRow = useCallback(
     (row: ContentRow) =>

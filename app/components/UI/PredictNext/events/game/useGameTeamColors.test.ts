@@ -33,6 +33,15 @@ describe('useGameTeamColors', () => {
     expect(result.current).toEqual({ away: CAROLINA, home: GREEN_BAY });
   });
 
+  it('uses the theme fallbacks without a Game', () => {
+    const { result } = renderHook(() => useGameTeamColors(undefined));
+
+    expect(result.current).toEqual({
+      away: lightTheme.colors.info.default,
+      home: lightTheme.colors.success.default,
+    });
+  });
+
   it('falls back to the theme info color for away and success for home', () => {
     const { result } = renderHook(() => useGameTeamColors(game()));
 
