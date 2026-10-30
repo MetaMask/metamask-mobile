@@ -1274,6 +1274,12 @@
     }
   },
   "social_leaderboard": {
+    "account_disabled": {
+      "title": "Your account is temporarily disabled",
+      "reason": "Reason: {{reason}}",
+      "contact_support_description": "Contact support at {{email}} or in the app for help.",
+      "contact_support": "Contact support"
+    },
     "entry_options": {
       "title": "Options",
       "report": "Report",

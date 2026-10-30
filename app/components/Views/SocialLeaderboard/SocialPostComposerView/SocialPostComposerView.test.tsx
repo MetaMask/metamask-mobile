@@ -16,6 +16,7 @@ import {
 } from '../pendingPosts/pendingPostsStore';
 import { isComposerCommentValid } from './commentValidation';
 import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
+import { SocialAccountDisabledBannerSelectorsIDs } from '../../../UI/SocialFeed/components/SocialAccountDisabledBanner.testIds';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
@@ -177,6 +178,18 @@ jest.mock('./createSwapCommentApi', () => ({
   createSwapComment: (...args: unknown[]) => mockCreateSwapComment(...args),
 }));
 
+const mockUseSocialModerationStatus = jest.fn();
+const mockInvalidateModerationStatus = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../UI/SocialFeed/hooks/useSocialModerationStatus', () => ({
+  useSocialModerationStatus: () => mockUseSocialModerationStatus(),
+}));
+
+jest.mock('../../../UI/SocialFeed/moderationApi', () => ({
+  ...jest.requireActual('../../../UI/SocialFeed/moderationApi'),
+  invalidateModerationStatus: () => mockInvalidateModerationStatus(),
+}));
+
 jest.mock('../../../../core/ReactQueryService', () => ({
   __esModule: true,
   default: {
@@ -196,6 +209,10 @@ describe('SocialPostComposerView', () => {
       isLoading: false,
       error: null,
       refresh: jest.fn(),
+    });
+    mockUseSocialModerationStatus.mockReturnValue({
+      isBanned: false,
+      reason: null,
     });
     jest.useFakeTimers();
     resetPendingPosts();
@@ -538,6 +555,56 @@ describe('SocialPostComposerView', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
     expect(getPendingPostsSnapshot()).toHaveLength(0);
+  });
+
+  it('shows the account-disabled banner and blocks posting while the viewer is banned', () => {
+    mockUseSocialModerationStatus.mockReturnValue({
+      isBanned: true,
+      reason: 'Spam',
+    });
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(SocialAccountDisabledBannerSelectorsIDs.BANNER),
+    ).toBeOnTheScreen();
+    expect(mockCreateSwapComment).not.toHaveBeenCalled();
+  });
+
+  it('refetches the moderation status when the post is refused with a 403', async () => {
+    mockCreateSwapComment.mockRejectedValue(
+      Object.assign(new Error('forbidden'), { httpStatus: 403 }),
+    );
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockInvalidateModerationStatus).toHaveBeenCalled();
+    });
+    expect(mockShowToast).toHaveBeenCalled();
   });
 
   it('stays on the composer and shows a toast when createSwapComment fails', async () => {

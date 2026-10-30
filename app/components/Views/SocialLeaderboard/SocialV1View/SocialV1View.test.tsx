@@ -21,6 +21,7 @@ import { SocialFeedRealtimeSelectorsIDs } from '../../../UI/SocialFeed/component
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 import type { SocialShellTab } from '../shell/types';
 import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
+import { SocialAccountDisabledBannerSelectorsIDs } from '../../../UI/SocialFeed/components/SocialAccountDisabledBanner.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockOpenComposer = jest.fn();
@@ -48,6 +49,14 @@ jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
     blockedProfileIds: new Set(),
     blockedCommentIds: new Set(),
   }),
+}));
+
+const mockUseSocialModerationStatus = jest.fn(() => ({
+  isBanned: false,
+  reason: null as string | null,
+}));
+jest.mock('../../../UI/SocialFeed/hooks/useSocialModerationStatus', () => ({
+  useSocialModerationStatus: () => mockUseSocialModerationStatus(),
 }));
 
 jest.mock('../MyProfileView/hooks', () => ({
@@ -645,6 +654,24 @@ describe('SocialV1View', () => {
     );
 
     expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+  });
+
+  it('shows the account-disabled banner only while the viewer is banned', () => {
+    const { unmount } = renderWithProvider(<SocialV1View />);
+    expect(
+      screen.queryByTestId(SocialAccountDisabledBannerSelectorsIDs.BANNER),
+    ).toBeNull();
+    unmount();
+
+    mockUseSocialModerationStatus.mockReturnValueOnce({
+      isBanned: true,
+      reason: 'Spam',
+    });
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialAccountDisabledBannerSelectorsIDs.BANNER),
+    ).toBeOnTheScreen();
   });
 
   it('omits the header back button', () => {

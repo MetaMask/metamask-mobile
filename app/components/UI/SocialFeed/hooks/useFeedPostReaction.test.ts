@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { invalidateModerationStatus } from '../moderationApi';
 import { patchFeedCommentEngagementInCache } from '../utils/patchFeedCommentEngagementInCache';
 import { useFeedPostReaction } from './useFeedPostReaction';
 
@@ -10,6 +11,12 @@ jest.mock('../utils/patchFeedCommentEngagementInCache', () => ({
 }));
 
 jest.mock('../commentReactionApi');
+
+jest.mock('../moderationApi', () => ({
+  invalidateModerationStatus: jest.fn(() => Promise.resolve()),
+}));
+
+const mockInvalidateModerationStatus = jest.mocked(invalidateModerationStatus);
 
 const mockReactToComment = jest.mocked(reactToComment);
 const mockRemoveCommentReaction = jest.mocked(removeCommentReaction);
@@ -117,6 +124,25 @@ describe('useFeedPostReaction', () => {
 
     expect(result.current.reactions).toStrictEqual([]);
     expect(result.current.userReaction).toBeNull();
+    expect(mockInvalidateModerationStatus).not.toHaveBeenCalled();
+  });
+
+  it('refetches the moderation status when the reaction is refused with a 403', async () => {
+    const queryClient = new QueryClient();
+    mockReactToComment.mockRejectedValue(
+      Object.assign(new Error('forbidden'), { httpStatus: 403 }),
+    );
+    const { result } = renderHook(
+      () => useFeedPostReaction('comment-1', [], null),
+      { wrapper: wrapper(queryClient) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😂');
+    });
+
+    expect(mockInvalidateModerationStatus).toHaveBeenCalled();
+    expect(result.current.reactions).toStrictEqual([]);
   });
 
   it('reseeds from refreshed feed props for the same Call id', () => {
