@@ -221,7 +221,9 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Not counted in P&L')).toBeOnTheScreen();
+    expect(
+      screen.getByRole('header', { name: 'Not counted in P&L' }),
+    ).toBeOnTheScreen();
     expect(
       screen.getAllByTestId(/position-row-/).map((row) => row.props.testID),
     ).toEqual([

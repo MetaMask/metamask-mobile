@@ -202,7 +202,8 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
             <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
               <Text
                 variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
+                color={TextColor.TextAlternative}
+                accessibilityRole="header"
                 twClassName="px-4 pt-2 pb-1"
               >
                 {strings('social_leaderboard.my_profile.not_counted_in_pnl')}
