@@ -82,14 +82,13 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
     return null;
   }
 
+  const uncountedNoteKey =
+    uncountedCount === 1
+      ? 'social_leaderboard.my_profile.not_counted_note_one'
+      : 'social_leaderboard.my_profile.not_counted_note_other';
   const uncountedNote =
     uncountedCount > 0
-      ? strings(
-          uncountedCount === 1
-            ? 'social_leaderboard.my_profile.not_counted_note_one'
-            : 'social_leaderboard.my_profile.not_counted_note_other',
-          { count: uncountedCount },
-        )
+      ? strings(uncountedNoteKey, { count: uncountedCount })
       : null;
 
   return (
