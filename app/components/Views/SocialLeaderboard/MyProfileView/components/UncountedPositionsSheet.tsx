@@ -38,9 +38,10 @@ const Explanation: React.FC<ExplanationProps> = ({ label, body }) => (
 );
 
 /**
- * Explains why flagged positions sit outside P&L.
+ * Explains why some positions sit outside P&L.
  *
- * One sheet covers every flag. The header that opens it is the only control.
+ * The unsupported-token item is explanation copy only. It is not a position
+ * flag, and it does not change which rows are counted.
  */
 const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
   onClose,
@@ -85,6 +86,14 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
           )}
           body={strings(
             'social_leaderboard.my_profile.not_counted_sheet_developer_body',
+          )}
+        />
+        <Explanation
+          label={strings(
+            'social_leaderboard.my_profile.not_counted_sheet_unsupported_label',
+          )}
+          body={strings(
+            'social_leaderboard.my_profile.not_counted_sheet_unsupported_body',
           )}
         />
       </Box>

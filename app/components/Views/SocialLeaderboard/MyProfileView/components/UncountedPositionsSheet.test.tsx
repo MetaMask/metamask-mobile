@@ -38,7 +38,7 @@ describe('UncountedPositionsSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('explains insider and contract-creator exclusions', () => {
+  it('explains insider, contract-creator, and unsupported-token exclusions', () => {
     renderWithProvider(<UncountedPositionsSheet onClose={onClose} />);
 
     expect(
@@ -53,6 +53,12 @@ describe('UncountedPositionsSheet', () => {
     expect(screen.getByText('Contract creator')).toBeOnTheScreen();
     expect(
       screen.getByText("This trader deployed the token's contract."),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Unsupported token')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'Some tokens, like lending contracts, move funds in ways that make P&L look wildly off, so we leave them out.',
+      ),
     ).toBeOnTheScreen();
   });
 
