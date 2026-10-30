@@ -39,9 +39,9 @@ export interface PositionRowProps {
   isClosed?: boolean;
   showTradeDate?: boolean;
   /**
-   * When true, positions with server flags render greyed out and show an
-   * exclusion label. The row stays tappable when `onPress` is provided.
-   * Callers that must keep a flagged row inert omit `onPress`.
+   * When true, flagged positions show their exclusion label. Press follows
+   * `onPress`: the row is a button when a handler is provided, and it has no
+   * press target when the caller omits `onPress`.
    */
   showFlaggedState?: boolean;
 }
@@ -230,7 +230,11 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
 
   if (isPressable) {
     return (
-      <TouchableOpacity onPress={handlePress} testID={testID}>
+      <TouchableOpacity
+        accessibilityRole="button"
+        onPress={handlePress}
+        testID={testID}
+      >
         {content}
       </TouchableOpacity>
     );

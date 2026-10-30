@@ -207,6 +207,8 @@ describe('PositionRow', () => {
       <PositionRow position={basePosition} onPress={onPress} />,
     );
 
+    expect(screen.getByRole('button')).toBeOnTheScreen();
+
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
@@ -224,6 +226,7 @@ describe('PositionRow', () => {
     expect(
       screen.getByTestId('position-row-flag-label-STARKBOT'),
     ).toHaveTextContent('Insider allocation - excluded');
+    expect(screen.getByRole('button')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
 
@@ -243,6 +246,7 @@ describe('PositionRow', () => {
 
     expect(percentColor).toBeDefined();
     expect(percentColor).toBe(labelColor);
+    expect(screen.queryByRole('button')).toBeNull();
   });
 
   it('shows the generic excluded label for unrecognized flags when showFlaggedState is set', () => {
