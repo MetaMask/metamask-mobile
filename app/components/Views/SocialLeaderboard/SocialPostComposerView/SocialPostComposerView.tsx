@@ -276,7 +276,10 @@ const SocialPostComposerView: React.FC = () => {
         return mapPerpsOrderInFlightToFeedItem(
           tradeInFlightPreview,
           text.trim(),
-          { author: composerAuthor },
+          {
+            author: composerAuthor,
+            commentGifUrl: gifUri ?? undefined,
+          },
         );
       }
       return mapTradeInFlightToFeedItem(tradeInFlightPreview, text.trim(), {
@@ -443,7 +446,11 @@ const SocialPostComposerView: React.FC = () => {
                 ? mapPerpsOrderInFlightToFeedItem(
                     tradeInFlightPreview,
                     caption,
-                    { author, timestamp: timestampMs },
+                    {
+                      author,
+                      timestamp: timestampMs,
+                      commentGifUrl: gifUri ?? undefined,
+                    },
                   )
                 : mapTradeInFlightToFeedItem(tradeInFlightPreview, caption, {
                     author,
