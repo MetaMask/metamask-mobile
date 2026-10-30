@@ -101,8 +101,13 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     y?: number;
   } | null>(null);
   const burstSerial = useRef(0);
-  const clearBurst = useCallback(() => {
-    setBurst(null);
+  const clearBurst = useCallback((finishedKey: number) => {
+    setBurst((current) => {
+      if (!current || current.key !== finishedKey) {
+        return current;
+      }
+      return null;
+    });
   }, []);
   const celebrateReaction = useCallback((emotion: string) => {
     burstSerial.current += 1;
@@ -366,6 +371,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       {burst?.x != null && burst.y != null ? (
         <ReactionEmojiBurst
           key={burst.key}
+          burstKey={burst.key}
           emotion={burst.emotion}
           originX={burst.x}
           originY={burst.y}

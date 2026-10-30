@@ -33,6 +33,7 @@ describe('ReactionEmojiBurst', () => {
   it('scatters four to seven copies of the reacted emoji', () => {
     renderWithProvider(
       <ReactionEmojiBurst
+        burstKey={1}
         emotion="🔥"
         originX={12}
         originY={18}
@@ -54,6 +55,7 @@ describe('ReactionEmojiBurst', () => {
 
     renderWithProvider(
       <ReactionEmojiBurst
+        burstKey={1}
         emotion="🔥"
         originX={12}
         originY={18}
@@ -69,6 +71,7 @@ describe('ReactionEmojiBurst', () => {
 
     renderWithProvider(
       <ReactionEmojiBurst
+        burstKey={1}
         emotion="🔥"
         originX={12}
         originY={18}

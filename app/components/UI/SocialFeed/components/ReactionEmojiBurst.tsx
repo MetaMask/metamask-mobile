@@ -61,11 +61,12 @@ export const createBurstParticles = (
 };
 
 interface ReactionEmojiBurstProps {
+  burstKey: number;
   emotion: string;
   /** Center of the emoji glyph, relative to the post. */
   originX: number;
   originY: number;
-  onFinished: () => void;
+  onFinished: (burstKey: number) => void;
 }
 
 interface BurstParticleProps extends BurstParticleSpec {
@@ -170,11 +171,15 @@ const BurstParticle: React.FC<BurstParticleProps> = ({
 };
 
 const ReactionEmojiBurst: React.FC<ReactionEmojiBurstProps> = ({
+  burstKey,
   emotion,
   originX,
   originY,
   onFinished,
 }) => {
+  const reportFinished = useCallback(() => {
+    onFinished(burstKey);
+  }, [burstKey, onFinished]);
   const prefersReducedMotion = useReducedMotion();
   const particles = useRef(createBurstParticles()).current;
   const lastIndex = particles.reduce(
@@ -207,7 +212,7 @@ const ReactionEmojiBurst: React.FC<ReactionEmojiBurstProps> = ({
           emotion={emotion}
           {...particle}
           reportsFinish={index === lastIndex}
-          onFinished={onFinished}
+          onFinished={reportFinished}
         />
       ))}
     </Box>
