@@ -68,11 +68,11 @@ const resolveWindowRoi = (
   globalValue: number | null | undefined,
   chains: readonly string[],
 ): number | null => {
-  if (chains.length === 1) {
+  if (chains.length === 1 && perChain !== undefined) {
     const perChainValue = perChain?.[chains[0]];
-    if (perChainValue !== undefined) {
-      return isFiniteNumber(perChainValue) ? perChainValue : null;
-    }
+    return perChainValue === undefined || !isFiniteNumber(perChainValue)
+      ? null
+      : perChainValue;
   }
   return isFiniteNumber(globalValue) ? globalValue : null;
 };

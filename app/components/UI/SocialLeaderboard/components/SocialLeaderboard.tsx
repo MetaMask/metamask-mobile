@@ -185,7 +185,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   } = useLeaderboardViewerRow(
     traders,
     sort,
-    showViewerRow && resolution.status === 'ready',
+    showViewerRow && resolution.status === 'ready' && hasFetched,
     {
       timeframe,
       chains:

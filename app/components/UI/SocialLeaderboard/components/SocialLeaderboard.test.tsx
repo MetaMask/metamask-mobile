@@ -443,6 +443,24 @@ describe('SocialLeaderboard', () => {
     expect(rowIds()).toHaveLength(3);
   });
 
+  it('waits for the leaderboard before fetching the off-page viewer profile', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    mockQueryResult({ hasFetched: false });
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(
+      screen.queryByTestId(SocialLeaderboardSelectorsIDs.VIEWER_CARD),
+    ).toBeNull();
+  });
+
   it('shows zero metrics when the off-page profile has no pnl', () => {
     mockProfile = {
       profileId: 'viewer',

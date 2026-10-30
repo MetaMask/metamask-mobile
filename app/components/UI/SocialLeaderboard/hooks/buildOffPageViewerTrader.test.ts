@@ -90,6 +90,29 @@ describe('buildOffPageViewerTrader', () => {
     expect(result.trader.percentageChange).toBe(12.5);
   });
 
+  it('does not use global roi when a requested chain has no roi', () => {
+    const result = buildOffPageViewerTrader({
+      identity,
+      live: liveProfile({
+        stats: { pnl7d: 20, roiPercent7d: 9.1 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: { hyperliquid: 20 },
+          perChainRoi7d: {},
+        },
+      }),
+      sort: 'pnl',
+      timeframe: '7d',
+      chains: PERP_CHAINS,
+    });
+
+    expect(result.trader.pnlValue).toBe(20);
+    expect(result.trader.percentageChange).toBe(0);
+    expect(result.omitPercentage).toBe(true);
+  });
+
   it('uses the global roi when several chains are requested', () => {
     const result = buildOffPageViewerTrader({
       identity,
