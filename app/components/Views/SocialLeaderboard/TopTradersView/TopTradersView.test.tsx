@@ -54,6 +54,7 @@ const selectSort = (sort: LeaderboardSort) => {
   fireEvent.press(screen.getByTestId(getSortFilterOptionTestId(sort)));
 };
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));

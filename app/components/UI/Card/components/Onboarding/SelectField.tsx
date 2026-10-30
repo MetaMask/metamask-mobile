@@ -24,6 +24,8 @@ interface SelectFieldProps {
   endAccessory?: React.ReactNode;
   /** Test ID for the touchable element */
   testID?: string;
+  /** Spoken name for the control. Replaces the visible value, including emoji. */
+  accessibilityLabel?: string;
 }
 
 /**
@@ -39,6 +41,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   startAccessory,
   endAccessory,
   testID,
+  accessibilityLabel,
 }) => {
   const isReadOnly = !onPress;
   const showIcon = !isReadOnly && !hideIcon && endAccessory == null;
@@ -67,7 +70,12 @@ const SelectField: React.FC<SelectFieldProps> = ({
   }
 
   return (
-    <TouchableOpacity onPress={onPress} disabled={isDisabled} testID={testID}>
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={isDisabled}
+      testID={testID}
+      accessibilityLabel={accessibilityLabel}
+    >
       {content}
     </TouchableOpacity>
   );

@@ -21,6 +21,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../Onboarding/socialLeaderboardOnboardingNavigation', () => ({
   ...jest.requireActual('../Onboarding/socialLeaderboardOnboardingNavigation'),
   isSocialV1Treatment: jest.fn(() => false),

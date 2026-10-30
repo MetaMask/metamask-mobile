@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -837,6 +838,32 @@ describe('PerpsPositionCard', () => {
         PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
       );
       expect(shareButton).toBeNull();
+    });
+
+    it('renders the Post to feed button only when one is passed', () => {
+      const onSharePress = jest.fn();
+      const { rerender } = render(
+        <PerpsPositionCard
+          position={mockPosition}
+          onSharePress={onSharePress}
+        />,
+      );
+
+      expect(screen.queryByTestId('post-to-feed-slot')).toBeNull();
+
+      rerender(
+        <PerpsPositionCard
+          position={mockPosition}
+          postToFeedButton={<Text testID="post-to-feed-slot">Post</Text>}
+          onSharePress={onSharePress}
+        />,
+      );
+
+      expect(screen.getByTestId('post-to-feed-slot')).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+      expect(onSharePress).toHaveBeenCalledTimes(1);
     });
   });
 

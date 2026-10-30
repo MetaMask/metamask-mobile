@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import {
@@ -62,6 +63,20 @@ describe('SocialFeedPostTranslation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('renders the comment as body sm regular', () => {
+    renderTranslation(createPost());
+
+    expect(
+      StyleSheet.flatten(screen.getByText('Original comment').props.style),
+    ).toEqual(
+      expect.objectContaining({
+        fontSize: 14,
+        lineHeight: 22,
+        fontFamily: 'Inter-Regular',
+      }),
+    );
   });
 
   it('ignores a pending translation after the comment changes', async () => {

@@ -45,6 +45,65 @@ describe('translateComment', () => {
     });
   });
 
+  it('maps the controller translation payload to the translated state', async () => {
+    mockCall.mockResolvedValue({
+      uid: 'comment-1',
+      sourceLanguage: 'fr',
+      translations: { en: 'Hello world' },
+      text: 'Hello world',
+    });
+
+    const result = await translateComment({
+      commentId: 'comment-1',
+      targetLanguage: 'en',
+    });
+
+    expect(result).toStrictEqual({
+      state: 'translated',
+      sourceLanguage: 'fr',
+      translations: { en: 'Hello world' },
+    });
+  });
+
+  it('uses the requested language text when translations omit that key', async () => {
+    mockCall.mockResolvedValue({
+      sourceLanguage: 'ko',
+      translations: {},
+      text: 'Hello',
+    });
+
+    const result = await translateComment({
+      commentId: 'comment-1',
+      targetLanguage: 'en',
+    });
+
+    expect(result).toStrictEqual({
+      state: 'translated',
+      sourceLanguage: 'ko',
+      translations: { en: 'Hello' },
+    });
+  });
+
+  it('returns the translated state when the comment is already in the target language', async () => {
+    mockCall.mockResolvedValue({
+      uid: 'comment-1',
+      sourceLanguage: 'en',
+      translations: {},
+      text: null,
+    });
+
+    const result = await translateComment({
+      commentId: 'comment-1',
+      targetLanguage: 'en',
+    });
+
+    expect(result).toStrictEqual({
+      state: 'translated',
+      sourceLanguage: 'en',
+      translations: {},
+    });
+  });
+
   it('returns the failed state when the controller reports failure', async () => {
     mockCall.mockResolvedValue({ state: 'translationFailed' });
 

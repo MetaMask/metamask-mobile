@@ -8,6 +8,7 @@ import Engine from '../../../app/core/Engine';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
+import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/RewardsSettingsView';
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import type {
@@ -236,6 +237,10 @@ function RewardsFlowProbe() {
         component={routeProbe(Routes.REWARDS_EARNINGS_HISTORY_VIEW)}
       />
       <FlowStack.Screen
+        name={Routes.REWARDS_SETTINGS_VIEW}
+        component={routeProbe(Routes.REWARDS_SETTINGS_VIEW)}
+      />
+      <FlowStack.Screen
         name={Routes.REWARDS_TRADING_REBATES_VIEW}
         component={routeProbe(Routes.REWARDS_TRADING_REBATES_VIEW)}
       />
@@ -332,6 +337,46 @@ export function renderRewardsMoneyDashboard(
     Routes.REWARDS_MONEY_DASHBOARD,
     options,
   );
+}
+
+/**
+ * Rewards Settings on the Money preset. Session profile, code validation, and
+ * referee registration are Engine calls. The splash is a route probe.
+ */
+export function renderRewardsSettingsView(
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const persona = options.persona ?? 'plain';
+  const referralMe = options.referralMe ?? referralMeFixture(persona);
+  const engine = installRewardsMoneyEngine({
+    ...options,
+    referralMe,
+    handlers: {
+      'AuthenticationController:getSessionProfile': () =>
+        Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
+      'RewardsMoneyController:validateReferralCode': () =>
+        Promise.resolve({ success: true }),
+      'RewardsMoneyController:registerReferee': () => Promise.resolve(),
+      'RewardsMoneyController:canChangeRewardsMoneyEnvUrl': () => false,
+      ...options.handlers,
+    },
+  });
+  const state = rewardsMoneyViewState({
+    ...options,
+    persona,
+    referralMe,
+    moneyControllerEnabled: options.moneyControllerEnabled ?? true,
+  });
+
+  return {
+    ...renderScreenWithRoutes(
+      RewardsSettingsView as unknown as React.ComponentType,
+      { name: Routes.REWARDS_SETTINGS_VIEW },
+      [{ name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW }],
+      { state },
+    ),
+    engine,
+  };
 }
 
 export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {

@@ -18,6 +18,8 @@ import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 
+jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
+
 jest.mock('react-native-device-info', () => ({
   getModel: () => Promise.resolve('iPhone 12'),
   getApplicationName: () => Promise.resolve('applicationName'),
@@ -32,7 +34,6 @@ jest.mock('react-native-device-info', () => ({
 jest.mock('../translateComment', () => ({
   translateComment: jest.fn().mockResolvedValue({ state: 'translationFailed' }),
 }));
-
 jest.mock('../commentReactionApi', () => ({
   reactToComment: jest.fn().mockResolvedValue({
     reactions: [{ emotion: '🔥', count: 1 }],
@@ -158,6 +159,7 @@ const renderShell = (
   const shell = (
     <SocialFeedPostShell
       post={post}
+      requireSocialTerms
       onAuthorPress={options?.onAuthorPress}
       onPositionPress={options?.onPositionPress}
       onCopyTrade={options?.onCopyTrade}
@@ -788,12 +790,12 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByText('Amazing position')).toBeOnTheScreen();
     });
 
-    it('hides translation for an English Call', () => {
+    it('offers translation for an English Call', () => {
       renderShell(basePost({ sourceLanguage: 'en' }), {
         translationEnabled: true,
       });
 
-      expect(screen.queryByText('See translation')).toBeNull();
+      expect(screen.getByText('See translation')).toBeOnTheScreen();
       expect(screen.getByText('Amazing position')).toBeOnTheScreen();
     });
 
@@ -849,6 +851,32 @@ describe('SocialFeedPostShell', () => {
         commentId: 'comment-1',
         targetLanguage: 'en',
       });
+    });
+
+    it('keeps the original text and shows the translated label when the comment is already English', async () => {
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'en',
+        translations: {},
+      });
+      renderShell(
+        basePost({
+          sourceLanguage: null,
+          item: mockOpenPerpsFeedItem({
+            id: 'item-1',
+            comment: 'Already English',
+          }),
+        }),
+        { translationEnabled: true },
+      );
+
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Already English')).toBeOnTheScreen();
+      expect(screen.queryByText("Couldn't translate.")).toBeNull();
     });
 
     it('keeps the original text and offers a retry when translation fails', async () => {
