@@ -57,7 +57,7 @@ describe('UncountedPositionsSheet', () => {
     expect(screen.getByText('Unsupported token')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        "We can't measure P&L for deposit tokens like lending pools.",
+        "We can't track P&L for unsupported tokens like deposits in lending pools.",
       ),
     ).toBeOnTheScreen();
   });
