@@ -10,7 +10,9 @@ import { NextTradeDetails } from './NextTradeDetails';
  * template, which needs no lookup. Deposits and Withdraws are wallet
  * transactions, not Predict Activity, so they render as on every lane.
  */
-export function NextActivityDetails({ item }: { item: ActivityListItem }) {
+export function NextActivityDetails({
+  item,
+}: Readonly<{ item: ActivityListItem }>) {
   switch (item.type) {
     case 'predictionPlaced':
     case 'predictionCashedOut':

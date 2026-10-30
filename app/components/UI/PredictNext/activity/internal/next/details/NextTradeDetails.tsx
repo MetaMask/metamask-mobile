@@ -35,13 +35,47 @@ export type PredictTradeListItem = Extract<
   { type: 'predictionPlaced' | 'predictionCashedOut' }
 >;
 
+/** Price per share: 4 decimals below $1, 2 from $1 up. */
+function formatSharePrice(price: string): string {
+  const decimals = Number(price) >= 1 ? 2 : 4;
+  return formatPrice(price, {
+    minimumDecimals: decimals,
+    maximumDecimals: decimals,
+  });
+}
+
+function NetPnlSection({ realizedPnl }: Readonly<{ realizedPnl: number }>) {
+  return (
+    <ActivityDetailSection>
+      <ActivityDetailRow
+        label={strings('predict.transactions.net_pnl')}
+        value={
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={
+              realizedPnl < 0
+                ? TextColor.ErrorDefault
+                : TextColor.SuccessDefault
+            }
+          >
+            {formatCurrencyValue(realizedPnl, { showSign: true })}
+          </Text>
+        }
+      />
+    </ActivityDetailSection>
+  );
+}
+
 /**
  * Details for a canonical Trade, in the Polymarket details layout. The item
  * carries the amount and presentation; the canonical entry adds the Outcome,
  * shares, price and a sell's realized PnL. A row whose entry is not loaded
  * keeps what the item has and omits the rest.
  */
-export function NextTradeDetails({ item }: { item: PredictTradeListItem }) {
+export function NextTradeDetails({
+  item,
+}: Readonly<{ item: PredictTradeListItem }>) {
   const venueId = useNextVenueId();
   const { entry, isLoading } = useNextActivityEntry(venueId, item.hash);
   const openPredictHome = useOpenPredictHome();
@@ -59,13 +93,6 @@ export function NextTradeDetails({ item }: { item: PredictTradeListItem }) {
     tokenAmount === undefined
       ? undefined
       : formatCurrencyValue(Number(tokenAmount));
-  const priceDecimals = trade && Number(trade.price) >= 1 ? 2 : 4;
-  const price = trade
-    ? formatPrice(trade.price, {
-        minimumDecimals: priceDecimals,
-        maximumDecimals: priceDecimals,
-      })
-    : undefined;
   const realizedPnl =
     trade?.realizedPnl === undefined ? undefined : Number(trade.realizedPnl);
 
@@ -99,30 +126,13 @@ export function NextTradeDetails({ item }: { item: PredictTradeListItem }) {
           />
           <ActivityDetailRow
             label={strings('predict.transactions.price_per_share')}
-            value={price}
+            value={trade ? formatSharePrice(trade.price) : undefined}
           />
         </ActivityDetailSection>
       }
       details={
         isBuy || realizedPnl === undefined ? undefined : (
-          <ActivityDetailSection>
-            <ActivityDetailRow
-              label={strings('predict.transactions.net_pnl')}
-              value={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    realizedPnl < 0
-                      ? TextColor.ErrorDefault
-                      : TextColor.SuccessDefault
-                  }
-                >
-                  {formatCurrencyValue(realizedPnl, { showSign: true })}
-                </Text>
-              }
-            />
-          </ActivityDetailSection>
+          <NetPnlSection realizedPnl={realizedPnl} />
         )
       }
       footer={
