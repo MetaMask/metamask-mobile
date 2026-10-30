@@ -39,8 +39,9 @@ export interface PositionRowProps {
   isClosed?: boolean;
   showTradeDate?: boolean;
   /**
-   * When true, positions with server flags render greyed out, show an
-   * exclusion label, and ignore `onPress`.
+   * When true, positions with server flags render greyed out and show an
+   * exclusion label. The row stays tappable when `onPress` is provided.
+   * Callers that must keep a flagged row inert omit `onPress`.
    */
   showFlaggedState?: boolean;
 }
@@ -84,7 +85,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
     ? getPositionFlagLabelKey(position)
     : null;
   const isFlagged = flagLabelKey != null;
-  const isPressable = Boolean(onPress) && !isFlagged;
+  const isPressable = Boolean(onPress);
   // Flagged rows drop success/error so the signed % and closed PnL look
   // disabled, not just faded green/red under opacity-50.
   const pnlColorClass =

@@ -1,6 +1,7 @@
 import type { Position } from '@metamask/social-controllers';
 import {
   getPositionFlagLabelKey,
+  isPositionFlagged,
   POSITION_FLAG_LABEL_KEYS,
 } from './positionFlags';
 
@@ -18,6 +19,32 @@ const basePosition: Position = {
   trades: [],
   lastTradeAt: 0,
 };
+
+describe('isPositionFlagged', () => {
+  it('returns false when flags are omitted', () => {
+    const result = isPositionFlagged(basePosition);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when flags are null or empty', () => {
+    expect(isPositionFlagged({ ...basePosition, flags: null })).toBe(false);
+    expect(isPositionFlagged({ ...basePosition, flags: [] })).toBe(false);
+    expect(isPositionFlagged(undefined)).toBe(false);
+  });
+
+  it('returns true for insider, developer, and unrecognized flags', () => {
+    expect(isPositionFlagged({ ...basePosition, flags: ['insider'] })).toBe(
+      true,
+    );
+    expect(isPositionFlagged({ ...basePosition, flags: ['developer'] })).toBe(
+      true,
+    );
+    expect(isPositionFlagged({ ...basePosition, flags: ['blocked'] })).toBe(
+      true,
+    );
+  });
+});
 
 describe('getPositionFlagLabelKey', () => {
   it('returns null when flags are omitted', () => {

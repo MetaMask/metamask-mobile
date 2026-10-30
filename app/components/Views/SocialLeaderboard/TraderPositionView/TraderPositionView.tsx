@@ -108,6 +108,7 @@ import {
   isPerpPosition,
 } from '../../../UI/SocialFeed/utils/perp';
 import PerpsTradeButton from './components/PerpsTradeButton';
+import { isPositionFlagged } from '../TraderProfileView/utils/positionFlags';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import type { Trade } from '@metamask/social-controllers';
 import {
@@ -163,6 +164,9 @@ const TraderPositionView = () => {
     refetch: refetchPosition,
   } = useTraderPosition(effectivePositionId);
   const resolvedPosition = fetchedPosition ?? positionParam;
+  // Flags travel on the position itself (row snapshot, then the by-id fetch).
+  // A separate route flag would drift from whichever source is current.
+  const isFlaggedPosition = isPositionFlagged(resolvedPosition);
   const isBlockedPerpPosition =
     resolvedPosition != null &&
     !isPerpsEnabled &&
@@ -690,6 +694,36 @@ const TraderPositionView = () => {
     },
   );
 
+  // Flagged positions stay viewable but must not be copy-traded, so the
+  // spot Buy and perps Trade CTAs are omitted together.
+  let positionTradeCta: React.ReactNode = null;
+  if (!isFlaggedPosition && isPerp && displayPosition) {
+    positionTradeCta = (
+      <PerpsTradeButton
+        symbol={displayPosition.tokenSymbol}
+        onTrade={handlePerpTrade}
+        testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
+      />
+    );
+  } else if (!isFlaggedPosition) {
+    positionTradeCta = (
+      <TraderPositionBuyCta
+        position={displayPosition ?? null}
+        traderAddress={traderAddress}
+        marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+        tokenPriceFiat={
+          typeof currentPrice === 'number' ? currentPrice : undefined
+        }
+        source={quickBuySource}
+        originalEntryPoint={quickBuyOriginalEntryPoint}
+        isTraderPositionClosed={isClosed}
+        onBuyCtaClicked={handleBuyCtaClicked}
+        postTradeShare={isSocialV1 === true}
+        buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+      />
+    );
+  }
+
   const loadedPositionContent = (
     <>
       {/* Scroll-linked pinned-chart layout. The trades list owns the page
@@ -848,28 +882,7 @@ const TraderPositionView = () => {
         </Animated.View>
       </View>
 
-      {isPerp && displayPosition ? (
-        <PerpsTradeButton
-          symbol={displayPosition.tokenSymbol}
-          onTrade={handlePerpTrade}
-          testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
-        />
-      ) : (
-        <TraderPositionBuyCta
-          position={displayPosition ?? null}
-          traderAddress={traderAddress}
-          marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-          tokenPriceFiat={
-            typeof currentPrice === 'number' ? currentPrice : undefined
-          }
-          source={quickBuySource}
-          originalEntryPoint={quickBuyOriginalEntryPoint}
-          isTraderPositionClosed={isClosed}
-          onBuyCtaClicked={handleBuyCtaClicked}
-          postTradeShare={isSocialV1 === true}
-          buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-        />
-      )}
+      {positionTradeCta}
     </>
   );
 

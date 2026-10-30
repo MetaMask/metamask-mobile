@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
@@ -213,7 +213,7 @@ describe('PositionRow', () => {
     expect(onPress).toHaveBeenCalledWith(basePosition);
   });
 
-  it('shows the insider label and ignores onPress when showFlaggedState is set', () => {
+  it('shows the insider label and calls onPress when a flagged row is tapped', () => {
     const onPress = jest.fn();
     const position = { ...basePosition, flags: ['insider'] };
 
@@ -224,8 +224,11 @@ describe('PositionRow', () => {
     expect(
       screen.getByTestId('position-row-flag-label-STARKBOT'),
     ).toHaveTextContent('Insider allocation - excluded');
-    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
-    expect(onPress).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledWith(position);
   });
 
   it('uses muted color for flagged percent instead of PnL color', () => {

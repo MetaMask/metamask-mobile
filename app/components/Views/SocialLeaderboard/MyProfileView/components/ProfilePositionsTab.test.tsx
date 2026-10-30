@@ -176,7 +176,7 @@ describe('ProfilePositionsTab', () => {
     expect(onPositionPress).toHaveBeenCalledWith(openSpot);
   });
 
-  it('does not notify when a flagged row is pressed with showFlaggedState', () => {
+  it('notifies when a flagged row is pressed with showFlaggedState', () => {
     const flagged = { ...openSpot, flags: ['insider'] };
 
     renderWithProvider(
@@ -195,7 +195,8 @@ describe('ProfilePositionsTab', () => {
 
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
-    expect(onPositionPress).not.toHaveBeenCalled();
+    expect(onPositionPress).toHaveBeenCalledTimes(1);
+    expect(onPositionPress).toHaveBeenCalledWith(flagged);
   });
 
   it('retries after a load error', () => {
