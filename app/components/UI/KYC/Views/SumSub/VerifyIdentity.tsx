@@ -99,7 +99,14 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   // The sheet can't open without the idOS / SumSub terms to review.
   const canContinue = !isLoading && !error && Boolean(disclaimers?.length);
 
+  // Pops onboarding back to the screen that opened it, like Android back.
+  // Navigating to Money home instead would stack a second Home on top and
+  // leave onboarding underneath (TRAM-4342).
   const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },

@@ -42,7 +42,9 @@ import { VBA_CUF_END_REASON } from '../vbaCufTags';
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
 
-type StackNavigationAction = ReturnType<typeof CommonActions.reset>;
+type StackNavigationAction =
+  | ReturnType<typeof CommonActions.reset>
+  | ReturnType<typeof StackActions.push>;
 
 interface StackController {
   dispatch: (action: StackNavigationAction) => void;
@@ -186,6 +188,73 @@ const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
 };
 
 /**
+ * Finds the stack that can hold the VBA onboarding route.
+ *
+ * @param navigation - Navigation from the entry surface.
+ * @returns That stack, or undefined when none is reachable.
+ */
+const findVbaOnboardingStack = (
+  navigation: AppNavigationProp,
+): StackController | undefined => {
+  let current: StackController | undefined =
+    navigation as unknown as StackController;
+  while (current) {
+    if (current.getState()?.routeNames?.includes(Routes.RAMP.VBA_ONBOARDING)) {
+      return current;
+    }
+    const parent = current.getParent?.();
+    if (!parent || parent === current) {
+      return undefined;
+    }
+    current = parent;
+  }
+  return undefined;
+};
+
+/**
+ * Pushes a fresh onboarding route over the caller so it slides in and back
+ * pops it (TRAM-4342). A stale onboarding route buried under the caller is
+ * removed first, so it can't be reset in place out of sight.
+ *
+ * @param navigation - Navigation from the entry surface.
+ * @param params - Loading screen params.
+ * @returns False when onboarding is already the focused route (or no stack
+ * holds it), so the caller should reset onboarding in place instead.
+ */
+const pushFreshVbaOnboarding = (
+  navigation: AppNavigationProp,
+  params?: NonNullable<VbaOnboardingParamList['VbaOnboardingLoading']>,
+): boolean => {
+  const stack = findVbaOnboardingStack(navigation);
+  const state = stack?.getState();
+  if (!stack || !state) {
+    return false;
+  }
+  if (state.routes[state.index]?.name === Routes.RAMP.VBA_ONBOARDING) {
+    return false;
+  }
+  const routes = state.routes.filter(
+    (route) => route.name !== Routes.RAMP.VBA_ONBOARDING,
+  );
+  if (routes.length !== state.routes.length) {
+    stack.dispatch(
+      CommonActions.reset({
+        ...state,
+        index: routes.length - 1,
+        routes,
+      } as unknown as PartialState<NavigationState>),
+    );
+  }
+  stack.dispatch(
+    StackActions.push(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.LOADING,
+      params,
+    }),
+  );
+  return true;
+};
+
+/**
  * Cold entry from Money surfaces. An account whose autoramp is already
  * Approved on this device opens its details directly, and onboarding facts
  * refresh in the background. Everyone else gets the loading screen, which
@@ -218,6 +287,9 @@ export const openVbaEntry = (
         context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
       });
     });
+    return;
+  }
+  if (pushFreshVbaOnboarding(navigation, params)) {
     return;
   }
   openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, params);

@@ -1078,8 +1078,10 @@ describe('openVbaEntry', () => {
   const devGlobal = globalThis as { __DEV__?: boolean };
   const originalDev = devGlobal.__DEV__;
   const dispatch = jest.fn();
+  const navigate = jest.fn();
   const entryNavigation = {
     dispatch,
+    navigate,
     getState: () => ({
       index: 0,
       routeNames: [Routes.HOME_TABS, Routes.RAMP.VBA_ONBOARDING],
@@ -1138,18 +1140,11 @@ describe('openVbaEntry', () => {
 
     openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
 
-    expect(lastResetRoutes()[1]).toEqual(
-      expect.objectContaining({
-        name: Routes.RAMP.VBA_ONBOARDING,
-        state: {
-          index: 0,
-          routes: [
-            {
-              name: VbaOnboardingRoutes.LOADING,
-              params: { source: 'vba-action-row-details' },
-            },
-          ],
-        },
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledWith(
+      StackActions.push(Routes.RAMP.VBA_ONBOARDING, {
+        screen: VbaOnboardingRoutes.LOADING,
+        params: { source: 'vba-action-row-details' },
       }),
     );
     expect(mockHydrate).not.toHaveBeenCalled();
@@ -1160,10 +1155,77 @@ describe('openVbaEntry', () => {
 
     openVbaEntry(entryNavigation);
 
-    expect(lastResetRoutes()[1]).toEqual(
-      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'PUSH',
+        payload: expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+      }),
     );
     expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('resets in place when onboarding is already open', () => {
+    mockRampsState.autoramps = [];
+    const insideNavigation = {
+      dispatch,
+      navigate,
+      getState: () => ({
+        index: 1,
+        routeNames: [Routes.HOME_TABS, Routes.RAMP.VBA_ONBOARDING],
+        routes: [
+          { name: Routes.HOME_TABS },
+          { key: 'onboarding-1', name: Routes.RAMP.VBA_ONBOARDING },
+        ],
+      }),
+    } as unknown as AppNavigationProp;
+
+    openVbaEntry(insideNavigation);
+
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(lastResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      expect.objectContaining({
+        key: 'onboarding-1',
+        name: Routes.RAMP.VBA_ONBOARDING,
+      }),
+    ]);
+  });
+
+  it('removes a stale onboarding route buried under Home and pushes a fresh one', () => {
+    mockRampsState.autoramps = [];
+    const buriedState = {
+      key: 'root',
+      index: 2,
+      routeNames: [Routes.HOME_TABS, Routes.RAMP.VBA_ONBOARDING],
+      routes: [
+        { key: 'home-1', name: Routes.HOME_TABS },
+        { key: 'stale-onboarding', name: Routes.RAMP.VBA_ONBOARDING },
+        { key: 'home-2', name: Routes.HOME_TABS },
+      ],
+    };
+    const buriedNavigation = {
+      dispatch,
+      navigate,
+      getState: () => buriedState,
+    } as unknown as AppNavigationProp;
+
+    openVbaEntry(buriedNavigation);
+
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch.mock.calls[0][0].payload).toEqual(
+      expect.objectContaining({
+        index: 1,
+        routes: [
+          { key: 'home-1', name: Routes.HOME_TABS },
+          { key: 'home-2', name: Routes.HOME_TABS },
+        ],
+      }),
+    );
+    expect(dispatch.mock.calls[1][0]).toEqual(
+      StackActions.push(Routes.RAMP.VBA_ONBOARDING, {
+        screen: VbaOnboardingRoutes.LOADING,
+      }),
+    );
   });
 
   it('opens the loading screen when no wallet is selected', () => {
@@ -1171,8 +1233,11 @@ describe('openVbaEntry', () => {
 
     openVbaEntry(entryNavigation);
 
-    expect(lastResetRoutes()[1]).toEqual(
-      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'PUSH',
+        payload: expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+      }),
     );
   });
 });
