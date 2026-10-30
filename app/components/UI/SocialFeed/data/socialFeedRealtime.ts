@@ -1,4 +1,5 @@
 import type {
+  AuthorComment,
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
 } from '@metamask/social-controllers';
@@ -55,10 +56,17 @@ export const rememberEvictedRevision = (
   }
 };
 
+const resolveRealtimeAuthorComment = (
+  realtime: AuthorComment | null | undefined,
+  known: AuthorComment | null | undefined,
+): AuthorComment | null | undefined =>
+  realtime === undefined ? known : realtime;
+
 /**
  * Full realtime events are normalized by Core and can hydrate a row without
- * an HTTP snapshot. An existing HTTP row is still used to preserve any
- * client-side enrichment that the event does not carry.
+ * an HTTP snapshot. The event's data overrides the HTTP row's fields, except
+ * `authorComment`: an explicit null clears the Call, while an absent one keeps
+ * the HTTP row's Call.
  */
 export const mergeRealtimeFeedItem = (
   current: CoreFeedItem | undefined,
@@ -66,6 +74,10 @@ export const mergeRealtimeFeedItem = (
 ): CoreFeedItem => ({
   ...current,
   ...event.data,
+  authorComment: resolveRealtimeAuthorComment(
+    event.data.authorComment,
+    current?.authorComment,
+  ),
   eventId: event.eventId,
   revision: event.revision,
   occurredAt: event.occurredAt,
@@ -179,7 +191,17 @@ export const foldRealtimeRows = (
     }
     changed = true;
     if (isNewerThanServer(row, serverRow)) {
-      nextRevised.set(row.feedItemId, row);
+      // A socket-only copy has no HTTP core: an absent Call keeps the server's.
+      nextRevised.set(row.feedItemId, {
+        ...row,
+        core: {
+          ...row.core,
+          authorComment: resolveRealtimeAuthorComment(
+            row.core.authorComment,
+            serverRow.core.authorComment,
+          ),
+        },
+      });
     }
     return false;
   });
