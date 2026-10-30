@@ -62,7 +62,7 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
 /** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
 
-/** How often relative post ages ("3 min ago") are recomputed. */
+/** How often relative post ages ("3m ago") are recomputed. */
 const AGE_TICK_MS = 60_000;
 
 /** Hold the refresh spinner for a beat so a fast refetch does not flicker. */

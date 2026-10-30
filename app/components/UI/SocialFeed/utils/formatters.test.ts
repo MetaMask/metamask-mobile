@@ -376,24 +376,23 @@ describe('formatFeedTimestamp', () => {
   // handover to minutes: anything under 60s reads "Just now", 60s reads "1m".
   it('switches from "Just now" to minutes at the one-minute boundary', () => {
     expect(formatFeedTimestamp(now - 59 * SECOND, now)).toBe('Just now');
-    expect(formatFeedTimestamp(now - MINUTE, now)).toBe('1m');
+    expect(formatFeedTimestamp(now - MINUTE, now)).toBe('1m ago');
   });
 
   it('formats minutes within the last hour', () => {
-    expect(formatFeedTimestamp(now - 4 * MINUTE, now)).toBe('4m');
+    expect(formatFeedTimestamp(now - 4 * MINUTE, now)).toBe('4m ago');
   });
 
   it('formats hours within the last day', () => {
-    expect(formatFeedTimestamp(now - 3 * HOUR, now)).toBe('3h');
+    expect(formatFeedTimestamp(now - 3 * HOUR, now)).toBe('3h ago');
   });
 
   it('renders "Just now" for timestamps slightly in the future', () => {
     expect(formatFeedTimestamp(now + 5 * SECOND, now)).toBe('Just now');
   });
 
-  it('formats an absolute clock time for timestamps older than 24h', () => {
-    const result = formatFeedTimestamp(now - DAY - HOUR, now);
-    expect(result).toMatch(/^\d{1,2}:\d{2} (am|pm)$/);
+  it('stays relative for a timestamp older than 24h', () => {
+    expect(formatFeedTimestamp(now - DAY - HOUR, now)).toBe('1d ago');
   });
 });
 
@@ -435,28 +434,26 @@ describe('formatFeedPostAge', () => {
 
   it('switches from "Just now" to minutes at the one-minute boundary', () => {
     expect(formatFeedPostAge(now - 59 * SECOND, now)).toBe('Just now');
-    expect(formatFeedPostAge(now - MINUTE, now)).toBe('1 min ago');
+    expect(formatFeedPostAge(now - MINUTE, now)).toBe('1m ago');
   });
 
-  it('spells out minutes within the last hour', () => {
-    expect(formatFeedPostAge(now - 40 * MINUTE, now)).toBe('40 min ago');
+  it('formats minutes within the last hour', () => {
+    expect(formatFeedPostAge(now - 40 * MINUTE, now)).toBe('40m ago');
   });
 
   it('switches to hours at the one-hour boundary', () => {
-    expect(formatFeedPostAge(now - 59 * MINUTE, now)).toBe('59 min ago');
-    expect(formatFeedPostAge(now - HOUR, now)).toBe('1 hr ago');
+    expect(formatFeedPostAge(now - 59 * MINUTE, now)).toBe('59m ago');
+    expect(formatFeedPostAge(now - HOUR, now)).toBe('1h ago');
   });
 
-  it('spells out hours within the last day', () => {
-    expect(formatFeedPostAge(now - 3 * HOUR, now)).toBe('3 hr ago');
+  it('formats hours within the last day', () => {
+    expect(formatFeedPostAge(now - 3 * HOUR, now)).toBe('3h ago');
   });
 
-  // Unlike the compact V0 row, posts a day or more old stay relative rather
-  // than collapsing to a clock time.
   it('switches to days at the one-day boundary', () => {
-    expect(formatFeedPostAge(now - 23 * HOUR, now)).toBe('23 hr ago');
-    expect(formatFeedPostAge(now - DAY, now)).toBe('1 d ago');
-    expect(formatFeedPostAge(now - 9 * DAY, now)).toBe('9 d ago');
+    expect(formatFeedPostAge(now - 23 * HOUR, now)).toBe('23h ago');
+    expect(formatFeedPostAge(now - DAY, now)).toBe('1d ago');
+    expect(formatFeedPostAge(now - 9 * DAY, now)).toBe('9d ago');
   });
 
   it('absorbs clock skew as "Just now"', () => {
@@ -465,7 +462,7 @@ describe('formatFeedPostAge', () => {
 
   it('accepts second-precision timestamps', () => {
     expect(formatFeedPostAge(Math.floor((now - 40 * MINUTE) / 1000), now)).toBe(
-      '40 min ago',
+      '40m ago',
     );
   });
 });

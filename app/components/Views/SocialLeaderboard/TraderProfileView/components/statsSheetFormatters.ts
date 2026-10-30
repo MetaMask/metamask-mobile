@@ -2,10 +2,10 @@ import {
   EM_DASH,
   formatAbbreviatedUsd,
   formatCount,
-  formatHoldDuration,
   formatPercent,
   formatUnsignedFullUsdNoDecimals,
 } from '../../../../UI/SocialFeed/utils/formatters';
+import { formatSocialElapsed } from '../../../../UI/SocialFeed/utils/formatSocialTime';
 import { MINUTE } from '../../../../../constants/time';
 
 /** Prefix for numbers that still come from a local mock, not the API. */
@@ -69,13 +69,13 @@ export function formatSheetCount(value: number | null | undefined): string {
   return formatCount(value);
 }
 
-/** Compact hold label (`4d`, `8h`, `1d 20h`) — reuses feed/composer {@link formatHoldDuration}. */
+/** Compact hold label (`4d`, `8h`, `1d 20h`) from {@link formatSocialElapsed}. */
 export function formatSheetHoldFromMinutes(
   minutes: number | null | undefined,
 ): string {
   if (minutes == null) {
     return '';
   }
-  const label = formatHoldDuration(minutes * MINUTE);
+  const label = formatSocialElapsed(minutes * MINUTE);
   return label === EM_DASH ? '' : label;
 }

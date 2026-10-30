@@ -106,13 +106,13 @@ describe('StatsRow', () => {
     it('renders hours when holdTimeMinutes is 60 or more but less than 1440', () => {
       renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={90} />);
 
-      expect(screen.getByText('1.5 hrs')).toBeOnTheScreen();
+      expect(screen.getByText('1h')).toBeOnTheScreen();
     });
 
     it('renders days when holdTimeMinutes is 1440 or more', () => {
       renderWithProvider(<StatsRow stats={baseStats} holdTimeMinutes={2880} />);
 
-      expect(screen.getByText('2 days')).toBeOnTheScreen();
+      expect(screen.getByText('2d')).toBeOnTheScreen();
     });
   });
 

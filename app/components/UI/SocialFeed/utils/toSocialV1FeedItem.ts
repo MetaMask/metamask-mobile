@@ -10,11 +10,11 @@ import type {
 } from '../types';
 import {
   formatAbbreviatedUsd,
-  formatHoldDuration,
   formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
   formatUsd,
 } from './formatters';
+import { formatSocialElapsed } from './formatSocialTime';
 import { isEntryAction } from './tradeAction';
 import { tradeTimestampToMs } from './tradeTimestamp';
 import { buildLivePriceSource } from '../live/buildLivePriceSource';
@@ -77,18 +77,22 @@ export const deriveExitPrice = (core: Position): number | null => {
   const exitFills = (core.trades ?? []).filter(
     (trade) => trade.intent === 'exit',
   );
-
-  if (exitFills.length === 0) {
+  const firstExit = exitFills[0];
+  if (!firstExit) {
     return null;
   }
 
-  const lastExit = exitFills.reduce((latest, trade) =>
-    tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
-      ? trade
-      : latest,
-  );
+  // A tied timestamp keeps the earlier fill.
+  let latest = firstExit;
+  for (const trade of exitFills) {
+    if (
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+    ) {
+      latest = trade;
+    }
+  }
 
-  return toUnitPrice(lastExit);
+  return toUnitPrice(latest);
 };
 
 /**
@@ -205,7 +209,7 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
   // No lifecycle action on older payloads: fall back to the latest fill's own
   // direction rather than defaulting to 'buy' and mislabelling a sale.
   const trades = core.trades ?? [];
-  const lastTrade = trades[trades.length - 1];
+  const lastTrade = trades.at(-1);
   return lastTrade?.direction === 'sell' ? 'sell' : 'buy';
 };
 
@@ -286,7 +290,7 @@ export function toSocialV1FeedItem(
     now,
   );
   const holdTimeLabel =
-    holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs);
+    holdDurationMs == null ? undefined : formatSocialElapsed(holdDurationMs);
 
   if (item.isClosed) {
     const exitPrice = deriveExitPrice(core);

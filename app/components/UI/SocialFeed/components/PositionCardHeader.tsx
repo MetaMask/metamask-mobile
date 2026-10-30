@@ -31,7 +31,7 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
 /**
  * Both layouts share this header. The symbol sits beside a side tag, a caption
  * sits under it, and the P&L sits on the right. Closed cards use the caption
- * for when the position settled (`Closed · 2 hr ago`, `Sold · 2 hr ago`) and
+ * for when the position settled (`Closed · 2h ago`, `Sold · 2h ago`) and
  * omit the spot side tag.
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';

@@ -9,7 +9,7 @@ describe('formatJoinedLabel', () => {
 
     expect(result).toBe(
       strings('social_leaderboard.my_profile.joined', {
-        time: '3 months ago',
+        time: '3mo ago',
       }),
     );
   });

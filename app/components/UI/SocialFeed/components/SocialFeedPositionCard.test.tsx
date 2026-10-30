@@ -83,7 +83,21 @@ jest.mock('./TraderAvatar', () => {
 });
 
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: Record<string, unknown>) => {
+    if (key === 'social_leaderboard.time.ago') {
+      return `${String(params?.duration ?? '')} ago`;
+    }
+    if (key === 'social_leaderboard.time.minutes' && params) {
+      return `${String(params.count)}m`;
+    }
+    if (key === 'social_leaderboard.time.hours' && params) {
+      return `${String(params.count)}h`;
+    }
+    if (key === 'social_leaderboard.time.days' && params) {
+      return `${String(params.count)}d`;
+    }
+    return key;
+  },
 }));
 
 /**
@@ -140,7 +154,7 @@ describe('SocialFeedPositionCard', () => {
 
       expect(
         screen.getByTestId(getSocialFeedPostAgeTestId(item.id)),
-      ).toHaveTextContent('social_leaderboard.feed.age.minutes');
+      ).toHaveTextContent('40m ago');
     });
   });
 
