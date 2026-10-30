@@ -40,6 +40,10 @@ export interface ProfilePositionsTabProps {
   onFilterChange: (filter: ProfileAssetFilter) => void;
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
+  /**
+   * When true, flagged rows use the V1 subline treatment and ignore presses.
+   * Own profiles omit this so flagged data stays a normal row.
+   */
   showFlaggedState?: boolean;
 }
 
@@ -71,7 +75,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         position={position}
         isClosed={isClosed}
         showTradeDate={isClosed}
-        showFlaggedState={showFlaggedState}
+        flaggedPresentation={showFlaggedState ? 'subline' : undefined}
         onPress={
           showFlaggedState && getPositionFlagLabelKey(position)
             ? undefined

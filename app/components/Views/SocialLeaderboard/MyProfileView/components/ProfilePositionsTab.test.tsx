@@ -17,12 +17,15 @@ jest.mock('../../TraderProfileView/components/PositionRow', () => {
     default: ({
       position,
       onPress,
+      flaggedPresentation,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
+      flaggedPresentation?: 'excluded' | 'subline';
     }) => (
       <Pressable
         testID={`position-row-${position.tokenSymbol}`}
+        accessibilityLabel={flaggedPresentation ?? 'default'}
         onPress={() => onPress?.(position)}
       >
         <Text>{position.tokenSymbol}</Text>
@@ -174,6 +177,10 @@ describe('ProfilePositionsTab', () => {
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
     expect(onPositionPress).toHaveBeenCalledWith(openSpot);
+    expect(screen.getByTestId('position-row-ETH')).toHaveProp(
+      'accessibilityLabel',
+      'default',
+    );
   });
 
   it('does not notify when a flagged row is pressed with showFlaggedState', () => {
@@ -196,6 +203,10 @@ describe('ProfilePositionsTab', () => {
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
     expect(onPositionPress).not.toHaveBeenCalled();
+    expect(screen.getByTestId('position-row-ETH')).toHaveProp(
+      'accessibilityLabel',
+      'subline',
+    );
   });
 
   it('retries after a load error', () => {
