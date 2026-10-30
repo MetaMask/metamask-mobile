@@ -108,6 +108,24 @@ export async function postComment(
 }
 
 /**
+ * Replaces the body of an existing PR comment.
+ */
+export async function updateComment(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  commentId: number,
+  body: string,
+): Promise<void> {
+  await octokit.rest.issues.updateComment({
+    owner,
+    repo,
+    comment_id: commentId,
+    body,
+  });
+}
+
+/**
  * Generates a test plan using the e2e-ai-analyzer tool.
  * Returns the parsed test plan or null if generation fails.
  */

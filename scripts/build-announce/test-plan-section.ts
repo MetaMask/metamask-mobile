@@ -201,7 +201,7 @@ export function buildTestPlanSection(testPlan: TestPlanResult): string {
 
   // JSON link - artifact is uploaded separately and available in the Actions run
   if (testPlan.version) {
-    md += `AI generated test plan (JSON): Available as artifact \`test-plan-${testPlan.version}\` in the [build workflow](${process.env.BUILD_PIPELINE_URL || '#'})\n\n`;
+    md += `AI generated test plan (JSON): Available as artifact \`test-plan-${testPlan.version}\` in the [workflow run](${process.env.BUILD_PIPELINE_URL || '#'})\n\n`;
   }
 
   return md;
