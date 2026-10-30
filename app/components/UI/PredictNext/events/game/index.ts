@@ -15,3 +15,4 @@ export type {
   GameStatusLine,
   GameTeamPresentation,
 } from './createGamePresentation';
+export { useGameTeamColors } from './useGameTeamColors';

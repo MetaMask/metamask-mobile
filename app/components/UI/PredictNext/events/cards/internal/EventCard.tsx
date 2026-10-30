@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../../../../util/theme';
 import type {
   PredictEvent,
   PredictMarket,
@@ -31,6 +32,7 @@ import {
   getAskPricePercent,
 } from '../../shared/formatting';
 import { isOutcomeTradeable } from '../../shared/tradeable';
+import { OutcomeRow as SharedOutcomeRow } from '../../shared/ui';
 import { formatMultiplier } from './formatMultiplier';
 
 export const EVENT_CARD_VISIBLE_MARKET_COUNT = 3;
@@ -235,25 +237,24 @@ const OutcomeRow = ({
   onOrder,
   testID,
 }: OutcomeRowProps) => {
+  const { colors } = useTheme();
   const price = formatAskPrice(outcome.askPrice);
   const multiplier = formatMultiplier(outcome.askPrice);
   const percent = getAskPricePercent(outcome.askPrice);
-  const fillClassName = OUTCOME_ROW_FILL[color];
+  const lineColor = {
+    green: colors.success.default,
+    indigo: colors.info.default,
+    red: colors.error.default,
+  }[color];
 
   return (
-    <Box twClassName="flex-row items-center gap-3">
-      <Box twClassName="min-w-0 flex-1 gap-2">
-        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-          {label}
-        </Text>
-        {percent !== undefined ? (
-          <Box
-            testID={testID ? `${testID}-bar` : undefined}
-            twClassName={`h-0.5 rounded-full ${fillClassName}`}
-            style={{ width: `${percent}%` }}
-          />
-        ) : null}
-      </Box>
+    <SharedOutcomeRow.Root>
+      <SharedOutcomeRow.Label
+        label={label}
+        percent={percent}
+        color={lineColor}
+        lineTestID={testID ? `${testID}-bar` : undefined}
+      />
       {multiplier ? (
         <Text
           variant={TextVariant.BodySm}
@@ -264,12 +265,13 @@ const OutcomeRow = ({
           {multiplier}
         </Text>
       ) : null}
+      {/* Feed rows keep a filled price; Market cards use OutcomeRow.Price. */}
       <Button
         testID={testID}
         variant={ButtonVariant.Secondary}
         isDisabled={!onOrder || !isOutcomeTradeable(market, outcome)}
         onPress={() => onOrder?.(event, market, outcome)}
-        twClassName={`w-16 px-0 ${fillClassName}`}
+        twClassName={`w-16 px-0 ${OUTCOME_ROW_FILL[color]}`}
       >
         <Text
           variant={TextVariant.BodyMd}
@@ -279,7 +281,7 @@ const OutcomeRow = ({
           {price ?? '-'}
         </Text>
       </Button>
-    </Box>
+    </SharedOutcomeRow.Root>
   );
 };
 

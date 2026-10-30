@@ -31,6 +31,7 @@ PredictNext/
       createGamePresentation.ts
       findGameSelectionQuote.ts
       findWinnerMarketQuotes.ts
+      useGameTeamColors.ts     # Team colors with the theme fallback
     markets/
       index.ts                 # Supported Market-card and list API
       MarketList.tsx           # Card-agnostic detail-list composition
@@ -41,6 +42,7 @@ PredictNext/
       internal/                # Private Market-card parts
     shared/
       formatting/              # Price and Volume formatting shared by Event UI
+      ui/                      # Outcome row and Team logo shared by Event and Market cards
 
   views/                       # Screen compositions and private view helpers
     PredictEvent/
