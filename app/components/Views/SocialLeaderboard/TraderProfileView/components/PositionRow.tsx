@@ -53,6 +53,44 @@ export interface PositionRowProps {
   flaggedPresentation?: FlaggedPositionPresentation;
 }
 
+/** Headline USD for an open row, or signed closed PnL. A closed perp with no PnL is an em dash. */
+function formatPositionHeadlineValue(
+  isClosed: boolean,
+  isPerp: boolean,
+  currentValueUSD: number | null | undefined,
+  perpPnlValue: number | null,
+  realizedPnl: number | null | undefined,
+): string {
+  if (!isClosed) {
+    return formatUsd(currentValueUSD ?? null);
+  }
+  if (!isPerp) {
+    return formatSignedUsd(realizedPnl);
+  }
+  if (perpPnlValue == null) {
+    return EM_DASH;
+  }
+  return formatSignedUsd(perpPnlValue);
+}
+
+/** Screen-reader P&L direction. `null` when the percent is missing. */
+function getFlaggedPositionPnlDirection(
+  hasPnlPercent: boolean,
+  isPnlZero: boolean,
+  isPnlPositive: boolean,
+): FlaggedPositionPnlDirection | null {
+  if (!hasPnlPercent) {
+    return null;
+  }
+  if (isPnlZero) {
+    return 'flat';
+  }
+  if (isPnlPositive) {
+    return 'up';
+  }
+  return 'down';
+}
+
 const PositionRowComponent: React.FC<PositionRowProps> = ({
   position,
   onPress,
@@ -119,22 +157,14 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   // neutral white (matching spot). Closed positions show signed, colored
   // realized PnL: perps via `perpPnlValue` (realized + unrealized), spot via
   // `realizedPnl`.
-  const headlineValue = !isClosed
-    ? formatUsd(position.currentValueUSD ?? null)
-    : isPerp
-      ? perpPnlValue != null
-        ? formatSignedUsd(perpPnlValue)
-        : EM_DASH
-      : formatSignedUsd(position.realizedPnl);
-  const topRight = !isClosed ? (
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {headlineValue}
-    </Text>
-  ) : isPerp ? (
+  const headlineValue = formatPositionHeadlineValue(
+    isClosed,
+    isPerp,
+    position.currentValueUSD,
+    perpPnlValue,
+    position.realizedPnl,
+  );
+  const topRight = isClosed ? (
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
@@ -147,8 +177,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      twClassName={pnlColorClass}
-      color={pnlColorClass ? undefined : TextColor.TextAlternative}
+      color={TextColor.TextDefault}
     >
       {headlineValue}
     </Text>
@@ -176,13 +205,11 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   const accessibilityReasonKey = isSublineFlag
     ? getPositionFlagAccessibilityReasonKey(position)
     : null;
-  const pnlDirection: FlaggedPositionPnlDirection | null = !hasPnlPercent
-    ? null
-    : isPnlZero
-      ? 'flat'
-      : isPnlPositive
-        ? 'up'
-        : 'down';
+  const pnlDirection = getFlaggedPositionPnlDirection(
+    hasPnlPercent,
+    isPnlZero,
+    isPnlPositive,
+  );
   const accessibilityLabel =
     accessibilityReasonKey != null
       ? formatFlaggedPositionAccessibilityLabel({
