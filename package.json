@@ -188,6 +188,56 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/accounts-controller": {
+      "type": "non-breaking",
+      "previewVersion": "40.1.0-preview-f1c750c"
+    },
+    "@metamask/base-data-service": {
+      "type": "non-breaking",
+      "previewVersion": "2.1.0-preview-f1c750c"
+    },
+    "@metamask/core-backend": {
+      "type": "non-breaking",
+      "previewVersion": "12.3.0-preview-f1c750c"
+    },
+    "@metamask/gas-fee-controller": {
+      "type": "non-breaking",
+      "previewVersion": "27.0.0-preview-f1c750c"
+    },
+    "@metamask/keyring-controller": {
+      "type": "non-breaking",
+      "previewVersion": "28.2.0-preview-f1c750c"
+    },
+    "@metamask/logging-controller": {
+      "type": "non-breaking",
+      "previewVersion": "10.0.0-preview-f1c750c"
+    },
+    "@metamask/multichain-account-service": {
+      "type": "non-breaking",
+      "previewVersion": "14.1.0-preview-f1c750c"
+    },
+    "@metamask/network-controller": {
+      "type": "non-breaking",
+      "previewVersion": "37.1.1-preview-f1c750c"
+    },
+    "@metamask/perps-controller": {
+      "type": "non-breaking",
+      "previewVersion": "22.0.0-preview-f1c750c"
+    },
+    "@metamask/profile-metrics-controller": {
+      "type": "non-breaking",
+      "previewVersion": "5.2.0-preview-f1c750c"
+    },
+    "@metamask/shield-controller": {
+      "type": "non-breaking",
+      "previewVersion": "7.1.0-preview-f1c750c"
+    },
+    "@metamask/transaction-controller": {
+      "type": "non-breaking",
+      "previewVersion": "72.3.0-preview-f1c750c"
+    }
+  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
