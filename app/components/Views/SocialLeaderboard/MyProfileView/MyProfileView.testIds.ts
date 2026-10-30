@@ -24,6 +24,7 @@ export const MyProfileViewSelectorsIDs = {
   FOLLOWERS_BUTTON: 'my-profile-view-followers-button',
   FOLLOWING_BUTTON: 'my-profile-view-following-button',
   JOINED: 'my-profile-view-joined',
+  META_ROW: 'my-profile-view-meta-row',
   PERFORMANCE_SECTION: 'my-profile-view-performance-section',
   PERFORMANCE_PNL: 'my-profile-view-performance-pnl',
   PERFORMANCE_WIN_RATE: 'my-profile-view-performance-win-rate',

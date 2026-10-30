@@ -105,6 +105,16 @@ const USERNAME_CHECK_DEBOUNCE_MS = 400;
  */
 type UsernameCheckOutcome = 'available' | 'unavailable' | 'superseded';
 
+/**
+ * A server answer for one handle. `taken` is the only result that means
+ * another name should be suggested; `invalid` and `error` keep the name and
+ * show why it can't be claimed yet.
+ */
+interface UsernameAvailability {
+  status: 'available' | 'taken' | 'invalid' | 'error';
+  claimError: string | null;
+}
+
 const LIVE_ACTIVITY = [
   {
     id: 'jilio',
@@ -149,6 +159,40 @@ const OnboardingTitle: React.FC<{
     >
       {children}
     </MarketingMomentTitle>
+  </Box>
+);
+
+/**
+ * "Connect [X logo] account". The logo stands in for the word X, so the
+ * label is built from parts instead of one string. The button's text color
+ * only reaches string children, so the parts set the primary inverse color.
+ */
+const ConnectXLabel: React.FC = () => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    gap={1}
+  >
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.PrimaryInverse}
+    >
+      {strings('social_leaderboard.profile_onboarding.connect_x_before_logo')}
+    </Text>
+    <Icon
+      name={IconName.X}
+      size={IconSize.Md}
+      color={IconColor.PrimaryInverse}
+      testID={SocialProfileOnboardingSelectorsIDs.CONNECT_X_LOGO}
+    />
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.PrimaryInverse}
+    >
+      {strings('social_leaderboard.profile_onboarding.connect_x_after_logo')}
+    </Text>
   </Box>
 );
 
@@ -393,49 +437,60 @@ const SocialProfileOnboardingView: React.FC = () => {
     }));
   }, []);
 
-  const checkHandle = useCallback(
-    async (username: string): Promise<UsernameCheckOutcome> => {
-      const requestId = ++usernameCheckId.current;
+  const fetchUsernameAvailability = useCallback(
+    async (username: string): Promise<UsernameAvailability> => {
       try {
         const availability = await checkUsernameAvailability(username);
-        if (requestId !== usernameCheckId.current) {
-          return 'superseded';
-        }
         if (!availability.valid) {
-          setUsernameClaimError(
-            strings('social_leaderboard.profile_onboarding.username_invalid'),
-          );
-          return 'unavailable';
+          return {
+            status: 'invalid',
+            claimError: strings(
+              'social_leaderboard.profile_onboarding.username_invalid',
+            ),
+          };
         }
         if (!availability.available) {
-          setUsernameClaimError(
-            strings(
+          return {
+            status: 'taken',
+            claimError: strings(
               'social_leaderboard.profile_onboarding.username_unavailable',
             ),
-          );
-          return 'unavailable';
+          };
         }
-        setUsernameClaimError(null);
-        return 'available';
+        return { status: 'available', claimError: null };
       } catch {
-        if (requestId !== usernameCheckId.current) {
-          return 'superseded';
-        }
-        setUsernameClaimError(
-          strings('social_leaderboard.profile_onboarding.username_check_error'),
-        );
-        return 'unavailable';
+        return {
+          status: 'error',
+          claimError: strings(
+            'social_leaderboard.profile_onboarding.username_check_error',
+          ),
+        };
       }
     },
     [checkUsernameAvailability],
   );
 
+  const checkHandle = useCallback(
+    async (username: string): Promise<UsernameCheckOutcome> => {
+      const requestId = ++usernameCheckId.current;
+      const { status, claimError } = await fetchUsernameAvailability(username);
+      if (requestId !== usernameCheckId.current) {
+        return 'superseded';
+      }
+      setUsernameClaimError(claimError);
+      return status === 'available' ? 'available' : 'unavailable';
+    },
+    [fetchUsernameAvailability],
+  );
+
   const scheduleUsernameCheck = useCallback(
     (username: string) => {
       clearUsernameCheckTimer();
+      // Any edit makes in-flight checks stale, including a shuffle that has
+      // not shown its name yet.
+      usernameCheckId.current += 1;
       if (getUsernameStatus(username) !== 'available') {
         setUsernameClaimError(null);
-        usernameCheckId.current += 1;
         return;
       }
       usernameCheckTimer.current = setTimeout(() => {
@@ -457,20 +512,33 @@ const SocialProfileOnboardingView: React.FC = () => {
   const handleShuffleUsername = useCallback(() => {
     clearUsernameCheckTimer();
     trackInteraction(Interaction.USERNAME_SHUFFLED);
+    // Check the suggestion before showing it, so one tap shows one name. A
+    // superseded check means the user typed or continued in the meantime, and
+    // the draft must stay as they left it.
+    const requestId = ++usernameCheckId.current;
     const claimGeneratedUsername = async () => {
-      let username = generateUsername();
-      applyUsername(username);
-      // Only a completed "taken" result may replace the handle. A superseded
-      // check returns after the user has moved on, and must leave the draft.
-      if ((await checkHandle(username)) !== 'unavailable') {
+      const username = generateUsername();
+      const { status, claimError } = await fetchUsernameAvailability(username);
+      if (requestId !== usernameCheckId.current) {
         return;
       }
-      username = generateUsernameWithNumber();
+      if (status === 'taken') {
+        const numberedUsername = generateUsernameWithNumber();
+        applyUsername(numberedUsername);
+        await checkHandle(numberedUsername);
+        return;
+      }
       applyUsername(username);
-      await checkHandle(username);
+      setUsernameClaimError(claimError);
     };
     claimGeneratedUsername().catch(() => undefined);
-  }, [applyUsername, checkHandle, clearUsernameCheckTimer, trackInteraction]);
+  }, [
+    applyUsername,
+    checkHandle,
+    clearUsernameCheckTimer,
+    fetchUsernameAvailability,
+    trackInteraction,
+  ]);
 
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
@@ -619,6 +687,8 @@ const SocialProfileOnboardingView: React.FC = () => {
       playSelection().catch(() => undefined);
       setUsernameClaimError(null);
       if (enabled) {
+        clearUsernameCheckTimer();
+        usernameCheckId.current += 1;
         setDraft((current) => ({
           ...current,
           useXUsername: true,
@@ -638,7 +708,13 @@ const SocialProfileOnboardingView: React.FC = () => {
       }));
       scheduleUsernameCheck(normalizeUsername(nextUsername));
     },
-    [draft.username, draft.xUsername, playSelection, scheduleUsernameCheck],
+    [
+      clearUsernameCheckTimer,
+      draft.username,
+      draft.xUsername,
+      playSelection,
+      scheduleUsernameCheck,
+    ],
   );
 
   const handleToggleXAvatar = useCallback(
@@ -950,10 +1026,10 @@ const SocialProfileOnboardingView: React.FC = () => {
                     : undefined
                 }
                 primaryAction={{
-                  label: strings(
+                  label: <ConnectXLabel />,
+                  accessibilityLabel: strings(
                     'social_leaderboard.profile_onboarding.connect_x',
                   ),
-                  startIconName: IconName.X,
                   onPress: handleConnectX,
                   isLoading: isConnectingX,
                   isDisabled: isConnectingX,

@@ -20,6 +20,7 @@ import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
+import TradingActivityBenefits from '../../shared/TradingActivityBenefits';
 
 const ManageProfileTradingActivityView: React.FC = () => {
   const { brandColors, colors } = useTheme();
@@ -128,16 +129,11 @@ const ManageProfileTradingActivityView: React.FC = () => {
               testID={ManageProfileTradingActivitySelectorsIDs.SWITCH}
             />
           </Box>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="mt-1"
-          >
-            {strings(
-              'social_leaderboard.manage_profile.show_trading_activity_subtitle',
-            )}
-          </Text>
         </Box>
+        <TradingActivityBenefits
+          isTradingActivityShown={isTradingActivityPublic}
+          testID={ManageProfileTradingActivitySelectorsIDs.BENEFITS}
+        />
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings(
             'social_leaderboard.manage_profile.trading_activity_footnote',
