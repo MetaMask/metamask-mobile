@@ -57,7 +57,7 @@ describe('UncountedPositionsSheet', () => {
     expect(screen.getByText('Unsupported token')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        'Some tokens, like lending contracts, move funds in ways that make P&L look wildly off, so we leave them out.',
+        'Lending contracts and similar tokens move funds in ways that make P&L look wildly off.',
       ),
     ).toBeOnTheScreen();
   });
