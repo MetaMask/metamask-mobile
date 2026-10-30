@@ -35,8 +35,10 @@ import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 import {
+  KYC_CONSENT_VENDOR,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
+  type KycConsentVendor,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -71,6 +73,11 @@ const VERIFICATION_STEPS = [
 
 interface VbaVerifyIdentityProps {
   onSuccess: () => void | Promise<void>;
+  /**
+   * Consent sheet variant. Defaults to VBA. `kalshi` is unused until a Kalshi
+   * KYC entry point exists.
+   */
+  vendor?: KycConsentVendor;
 }
 
 /**
@@ -79,7 +86,10 @@ interface VbaVerifyIdentityProps {
  * Agree & Continue. That opens the "Data and privacy" sheet with the idOS and
  * SumSub documents; agreeing there calls `onSuccess`.
  */
-const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
+const VbaVerifyIdentity = ({
+  onSuccess,
+  vendor = KYC_CONSENT_VENDOR.VBA,
+}: VbaVerifyIdentityProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
@@ -248,6 +258,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
           disclaimers={disclaimers}
           onAgree={onSuccess}
           onClose={closeTermsSheet}
+          vendor={vendor}
         />
       ) : null}
     </Box>

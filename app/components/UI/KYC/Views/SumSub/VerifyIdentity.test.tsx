@@ -7,8 +7,12 @@ import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
   IDOS_PRIVACY_NOTICE_URL,
+  KYC_CONSENT_VENDOR,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
+  SOCURE_BIOMETRIC_PROCESSING_AGREEMENT_URL,
+  SOCURE_PRIVACY_NOTICE_URL,
+  SOCURE_TERMS_OF_USE_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -100,6 +104,14 @@ const catalogDisclaimers = [
 
 const renderScreen = () =>
   renderWithProvider(<VbaVerifyIdentity onSuccess={mockOnSuccess} />);
+
+const renderKalshiScreen = () =>
+  renderWithProvider(
+    <VbaVerifyIdentity
+      onSuccess={mockOnSuccess}
+      vendor={KYC_CONSENT_VENDOR.KALSHI}
+    />,
+  );
 
 const openTermsSheet = (
   getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
@@ -409,6 +421,186 @@ describe('VbaVerifyIdentity', () => {
       expect(openUrlSpy).toHaveBeenCalledWith(
         'https://sumsub.example/personal-data',
       );
+    });
+
+    it('hides Socure documents and the Biometric Processing Agreement', () => {
+      const { getByTestId, queryByTestId, queryByText } = renderScreen();
+
+      openTermsSheet(getByTestId);
+
+      expect(queryByText('Terms of Use')).not.toBeOnTheScreen();
+      expect(
+        queryByText('Biometric Processing Agreement'),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-socure:terms_and_privacy`,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    // The sheet is a local overlay on a mocked catalog, and the VBA cases
+    // already live in this file. These stay unit tests so one consent
+    // contract is not split across a component-view suite.
+    describe('Kalshi consent', () => {
+      const openKalshiSheet = () => {
+        const view = renderKalshiScreen();
+
+        openTermsSheet(view.getByTestId);
+
+        return view;
+      };
+
+      it('shows the four catalog documents and a Socure terms row', () => {
+        const { getAllByTestId } = openKalshiSheet();
+
+        const rows = getAllByTestId(
+          new RegExp(`^${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-`),
+        );
+
+        expect(rows.map((row) => row.props.testID)).toEqual([
+          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:end_user_agreement`,
+          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:privacy_notice`,
+          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:transparency_document`,
+          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-kycProvider:notice_of_personal_data_processing`,
+          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-socure:terms_and_privacy`,
+        ]);
+        expect(
+          within(rows[4]).getByText('Socure Terms of Use and Privacy Notice', {
+            exact: false,
+          }),
+        ).toBeOnTheScreen();
+        expect(within(rows[4]).getByText('Terms of Use')).toBeOnTheScreen();
+        expect(within(rows[4]).getByText('Privacy Notice')).toBeOnTheScreen();
+      });
+
+      it('opens both Socure documents from the fifth row', () => {
+        const openUrlSpy = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue(undefined);
+        const { getByTestId } = openKalshiSheet();
+
+        fireEvent.press(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.SOCURE_TERMS_OF_USE_LINK),
+        );
+        fireEvent.press(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.SOCURE_PRIVACY_NOTICE_LINK),
+        );
+
+        expect(openUrlSpy.mock.calls).toEqual([
+          [SOCURE_TERMS_OF_USE_URL],
+          [SOCURE_PRIVACY_NOTICE_URL],
+        ]);
+      });
+
+      it('opens the idOS and Socure notices from the merged biometric consent', () => {
+        const openUrlSpy = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue(undefined);
+        const { getByTestId, getByText } = openKalshiSheet();
+
+        expect(
+          getByText(
+            /I explicitly consent to idOS Association and Socure, Kalshi's service provider/,
+          ),
+        ).toBeOnTheScreen();
+
+        fireEvent.press(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK),
+        );
+        fireEvent.press(
+          getByTestId(
+            VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_SOCURE_TERMS_LINK,
+          ),
+        );
+        fireEvent.press(
+          getByTestId(
+            VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_SOCURE_PRIVACY_LINK,
+          ),
+        );
+
+        expect(openUrlSpy.mock.calls).toEqual([
+          [IDOS_PRIVACY_NOTICE_URL],
+          [SOCURE_TERMS_OF_USE_URL],
+          [SOCURE_PRIVACY_NOTICE_URL],
+        ]);
+        expect(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+        ).toBeDisabled();
+      });
+
+      it('keeps Agree disabled until the biometric and Biometric Processing Agreement consents are ticked', () => {
+        const { getByTestId } = openKalshiSheet();
+        const agreeButton = () =>
+          getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON);
+
+        expect(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX)
+            .props.accessibilityState,
+        ).toEqual(expect.objectContaining({ checked: false }));
+        expect(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX).props
+            .accessibilityState,
+        ).toEqual(expect.objectContaining({ checked: false }));
+        expect(agreeButton()).toBeDisabled();
+
+        toggleBiometricConsent(getByTestId);
+
+        expect(agreeButton()).toBeDisabled();
+
+        fireEvent.press(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX),
+        );
+
+        expect(agreeButton()).toBeEnabled();
+
+        fireEvent.press(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX),
+        );
+
+        expect(agreeButton()).toBeDisabled();
+        fireEvent.press(agreeButton());
+        expect(mockOnSuccess).not.toHaveBeenCalled();
+      });
+
+      it('opens the Biometric Processing Agreement without ticking its checkbox', () => {
+        const openUrlSpy = jest
+          .spyOn(Linking, 'openURL')
+          .mockResolvedValue(undefined);
+        const { getByTestId } = openKalshiSheet();
+
+        fireEvent.press(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_LINK),
+        );
+
+        expect(openUrlSpy).toHaveBeenCalledWith(
+          SOCURE_BIOMETRIC_PROCESSING_AGREEMENT_URL,
+        );
+        expect(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX).props
+            .accessibilityState,
+        ).toEqual(expect.objectContaining({ checked: false }));
+      });
+
+      it('closes the sheet and advances when both Kalshi consents are ticked', () => {
+        const { getByTestId, queryByTestId } = openKalshiSheet();
+
+        toggleBiometricConsent(getByTestId);
+        fireEvent.press(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX),
+        );
+        fireEvent.press(
+          getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+        );
+
+        expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+        expect(
+          queryByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
+        ).not.toBeOnTheScreen();
+      });
     });
   });
 

@@ -13,4 +13,12 @@ export const VbaVerifyIdentitySelectorsIDs = {
   AGREE_BUTTON: 'vba-verify-identity-agree-button',
   BIOMETRIC_CONSENT_CHECKBOX: 'vba-verify-identity-biometric-consent-checkbox',
   BIOMETRIC_CONSENT_LINK: 'vba-verify-identity-biometric-consent-link',
+  BIOMETRIC_CONSENT_SOCURE_TERMS_LINK:
+    'vba-verify-identity-biometric-consent-socure-terms-link',
+  BIOMETRIC_CONSENT_SOCURE_PRIVACY_LINK:
+    'vba-verify-identity-biometric-consent-socure-privacy-link',
+  SOCURE_TERMS_OF_USE_LINK: 'vba-verify-identity-socure-terms-of-use-link',
+  SOCURE_PRIVACY_NOTICE_LINK: 'vba-verify-identity-socure-privacy-notice-link',
+  BPA_CONSENT_CHECKBOX: 'vba-verify-identity-bpa-consent-checkbox',
+  BPA_CONSENT_LINK: 'vba-verify-identity-bpa-consent-link',
 };

@@ -18,6 +18,30 @@ export const IDOS_PRIVACY_NOTICE_URL =
   'https://www.idos.network/legal/privacy-notice';
 
 /**
+ * Consent copy on "Data and privacy". `vba` is today's Virtual Bank Account
+ * sheet. `kalshi` adds Socure's documents, a merged idOS and Socure biometric
+ * consent, and a separate Biometric Processing Agreement consent.
+ *
+ * This is not the KYC session vendor (`VBA_KYC_VENDOR`). There is no Kalshi
+ * KYC route yet; callers pass `kalshi` when that entry point exists.
+ */
+export const KYC_CONSENT_VENDOR = {
+  VBA: 'vba',
+  KALSHI: 'kalshi',
+} as const;
+
+export type KycConsentVendor =
+  (typeof KYC_CONSENT_VENDOR)[keyof typeof KYC_CONSENT_VENDOR];
+
+export const SOCURE_TERMS_OF_USE_URL =
+  'https://www.socure.com/docv-terms-of-use';
+
+export const SOCURE_PRIVACY_NOTICE_URL = 'https://www.socure.com/docv-privacy';
+
+/** TODO(legal): BPA URL */
+export const SOCURE_BIOMETRIC_PROCESSING_AGREEMENT_URL = 'TODO(legal): BPA URL';
+
+/**
  * Documents shown on the "Data and privacy" sheet, in display order and with
  * the labels legal asked for. Catalog documents not listed here are hidden from
  * the sheet (consent recording in `useLaunchSumSub` is unaffected).
