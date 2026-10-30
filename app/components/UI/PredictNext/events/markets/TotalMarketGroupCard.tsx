@@ -10,8 +10,11 @@ import {
 
 export type TotalMarketGroupCardProps = Omit<
   MarketGroupCardProps,
-  'title' | 'describeOutcome'
+  'title' | 'describeOutcome' | 'orderSides'
 >;
+
+const OVER_FIRST = ['yes', 'no'] as const;
+const orderSides = () => OVER_FIRST;
 
 /** The Outcome's initial as a line prefix: `O` for Over, `U` for Under. */
 const linePrefix = (outcome: PredictOutcome): string =>
@@ -42,6 +45,7 @@ export const TotalMarketGroupCard = React.memo(
         {...props}
         title={strings('predict.market_groups.total_points')}
         describeOutcome={describeOutcome}
+        orderSides={orderSides}
       />
     );
   },

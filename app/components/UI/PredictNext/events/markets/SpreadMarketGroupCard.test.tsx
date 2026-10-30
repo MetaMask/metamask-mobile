@@ -75,7 +75,32 @@ const row = (market: PredictMarket, side: 'yes' | 'no') =>
 const line = (market: PredictMarket, side: 'yes' | 'no') =>
   screen.getByTestId(TestIds.quoteBar(GROUP, market.id, side));
 
+/** The yes/no sides in rendered row order. */
+const renderedSides = (market: PredictMarket) => {
+  const ids = (['yes', 'no'] as const).map((side) =>
+    TestIds.row(GROUP, market.id, side),
+  );
+  return screen
+    .getAllByTestId(new RegExp(`^(${ids.join('|')})$`))
+    .map((rendered) => (rendered.props.testID === ids[0] ? 'yes' : 'no'));
+};
+
 describe('SpreadMarketGroupCard', () => {
+  it('lists the away Team first when the line backs the home Team', () => {
+    const market = createSpread('GB7', -7.5, 'home');
+    renderCard(market, game);
+
+    // Carolina (away) is the no side of a Green Bay line.
+    expect(renderedSides(market)).toEqual(['no', 'yes']);
+  });
+
+  it('keeps the yes row first when the line backs the away Team', () => {
+    const market = createSpread('CAR3', -3.5, 'away');
+    renderCard(market, game);
+
+    expect(renderedSides(market)).toEqual(['yes', 'no']);
+  });
+
   it('shows each row handicap without a Team prefix', () => {
     const market = createSpread('GB7', -7.5, 'home');
     renderCard(market, game);
