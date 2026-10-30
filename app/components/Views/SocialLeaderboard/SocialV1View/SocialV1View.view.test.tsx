@@ -74,6 +74,12 @@ const openPerpFeedItem = mockPerpFeedItem({
   isOpen: true,
   timestamp: OPEN_PERP_TIMESTAMP,
   lastTradeAt: OPEN_PERP_TIMESTAMP,
+  authorComment: {
+    uid: `${OPEN_PERP_POSITION_ID}-comment`,
+    text: 'Riding the trend',
+    timestamp: OPEN_PERP_TIMESTAMP,
+    engagement: { reactions: [], userReaction: null },
+  },
   currentValueUSD: 60000,
   realizedPnl: 0,
   trades: [
