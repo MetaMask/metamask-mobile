@@ -10087,11 +10087,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.53.0":
-  version: 0.53.0
-  resolution: "@metamask/design-system-react-native@npm:0.53.0"
+"@metamask/design-system-react-native@npm:^0.54.0":
+  version: 0.54.0
+  resolution: "@metamask/design-system-react-native@npm:0.54.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.42.0"
+    "@metamask/design-system-shared": "npm:^0.43.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.13.0
@@ -10105,18 +10105,18 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/2b1f009c857676a5d18b70f863d65dcf42202495aa2eda7d1598ea6b8fdd2abb94ebd82075e55b9c05e7090b2a0860d1b4045f40776acd9cb354c575ba2c545f
+  checksum: 10/011b78b258dfe340c622750a0a4d6d02f6cc54a0638beee36cf48ba4a4488959c6069921b202335641c69e05c24a1c1559f78f550d84b5540c955679b03087f5
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.42.0":
-  version: 0.42.0
-  resolution: "@metamask/design-system-shared@npm:0.42.0"
+"@metamask/design-system-shared@npm:^0.43.0":
+  version: 0.43.0
+  resolution: "@metamask/design-system-shared@npm:0.43.0"
   dependencies:
     "@metamask/utils": "npm:^11.12.1"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/2a9cf710385f26c8795d48a57bbac26c07ef19184c33d42457c8b56c2396a6057c9396e9f59a2b72470329fd8c55b0e67cc7a4438bd7f61a41d925eb5a5c1c10
+  checksum: 10/071c6f24372b8330c59f7221bbd05d82835093fb42d895f68af92762794751fcdb5627de62a10a2268a58d7f040340f92d3ec3d40394e5056cf2b4f34f042b30
   languageName: node
   linkType: hard
 
@@ -12411,9 +12411,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.13.0":
-  version: 3.13.0
-  resolution: "@metamask/social-controllers@npm:3.13.0"
+"@metamask/social-controllers@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "@metamask/social-controllers@npm:3.14.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
@@ -12423,7 +12423,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.1"
-  checksum: 10/71cd4928bcbe0b280109b1c81135108e6c606a72268f69f063ed911ec65ee95c79c4b07dec92b70f6176fbd4e0f7778d5e7d8f8c9f6c730a7e8dbe844b41f5a4
+  checksum: 10/8d0bd64171e1a0d067226a19daf25636760e7677913542cdfcbd8a71d852421022b725c1b2749004a4b37af386cc5d7736a3cf1431081a326f268c6533b80f0c
   languageName: node
   linkType: hard
 
@@ -38435,7 +38435,7 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
-    "@metamask/design-system-react-native": "npm:^0.53.0"
+    "@metamask/design-system-react-native": "npm:^0.54.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.13.0"
     "@metamask/design-tokens": "npm:^12.0.0"
     "@metamask/device-mcp": "npm:^0.4.2"
@@ -38537,7 +38537,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
-    "@metamask/social-controllers": "npm:^3.13.0"
+    "@metamask/social-controllers": "npm:^3.14.0"
     "@metamask/solana-wallet-snap": "npm:^7.2.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"

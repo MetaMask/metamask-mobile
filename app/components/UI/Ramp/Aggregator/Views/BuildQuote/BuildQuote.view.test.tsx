@@ -30,12 +30,26 @@ import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { RAMPS_OFF_RAMP_NON_EVM_FLAG_KEY } from '../../../../../../selectors/featureFlagController/offRampNonEvm';
 import type { RootState } from '../../../../../../reducers';
 import type { DeepPartial } from '../../../../../../util/test/renderWithProvider';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
 
 const SOLANA_ONLY_ACCOUNT_NAME = 'Solana Account';
 const SOLANA_ONLY_ACCOUNT_ID = 'solana-only-account';
 const SOLANA_ONLY_GROUP_ID = 'entropy:wallet1/99';
 const MIXED_ACCOUNT_GROUP_NAME = 'Ethereum and Solana Account';
 const MIXED_ACCOUNT_GROUP_ID = 'entropy:wallet1/98';
+const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
+  '0': KeypadTestIds.KEY_0,
+  '1': KeypadTestIds.KEY_1,
+  '2': KeypadTestIds.KEY_2,
+  '3': KeypadTestIds.KEY_3,
+  '4': KeypadTestIds.KEY_4,
+  '5': KeypadTestIds.KEY_5,
+  '6': KeypadTestIds.KEY_6,
+  '7': KeypadTestIds.KEY_7,
+  '8': KeypadTestIds.KEY_8,
+  '9': KeypadTestIds.KEY_9,
+  '.': KeypadTestIds.KEY_DOT,
+};
 
 const solanaOnlyAccountState: DeepPartial<RootState> = {
   engine: {
@@ -201,11 +215,13 @@ async function enterSellAmountViaKeypad(
   fireEvent.press(await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
 
   for (const digit of amount) {
-    fireEvent.press(await findByRole('button', { name: digit }));
+    fireEvent.press(await findByTestId(KEYPAD_TEST_IDS_BY_LABEL[digit]));
   }
 
   expect(
-    await findByRole('button', { name: `${amount} ${tokenSymbol}` }),
+    await findByRole('button', {
+      name: `${amount} ${tokenSymbol}`,
+    }),
   ).toBeOnTheScreen();
 }
 
@@ -233,12 +249,17 @@ describe('Aggregator BuildQuote', () => {
 
   describe('sell mode', () => {
     it('initializes sell amount from deeplink intent params', async () => {
-      const { findByText } = renderBuildQuoteView({
+      const { findByTestId, getByTestId } = renderBuildQuoteView({
         rampType: RampType.SELL,
         initialParams: { amount: '50', assetId: ETH_MAINNET_ASSET_ID },
       });
 
-      expect(await findByText('50 ETH')).toBeOnTheScreen();
+      await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      await waitFor(() => {
+        expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+          '50 ETH',
+        );
+      });
     });
 
     it('selects mUSD, shows France defaults, enforces sell limits, then accepts a valid amount', async () => {
@@ -271,7 +292,9 @@ describe('Aggregator BuildQuote', () => {
         'mUSD',
       );
 
-      expect(await findByText('0 mUSD')).toBeOnTheScreen();
+      expect(
+        await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('0 mUSD');
       expect(await findByText(RAMPS_FRANCE_REGION.emoji)).toBeOnTheScreen();
 
       const overMaxAmount = String(RAMPS_SDK_LIMITS.maxAmount + 1);
@@ -657,7 +680,9 @@ describe('Aggregator BuildQuote', () => {
       );
 
       // Amount should reset to 0
-      expect(await findByText('0 mUSD')).toBeOnTheScreen();
+      expect(
+        await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('0 mUSD');
     });
 
     it('changes payment method via "Send cash to" selector in sell mode', async () => {

@@ -94,6 +94,12 @@ describe('ManageProfileTradingActivityView', () => {
 
     renderWithProvider(<ManageProfileTradingActivityView />);
 
+    expect(
+      screen.getByTestId(
+        `${ManageProfileTradingActivitySelectorsIDs.BENEFITS}-positions-shown`,
+      ),
+    ).toBeOnTheScreen();
+
     await act(async () => {
       fireEvent(
         screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
@@ -108,5 +114,15 @@ describe('ManageProfileTradingActivityView', () => {
     expect(
       screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
     ).toHaveProp('value', false);
+    expect(
+      screen.getByTestId(
+        `${ManageProfileTradingActivitySelectorsIDs.BENEFITS}-positions-hidden`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        `${ManageProfileTradingActivitySelectorsIDs.BENEFITS}-private-shown`,
+      ),
+    ).toBeOnTheScreen();
   });
 });

@@ -122,7 +122,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      gap={2}
+      gap={3}
       twClassName={twClassName}
       testID={
         testIDs?.container ?? SocialTraderIdentityRowSelectorsIDs.CONTAINER
@@ -139,7 +139,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
       ) : (
         avatar
       )}
-      <Box twClassName="flex-1 min-w-0" gap={2}>
+      <Box twClassName="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}

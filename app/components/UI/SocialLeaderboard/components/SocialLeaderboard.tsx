@@ -128,7 +128,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const { track } = useSocialLeaderboardAnalytics();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+  });
   const networkTier = useNetworkTier();
   // Low-RAM devices skip the reveal and the reorder slide.
   const canAnimate = getHardwareTier() !== 'LOW';

@@ -268,7 +268,7 @@ const AddDeviceToWallet = () => {
         ) : null}
 
         <FooterGlass
-          twClassName="mt-auto py-4"
+          twClassName="mt-auto py-2"
           primaryButtonProps={{
             children: strings('app_settings.add_device.scan_qr_code_button'),
             onPress: openQRScanner,

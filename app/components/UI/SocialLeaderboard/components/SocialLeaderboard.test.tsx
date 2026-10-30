@@ -26,6 +26,8 @@ let mockNetworkTier: string | null = 'WIFI';
 let mockIsUnlocked = true;
 let mockProfile: Record<string, unknown> | null = null;
 
+jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
+
 jest.mock('../../../Views/Homepage/Sections/TopTraders/hooks', () => ({
   useTopTraders: (options: unknown) => mockUseTopTraders(options),
 }));
