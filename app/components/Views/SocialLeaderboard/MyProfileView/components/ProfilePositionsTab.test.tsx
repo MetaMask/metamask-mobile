@@ -3,9 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import type { Position } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
-import ProfilePositionsTab, {
-  uncountedHeaderTwClass,
-} from './ProfilePositionsTab';
+import ProfilePositionsTab from './ProfilePositionsTab';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -397,12 +395,6 @@ describe('ProfilePositionsTab', () => {
         name: 'Not counted in P&L, 1 position. Learn why',
       }),
     ).toBeOnTheScreen();
-  });
-
-  it('adds a pressed background class on the uncounted header', () => {
-    expect(uncountedHeaderTwClass(false)).not.toContain('bg-pressed');
-
-    expect(uncountedHeaderTwClass(true)).toContain('bg-pressed');
   });
 
   it('opens and closes the uncounted-positions sheet from the section header', () => {

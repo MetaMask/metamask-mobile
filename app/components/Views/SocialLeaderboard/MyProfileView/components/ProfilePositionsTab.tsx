@@ -16,7 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import React, { useCallback, useMemo, useState } from 'react';
-import { Pressable } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DottedUnderline from '../../../../UI/DottedUnderline';
 import { useTheme } from '../../../../../util/theme';
@@ -36,10 +36,6 @@ import {
 import UncountedPositionsSheet from './UncountedPositionsSheet';
 
 const POSITION_SKELETON_KEYS = ['s1', 's2', 's3', 's4'] as const;
-
-/** Pressed fill is the tap cue; the dotted underline stays the label affordance. */
-export const uncountedHeaderTwClass = (pressed: boolean): string =>
-  `min-h-[46px] justify-center px-4 pt-4 pb-2${pressed ? ' bg-pressed' : ''}`;
 
 const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
@@ -225,25 +221,28 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           ) : null}
           {uncounted.length > 0 ? (
             <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
-              <Pressable
+              <TouchableOpacity
                 accessibilityRole="button"
                 accessibilityLabel={uncountedAccessibilityLabel}
                 onPress={handleOpenUncountedSheet}
+                // pt-4 + pb-2 plus Body Sm's 22pt line is the 46pt header.
+                style={tw.style('px-4 pt-4 pb-2')}
                 testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER}
-                style={({ pressed }) => tw.style(uncountedHeaderTwClass(pressed))}
               >
                 <DottedUnderline color={colors.text.default}>
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextDefault}
+                    numberOfLines={1}
+                    twClassName="-mt-0.5"
                   >
                     {strings(
                       'social_leaderboard.my_profile.not_counted_in_pnl',
                     )}
                   </Text>
                 </DottedUnderline>
-              </Pressable>
+              </TouchableOpacity>
               {renderRows(uncounted)}
             </Box>
           ) : null}
