@@ -24,6 +24,7 @@ import Engine from '../../../../core/Engine';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import {
   renderSocialProfileOnboarding,
+  renderSocialProfileOnboardingWithBackStack,
   SECOND_ONBOARDING_EVM_ACCOUNT,
 } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import {
@@ -457,6 +458,52 @@ describe('SocialProfileOnboardingView', () => {
       expect(
         screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
       ).toBeOnTheScreen();
+    });
+
+    it('shows the terms sheet on mount for the terms-only route', async () => {
+      renderSocialProfileOnboardingWithBackStack({
+        initialParams: { termsOnly: true },
+      });
+
+      expect(
+        await screen.findByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('accepts terms and returns from the terms-only route', async () => {
+      renderSocialProfileOnboardingWithBackStack({
+        initialParams: { termsOnly: true },
+      });
+      await screen.findByTestId(SocialTermsSheetSelectorsIDs.SHEET);
+
+      agreeToTerms();
+
+      expect(
+        await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      ).toBeOnTheScreen();
+      expect(hasAcceptedSocialTerms()).toBe(true);
+      expect(
+        screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('closes the terms-only route without accepting terms', async () => {
+      renderSocialProfileOnboardingWithBackStack({
+        initialParams: { termsOnly: true },
+      });
+      await screen.findByTestId(SocialTermsSheetSelectorsIDs.SHEET);
+
+      fireEvent.press(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      ).toBeOnTheScreen();
+      expect(hasAcceptedSocialTerms()).toBe(false);
     });
   });
 
