@@ -1,3 +1,5 @@
+import { KLIPY_STATIC_GIF_EXAMPLE } from '#app/components/UI/SocialFeed/utils/klipyGifComment';
+import { getPositionCardMode } from '#app/components/UI/SocialFeed/utils/positionCardMode';
 import { mapPerpsOrderInFlightToFeedItem } from './mapPerpsOrderInFlightToFeedItem';
 import type { SocialPostPerpsPreview } from './SocialPostComposerView.types';
 
@@ -30,5 +32,26 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
     expect(item.showCopyTrade).toBe(false);
     expect(item.pnlLabel).toBe('');
     expect(item.holdTimeLabel).toBeUndefined();
+  });
+
+  it('carries the KLIPY GIF URL as commentGifUrl for a GIF-only perps post', () => {
+    const item = mapPerpsOrderInFlightToFeedItem(preview, '', {
+      commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
+    });
+
+    expect(item).toMatchObject({
+      comment: '',
+      commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
+    });
+    expect(getPositionCardMode(item)).toBe('open');
+  });
+
+  it('ignores a commentGifUrl that is not a KLIPY static GIF for a perps post', () => {
+    const item = mapPerpsOrderInFlightToFeedItem(preview, '', {
+      commentGifUrl: 'https://media.test/party.gif',
+    });
+
+    expect(item).not.toHaveProperty('commentGifUrl');
+    expect(getPositionCardMode(item)).toBe('openCompact');
   });
 });
