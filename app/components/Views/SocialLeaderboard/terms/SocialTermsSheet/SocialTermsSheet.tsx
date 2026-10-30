@@ -141,16 +141,12 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   );
 
   // Native WebView metrics can report a viewport-sized document before it
-  // loads, so only a real scroll counts here. Short documents are covered by
-  // the injected script, which reads the loaded document height.
+  // loads, or after a small scroll, so they must not hide the jump button.
+  // Only a real scroll counts toward the accept gate. The injected script,
+  // which reads the loaded document height, is what shows and hides the button.
   const handleWebViewScroll = useCallback(
     ({ nativeEvent }: NativeSyntheticEvent<ScrollMetrics>) => {
-      if (nativeEvent.contentOffset.y <= 0) {
-        return;
-      }
-      const atEnd = isAtEnd(nativeEvent);
-      setIsNearBottom(atEnd);
-      if (atEnd) {
+      if (nativeEvent.contentOffset.y > 0 && isAtEnd(nativeEvent)) {
         markReachedEnd();
       }
     },

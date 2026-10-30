@@ -160,6 +160,45 @@ describe('SocialTermsSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('does not hide the scroll-to-bottom button when a WebView native scroll reports the end', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html="<html><body>Terms</body></html>"
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+    const webView = getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW);
+
+    fireEvent.scroll(webView, {
+      nativeEvent: {
+        layoutMeasurement: { height: 400 },
+        contentOffset: { y: 8 },
+        contentSize: { height: 400 },
+      },
+    });
+
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
+    ).toBeOnTheScreen();
+
+    fireEvent(webView, 'message', {
+      nativeEvent: { data: 'social-terms-scroll-end' },
+    });
+
+    expect(
+      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent(webView, 'message', {
+      nativeEvent: { data: 'social-terms-scroll-not-end' },
+    });
+
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('marks the WebView terms as read from native scroll events', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <SocialTermsSheet
