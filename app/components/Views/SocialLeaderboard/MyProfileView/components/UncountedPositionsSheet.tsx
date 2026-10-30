@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import {
   BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   Box,
-  Button,
-  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -62,15 +62,14 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
       onClose={onClose}
       testID={MyProfileViewSelectorsIDs.UNCOUNTED_SHEET}
     >
-      <Box twClassName="px-4 pt-2 pb-4">
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Medium}
-          accessibilityRole="header"
-        >
-          {strings('social_leaderboard.my_profile.not_counted_sheet_title')}
-        </Text>
-      </Box>
+      <BottomSheetHeader
+        onClose={handleDismiss}
+        closeButtonProps={{
+          testID: MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_CLOSE,
+        }}
+      >
+        {strings('social_leaderboard.my_profile.not_counted_sheet_title')}
+      </BottomSheetHeader>
       <Box twClassName="px-4 gap-4 pb-6">
         <Explanation
           label={strings(
@@ -89,16 +88,15 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
           )}
         />
       </Box>
-      <Box twClassName="px-4 pb-4">
-        <Button
-          variant={ButtonVariant.Primary}
-          isFullWidth
-          onPress={handleDismiss}
-          testID={MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_DISMISS}
-        >
-          {strings('social_leaderboard.my_profile.not_counted_sheet_dismiss')}
-        </Button>
-      </Box>
+      <BottomSheetFooter
+        primaryButtonProps={{
+          children: strings(
+            'social_leaderboard.my_profile.not_counted_sheet_dismiss',
+          ),
+          onPress: handleDismiss,
+          testID: MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_DISMISS,
+        }}
+      />
     </BottomSheet>
   );
 };

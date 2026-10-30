@@ -51,6 +51,7 @@ export const MyProfileViewSelectorsIDs = {
   UNCOUNTED_SECTION_HEADER: 'my-profile-view-uncounted-section-header',
   UNCOUNTED_SHEET: 'my-profile-view-uncounted-sheet',
   UNCOUNTED_SHEET_DISMISS: 'my-profile-view-uncounted-sheet-dismiss',
+  UNCOUNTED_SHEET_CLOSE: 'my-profile-view-uncounted-sheet-close',
   POSITIONS_EMPTY: 'my-profile-view-positions-empty',
   POSITIONS_ERROR: 'my-profile-view-positions-error',
   POSITIONS_RETRY_BUTTON: 'my-profile-view-positions-retry-button',

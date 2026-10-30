@@ -13,6 +13,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
@@ -35,6 +36,10 @@ import {
 import UncountedPositionsSheet from './UncountedPositionsSheet';
 
 const POSITION_SKELETON_KEYS = ['s1', 's2', 's3', 's4'] as const;
+
+/** Pressed fill is the tap cue; the dotted underline stays the label affordance. */
+export const uncountedHeaderTwClass = (pressed: boolean): string =>
+  `min-h-[46px] justify-center px-4 pt-4 pb-2${pressed ? ' bg-pressed' : ''}`;
 
 const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
@@ -63,6 +68,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   showFlaggedState,
 }) => {
   const { colors } = useTheme();
+  const tw = useTailwind();
   const [isUncountedSheetOpen, setIsUncountedSheetOpen] = useState(false);
   const { tokens, perps, uncounted } = useMemo(() => {
     // Only other traders grey flagged rows (`showFlaggedState`). The same
@@ -224,20 +230,19 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
                 accessibilityLabel={uncountedAccessibilityLabel}
                 onPress={handleOpenUncountedSheet}
                 testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER}
+                style={({ pressed }) => tw.style(uncountedHeaderTwClass(pressed))}
               >
-                <Box twClassName="min-h-[46px] justify-center px-4 pt-4 pb-2">
-                  <DottedUnderline color={colors.text.default}>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextDefault}
-                    >
-                      {strings(
-                        'social_leaderboard.my_profile.not_counted_in_pnl',
-                      )}
-                    </Text>
-                  </DottedUnderline>
-                </Box>
+                <DottedUnderline color={colors.text.default}>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                  >
+                    {strings(
+                      'social_leaderboard.my_profile.not_counted_in_pnl',
+                    )}
+                  </Text>
+                </DottedUnderline>
               </Pressable>
               {renderRows(uncounted)}
             </Box>

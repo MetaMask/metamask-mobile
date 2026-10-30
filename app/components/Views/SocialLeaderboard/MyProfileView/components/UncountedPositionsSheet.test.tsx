@@ -65,4 +65,14 @@ describe('UncountedPositionsSheet', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('closes when the sheet header close control is pressed', () => {
+    renderWithProvider(<UncountedPositionsSheet onClose={onClose} />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_CLOSE),
+    );
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
