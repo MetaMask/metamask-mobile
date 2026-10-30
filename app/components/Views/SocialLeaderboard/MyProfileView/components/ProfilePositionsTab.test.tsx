@@ -1,9 +1,37 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import type { Position } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfilePositionsTab from './ProfilePositionsTab';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: () => undefined,
+        onCloseBottomSheet: () => props.onClose?.(),
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID },
+        props.children,
+      );
+    },
+  );
+  return { ...actual, BottomSheet: MockBottomSheet };
+});
 
 jest.mock('../../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
@@ -17,12 +45,15 @@ jest.mock('../../TraderProfileView/components/PositionRow', () => {
     default: ({
       position,
       onPress,
+      showFlaggedState,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
+      showFlaggedState?: boolean;
     }) => (
       <Pressable
         testID={`position-row-${position.tokenSymbol}`}
+        accessibilityState={{ disabled: Boolean(showFlaggedState) }}
         onPress={() => onPress?.(position)}
       >
         <Text>{position.tokenSymbol}</Text>
@@ -222,8 +253,21 @@ describe('ProfilePositionsTab', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
     expect(
-      screen.getByRole('header', { name: 'Not counted in P&L' }),
+      screen.getByRole('button', {
+        name: 'Not counted in P&L, 2 positions. Learn why',
+      }),
     ).toBeOnTheScreen();
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER)
+          .props.style,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        alignSelf: 'flex-start',
+        minHeight: 44,
+      }),
+    );
     expect(
       screen.getAllByTestId(/position-row-/).map((row) => row.props.testID),
     ).toEqual([
@@ -232,6 +276,12 @@ describe('ProfilePositionsTab', () => {
       'position-row-Nigel',
       'position-row-Moodeng',
     ]);
+    expect(
+      screen.getByTestId('position-row-Nigel').props.accessibilityState,
+    ).toEqual({ disabled: false });
+    expect(
+      screen.getByTestId('position-row-Moodeng').props.accessibilityState,
+    ).toEqual({ disabled: false });
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
     ).toBeNull();
@@ -344,6 +394,63 @@ describe('ProfilePositionsTab', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
+  });
+
+  it('uses a singular accessibility label for one uncounted position', () => {
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[{ ...openSpot, flags: ['insider'] }]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Not counted in P&L, 1 position. Learn why',
+      }),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens and closes the uncounted-positions sheet from the section header', () => {
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[{ ...openSpot, flags: ['insider'] }]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
+    );
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("Why some positions aren't counted"),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_DISMISS),
+    );
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeNull();
   });
 
   it('does not notify when a flagged row is pressed with showFlaggedState', () => {
