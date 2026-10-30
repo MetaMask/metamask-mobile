@@ -652,11 +652,16 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { getAllByText, findByTestId, findByText, queryByTestId } =
-      renderActivityScreenViewWithRoutes({
-        state: emptyActivityStateFunded().build(),
-        extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
-      });
+    const {
+      getAllByText,
+      findByTestId,
+      findByText,
+      queryByTestId,
+      queryByText,
+    } = renderActivityScreenViewWithRoutes({
+      state: emptyActivityStateFunded().build(),
+      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+    });
 
     await waitFor(() => {
       expect(
@@ -665,9 +670,13 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
+    // The funded copy is the assertion subject. The list spinner is only gone
+    // once history has settled; waiting on the spinner alone flakes when that
+    // request never leaves `isInitialLoading`.
     await waitFor(
       () => {
         expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+        expect(queryByText(fundedDescription)).toBeOnTheScreen();
       },
       { timeout: 10000 },
     );
