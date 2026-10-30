@@ -355,6 +355,31 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
   });
 
   describe('order monitoring', () => {
+    it('detects an order that arrived before monitoring mounted using the supplied baseline', () => {
+      const onDataDetected = jest.fn();
+      mockUsePerpsLiveOrders.mockReturnValue({
+        orders: [mockBTCOrder],
+        isInitialLoading: false,
+      });
+
+      renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          monitorOrders: true,
+          monitorPositions: false,
+          initialOrderCount: 0,
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+
+      expect(onDataDetected).toHaveBeenCalledWith({
+        detectedData: 'orders',
+        asset: 'BTC',
+        reason: 'new_orders_detected',
+      });
+    });
+
     it('detects new orders for the monitored asset', () => {
       const onDataDetected = jest.fn();
 
@@ -455,6 +480,31 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
   });
 
   describe('position monitoring', () => {
+    it('detects a position that arrived before monitoring mounted using the supplied baseline', () => {
+      const onDataDetected = jest.fn();
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockBTCPosition],
+        isInitialLoading: false,
+      });
+
+      renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          monitorOrders: false,
+          monitorPositions: true,
+          initialPosition: null,
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+
+      expect(onDataDetected).toHaveBeenCalledWith({
+        detectedData: 'positions',
+        asset: 'BTC',
+        reason: 'position_changed',
+      });
+    });
+
     it('detects new position creation', () => {
       const onDataDetected = jest.fn();
 

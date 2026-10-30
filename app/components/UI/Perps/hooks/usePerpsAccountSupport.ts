@@ -53,6 +53,7 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
   const contextKey = `${selectedAddress ?? ''}:${provider ?? ''}:${network}`;
   const contextRef = useRef({ selectedAddress, provider, network });
   contextRef.current = { selectedAddress, provider, network };
+  const isMountedRef = useRef(true);
 
   const [isAccountUnsupportedModalVisible, setIsModalVisible] = useState(false);
 
@@ -78,6 +79,13 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
     readAccountSupport().catch(() => undefined);
   }, [contextKey, readAccountSupport]);
 
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const checkAccountSupport = useCallback(
     async (
       providerId?: PerpsProviderType,
@@ -88,6 +96,9 @@ export const usePerpsAccountSupport = (): UsePerpsAccountSupportReturn => {
         requestedRoute ?? ''
       }:${requested.network}`;
       const support = await readAccountSupport(providerId);
+      if (!isMountedRef.current) {
+        return 'stale';
+      }
       const current = contextRef.current;
       const currentRoute = providerId ?? current.provider;
       const currentContext = `${current.selectedAddress ?? ''}:${
