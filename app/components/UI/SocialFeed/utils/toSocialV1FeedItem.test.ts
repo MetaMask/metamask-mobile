@@ -252,6 +252,57 @@ describe('toSocialV1FeedItem', () => {
       expect(result.exitPriceLabel).toBe('$17,600');
     });
 
+    it('takes the exit price from the latest exit fill, not the last one listed', () => {
+      const openedAt = 1_700_000_000;
+      const row = buildRow(
+        mockPerpFeedItem({
+          isOpen: false,
+          timestamp: openedAt + 2 * HOUR_IN_SECONDS,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50_000,
+              timestamp: openedAt,
+              transactionHash: '0xa',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+            {
+              direction: 'sell',
+              intent: 'exit',
+              action: 'closed',
+              tokenAmount: 5,
+              usdCost: 88_000,
+              timestamp: openedAt + 2 * HOUR_IN_SECONDS,
+              transactionHash: '0xc',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+            {
+              direction: 'sell',
+              intent: 'exit',
+              action: 'reduced',
+              tokenAmount: 5,
+              usdCost: 30_000,
+              timestamp: openedAt + HOUR_IN_SECONDS,
+              transactionHash: '0xb',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('perpsClosed');
+      if (result.variant !== 'perpsClosed') return;
+      expect(result.exitPriceLabel).toBe('$17,600');
+    });
+
     it('derives an unmarked hold time from the first and last fills', () => {
       const openedAt = 1_700_000_000;
       const row = buildRow(

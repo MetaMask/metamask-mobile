@@ -82,10 +82,12 @@ export const deriveExitPrice = (core: Position): number | null => {
     return null;
   }
 
-  const lastExit = exitFills.reduce((latest, trade) =>
-    tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
-      ? trade
-      : latest,
+  const lastExit = exitFills.reduce(
+    (latest, trade) =>
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
+    exitFills[0],
   );
 
   return toUnitPrice(lastExit);
@@ -205,7 +207,7 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
   // No lifecycle action on older payloads: fall back to the latest fill's own
   // direction rather than defaulting to 'buy' and mislabelling a sale.
   const trades = core.trades ?? [];
-  const lastTrade = trades[trades.length - 1];
+  const lastTrade = trades.at(-1);
   return lastTrade?.direction === 'sell' ? 'sell' : 'buy';
 };
 
