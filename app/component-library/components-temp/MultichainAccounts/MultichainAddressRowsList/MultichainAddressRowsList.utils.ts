@@ -1,10 +1,15 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
-import { CaipChainId } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import {
+  CaipChainId,
+  isCaipChainId,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
-import { getHexEvmChainId } from '../../../../util/networks';
 import { toFormattedAddress } from '../../../../util/address';
 
 export interface NetworkAddressItem {
@@ -15,10 +20,29 @@ export interface NetworkAddressItem {
 
 /**
  * Hex EVM chain id for comparisons (CHAIN_IDS, PopularList, testnets), or the
- * original CAIP id for non-EVM. Uses shared {@link getHexEvmChainId}.
+ * original CAIP id for non-EVM / unrecognized inputs.
+ *
+ * Kept local so incomplete `util/networks` Jest mocks (common for
+ * `getNetworkImageSource`) do not break network sorting.
+ *
+ * @param chainId - Chain ID (hex or CAIP format)
+ * @returns Hex EVM chain id, or the original id when not EVM
  */
-const evmHexOrOriginalChainId = (chainId: CaipChainId): string =>
-  getHexEvmChainId(chainId) ?? chainId;
+const evmHexOrOriginalChainId = (chainId: CaipChainId): string => {
+  if (isCaipChainId(chainId)) {
+    const { namespace, reference } = parseCaipChainId(chainId);
+    if (namespace === KnownCaipNamespace.Eip155) {
+      return toHex(reference);
+    }
+    return chainId;
+  }
+
+  if (typeof chainId === 'string' && chainId.startsWith('0x')) {
+    return chainId;
+  }
+
+  return chainId;
+};
 
 /**
  * Gets priority score for sorting networks (lower = higher priority)
@@ -64,13 +88,6 @@ export const getNetworkPriority = (chainId: CaipChainId): number => {
 };
 
 /**
- * Sorts network address items according to priority:
- * 1. Ethereum, 2. Bitcoin, 3. Solana, 4. Tron, 5. Stellar, 6. Linea, 7. Featured networks, 8. Other custom networks, 9. Test networks last
- *
- * @param items - Array of NetworkAddressItem objects to sort
- * @returns Sorted array of NetworkAddressItem objects
- */
-/**
  * Compares two networks by wallet display priority, then by name.
  * Test networks sort after mainnets / popular / custom networks.
  *
@@ -87,6 +104,13 @@ export const compareNetworksByPriority = (
   return priorityDiff === 0 ? a.name.localeCompare(b.name) : priorityDiff;
 };
 
+/**
+ * Sorts network address items according to priority:
+ * 1. Ethereum, 2. Bitcoin, 3. Solana, 4. Tron, 5. Stellar, 6. Linea, 7. Featured networks, 8. Other custom networks, 9. Test networks last
+ *
+ * @param items - Array of NetworkAddressItem objects to sort
+ * @returns Sorted array of NetworkAddressItem objects
+ */
 export const sortNetworkAddressItems = (
   items: NetworkAddressItem[],
 ): NetworkAddressItem[] =>
