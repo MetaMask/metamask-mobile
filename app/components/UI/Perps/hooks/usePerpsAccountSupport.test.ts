@@ -171,6 +171,34 @@ describe('usePerpsAccountSupport', () => {
     expect(support).toBe('supported');
   });
 
+  it('returns stale when the caller unmounts during a support check', async () => {
+    const hook = renderHook(() => usePerpsAccountSupport());
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
+    let resolveSupport: ((support: PerpsAccountSupport) => void) | undefined;
+    mockGetAccountSupport.mockReturnValueOnce(
+      new Promise<PerpsAccountSupport>((resolve) => {
+        resolveSupport = resolve;
+      }),
+    );
+    let support = 'supported';
+    let checkPromise: Promise<void> | undefined;
+
+    act(() => {
+      checkPromise = hook.result.current
+        .checkAccountSupport()
+        .then((result) => {
+          support = result;
+        });
+    });
+    hook.unmount();
+    await act(async () => {
+      resolveSupport?.({ isSupported: true });
+      await checkPromise;
+    });
+
+    expect(support).toBe('stale');
+  });
+
   it('fails open when the support query fails', async () => {
     mockGetAccountSupport.mockRejectedValue(new Error('Network unavailable'));
     const { result } = renderHook(() => usePerpsAccountSupport());
