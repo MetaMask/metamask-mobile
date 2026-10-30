@@ -1,5 +1,10 @@
 import React from 'react';
-import { Linking, Share, View as NativeView } from 'react-native';
+import {
+  AccessibilityInfo,
+  Linking,
+  Share,
+  View as NativeView,
+} from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
 import {
@@ -1593,13 +1598,19 @@ describe('MyProfileView', () => {
       .mockImplementation((_node, onSuccess) => {
         onSuccess(0, 640, 320, 80);
       });
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, 'setAccessibilityFocus')
+      .mockImplementation(() => undefined);
+    const findHeader = jest
+      .spyOn(jest.requireActual('react-native'), 'findNodeHandle')
+      .mockReturnValue(44);
 
     try {
       renderWithProvider(<MyProfileView />);
 
       expect(
         screen.getByRole('button', {
-          name: 'P&L, +$80, 2 positions not counted in P&L',
+          name: '2 positions not counted in P&L',
         }),
       ).toBeOnTheScreen();
 
@@ -1610,11 +1621,14 @@ describe('MyProfileView', () => {
 
       expect(measureLayout).toHaveBeenCalled();
       expect(mockScrollTo).toHaveBeenCalledWith({ y: 640, animated: true });
+      expect(setAccessibilityFocus).toHaveBeenCalledWith(44);
       expect(
         screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
       ).toBeOnTheScreen();
     } finally {
       measureLayout.mockRestore();
+      setAccessibilityFocus.mockRestore();
+      findHeader.mockRestore();
     }
   });
 

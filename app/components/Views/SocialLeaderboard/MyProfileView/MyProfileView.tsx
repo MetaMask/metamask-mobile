@@ -30,7 +30,9 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   ActivityIndicator,
+  findNodeHandle,
   RefreshControl,
   type LayoutChangeEvent,
   type NativeScrollEvent,
@@ -209,6 +211,7 @@ const MyProfileView: React.FC = () => {
   }, []);
   const scrollRef = useRef<Animated.ScrollView>(null);
   const uncountedSectionRef = useRef<View>(null);
+  const uncountedHeaderRef = useRef<View>(null);
   const pendingUncountedScrollRef = useRef(false);
   useFocusEffect(
     useCallback(() => {
@@ -265,6 +268,12 @@ const MyProfileView: React.FC = () => {
       scrollHost,
       (_x, y) => {
         scrollView.scrollTo({ y, animated: true });
+        // The P&L label and value are separate text nodes, so focus the
+        // section header instead of repeating that value.
+        const headerTag = findNodeHandle(uncountedHeaderRef.current);
+        if (headerTag != null) {
+          AccessibilityInfo.setAccessibilityFocus(headerTag);
+        }
       },
       () => undefined,
     );
@@ -825,6 +834,7 @@ const MyProfileView: React.FC = () => {
                     onRetry={handlePositionsRetry}
                     showFlaggedState={!isOwner}
                     uncountedSectionRef={uncountedSectionRef}
+                    uncountedHeaderRef={uncountedHeaderRef}
                     onUncountedSectionLayout={handleUncountedSectionLayout}
                   />
                 ) : showInitialPostSkeletons ? (

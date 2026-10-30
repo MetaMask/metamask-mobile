@@ -46,6 +46,12 @@ const TONE_CLASS: Record<PerformanceCell['tone'], string | undefined> = {
   error: 'text-error-default',
 };
 
+/**
+ * Body Sm is 22pt tall. 11pt of slop above and below makes a 44pt target
+ * without growing the cell.
+ */
+const UNCOUNTED_NOTE_HIT_SLOP = { top: 11, bottom: 11, left: 0, right: 0 };
+
 const chunkPairs = (cells: PerformanceCell[]): PerformanceCell[][] => {
   const rows: PerformanceCell[][] = [];
   for (let index = 0; index < cells.length; index += 2) {
@@ -125,12 +131,11 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
                   {cell.id === 'pnl' && uncountedNote ? (
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel={strings(
-                        uncountedCount === 1
-                          ? 'social_leaderboard.my_profile.not_counted_pnl_a11y_one'
-                          : 'social_leaderboard.my_profile.not_counted_pnl_a11y_other',
-                        { value: cell.value, count: uncountedCount },
+                      accessibilityLabel={uncountedNote}
+                      accessibilityHint={strings(
+                        'social_leaderboard.my_profile.not_counted_note_hint',
                       )}
+                      hitSlop={UNCOUNTED_NOTE_HIT_SLOP}
                       onPress={onUncountedPress}
                       testID={
                         MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED

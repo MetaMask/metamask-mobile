@@ -74,11 +74,19 @@ describe('MyProfilePerformanceStats', () => {
     expect(
       screen.getByText('2 positions not counted in P&L'),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByRole('button', {
-        name: 'P&L, +$1,200, 2 positions not counted in P&L',
-      }),
-    ).toBeOnTheScreen();
+    const note = screen.getByRole('button', {
+      name: '2 positions not counted in P&L',
+    });
+    expect(note).toBeOnTheScreen();
+    expect(note.props.accessibilityHint).toBe(
+      'Scrolls to positions not counted',
+    );
+    expect(note.props.hitSlop).toEqual({
+      top: 11,
+      bottom: 11,
+      left: 0,
+      right: 0,
+    });
 
     fireEvent.press(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
@@ -95,7 +103,7 @@ describe('MyProfilePerformanceStats', () => {
     expect(screen.getByText('1 position not counted in P&L')).toBeOnTheScreen();
     expect(
       screen.getByRole('button', {
-        name: 'P&L, +$1,200, 1 position not counted in P&L',
+        name: '1 position not counted in P&L',
       }),
     ).toBeOnTheScreen();
   });

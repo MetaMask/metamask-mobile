@@ -52,6 +52,8 @@ export interface ProfilePositionsTabProps {
   showFlaggedState?: boolean;
   /** Measured so the P&L note can scroll this section into view. */
   uncountedSectionRef?: React.Ref<View>;
+  /** Header moved to after the profile scrolls to this section. */
+  uncountedHeaderRef?: React.Ref<View>;
   /** Called whenever the pinned section lays out. */
   onUncountedSectionLayout?: () => void;
 }
@@ -67,6 +69,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   onRetry,
   showFlaggedState,
   uncountedSectionRef,
+  uncountedHeaderRef,
   onUncountedSectionLayout,
 }) => {
   const { colors } = useTheme();
@@ -235,6 +238,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
               testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}
             >
               <TouchableOpacity
+                ref={uncountedHeaderRef}
                 accessibilityRole="button"
                 accessibilityLabel={uncountedAccessibilityLabel}
                 onPress={handleOpenUncountedSheet}
