@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
@@ -211,6 +211,45 @@ describe('PositionRow', () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onPress).toHaveBeenCalledWith(basePosition);
+  });
+
+  it('shows the insider label and ignores onPress when showFlaggedState is set', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(
+      <PositionRow position={position} onPress={onPress} showFlaggedState />,
+    );
+
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toHaveTextContent('Insider allocation - excluded');
+    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('shows the generic excluded label for unrecognized flags when showFlaggedState is set', () => {
+    const position = { ...basePosition, flags: ['blocked'] };
+
+    renderWithProvider(<PositionRow position={position} showFlaggedState />);
+
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toHaveTextContent('Excluded from PnL');
+  });
+
+  it('keeps a flagged row pressable when showFlaggedState is omitted', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(<PositionRow position={position} onPress={onPress} />);
+
+    expect(screen.queryByTestId('position-row-flag-label-STARKBOT')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledWith(position);
   });
 
   it('renders the row without a token image when the chain is not recognized', () => {

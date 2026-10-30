@@ -1623,6 +1623,11 @@
       "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
     },
     "all_networks": "All networks",
+    "position_flags": {
+      "insider": "Insider allocation - excluded",
+      "developer": "Contract creator - excluded",
+      "excluded": "Excluded from PnL"
+    },
     "trader_profile": {
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
