@@ -10,7 +10,8 @@ import {
   selectNetworkConfigurationsByCaipChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { getNetworkImageSource } from '../../../../util/networks';
 
 const mockNavigate = jest.fn();
@@ -33,7 +34,7 @@ jest.mock('../../../../util/networks', () => ({
 }));
 
 const mockNetworkConfigurations = {
-  // Intentionally unordered: testnets before mainnets to assert sorting.
+  // Intentionally unordered across namespaces to assert request-scoped sorting.
   'eip155:11155111': {
     chainId: '0xaa36a7',
     name: 'Sepolia',
@@ -46,6 +47,13 @@ const mockNetworkConfigurations = {
     defaultRpcEndpointIndex: 0,
     caipChainId: 'eip155:11155111',
   },
+  [BtcScope.Mainnet]: {
+    chainId: BtcScope.Mainnet,
+    name: 'Bitcoin',
+    rpcEndpoints: [],
+    defaultRpcEndpointIndex: 0,
+    caipChainId: BtcScope.Mainnet,
+  },
   'eip155:137': {
     chainId: '0x89',
     name: 'Polygon',
@@ -57,6 +65,13 @@ const mockNetworkConfigurations = {
     ],
     defaultRpcEndpointIndex: 0,
     caipChainId: 'eip155:137',
+  },
+  [SolScope.Mainnet]: {
+    chainId: SolScope.Mainnet,
+    name: 'Solana',
+    rpcEndpoints: [],
+    defaultRpcEndpointIndex: 0,
+    caipChainId: SolScope.Mainnet,
   },
   'eip155:59141': {
     chainId: '0xe705',
@@ -91,7 +106,11 @@ describe('NetworkConnectMultiSelector', () => {
     onSubmit: jest.fn(),
     onBack: jest.fn(),
     isRenderedAsBottomSheet: true,
-    defaultSelectedChainIds: ['eip155:1' as CaipChainId],
+    defaultSelectedChainIds: [
+      'eip155:1' as CaipChainId,
+      SolScope.Mainnet as CaipChainId,
+    ],
+    requestedNamespaces: [KnownCaipNamespace.Eip155],
   };
 
   beforeEach(() => {
@@ -118,7 +137,7 @@ describe('NetworkConnectMultiSelector', () => {
     ).toBeOnTheScreen();
   });
 
-  it('orders mainnets before testnets using wallet network priority', () => {
+  it('orders in-scope eip155 mainnets before other namespaces and testnets', () => {
     renderWithProvider(<NetworkConnectMultiSelector {...defaultProps} />);
 
     const networkNames = screen
@@ -130,6 +149,8 @@ describe('NetworkConnectMultiSelector', () => {
     expect(networkNames).toEqual([
       'Ethereum Mainnet',
       'Polygon',
+      'Solana',
+      'Bitcoin',
       'Linea Sepolia',
       'Sepolia',
     ]);
@@ -188,6 +209,8 @@ describe('NetworkConnectMultiSelector', () => {
     expect(defaultProps.onSubmit).toHaveBeenCalledWith([
       'eip155:1',
       'eip155:137',
+      BtcScope.Mainnet,
+      SolScope.Mainnet,
       'eip155:59141',
       'eip155:11155111',
     ]);
@@ -210,7 +233,10 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:137']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith([
+      SolScope.Mainnet,
+      'eip155:137',
+    ]);
   });
 
   it('shows update button when some networks are selected', () => {

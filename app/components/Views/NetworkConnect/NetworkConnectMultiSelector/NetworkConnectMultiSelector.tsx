@@ -27,10 +27,10 @@ import {
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { compareNetworksByPriority } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnectMultiSelector.testIds';
+import { sortNetworksForDappPermissionSelector } from './sortNetworksForDappPermissionSelector';
 
 import { CaipChainId } from '@metamask/utils';
 
@@ -41,6 +41,8 @@ const NetworkConnectMultiSelector = ({
   onBack,
   isRenderedAsBottomSheet = true,
   defaultSelectedChainIds,
+  requestedCaipChainIds,
+  requestedNamespaces,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
@@ -74,14 +76,18 @@ const NetworkConnectMultiSelector = ({
       }),
     );
 
-    // Match wallet network priority: mainnets / popular first, testnets last.
-    return networkItems.sort((a, b) =>
-      compareNetworksByPriority(
-        { chainId: a.caipChainId, name: a.name },
-        { chainId: b.caipChainId, name: b.name },
-      ),
-    );
-  }, [networkConfigurations]);
+    // In-scope (request / selected namespaces) → other mainnets → testnets.
+    return sortNetworksForDappPermissionSelector(networkItems, {
+      preferredChainIds: defaultSelectedChainIds,
+      requestedCaipChainIds,
+      requestedNamespaces,
+    });
+  }, [
+    networkConfigurations,
+    defaultSelectedChainIds,
+    requestedCaipChainIds,
+    requestedNamespaces,
+  ]);
 
   const onSelectNetwork = useCallback(
     (chainId: CaipChainId) => {

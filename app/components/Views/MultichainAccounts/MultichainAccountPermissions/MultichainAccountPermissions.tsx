@@ -452,6 +452,7 @@ export const MultichainAccountPermissions = (
           onBack={() =>
             setScreen(MultichainAccountPermissionsScreens.Connected)
           }
+          // Option A: namespaces of selected/permitted chains define in-scope peers.
           defaultSelectedChainIds={selectedChainIds}
         />
       </View>
