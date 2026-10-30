@@ -321,7 +321,8 @@ export const usePerpsHomeActions = (
     });
 
     try {
-      if ((await checkAccountSupport()) !== 'supported') {
+      const support = await checkAccountSupport();
+      if (support !== 'supported' || !navigation.isFocused()) {
         return;
       }
 
