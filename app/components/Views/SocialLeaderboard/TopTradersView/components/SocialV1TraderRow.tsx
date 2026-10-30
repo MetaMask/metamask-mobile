@@ -128,7 +128,9 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
 
       <TraderAvatar
         imageUrl={trader.avatarUri}
-        address={trader.address}
+        // Profile id seeds the Maskicon. A trader with no wallet address
+        // would otherwise share one empty-address icon.
+        address={trader.id}
         size={AVATAR_SIZE}
         recyclingKey={trader.id}
       />

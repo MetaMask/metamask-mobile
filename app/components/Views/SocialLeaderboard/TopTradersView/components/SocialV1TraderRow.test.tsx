@@ -1,3 +1,4 @@
+import { AvatarAccount } from '@metamask/design-system-react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
@@ -29,6 +30,19 @@ const mockOnTraderPress = jest.fn();
 describe('SocialV1TraderRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('seeds the avatar with the profile id when the trader has no wallet address', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, address: '', avatarUri: undefined }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'trader-1',
+    );
   });
 
   it('renders rank medal, username, and PnL without follow chrome', () => {
