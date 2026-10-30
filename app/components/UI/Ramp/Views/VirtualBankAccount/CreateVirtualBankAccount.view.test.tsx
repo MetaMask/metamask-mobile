@@ -2,7 +2,10 @@ import '../../../../../../tests/component-view/mocks';
 import { StyleSheet } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
-import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  createComponentViewQueryClient,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   renderVbaVendorTerms,
@@ -14,6 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { VbaOnboardingRoutes } from './routes';
+import { prefetchVbaVendorDisclaimers } from './vbaVendorDisclaimersQuery';
 
 const mockGetPaymentMethodsForContext = jest.mocked(
   Engine.context.RampsController.getPaymentMethodsForContext,
@@ -167,6 +171,56 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
       ),
     ).toBeOnTheScreen();
     expect(queryByText(/timeframe by region/)).toBeNull();
+  });
+
+  it('opens with the terms and an active button when the previous screen loaded them', async () => {
+    const queryClient = createComponentViewQueryClient();
+    await prefetchVbaVendorDisclaimers(queryClient);
+
+    const { getByTestId, queryByTestId } = renderVbaVendorTerms({
+      queryClient,
+    });
+
+    // No waiting: the first render already has the links and an enabled CTA.
+    expect(
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ),
+    ).toBeEnabled();
+    expect(
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
+    ).not.toBeOnTheScreen();
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(1);
+    queryClient.clear();
+  });
+
+  it('keeps the button disabled until the terms load when opened directly', async () => {
+    const { getByTestId, findByTestId } = renderVbaVendorTerms();
+    const continueButton = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    expect(continueButton).toBeDisabled();
+    expect(
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(
+        `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+      ),
+    ).toBeOnTheScreen();
+    await waitFor(() => expect(continueButton).toBeEnabled());
   });
 
   it('renders the vendor policy link without an underline', async () => {

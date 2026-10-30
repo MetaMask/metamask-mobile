@@ -134,6 +134,13 @@ jest.mock('../vbaDevOverrides.env', () => ({
   readVbaKycStatusOverrideEnv: jest.fn(() => undefined),
 }));
 
+const mockPrefetchVbaVendorDisclaimers = jest.fn();
+
+jest.mock('../vbaVendorDisclaimersQuery', () => ({
+  prefetchVbaVendorDisclaimers: (...args: unknown[]) =>
+    mockPrefetchVbaVendorDisclaimers(...args),
+}));
+
 jest.mock('../vbaVendorTermsStorage', () => ({
   hasAcceptedVbaVendorTerms: (...args: unknown[]) =>
     mockHasAcceptedVbaVendorTerms(...args),
@@ -144,6 +151,7 @@ jest.mock('../vbaVendorTermsStorage', () => ({
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrefetchVbaVendorDisclaimers.mockResolvedValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
@@ -825,6 +833,7 @@ describe('resolveVbaOnboarding', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrefetchVbaVendorDisclaimers.mockResolvedValue(undefined);
     devGlobal.__DEV__ = true;
     jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
@@ -837,6 +846,72 @@ describe('resolveVbaOnboarding', () => {
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
     });
+  });
+
+  it('loads vendor disclaimers alongside hydrate', async () => {
+    const calls: string[] = [];
+    mockPrefetchVbaVendorDisclaimers.mockImplementation(async () => {
+      calls.push('prefetch');
+    });
+    mockHydrate.mockImplementation(async () => {
+      calls.push('hydrate');
+      return { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
+    });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockPrefetchVbaVendorDisclaimers).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual(['prefetch', 'hydrate']);
+  });
+
+  it('waits for vendor disclaimers before resolving to vendor terms', async () => {
+    let finishPrefetch: () => void = () => undefined;
+    mockPrefetchVbaVendorDisclaimers.mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishPrefetch = resolve;
+      }),
+    );
+    let settled = false;
+
+    const resolving = resolveVbaOnboarding('money-add-money-bank-account').then(
+      (resolved) => {
+        settled = true;
+        return resolved;
+      },
+    );
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(mockHydrate).toHaveBeenCalled();
+    expect(settled).toBe(false);
+
+    finishPrefetch();
+
+    await expect(resolving).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'vendorTerms',
+      }),
+    );
+  });
+
+  it('does not wait for vendor disclaimers when terms are already accepted', async () => {
+    mockPrefetchVbaVendorDisclaimers.mockReturnValue(
+      new Promise<void>(() => undefined),
+    );
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+
+    const resolved = await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(resolved).toEqual(
+      expect.objectContaining({ status: 'ready', destinationId: 'email' }),
+    );
+  });
+
+  it('does not load vendor disclaimers when no wallet address is selected', async () => {
+    mockGetState.mockReturnValue({ address: null });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockPrefetchVbaVendorDisclaimers).not.toHaveBeenCalled();
   });
 
   it('returns an error when no wallet address is selected', async () => {
@@ -950,6 +1025,7 @@ describe('resolveVbaOnboarding', () => {
 describe('navigateToVbaOnboardingDestination account create error', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrefetchVbaVendorDisclaimers.mockResolvedValue(undefined);
   });
 
   it('opens the bank-details error screen', () => {
@@ -1091,6 +1167,7 @@ describe('openVbaEntry', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrefetchVbaVendorDisclaimers.mockResolvedValue(undefined);
     devGlobal.__DEV__ = true;
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockHydrate.mockResolvedValue(EMPTY_VBA_ONBOARDING_SNAPSHOT);
