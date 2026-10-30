@@ -78,12 +78,6 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
       : (position.pnlValueUsd ?? displayPnlPercent ?? null);
   const isPnlZero = pnlSignSource === 0;
   const isPnlPositive = pnlSignSource != null && pnlSignSource > 0;
-  const pnlColorClass =
-    pnlSignSource == null || isPnlZero
-      ? undefined
-      : isPnlPositive
-        ? 'text-success-default'
-        : 'text-error-default';
 
   const testID = `position-row-${position.tokenSymbol}`;
   const flagLabelKey = showFlaggedState
@@ -91,6 +85,14 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
     : null;
   const isFlagged = flagLabelKey != null;
   const isPressable = Boolean(onPress) && !isFlagged;
+  // Flagged rows drop success/error so the signed % and closed PnL look
+  // disabled, not just faded green/red under opacity-50.
+  const pnlColorClass =
+    isFlagged || pnlSignSource == null || isPnlZero
+      ? undefined
+      : isPnlPositive
+        ? 'text-success-default'
+        : 'text-error-default';
 
   // Strip the HIP-3 provider prefix for display (`xyz:SPCX` → `SPCX`);
   // non-HIP-3 symbols pass through unchanged. testIDs keep the raw symbol.

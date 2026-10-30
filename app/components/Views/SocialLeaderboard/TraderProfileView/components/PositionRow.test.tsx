@@ -228,6 +228,20 @@ describe('PositionRow', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
+  it('uses muted color for flagged percent instead of PnL color', () => {
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(<PositionRow position={position} showFlaggedState />);
+
+    const percentColor = colorOf(screen.getByText('+182.00%'));
+    const labelColor = colorOf(
+      screen.getByText('Insider allocation - excluded'),
+    );
+
+    expect(percentColor).toBeDefined();
+    expect(percentColor).toBe(labelColor);
+  });
+
   it('shows the generic excluded label for unrecognized flags when showFlaggedState is set', () => {
     const position = { ...basePosition, flags: ['blocked'] };
 
