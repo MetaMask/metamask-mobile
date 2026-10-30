@@ -84,7 +84,7 @@ describe('useFeedPostReaction', () => {
     expect(result.current.userReaction).toBeNull();
   });
 
-  it('toggles locally without calling the API when the post has no Call id', async () => {
+  it('does not change reactions or call the API when the post has no Call id', async () => {
     const queryClient = new QueryClient();
     const { result } = renderHook(
       () => useFeedPostReaction(undefined, [], null),
@@ -97,10 +97,8 @@ describe('useFeedPostReaction', () => {
 
     expect(mockReactToComment).not.toHaveBeenCalled();
     expect(mockRemoveCommentReaction).not.toHaveBeenCalled();
-    expect(result.current.reactions).toStrictEqual([
-      { emotion: '🔥', count: 1 },
-    ]);
-    expect(result.current.userReaction).toBe('🔥');
+    expect(result.current.reactions).toStrictEqual([]);
+    expect(result.current.userReaction).toBeNull();
   });
 
   it('restores the previous reactions when the request fails', async () => {

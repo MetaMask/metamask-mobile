@@ -184,6 +184,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         : undefined;
 
   const chips = visibleReactions(reactions);
+  const canReact = Boolean(post.commentId);
+  const showFooter = canReact || post.copyCount !== undefined;
 
   const openPicker = useCallback(() => {
     if (
@@ -332,85 +334,95 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             </Box>
           ) : null}
 
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            gap={3}
-          >
+          {showFooter ? (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={2}
-              twClassName="flex-1 min-w-0 flex-wrap"
+              justifyContent={
+                canReact ? BoxJustifyContent.Between : BoxJustifyContent.End
+              }
+              gap={3}
             >
-              {chips.map((reaction) => (
-                <ReactionChip
-                  key={reaction.emotion}
-                  emotion={reaction.emotion}
-                  count={reaction.count}
-                  isSelected={reaction.emotion === userReaction}
-                  onPress={() => toggleEmotion(reaction.emotion)}
-                  burstNonce={
-                    burst?.emotion === reaction.emotion ? burst.key : undefined
-                  }
-                  onBurstAnchor={placeBurst}
-                  testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
-                />
-              ))}
-              <View ref={reactionAnchorRef} collapsable={false}>
-                <ButtonBase
-                  size={ButtonBaseSize.Sm}
-                  twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.feed.add_reaction',
-                  )}
-                  onPress={openPicker}
-                  testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+              {canReact ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={2}
+                  twClassName="flex-1 min-w-0 flex-wrap"
                 >
-                  <EmojiAddIcon
-                    width={16}
-                    height={16}
-                    color={colors.icon.alternative}
-                    name="emoji-add"
-                  />
-                </ButtonBase>
-              </View>
-            </Box>
+                  {chips.map((reaction) => (
+                    <ReactionChip
+                      key={reaction.emotion}
+                      emotion={reaction.emotion}
+                      count={reaction.count}
+                      isSelected={reaction.emotion === userReaction}
+                      onPress={() => toggleEmotion(reaction.emotion)}
+                      burstNonce={
+                        burst?.emotion === reaction.emotion
+                          ? burst.key
+                          : undefined
+                      }
+                      onBurstAnchor={placeBurst}
+                      testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
+                    />
+                  ))}
+                  <View ref={reactionAnchorRef} collapsable={false}>
+                    <ButtonBase
+                      size={ButtonBaseSize.Sm}
+                      twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
+                      accessibilityLabel={strings(
+                        'social_leaderboard.feed.add_reaction',
+                      )}
+                      onPress={openPicker}
+                      testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+                    >
+                      <EmojiAddIcon
+                        width={16}
+                        height={16}
+                        color={colors.icon.alternative}
+                        name="emoji-add"
+                      />
+                    </ButtonBase>
+                  </View>
+                </Box>
+              ) : null}
 
-            {/* Inert on purpose: the count is context for the reactions next to it,
-            not a way into a list of who copied. Absent on social-api builds
-            that predate it, where it would otherwise read as a false zero. */}
-            {post.copyCount !== undefined ? (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-                testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
-              >
-                <Icon
-                  name={IconName.SwapHorizontal}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
+              {/* Inert on purpose: the count is context, not a way into a list
+              of who copied. Absent on social-api builds that predate it, where
+              it would otherwise read as a false zero. */}
+              {post.copyCount !== undefined ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
                 >
-                  {post.copyCount}
-                </Text>
-              </Box>
-            ) : null}
-          </Box>
+                  <Icon
+                    name={IconName.SwapHorizontal}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {post.copyCount}
+                  </Text>
+                </Box>
+              ) : null}
+            </Box>
+          ) : null}
         </Box>
       </SocialTraderIdentityRow>
 
-      <ReactionPickerBalloon
-        visible={pickerVisible}
-        anchor={pickerAnchor}
-        onClose={closePicker}
-        onPick={handlePick}
-      />
+      {canReact ? (
+        <ReactionPickerBalloon
+          visible={pickerVisible}
+          anchor={pickerAnchor}
+          onClose={closePicker}
+          onPick={handlePick}
+        />
+      ) : null}
       {optionsSheet}
       {geoBlockSheet}
       {burst?.x != null && burst.y != null ? (
