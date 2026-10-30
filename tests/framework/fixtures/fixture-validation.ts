@@ -309,6 +309,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.LoggingController',
     'engine.backgroundState.NetworkEnablementController',
     'engine.backgroundState.PredictController',
+    'engine.backgroundState.PredictVenueController',
     'engine.backgroundState.RewardsController',
     'engine.backgroundState.RewardsMoneyController',
     'engine.backgroundState.SeedlessOnboardingController',
