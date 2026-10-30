@@ -75,6 +75,7 @@ import {
 import LiveView from '../LiveView';
 import TrendingView from '../TrendingView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import SocialAccountDisabledBanner from '../../../UI/SocialFeed/components/SocialAccountDisabledBanner';
 import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
@@ -714,6 +715,8 @@ const SocialV1ViewContent: React.FC = () => {
           }
           testID={SocialV1ViewSelectorsIDs.HEADER}
         />
+
+        <SocialAccountDisabledBanner twClassName="px-4 pt-2" />
 
         {showNotificationsBanner && (
           <Box twClassName="px-4 pt-2">

@@ -2,6 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CommentEngagement, FeedReaction } from '../reactions';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { invalidateModerationStatus } from '../moderationApi';
+import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
 import { patchFeedCommentEngagementInCache } from '../utils/patchFeedCommentEngagementInCache';
 import { serializeFeedEngagementSeed } from '../utils/serializeFeedEngagementSeed';
 
@@ -102,9 +104,13 @@ export const useFeedPostReaction = (
         setReactions(metrics.reactions);
         setUserReaction(metrics.userReaction);
         patchFeedCommentEngagementInCache(queryClient, commentId, metrics);
-      } catch {
+      } catch (error) {
         setReactions(previous.reactions);
         setUserReaction(previous.userReaction);
+        // A 403 means the moderation team banned the viewer.
+        if (extractHttpStatus(error) === 403) {
+          invalidateModerationStatus().catch(() => undefined);
+        }
       } finally {
         setIsPending(false);
       }

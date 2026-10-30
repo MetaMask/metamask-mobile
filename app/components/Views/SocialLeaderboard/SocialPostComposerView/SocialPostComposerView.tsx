@@ -70,6 +70,10 @@ import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSaf
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
+import SocialAccountDisabledBanner from '../../../UI/SocialFeed/components/SocialAccountDisabledBanner';
+import { useSocialModerationStatus } from '../../../UI/SocialFeed/hooks/useSocialModerationStatus';
+import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
+import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
 import {
   addPendingPost,
   requestPostsTabFocus,
@@ -284,9 +288,11 @@ const SocialPostComposerView: React.FC = () => {
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
   const isOverCharacterLimit = text.length > COMPOSER_COMMENT_MAX_LENGTH;
+  const { isBanned } = useSocialModerationStatus();
   const canSubmit =
     (selectedPosition != null || isTradeInFlightLocked) &&
-    !isOverCharacterLimit;
+    !isOverCharacterLimit &&
+    !isBanned;
 
   const handleClose = useCallback(() => {
     trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
@@ -492,7 +498,12 @@ const SocialPostComposerView: React.FC = () => {
         // Replace so Back from the profile skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
       }
-    } catch {
+    } catch (error) {
+      // The social API refuses a banned author's post with a 403, the same
+      // status as a wallet they don't own; the status tells the two apart.
+      if (extractHttpStatus(error) === 403) {
+        invalidateModerationStatus().catch(() => undefined);
+      }
       trackInteraction(Interaction.POST_FAILED, {
         outcome: Outcome.FAILED,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
@@ -602,6 +613,7 @@ const SocialPostComposerView: React.FC = () => {
             }
             testID={SocialPostComposerViewSelectorsIDs.SCROLL}
           >
+            <SocialAccountDisabledBanner twClassName="mb-4" />
             <Box gap={3} twClassName="w-full">
               <ProfileAvatar
                 imageUrl={profile?.imageUrl}

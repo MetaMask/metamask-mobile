@@ -16,6 +16,27 @@ export const BLOCKED_COMMENT_IDS_QUERY_KEY = [
   'blockedCommentIds',
 ] as const;
 
+export const MODERATION_STATUS_QUERY_KEY = [
+  'social',
+  'moderation',
+  'status',
+] as const;
+
+/** Whether the moderation team banned the viewer, from `GET /v1/moderation/status`. */
+export interface SocialModerationStatus {
+  banned: boolean;
+  /** Unix epoch seconds. */
+  bannedAt: number | null;
+  /** The reason the moderation team gave the viewer, if any. Safe to show. */
+  reason: string | null;
+}
+
+interface ModerationStatusMessenger {
+  call: (
+    action: 'SocialService:fetchModerationStatus',
+  ) => Promise<SocialModerationStatus>;
+}
+
 /** A runaway cursor must not page forever; 250 per page × 20 is plenty. */
 const MAX_PAGES = 20;
 
@@ -57,6 +78,28 @@ export const fetchBlockedCommentIds = async (): Promise<string[]> => {
     ),
   );
   return items.filter((item) => item.type === 'comment').map((item) => item.id);
+};
+
+/**
+ * The viewer's ban status. Call as a member expression so the messenger keeps
+ * its `this` binding.
+ */
+export const fetchModerationStatus = (): Promise<SocialModerationStatus> =>
+  (Engine.controllerMessenger as unknown as ModerationStatusMessenger).call(
+    'SocialService:fetchModerationStatus',
+  );
+
+/**
+ * Refetches the viewer's ban status, after the social API refused one of their
+ * writes. Imported lazily, like {@link invalidateBlockLists}.
+ */
+export const invalidateModerationStatus = async (): Promise<void> => {
+  const { default: ReactQueryService } = await import(
+    '../../../core/ReactQueryService'
+  );
+  await ReactQueryService.queryClient.invalidateQueries({
+    queryKey: MODERATION_STATUS_QUERY_KEY,
+  });
 };
 
 /** Blocks a trader for the viewer. */
