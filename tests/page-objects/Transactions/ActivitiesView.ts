@@ -146,6 +146,23 @@ class ActivitiesView {
     return Matchers.getElementByID(ActivityScreenSelectorsIDs.SAFE_AREA_VIEW);
   }
 
+  /**
+   * Lending deposit/withdraw confirmations call
+   * `navigateToActivityAfterConfirmation` on transactionSubmitted. Prefer
+   * waiting for Activity chrome over tapping the Activity tab (tab chrome is
+   * often missing mid-redirect).
+   */
+  async waitForVisibleAfterLendingConfirm(timeout = 60000): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.redesignedScreen, {
+      timeout,
+      description: 'Activity screen after lending confirm auto-redirect',
+    });
+    await Assertions.expectElementToBeVisible(this.container, {
+      timeout: 15_000,
+      description: 'Activity list after lending confirm auto-redirect',
+    });
+  }
+
   get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ActivityScreenSelectorsIDs.BACK_BUTTON);
   }

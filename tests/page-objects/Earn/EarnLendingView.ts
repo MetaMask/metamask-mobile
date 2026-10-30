@@ -64,8 +64,36 @@ class EarnLendingView {
     );
   }
 
+  get approveButtonByLabel(): Promise<AppiumElement> {
+    return Matchers.getElementByText(EarnLendingViewSelectorsText.APPROVE);
+  }
+
   get confirmButtonByLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(EarnLendingViewSelectorsText.CONFIRM);
+  }
+
+  /**
+   * True when the lending footer is on the Approve spending-cap step.
+   * Forked-mainnet allowance can already cover the deposit — then the screen
+   * opens directly on Confirm and a second Confirm-label wait races Activity
+   * auto-navigation after the first FooterActions confirm.
+   */
+  async isApproveStepVisible(timeout = 2000): Promise<boolean> {
+    return Utilities.isElementVisible(this.approveButtonByLabel, timeout);
+  }
+
+  /**
+   * Wait until the deposit-step Confirm label is shown after allowance confirms.
+   */
+  async waitForConfirmLabel(timeout = 120000): Promise<void> {
+    await Assertions.expectTextDisplayed(
+      EarnLendingViewSelectorsText.CONFIRM,
+      {
+        timeout,
+        description:
+          'lending deposit Confirm label should appear after approve confirms',
+      },
+    );
   }
 
   async tapConfirmByLabel(timeout?: number): Promise<void> {
