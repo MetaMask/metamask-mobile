@@ -294,20 +294,43 @@ export interface OpenVbaOnboardingRequest {
   retryRejectedKyc?: boolean;
 }
 
+const isMissingAal2TokenError = (error: unknown): boolean =>
+  error instanceof Error && error.message.includes('aal2Token is required');
+
 /**
  * Re-submits capability authorization for a KYC session that already exists.
  * First-time creation stays on the email screen, which also has the signed-in
  * token `startSession` needs when no session exists.
+ *
+ * Reinstall deletes the persisted session. Hydrate only reads that local
+ * session and otherwise returns an empty funnel, so an approved account is
+ * shown the create-account screen. The latest vendor session is reattached
+ * here, without an AAL2 token, before that read. A missing latest session is
+ * a first-time user and must not fail onboarding.
  */
 const resumePersistedKycSession = async (): Promise<void> => {
   const kycController = Engine.context.KycController;
   if (!kycController.readSessionStatus()) {
-    return;
+    const existingSession = await kycController.getSessionStatusForVendor(
+      VBA_KYC_VENDOR,
+    );
+    if (!existingSession) {
+      return;
+    }
   }
 
-  await kycController.startSession({
-    vendor: VBA_KYC_VENDOR,
-  });
+  try {
+    await kycController.startSession({
+      vendor: VBA_KYC_VENDOR,
+    });
+  } catch (error) {
+    // The latest session can disappear between the lookup and start. Creating
+    // one still belongs on the email screen.
+    if (!kycController.readSessionStatus() && isMissingAal2TokenError(error)) {
+      return;
+    }
+    throw error;
+  }
 };
 
 const resolveOpenRequest = (
