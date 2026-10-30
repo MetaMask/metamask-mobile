@@ -56,6 +56,12 @@ interface SocialV1FeedItemBase {
   /** Author comment. */
   comment?: string;
   /**
+   * Klipy GIF the author attached to the comment. Set on a GIF-only comment,
+   * which has no `comment` caption, so the card still counts it as commented.
+   * The card body does not render it.
+   */
+  commentGifUrl?: string;
+  /**
    * Realized P&L in USD on a closed position, current value on an open one.
    * Only the closed layout renders it; the open layout leads with P&L instead.
    */
@@ -141,14 +147,17 @@ export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   holdTimeLabel?: string;
   showCopyTrade?: boolean;
+  /** How the card's figures follow the streamed spot price, as on an open row. */
+  live?: SocialLivePriceSource;
 }
 
 /**
- * Two layouts -- open and closed -- crossed with the asset class. Open cards
- * lead with current value and offer Copy trade; closed cards lead with realized
- * P&L and offer nothing, because there is no longer a position to copy. The
- * asset class only decides which stat rows sit between. `spotShare` is the
- * composer insert of a spot position.
+ * Two layouts -- open and closed -- crossed with the asset class. Both share
+ * the header. Open cards quote a live price or market cap and offer Copy
+ * trade. Closed cards caption when the position settled and offer nothing,
+ * because there is no longer a position to copy. The asset class decides the
+ * side tag and whether entry and exit are quoted as market cap. `spotShare`
+ * is the composer insert of a spot position.
  */
 export type SocialV1FeedItem =
   | SocialV1PerpsOpenFeedItem
@@ -168,6 +177,13 @@ export interface SocialV1FeedPost {
    * renders; picks stay session-local until a Call id exists.
    */
   commentId?: string;
+  /**
+   * Language the Call was written in. `null` when the API has not detected
+   * one. Absent on older payloads. The translate control hides only for `en`.
+   */
+  sourceLanguage?: string | null;
+  /** Translations already returned with the Call, keyed by language code. */
+  translations?: Record<string, string>;
   reactions: { emotion: string; count: number }[];
   /** Session/API viewer emotion when known. */
   userReaction?: string | null;

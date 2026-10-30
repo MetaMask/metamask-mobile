@@ -8,7 +8,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SocialPostComposerView from './SocialPostComposerView';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
-import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
 import {
   consumePostsTabFocus,
   getPendingPostsSnapshot,
@@ -77,7 +77,6 @@ const linkedProfile = {
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
   linkedAccountAddress: '0x1111111111111111111111111111111111111111',
 };
 
@@ -253,17 +252,46 @@ describe('SocialPostComposerView', () => {
     ).toBeEnabled();
   });
 
-  it('clips typed text at 250 characters', () => {
+  it('keeps text past 250 characters and disables Post', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
       'a'.repeat(260),
     );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
 
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT).props.value,
-    ).toHaveLength(250);
+    ).toHaveLength(260);
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
+    ).toHaveTextContent(
+      'social_leaderboard.composer.character_count:{"count":260,"limit":250}',
+    );
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('keeps Post enabled at 250 characters', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'a'.repeat(250),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
   });
 
   it('rejects comments that contain a url', () => {
@@ -682,7 +710,7 @@ describe('SocialPostComposerView', () => {
     );
 
     expect(
-      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.SHEET),
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
   });
 

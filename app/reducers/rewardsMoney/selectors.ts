@@ -9,6 +9,9 @@ import type {
   ReferralRole,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 import { selectGeoLocation } from '../rewards/selectors';
+import { selectRewardsMoneyControllerEnabled } from '../../selectors/featureFlagController/rewardsMoneyController';
+import { selectSessionProfileId } from '../../selectors/identity';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import type {
   ClaimLock,
   EarningsSummaryEntry,
@@ -221,4 +224,29 @@ export function selectClaimLock(
     return undefined;
   }
   return state.rewardsMoney.claimLocks?.[profileId];
+}
+
+/**
+ * Whether Rewards Settings has a Money referral section to show.
+ *
+ * The controller is off when basic functionality is off or the remote flag is
+ * off, even if a payload is still cached. A null payload with no cached data
+ * is the same: there is nothing to render. A profile whose roles include
+ * `REFERRER` cannot be referred, matching the Money invite sheet, whatever
+ * dashboard variant it was given. A referee still sees the linked code. A
+ * country on the program's excluded regions has no section either.
+ */
+export function selectSettingsReferralAvailable(state: RootState): boolean {
+  const moneyControllerEnabled =
+    Boolean(selectBasicFunctionalityEnabled(state)) &&
+    selectRewardsMoneyControllerEnabled(state);
+  if (!moneyControllerEnabled) {
+    return false;
+  }
+  const profileId = selectSessionProfileId(state);
+  const referralMe = selectReferralMeEntry(state, profileId)?.data;
+  if (referralMe == null || referralMe.roles.includes('REFERRER')) {
+    return false;
+  }
+  return selectMoneyReferralAllowedForGeo(state, profileId);
 }

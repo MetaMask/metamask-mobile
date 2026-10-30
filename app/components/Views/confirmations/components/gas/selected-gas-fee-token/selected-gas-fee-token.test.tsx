@@ -165,7 +165,7 @@ describe('SelectedGasFeeToken', () => {
       excludeNativeTokenForFee: true,
     });
     expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
-    expect(getByText('pathUSD')).toBeOnTheScreen();
+    expect(getByText('OUSD')).toBeOnTheScreen();
   });
 
   it('renders the arrow icon when gas fee tokens are available', () => {

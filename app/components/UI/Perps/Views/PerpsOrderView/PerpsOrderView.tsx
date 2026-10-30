@@ -47,6 +47,8 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import {
   completePerpsTradeSheetInteractiveTrace,
   failPerpsTradeSheetInteractiveTrace,
@@ -129,6 +131,7 @@ import {
   usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
   usePerpsOrderFees,
+  usePerpsQuotedFeeReservation,
   usePerpsOrderValidation,
   usePerpsRewards,
   usePerpsToasts,
@@ -179,6 +182,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import {
+  formatCombinedFeePercentage,
+  formatOriginalCombinedFeePercentage,
+} from '../../utils/feeDiscount';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../../utils/orderToasts';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
@@ -288,6 +295,15 @@ interface PerpsOrderViewContentProps {
   useBottomSheet?: boolean;
 }
 
+/** Reports a rejected fire-and-forget promise from this view. */
+const logRejection = (operation: string) => (error: unknown) => {
+  const name = `PerpsOrderView.${operation}`;
+  Logger.error(ensureError(error, name), {
+    tags: { feature: PERPS_CONSTANTS.FeatureName },
+    context: { name, data: {} },
+  });
+};
+
 const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   leverage: 1,
@@ -361,7 +377,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { onReject } = useConfirmActions();
   useEffect(
     () => () => {
-      onReject(undefined, true);
+      onReject(undefined, true).catch(
+        logRejection('rejectConfirmationOnUnmount'),
+      );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -818,6 +836,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       : undefined,
   });
 
+  // Size the max off the same resolved quote that drives the displayed fee.
+  usePerpsQuotedFeeReservation(feeResults.totalFeeRate);
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
   // Deposit/bridge fees from transaction pay (when paying with custom token)
@@ -1892,7 +1912,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         handleDepositConfirm(
           activeTransactionMeta,
           () => {
-            handlePlaceOrder(true);
+            handlePlaceOrder(true).catch(
+              logRejection('placeOrderAfterDeposit'),
+            );
           },
           marginRequired,
         );
@@ -2247,7 +2269,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       depositAmount.trim() !== '' &&
       activeTransactionMeta
     ) {
-      updateTokenAmountCallback(amountHuman);
+      // useUpdateTokenAmount logs a failed update before rethrowing it.
+      updateTokenAmountCallback(amountHuman)?.catch(() => undefined);
     }
   }, [
     amountHuman,
@@ -2482,10 +2505,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, []);
 
   if (useBottomSheet) {
-    const totalFeeRate =
-      (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
-    const feePercentage =
-      totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+    const feePercentage = formatCombinedFeePercentage(
+      feeResults.protocolFeeRate,
+      feeResults.metamaskFeeRate,
+    );
+    const originalFeePercentage = formatOriginalCombinedFeePercentage(
+      feeResults.protocolFeeRate,
+      feeResults.metamaskFeeRate,
+      feeResults.originalMetamaskFeeRate,
+    );
     // Same formatter as the full-screen fees tooltip. Perps balance and the
     // Money Account have no bridge, and a missing or zero quote stays on the
     // trade-fee line.
@@ -2725,6 +2753,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 showPayWith={isPayRowVisible}
                 isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}
+                originalFeePercentage={originalFeePercentage}
                 bridgeFee={bridgeFee}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
                 feeDiscountKind={rewardsState.feeDiscountKind}

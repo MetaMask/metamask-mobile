@@ -5,6 +5,7 @@ import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   navigateToVbaOnboardingDestination,
+  openVbaEntry,
   resolveVbaOnboarding,
   useOpenVbaOnboarding,
 } from './useVbaOnboardingRouting';
@@ -13,6 +14,9 @@ import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 import { VBA_KYC_VENDOR } from '../constants';
 import { buildVbaBaseProperties } from '../vbaAnalytics';
+import { TraceName } from '../../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -73,10 +77,16 @@ const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockStartSession = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
+const mockRampsState: {
+  autoramps: { id: string; walletAddress: string; status: string }[];
+} = { autoramps: [] };
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     RampsController: {
+      get state() {
+        return mockRampsState;
+      },
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
@@ -99,6 +109,13 @@ jest.mock('../../../../../../core/redux', () => ({
     getState: () => mockGetState(),
   },
 }));
+jest.mock('../vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'vba-hydrate-id'),
+  endVbaCufChildTrace: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
 
 jest.mock('../../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: jest.fn(
@@ -294,22 +311,41 @@ describe('useOpenVbaOnboarding', () => {
     expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
   });
 
-  it('opens identity verification when retrying a still-rejected KYC session', async () => {
-    const rejectedSnapshot = {
+  it('keeps a rejected KYC session on the failure page', async () => {
+    mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
       vendorDisclaimersComplete: true,
       sessionDisclaimersComplete: true,
-      kycStatus: 'rejected' as const,
+      kycStatus: 'rejected',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current({ retryRejectedKyc: true });
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'PUSH' }),
+    );
+  });
+
+  it('opens identity verification when retrying a KYC session whose status is retry', async () => {
+    const retrySnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'retry' as const,
     };
-    mockHydrate.mockResolvedValue(rejectedSnapshot);
+    mockHydrate.mockResolvedValue(retrySnapshot);
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current({ retryRejectedKyc: true });
 
     const snapshot = {
-      ...rejectedSnapshot,
+      ...retrySnapshot,
       vendorTermsAcceptedLocally: true,
     };
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -318,6 +354,32 @@ describe('useOpenVbaOnboarding', () => {
       }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens identity verification when KYC status is retry after the provider flow was submitted', async () => {
+    const retrySnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted' as const,
+      kycStatus: 'retry' as const,
+    };
+    mockHydrate.mockResolvedValue(retrySnapshot);
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: {
+        snapshot: {
+          ...retrySnapshot,
+          vendorTermsAcceptedLocally: true,
+        },
+      },
+    });
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {
@@ -820,6 +882,14 @@ describe('resolveVbaOnboarding', () => {
         }),
       }),
     );
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaHydrate,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-hydrate-id',
+      false,
+      VBA_CUF_END_REASON.ERROR,
+    );
   });
 
   it('resumes a persisted KYC session before hydration', async () => {
@@ -859,6 +929,10 @@ describe('resolveVbaOnboarding', () => {
 
     expect(mockStartSession).not.toHaveBeenCalled();
     expect(mockHydrate).toHaveBeenCalled();
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-hydrate-id',
+      true,
+    );
   });
 
   it('returns an error without hydrating when session resume fails', async () => {
@@ -1012,6 +1086,109 @@ describe('navigateToVbaOnboardingDestination account create error', () => {
           ],
         }),
       }),
+    );
+  });
+});
+
+describe('openVbaEntry', () => {
+  const devGlobal = globalThis as { __DEV__?: boolean };
+  const originalDev = devGlobal.__DEV__;
+  const dispatch = jest.fn();
+  const entryNavigation = {
+    dispatch,
+    getState: () => ({
+      index: 0,
+      routeNames: [Routes.HOME_TABS, Routes.RAMP.VBA_ONBOARDING],
+      routes: [{ name: Routes.HOME_TABS }],
+    }),
+  } as unknown as AppNavigationProp;
+  const lastResetRoutes = () =>
+    dispatch.mock.calls[dispatch.mock.calls.length - 1][0].payload.routes;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    devGlobal.__DEV__ = true;
+    mockGetState.mockReturnValue({ address: '0xabc' });
+    mockHydrate.mockResolvedValue(EMPTY_VBA_ONBOARDING_SNAPSHOT);
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
+    mockRampsState.autoramps = [
+      { id: 'ar-1', walletAddress: '0xabc', status: 'Approved' },
+    ];
+  });
+
+  afterAll(() => {
+    devGlobal.__DEV__ = originalDev;
+  });
+
+  it('opens details directly and hydrates in the background for an approved account', () => {
+    openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
+
+    expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+    expect(mockHydrate).toHaveBeenCalledWith({
+      walletAddress: '0xabc',
+      refreshKyc: true,
+      refreshAutoramps: true,
+    });
+  });
+
+  it('logs a failed background hydrate without leaving details', async () => {
+    mockHydrate.mockRejectedValue(new Error('offline'));
+
+    openVbaEntry(entryNavigation);
+    await Promise.resolve();
+
+    expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
+      }),
+    );
+  });
+
+  it.each([
+    ['the autoramp is not approved yet', 'Created', '0xabc'],
+    ['the approved autoramp belongs to another wallet', 'Approved', '0xdef'],
+  ])('opens the loading screen when %s', (_case, status, walletAddress) => {
+    mockRampsState.autoramps = [{ id: 'ar-1', walletAddress, status }];
+
+    openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({
+        name: Routes.RAMP.VBA_ONBOARDING,
+        state: {
+          index: 0,
+          routes: [
+            {
+              name: VbaOnboardingRoutes.LOADING,
+              params: { source: 'vba-action-row-details' },
+            },
+          ],
+        },
+      }),
+    );
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('opens the loading screen when a dev KYC override is set', () => {
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('rejected');
+
+    openVbaEntry(entryNavigation);
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+    );
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('opens the loading screen when no wallet is selected', () => {
+    mockGetState.mockReturnValue({});
+
+    openVbaEntry(entryNavigation);
+
+    expect(lastResetRoutes()[1]).toEqual(
+      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
     );
   });
 });

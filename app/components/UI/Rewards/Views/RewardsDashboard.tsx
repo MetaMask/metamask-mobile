@@ -44,7 +44,10 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { RootState } from '../../../../reducers';
-import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  selectReferralMeEntry,
+  selectSettingsReferralAvailable,
+} from '../../../../reducers/rewardsMoney/selectors';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -72,6 +75,10 @@ const RewardsDashboard: React.FC = () => {
   const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
+  const settingsDisabled = !subscriptionId && !settingsReferralAvailable;
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
@@ -371,23 +378,17 @@ const RewardsDashboard: React.FC = () => {
           <VipIcon width={24} height={24} name="VipIcon" />
         </Pressable>
       )}
-      <ButtonIcon
-        iconName={IconName.UserCircleAdd}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REFERRAL_REWARDS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-      />
-      <ButtonIcon
-        disabled={!subscriptionId}
-        iconName={IconName.Setting}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
-      />
+      {settingsDisabled ? null : (
+        <ButtonIcon
+          iconName={IconName.Setting}
+          onPress={() =>
+            navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
+          }
+          size={ButtonIconSize.Md}
+          accessibilityLabel={strings('rewards.settings.title')}
+          testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
+        />
+      )}
     </Box>
   );
 

@@ -1,6 +1,7 @@
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { TraceName } from '../../../../../util/trace';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
@@ -10,6 +11,8 @@ import {
   getAccountCreateResultFromError,
   getAccountCreateResultFromResponse,
 } from './accountCreateError';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
 
 /** Destination of every VBA autoramp: mUSD on Monad (CAIP-2 `eip155:143`). */
 const AUTORAMP_DESTINATION = {
@@ -273,8 +276,18 @@ export const ensureMusdAutoramp = (
     return inFlight;
   }
 
+  const setupTraceId = startVbaCufChildTrace(TraceName.VbaAutorampSetup);
   const run = runSetup(walletAddress, sourceCurrency, replaceTerminal)
+    .then((outcome) => {
+      endVbaCufChildTrace(
+        setupTraceId,
+        outcome !== 'failed',
+        outcome === 'failed' ? VBA_CUF_END_REASON.ERROR : undefined,
+      );
+      return outcome;
+    })
     .catch((error: unknown) => {
+      endVbaCufChildTrace(setupTraceId, false, VBA_CUF_END_REASON.ERROR);
       if (error instanceof AccountCreateRegistrationError) {
         throw error;
       }

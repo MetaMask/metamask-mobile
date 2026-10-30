@@ -7,7 +7,6 @@ import type {
 } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import i18n, { strings } from '../../../../../locales/i18n';
-import type { TokenAssetLaunchpadData } from '../queries/tokenAssetQuery';
 import type { TokenMarketData } from '../queries/tokenMarketData';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { TokenStatKey, type TokenStatValues } from '../constants/tokenStats';
@@ -61,7 +60,6 @@ export interface UseTokenStatsParams {
   /** True while the market-data fetch is in flight. */
   isMarketDataLoading: boolean;
   securityData?: TokenSecurityData | null;
-  launchpadData?: TokenAssetLaunchpadData | null;
   /** `holders.count` from the token API. Blockaid is the fallback. */
   tokenApiHoldersCount?: number | null;
   currentCurrency: string;
@@ -206,12 +204,10 @@ export const useTokenStats = ({
   marketData,
   isMarketDataLoading,
   securityData,
-  launchpadData,
   tokenApiHoldersCount,
   currentCurrency,
 }: UseTokenStatsParams): TokenStatValues =>
   useMemo(() => {
-    const { locale } = i18n;
     const financialStats = securityData?.financialStats;
     const features = securityData?.features ?? [];
     const markets = financialStats?.markets ?? [];
@@ -262,8 +258,7 @@ export const useTokenStats = ({
       },
       [TokenStatKey.Top10]: {
         value: formatPercent(
-          Number(launchpadData?.top10HeldPercent) ||
-            sumTopTenPercentage(financialStats),
+          sumTopTenPercentage(financialStats),
           PERCENT_DECIMALS,
         ),
       },
@@ -285,7 +280,6 @@ export const useTokenStats = ({
           marketData?.high1d,
           marketData?.low1d,
           currentCurrency,
-          locale,
         ),
         isLoading: isMarketDataLoading,
       },
@@ -320,7 +314,6 @@ export const useTokenStats = ({
     marketData,
     isMarketDataLoading,
     securityData,
-    launchpadData,
     tokenApiHoldersCount,
     currentCurrency,
   ]);

@@ -1,136 +1,187 @@
-import React, { memo, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  Text,
-  TextVariant,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
+  SectionDivider,
+  Text,
+  TextField,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  selectIsVipReferee,
-  selectReferredByCode,
-  selectReferralDetailsLoading,
-  selectReferralDetailsError,
-} from '../../../../../reducers/rewards/selectors';
-import TextField from '../../../../../component-library/components/Form/TextField';
-import { useReferralDetails } from '../../hooks/useReferralDetails';
-import {
-  REFERRAL_CODE_MIN_LENGTH,
-  useValidateReferralCode,
-} from '../../hooks/useValidateReferralCode';
-import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useTheme } from '../../../../../util/theme';
-import RewardsErrorBanner from '../RewardsErrorBanner';
-import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
-import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { RootState } from '../../../../../reducers';
+import {
+  selectMoneyReferralAllowedForGeo,
+  selectReferralMeEntry,
+  selectSettingsReferralAvailable,
+} from '../../../../../reducers/rewardsMoney/selectors';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
+import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
+import { useReferralMe } from '../../hooks/useReferralMe';
+import {
+  MONEY_REFERRAL_CODE_MAX_LENGTH,
+  MONEY_REFERRAL_CODE_MIN_LENGTH,
+  useValidateMoneyReferralCode,
+} from '../../hooks/useValidateMoneyReferralCode';
+import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './ReferredByCodeSection.testIds';
+/** Alphanumeric upper-case only, capped at the Money code max length. */
+const normalizeInviteCodeInput = (value: string) =>
+  value
+    .replace(/[^a-zA-Z0-9]/gu, '')
+    .toUpperCase()
+    .slice(0, MONEY_REFERRAL_CODE_MAX_LENGTH);
 
-interface ReferredByCodeSectionProps {
-  onInputFocus?: () => void;
+export interface ReferredByCodeSectionProps {
+  /** Divider under the section when account settings follow it. */
+  showTrailingDivider?: boolean;
 }
 
+/**
+ * Money referral code entry for Rewards Settings.
+ *
+ * A stored `referralMe.referred_by` code is read-only. Otherwise the field
+ * validates and submits through the Money hooks. Section copy comes from
+ * `referralMe.localized_text`. A successful apply records `accepted`.
+ * Opening Settings, and a refused apply, record nothing.
+ *
+ * Renders nothing when the Money controller is off, or when referral me has
+ * no cached payload.
+ */
 const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
-  onInputFocus,
+  showTrailingDivider = false,
 }) => {
   const { colors } = useTheme();
-  const referredByCode = useSelector(selectReferredByCode);
-  const isVipReferee = useSelector(selectIsVipReferee);
-  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
-  const isLoading = useSelector(selectReferralDetailsLoading);
-  const referralDetailsError = useSelector(selectReferralDetailsError);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useReferralMe();
+  useGeoRewardsMetadata({ enabled: true });
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
+  const referralMeEntry = useSelector((state: RootState) =>
+    selectReferralMeEntry(state, profileId),
+  );
+  const acceptAllowedForGeo = useSelector((state: RootState) =>
+    selectMoneyReferralAllowedForGeo(state, profileId),
+  );
+  const storedCode =
+    referralMeEntry?.data?.referred_by?.referral_code?.trim() ?? '';
+  const hasStoredCode = storedCode.length > 0;
+  const localizedText = referralMeEntry?.data?.localized_text;
 
   const {
-    referralCode: inputCode,
-    setReferralCode: setInputCode,
+    referralCode,
+    setReferralCode,
     isValidating,
-    isValid: clientCheckValid,
-    isVipReferralCode,
+    isValid,
     isUnknownError,
-  } = useValidateReferralCode();
-
+  } = useValidateMoneyReferralCode();
   const {
-    applyReferralCode,
-    isApplyingReferralCode,
-    applyReferralCodeError,
-    clearApplyReferralCodeError,
-    applyReferralCodeSuccess,
-  } = useApplyReferralCode();
+    acceptReferralCode,
+    isLoading: isAccepting,
+    errorMessage: registerError,
+    acceptBlockedUntil,
+    clearError,
+  } = useAcceptMoneyReferralCode();
 
-  const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
+  const hasAcceptedRef = useRef(false);
+  const acceptInFlightRef = useRef(false);
+  const referralCodeRef = useRef(referralCode);
+  referralCodeRef.current = referralCode;
 
-  const hasReferredByCode = Boolean(referredByCode);
-  const inputCodeReadyForValidation =
-    inputCode.length >= REFERRAL_CODE_MIN_LENGTH;
+  const hasCodeToValidate =
+    referralCode.length >= MONEY_REFERRAL_CODE_MIN_LENGTH;
+  const isRejectedCode =
+    hasCodeToValidate && !isValidating && !isValid && !isUnknownError;
+  const geoBlockedMessage = !acceptAllowedForGeo
+    ? strings('rewards.onboarding.not_supported_region_description')
+    : '';
+  const errorMessage =
+    registerError ||
+    geoBlockedMessage ||
+    (isRejectedCode
+      ? strings('rewards.error_messages.invalid_referral_code')
+      : isUnknownError
+        ? strings('rewards.error_messages.something_went_wrong')
+        : '');
+  const isRateLimited =
+    acceptBlockedUntil !== null && Date.now() < acceptBlockedUntil;
+  const canApply =
+    hasCodeToValidate &&
+    !isValidating &&
+    !isRejectedCode &&
+    !isAccepting &&
+    !isRateLimited &&
+    acceptAllowedForGeo;
 
-  const isApplyingRef = useRef(false);
+  const trackAccepted = useCallback(() => {
+    if (hasAcceptedRef.current) {
+      return;
+    }
+    hasAcceptedRef.current = true;
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      )
+        .addProperties({
+          referral_code: referralCodeRef.current,
+          interaction_type: 'accepted',
+        })
+        .build(),
+    );
+  }, [createEventBuilder, trackEvent]);
 
-  const handleInputChange = (text: string) => {
-    clearApplyReferralCodeError();
-    setInputCode(text);
-  };
+  const handleChangeReferralCode = useCallback(
+    (code: string) => {
+      clearError();
+      setReferralCode(normalizeInviteCodeInput(code));
+    },
+    [clearError, setReferralCode],
+  );
 
-  // Auto-apply referral code when valid
-  useEffect(() => {
-    const autoApply = async () => {
-      // Only apply if valid, not currently applying, no existing code, and not already in progress
-      if (clientCheckValid && !hasReferredByCode && !isApplyingRef.current) {
-        isApplyingRef.current = true;
-        try {
-          await applyReferralCode(inputCode);
-          await fetchReferralDetails();
-        } catch {
-          // Error is handled by the hook
-        } finally {
-          isApplyingRef.current = false;
+  const handleApply = useCallback(() => {
+    if (!canApply || acceptInFlightRef.current) {
+      return;
+    }
+    acceptInFlightRef.current = true;
+    acceptReferralCode(referralCode)
+      .then((result) => {
+        if (result.accepted) {
+          trackAccepted();
         }
-      }
-    };
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        acceptInFlightRef.current = false;
+      });
+  }, [acceptReferralCode, canApply, referralCode, trackAccepted]);
 
-    autoApply();
-  }, [
-    clientCheckValid,
-    hasReferredByCode,
-    applyReferralCode,
-    inputCode,
-    fetchReferralDetails,
-  ]);
+  if (!settingsReferralAvailable || referralMeEntry?.data == null) {
+    return null;
+  }
 
-  const renderIcon = () => {
-    if ((isValidating || isApplyingReferralCode) && !hasReferredByCode) {
+  const description = hasStoredCode
+    ? (localizedText?.settingsReferralLinkedDescription ?? '')
+    : (localizedText?.settingsReferralNotLinkedDescription ?? '');
+  const renderStatusIcon = () => {
+    if (hasStoredCode) {
+      return null;
+    }
+
+    if (isValidating || isAccepting) {
       return <ActivityIndicator color={colors.icon.default} />;
     }
 
-    // A VIP referral code shows the gold VIP tag instead of the success
-    // checkmark — never both. Gate the whole tag on the VIP program flag so a
-    // stale `isVipReferee` (e.g. a fresh referral-details cache hit) can't
-    // surface the pill after the program is disabled locally — consistent with
-    // ReferralActionsSection and the other VIP surfaces.
-    if (
-      isVipProgramEnabled &&
-      (isVipReferralCode || (hasReferredByCode && isVipReferee))
-    ) {
-      return <RewardsVipReferralTag />;
-    }
-
-    if (clientCheckValid && applyReferralCodeSuccess) {
-      return (
-        <Icon
-          name={IconName.Confirmation}
-          size={IconSize.Lg}
-          color={IconColor.SuccessDefault}
-        />
-      );
-    }
-
-    if (
-      (inputCodeReadyForValidation && !clientCheckValid) ||
-      applyReferralCodeError
-    ) {
+    if (errorMessage) {
       return (
         <Icon
           name={IconName.Error}
@@ -143,120 +194,70 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
     return null;
   };
 
-  const showClientValidationError =
-    inputCodeReadyForValidation &&
-    !clientCheckValid &&
-    !isValidating &&
-    !isUnknownError &&
-    !isApplyingReferralCode &&
-    !applyReferralCodeSuccess;
-
-  if (isLoading) {
-    return (
-      <Box
-        testID="referred-by-code-section-loading"
-        twClassName="gap-4 flex-col py-4 px-4"
-      >
-        <Box twClassName="gap-2">
-          <Skeleton height={20} width={100} />
-          <Skeleton height={16} width={250} />
-        </Box>
-        <Skeleton height={48} width="100%" />
-      </Box>
-    );
-  }
-
-  if (referralDetailsError && !referredByCode) {
-    return (
-      <>
-        {/* Divider */}
-        <Box twClassName="mt-4 border-b border-border-muted" />
-        <Box
-          testID="referred-by-code-section-error"
-          twClassName="gap-4 flex-col px-4"
-        >
-          <Box twClassName="gap-2 mt-2">
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('rewards.referred_by_code.title')}
-            </Text>
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {strings('rewards.referred_by_code.description_not_linked')}
-            </Text>
-          </Box>
-          <RewardsErrorBanner
-            testID="referred-by-code-error-banner"
-            title={strings(
-              'rewards.referral_details_error.error_fetching_title',
-            )}
-            description={strings(
-              'rewards.referral_details_error.error_fetching_description',
-            )}
-            onConfirm={fetchReferralDetails}
-            confirmButtonLabel={strings(
-              'rewards.referral_details_error.retry_button',
-            )}
-          />
-        </Box>
-      </>
-    );
-  }
-
   return (
     <>
-      {/* Divider */}
-      <Box twClassName="my-4 border-b border-border-muted" />
-      <Box testID="referred-by-code-section" twClassName="gap-4 flex-col px-4">
-        <Box twClassName="gap-2 mt-2">
+      <Box
+        testID={REFERRED_BY_CODE_SECTION_TEST_IDS.SECTION}
+        twClassName="flex-col px-4"
+      >
+        <Box twClassName="gap-2 pb-2">
           <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.referred_by_code.title')}
+            {localizedText?.settingsReferralTitle ?? ''}
           </Text>
           <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {hasReferredByCode
-              ? strings('rewards.referred_by_code.description_linked')
-              : strings('rewards.referred_by_code.description_not_linked')}
+            {description}
           </Text>
         </Box>
 
-        <Box>
+        <Box twClassName="pt-3">
           <TextField
-            testID="referred-by-code-input"
-            placeholder={strings('rewards.referred_by_code.input_placeholder')}
-            value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
-            onChangeText={hasReferredByCode ? undefined : handleInputChange}
-            onFocus={hasReferredByCode ? undefined : onInputFocus}
-            isDisabled={hasReferredByCode}
-            autoCapitalize="characters"
-            endAccessory={renderIcon()}
-            isError={
-              showClientValidationError || Boolean(applyReferralCodeError)
-            }
+            value={hasStoredCode ? storedCode : referralCode}
+            onChangeText={hasStoredCode ? undefined : handleChangeReferralCode}
+            isDisabled={hasStoredCode || isAccepting}
+            isError={!hasStoredCode && Boolean(errorMessage)}
+            placeholder={localizedText?.settingsReferralPlaceholder ?? ''}
+            endAccessory={renderStatusIcon()}
+            inputProps={{
+              autoCapitalize: 'characters',
+              autoCorrect: false,
+              autoComplete: 'off',
+              maxLength: MONEY_REFERRAL_CODE_MAX_LENGTH,
+              accessibilityLabel: localizedText?.settingsReferralTitle ?? '',
+              testID: REFERRED_BY_CODE_SECTION_TEST_IDS.INPUT,
+            }}
           />
-          {showClientValidationError && (
+          {!hasStoredCode && Boolean(errorMessage) && (
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-error-default mt-1"
-              testID="referred-by-code-invalid-code"
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              testID={REFERRED_BY_CODE_SECTION_TEST_IDS.ERROR}
             >
-              {strings('rewards.referred_by_code.invalid_code')}
+              {errorMessage}
             </Text>
           )}
-          {applyReferralCodeError &&
-            !isApplyingReferralCode &&
-            !showClientValidationError &&
-            !applyReferralCodeSuccess &&
-            inputCodeReadyForValidation && (
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-error-default mt-1"
-                testID="apply-referral-code-error"
-              >
-                {applyReferralCodeError}
-              </Text>
-            )}
         </Box>
+
+        {!hasStoredCode && (
+          <Box twClassName="pt-3">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isLoading={isAccepting}
+              isDisabled={!canApply}
+              onPress={handleApply}
+              testID={REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY}
+            >
+              {localizedText?.settingsReferralApply ?? ''}
+            </Button>
+          </Box>
+        )}
       </Box>
+      {showTrailingDivider ? <SectionDivider marginVertical={8} /> : null}
     </>
   );
 };
 
-export default memo(ReferredByCodeSection);
+export default ReferredByCodeSection;

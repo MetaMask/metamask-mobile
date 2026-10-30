@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Linking } from 'react-native';
 import {
   useNavigation,
@@ -25,6 +25,8 @@ import {
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
 } from '../vbaScreenPerformance';
+import { endVbaCufJourney } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 /**
  * Wires the account-creation error screens into onboarding.
@@ -44,6 +46,9 @@ const VbaAccountCreateErrorAdapter = () => {
     contentReady: true,
     contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
   });
+  useEffect(() => {
+    endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
+  }, []);
   const primaryActionType = retryable
     ? 'retry'
     : getAccountCreateErrorPrimaryAction(failure);

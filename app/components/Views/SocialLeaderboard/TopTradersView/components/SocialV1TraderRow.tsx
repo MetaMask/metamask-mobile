@@ -21,8 +21,6 @@ import {
 import { getTraderRowTestId } from '../../../Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import type { TraderRowProps } from '../../../Homepage/Sections/TopTraders/types';
 /* eslint-enable import-x/no-restricted-paths */
-import SocialGradientCardSurface from '../../components/SocialGradientCardSurface';
-import { SocialGradientCardSurfaceSelectorsIDs } from '../../components/SocialGradientCardSurface.testIds';
 import {
   formatFollowerCountLabel,
   formatPercent,
@@ -31,7 +29,7 @@ import {
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
 const AVATAR_SIZE = 40;
-const MEDAL_HEIGHT = 28;
+const MEDAL_SIZE = 24;
 const RANK_COLUMN_WIDTH = 32;
 /**
  * Single-line row: rank, avatar, name + badges, PnL. Locked so the skeleton
@@ -55,6 +53,11 @@ export interface SocialV1TraderRowProps extends TraderRowProps {
    * the follower count under the username.
    */
   showLeaderboardDetails?: boolean;
+  /**
+   * Hides the ROI line on the pinned card when the profile has no ROI.
+   * A real 0% still shows.
+   */
+  omitPercentage?: boolean;
 }
 
 /**
@@ -72,6 +75,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
   highlighted = false,
   hideRank = false,
   showLeaderboardDetails = false,
+  omitPercentage = false,
 }) => {
   const metricText = metric?.label ?? formatSignedUsd(trader.pnlValue);
   const isMetricPositive = metric?.isPositive ?? trader.pnlValue >= 0;
@@ -79,24 +83,27 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
   const rowHeight = showLeaderboardDetails
     ? SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT
     : SOCIAL_V1_TRADER_ROW_HEIGHT;
-  // A missing ROI is stored as 0. Hide that line rather than showing +0.0%.
+  // A missing ROI on a list row is stored as 0. Hide that line rather than
+  // showing +0.0%. The pinned viewer card shows zero details explicitly.
+  const showZeroDetails = highlighted;
   const percentLabel =
-    showLeaderboardDetails && trader.percentageChange !== 0
+    showLeaderboardDetails &&
+    !omitPercentage &&
+    (trader.percentageChange !== 0 || showZeroDetails)
       ? formatPercent(trader.percentageChange, { decimals: 1 })
       : null;
   const isPercentPositive = trader.percentageChange >= 0;
   const followerLabel =
-    showLeaderboardDetails && trader.followerCount > 0
+    showLeaderboardDetails && (trader.followerCount > 0 || showZeroDetails)
       ? formatFollowerCountLabel(trader.followerCount)
       : null;
   const rankChangeStyle = useRankChangeAnimation(trader.rank);
-
   const rowBody = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={3}
-      style={{ height: rowHeight }}
+      style={highlighted ? undefined : { height: rowHeight }}
     >
       <Box
         alignItems={BoxAlignItems.Center}
@@ -105,12 +112,14 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         testID={SocialV1TraderRowSelectorsIDs.RANK}
       >
         {hideRank ? null : showMedal ? (
-          <RankMedal rank={trader.rank} size={MEDAL_HEIGHT} />
+          <RankMedal rank={trader.rank} size={MEDAL_SIZE} />
         ) : (
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextMuted}
+            color={
+              highlighted ? TextColor.TextAlternative : TextColor.TextMuted
+            }
           >
             {trader.rank}
           </Text>
@@ -119,7 +128,9 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
 
       <TraderAvatar
         imageUrl={trader.avatarUri}
-        address={trader.address}
+        // Profile id seeds the Maskicon. A trader with no wallet address
+        // would otherwise share one empty-address icon.
+        address={trader.id}
         size={AVATAR_SIZE}
         recyclingKey={trader.id}
       />
@@ -208,15 +219,14 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         disabled={!onTraderPress}
         testID={testID ?? getTraderRowTestId(trader.id)}
       >
-        <Box twClassName="px-4">
+        <Box twClassName={highlighted ? 'px-2 py-1' : 'px-4'}>
           {highlighted ? (
-            <SocialGradientCardSurface
+            <Box
               testID={SocialV1TraderRowSelectorsIDs.HIGHLIGHT}
-              gradientTestID={SocialGradientCardSurfaceSelectorsIDs.GRADIENT}
-              twClassName="-mx-2 pr-3"
+              twClassName="rounded-2xl border border-muted bg-muted px-2 py-3"
             >
               {rowBody}
-            </SocialGradientCardSurface>
+            </Box>
           ) : (
             rowBody
           )}

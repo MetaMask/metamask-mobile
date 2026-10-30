@@ -73,6 +73,7 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveView from '../LiveView';
+import TrendingView from '../TrendingView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
@@ -262,6 +263,8 @@ const SocialV1ViewContent: React.FC = () => {
     updateDraft,
     applyFilters,
     resetDraftToDefaults,
+    clearAppliedFilters,
+    setLeaderboardType,
   } = useSocialShellFilters();
   const [filterScreen, filterTab] =
     SOCIAL_EVENT_TAB_CONTEXT[openTab ?? 'trending'];
@@ -281,6 +284,9 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenLiveFilters = useCallback(() => {
     openSheet('live');
+  }, [openSheet]);
+  const handleOpenTrendingFilters = useCallback(() => {
+    openSheet('trending');
   }, [openSheet]);
   const handleOpenFollowingFilters = useCallback(() => {
     openSheet('following');
@@ -660,6 +666,9 @@ const SocialV1ViewContent: React.FC = () => {
               accessibilityLabel={strings(
                 'social_leaderboard.my_profile.open_profile',
               )}
+              // Header chrome is inset 8px. The feed tabs use 16px, so the
+              // avatar needs the other 8px to share that left edge.
+              style={tw.style('ml-2')}
             >
               <SocialHeaderGlassSurface twClassName="w-10 justify-center">
                 {myProfile ? (
@@ -781,6 +790,10 @@ const SocialV1ViewContent: React.FC = () => {
                           appliedFilters={applied.leaderboard}
                           onOpenFilters={handleOpenLeaderboardFilters}
                           isFilterActive={hasActiveFilters('leaderboard')}
+                          onClearFilters={() =>
+                            clearAppliedFilters('leaderboard')
+                          }
+                          onTypeChange={setLeaderboardType}
                         />
                       ) : tab === 'live' ? (
                         <LiveView
@@ -791,31 +804,40 @@ const SocialV1ViewContent: React.FC = () => {
                           onCopyTrade={handleCopyTrade}
                           onOpenFilters={handleOpenLiveFilters}
                           isFilterActive={hasActiveFilters('live')}
+                          onClearFilters={() => clearAppliedFilters('live')}
                           appliedFilters={applied.live}
+                        />
+                      ) : tab === 'trending' ? (
+                        <TrendingView
+                          isActive={activeIndex === trendingIndex}
+                          source={analyticsSource}
+                          performance={socialPerformanceByTab.trending}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onCopyTrade={handleCopyTrade}
+                          onOpenFilters={handleOpenTrendingFilters}
+                          isFilterActive={hasActiveFilters('trending')}
+                          onClearFilters={() => clearAppliedFilters('trending')}
+                          appliedFilters={applied.trending}
+                          testID={testIds.container}
+                          scrollTestID={testIds.scroll}
                         />
                       ) : (
                         <EmptyShellTabPage
                           tab={tab}
                           source={analyticsSource}
                           performance={socialPerformanceByTab[tab]}
-                          isActive={
-                            tab === 'trending'
-                              ? activeIndex === trendingIndex
-                              : activeIndex === followingIndex
-                          }
+                          isActive={activeIndex === followingIndex}
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
                           containerTestID={testIds.container}
                           scrollTestID={testIds.scroll}
-                          onOpenFilters={
-                            tab === 'following'
-                              ? handleOpenFollowingFilters
-                              : undefined
-                          }
+                          onOpenFilters={handleOpenFollowingFilters}
                           isFilterActive={hasActiveFilters('following')}
-                          appliedFilters={
-                            tab === 'following' ? applied.following : undefined
+                          onClearFilters={() =>
+                            clearAppliedFilters('following')
                           }
+                          appliedFilters={applied.following}
                           onQuickBuy={openQuickBuy}
                         />
                       )}

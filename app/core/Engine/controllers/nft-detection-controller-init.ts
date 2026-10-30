@@ -21,6 +21,7 @@ export const nftDetectionControllerInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     disabled: false,
     addNfts: nftController.addNfts.bind(nftController),
+    removeNft: nftController.removeNft.bind(nftController),
     getNftState: () => nftController.state,
   });
 

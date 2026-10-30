@@ -264,7 +264,7 @@ const OnboardingInterestQuestionnaire = () => {
                 />
               }
               onPress={() => handleOptionPress(option.id)}
-              twClassName={`rounded-full border px-6 py-4 ${
+              twClassName={`rounded-full border pl-6 pr-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
               startAccessory={
@@ -300,7 +300,7 @@ const OnboardingInterestQuestionnaire = () => {
       </ScrollView>
 
       <FooterGlass
-        twClassName="pt-2 pb-2"
+        twClassName="py-2"
         primaryButtonProps={{
           children: strings('onboarding_interest_questionnaire.done'),
           onPress: onNext,

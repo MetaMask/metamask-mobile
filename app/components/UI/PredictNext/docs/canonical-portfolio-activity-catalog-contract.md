@@ -3,7 +3,7 @@
 - **Status:** Proposed by PRED-1402. Rules marked _Proposed, needs product sign-off_ are recommended defaults, not agreements.
 - **Scope:** Account-scoped Position, Portfolio Summary, and Activity reads, and the public Venue catalog.
 - **Venues:** Kalshi implements it in the Predict API now (PRED-1378, PRED-1380, PRED-1403). Polymarket implements the same contract in the Predict API under PRED-1356.
-- **Adoption:** PRED-1404 changes `types/`, `contracts/v1/`, services, queries, fixtures, and screens to match this contract. Until then, code and tests remain the executable contract.
+- **Adoption:** PRED-1404 adopted it in mobile: `types/`, `contracts/v1/portfolio.ts`, `PredictPortfolioService` (including `getPortfolioSummary`), `portfolioQueries`, `usePortfolioSummary`, the fixtures in `contracts/v1/fixtures/portfolio-contract/`, and the Portfolio screen.
 
 ## Why
 
@@ -31,8 +31,8 @@ Legacy Polymarket is the parity target. PredictNext surfaces are listed where th
 | BalanceBreakdown slice                 | `Views/Homepage/BalanceBreakdown/hooks/slices/usePredictSlice.ts` via `UI/Predict/hooks/usePredictPortfolio.ts`                                                     | Portfolio value: available Balance + open Positions value + claimable value                                                                                  |
 | Legacy positions header and rows       | `UI/Predict/components/PredictPositionsViewHeader/`, `PredictPosition/`, `PredictPositionResolved/`, `PredictCryptoUpDownPositions/PredictCryptoUpDownPosition.tsx` | Available Balance, unrealized PnL amount and percent, open and resolved rows (current value, cost basis, PnL percent, won or lost), average price, Claim CTA |
 | PredictNext Portfolio screen           | `PredictNext/views/PredictPortfolio/internal/PortfolioSummaryCard.tsx`, `PortfolioPositionRow.tsx`, `PortfolioActivityRow.tsx`                                      | Balance, Position rows with Cash Out, Activity rows                                                                                                          |
-| Activity list rows                     | `Views/ActivityList/hooks/usePredictActivityItems.ts`, `util/activity-adapters/adapters/predict-activity.ts`                                                        | Shared kind, timestamp, USD amount and direction, Event title, image, stable identity                                                                        |
-| Activity details                       | `Views/ActivityDetails/templates/PredictDetails/PredictProviderActivityDetails.tsx`                                                                                 | Title, outcome, image, amount, shares, price per share, net PnL on sells, payout and PnL on Settlements                                                      |
+| Activity list rows                     | `PredictNext/activity/internal/legacy/usePredictActivityItems.ts`, `mapPredictActivity.ts`                                                                          | Shared kind, timestamp, USD amount and direction, Event title, image, stable identity                                                                        |
+| Activity details                       | `PredictNext/activity/internal/legacy/details/PredictProviderActivityDetails.tsx`                                                                                   | Title, outcome, image, amount, shares, price per share, net PnL on sells, payout and PnL on Settlements                                                      |
 | Rewards campaign rows                  | `UI/Rewards/components/Campaigns/PredictThePitchPositionRows.tsx`                                                                                                   | Data comes from the Rewards backend (`PredictThePitchPositionDto`). Only navigation to an Event couples to Predict.                                          |
 | Venue sections, tabs, and entry points | `PredictNext/navigation/feedScreens.ts`, `PredictNext/views/PredictHome/internal/PortfolioActions.tsx`, PRED-1376 mapping table                                     | Supported actions, discovery Feeds by semantic key, search support                                                                                           |
 
@@ -84,8 +84,8 @@ interface PredictPosition {
   side: PredictOutcomeSide;
   status: PredictPositionStatus;
   shares: PredictAmount;
-  averagePrice: PredictDecimal;
-  costBasis: PredictAmount;
+  averagePrice?: PredictDecimal;
+  costBasis?: PredictAmount;
   currentValue?: PredictAmount;
   unrealizedPnl?: PredictSignedAmount;
   unrealizedPnlPercent?: PredictSignedPercent;
@@ -93,17 +93,17 @@ interface PredictPosition {
 }
 ```
 
-| Field                  | Unit and rule                                                                                                                                                                                                                                       | Optional when                                    | Needed by                                             |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------- |
-| `marketId`, `side`     | Position identity within the Venue. Also the Cash Out intent (`marketId` + `side`).                                                                                                                                                                 | Never                                            | Row keys, Cash Out                                    |
-| `status`               | `open`: the Market's result is not determined. `claimable`: resolved, and the Venue requires a Claim to pay out. `settled`: resolved, and no user action is needed (payout is automatic or zero). Only advances: `open` → `claimable` or `settled`. | Never                                            | Open and resolved sections, won or lost, Claim CTA    |
-| `shares`               | Decimal shares, exact, never rounded. Always greater than zero.                                                                                                                                                                                     | Never                                            | Home rows, Portfolio rows, Cash Out                   |
-| `averagePrice`         | Fee-exclusive, average-cost execution price of the held shares.                                                                                                                                                                                     | Never                                            | Crypto up/down position row, Position detail          |
-| `costBasis`            | USD paid for the held shares, under the [fee](#open-decisions-for-product) and [PnL](#open-decisions-for-product) rules.                                                                                                                            | Never                                            | Home rows ("$X on Yes"), resolved rows (lost amount)  |
-| `currentValue`         | USD. `open`: `shares` × best Bid of the held Outcome. Resolved: `shares` × the determined payout per share.                                                                                                                                         | No Bid, a stale Bid, or a disputed determination | Home rows, Portfolio rows, resolved rows (won amount) |
-| `unrealizedPnl`        | `currentValue` − `costBasis`.                                                                                                                                                                                                                       | `currentValue` is absent                         | Row PnL tone                                          |
-| `unrealizedPnlPercent` | `unrealizedPnl` / `costBasis` × 100.                                                                                                                                                                                                                | `currentValue` is absent, or `costBasis` is `0`  | Home rows, Portfolio rows, resolved rows              |
-| `context`              | [Shared catalog context](#shared-catalog-context).                                                                                                                                                                                                  | The Market is not in the canonical catalog       | Titles, images, navigation                            |
+| Field                  | Unit and rule                                                                                                                                                                                                                                       | Optional when                                             | Needed by                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------- |
+| `marketId`, `side`     | Position identity within the Venue. Also the Cash Out intent (`marketId` + `side`).                                                                                                                                                                 | Never                                                     | Row keys, Cash Out                                    |
+| `status`               | `open`: the Market's result is not determined. `claimable`: resolved, and the Venue requires a Claim to pay out. `settled`: resolved, and no user action is needed (payout is automatic or zero). Only advances: `open` → `claimable` or `settled`. | Never                                                     | Open and resolved sections, won or lost, Claim CTA    |
+| `shares`               | Decimal shares, exact, never rounded. Always greater than zero.                                                                                                                                                                                     | Never                                                     | Home rows, Portfolio rows, Cash Out                   |
+| `averagePrice`         | Fee-exclusive, average-cost execution price of the held shares.                                                                                                                                                                                     | The backend's Order ledger cannot account for the holding | Crypto up/down position row, Position detail          |
+| `costBasis`            | USD paid for the held shares, under the [fee](#open-decisions-for-product) and [PnL](#open-decisions-for-product) rules.                                                                                                                            | The backend's Order ledger cannot account for the holding | Home rows ("$X on Yes"), resolved rows (lost amount)  |
+| `currentValue`         | USD. `open`: `shares` × best Bid of the held Outcome. Resolved: `shares` × the determined payout per share.                                                                                                                                         | No Bid, a stale Bid, or a disputed determination          | Home rows, Portfolio rows, resolved rows (won amount) |
+| `unrealizedPnl`        | `currentValue` − `costBasis`.                                                                                                                                                                                                                       | `currentValue` is absent                                  | Row PnL tone                                          |
+| `unrealizedPnlPercent` | `unrealizedPnl` / `costBasis` × 100.                                                                                                                                                                                                                | `currentValue` is absent, or `costBasis` is `0`           | Home rows, Portfolio rows, resolved rows              |
+| `context`              | [Shared catalog context](#shared-catalog-context).                                                                                                                                                                                                  | The Market is not in the canonical catalog                | Titles, images, navigation                            |
 
 ### Portfolio Summary
 
@@ -170,22 +170,22 @@ interface PredictSettlementEntry extends PredictActivityEntryBase {
 type PredictActivityEntry = PredictTradeEntry | PredictSettlementEntry;
 ```
 
-| Field                      | Rule                                                                                                                              | Optional when                                                     | Needed by                                          |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------- |
-| `id`                       | Opaque and stable. Unique within `venueId` for the Predict User. `(venueId, id)` is the entry's identity. Mobile never parses it. | Never                                                             | List keys, details lookup, shared item identity    |
-| `marketId`, `side`         | The traded or settled Outcome.                                                                                                    | Never                                                             | Outcome fallback copy                              |
-| `shares`                   | Trade: filled shares. Settlement: shares held at Settlement. Exact.                                                               | Never                                                             | Details "shares bought/sold"                       |
-| `timestamp`                | Trade: time of the Order's last Fill. Settlement: Venue settlement time. Never defaulted to "now".                                | Never                                                             | Row date, ordering                                 |
-| `action`                   | Authoritative Order Action from the backend's own Order records. Never inferred from a Venue Fill side.                           | Never                                                             | Shared kind, row copy                              |
-| `price`                    | Fee-exclusive VWAP of the Order's Fills.                                                                                          | Never                                                             | Details "price per share"                          |
-| `amount`                   | Balance movement. Buy: shares × price + fee (debit). Sell: shares × price − fee (credit). _Proposed, needs product sign-off._     | Never                                                             | Row amount, details amount                         |
-| `fee`                      | All fees charged for the Order's Fills. `"0"` when the Venue charged none.                                                        | Never                                                             | Details                                            |
-| `realizedPnl` (trade)      | Sells only: `amount` − cost basis of the sold shares. Absent on buys. Kalshi always provides it on sells.                         | Buys, or a sell whose cost basis the backend cannot establish     | Details "Net PnL" on sells                         |
-| `result`                   | The Market's result. `scalar` means a non-binary payout per share, such as a 50/50 resolution.                                    | Never                                                             | Won or lost copy                                   |
-| `proceeds`                 | USD credited by the Settlement. `"0"` for a losing Position.                                                                      | Never                                                             | Row amount, details hero                           |
-| `realizedPnl` (settlement) | `proceeds` − settlement fees − cost basis of the settled shares. Kalshi always provides it.                                       | The backend cannot establish the cost basis of the settled shares | Details PnL. Details omit the PnL row when absent. |
+| Field                      | Rule                                                                                                                                                                       | Optional when                                                     | Needed by                                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------- |
+| `id`                       | Opaque and stable. Unique within `venueId` for the Predict User. `(venueId, id)` is the entry's identity. Mobile never parses it.                                          | Never                                                             | List keys, details lookup, shared item identity    |
+| `marketId`, `side`         | The traded or settled Outcome.                                                                                                                                             | Never                                                             | Outcome fallback copy                              |
+| `shares`                   | Trade: filled shares. Settlement: shares held at Settlement. Exact.                                                                                                        | Never                                                             | Details "shares bought/sold"                       |
+| `timestamp`                | Trade: time of the Order's last Fill. Settlement: Venue settlement time. Never defaulted to "now".                                                                         | Never                                                             | Row date, ordering                                 |
+| `action`                   | Authoritative Order Action from the backend's own Order records. Never inferred from a Venue Fill side.                                                                    | Never                                                             | Shared kind, row copy                              |
+| `price`                    | Fee-exclusive VWAP of the Order's Fills.                                                                                                                                   | Never                                                             | Details "price per share"                          |
+| `amount`                   | Balance movement. Buy: shares × price + fee (debit). Sell: shares × price − fee (credit). _Proposed, needs product sign-off._                                              | Never                                                             | Row amount, details amount                         |
+| `fee`                      | All fees charged for the Order's Fills. `"0"` when the Venue charged none.                                                                                                 | Never                                                             | Details                                            |
+| `realizedPnl` (trade)      | Sells only: `amount` − cost basis of the sold shares. Absent on buys. Kalshi always provides it on sells.                                                                  | Buys, or a sell whose cost basis the backend cannot establish     | Details "Net PnL" on sells                         |
+| `result`                   | The Market's result. `scalar` means a non-binary payout per share, such as a 50/50 resolution.                                                                             | Never                                                             | Won or lost copy                                   |
+| `proceeds`                 | USD credited by the Settlement. `"0"` for a losing Position.                                                                                                               | Never                                                             | Row amount, details hero                           |
+| `realizedPnl` (settlement) | `proceeds` − cost basis of the settled shares. Settlement fees are already accounted for in the cost basis, so they are never subtracted twice. Kalshi always provides it. | The backend cannot establish the cost basis of the settled shares | Details PnL. Details omit the PnL row when absent. |
 
-A Settlement is reported per held side. A Market where the Predict User held nothing at Settlement produces no entry. Settlement entries carry no manual-Claim marker. PRED-1356 decides whether Polymarket needs one; it is not added speculatively.
+A Settlement is reported once per Market, for the side the Predict User **net** held: `|yes_count_fp − no_count_fp|` contracts. Those counts are lifetime acquisitions, not the quantity held at Settlement, so equal counts mean a flat Position and produce no entry. `market_result` names the winning side, which is often not the held one. Settlement entries carry no manual-Claim marker. PRED-1356 decides whether Polymarket needs one; it is not added speculatively.
 
 ### Venue catalog
 
@@ -214,6 +214,14 @@ interface PredictVenueCatalog {
 
 The catalog describes support only. It is distinct from rollout flags, Venue Status, eligibility, and Account Readiness. The backend still authorizes every write independently. Feed labels are localized client copy keyed by semantic key, so the catalog sends no display strings.
 
+PRED-1376 implements the client side:
+
+- **Vocabulary.** `PREDICT_FEED_KEYS` in `types/index.ts`. Mobile types `PredictFeedKey` as that closed union rather than a branded string; the parser drops keys outside it, so the wire format is unchanged. Add a key there before the backend serves it.
+- **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots, Explore tabs, Rewards campaign rows, and PredictNext Home sections and Feed Screen tabs to keys.
+- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions, Feed keys, and fields. A malformed known field, a known key without a Feed ID, or another Venue's `venueId` rejects the whole catalog.
+- **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method serves the static Kalshi catalog until PRED-1403 swaps in this route.
+- **Failure.** `useVenueCapabilities` re-validates every catalog. A failed refresh keeps the last valid catalog. With no valid catalog, the result is `loading` or `unavailable` and enables no action, Feed, or search; there is no fallback to the bundled catalog or to another Venue. The Order flow refuses to open an action the Venue does not list.
+
 ## Invariants
 
 - `PredictPosition.shares` > 0. Holdings are never rounded at the boundary.
@@ -226,7 +234,7 @@ The catalog describes support only. It is distinct from rollout flags, Venue Sta
 - `realizedPnl`, on sells and on Settlements, is absent only when the backend cannot establish the cost basis. It is never fabricated or defaulted to `"0"`. Kalshi always provides it.
 - `complete` is `false` whenever a Position lacks `currentValue`, or the holdings traversal was bounded.
 - A Trade's `action` comes from the backend's own Order records. An execution that cannot be joined to one is excluded and alerted on. It never appears without a direction.
-- Activity is ordered by `timestamp` descending, then entry kind, then `id`. The order is total and deterministic.
+- Activity is ordered by `timestamp` descending, then entry kind (`trade` before `settlement`), then `id` ascending. The order is total and deterministic, so a page boundary never reorders entries that share a timestamp.
 - A paginated Positions pass returns every Position that is held throughout the pass at least once. It can repeat a Position but never skips one.
 - Funding records never appear in Activity.
 - Response `venueId` matches the requested Venue on the envelope and on every entry. Mobile rejects mismatches, as `KalshiRemoteAdapter` does today.
@@ -268,7 +276,7 @@ GET /v1/venues/{venueId}/positions?status={status}&sort=value&limit={limit}
 **`sort=opened` (paginated).** This is the list read for the Portfolio screen and the legacy position sections.
 
 - Order: `status` group (`open`, then `claimable`, then `settled`), then `openedAt` descending, then `marketId`, then `side`. The order is total.
-- `openedAt` is internal to the backend and is not in the payload. It is the time of the first execution of the current holding, or, when that cannot be established, the time the backend first observed the holding. The backend persists it and never recomputes it, so prices, Fills that add to or reduce the holding, and Bid changes never move a Position in this order.
+- `openedAt` is internal to the backend and is not in the payload. It is the time of the first execution of the current holding, or, when that cannot be established, a fixed sentinel that sorts last in its status group (see the API repo's `docs/BACKLOG.md`). It is never recomputed, so prices, Fills that add to or reduce the holding, and Bid changes never move a Position in this order.
 - The cursor is an opaque keyset over that order, bound to the `status` filter it was issued with. `nextCursor` is absent only when no Position follows the cursor.
 - A Position held throughout a pass is returned at least once, and never skipped. Its key is stable, and its `status` only advances, which moves it later in the order, never behind the cursor. A Position can repeat after its status advances. Mobile de-duplicates by `marketId` + `side`, keeping the latest copy.
 - A Position opened during a pass sorts ahead of the cursor and appears on the next refresh, as new Activity entries do. A Position closed and reopened during a pass is a new holding with a new `openedAt`. A Position whose status leaves a filtered section appears in its new section on the next refresh.
@@ -289,6 +297,7 @@ GET /v1/venues/{venueId}/activity?limit={limit}&cursor={cursor}
 - `limit`: default 20, max 50.
 - The cursor is an opaque keyset over `(timestamp, kind, id)`. Pages never duplicate or skip entries, including entries written between page reads, which sort ahead of the cursor.
 - `nextCursor` is absent only when every source is exhausted below the cursor. A source that cannot be read fails the page with `503`. It never ends the list early.
+- A page that can reach below the Venue's settlement archive horizon carries `settlementsCompleteFrom`: the instant from which Settlements are complete. Kalshi archives settled positions and stops serving their records, so below that horizon Trades stay complete and Settlements may not. It is absent when no page can reach the horizon.
 - A cursor whose entry no longer exists stays valid, because it is a key, not a position.
 
 ### Balance
@@ -353,8 +362,8 @@ Against the served dev contract (`https://predict-api.dev-api.cx.metamask.io/doc
 +    complete: boolean
    PositionsResponseDto.positions[]:
 +    status: enum [open, claimable, settled] # required
-+    averagePrice: PredictDecimal # required
-+    costBasis: PredictAmount # required
++    averagePrice: PredictDecimal # optional; absent only without a ledger
++    costBasis: PredictAmount # optional; absent only without a ledger
 +    currentValue: PredictAmount # optional
 +    unrealizedPnl: PredictSignedAmount # optional
 +    unrealizedPnlPercent: PredictSignedPercent # optional
@@ -414,20 +423,20 @@ The backend's own records are the Venue Account's order ledger. A MetaMask ISV s
 
 ### Activity (PRED-1380)
 
-| Field                    | Derivation                                                                                                                                                                                                                                  |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Trade source             | `OrderOperation` rows for the Venue Account with `filledContracts` > 0 (`filled`, `partially_filled`). Kalshi Fills (`GET /portfolio/fills`) only reconcile: a Fill whose `order_id` matches no operation is excluded and alerted on.       |
-| `id`                     | `OrderOperation.id`.                                                                                                                                                                                                                        |
-| `action`, `side`         | `OrderOperation.action` and `.side`, bound at preview and commit. Never `outcome_side` or the deprecated Fill `action` and `side`.                                                                                                          |
-| `shares`, `price`, `fee` | `filledContracts`, `averageFillPrice`, `fee`.                                                                                                                                                                                               |
-| `amount`                 | Buy: `actualSpend`. Sell: `netProceeds`.                                                                                                                                                                                                    |
-| `realizedPnl` (sell)     | `netProceeds` − the average cost of the sold contracts from the same ledger as Positions. Always present, because the ledger covers every execution.                                                                                        |
-| `timestamp`              | Time of the Order's last Fill. Needs a new persisted execution time, because `resolvedAt` is the backend's observation time.                                                                                                                |
-| Settlement source        | `GET /portfolio/settlements`. One entry per side with a nonzero `yes_count_fp` or `no_count_fp`. Flat settlements are excluded.                                                                                                             |
-| Settlement `id`          | Deterministic from `ticker`, side, and `settled_time`.                                                                                                                                                                                      |
-| `result`, `proceeds`     | `market_result`. `revenue` in cents → dollars, attributed to the result side.                                                                                                                                                               |
-| Settlement `realizedPnl` | `proceeds` − `fee_cost` − the ledger cost basis of the settled contracts. Always present. `yes_total_cost_dollars` and `no_total_cost_dollars` are a cross-check.                                                                           |
-| Pagination               | Merge trades (a database keyset) and Settlements (upstream, bounded by `max_ts` at the cursor timestamp, _verify_) per page. This removes the five-upstream-page bound and the "cursor aged out" early end in `kalshi-activity.service.ts`. |
+| Field                    | Derivation                                                                                                                                                                                                                                                       |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Trade source             | `OrderOperation` rows for the Venue Account with `filledContracts` > 0 (`filled`, `partially_filled`). Kalshi Fills (`GET /portfolio/fills`) only reconcile: a Fill whose `order_id` matches no operation is excluded and alerted on.                            |
+| `id`                     | `OrderOperation.id`.                                                                                                                                                                                                                                             |
+| `action`, `side`         | `OrderOperation.action` and `.side`, bound at preview and commit. Never `outcome_side` or the deprecated Fill `action` and `side`.                                                                                                                               |
+| `shares`, `price`, `fee` | `filledContracts`, `averageFillPrice`, `fee`.                                                                                                                                                                                                                    |
+| `amount`                 | Buy: `actualSpend`. Sell: `netProceeds`.                                                                                                                                                                                                                         |
+| `realizedPnl` (sell)     | `netProceeds` − the average cost of the sold contracts from the same ledger as Positions. Always present, because the ledger covers every execution.                                                                                                             |
+| `timestamp`              | Time of the Order's last Fill. Needs a new persisted execution time, because `resolvedAt` is the backend's observation time.                                                                                                                                     |
+| Settlement source        | `GET /portfolio/settlements`. One entry per Market, for the net held side: `                                                                                                                                                                                     | yes_count_fp − no_count_fp | ` contracts, attributed to the side the counts favour. Both counts are lifetime acquisitions. Flat settlements are excluded. |
+| Settlement `id`          | Deterministic from `ticker`, side, and `settled_time`.                                                                                                                                                                                                           |
+| `result`, `proceeds`     | `market_result`. `revenue` in cents → dollars, attributed to the result side.                                                                                                                                                                                    |
+| Settlement `realizedPnl` | `proceeds` − the ledger cost basis of the settled contracts. `fee_cost` is the market's **trading** fees, already inside that cost basis, and is never subtracted again. Always present. `yes_total_cost_dollars` and `no_total_cost_dollars` are a cross-check. |
+| Pagination               | Merge trades (a database keyset) and Settlements (upstream, bounded by `max_ts` at the cursor timestamp, _verify_) per page. This removes the five-upstream-page bound and the "cursor aged out" early end in `kalshi-activity.service.ts`.                      |
 
 ## Polymarket feasibility (PRED-1356)
 
@@ -458,17 +467,19 @@ The Polymarket backend adapter supplies every field from upstream records, not f
 
 ## Shared Activity kinds
 
-| Canonical entry           | Shared `ActivityKind`                                            | `data.token`               |
-| ------------------------- | ---------------------------------------------------------------- | -------------------------- |
-| `trade`, `action: 'buy'`  | `predictionPlaced`                                               | `amount`, direction `out`  |
-| `trade`, `action: 'sell'` | `predictionCashedOut`                                            | `amount`, direction `in`   |
-| `settlement`              | New Settlement kind, for example `predictionSettled` (PRED-1405) | `proceeds`, direction `in` |
+| Canonical entry           | Shared `ActivityKind` | `data.token`               |
+| ------------------------- | --------------------- | -------------------------- |
+| `trade`, `action: 'buy'`  | `predictionPlaced`    | `amount`, direction `out`  |
+| `trade`, `action: 'sell'` | `predictionCashedOut` | `amount`, direction `in`   |
+| `settlement`              | `predictionSettled`   | `proceeds`, direction `in` |
 
 - Legacy Polymarket keeps `predictionClaimWinnings` until PRED-1356. Canonical types never use "claim winnings".
 - `eventTitle` and `icon` come from `context` when present.
 - `status` is `success`, because canonical Activity contains only executed Trades and completed Settlements.
 - `hash` carries the canonical `id`, not a transaction hash.
-- Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. PRED-1405 resolves this with the `@metamask/client-utils` owners.
+- `predictionSettled` items also carry `outcomeLabel`, `marketQuestion`, `side`, `result`, `shares` and `realizedPnl` (when present) as plain decimal strings, so the details screen renders a Settlement without a lookup.
+- Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. Kalshi items use the venue constant `KALSHI_VENUE_CHAIN_ID` (`kalshi:mainnet`) from `app/util/activity-adapters`, which only keys the details source. Rows hide the network badge for `prediction*` kinds, and only `eip155:` chains get a hex chain ID or a transaction fetch.
+- Mobile declares `predictionSettled` locally in `app/util/activity-adapters/types.ts` (PRED-1405) and upstreams it to `@metamask/client-utils` in parallel. The local entry is deleted when a client-utils bump brings the kind in.
 
 ## Open decisions for product
 
@@ -752,13 +763,14 @@ The Predict User bought 50 contracts at 0.55 with a 0.78 fee, so the cost basis 
 
 ### Venue catalog
 
-Feed keys are illustrative. PRED-1376 owns the vocabulary.
+The Kalshi V1 catalog PRED-1376 ships as static client config. `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
 
 ```json
 {
   "venueId": "kalshi",
   "actions": ["buy", "sell"],
   "feeds": {
+    "sports": "sports-football-nfl-games",
     "nfl-games": "sports-football-nfl-games",
     "nfl-props": "sports-football-nfl-win-totals",
     "college-football-games": "sports-football-ncaa-games",

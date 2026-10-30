@@ -67,9 +67,16 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
-  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
+  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect).
+  // RECEIVED is the funnel entry point; exactly one of ESTABLISHED / REJECTED /
+  // FAILED is the terminal outcome, which is what makes connection success rate
+  // computable per `transport_type`. REJECTED (user declined) is kept separate
+  // from FAILED (wallet/transport error) so user intent is not counted as a
+  // reliability failure.
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
   REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
+  REMOTE_CONNECTION_REQUEST_REJECTED = 'Remote Connection Request Rejected',
+  REMOTE_CONNECTION_ESTABLISHED = 'Remote Connection Established',
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
@@ -731,7 +738,6 @@ enum EVENT_NAME {
   REWARDS_OPT_OUT_COMPLETED = 'Rewards Opt Out Completed',
   REWARDS_OPT_OUT_FAILED = 'Rewards Opt Out Failed',
   REWARDS_PAGE_BUTTON_CLICKED = 'Rewards Page Button Clicked',
-  REWARDS_REFERRALS_VIEWED = 'Rewards Referrals Viewed',
   REWARDS_MONEY_REFERRAL_CODE_SHARED = 'Rewards Money Referral Code Shared',
   REWARDS_MONEY_REFERRAL_OFFER_INTERACTED = 'Rewards Money Referral Offer Interacted',
   REWARDS_REWARD_CLAIMED = 'Rewards Reward Claimed',
@@ -821,6 +827,11 @@ enum EVENT_NAME {
   MONEY_ACCOUNT_CAMPAIGN_TRIGGERED = 'Money Account Campaign Triggered',
   MONEY_ONBOARDING_EVENT = 'Money Onboarding Event',
   MONEY_TOOLTIP_CLICKED = 'Money Tooltip Clicked',
+  MONEY_VBA_TRANSACTION_UPDATED = 'Money VBA Transaction Updated',
+
+  // KYC (virtual bank account onboarding)
+  KYC_VERIFICATION_UPDATED = 'KYC Verification Updated',
+  KYC_STATUS_UPDATED = 'KYC Status Updated',
 
   // Money VBA and KYC onboarding
   MONEY_VBA_VENDOR_TERMS_UPDATED = 'Money VBA Vendor Terms Updated',
@@ -985,6 +996,12 @@ const events = {
   ),
   REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
+  ),
+  REMOTE_CONNECTION_REQUEST_REJECTED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_REJECTED,
+  ),
+  REMOTE_CONNECTION_ESTABLISHED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_ESTABLISHED,
   ),
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
@@ -2106,7 +2123,6 @@ const events = {
   REWARDS_PAGE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.REWARDS_PAGE_BUTTON_CLICKED,
   ),
-  REWARDS_REFERRALS_VIEWED: generateOpt(EVENT_NAME.REWARDS_REFERRALS_VIEWED),
   REWARDS_MONEY_REFERRAL_CODE_SHARED: generateOpt(
     EVENT_NAME.REWARDS_MONEY_REFERRAL_CODE_SHARED,
   ),
@@ -2233,6 +2249,13 @@ const events = {
   ),
   MONEY_ONBOARDING_EVENT: generateOpt(EVENT_NAME.MONEY_ONBOARDING_EVENT),
   MONEY_TOOLTIP_CLICKED: generateOpt(EVENT_NAME.MONEY_TOOLTIP_CLICKED),
+  MONEY_VBA_TRANSACTION_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_TRANSACTION_UPDATED,
+  ),
+
+  // KYC (virtual bank account onboarding)
+  KYC_VERIFICATION_UPDATED: generateOpt(EVENT_NAME.KYC_VERIFICATION_UPDATED),
+  KYC_STATUS_UPDATED: generateOpt(EVENT_NAME.KYC_STATUS_UPDATED),
 
   // Money VBA and KYC onboarding
   MONEY_VBA_VENDOR_TERMS_UPDATED: generateOpt(

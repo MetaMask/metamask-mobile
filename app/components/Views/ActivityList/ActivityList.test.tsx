@@ -11,7 +11,7 @@ import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
-import { usePredictActivityItems } from './hooks/usePredictActivityItems';
+import { usePredictActivityItems } from '../../UI/PredictNext';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
@@ -239,7 +239,6 @@ jest.mock('../../../util/analytics/externalLinkTracking', () => ({
 }));
 
 jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
-  const ReactActual = jest.requireActual('react');
   const PriceChartContext = {
     Consumer: ({
       children,
@@ -540,7 +539,7 @@ jest.mock('./hooks/usePerpsActivityItems', () => ({
   usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
 }));
 
-jest.mock('./hooks/usePredictActivityItems', () => ({
+jest.mock('../../UI/PredictNext', () => ({
   usePredictActivityItems: jest.fn(() => mockPredictSourceState),
 }));
 
@@ -1683,7 +1682,6 @@ describe('ActivityList', () => {
 
   it('routes perps rows to ActivityDetails', () => {
     selectorValues.perpsEnabled = true;
-    const perpsTx = { id: 'fill-2', type: 'trade' };
     const perpsRedesignItem = {
       type: 'perpsOpenLong',
       chainId: 'eip155:42161',
@@ -1720,13 +1718,6 @@ describe('ActivityList', () => {
 
   it('routes predict rows to ActivityDetails', () => {
     selectorValues.predictEnabled = true;
-    const predictActivity = {
-      id: 'p1',
-      providerId: 'polymarket',
-      title: 'Will Spain win the 2026 FIFA World Cup?',
-      outcome: 'Yes',
-      entry: { type: 'buy', timestamp: 1_700_000_000, amount: 3, price: 0.42 },
-    };
     const predictListItem = {
       type: 'predictionPlaced',
       chainId: 'eip155:137',

@@ -7,6 +7,8 @@ import {
   findUsableAutoramp,
   resetMusdAutorampSetupGuard,
 } from './ensureMusdAutoramp';
+import { TraceName } from '../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from './vbaCufTrace';
 
 const mockHydrate = jest.fn();
 const mockRegister = jest.fn();
@@ -32,6 +34,13 @@ jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), log: jest.fn() },
 }));
+jest.mock('./vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'autoramp-setup-id'),
+  endVbaCufChildTrace: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
 
 const setAutoramps = (
   autoramps: {
@@ -71,6 +80,14 @@ describe('ensureMusdAutoramp', () => {
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
       'awaiting_provider',
+    );
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaAutorampSetup,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'autoramp-setup-id',
+      true,
+      undefined,
     );
     expect(mockCreate).not.toHaveBeenCalled();
 

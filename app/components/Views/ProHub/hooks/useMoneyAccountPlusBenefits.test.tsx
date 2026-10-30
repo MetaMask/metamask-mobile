@@ -83,7 +83,6 @@ const BENEFITS: SubscriptionBenefitsState = {
   },
   perps: {
     builderFeeBips: '0',
-    builderCode: 'code',
     capMicroUsd: 1_000_000_000,
     consumedMicroUsd: 240_000_000,
     remainingMicroUsd: 760_000_000,

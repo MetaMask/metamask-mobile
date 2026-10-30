@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
 
+import { buildRegressionActionsSlack } from './profiling-regression-actions.mjs';
 import { scenarioTeam } from './link-scenario-artifacts.mjs';
 
 export const SCHEDULED_BASELINE_HOURS = 7 * 24;
@@ -465,4 +466,24 @@ export function buildScheduledExceptionMarkdown(exception) {
     );
   }
   return lines.join('\n');
+}
+
+/**
+ * DM body for a scheduled finding that would have opened a GitHub issue.
+ * An all-clear returns an empty string so nothing is sent.
+ */
+export function buildIssueVerdictDm(exception, aiText = null) {
+  if (!exception?.meta?.hasFindings) {
+    return '';
+  }
+  const parts = [
+    buildScheduledExceptionSlack(exception),
+    '',
+    '_GitHub:_ no issue was opened. This message is the verdict only.',
+  ];
+  const proposal = buildRegressionActionsSlack(aiText);
+  if (proposal) {
+    parts.push('', proposal);
+  }
+  return parts.join('\n');
 }

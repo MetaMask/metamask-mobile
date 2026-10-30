@@ -42,6 +42,8 @@ let pointsCalculationCache: {
 export interface OrderFeesResult {
   /** Total fee in USD (protocol + MetaMask) */
   totalFee: number;
+  /** Total fee rate as decimal (protocol + MetaMask) - undefined means unavailable/error state */
+  totalFeeRate: number | undefined;
   /**
    * Total fee in USD **before** the MetaMask VIP discount is applied.
    * Equals `totalFee` when no discount is in effect. Consumers use this to
@@ -552,6 +554,7 @@ export function usePerpsOrderFees({
 
     return {
       totalFee,
+      totalFeeRate,
       undiscountedTotalFee,
       protocolFee,
       metamaskFee,

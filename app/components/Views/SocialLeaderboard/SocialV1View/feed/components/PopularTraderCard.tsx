@@ -4,6 +4,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Card,
   FontWeight,
   Text,
   TextColor,
@@ -35,14 +36,23 @@ export interface PopularTraderCardProps {
   testID?: string;
 }
 
-const AVATAR_SIZE = 48;
-export const POPULAR_TRADER_CARD_WIDTH = 156;
+const AVATAR_SIZE = 40;
+/** Figma card frame is 176px wide, including the 1px border. */
+export const POPULAR_TRADER_CARD_WIDTH = 176;
+
+/**
+ * Overrides `Card`'s filled defaults (`p-4 bg-section`) with the outlined
+ * tile. The 16px `rounded-2xl` corner stays the design-system default.
+ * Later utilities win in `tw.style`.
+ */
+export const POPULAR_TRADER_CARD_SURFACE = `w-[${POPULAR_TRADER_CARD_WIDTH}px] overflow-hidden border border-muted bg-transparent p-3`;
 
 /**
  * PopularTraderCard -- discovery tile for the Trending Popular traders rail.
  *
- * Vertical stack matching TSA-1145: avatar, name, abbreviated follower count,
- * Follow. The identity block is pressable independently of the follow button.
+ * Outlined stack from the North Star card: 40px avatar, name, medium
+ * follower count, and a 40px muted Follow button. The identity block is
+ * pressable independently of the follow button.
  */
 const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
   trader,
@@ -54,8 +64,8 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
   const followerLabel = formatFollowerCountLabel(trader.followerCount);
 
   return (
-    <Box
-      twClassName={`w-[${POPULAR_TRADER_CARD_WIDTH}px] rounded-xl overflow-hidden bg-muted`}
+    <Card
+      twClassName={`${POPULAR_TRADER_CARD_SURFACE} items-center gap-3`}
       testID={testID ?? getPopularTraderCardTestId(trader.id)}
     >
       <Pressable
@@ -69,15 +79,15 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
         accessibilityRole={onTraderPress ? 'button' : undefined}
         style={({ pressed }) =>
           tw.style(
-            'px-4 pt-4',
+            'w-full',
             pressed && onTraderPress ? 'bg-muted-pressed' : undefined,
           )
         }
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="gap-3">
+        <Box alignItems={BoxAlignItems.Center} gap={3}>
           <TraderAvatar
             imageUrl={trader.avatarUri}
-            address={trader.address}
+            address={trader.id}
             size={AVATAR_SIZE}
             testID={getPopularTraderCardAvatarTestId(trader.id)}
           />
@@ -93,6 +103,7 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
             </Text>
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
               numberOfLines={1}
             >
@@ -101,22 +112,18 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
           </Box>
         </Box>
       </Pressable>
-      <Box twClassName="px-4 pb-4 pt-3">
-        <Button
-          variant={
-            trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
-          }
-          size={ButtonSize.Sm}
-          isFullWidth
-          onPress={() => onFollowPress(trader.id)}
-          testID={getPopularTraderCardFollowTestId(trader.id)}
-        >
-          {trader.isFollowing
-            ? strings('social_leaderboard.following')
-            : strings('social_leaderboard.follow')}
-        </Button>
-      </Box>
-    </Box>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        isFullWidth
+        onPress={() => onFollowPress(trader.id)}
+        testID={getPopularTraderCardFollowTestId(trader.id)}
+      >
+        {trader.isFollowing
+          ? strings('social_leaderboard.following')
+          : strings('social_leaderboard.follow')}
+      </Button>
+    </Card>
   );
 };
 
