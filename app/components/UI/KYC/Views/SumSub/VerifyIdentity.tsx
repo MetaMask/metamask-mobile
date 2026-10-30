@@ -33,6 +33,7 @@ import { openExternalUrl } from '../../utils/openExternalUrl';
 import { strings } from '../../../../../../locales/i18n';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
+import { KycConsentVendor } from './kycConsentVendor';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 import {
   METAMASK_PRIVACY_POLICY_URL,
@@ -71,15 +72,23 @@ const VERIFICATION_STEPS = [
 
 interface VbaVerifyIdentityProps {
   onSuccess: () => void | Promise<void>;
+  /**
+   * Consent vendor. Defaults to VBA so existing call sites keep today's sheet.
+   * Kalshi adds Socure's terms and a separate biometric processing consent.
+   */
+  vendor?: KycConsentVendor;
 }
 
 /**
  * Provider terms step of identity verification. The footer links MetaMask's
  * Terms and Conditions and Privacy Policy, which the user accepts with
  * Agree & Continue. That opens the "Data and privacy" sheet with the idOS and
- * SumSub documents; agreeing there calls `onSuccess`.
+ * SumSub documents; agreeing there calls `onSuccess`. `vendor` defaults to VBA.
  */
-const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
+const VbaVerifyIdentity = ({
+  onSuccess,
+  vendor = KycConsentVendor.Vba,
+}: VbaVerifyIdentityProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
@@ -248,6 +257,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
           disclaimers={disclaimers}
           onAgree={onSuccess}
           onClose={closeTermsSheet}
+          vendor={vendor}
         />
       ) : null}
     </Box>

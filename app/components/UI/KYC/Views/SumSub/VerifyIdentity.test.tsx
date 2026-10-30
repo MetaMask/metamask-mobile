@@ -10,6 +10,12 @@ import {
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
+import {
+  KycConsentVendor,
+  SOCURE_BIOMETRIC_PROCESSING_AGREEMENT_URL,
+  SOCURE_PRIVACY_NOTICE_URL,
+  SOCURE_TERMS_OF_USE_URL,
+} from './kycConsentVendor';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -98,8 +104,10 @@ const catalogDisclaimers = [
   },
 ];
 
-const renderScreen = () =>
-  renderWithProvider(<VbaVerifyIdentity onSuccess={mockOnSuccess} />);
+const renderScreen = (vendor: KycConsentVendor = KycConsentVendor.Vba) =>
+  renderWithProvider(
+    <VbaVerifyIdentity onSuccess={mockOnSuccess} vendor={vendor} />,
+  );
 
 const openTermsSheet = (
   getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
@@ -368,7 +376,7 @@ describe('VbaVerifyIdentity', () => {
     });
 
     it('shows the four legal documents in order with their labels', () => {
-      const { getByTestId, getAllByTestId } = renderScreen();
+      const { getByTestId, getAllByTestId, queryByTestId } = renderScreen();
 
       openTermsSheet(getByTestId);
 
@@ -378,6 +386,12 @@ describe('VbaVerifyIdentity', () => {
         'idOS Transparency Document',
         'Sumsub Privacy Notice',
       ]);
+      expect(
+        queryByTestId(VbaVerifyIdentitySelectorsIDs.SOCURE_TERMS_ROW),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX),
+      ).not.toBeOnTheScreen();
     });
 
     it('hides catalog documents legal did not ask for', () => {
@@ -474,6 +488,151 @@ describe('VbaVerifyIdentity', () => {
       queryByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
     ).not.toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  describe('with the Kalshi vendor', () => {
+    const legalCatalog = [
+      {
+        id: 'idOS:end_user_agreement',
+        key: 'end_user_agreement',
+        version: '1',
+        title: 'idOS End User Agreement v2',
+        url: 'https://idos.example/eua',
+      },
+      {
+        id: 'idOS:privacy_notice',
+        key: 'privacy_notice',
+        version: '1',
+        title: 'idOS Privacy Notice',
+        url: 'https://idos.example/privacy-notice',
+      },
+      {
+        id: 'idOS:transparency_document',
+        key: 'transparency_document',
+        version: '1',
+        title: 'idOS Transparency Document',
+        url: 'https://idos.example/transparency',
+      },
+      {
+        id: 'kycProvider:notice_of_personal_data_processing',
+        key: 'notice_of_personal_data_processing',
+        version: '1',
+        title: 'Notice of Personal Data Processing',
+        url: 'https://sumsub.example/personal-data',
+      },
+    ];
+
+    const renderKalshi = () => renderScreen(KycConsentVendor.Kalshi);
+
+    beforeEach(() => {
+      mockUseKycSessionDisclaimers.mockReturnValue({
+        disclaimers: legalCatalog,
+        isLoading: false,
+        error: null,
+        retry: mockRetry,
+      });
+    });
+
+    it('adds the Socure terms row after the four VBA documents', () => {
+      const { getByTestId, getAllByTestId } = renderKalshi();
+
+      openTermsSheet(getByTestId);
+
+      const rows = getAllByTestId(
+        /^vba-verify-identity-(disclaimer-link-.+|socure-terms-row)$/,
+      );
+
+      expect(rows.map((row) => row.props.testID)).toEqual([
+        `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:end_user_agreement`,
+        `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:privacy_notice`,
+        `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:transparency_document`,
+        `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-kycProvider:notice_of_personal_data_processing`,
+        VbaVerifyIdentitySelectorsIDs.SOCURE_TERMS_ROW,
+      ]);
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.SOCURE_TERMS_LINK),
+      ).toHaveTextContent('Socure Terms of Use');
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.SOCURE_PRIVACY_LINK),
+      ).toHaveTextContent('Privacy Notice');
+    });
+
+    it('opens the Socure terms and privacy URLs from the fifth row', () => {
+      const openUrlSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const { getByTestId } = renderKalshi();
+
+      openTermsSheet(getByTestId);
+      fireEvent.press(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.SOCURE_TERMS_LINK),
+      );
+      fireEvent.press(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.SOCURE_PRIVACY_LINK),
+      );
+
+      expect(openUrlSpy.mock.calls).toEqual([
+        [SOCURE_TERMS_OF_USE_URL],
+        [SOCURE_PRIVACY_NOTICE_URL],
+      ]);
+    });
+
+    it('keeps Agree disabled until both consent checkboxes are ticked', () => {
+      const { getByTestId } = renderKalshi();
+
+      openTermsSheet(getByTestId);
+
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX)
+          .props.accessibilityState,
+      ).toEqual(expect.objectContaining({ checked: false }));
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX).props
+          .accessibilityState,
+      ).toEqual(expect.objectContaining({ checked: false }));
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+      ).toBeDisabled();
+
+      toggleBiometricConsent(getByTestId);
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+      ).toBeDisabled();
+
+      fireEvent.press(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX),
+      );
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+      ).toBeEnabled();
+
+      fireEvent.press(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX),
+      );
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+      ).toBeDisabled();
+    });
+
+    it('opens the Biometric Processing Agreement placeholder from the BPA consent', () => {
+      const openUrlSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const { getByTestId } = renderKalshi();
+
+      openTermsSheet(getByTestId);
+      fireEvent.press(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_LINK),
+      );
+
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        SOCURE_BIOMETRIC_PROCESSING_AGREEMENT_URL,
+      );
+      expect(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX).props
+          .accessibilityState,
+      ).toEqual(expect.objectContaining({ checked: false }));
+    });
   });
 
   it('stays on the introduction when the sheet is dismissed without agreeing', () => {

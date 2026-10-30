@@ -25,6 +25,12 @@ import {
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import {
+  KycConsentVendor,
+  SOCURE_BIOMETRIC_PROCESSING_AGREEMENT_URL,
+  SOCURE_PRIVACY_NOTICE_URL,
+  SOCURE_TERMS_OF_USE_URL,
+} from './kycConsentVendor';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_ID,
@@ -89,17 +95,78 @@ const TermsLinkRow = ({ link }: { link: TermsLink }) => {
   );
 };
 
+/**
+ * Socure publishes terms and privacy as two URLs under one legal label.
+ * Each phrase opens its URL with the same browser helper as the other rows.
+ */
+const SocureTermsRow = () => {
+  const browserHint = strings(
+    'virtual_bank_account.verify_identity.opens_in_browser_hint',
+  );
+  const openTermsOfUse = useCallback(
+    () => openExternalUrl(SOCURE_TERMS_OF_USE_URL),
+    [],
+  );
+  const openPrivacyNotice = useCallback(
+    () => openExternalUrl(SOCURE_PRIVACY_NOTICE_URL),
+    [],
+  );
+
+  return (
+    <ListItem
+      variant={ContentVariant.OneLine}
+      endAccessory={<Icon name={IconName.Arrow2UpRight} />}
+      testID={VbaVerifyIdentitySelectorsIDs.SOCURE_TERMS_ROW}
+      title={
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          <TextButton
+            variant={TextVariant.BodyMd}
+            onPress={openTermsOfUse}
+            accessibilityRole="link"
+            accessibilityHint={browserHint}
+            testID={VbaVerifyIdentitySelectorsIDs.SOCURE_TERMS_LINK}
+          >
+            {strings(
+              'virtual_bank_account.verify_identity.terms_link_socure_terms_of_use',
+            )}
+          </TextButton>
+          {strings(
+            'virtual_bank_account.verify_identity.terms_link_socure_and',
+          )}
+          <TextButton
+            variant={TextVariant.BodyMd}
+            onPress={openPrivacyNotice}
+            accessibilityRole="link"
+            accessibilityHint={browserHint}
+            testID={VbaVerifyIdentitySelectorsIDs.SOCURE_PRIVACY_LINK}
+          >
+            {strings(
+              'virtual_bank_account.verify_identity.terms_link_socure_privacy_notice',
+            )}
+          </TextButton>
+        </Text>
+      }
+    />
+  );
+};
+
 interface VbaProviderTermsSheetProps {
   /** idOS and SumSub documents from `useKycSessionDisclaimers`. */
   disclaimers: KycCatalogDisclaimerLink[];
   onAgree: () => void;
   onClose: () => void;
+  /**
+   * Consent vendor. Defaults to VBA. Kalshi adds Socure's terms row and a
+   * separate Biometric Processing Agreement checkbox.
+   */
+  vendor?: KycConsentVendor;
 }
 
 /**
  * "Data and privacy" confirm sheet over Verify your identity. idOS needs an
  * explicit, separate biometric consent before any data is collected, so Agree
- * stays disabled until the consent checkbox is ticked. Agreeing closes the sheet,
+ * stays disabled until the consent checkbox is ticked. The Kalshi vendor also
+ * requires Socure's Biometric Processing Agreement. Agreeing closes the sheet,
  * then hands off to the provider step, which records the session consents and
  * launches SumSub back-to-back.
  */
@@ -107,15 +174,26 @@ const VbaProviderTermsSheet = ({
   disclaimers,
   onAgree,
   onClose,
+  vendor = KycConsentVendor.Vba,
 }: VbaProviderTermsSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [hasBiometricConsent, setHasBiometricConsent] = useState(false);
+  const [hasBpaConsent, setHasBpaConsent] = useState(false);
+  const isKalshiVendor = vendor === KycConsentVendor.Kalshi;
 
   // Stop the press reaching the Checkbox so opening the notice doesn't tick it.
   const openIdosPrivacyNotice = useCallback((event?: GestureResponderEvent) => {
     event?.stopPropagation?.();
     openExternalUrl(IDOS_PRIVACY_NOTICE_URL);
   }, []);
+
+  const openBiometricProcessingAgreement = useCallback(
+    (event?: GestureResponderEvent) => {
+      event?.stopPropagation?.();
+      openExternalUrl(SOCURE_BIOMETRIC_PROCESSING_AGREEMENT_URL);
+    },
+    [],
+  );
 
   useScreenPerformance({
     config: KYC_SCREEN_PERFORMANCE_CONFIG,
@@ -155,8 +233,9 @@ const VbaProviderTermsSheet = ({
           {links.map((link) => (
             <TermsLinkRow key={link.id} link={link} />
           ))}
+          {isKalshiVendor ? <SocureTermsRow /> : null}
         </Box>
-        <Box twClassName="px-4">
+        <Box twClassName="gap-4 px-4">
           <Checkbox
             isSelected={hasBiometricConsent}
             onChange={setHasBiometricConsent}
@@ -193,6 +272,42 @@ const VbaProviderTermsSheet = ({
               </Box>
             }
           />
+          {isKalshiVendor ? (
+            <Checkbox
+              isSelected={hasBpaConsent}
+              onChange={setHasBpaConsent}
+              accessibilityLabel={`${strings(
+                'virtual_bank_account.verify_identity.socure_bpa_consent_label',
+              )}${strings(
+                'virtual_bank_account.verify_identity.socure_bpa_consent_link',
+              )}${strings(
+                'virtual_bank_account.verify_identity.socure_bpa_consent_label_end',
+              )}`}
+              testID={VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_CHECKBOX}
+              label={
+                <Box twClassName="ml-3 flex-1">
+                  <Text variant={TextVariant.BodyMd}>
+                    {strings(
+                      'virtual_bank_account.verify_identity.socure_bpa_consent_label',
+                    )}
+                    <TextButton
+                      variant={TextVariant.BodyMd}
+                      onPress={openBiometricProcessingAgreement}
+                      accessibilityRole="link"
+                      testID={VbaVerifyIdentitySelectorsIDs.BPA_CONSENT_LINK}
+                    >
+                      {strings(
+                        'virtual_bank_account.verify_identity.socure_bpa_consent_link',
+                      )}
+                    </TextButton>
+                    {strings(
+                      'virtual_bank_account.verify_identity.socure_bpa_consent_label_end',
+                    )}
+                  </Text>
+                </Box>
+              }
+            />
+          ) : null}
         </Box>
       </Box>
       <BottomSheetFooter
@@ -202,7 +317,8 @@ const VbaProviderTermsSheet = ({
             'virtual_bank_account.verify_identity.terms_sheet_button',
           ),
           size: ButtonSize.Lg,
-          isDisabled: !hasBiometricConsent,
+          isDisabled:
+            !hasBiometricConsent || (isKalshiVendor && !hasBpaConsent),
           onPress: handleAgree,
           testID: VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON,
         }}
