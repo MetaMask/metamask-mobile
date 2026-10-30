@@ -156,6 +156,18 @@ describe('SocialFeedPositionCard', () => {
       screen.getByTestId(getSocialFeedPositionCardCommentTestId(item.id)),
     ).toHaveTextContent('Leverage is a lifestyle.');
     expect(
+      StyleSheet.flatten(
+        screen.getByTestId(getSocialFeedPositionCardCommentTestId(item.id))
+          .props.style,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        fontSize: 14,
+        lineHeight: 22,
+        fontFamily: 'Inter-Regular',
+      }),
+    );
+    expect(
       screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
     ).toBeOnTheScreen();
     expect(
@@ -166,6 +178,17 @@ describe('SocialFeedPositionCard', () => {
     expect(statValue(item.id, 'entry')).toBe('$107,675');
     expect(statValue(item.id, 'holdTime')).toBe('1d 18h');
     expect(statValue(item.id, 'cost')).toBe('$212,000.00');
+    expect(
+      StyleSheet.flatten(
+        screen.getByText('social_leaderboard.feed.position_card.copy_trade')
+          .props.style,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        fontSize: 14,
+        lineHeight: 22,
+      }),
+    );
   });
 
   it('drops the auto-close row from the open perps card', () => {

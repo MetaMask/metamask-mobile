@@ -13,6 +13,7 @@ import {
   selectCardForgotPasswordFeatureEnabled,
   selectImmersveOnboardingEnabled,
   selectCardTransactionHistoryEnabled,
+  selectCardImmersveMfaEnabled,
   selectCardIntercomSupportEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
@@ -1013,6 +1014,70 @@ describe('selectCardTransactionHistoryEnabled', () => {
 
     // resultFunc bypasses createSelector memoization after env changes.
     expect(selectCardTransactionHistoryEnabled.resultFunc({})).toBe(true);
+  });
+});
+
+describe('selectCardImmersveMfaEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags,
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    }) as Parameters<typeof selectCardImmersveMfaEnabled>[0];
+
+  beforeEach(() => {
+    delete process.env.MM_CARD_IMMERSVE_MFA_ENABLED;
+  });
+
+  it('returns true when the flag is enabled and the version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    expect(
+      selectCardImmersveMfaEnabled(
+        stateWithFlags({
+          cardImmersveMfa: { enabled: true, minimumVersion: '7.0.0' },
+        }),
+      ),
+    ).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when the flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    expect(
+      selectCardImmersveMfaEnabled(
+        stateWithFlags({
+          cardImmersveMfa: { enabled: false, minimumVersion: '7.0.0' },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when the flag is absent and env is unset', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    expect(selectCardImmersveMfaEnabled(mockedEmptyFlagsState)).toBe(false);
+  });
+
+  it('falls back to env when the remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_IMMERSVE_MFA_ENABLED = 'true';
+
+    expect(selectCardImmersveMfaEnabled.resultFunc({})).toBe(true);
   });
 });
 

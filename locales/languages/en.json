@@ -1700,11 +1700,20 @@
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
       "joined": "Joined {{time}}",
+      "x_link": "X",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
       "retry": "Try again"
+    },
+    "terms": {
+      "title": "Review our Terms of Use",
+      "close": "Close",
+      "checkbox": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+      "agree": "Agree",
+      "scroll_helper": "Please scroll to read all sections",
+      "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
     "profile_onboarding": {
       "intro_title": "See trades as they happen",
@@ -1714,6 +1723,8 @@
       "just_now": "just now",
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
+      "connect_x_before_logo": "Connect",
+      "connect_x_after_logo": "account",
       "create_manually": "Create profile manually",
       "choose_x_identity": "Choose a MetaMask username and avatar",
       "choose_x_identity_description": "This is how other traders will know who you are.",
@@ -1746,10 +1757,6 @@
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Select an account",
-      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
-      "link_account_benefit_private": "Your account address stays private.",
-      "link_account_benefit_follow": "Other traders can follow your profile.",
-      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
       "link_account_change_footnote": "You can change your linked account every 30 days.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
@@ -1759,6 +1766,13 @@
       "lets_go": "Let's go",
       "continue": "Continue"
     },
+    "trading_activity_benefits": {
+      "positions": "Your profile shows all of this account's positions.",
+      "performance": "Trade performance, including profit and win rate, covers the last 30 days.",
+      "fees": "Earn 15% on fees when someone copies your trades.",
+      "private": "Your account address stays private.",
+      "follow": "Other traders can follow your profile."
+    },
     "manage_profile": {
       "title": "Manage profile",
       "about": "About",
@@ -1766,7 +1780,7 @@
       "display_name": "Display name",
       "handle": "Handle",
       "bio": "Bio",
-      "socials": "Socials",
+      "x_account": "X account",
       "trading_activity": "Trading activity",
       "trading_activity_on": "On",
       "trading_activity_off": "Off",
@@ -1780,7 +1794,6 @@
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
-      "show_trading_activity_subtitle": "Public and available to copy",
       "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
       "trading_activity_info": "More information about trading activity",
       "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
@@ -5698,7 +5711,9 @@
         "title": "Social Leaderboard",
         "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
         "onboarding_seen": "Onboarding seen: {{seen}}",
-        "reset_onboarding": "Reset onboarding"
+        "reset_onboarding": "Reset onboarding",
+        "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
+        "reset_terms": "Reset Social Terms of Use"
       },
       "new_wallet": {
         "title": "New wallet",
@@ -11870,6 +11885,28 @@
       "try_again": "Try again",
       "reset_success": "Password reset successful"
     },
+    "mfa": {
+      "method_title": "Verify it's you",
+      "method_description": "Choose where to send a code, then enter the full phone number or email.",
+      "method_phone": "Text message",
+      "method_email": "Email",
+      "phone_label": "Phone number",
+      "email_label": "Email",
+      "country_code": "Country code",
+      "country_code_label": "Country code, +{{code}}",
+      "continue": "Continue",
+      "code_title": "Enter your code",
+      "code_description": "Enter the code sent to {{destination}}.",
+      "start_over": "Start over",
+      "errors": {
+        "destination_mismatch": "That doesn't match the contact on your account. Check it and try again.",
+        "invalid_code": "That code is incorrect. Try again.",
+        "code_expired": "That code expired. Start over to get a new one.",
+        "attempts_exceeded": "Too many incorrect codes. Start over to try again.",
+        "restart_required": "Verification needs to start over.",
+        "no_verified_contact": "This account has no verified phone number or email to send a code to."
+      }
+    },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
@@ -12237,12 +12274,12 @@
       "apply_success": "Bonus code applied!"
     },
     "optout": {
-      "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
+      "title": "Opt out of Rewards campaigns",
+      "description": "This removes your accounts from Rewards campaigns and benefits, and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
       "erase_button": "Erase progress",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "confirmation_description": "This will erase your progress in Rewards campaigns and benefits, and can't be reversed. If you rejoin later, you'll start back at 0.",
         "type_to_confirm": "Type 'erase progress' to continue",
         "confirm_phrase": "erase progress",
         "cancel": "Cancel",

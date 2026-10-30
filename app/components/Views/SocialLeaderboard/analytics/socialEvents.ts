@@ -105,6 +105,7 @@ export const SocialEvent = {
   },
   Step: {
     INTRO: 'intro',
+    TERMS: 'terms',
     USERNAME: 'username',
     X_IDENTITY: 'x_identity',
     AVATAR: 'avatar',
