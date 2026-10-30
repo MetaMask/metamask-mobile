@@ -23,6 +23,3 @@ export const isComposerCommentValid = (text: string): boolean => {
   }
   return !commentContainsUrl(trimmed);
 };
-
-export const clipComposerComment = (text: string): string =>
-  text.slice(0, COMPOSER_COMMENT_MAX_LENGTH);
