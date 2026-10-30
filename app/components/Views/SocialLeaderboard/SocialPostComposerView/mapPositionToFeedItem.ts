@@ -12,6 +12,12 @@ import {
   isClosedPosition,
   isPerpPosition,
 } from '../../../UI/SocialFeed/utils/perp';
+import {
+  deriveAverageEntryPrice,
+  deriveExitPrice,
+  deriveMarketCapPerPrice,
+  toMarketCapLabel,
+} from '../../../UI/SocialFeed/utils/toSocialV1FeedItem';
 import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
 import type {
   SocialV1FeedAuthor,
@@ -25,6 +31,9 @@ const leverageLabel = (position: Position): string | undefined => {
   }
   return `${position.perpLeverage}x`;
 };
+
+const unitPriceLabel = (price: number | null): string | undefined =>
+  price == null ? undefined : formatTradeUnitPrice(price);
 
 const entryPriceLabel = (position: Position): string | undefined => {
   const amount = Math.abs(
@@ -177,6 +186,35 @@ export const mapPositionToFeedItem = (
   }
 
   const side = position.positionAmount < 0 ? 'sell' : 'buy';
+
+  if (closed) {
+    const entryPrice = deriveAverageEntryPrice(position);
+    const exitPrice = deriveExitPrice(position);
+    const marketCapPerPrice = deriveMarketCapPerPrice(position);
+    return {
+      id,
+      author,
+      timestamp,
+      variant: 'spotClosed',
+      comment,
+      asset: { symbol: displaySymbol, avatar },
+      side,
+      entryPriceLabel: unitPriceLabel(entryPrice),
+      entryMarketCapLabel: toMarketCapLabel(marketCapPerPrice, entryPrice),
+      exitPriceLabel: unitPriceLabel(exitPrice),
+      exitMarketCapLabel: toMarketCapLabel(marketCapPerPrice, exitPrice),
+      holdTimeLabel: holdTimeLabel(position, true),
+      closedAtMs: position.lastTradeAt
+        ? tradeTimestampToMs(position.lastTradeAt)
+        : undefined,
+      valueLabel: formatSignedUsd(position.realizedPnl),
+      pnlLabel,
+      pnlValueLabel: pnlValueLabel(position),
+      costLabel: costLabel(position),
+      isPnlPositive,
+    };
+  }
+
   return {
     id,
     author,
@@ -186,15 +224,13 @@ export const mapPositionToFeedItem = (
     asset: { symbol: displaySymbol, avatar },
     side,
     markPriceLabel: markPriceLabel(position),
-    valueLabel: closed
-      ? formatSignedUsd(position.realizedPnl)
-      : formatUsd(position.currentValueUSD ?? null),
+    valueLabel: formatUsd(position.currentValueUSD ?? null),
     pnlLabel,
     pnlValueLabel: pnlValueLabel(position),
     costLabel: costLabel(position),
     isPnlPositive,
     entryPriceLabel: entryPriceLabel(position),
-    holdTimeLabel: holdTimeLabel(position, closed),
-    showCopyTrade: !closed,
+    holdTimeLabel: holdTimeLabel(position, false),
+    showCopyTrade: true,
   };
 };

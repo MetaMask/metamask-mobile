@@ -119,7 +119,7 @@ export const deriveMarketCapPerPrice = (core: Position): number | null => {
   return null;
 };
 
-const toMarketCapLabel = (
+export const toMarketCapLabel = (
   marketCapPerPrice: number | null,
   price: number | null,
 ): string | undefined =>

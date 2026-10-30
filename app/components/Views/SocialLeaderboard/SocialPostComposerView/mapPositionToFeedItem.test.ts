@@ -1,7 +1,10 @@
 import type { Position } from '@metamask/social-controllers';
+import { isCopyTradeable } from '../../../UI/SocialFeed/utils/copyTrade';
 import { mapPositionToFeedItem } from './mapPositionToFeedItem';
 
 jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
+  formatAbbreviatedUsd: (value: number | null | undefined) =>
+    value == null ? '—' : `$${value}`,
   formatPercent: (value: number | null | undefined) =>
     value == null ? '—' : `${value}%`,
   formatSignedUsd: (value: number | null | undefined) =>
@@ -52,6 +55,40 @@ const openSpot: Position = {
   currentValueUSD: 720,
   pnlValueUsd: 278,
   pnlPercent: 0.02,
+};
+
+const closedSpot: Position = {
+  ...openSpot,
+  positionAmount: 0,
+  isOpen: false,
+  boughtUsd: 1000,
+  soldUsd: 1250,
+  realizedPnl: 250,
+  costBasis: 0,
+  currentValueUSD: 0,
+  pnlValueUsd: 250,
+  pnlPercent: 25,
+  trades: [
+    {
+      direction: 'buy',
+      intent: 'enter',
+      tokenAmount: 0.5,
+      usdCost: 1000,
+      marketCap: 1_000_000_000,
+      timestamp: 1_700_000_000,
+      transactionHash: '0x1',
+    },
+    {
+      direction: 'sell',
+      intent: 'exit',
+      tokenAmount: 0.5,
+      usdCost: 1250,
+      marketCap: 1_250_000_000,
+      timestamp: 1_700_003_600,
+      transactionHash: '0x2',
+    },
+  ],
+  lastTradeAt: 1_700_003_600,
 };
 
 const openPerp: Position = {
@@ -117,19 +154,34 @@ describe('mapPositionToFeedItem', () => {
     expect(item.isPnlPositive).toBe(true);
   });
 
-  it('maps a closed spot position without copy trade', () => {
+  it('maps a closed spot position to the closed card without copy trade', () => {
     const item = mapPositionToFeedItem(
       { ...openSpot, realizedPnl: -12, currentValueUSD: 0 },
       'closed spot',
       { isClosed: true },
     );
 
-    expect(item.variant).toBe('spotShare');
-    if (item.variant !== 'spotShare') {
+    expect(item.variant).toBe('spotClosed');
+    expect(isCopyTradeable(item)).toBe(false);
+    expect(item.isPnlPositive).toBe(false);
+  });
+
+  it('maps a closed spot position with the entry, exit and market cap from its fills', () => {
+    const item = mapPositionToFeedItem(closedSpot, 'closed spot', {
+      isClosed: true,
+    });
+
+    expect(item.variant).toBe('spotClosed');
+    if (item.variant !== 'spotClosed') {
       return;
     }
-    expect(item.showCopyTrade).toBe(false);
-    expect(item.isPnlPositive).toBe(false);
+    expect(item.entryPriceLabel).toBe('$2000');
+    expect(item.entryMarketCapLabel).toBe('$1000000000');
+    expect(item.exitPriceLabel).toBe('$2500');
+    expect(item.exitMarketCapLabel).toBe('$1250000000');
+    expect(item.closedAtMs).toBe(1_700_003_600_000);
+    expect(item.valueLabel).toBe('$250');
+    expect(item.costLabel).toBe('$1000');
   });
 
   it('maps a short spot side from a negative position amount', () => {
@@ -185,8 +237,8 @@ describe('mapPositionToFeedItem', () => {
       { isClosed: true },
     );
 
-    expect(item.variant).toBe('spotShare');
-    if (item.variant !== 'spotShare') {
+    expect(item.variant).toBe('spotClosed');
+    if (item.variant !== 'spotClosed') {
       return;
     }
     expect(item.holdTimeLabel).toBeTruthy();

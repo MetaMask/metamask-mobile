@@ -38,6 +38,7 @@ import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeT
 import { SocialLivePricesContext } from '../live/SocialLivePricesContext';
 import { SocialLivePriceStore } from '../live/SocialLivePriceStore';
 import type { SocialLivePriceSource } from '../live/types';
+import type { SocialV1PerpsOpenFeedItem } from '../types';
 
 const mockNavigate = jest.fn();
 const mockGate = jest.fn((action: () => Promise<void> | void) =>
@@ -204,7 +205,7 @@ describe('SocialFeedPositionCard', () => {
   });
 
   it('forwards the open spot item when Copy trade is pressed', () => {
-    const item = mockOpenSpotFeedItem();
+    const item = mockOpenSpotFeedItem({ comment: 'Small bag, big hopes.' });
     const onCopyTrade = jest.fn();
 
     renderWithProvider(
@@ -434,7 +435,7 @@ describe('SocialFeedPositionCard', () => {
   });
 
   it('renders the open spot card with entry, hold time, cost and copy trade', () => {
-    const item = mockOpenSpotFeedItem();
+    const item = mockOpenSpotFeedItem({ comment: 'Small bag, big hopes.' });
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
 
@@ -454,6 +455,7 @@ describe('SocialFeedPositionCard', () => {
   describe('spot market cap', () => {
     it('quotes the open spot card in market cap', () => {
       const item = mockOpenSpotFeedItem({
+        comment: 'Small bag, big hopes.',
         marketCapLabel: '$1.2M',
         entryMarketCapLabel: '$800K',
       });
@@ -470,6 +472,7 @@ describe('SocialFeedPositionCard', () => {
 
     it('falls back to price when the fills recorded no market cap', () => {
       const item = mockOpenSpotFeedItem({
+        comment: 'Small bag, big hopes.',
         marketCapLabel: undefined,
         entryMarketCapLabel: undefined,
       });
@@ -482,6 +485,7 @@ describe('SocialFeedPositionCard', () => {
 
     it('quotes the closed spot card entry and exit in market cap', () => {
       const item = mockClosedSpotFeedItem({
+        comment: 'Settled into the bag.',
         entryMarketCapLabel: '$800K',
         exitMarketCapLabel: '$1.1M',
       });
@@ -494,7 +498,7 @@ describe('SocialFeedPositionCard', () => {
   });
 
   it('renders the closed spot card with entry, exit and cost but no copy trade', () => {
-    const item = mockClosedSpotFeedItem();
+    const item = mockClosedSpotFeedItem({ comment: 'Settled into the bag.' });
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
 
@@ -755,10 +759,14 @@ describe('SocialFeedPositionCard', () => {
       marketCapPerPrice: null,
     };
 
-    const renderLive = (store: SocialLivePriceStore) => {
+    const renderLive = (
+      store: SocialLivePriceStore,
+      overrides: Partial<SocialV1PerpsOpenFeedItem> = {},
+    ) => {
       const item = mockOpenPerpsFeedItem({
         markPriceLabel: '$100,000',
         live: liveSource,
+        ...overrides,
       });
       renderWithProvider(
         <SocialLivePricesContext.Provider
@@ -835,6 +843,17 @@ describe('SocialFeedPositionCard', () => {
       expect(screen.getByLabelText('+$3K')).toBeOnTheScreen();
       expect(screen.getByLabelText('+30.00%')).toBeOnTheScreen();
     });
+
+    it('keeps the live ticker on an open card without a comment', () => {
+      const store = new SocialLivePriceStore(0);
+      renderLive(store, { comment: undefined });
+
+      act(() => {
+        store.publish('perp:BTC', 101_000);
+      });
+
+      expect(screen.getByLabelText('$101,000')).toBeOnTheScreen();
+    });
   });
 
   it('renders the position body without the post author header', () => {
@@ -846,5 +865,97 @@ describe('SocialFeedPositionCard', () => {
       screen.queryByTestId(getSocialFeedPostAuthorTestId(item.id)),
     ).toBeNull();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
+  });
+
+  describe('position card modes', () => {
+    const shellBorderWidth = () =>
+      StyleSheet.flatten(screen.getByTestId('position-card-shell').props.style)
+        .borderWidth;
+
+    it('keeps the stats, divider, and copy trade on an open card with a comment', () => {
+      const item = mockOpenSpotFeedItem({ comment: 'Small bag, big hopes.' });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        screen.getByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'entry'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      ).toBeOnTheScreen();
+      expect(shellBorderWidth()).toBe(1);
+    });
+
+    it('keeps the stats and divider on a closed card with a comment but offers no copy trade', () => {
+      const item = mockClosedSpotFeedItem({ comment: 'Settled into the bag.' });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        screen.getByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'exit'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      ).toBeNull();
+      expect(shellBorderWidth()).toBe(2);
+    });
+
+    it('drops the stats, divider, and copy trade from an open card without a comment', () => {
+      const item = mockOpenSpotFeedItem();
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(screen.getByText('PUMP')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'entry'),
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      ).toBeNull();
+      expect(shellBorderWidth()).toBe(1);
+    });
+
+    it('drops the stats and divider from a closed card without a comment', () => {
+      const item = mockClosedSpotFeedItem({ closedAtMs: Date.now() });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(screen.getByText('AAPL')).toBeOnTheScreen();
+      expect(
+        screen.getByText('social_leaderboard.feed.position_card.sold_ago'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'exit'),
+        ),
+      ).toBeNull();
+      expect(shellBorderWidth()).toBe(2);
+    });
   });
 });

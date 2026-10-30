@@ -21,11 +21,14 @@ export type PositionCardTone = 'neutral' | 'positive' | 'negative';
 
 /**
  * CSS `linear-gradient` angles from the Figma frames. 0° points up. Open cards
- * are ~214°, closed cards ~203°: the tint sits on the top edge, right of
- * center, and is gone 70% of the way toward the bottom.
+ * are ~214°, closed cards ~203°, and the compact no-comment variants sit a
+ * little further round, ~192°. The tint sits on the top edge, right of center,
+ * and is gone 70% of the way toward the bottom.
  */
 const OPEN_WASH_ANGLE = 214.2;
 const CLOSED_WASH_ANGLE = 203.13;
+const LIVE_COMPACT_WASH_ANGLE = 192.41;
+const CLOSED_COMPACT_WASH_ANGLE = 192.76;
 const GRADIENT_LOCATIONS = [0, 0.7];
 
 /** Where a unit vector from the box center hits the edge. */
@@ -49,6 +52,15 @@ const washLine = (cssDegrees: number) => {
 
 const OPEN_WASH = washLine(OPEN_WASH_ANGLE);
 const CLOSED_WASH = washLine(CLOSED_WASH_ANGLE);
+const LIVE_COMPACT_WASH = washLine(LIVE_COMPACT_WASH_ANGLE);
+const CLOSED_COMPACT_WASH = washLine(CLOSED_COMPACT_WASH_ANGLE);
+
+const washLineFor = (emphasizeBorder: boolean, compact: boolean) => {
+  if (compact) {
+    return emphasizeBorder ? CLOSED_COMPACT_WASH : LIVE_COMPACT_WASH;
+  }
+  return emphasizeBorder ? CLOSED_WASH : OPEN_WASH;
+};
 
 const styles = StyleSheet.create({
   // The gradient view is rectangular. On the new architecture its layer is not
@@ -93,6 +105,8 @@ export interface PositionCardShellProps {
    * hairline even when the wash is tinted.
    */
   emphasizeBorder?: boolean;
+  /** No-comment cards draw their wash at the compact angle. */
+  compact?: boolean;
   children: React.ReactNode;
 }
 
@@ -107,6 +121,7 @@ export interface PositionCardShellProps {
 const PositionCardShell: React.FC<PositionCardShellProps> = ({
   tone = 'neutral',
   emphasizeBorder = false,
+  compact = false,
   children,
 }) => {
   const { colors, themeAppearance } = useTheme();
@@ -122,6 +137,7 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
       ? flattenedCardRadius.borderRadius
       : undefined;
   const showWash = themeAppearance === AppThemeKey.dark && tone !== 'neutral';
+  const wash = washLineFor(emphasizeBorder, compact);
   const colorsForWash =
     tone === 'positive'
       ? washColors(colors.success.muted, colors.success.default)
@@ -143,8 +159,8 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
           <LinearGradient
             colors={colorsForWash}
             locations={GRADIENT_LOCATIONS}
-            start={emphasizeBorder ? CLOSED_WASH.start : OPEN_WASH.start}
-            end={emphasizeBorder ? CLOSED_WASH.end : OPEN_WASH.end}
+            start={wash.start}
+            end={wash.end}
             style={styles.surface}
           />
         </View>
