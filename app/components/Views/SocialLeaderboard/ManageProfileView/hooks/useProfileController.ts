@@ -21,9 +21,16 @@ import {
  */
 let profileMutationVersion = 0;
 
+/** Saves that have started and not yet finished. */
+let profileMutationsInFlight = 0;
+
+const profileMutationWaiters: (() => void)[] = [];
+
 /** Test helper. Forgets edits that should outrank an in-flight profile read. */
 export const resetProfileMutationVersion = (): void => {
   profileMutationVersion = 0;
+  profileMutationsInFlight = 0;
+  profileMutationWaiters.splice(0).forEach((resolve) => resolve());
 };
 
 /**
@@ -35,11 +42,30 @@ const PROFILE_GET_QUERY_KEY = 'ProfileService:getProfile';
 
 const beginProfileMutation = (): void => {
   profileMutationVersion += 1;
+  profileMutationsInFlight += 1;
+};
+
+const endProfileMutation = (): void => {
+  profileMutationsInFlight = Math.max(0, profileMutationsInFlight - 1);
+  if (profileMutationsInFlight === 0) {
+    profileMutationWaiters.splice(0).forEach((resolve) => resolve());
+  }
+};
+
+/** Resolves once every profile save that has already started has finished. */
+const waitForProfileMutations = (): Promise<void> => {
+  if (profileMutationsInFlight === 0) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    profileMutationWaiters.push(resolve);
+  });
 };
 
 /**
- * Applies a profile read unless an edit started after this read did.
- * The late read is discarded and replaced with a fresh one.
+ * Applies a profile read unless an edit overlaps it.
+ * A late read is discarded. The replacement read waits until that edit's
+ * save has finished, then repeats this same check.
  */
 const readProfileKeepingLaterEdits = async (
   profileId: string,
@@ -47,17 +73,21 @@ const readProfileKeepingLaterEdits = async (
   const versionAtStart = profileMutationVersion;
   const fetched =
     await Engine.context.ProfileController.fetchAndUpdateProfile(profileId);
-  if (versionAtStart === profileMutationVersion) {
+  if (
+    versionAtStart === profileMutationVersion &&
+    profileMutationsInFlight === 0
+  ) {
     return fetched;
   }
 
-  // The read started first, then an edit landed, then this response
-  // replaced that edit in controller state. The in-flight response can
-  // also refill the profile cache, so drop it and read the edited profile.
+  // The read started first, or while a save was still open. Its response can
+  // be the pre-edit profile and can refill the cache. Wait for the save, drop
+  // that cache, and read again. Reading immediately would race the save.
+  await waitForProfileMutations();
   await Engine.context.ProfileService.invalidateQueries({
     queryKey: [PROFILE_GET_QUERY_KEY, profileId],
   });
-  return Engine.context.ProfileController.fetchAndUpdateProfile(profileId);
+  return readProfileKeepingLaterEdits(profileId);
 };
 
 export interface UseProfileControllerResult {
@@ -82,7 +112,11 @@ export const useProfileController = (): UseProfileControllerResult => {
   const updateProfile = useCallback(
     async (input: UpdateProfileParams): Promise<void> => {
       beginProfileMutation();
-      await Engine.context.ProfileController.updateProfile(input);
+      try {
+        await Engine.context.ProfileController.updateProfile(input);
+      } finally {
+        endProfileMutation();
+      }
     },
     [],
   );

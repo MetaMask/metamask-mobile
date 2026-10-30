@@ -87,4 +87,71 @@ describe('useProfileController', () => {
     });
     expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(2);
   });
+
+  it('waits for an in-flight edit before reading the profile again', async () => {
+    let resolveStaleFetch: (profile: unknown) => void = () => undefined;
+    let resolveUpdate: () => void = () => undefined;
+    mockFetchAndUpdateProfile
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStaleFetch = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({
+        profileId: 'profile-123',
+        tradingPrivacy: 'private',
+      });
+    mockUpdateProfile.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useProfileController());
+    const fetchPromise = result.current.fetchAndUpdateProfile('profile-123');
+    const updatePromise = result.current.updateProfile({
+      trading_privacy: 'private',
+    });
+    resolveStaleFetch({ profileId: 'profile-123', tradingPrivacy: 'public' });
+    await Promise.resolve();
+
+    expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+
+    resolveUpdate();
+    await updatePromise;
+    await fetchPromise;
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['ProfileService:getProfile', 'profile-123'],
+    });
+    expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(2);
+  });
+
+  it('reads the profile again after a failed edit', async () => {
+    let resolveStaleFetch: (profile: unknown) => void = () => undefined;
+    mockFetchAndUpdateProfile
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStaleFetch = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({ profileId: 'profile-123' });
+    mockUpdateProfile.mockRejectedValueOnce(new Error('profile update failed'));
+
+    const { result } = renderHook(() => useProfileController());
+    const fetchPromise = result.current.fetchAndUpdateProfile('profile-123');
+    const updatePromise = result.current.updateProfile({
+      trading_privacy: 'private',
+    });
+    resolveStaleFetch({ profileId: 'profile-123', tradingPrivacy: 'public' });
+
+    await expect(updatePromise).rejects.toThrow('profile update failed');
+    await fetchPromise;
+
+    expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(2);
+  });
 });
