@@ -230,7 +230,9 @@ describe('PositionRow', () => {
     expect(
       screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
     ).toBeUndefined();
-    expect(screen.getByTestId('position-row-STARKBOT').props.onPress).toBeUndefined();
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.onPress,
+    ).toBeUndefined();
   });
 
   it('calls onPress when a flagged row sets allowFlaggedPress', () => {

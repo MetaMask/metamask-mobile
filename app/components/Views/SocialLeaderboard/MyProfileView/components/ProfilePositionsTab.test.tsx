@@ -25,7 +25,8 @@ jest.mock('../../TraderProfileView/components/PositionRow', () => {
       showFlaggedState?: boolean;
       allowFlaggedPress?: boolean;
     }) => {
-      const flagged = showFlaggedState === true && Boolean(position.flags?.length);
+      const flagged =
+        showFlaggedState === true && Boolean(position.flags?.length);
       const pressable = Boolean(onPress) && (!flagged || allowFlaggedPress);
       if (!pressable) {
         return (
