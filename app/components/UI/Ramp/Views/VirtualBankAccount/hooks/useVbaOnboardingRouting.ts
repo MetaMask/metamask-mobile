@@ -311,9 +311,8 @@ const isMissingAal2TokenError = (error: unknown): boolean =>
 const resumePersistedKycSession = async (): Promise<void> => {
   const kycController = Engine.context.KycController;
   if (!kycController.readSessionStatus()) {
-    const existingSession = await kycController.getSessionStatusForVendor(
-      VBA_KYC_VENDOR,
-    );
+    const existingSession =
+      await kycController.getSessionStatusForVendor(VBA_KYC_VENDOR);
     if (!existingSession) {
       return;
     }
