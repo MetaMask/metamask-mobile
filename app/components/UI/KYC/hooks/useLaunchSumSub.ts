@@ -1,12 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, type NativeEventSubscription } from 'react-native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
   KycConsentRecord,
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
+import {
+  clearPostUnlockResume,
+  setPostUnlockResume,
+} from '../../../../core/PostUnlockResume';
 import Logger from '../../../../util/Logger';
+import { getVbaOnboardingResumeState } from '../../Ramp/Views/VirtualBankAccount/routes';
 import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
+
+export const VBA_KYC_RESUME_OWNER = 'vba-kyc';
+const VBA_KYC_RESUME_SOURCE = 'vba-kyc-relaunch';
+/** How long after the user leaves the app a relaunch still reopens KYC. */
+export const VBA_KYC_RESUME_MAX_AGE_MS = 2 * 60 * 1000;
+
+const markKycResume = () =>
+  setPostUnlockResume({
+    owner: VBA_KYC_RESUME_OWNER,
+    state: getVbaOnboardingResumeState(VBA_KYC_RESUME_SOURCE),
+    maxAgeMs: VBA_KYC_RESUME_MAX_AGE_MS,
+  });
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -68,6 +86,10 @@ async function recordSessionConsents(): Promise<void> {
  * `launchProviderFlow` returns a durable provider-flow outcome. A submitted
  * run advances onboarding, an abandoned run returns to the caller, and a
  * failed run surfaces an error.
+ *
+ * While the provider is open, a post-unlock resume request lets the next cold
+ * start reopen onboarding. iOS kills the app when camera access changes in
+ * Settings.
  */
 export const useLaunchSumSub = (
   onSubmitted: (
@@ -96,6 +118,17 @@ export const useLaunchSumSub = (
     }
     inFlightRef.current = true;
     let cancelled = false;
+    let appStateSubscription: NativeEventSubscription | undefined;
+    let marked = false;
+
+    const stopKycResume = async () => {
+      appStateSubscription?.remove();
+      appStateSubscription = undefined;
+      if (marked) {
+        marked = false;
+        await clearPostUnlockResume(VBA_KYC_RESUME_OWNER);
+      }
+    };
 
     const launch = async () => {
       try {
@@ -109,7 +142,16 @@ export const useLaunchSumSub = (
           return;
         }
 
+        await markKycResume();
+        marked = true;
+        appStateSubscription = AppState.addEventListener('change', (state) => {
+          if (state === 'background') {
+            markKycResume();
+          }
+        });
+
         const outcome = await KycController.launchProviderFlow({});
+        await stopKycResume();
         if (cancelled) {
           return;
         }
@@ -130,6 +172,7 @@ export const useLaunchSumSub = (
         setHasError(true);
         setIsLaunching(false);
       } finally {
+        await stopKycResume();
         if (attemptRef.current === attempt) {
           inFlightRef.current = false;
         }

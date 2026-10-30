@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -11,6 +12,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import VbaOnboardingStub from './VbaOnboardingStub';
 import {
   navigateToVbaOnboardingDestination,
@@ -48,6 +50,9 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
   const source = route?.params?.source ?? VBA_LOADING_SOURCE;
   const [attempt, setAttempt] = useState(0);
   const [hasError, setHasError] = useState(false);
+  // Right after a cold-start unlock the store can still hold the locked
+  // keyring, and hydrate would find no wallet.
+  const isUnlocked = useSelector(selectIsUnlocked);
 
   const handleBack = useCallback(() => {
     endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
@@ -66,6 +71,9 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
   }, [source]);
 
   useEffect(() => {
+    if (!isUnlocked) {
+      return undefined;
+    }
     let active = true;
 
     resolveVbaOnboarding(source)
@@ -105,7 +113,7 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
     return () => {
       active = false;
     };
-  }, [attempt, navigation, source]);
+  }, [attempt, isUnlocked, navigation, source]);
 
   useEffect(() => {
     if (hasError) {

@@ -49,6 +49,7 @@ export const initialStateVba = ({
             autoramps: [],
           },
           KeyringController: {
+            isUnlocked: true,
             keyrings: [
               {
                 type: ExtendedKeyringTypes.hd,

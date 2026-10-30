@@ -7,6 +7,7 @@ import NavigationService from '../../NavigationService';
 import ReduxService from '../../redux';
 import SharedDeeplinkManager from '../DeeplinkManager';
 import { executeStartupDeeplinkIntent } from './executeDeeplinkIntent';
+import { resetToHomeNav } from './resetToHomeNav';
 import {
   cancelDeeplinkNavigatedTrace,
   cancelDeeplinkProcessedTrace,
@@ -17,6 +18,7 @@ import {
   clearUnlockAppStartType,
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
+import { consumePostUnlockResume } from '../../PostUnlockResume';
 
 // Set before the fallback parse so consumeNextParseAppStartType stamps it with
 // the unlock-session app_start_type. Cleared after one read.
@@ -123,14 +125,21 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
 };
 
 export const navigateToPostUnlockHome = async (): Promise<void> => {
+  // Read first so time spent resolving a deeplink does not count against the
+  // resume window. A handled deeplink still wins.
+  const resumeState = await consumePostUnlockResume();
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;
   }
 
-  NavigationService.navigation?.reset({
-    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-  });
+  if (resumeState) {
+    resetToHomeNav(resumeState);
+  } else {
+    NavigationService.navigation?.reset({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
+  }
 
   retryPendingDeeplinkAfterDefaultNavigation();
 };
