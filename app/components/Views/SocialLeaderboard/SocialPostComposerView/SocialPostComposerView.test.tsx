@@ -391,12 +391,33 @@ describe('SocialPostComposerView', () => {
     ).toBeEnabled();
   });
 
-  it('enables the Post button for a GIF-only comment', () => {
+  it('keeps Post disabled for a GIF-only comment', () => {
     renderWithProvider(<SocialPostComposerView />);
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
     );
     fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('enables the Post button for written text with a GIF', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'hi',
+    );
 
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
@@ -904,7 +925,7 @@ describe('SocialPostComposerView', () => {
     );
   });
 
-  it('carries a GIF-only post onto the pending post as commentGifUrl', async () => {
+  it('does not submit a GIF-only comment', () => {
     mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
     renderWithProvider(<SocialPostComposerView />);
 
@@ -916,12 +937,7 @@ describe('SocialPostComposerView', () => {
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
 
-    await waitFor(() => {
-      expect(getPendingPostsSnapshot()[0]?.post.item).toMatchObject({
-        comment: '',
-        commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
-      });
-    });
+    expect(mockCreateSwapComment).not.toHaveBeenCalled();
   });
 
   it('keeps the caption text free of the GIF URL on the pending post', async () => {

@@ -78,10 +78,7 @@ import {
   requestPostsTabFocus,
 } from '../pendingPosts/pendingPostsStore';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
-import {
-  appendKlipyGifUrlToCommentText,
-  isKlipyStaticGifUrl,
-} from '../../../UI/SocialFeed/utils/klipyGifComment';
+import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
 import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
@@ -315,8 +312,7 @@ const SocialPostComposerView: React.FC = () => {
   const canSubmit =
     (selectedPosition != null || isTradeInFlightLocked) &&
     !isOverCharacterLimit;
-  const hasComment =
-    text.trim().length > 0 || (gifUri != null && isKlipyStaticGifUrl(gifUri));
+  const hasComment = text.trim().length > 0;
 
   const handleClose = useCallback(() => {
     trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
