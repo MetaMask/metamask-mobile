@@ -57,8 +57,10 @@ const waitForProfileMutations = (): Promise<void> => {
   if (profileMutationsInFlight === 0) {
     return Promise.resolve();
   }
-  return new Promise((resolve) => {
-    profileMutationWaiters.push(resolve);
+  return new Promise<void>((resolve) => {
+    profileMutationWaiters.push(() => {
+      resolve();
+    });
   });
 };
 

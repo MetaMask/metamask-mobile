@@ -104,8 +104,10 @@ describe('useProfileController', () => {
       });
     mockUpdateProfile.mockImplementationOnce(
       () =>
-        new Promise((resolve) => {
-          resolveUpdate = resolve;
+        new Promise<void>((resolve) => {
+          resolveUpdate = () => {
+            resolve();
+          };
         }),
     );
 
