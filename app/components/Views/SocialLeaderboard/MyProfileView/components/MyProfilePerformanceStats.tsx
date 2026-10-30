@@ -8,7 +8,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import DottedUnderline from '../../../../UI/DottedUnderline';
+import { useTheme } from '../../../../../util/theme';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import type {
   PerformanceCell,
@@ -53,14 +56,35 @@ const chunkPairs = (cells: PerformanceCell[]): PerformanceCell[][] => {
 
 interface MyProfilePerformanceStatsProps {
   cells: PerformanceCell[];
+  /**
+   * Flagged positions the profile list is showing. The note stays hidden at 0.
+   * Attached to the existing 30D P&L cell; Figma's "Realized P&L" label is not
+   * used here.
+   */
+  uncountedCount?: number;
+  /** Scrolls the profile to the pinned uncounted section. */
+  onUncountedPress?: () => void;
 }
 
 const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
   cells,
+  uncountedCount = 0,
+  onUncountedPress,
 }) => {
+  const { colors } = useTheme();
   if (cells.length === 0) {
     return null;
   }
+
+  const uncountedNote =
+    uncountedCount > 0
+      ? strings(
+          uncountedCount === 1
+            ? 'social_leaderboard.my_profile.not_counted_note_one'
+            : 'social_leaderboard.my_profile.not_counted_note_other',
+          { count: uncountedCount },
+        )
+      : null;
 
   return (
     <Box>
@@ -98,6 +122,31 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
                   >
                     {cell.value}
                   </Text>
+                  {cell.id === 'pnl' && uncountedNote ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={strings(
+                        uncountedCount === 1
+                          ? 'social_leaderboard.my_profile.not_counted_pnl_a11y_one'
+                          : 'social_leaderboard.my_profile.not_counted_pnl_a11y_other',
+                        { value: cell.value, count: uncountedCount },
+                      )}
+                      onPress={onUncountedPress}
+                      testID={
+                        MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED
+                      }
+                    >
+                      <DottedUnderline color={colors.text.default}>
+                        <Text
+                          variant={TextVariant.BodySm}
+                          fontWeight={FontWeight.Medium}
+                          color={TextColor.TextDefault}
+                        >
+                          {uncountedNote}
+                        </Text>
+                      </DottedUnderline>
+                    </Pressable>
+                  ) : null}
                 </Box>
               ))}
               {row.length === 1 ? <Box twClassName="flex-1" /> : null}
