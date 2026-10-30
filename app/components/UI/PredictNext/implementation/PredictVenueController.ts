@@ -108,7 +108,7 @@ export interface PredictVenueControllerOptions {
 
 const isConfiguredVenue = (value: unknown): value is PredictConfiguredVenue =>
   typeof value === 'string' &&
-  Object.prototype.hasOwnProperty.call(DEFAULT_PREDICT_CONFIG.venues, value);
+  Object.hasOwn(DEFAULT_PREDICT_CONFIG.venues, value);
 
 /** Persisted values outlive the code that wrote them; keep only Venues this build knows. */
 const toConfiguredVenue = (value: unknown): PredictConfiguredVenue | null =>
@@ -263,7 +263,9 @@ export class PredictVenueController extends BaseController<
     super.destroy();
   }
 
-  #handleGeolocationChange = (geolocation: GeolocationControllerState) => {
+  readonly #handleGeolocationChange = (
+    geolocation: GeolocationControllerState,
+  ) => {
     this.#latchSessionDefault(geolocation, false);
   };
 
