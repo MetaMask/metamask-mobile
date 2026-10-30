@@ -8,7 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
-import { Pressable } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DottedUnderline from '../../../../UI/DottedUnderline';
 import { useTheme } from '../../../../../util/theme';
@@ -129,7 +129,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
                     {cell.value}
                   </Text>
                   {cell.id === 'pnl' && uncountedNote ? (
-                    <Pressable
+                    <TouchableOpacity
                       accessibilityRole="button"
                       accessibilityLabel={uncountedNote}
                       accessibilityHint={strings(
@@ -146,11 +146,13 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
                           variant={TextVariant.BodySm}
                           fontWeight={FontWeight.Medium}
                           color={TextColor.TextDefault}
+                          numberOfLines={1}
+                          twClassName="-mt-0.5"
                         >
                           {uncountedNote}
                         </Text>
                       </DottedUnderline>
-                    </Pressable>
+                    </TouchableOpacity>
                   ) : null}
                 </Box>
               ))}
