@@ -78,10 +78,7 @@ import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
-import {
-  clipComposerComment,
-  COMPOSER_COMMENT_MAX_LENGTH,
-} from './commentValidation';
+import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
@@ -299,7 +296,10 @@ const SocialPostComposerView: React.FC = () => {
     : undefined;
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
-  const canSubmit = selectedPosition != null || isTradeInFlightLocked;
+  const isOverCharacterLimit = text.length > COMPOSER_COMMENT_MAX_LENGTH;
+  const canSubmit =
+    (selectedPosition != null || isTradeInFlightLocked) &&
+    !isOverCharacterLimit;
 
   const handleClose = useCallback(() => {
     trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
@@ -307,7 +307,7 @@ const SocialPostComposerView: React.FC = () => {
   }, [navigation, trackInteraction]);
 
   const handleChangeText = useCallback((next: string) => {
-    setText(clipComposerComment(next));
+    setText(next);
   }, []);
 
   const handleSelectPosition = useCallback(
@@ -574,7 +574,11 @@ const SocialPostComposerView: React.FC = () => {
             >
               <Text
                 variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
+                color={
+                  isOverCharacterLimit
+                    ? TextColor.ErrorDefault
+                    : TextColor.TextAlternative
+                }
                 testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
               >
                 {strings('social_leaderboard.composer.character_count', {
