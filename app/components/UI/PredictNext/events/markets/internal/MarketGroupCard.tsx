@@ -38,6 +38,10 @@ export interface MarketGroupCardProps {
     market: PredictMarket,
     outcome: PredictOutcome,
   ) => MarketGroupOutcomeAppearance;
+  /** Which side's row comes first, supplied by the composition. */
+  orderSides: (
+    market: PredictMarket,
+  ) => readonly [PredictOutcome['side'], PredictOutcome['side']];
 }
 
 function findOutcome(
@@ -125,6 +129,7 @@ export function MarketGroupCard({
   onRulesPress,
   onOrder,
   describeOutcome,
+  orderSides,
 }: MarketGroupCardProps): React.JSX.Element | null {
   const rules = selectedMarket.rules?.trim();
   const yesOutcome = findOutcome(selectedMarket, 'yes');
@@ -157,20 +162,19 @@ export function MarketGroupCard({
         ) : null}
       </Box>
       <Box twClassName="gap-3">
-        <OutcomeRow
-          groupKey={groupKey}
-          market={selectedMarket}
-          outcome={yesOutcome}
-          onOrder={onOrder}
-          appearance={describeOutcome(selectedMarket, yesOutcome)}
-        />
-        <OutcomeRow
-          groupKey={groupKey}
-          market={selectedMarket}
-          outcome={noOutcome}
-          onOrder={onOrder}
-          appearance={describeOutcome(selectedMarket, noOutcome)}
-        />
+        {orderSides(selectedMarket).map((side) => {
+          const outcome = side === 'yes' ? yesOutcome : noOutcome;
+          return (
+            <OutcomeRow
+              key={side}
+              groupKey={groupKey}
+              market={selectedMarket}
+              outcome={outcome}
+              onOrder={onOrder}
+              appearance={describeOutcome(selectedMarket, outcome)}
+            />
+          );
+        })}
       </Box>
       {markets.length > 1 ? (
         <MarketCard.Footer>

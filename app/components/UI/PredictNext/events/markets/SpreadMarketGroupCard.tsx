@@ -2,7 +2,11 @@ import React, { useCallback } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PredictGame, PredictMarket, PredictOutcome } from '../../types';
-import { useGameTeamColors, type GameSelection } from '../game';
+import {
+  GAME_TEAM_ORDER,
+  useGameTeamColors,
+  type GameSelection,
+} from '../game';
 import { formatMarketGroupOption } from '../shared/formatting';
 import {
   MarketGroupCard,
@@ -11,7 +15,7 @@ import {
 
 export type SpreadMarketGroupCardProps = Omit<
   MarketGroupCardProps,
-  'title' | 'describeOutcome'
+  'title' | 'describeOutcome' | 'orderSides'
 > & {
   /** The Event's Game; its Teams color the rows. */
   game?: PredictGame;
@@ -34,9 +38,24 @@ const rowTeam = (
   return outcome.side === 'yes' ? selection : OPPOSITE[selection];
 };
 
+const YES_FIRST = ['yes', 'no'] as const;
+const NO_FIRST = ['no', 'yes'] as const;
+
+/**
+ * Rows follow the Game's Team order, whichever Team the selected line's yes
+ * side backs. Without a Team, yes comes first.
+ */
+const orderSides = (market: PredictMarket) => {
+  const yes = market.outcomes.find((outcome) => outcome.side === 'yes');
+  const yesTeam = yes ? rowTeam(market, yes) : undefined;
+  return yesTeam === undefined || yesTeam === GAME_TEAM_ORDER[0]
+    ? YES_FIRST
+    : NO_FIRST;
+};
+
 /**
  * A spread line picker: each row is a Team with its handicap (`-7.5`, `+7.5`)
- * in the Team's color.
+ * in the Team's color, Teams in the Game's order.
  */
 export const SpreadMarketGroupCard = React.memo(
   ({ game, ...props }: SpreadMarketGroupCardProps): React.JSX.Element => {
@@ -62,6 +81,7 @@ export const SpreadMarketGroupCard = React.memo(
         {...props}
         title={strings('predict.market_groups.spread')}
         describeOutcome={describeOutcome}
+        orderSides={orderSides}
       />
     );
   },
