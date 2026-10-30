@@ -7,6 +7,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -48,7 +49,7 @@ const TONE_CLASS: Record<PerformanceCell['tone'], string | undefined> = {
 
 /**
  * Body Sm is 22pt tall. 11pt of slop above and below makes a 44pt target
- * without growing the cell.
+ * without growing the header.
  */
 const UNCOUNTED_NOTE_HIT_SLOP = { top: 11, bottom: 11, left: 0, right: 0 };
 
@@ -63,9 +64,8 @@ const chunkPairs = (cells: PerformanceCell[]): PerformanceCell[][] => {
 interface MyProfilePerformanceStatsProps {
   cells: PerformanceCell[];
   /**
-   * Flagged positions the profile list is showing. The note stays hidden at 0.
-   * Attached to the existing 30D P&L cell; Figma's "Realized P&L" label is not
-   * used here.
+   * Flagged positions the profile list is showing. The note stays hidden at 0
+   * and sits under the Performance title. The P&L cell label stays "P&L".
    */
   uncountedCount?: number;
   /** Scrolls the profile to the pinned uncounted section. */
@@ -78,6 +78,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
   onUncountedPress,
 }) => {
   const { colors } = useTheme();
+  const tw = useTailwind();
   if (cells.length === 0) {
     return null;
   }
@@ -94,14 +95,42 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
   return (
     <Box>
       <SectionDivider marginVertical={6} />
-      <Box
-        twClassName="px-4"
-        testID={MyProfileViewSelectorsIDs.PERFORMANCE_SECTION}
-      >
-        <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-          {strings('social_leaderboard.my_profile.performance_30d')}
-        </Text>
-        <Box gap={2} twClassName="pt-3">
+      <Box testID={MyProfileViewSelectorsIDs.PERFORMANCE_SECTION}>
+        <Box twClassName="flex-col gap-1 pt-3 px-4">
+          <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+            {strings('social_leaderboard.my_profile.performance_30d')}
+          </Text>
+          {uncountedNote ? (
+            <Box twClassName="w-full items-start">
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={uncountedNote}
+                accessibilityHint={strings(
+                  'social_leaderboard.my_profile.not_counted_note_hint',
+                )}
+                hitSlop={UNCOUNTED_NOTE_HIT_SLOP}
+                onPress={onUncountedPress}
+                style={tw.style('max-w-full self-start')}
+                testID={MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED}
+              >
+                <DottedUnderline
+                  color={colors.text.default}
+                  twClassName="self-start"
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                    twClassName="-mt-0.5"
+                  >
+                    {uncountedNote}
+                  </Text>
+                </DottedUnderline>
+              </TouchableOpacity>
+            </Box>
+          ) : null}
+        </Box>
+        <Box gap={2} twClassName="px-4 py-3">
           {chunkPairs(cells).map((row) => (
             <Box
               key={row.map((cell) => cell.id).join('-')}
@@ -127,32 +156,6 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
                   >
                     {cell.value}
                   </Text>
-                  {cell.id === 'pnl' && uncountedNote ? (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      accessibilityLabel={uncountedNote}
-                      accessibilityHint={strings(
-                        'social_leaderboard.my_profile.not_counted_note_hint',
-                      )}
-                      hitSlop={UNCOUNTED_NOTE_HIT_SLOP}
-                      onPress={onUncountedPress}
-                      testID={
-                        MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED
-                      }
-                    >
-                      <DottedUnderline color={colors.text.default}>
-                        <Text
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextDefault}
-                          numberOfLines={1}
-                          twClassName="-mt-0.5"
-                        >
-                          {uncountedNote}
-                        </Text>
-                      </DottedUnderline>
-                    </TouchableOpacity>
-                  ) : null}
                 </Box>
               ))}
               {row.length === 1 ? <Box twClassName="flex-1" /> : null}
