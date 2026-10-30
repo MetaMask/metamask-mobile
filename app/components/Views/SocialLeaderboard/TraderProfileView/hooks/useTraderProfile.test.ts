@@ -4,7 +4,9 @@ import { useQuery } from '@metamask/react-data-query';
 import type { TraderProfileResponse } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
+import { selectFollowingProfileIds } from '../../../../../selectors/socialController';
 import { resetFollowToggleSharedStateForTests } from '../../../../hooks/useFollowToggle';
 import { useTraderProfile } from './useTraderProfile';
 
@@ -38,6 +40,15 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('../../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
+
 jest.mock('@sentry/react-native', () => ({
   addBreadcrumb: jest.fn(),
 }));
@@ -45,6 +56,28 @@ jest.mock('@sentry/react-native', () => ({
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+/**
+ * The profile screen renders `useTraderProfile().profile.followerCount`.
+ * A component-view test would only display the number this hook already
+ * returned, so the follow adjustment is covered here.
+ */
+const mockTraderProfileSelectors = (
+  followingProfileIds: string[] = [],
+): void => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsUnlocked) {
+      return true;
+    }
+    if (selector === selectFollowingProfileIds) {
+      return followingProfileIds;
+    }
+    if (selector === selectSelectedInternalAccountAddress) {
+      return '0xabc';
+    }
+    return [];
+  });
+};
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -307,6 +340,196 @@ describe('useTraderProfile', () => {
       });
 
       expect(result.current.isFollowing).toBe(false);
+    });
+
+    it('increments the profile follower count when follow is toggled', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+      mockTraderProfileSelectors();
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureProfile as never }),
+      );
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      expect(result.current.profile?.followerCount).toBe(45);
+
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+
+      expect(result.current.isFollowing).toBe(true);
+      expect(result.current.profile?.followerCount).toBe(46);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
+
+      expect(result.current.profile?.followerCount).toBe(46);
+    });
+
+    it('decrements the profile follower count when unfollow is toggled', async () => {
+      let resolveCall: (value: unknown) => void = () => undefined;
+      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveCall = resolve;
+          }),
+      );
+      mockTraderProfileSelectors(['trader-1']);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureProfile as never }),
+      );
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      expect(result.current.profile?.followerCount).toBe(45);
+
+      await act(async () => {
+        result.current.toggleFollow();
+      });
+
+      expect(result.current.isFollowing).toBe(false);
+      expect(result.current.profile?.followerCount).toBe(44);
+
+      await act(async () => {
+        resolveCall({ followed: [], unfollowed: [] });
+      });
+
+      expect(result.current.profile?.followerCount).toBe(44);
+    });
+
+    it('restores the profile follower count when follow fails', async () => {
+      mockTraderProfileSelectors();
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureProfile as never }),
+      );
+      (Engine.controllerMessenger.call as jest.Mock).mockRejectedValue(
+        new Error('boom'),
+      );
+      const { result } = renderHook(() => useTraderProfile('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(result.current.isFollowing).toBe(false);
+      expect(result.current.profile?.followerCount).toBe(45);
+    });
+
+    it('restores the incremented follower count when unfollow fails', async () => {
+      mockTraderProfileSelectors();
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: fixtureProfile as never }),
+      );
+      const { result, rerender } = renderHook(() =>
+        useTraderProfile('trader-1'),
+      );
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+      expect(result.current.profile?.followerCount).toBe(46);
+
+      mockTraderProfileSelectors(['trader-1']);
+      rerender(undefined);
+      (Engine.controllerMessenger.call as jest.Mock).mockRejectedValue(
+        new Error('boom'),
+      );
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(result.current.isFollowing).toBe(true);
+      expect(result.current.profile?.followerCount).toBe(46);
+    });
+
+    it('keeps the server follower count when a refresh already includes the follow', async () => {
+      mockTraderProfileSelectors();
+      let profileData = fixtureProfile;
+      mockUseQuery.mockImplementation(() =>
+        makeQueryResult({ data: profileData as never }),
+      );
+      const { result, rerender } = renderHook(() =>
+        useTraderProfile('trader-1'),
+      );
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+      expect(result.current.profile?.followerCount).toBe(46);
+
+      profileData = { ...fixtureProfile, followerCount: 46 };
+      rerender(undefined);
+
+      expect(result.current.profile?.followerCount).toBe(46);
+    });
+
+    it('uses a later lower server count after the follow refresh', async () => {
+      mockTraderProfileSelectors();
+      let profileData = fixtureProfile;
+      mockUseQuery.mockImplementation(() =>
+        makeQueryResult({ data: profileData as never }),
+      );
+      const { result, rerender } = renderHook(() =>
+        useTraderProfile('trader-1'),
+      );
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+      profileData = { ...fixtureProfile, followerCount: 46 };
+      rerender(undefined);
+      profileData = { ...fixtureProfile, followerCount: 45 };
+      rerender(undefined);
+
+      expect(result.current.profile?.followerCount).toBe(45);
+    });
+
+    it('keeps the server follower count when a refresh already includes the unfollow', async () => {
+      mockTraderProfileSelectors(['trader-1']);
+      let profileData = fixtureProfile;
+      mockUseQuery.mockImplementation(() =>
+        makeQueryResult({ data: profileData as never }),
+      );
+      const { result, rerender } = renderHook(() =>
+        useTraderProfile('trader-1'),
+      );
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+      expect(result.current.profile?.followerCount).toBe(44);
+
+      profileData = { ...fixtureProfile, followerCount: 44 };
+      rerender(undefined);
+
+      expect(result.current.profile?.followerCount).toBe(44);
+    });
+
+    it('uses a later higher server count after the unfollow refresh', async () => {
+      mockTraderProfileSelectors(['trader-1']);
+      let profileData = fixtureProfile;
+      mockUseQuery.mockImplementation(() =>
+        makeQueryResult({ data: profileData as never }),
+      );
+      const { result, rerender } = renderHook(() =>
+        useTraderProfile('trader-1'),
+      );
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+      profileData = { ...fixtureProfile, followerCount: 44 };
+      rerender(undefined);
+      profileData = { ...fixtureProfile, followerCount: 45 };
+      rerender(undefined);
+
+      expect(result.current.profile?.followerCount).toBe(45);
     });
 
     it('ignores concurrent toggleFollow calls while one is in flight', async () => {

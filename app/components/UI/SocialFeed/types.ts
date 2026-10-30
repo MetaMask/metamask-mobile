@@ -56,6 +56,12 @@ interface SocialV1FeedItemBase {
   /** Author comment. */
   comment?: string;
   /**
+   * Klipy GIF the author attached to the comment. Set on a GIF-only comment,
+   * which has no `comment` caption, so the card still counts it as commented.
+   * The card body does not render it.
+   */
+  commentGifUrl?: string;
+  /**
    * Realized P&L in USD on a closed position, current value on an open one.
    * Only the closed layout renders it; the open layout leads with P&L instead.
    */
@@ -141,6 +147,8 @@ export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   holdTimeLabel?: string;
   showCopyTrade?: boolean;
+  /** How the card's figures follow the streamed spot price, as on an open row. */
+  live?: SocialLivePriceSource;
 }
 
 /**

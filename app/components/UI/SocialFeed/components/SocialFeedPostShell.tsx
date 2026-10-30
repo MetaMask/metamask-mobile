@@ -28,7 +28,11 @@ import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
-import ReactionChip, { REACTION_PILL_TW_CLASS } from './ReactionChip';
+import ReactionChip, {
+  REACTION_PILL_TW_CLASS,
+  type EmojiWindowFrame,
+} from './ReactionChip';
+import ReactionEmojiBurst from './ReactionEmojiBurst';
 import SocialFeedPostTranslation from './SocialFeedPostTranslation';
 import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
@@ -74,6 +78,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const reactionAnchorRef = useRef<View>(null);
+  const postRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
@@ -104,6 +109,39 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
+  const [burst, setBurst] = useState<{
+    key: number;
+    emotion: string;
+    x?: number;
+    y?: number;
+  } | null>(null);
+  const burstSerial = useRef(0);
+  const clearBurst = useCallback((finishedKey: number) => {
+    setBurst((current) => {
+      if (!current || current.key !== finishedKey) {
+        return current;
+      }
+      return null;
+    });
+  }, []);
+  const celebrateReaction = useCallback((emotion: string) => {
+    burstSerial.current += 1;
+    setBurst({ key: burstSerial.current, emotion });
+  }, []);
+  const placeBurst = useCallback((nonce: number, frame: EmojiWindowFrame) => {
+    postRef.current?.measureInWindow((postX, postY) => {
+      setBurst((current) => {
+        if (!current || current.key !== nonce) {
+          return current;
+        }
+        return {
+          ...current,
+          x: frame.x - postX + frame.width / 2,
+          y: frame.y - postY + frame.height / 2,
+        };
+      });
+    });
+  }, []);
   const { reactions, userReaction, isPending, pickEmotion } =
     useFeedPostReaction(
       post.commentId,
@@ -180,10 +218,14 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         return;
       }
 
+      if (userReaction !== emotion) {
+        celebrateReaction(emotion);
+      }
       notifyReaction?.(userReaction === emotion ? 'removed' : 'added', emotion);
       pickEmotion(emotion).catch(() => undefined);
     },
     [
+      celebrateReaction,
       ensureSocialProfileOnboarding,
       ensureSocialTermsForInteraction,
       isPending,
@@ -227,7 +269,12 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   return (
     <Box
-      twClassName={post.isPending ? 'py-2 opacity-60' : 'py-2'}
+      ref={postRef}
+      twClassName={
+        post.isPending
+          ? 'overflow-visible py-2 opacity-60'
+          : 'overflow-visible py-2'
+      }
       testID={`${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.id}`}
     >
       <SocialTraderIdentityRow
@@ -304,6 +351,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
                   count={reaction.count}
                   isSelected={reaction.emotion === userReaction}
                   onPress={() => toggleEmotion(reaction.emotion)}
+                  burstNonce={
+                    burst?.emotion === reaction.emotion ? burst.key : undefined
+                  }
+                  onBurstAnchor={placeBurst}
                   testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
                 />
               ))}
@@ -362,6 +413,16 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       />
       {optionsSheet}
       {geoBlockSheet}
+      {burst?.x != null && burst.y != null ? (
+        <ReactionEmojiBurst
+          key={burst.key}
+          burstKey={burst.key}
+          emotion={burst.emotion}
+          originX={burst.x}
+          originY={burst.y}
+          onFinished={clearBurst}
+        />
+      ) : null}
     </Box>
   );
 };

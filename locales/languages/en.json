@@ -1623,6 +1623,11 @@
       "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
     },
     "all_networks": "All networks",
+    "position_flags": {
+      "insider": "Insider allocation - excluded",
+      "developer": "Contract creator - excluded",
+      "excluded": "Excluded from PnL"
+    },
     "trader_profile": {
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
@@ -1700,6 +1705,7 @@
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
       "joined": "Joined {{time}}",
+      "x_link": "X",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",

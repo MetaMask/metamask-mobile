@@ -4,6 +4,8 @@ import { mockPerpFeedItem, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import { mapFeedItem } from './mapFeedItem';
 import { toSocialV1FeedItem } from './toSocialV1FeedItem';
 import { formatAbbreviatedUsd, formatTradeUnitPrice } from './formatters';
+import { KLIPY_STATIC_GIF_EXAMPLE } from './klipyGifComment';
+import { getPositionCardMode } from './positionCardMode';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -242,6 +244,57 @@ describe('toSocialV1FeedItem', () => {
     it('derives an unmarked exit price from the last exit fill', () => {
       // Closing fill: $88,000 for 5 -> $17,600.
       const row = buildRow(mockPerpFeedItem({ isOpen: false }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('perpsClosed');
+      if (result.variant !== 'perpsClosed') return;
+      expect(result.exitPriceLabel).toBe('$17,600');
+    });
+
+    it('takes the exit price from the latest exit fill, not the last one listed', () => {
+      const openedAt = 1_700_000_000;
+      const row = buildRow(
+        mockPerpFeedItem({
+          isOpen: false,
+          timestamp: openedAt + 2 * HOUR_IN_SECONDS,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50_000,
+              timestamp: openedAt,
+              transactionHash: '0xa',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+            {
+              direction: 'sell',
+              intent: 'exit',
+              action: 'closed',
+              tokenAmount: 5,
+              usdCost: 88_000,
+              timestamp: openedAt + 2 * HOUR_IN_SECONDS,
+              transactionHash: '0xc',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+            {
+              direction: 'sell',
+              intent: 'exit',
+              action: 'reduced',
+              tokenAmount: 5,
+              usdCost: 30_000,
+              timestamp: openedAt + HOUR_IN_SECONDS,
+              transactionHash: '0xb',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+          ],
+        }),
+      );
 
       const result = toSocialV1FeedItem(row);
 
@@ -554,6 +607,111 @@ describe('toSocialV1FeedItem', () => {
       const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
 
       expect(result.comment).toBeUndefined();
+    });
+
+    it('treats a gif-only author comment as commented on an open perp', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          isOpen: true,
+          positionAmount: 5,
+          currentValueUSD: 60000,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50_000,
+              timestamp: 1_700_000_000,
+              transactionHash: '0xa',
+              classification: 'perp',
+              perpPositionType: 'long',
+              perpLeverage: 8,
+            },
+          ],
+          authorComment: {
+            uid: 'comment-1',
+            text: KLIPY_STATIC_GIF_EXAMPLE,
+            timestamp: 1_700_000_000,
+            engagement: { reactions: [], userReaction: null },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(getPositionCardMode(result)).toBe('open');
+    });
+
+    it('treats a gif-only author comment as commented on a closed perp', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          isOpen: false,
+          authorComment: {
+            uid: 'comment-1',
+            text: KLIPY_STATIC_GIF_EXAMPLE,
+            timestamp: 1_700_000_000,
+            engagement: { reactions: [], userReaction: null },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(getPositionCardMode(result)).toBe('closed');
+    });
+
+    it('leaves the caption empty and reports the gif url for a gif-only comment', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          authorComment: {
+            uid: 'comment-1',
+            text: KLIPY_STATIC_GIF_EXAMPLE,
+            timestamp: 1_700_000_000,
+            engagement: { reactions: [], userReaction: null },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.comment).toBeUndefined();
+      expect(result.commentGifUrl).toBe(KLIPY_STATIC_GIF_EXAMPLE);
+    });
+
+    it('keeps the caption and reports the gif url when a comment has both', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          authorComment: {
+            uid: 'comment-1',
+            text: `Thesis unchanged.\n${KLIPY_STATIC_GIF_EXAMPLE}`,
+            timestamp: 1_700_000_000,
+            engagement: { reactions: [], userReaction: null },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.comment).toBe('Thesis unchanged.');
+      expect(result.commentGifUrl).toBe(KLIPY_STATIC_GIF_EXAMPLE);
+    });
+
+    it('omits the gif url when a comment has no gif', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          authorComment: {
+            uid: 'comment-1',
+            text: 'Thesis unchanged.',
+            timestamp: 1_700_000_000,
+            engagement: { reactions: [], userReaction: null },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result).not.toHaveProperty('commentGifUrl');
     });
   });
 

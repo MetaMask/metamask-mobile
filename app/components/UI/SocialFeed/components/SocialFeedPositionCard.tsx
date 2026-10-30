@@ -6,6 +6,7 @@ import { useLiveCardHeader } from '../live/useLiveCardHeader';
 import type { SocialV1FeedItem } from '../types';
 import { formatFeedPostAge } from '../utils/formatters';
 import { isCopyTradeable } from '../utils/copyTrade';
+import { getPositionCardMode } from '../utils/positionCardMode';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
 import PositionCardHeader from './PositionCardHeader';
@@ -35,6 +36,16 @@ export interface PositionCardBodyProps {
    * `useCopyTradeToPerps`.
    */
   onCopyTrade?: (item: SocialV1FeedItem) => void;
+  /**
+   * Show the commented layout even when the post has no caption. The composer
+   * preview passes `true`; the feed leaves it unset and keeps the derived mode.
+   */
+  expanded?: boolean;
+  /**
+   * Set `false` to hide Copy trade on an open card. The composer preview passes
+   * it because the trader is posting their own position. Defaults to `true`.
+   */
+  showCopyTrade?: boolean;
 }
 
 const statId = getSocialFeedPositionCardStatTestId;
@@ -129,12 +140,15 @@ const closedStats = (item: {
 /**
  * The position card that forms the body of a post.
  *
- * Two shapes, not four: both put the symbol, a side tag, and the P&L on one
- * row. An open card captions the live price or market cap and offers Copy
- * trade. A closed card captions when it settled and offers nothing to copy.
- * Spot quotes entry and exit as market cap when the fills recorded one. Perps
- * quote a price, and a closed spot card drops the side tag. Composer spot
- * shares reuse the open layout and gate Copy trade with `showCopyTrade`.
+ * Four modes, picked by `getPositionCardMode` from the comment and the
+ * open/closed state, or from `expanded` when the composer previews a position
+ * before it has a caption. Every mode puts the symbol, a side tag, and the P&L
+ * on one row. A commented open card adds the stats and Copy trade. A commented
+ * closed card adds entry, exit and cost. A card without a comment stays
+ * header-only: a live open card, or a closed card that captions when it
+ * settled. Spot quotes entry and exit as market cap when the fills recorded
+ * one. Perps quote a price, and a closed spot card drops the side tag. Composer
+ * spot shares reuse the open layout and gate Copy trade with `showCopyTrade`.
  *
  * Dark mode washes the card with the P&L hue. A closed card also outlines in
  * that hue, so a win and a loss still read while scrolling past at speed.
@@ -142,10 +156,14 @@ const closedStats = (item: {
 export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   item,
   onCopyTrade,
+  expanded = false,
+  showCopyTrade = true,
 }) => {
   const header = useLiveCardHeader(
     item.id,
-    item.variant === 'perpsOpen' || item.variant === 'spotOpen'
+    item.variant === 'perpsOpen' ||
+      item.variant === 'spotOpen' ||
+      item.variant === 'spotShare'
       ? item.live
       : undefined,
     {
@@ -157,6 +175,8 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
       isPnlPositive: item.isPnlPositive,
     },
   );
+
+  const mode = getPositionCardMode(item, { expanded });
 
   if (
     item.variant === 'perpsOpen' ||
@@ -187,7 +207,8 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
       },
     ];
 
-    const showCopyTrade = isCopyTradeable(item);
+    const showCopyTradeButton =
+      showCopyTrade && mode === 'open' && isCopyTradeable(item);
 
     return (
       <PositionCardShell
@@ -196,6 +217,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
           header.pnlValueLabel,
           header.isPnlPositive,
         )}
+        compact={mode === 'openCompact'}
       >
         <View ref={header.trackRef} collapsable={false}>
           <PositionCardHeader
@@ -220,12 +242,16 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
             live={header.live}
           />
         </View>
-        <PositionCardStats rows={stats} cardId={item.id} />
-        {showCopyTrade ? (
-          <CopyTradeButton
-            onPress={onCopyTrade ? () => onCopyTrade(item) : undefined}
-            testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
-          />
+        {mode === 'open' ? (
+          <>
+            <PositionCardStats rows={stats} cardId={item.id} />
+            {showCopyTradeButton ? (
+              <CopyTradeButton
+                onPress={onCopyTrade ? () => onCopyTrade(item) : undefined}
+                testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
+              />
+            ) : null}
+          </>
         ) : null}
       </PositionCardShell>
     );
@@ -235,6 +261,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
     <PositionCardShell
       tone={cardTone(item.pnlLabel, item.valueLabel, item.isPnlPositive)}
       emphasizeBorder
+      compact={mode === 'closedCompact'}
     >
       <PositionCardHeader
         layout="closed"
@@ -252,11 +279,13 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
         pnlValueLabel={item.valueLabel}
         isPnlPositive={item.isPnlPositive}
       />
-      <PositionCardStats
-        rows={closedStats(item)}
-        cardId={item.id}
-        layout="columns"
-      />
+      {mode === 'closed' ? (
+        <PositionCardStats
+          rows={closedStats(item)}
+          cardId={item.id}
+          layout="columns"
+        />
+      ) : null}
     </PositionCardShell>
   );
 };

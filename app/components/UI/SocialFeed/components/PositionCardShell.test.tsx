@@ -19,9 +19,17 @@ const darkMockTheme: Theme = {
   themeAppearance: AppThemeKey.dark,
 };
 
-const renderShell = (tone?: PositionCardTone, emphasizeBorder?: boolean) =>
+const renderShell = (
+  tone?: PositionCardTone,
+  emphasizeBorder?: boolean,
+  compact?: boolean,
+) =>
   renderWithProvider(
-    <PositionCardShell tone={tone} emphasizeBorder={emphasizeBorder}>
+    <PositionCardShell
+      tone={tone}
+      emphasizeBorder={emphasizeBorder}
+      compact={compact}
+    >
       <Text testID={CARD_TEST_ID}>Body</Text>
     </PositionCardShell>,
     { theme: darkMockTheme },
@@ -101,6 +109,29 @@ describe('PositionCardShell', () => {
     expect(gradient.props.start.x).toBeCloseTo(0.7136, 3);
     expect(gradient.props.end.y).toBeCloseTo(1, 4);
     expect(gradient.props.end.x).toBeCloseTo(0.2864, 3);
+  });
+
+  it('starts the compact live wash flatter than the open wash', () => {
+    const gradient = gradientOf(renderShell('positive', false, true));
+
+    expect(gradient.props.start.y).toBeCloseTo(0, 4);
+    expect(gradient.props.start.x).toBeCloseTo(0.61, 3);
+    expect(gradient.props.end.y).toBeCloseTo(1, 4);
+    expect(gradient.props.end.x).toBeCloseTo(0.39, 3);
+  });
+
+  it('starts the compact closed wash less far right than the compact live wash', () => {
+    const gradient = gradientOf(renderShell('negative', true, true));
+
+    expect(gradient.props.start.x).toBeCloseTo(0.6132, 3);
+    expect(gradient.props.end.x).toBeCloseTo(0.3868, 3);
+  });
+
+  it('keeps the 2px outline on a compact closed card', () => {
+    renderShell('positive', true, true);
+
+    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.success.default);
+    expect(cardStyleOf()?.borderWidth).toBe(2);
   });
 
   it('keeps a hairline border when the wash is tinted but the border is not emphasized', () => {

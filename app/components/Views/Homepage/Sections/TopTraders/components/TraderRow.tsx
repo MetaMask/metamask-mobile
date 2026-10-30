@@ -89,7 +89,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
           <View>
             <TraderAvatar
               imageUrl={trader.avatarUri}
-              address={trader.address}
+              address={trader.id}
               size={AVATAR_SIZE}
               recyclingKey={trader.id}
             />
