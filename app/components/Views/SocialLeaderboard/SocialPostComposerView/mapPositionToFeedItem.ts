@@ -246,7 +246,12 @@ export const mapPositionToFeedItem = (
     };
   }
 
-  const live = liveTicks ? openLiveSource(position) : undefined;
+  // A short spot carries a negative amount, which the price helpers read as no holding.
+  const heldSpot = {
+    ...position,
+    positionAmount: Math.abs(position.positionAmount),
+  };
+  const live = liveTicks ? openLiveSource(heldSpot) : undefined;
   return {
     id,
     author,
@@ -256,13 +261,13 @@ export const mapPositionToFeedItem = (
     ...gif,
     asset: { symbol: displaySymbol, avatar },
     side,
-    markPriceLabel: markPriceLabel(position),
+    markPriceLabel: markPriceLabel(heldSpot),
     valueLabel: formatUsd(position.currentValueUSD ?? null),
     pnlLabel,
     pnlValueLabel: pnlValueLabel(position),
     costLabel: costLabel(position),
     isPnlPositive,
-    entryPriceLabel: entryPriceLabel(position),
+    entryPriceLabel: entryPriceLabel(heldSpot),
     holdTimeLabel: holdTimeLabel(position, false),
     showCopyTrade: true,
     ...(live ? { live } : {}),

@@ -107,6 +107,13 @@ const openPerp: Position = {
 
 const LIVE_SPOT_TOKEN_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f';
 
+const shortSpot: Position = {
+  ...openSpot,
+  tokenAddress: LIVE_SPOT_TOKEN_ADDRESS,
+  positionAmount: -0.24,
+  costBasis: 480,
+};
+
 describe('mapPositionToFeedItem', () => {
   it('maps an open spot position to a share card with copy trade', () => {
     const item = mapPositionToFeedItem(openSpot, 'this is alpha', {
@@ -268,6 +275,45 @@ describe('mapPositionToFeedItem', () => {
       return;
     }
     expect(item.side).toBe('sell');
+  });
+
+  it('prices the mark of a short spot from its absolute size', () => {
+    const item = mapPositionToFeedItem(shortSpot, 'short spot', {
+      isClosed: false,
+    });
+
+    expect(item.variant).toBe('spotShare');
+    if (item.variant !== 'spotShare') {
+      return;
+    }
+    expect(item.markPriceLabel).toBe('$3000');
+  });
+
+  it('derives a short spot entry from costBasis when no fill has an enter intent', () => {
+    const item = mapPositionToFeedItem(
+      { ...shortSpot, trades: [{ ...openSpot.trades[0], intent: 'exit' }] },
+      'short spot',
+      { isClosed: false },
+    );
+
+    expect(item.variant).toBe('spotShare');
+    if (item.variant !== 'spotShare') {
+      return;
+    }
+    expect(item.entryPriceLabel).toBe('$2000');
+  });
+
+  it('keeps the snapshot price of a short spot for the first live tick', () => {
+    const item = mapPositionToFeedItem(shortSpot, 'short spot', {
+      isClosed: false,
+    });
+
+    expect(item.variant).toBe('spotShare');
+    if (item.variant !== 'spotShare' || item.live === undefined) {
+      return;
+    }
+    expect(item.live.snapshotPrice).toBe(3000);
+    expect(computeLivePositionFigures(item.live, 3000).pnlUsd).toBeCloseTo(278);
   });
 
   it('omits entry price when there is neither costBasis nor entry fills', () => {
