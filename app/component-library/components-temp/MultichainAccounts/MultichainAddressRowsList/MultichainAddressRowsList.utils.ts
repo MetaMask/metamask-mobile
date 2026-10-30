@@ -1,15 +1,10 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
-import { toHex } from '@metamask/controller-utils';
-import {
-  CaipChainId,
-  isCaipChainId,
-  KnownCaipNamespace,
-  parseCaipChainId,
-} from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { getHexEvmChainId } from '../../../../util/networks';
 import { toFormattedAddress } from '../../../../util/address';
 
 export interface NetworkAddressItem {
@@ -20,29 +15,10 @@ export interface NetworkAddressItem {
 
 /**
  * Hex EVM chain id for comparisons (CHAIN_IDS, PopularList, testnets), or the
- * original CAIP id for non-EVM / unrecognized inputs.
- *
- * Kept local so incomplete `util/networks` Jest mocks (common for
- * `getNetworkImageSource`) do not break network sorting.
- *
- * @param chainId - Chain ID (hex or CAIP format)
- * @returns Hex EVM chain id, or the original id when not EVM
+ * original CAIP id for non-EVM. Uses shared {@link getHexEvmChainId}.
  */
-const evmHexOrOriginalChainId = (chainId: CaipChainId): string => {
-  if (isCaipChainId(chainId)) {
-    const { namespace, reference } = parseCaipChainId(chainId);
-    if (namespace === KnownCaipNamespace.Eip155) {
-      return toHex(reference);
-    }
-    return chainId;
-  }
-
-  if (typeof chainId === 'string' && chainId.startsWith('0x')) {
-    return chainId;
-  }
-
-  return chainId;
-};
+const evmHexOrOriginalChainId = (chainId: CaipChainId): string =>
+  getHexEvmChainId(chainId) ?? chainId;
 
 /**
  * Gets priority score for sorting networks (lower = higher priority)
