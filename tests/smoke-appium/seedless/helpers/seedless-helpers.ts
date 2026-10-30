@@ -318,14 +318,14 @@ const confirmLockAlert = async (): Promise<void> => {
 
   if (PlatformDetector.isIOS()) {
     const appiumDriver = getDriver();
-    const yesLabel = CommonSelectorsText.YES_ALERT_BUTTON;
+    const lockLabel = CommonSelectorsText.LOCK_ALERT_BUTTON;
 
     try {
       const buttons = (await appiumDriver.execute('mobile: alert', {
         action: 'getButtons',
       })) as string[];
       const matched = buttons.find(
-        (label) => label.toUpperCase() === yesLabel.toUpperCase(),
+        (label) => label.toUpperCase() === lockLabel.toUpperCase(),
       );
       if (matched) {
         await appiumDriver.execute('mobile: alert', {
@@ -343,7 +343,7 @@ const confirmLockAlert = async (): Promise<void> => {
     return;
   }
 
-  await SettingsView.tapYesAlertButton();
+  await SettingsView.tapLockAlertButton();
 };
 
 /**
