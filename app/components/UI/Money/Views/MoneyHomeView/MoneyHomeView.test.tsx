@@ -1014,6 +1014,17 @@ describe('MoneyHomeView', () => {
       );
     });
 
+    it('renders the kyc_retry card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_retry',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CONTAINER,
+      );
+    });
+
     it('renders the VBA card above the onboarding card', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',

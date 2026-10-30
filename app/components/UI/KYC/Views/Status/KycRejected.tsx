@@ -33,7 +33,11 @@ const VbaKycRejected = ({ action, onAction }: VbaKycRejectedProps) => {
     <VbaOnboardingError
       testID={VbaKycRejectedSelectorsIDs.CONTAINER}
       backButtonTestID={VbaKycRejectedSelectorsIDs.BACK_BUTTON}
-      title={strings('virtual_bank_account.kyc_rejected.title')}
+      title={strings(
+        isRetry
+          ? 'virtual_bank_account.kyc_rejected.retry_title'
+          : 'virtual_bank_account.kyc_rejected.title',
+      )}
       description={strings(
         isRetry
           ? 'virtual_bank_account.kyc_rejected.retry_description'

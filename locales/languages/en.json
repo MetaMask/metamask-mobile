@@ -1201,7 +1201,8 @@
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then contact support.",
-      "retry_description": "A few details need your attention. Review each item below, then try again.",
+      "retry_title": "A few details need fixing",
+      "retry_description": "We couldn’t confirm some of your details. Check them, then submit again to carry on.",
       "identity_document_title": "Check your identity document",
       "identity_document_description": "Make sure it is valid, clear, and fully visible",
       "selfie_title": "Retake your selfie",
@@ -9482,6 +9483,11 @@
         "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
         "cta": "Learn more",
         "dismiss": "Dismiss"
+      },
+      "kyc_retry": {
+        "title": "Finish verifying your identity",
+        "description": "A few details need fixing before you can use bank transfers.",
+        "cta": "Try again"
       }
     },
     "first_time_deposit": {
