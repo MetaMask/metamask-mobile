@@ -37,6 +37,7 @@ PredictNext/
       MarketList.tsx           # Card-agnostic detail-list composition
       MarketFooterCard.tsx     # Public Game winner footer composition
       MarketStandardCard.tsx   # Public standard Market composition
+      MoneylineMarketGroupCard.tsx # Public moneyline choice-group composition
       SpreadMarketGroupCard.tsx # Public spread Market-group composition
       TotalMarketGroupCard.tsx  # Public total Market-group composition
       internal/                # Private Market-card parts
