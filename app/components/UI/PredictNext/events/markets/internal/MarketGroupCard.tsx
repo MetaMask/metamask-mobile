@@ -7,7 +7,6 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
 import type { PredictMarket, PredictOutcome } from '../../../types';
 import {
   formatAskPrice,
@@ -20,6 +19,12 @@ import { MarketCard } from './MarketCard';
 import { isOutcomeTradeable } from '../../shared/tradeable';
 import { OutcomeRow as SharedOutcomeRow } from '../../shared/ui';
 
+/** How one Outcome row of a line picker looks: its color and trailing value. */
+export interface MarketGroupOutcomeAppearance {
+  color: string;
+  value: string;
+}
+
 export interface MarketGroupCardProps {
   groupKey: string;
   title: string;
@@ -28,6 +33,11 @@ export interface MarketGroupCardProps {
   onSelectMarket: (marketId: PredictMarket['id']) => void;
   onRulesPress: (market: PredictMarket) => void;
   onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
+  /** Supplied by the spread or total composition. */
+  describeOutcome: (
+    market: PredictMarket,
+    outcome: PredictOutcome,
+  ) => MarketGroupOutcomeAppearance;
 }
 
 function findOutcome(
@@ -35,12 +45,6 @@ function findOutcome(
   side: PredictOutcome['side'],
 ): PredictOutcome | undefined {
   return market.outcomes.find((outcome) => outcome.side === side);
-}
-
-function outcomePrefix(outcome: PredictOutcome): string {
-  return (
-    outcome.label.trim().slice(0, 1).toUpperCase() || outcome.side.toUpperCase()
-  );
 }
 
 function getOutcomeOptionValue(
@@ -58,18 +62,17 @@ function OutcomeRow({
   market,
   outcome,
   onOrder,
+  appearance: { color, value },
 }: {
   groupKey: string;
   market: PredictMarket;
   outcome: PredictOutcome;
   onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
+  appearance: MarketGroupOutcomeAppearance;
 }): React.JSX.Element {
-  const { colors } = useTheme();
   const price = formatAskPrice(outcome.askPrice);
   const optionValue = getOutcomeOptionValue(market, outcome);
   const askPricePercent = getAskPricePercent(outcome.askPrice);
-  const color =
-    outcome.side === 'yes' ? colors.success.default : colors.error.default;
 
   return (
     <SharedOutcomeRow.Root
@@ -89,9 +92,7 @@ function OutcomeRow({
           outcome.side,
         )}
       />
-      <SharedOutcomeRow.Value>
-        {`${outcomePrefix(outcome)} ${optionValue}`}
-      </SharedOutcomeRow.Value>
+      <SharedOutcomeRow.Value>{value}</SharedOutcomeRow.Value>
       <SharedOutcomeRow.Price
         price={price}
         color={color}
@@ -123,6 +124,7 @@ export function MarketGroupCard({
   onSelectMarket,
   onRulesPress,
   onOrder,
+  describeOutcome,
 }: MarketGroupCardProps): React.JSX.Element | null {
   const rules = selectedMarket.rules?.trim();
   const yesOutcome = findOutcome(selectedMarket, 'yes');
@@ -160,12 +162,14 @@ export function MarketGroupCard({
           market={selectedMarket}
           outcome={yesOutcome}
           onOrder={onOrder}
+          appearance={describeOutcome(selectedMarket, yesOutcome)}
         />
         <OutcomeRow
           groupKey={groupKey}
           market={selectedMarket}
           outcome={noOutcome}
           onOrder={onOrder}
+          appearance={describeOutcome(selectedMarket, noOutcome)}
         />
       </Box>
       {markets.length > 1 ? (
