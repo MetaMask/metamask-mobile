@@ -16,7 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import React, { useCallback, useMemo, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, type View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DottedUnderline from '../../../../UI/DottedUnderline';
 import { useTheme } from '../../../../../util/theme';
@@ -50,6 +50,12 @@ export interface ProfilePositionsTabProps {
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
   showFlaggedState?: boolean;
+  /** Measured so the P&L note can scroll this section into view. */
+  uncountedSectionRef?: React.Ref<View>;
+  /** Header moved to after the profile scrolls to this section. */
+  uncountedHeaderRef?: React.Ref<View>;
+  /** Called whenever the pinned section lays out. */
+  onUncountedSectionLayout?: () => void;
 }
 
 const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
@@ -62,6 +68,9 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   onPositionPress,
   onRetry,
   showFlaggedState,
+  uncountedSectionRef,
+  uncountedHeaderRef,
+  onUncountedSectionLayout,
 }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -222,8 +231,14 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
             </Box>
           ) : null}
           {uncounted.length > 0 ? (
-            <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
+            <Box
+              ref={uncountedSectionRef}
+              collapsable={false}
+              onLayout={onUncountedSectionLayout}
+              testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}
+            >
               <TouchableOpacity
+                ref={uncountedHeaderRef}
                 accessibilityRole="button"
                 accessibilityLabel={uncountedAccessibilityLabel}
                 onPress={handleOpenUncountedSheet}
