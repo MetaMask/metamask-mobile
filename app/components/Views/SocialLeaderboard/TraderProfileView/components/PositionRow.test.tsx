@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
@@ -215,7 +215,7 @@ describe('PositionRow', () => {
     expect(onPress).toHaveBeenCalledWith(basePosition);
   });
 
-  it('shows the insider label and calls onPress when a flagged row is tapped', () => {
+  it('keeps a flagged row non-pressable when showFlaggedState is set', () => {
     const onPress = jest.fn();
     const position = { ...basePosition, flags: ['insider'] };
 
@@ -226,6 +226,26 @@ describe('PositionRow', () => {
     expect(
       screen.getByTestId('position-row-flag-label-STARKBOT'),
     ).toHaveTextContent('Insider allocation - excluded');
+    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
+    ).toBeUndefined();
+    expect(screen.getByTestId('position-row-STARKBOT').props.onPress).toBeUndefined();
+  });
+
+  it('calls onPress when a flagged row sets allowFlaggedPress', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(
+      <PositionRow
+        position={position}
+        onPress={onPress}
+        showFlaggedState
+        allowFlaggedPress
+      />,
+    );
+
     expect(screen.getByRole('button')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));

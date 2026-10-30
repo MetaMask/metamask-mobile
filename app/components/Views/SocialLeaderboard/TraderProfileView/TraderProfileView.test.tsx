@@ -801,6 +801,9 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId('position-row-flag-label-STARKBOT'),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
+    ).toBeUndefined();
   });
 
   it('navigates to the trader position view when a position is pressed', () => {

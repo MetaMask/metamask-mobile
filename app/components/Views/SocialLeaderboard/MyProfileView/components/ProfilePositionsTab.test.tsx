@@ -11,23 +11,39 @@ jest.mock('../../../../UI/SocialFeed/utils/perp', () => ({
 }));
 
 jest.mock('../../TraderProfileView/components/PositionRow', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+  const { Pressable, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       position,
       onPress,
+      showFlaggedState,
+      allowFlaggedPress,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
-    }) => (
-      <Pressable
-        testID={`position-row-${position.tokenSymbol}`}
-        onPress={() => onPress?.(position)}
-      >
-        <Text>{position.tokenSymbol}</Text>
-      </Pressable>
-    ),
+      showFlaggedState?: boolean;
+      allowFlaggedPress?: boolean;
+    }) => {
+      const flagged = showFlaggedState === true && Boolean(position.flags?.length);
+      const pressable = Boolean(onPress) && (!flagged || allowFlaggedPress);
+      if (!pressable) {
+        return (
+          <View testID={`position-row-${position.tokenSymbol}`}>
+            <Text>{position.tokenSymbol}</Text>
+          </View>
+        );
+      }
+      return (
+        <Pressable
+          accessibilityRole="button"
+          testID={`position-row-${position.tokenSymbol}`}
+          onPress={() => onPress?.(position)}
+        >
+          <Text>{position.tokenSymbol}</Text>
+        </Pressable>
+      );
+    },
   };
 });
 
@@ -191,6 +207,11 @@ describe('ProfilePositionsTab', () => {
         onRetry={onRetry}
         showFlaggedState
       />,
+    );
+
+    expect(screen.getByTestId('position-row-ETH')).toHaveProp(
+      'accessibilityRole',
+      'button',
     );
 
     fireEvent.press(screen.getByTestId('position-row-ETH'));

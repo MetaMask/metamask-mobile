@@ -71,6 +71,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         isClosed={isClosed}
         showTradeDate={isClosed}
         showFlaggedState={showFlaggedState}
+        allowFlaggedPress
         onPress={onPositionPress}
       />
     ));
