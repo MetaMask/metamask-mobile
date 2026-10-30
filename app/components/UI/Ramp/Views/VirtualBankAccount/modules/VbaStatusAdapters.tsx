@@ -22,6 +22,7 @@ import {
 import { useStartVbaAccountSetupEarly } from '../hooks/useStartVbaAccountSetupEarly';
 import { VbaOnboardingRoutes } from '../routes';
 import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
+import { trackKycVerificationUpdated } from '../../../../KYC/utils/kycVerificationAnalytics';
 import { endVbaCufJourney } from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
@@ -97,10 +98,13 @@ export const VbaKycPendingAdapter = () => {
 
 const VbaKycRetryAction = () => {
   const openOnboarding = useOpenVbaOnboarding('kyc_rejected-retry');
-  const handleRetry = useCallback(
-    () => openOnboarding({ retryRejectedKyc: true }),
-    [openOnboarding],
-  );
+  const handleRetry = useCallback(() => {
+    trackKycVerificationUpdated({
+      status: 'retry_started',
+      retrySource: 'kyc_rejected',
+    });
+    return openOnboarding({ retryRejectedKyc: true });
+  }, [openOnboarding]);
 
   return <VbaKycRejected action="retry" onAction={handleRetry} />;
 };
