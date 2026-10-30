@@ -2307,6 +2307,12 @@ describe('PerpsOrderView', () => {
       expect.objectContaining({
         screen: Routes.PERPS.MARKET_DETAILS,
         pop: true,
+        params: expect.objectContaining({
+          monitoringIntent: expect.objectContaining({
+            initialOrderCount: 0,
+            initialPosition: null,
+          }),
+        }),
       }),
     );
 
