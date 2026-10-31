@@ -6,6 +6,7 @@ import {
   MONEY_BUTTON_INTENTS,
 } from '../../constants/moneyEvents';
 import moneyVbaIdentityArt from '../../../../../images/money-vba-identity-art.png';
+import moneyVbaGetStartedArt from '../../../../../images/money-vba-get-started-art.png';
 import moneyVbaAccountReadyArt from '../../../../../images/money-vba-account-ready-art.png';
 import moneyVbaKycDecisionArt from '../../../../../images/money-vba-kyc-decision-art.png';
 
@@ -64,7 +65,12 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     source: 'vba-home-card-get-started',
     i18nPrefix: 'money.vba_home_card.get_started',
     buttonIntent: MONEY_BUTTON_INTENTS.GET_STARTED,
-    heroArt: IDENTITY_HERO_ART,
+    // Fox-and-coins art from the Money Home card (Figma node 2267-17522).
+    heroArt: {
+      source: moneyVbaGetStartedArt,
+      width: 106.5,
+      height: 88,
+    },
     ctaClassName: 'bg-icon-default',
     ctaTextClassName: 'text-primary-inverse',
   },
