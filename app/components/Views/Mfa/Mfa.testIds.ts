@@ -11,7 +11,6 @@ export const MfaFlowSelectorsIDs = {
   CODE_TAP_AREA: 'mfa-flow-code-tap-area',
   VERIFYING_INDICATOR: 'mfa-flow-verifying-indicator',
   RESEND_BUTTON: 'mfa-flow-resend-button',
-  PASTE_BUTTON: 'mfa-flow-paste-button',
   PICKER_OPTION: 'mfa-flow-picker-option',
   INTRO_METHOD: 'mfa-flow-intro-method',
   TOTP_COPY_KEY: 'mfa-flow-totp-copy-key',

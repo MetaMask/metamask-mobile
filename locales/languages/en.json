@@ -8669,7 +8669,6 @@
       "resend": "Resend code",
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
-      "paste": "Paste",
       "verifying": "Verifying code",
       "get_new_code": "Get new code"
     },
