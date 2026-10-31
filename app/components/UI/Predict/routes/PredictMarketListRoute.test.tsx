@@ -92,9 +92,9 @@ describe('PredictMarketListRoute', () => {
     [false, 'legacy-predict-feed'],
     [true, 'legacy-predict-home'],
   ])(
-    'renders the legacy market list while Polymarket is enabled (redesign %s)',
+    'renders the legacy market list while Polymarket is the Active Venue (redesign %s)',
     (redesignEnabled, testId) => {
-      mockConfig = config(true, true);
+      mockConfig = config(true, false);
       mockHomeRedesignEnabled = redesignEnabled;
       givenParams();
 

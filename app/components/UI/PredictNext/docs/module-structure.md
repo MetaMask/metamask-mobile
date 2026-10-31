@@ -9,9 +9,14 @@ PredictNext/
   index.ts                     # Curated external entry point
   implementation/
     index.ts                   # Legacy/next switch and Active Venue resolution
+    resolveActiveVenue.ts      # The pure resolution order (docs/active-venue.md)
+    activeVenue.ts             # selectActiveVenue, the one resolver, and useActiveVenue
+    PredictVenueController.ts  # Persisted preference and history, session default
     PredictImplementationSwitch.tsx
     usePredictImplementation.ts
     NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
+  availability/
+    index.ts                   # Venue-aware selectPredictAvailability / usePredictAvailability
   activity/
     index.ts                   # Activity projections for the shared Activity list and details
     usePredictActivityItems.ts # Activity as shared ActivityListItems

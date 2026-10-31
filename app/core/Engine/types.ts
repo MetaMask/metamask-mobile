@@ -380,6 +380,12 @@ import {
   type PredictOrderServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictOrderService';
 import {
+  PredictVenueController,
+  type PredictVenueControllerActions,
+  type PredictVenueControllerEvents,
+  type PredictVenueControllerState,
+} from '../../components/UI/PredictNext/implementation/PredictVenueController';
+import {
   RecurringOrdersDataService,
   type RecurringOrdersDataServiceActions,
   type RecurringOrdersDataServiceEvents,
@@ -728,6 +734,7 @@ export type GlobalActions =
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
   | PredictOrderServiceActions
+  | PredictVenueControllerActions
   | RecurringOrdersDataServiceActions
   | LimitOrdersDataServiceActions
   | SentinelFeeTokensDataServiceActions
@@ -850,6 +857,7 @@ export type GlobalEvents =
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
   | PredictOrderServiceEvents
+  | PredictVenueControllerEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
   | SentinelFeeTokensDataServiceEvents
@@ -1010,6 +1018,7 @@ export type MessengerClients = {
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
   PredictOrderService: PredictOrderService;
+  PredictVenueController: PredictVenueController;
   RecurringOrdersDataService: RecurringOrdersDataService;
   LimitOrdersDataService: LimitOrdersDataService;
   SentinelFeeTokensDataService: SentinelFeeTokensDataService;
@@ -1113,6 +1122,7 @@ export type EngineState = {
   GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
+  PredictVenueController: PredictVenueControllerState;
   CardController: CardControllerState;
   UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
@@ -1213,6 +1223,7 @@ export type MessengerClientsToInitialize =
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
   | 'PredictOrderService'
+  | 'PredictVenueController'
   | 'RecurringOrdersDataService'
   | 'LimitOrdersDataService'
   | 'SentinelFeeTokensDataService'

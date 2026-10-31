@@ -56,6 +56,8 @@ const predictCompositionFiles = [
   'app/core/Engine/controllers/predict-controller/index.ts',
   'app/core/Engine/controllers/predict-service-init.test.ts',
   'app/core/Engine/controllers/predict-service-init.ts',
+  'app/core/Engine/controllers/predict-venue-controller-init.test.ts',
+  'app/core/Engine/controllers/predict-venue-controller-init.ts',
   'app/core/Engine/controllers/transaction-pay-controller/polymarket-callbacks.test.ts',
   'app/core/Engine/controllers/transaction-pay-controller/polymarket-callbacks.ts',
   'app/core/Engine/messengers/predict-controller-messenger/index.ts',
@@ -67,6 +69,8 @@ const predictCompositionFiles = [
   'app/core/Engine/messengers/predict-order-service-messenger.ts',
   'app/core/Engine/messengers/predict-portfolio-service-messenger.test.ts',
   'app/core/Engine/messengers/predict-portfolio-service-messenger.ts',
+  'app/core/Engine/messengers/predict-venue-controller-messenger.test.ts',
+  'app/core/Engine/messengers/predict-venue-controller-messenger.ts',
   'app/core/Engine/types.ts',
   'app/core/Engine/wallet-init/messengers/transaction-controller-messenger.ts',
 ];

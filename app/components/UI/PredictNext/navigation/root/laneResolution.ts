@@ -1,8 +1,4 @@
-import {
-  resolveActiveVenue,
-  type PredictConfiguredVenue,
-} from '../../implementation';
-import type { PredictConfig } from '../../config/predictConfig';
+import type { PredictConfiguredVenue } from '../../implementation';
 import type {
   PredictMarketListRouteParams,
   PredictStackParamList,
@@ -13,11 +9,15 @@ export const hasLegacyMarketListParams = (
 ): boolean =>
   Boolean(params?.feedId || params?.tab || params?.tabId || params?.query);
 
-export const resolvePredictMarketListLane = (
-  config: PredictConfig,
+/**
+ * Venue a market list stays on regardless of the Active Venue: legacy feed
+ * and search parameters stay on Polymarket. `undefined` leaves it to the
+ * Active Venue. PRED-1379 removes this pinning.
+ */
+export const resolvePinnedMarketListVenue = (
   params?: PredictMarketListRouteParams,
-): PredictConfiguredVenue =>
-  hasLegacyMarketListParams(params) ? 'polymarket' : resolveActiveVenue(config);
+): PredictConfiguredVenue | undefined =>
+  hasLegacyMarketListParams(params) ? 'polymarket' : undefined;
 
 /**
  * Venue that a legacy root entry point stays on regardless of the Active
@@ -34,5 +34,5 @@ export const resolvePinnedVenue = (route?: {
   if (route.screen !== 'PredictMarketList') {
     return 'polymarket';
   }
-  return hasLegacyMarketListParams(route.params) ? 'polymarket' : undefined;
+  return resolvePinnedMarketListVenue(route.params);
 };

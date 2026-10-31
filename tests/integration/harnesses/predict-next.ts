@@ -1,5 +1,16 @@
+import { deriveStateFromMetadata } from '@metamask/base-controller';
 import { ConstantBackoff } from '@metamask/controller-utils';
-import { Messenger } from '@metamask/messenger';
+import {
+  GeolocationApiService,
+  type GeolocationApiServiceMessenger,
+  type GeolocationController,
+  type GeolocationControllerMessenger,
+} from '@metamask/geolocation-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { AppStateStatus } from 'react-native';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
@@ -32,9 +43,20 @@ import {
 } from '../../../app/core/Engine/messengers/predict-live-data-service-messenger';
 import { getPredictMarketDataServiceMessenger } from '../../../app/core/Engine/messengers/predict-market-data-service-messenger';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
+import {
+  PredictVenueController,
+  type PredictVenueControllerMessenger,
+  type PredictVenueControllerState,
+} from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
+import { geolocationControllerInit } from '../../../app/core/Engine/controllers/geolocation-controller';
+import { getGeolocationApiServiceMessenger } from '../../../app/core/Engine/messengers/geolocation-api-service-messenger';
+import { getGeolocationControllerMessenger } from '../../../app/core/Engine/messengers/geolocation-controller-messenger';
+import { getPredictVenueControllerMessenger } from '../../../app/core/Engine/messengers/predict-venue-controller-messenger';
 
 /**
- * PredictNext integration-test harness.
+ * PredictNext integration-test harnesses. `buildPredictVenueIntegrationHarness`
+ * at the end of this file covers Active Venue resolution; the rest covers the
+ * data services.
  *
  * REAL: Engine-root messenger topology, PredictMarketDataService,
  * PredictPortfolioService, PredictLiveDataService, PredictLiveDataClient,
@@ -297,6 +319,114 @@ export const buildPredictNextIntegrationHarness = (
       liveDataService.destroy();
       marketDataService.destroy();
       portfolioService.destroy();
+    },
+  };
+};
+
+export interface PredictVenueIntegrationHarness {
+  venueController: PredictVenueController;
+  geolocationController: GeolocationController;
+  /** Every request the geolocation API received this session. */
+  geolocationFetchMock: jest.MockedFunction<typeof fetch>;
+  /** Answers the pending geolocation request with an ISO country code. */
+  respondWithCountry: (country: string) => Promise<void>;
+  /** Fails the pending geolocation request. */
+  failGeolocation: () => Promise<void>;
+  /** What this session would persist for the next one. */
+  persistedVenueState: () => Partial<PredictVenueControllerState>;
+  destroy: () => void;
+}
+
+/**
+ * Active Venue harness: one app session of Engine-start geolocation and the
+ * Venue controller.
+ *
+ * REAL: GeolocationApiService (parsing, policy), GeolocationController with
+ * its Engine-start init, PredictVenueController and the Engine messengers.
+ * MOCKED: the geolocation HTTP fetch, which stays pending until answered.
+ */
+export const buildPredictVenueIntegrationHarness = ({
+  persisted,
+  geolocationWaitMs,
+}: {
+  persisted?: Partial<PredictVenueControllerState>;
+  geolocationWaitMs: number;
+}): PredictVenueIntegrationHarness => {
+  // One root, as in Engine. Each Engine messenger getter types the root by
+  // its own slice, so the shared root is cast once per getter.
+  const messenger = new Messenger<
+    'Root',
+    | MessengerActions<PredictVenueControllerMessenger>
+    | MessengerActions<GeolocationControllerMessenger>
+    | MessengerActions<GeolocationApiServiceMessenger>,
+    | MessengerEvents<PredictVenueControllerMessenger>
+    | MessengerEvents<GeolocationControllerMessenger>
+  >({ namespace: 'Root' });
+  const rootFor = <Getter extends (root: never) => unknown>() =>
+    messenger as unknown as Parameters<Getter>[0];
+
+  let settle: (response: Response) => void = () => undefined;
+  const geolocationFetchMock = jest.fn(
+    () =>
+      new Promise<Response>((resolve) => {
+        settle = resolve;
+      }),
+  ) as unknown as jest.MockedFunction<typeof fetch>;
+  // Registers the fetch action the controller calls; nothing else holds it.
+  // eslint-disable-next-line no-new
+  new GeolocationApiService({
+    messenger:
+      getGeolocationApiServiceMessenger(
+        rootFor<typeof getGeolocationApiServiceMessenger>(),
+      ),
+    fetch: geolocationFetchMock,
+    policyOptions: { maxRetries: 0 },
+  });
+  const { controller: geolocationController } = geolocationControllerInit({
+    controllerMessenger:
+      getGeolocationControllerMessenger(
+        rootFor<typeof getGeolocationControllerMessenger>(),
+      ),
+    persistedState: {},
+  } as unknown as Parameters<typeof geolocationControllerInit>[0]);
+
+  // Mirrors predictVenueControllerInit, minus its Redux subscription.
+  const venueController = new PredictVenueController({
+    messenger:
+      getPredictVenueControllerMessenger(
+        rootFor<typeof getPredictVenueControllerMessenger>(),
+      ),
+    state: persisted,
+    geolocationWaitMs,
+  });
+  venueController.init();
+
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  return {
+    venueController,
+    geolocationController,
+    geolocationFetchMock,
+    respondWithCountry: async (country) => {
+      settle({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ country }),
+      } as Response);
+      await flush();
+    },
+    failGeolocation: async () => {
+      settle({ ok: false, status: 503, text: async () => '' } as Response);
+      await flush();
+    },
+    persistedVenueState: () =>
+      deriveStateFromMetadata(
+        venueController.state,
+        venueController.metadata,
+        'persist',
+      ) as Partial<PredictVenueControllerState>,
+    destroy: () => {
+      venueController.destroy();
     },
   };
 };
