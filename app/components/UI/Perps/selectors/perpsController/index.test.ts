@@ -1079,19 +1079,27 @@ describe('PerpsController Selectors', () => {
       expect(selectPerpsProChartExpanded(mockState)).toBe(true);
     });
 
+    it('keeps a persisted collapse over the mobile default', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { chartExpanded: false },
+      });
+
+      expect(selectPerpsProChartExpanded(mockState)).toBe(false);
+    });
+
     it('returns the controller default when the preference is unset', () => {
       const mockState = createMockState({});
 
       expect(selectPerpsProChartExpanded(mockState)).toBe(true);
     });
 
-    it('falls back to the default when PerpsController state is missing', () => {
+    it('falls back to the mobile default when PerpsController state is missing', () => {
       const mockState = {
         engine: { backgroundState: { PerpsController: undefined } },
       } as unknown as RootState;
 
       expect(selectPerpsProChartExpanded(mockState)).toBe(
-        DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
+        MOBILE_PRO_LAYOUT_DEFAULTS.chartExpanded,
       );
     });
   });
