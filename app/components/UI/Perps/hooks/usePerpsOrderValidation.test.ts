@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
+  PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   PERFORMANCE_CONFIG,
   VALIDATION_THRESHOLDS,
@@ -47,6 +48,7 @@ jest.mock('../../../../../locales/i18n', () => ({
         'Trigger price must be lower than mid price',
       'perps.order.validation.lighter_limit_tpsl_unsupported':
         "Take profit and stop loss can't both be set on a limit order for this provider yet",
+      'perps.order.validation.invalid_leverage': `Leverage must be between ${values?.min}x and ${values?.max}x`,
     };
     return translations[key] || key;
   }),
@@ -131,6 +133,55 @@ describe('usePerpsOrderValidation', () => {
           providerId: 'hyperliquid',
         }),
       );
+    });
+
+    it.each([25, 40])(
+      'uses market max leverage %s in the leverage range error',
+      async (marketMaxLeverage) => {
+        mockValidateOrder.mockResolvedValue({
+          isValid: false,
+          error: PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID,
+        });
+
+        const { result } = renderHook(() =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            maxLeverage: marketMaxLeverage,
+          }),
+        );
+        await act(async () => {
+          await Promise.resolve();
+        });
+
+        await fastWaitFor(() => {
+          expect(result.current.errors).toContain(
+            `Leverage must be between 1x and ${marketMaxLeverage}x`,
+          );
+        });
+      },
+    );
+
+    it('uses the controller default max leverage in the leverage range error when market max is undefined', async () => {
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          maxLeverage: undefined,
+        }),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.errors).toContain(
+          `Leverage must be between 1x and ${PERPS_CONSTANTS.DefaultMaxLeverage}x`,
+        );
+      });
     });
 
     it('suppresses protocol errors owned by the calling form by code', async () => {

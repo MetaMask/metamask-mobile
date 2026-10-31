@@ -2164,6 +2164,7 @@ export const usePerpsProOrderForm = ({
     suppressedProtocolErrorCodes: isTwapOrder
       ? TWAP_OWNED_PROTOCOL_ERROR_CODES
       : undefined,
+    maxLeverage: marketData?.maxLeverage,
   });
   const { validateNow } = orderValidation;
   const scaleValidationInputKey = JSON.stringify({
