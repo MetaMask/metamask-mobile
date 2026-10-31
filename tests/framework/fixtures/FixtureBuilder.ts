@@ -1577,6 +1577,27 @@ class FixtureBuilder {
   }
 
   /**
+   * Persists a Virtual Bank Account KYC session on KycController, as left by
+   * a previous Iron/SumSub verification attempt.
+   *
+   * @param sessionStatus - UKYC session status stored on the controller.
+   * @param email - Verified email recorded when the session was created.
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withVbaKycSession(sessionStatus: Record<string, string>, email: string) {
+    merge(this.fixture.state.engine.backgroundState, {
+      KycController: {
+        email,
+        vendor: 'iron',
+        geoCountry: 'BRA',
+        providerFlowStatus: 'not_started',
+        sessionStatus,
+      },
+    });
+    return this;
+  }
+
+  /**
    * Sets the MetaMetrics opt-in state to 'agreed' in the fixture's asyncState
    * and enables the AnalyticsController.
    * This indicates that the user has agreed to MetaMetrics data collection.
