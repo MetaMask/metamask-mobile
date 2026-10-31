@@ -238,8 +238,10 @@ interface UniversalLinkActionHandler {
   ) => DeeplinkIntent | Promise<DeeplinkIntent> | null;
 }
 
-// perps-asset URLs carry just '?symbol=X', so inject screen=asset to reuse the
-// unified perps handler/intent builder.
+// perps-asset URLs carry just '?symbol=X' (and optionally '&mode=pro'), so
+// inject screen=asset to reuse the unified perps handler/intent builder. Any
+// other query params (e.g. `mode=pro` to open the market in Pro mode, which
+// defaults to BTC when `symbol` is omitted) are forwarded through as-is.
 const getPerpsAssetPath = (actionBasedRampPath: string): string =>
   `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`;
 

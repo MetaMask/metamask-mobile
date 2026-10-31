@@ -1,21 +1,35 @@
+import { CommonActions, type NavigationState } from '@react-navigation/native';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   getPerpsDexFromSymbol,
   getPerpsDisplaySymbol,
+  PerpsMode,
   type PerpsMarketData,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Engine from '../../../Engine';
 import ReduxService from '../../../redux';
-import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
-import { selectPerpsTerminalBackendEnabledFlag } from '../../../../components/UI/Perps/selectors/featureFlags';
+import {
+  selectIsFirstTimePerpsUser,
+  selectPerpsLastViewedMarketSymbol,
+} from '../../../../components/UI/Perps/selectors/perpsController';
+import {
+  selectPerpsProModeEnabledFlag,
+  selectPerpsTerminalBackendEnabledFlag,
+} from '../../../../components/UI/Perps/selectors/featureFlags';
 import {
   parsePerpsUtmFromPath,
   setPerpsUtmAttribution,
 } from '../../../../components/UI/Perps/utils/perpsAnalyticsAttribution';
-import { getPerpsHomeNavigationTarget } from '../../../../components/UI/Perps/utils/perpsModeSwitch';
+import {
+  dropPerpsHomeFromStackHistory,
+  getPerpsHomeNavigationTarget,
+  isPerpsProModeActive,
+  PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  resolvePerpsHomeNavigationTarget,
+} from '../../../../components/UI/Perps/utils/perpsModeSwitch';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -47,6 +61,10 @@ const TAB_TO_FILTER_MAP: Record<string, MarketTypeFilter> = {
   new: 'new',
 };
 
+const PERPS_PRO_MODE = 'pro' as const;
+
+type PerpsNavigationMode = typeof PERPS_PRO_MODE;
+
 /**
  * Extensible interface for parsed perps navigation parameters
  * Supports current screens and can be easily extended for future screens
@@ -56,7 +74,12 @@ interface PerpsNavigationParams {
   symbol?: string;
   /** Market category tab filter: 'all' | 'crypto' | 'stock' */
   tab?: string;
+  /** `pro` asks the handler to persist Pro mode before opening the screen. */
+  mode?: PerpsNavigationMode;
 }
+
+const readPerpsQueryParams = (perpsPath: string): URLSearchParams =>
+  new URLSearchParams(perpsPath.includes('?') ? perpsPath.split('?')[1] : '');
 
 /**
  * Parse URL parameters into typed navigation parameters
@@ -66,17 +89,129 @@ interface PerpsNavigationParams {
 const parsePerpsNavigationParams = (
   perpsPath: string,
 ): PerpsNavigationParams => {
-  const urlParams = new URLSearchParams(
-    perpsPath.includes('?') ? perpsPath.split('?')[1] : '',
-  );
+  const urlParams = readPerpsQueryParams(perpsPath);
 
   return {
     screen:
       (urlParams.get('screen') as PerpsNavigationParams['screen']) || undefined,
     symbol: urlParams.get('symbol') || undefined,
     tab: urlParams.get('tab') || undefined,
+    mode: (urlParams.get('mode') as PerpsNavigationMode) || undefined,
   };
 };
+
+/**
+ * A `mode=pro` query param asks to persist Pro mode (e.g.
+ * `perps-asset?symbol=ETH&mode=pro` or `perps?screen=asset&mode=pro`). The
+ * remote flag still gates the layout, so a disabled flag leaves the current
+ * mode unchanged.
+ */
+const isProModeRequested = (navParams: PerpsNavigationParams): boolean =>
+  navParams.mode === PERPS_PRO_MODE;
+
+const activateProMode = (): boolean => {
+  try {
+    Engine.context.PerpsController.setPerpsMode(PerpsMode.Pro);
+    return true;
+  } catch (error) {
+    DevLogger.log('[handlePerpsUrl] Failed to set Pro mode:', error);
+    return false;
+  }
+};
+
+interface DeeplinkStackState {
+  key?: string;
+  index: number;
+  routes: {
+    key?: string;
+    name: string;
+    params?: object;
+    state?: DeeplinkStackState;
+  }[];
+}
+
+const isDeeplinkStackState = (value: unknown): value is DeeplinkStackState =>
+  Boolean(
+    value &&
+      typeof value === 'object' &&
+      'routes' in value &&
+      Array.isArray((value as DeeplinkStackState).routes),
+  );
+
+/**
+ * The Perps stack that still contains Lite home. Root `getState()` is the
+ * main stack, so Home is one level down on `Routes.PERPS.ROOT`.
+ */
+const findPerpsStackContainingHome = (
+  state: DeeplinkStackState | undefined,
+): DeeplinkStackState | undefined => {
+  if (!state?.routes) {
+    return undefined;
+  }
+
+  for (const route of state.routes) {
+    if (route.name === Routes.PERPS.ROOT && isDeeplinkStackState(route.state)) {
+      const containsHome = route.state.routes.some(
+        (entry) => entry.name === Routes.PERPS.PERPS_HOME,
+      );
+      if (containsHome) {
+        return route.state;
+      }
+    }
+    if (isDeeplinkStackState(route.state)) {
+      const nested = findPerpsStackContainingHome(route.state);
+      if (nested) {
+        return nested;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+/**
+ * `navigate` on NavigationService is deferred to the next frame. Read the
+ * stack after that frame so Home is dropped only once the requested market
+ * is already on it. `dropPerpsHomeFromStackHistory` no-ops when Home is the
+ * only entry, which would be the pre-navigate stack.
+ */
+const scheduleDropPerpsHomeFromDeeplinkHistory = (): void => {
+  requestAnimationFrame(() => {
+    try {
+      const navigation = NavigationService.navigation;
+      if (typeof navigation.getState !== 'function') {
+        return;
+      }
+      const perpsState = findPerpsStackContainingHome(
+        navigation.getState() as DeeplinkStackState | undefined,
+      );
+      if (!perpsState?.key) {
+        return;
+      }
+      dropPerpsHomeFromStackHistory({
+        getState: () => perpsState as NavigationState,
+        reset: (nextState) => {
+          if (typeof navigation.dispatch !== 'function') {
+            return;
+          }
+          navigation.dispatch({
+            ...CommonActions.reset(nextState),
+            target: perpsState.key,
+          });
+        },
+      });
+    } catch (error) {
+      DevLogger.log(
+        '[handlePerpsUrl] Failed to drop Lite home from history:',
+        error,
+      );
+    }
+  });
+};
+
+/** Whether the target pushes a screen inside the Perps stack. */
+const isPerpsRootTarget = (target: DeeplinkIntent['target']): boolean =>
+  target.type === 'main-stack' && target.routeName === Routes.PERPS.ROOT;
 
 /**
  * Parse HIP-3 symbol format (dex:symbol) into marketSource and symbol
@@ -204,13 +339,19 @@ const perpsScreenTarget = (
 });
 
 /**
- * Build the Perps home target. While Pro mode is active this resolves to
- * the default Pro market instead of `PerpsHomeView`, which must never be
- * shown while Pro mode is on (TAT-3612).
+ * Build the Perps home target. While Pro mode is active this resolves to the
+ * default Pro market instead of `PerpsHomeView`, which must never be shown
+ * while Pro mode is on (TAT-3612).
+ *
+ * `activatePro` covers links that will persist Pro in `prepare`: the store
+ * still holds the pre-prepare mode when the target is resolved.
  */
-const perpsHomeTarget = (): DeeplinkIntent['target'] => {
-  const { screen, params } = getPerpsHomeNavigationTarget(
-    ReduxService.store.getState(),
+const perpsHomeTarget = (activatePro = false): DeeplinkIntent['target'] => {
+  const state = ReduxService.store.getState();
+  const { screen, params } = resolvePerpsHomeNavigationTarget(
+    activatePro || isPerpsProModeActive(state),
+    {},
+    selectPerpsLastViewedMarketSymbol(state),
   );
   return perpsScreenTarget(screen, params);
 };
@@ -230,14 +371,17 @@ const perpsHomeTarget = (): DeeplinkIntent['target'] => {
  * - https://link.metamask.io/perps?screen=asset&symbol=BTC            → PerpsMarketDetailsView (crypto)
  * - https://link.metamask.io/perps?screen=asset&symbol=kpepe          → PerpsMarketDetailsView (kPEPE, case-insensitive)
  * - https://link.metamask.io/perps?screen=asset&symbol=xyz:TSLA       → PerpsMarketDetailsView (HIP3)
+ * - https://link.metamask.io/perps-asset?symbol=ETH&mode=pro          → Pro mode, ETH market
+ * - https://link.metamask.io/perps-asset?mode=pro                     → Pro mode, BTC market (default)
+ * - https://link.metamask.io/perps?screen=asset&mode=pro&symbol=ETH   → Pro mode, ETH market
  *
  * Navigation behavior:
  * - First-time users: Always navigate to tutorial (regardless of parameters)
  * - Returning users: Route based on screen parameter
  * - No screen param: Defaults to screen=tabs behavior
  * - screen=tabs: Navigate to wallet home with Perps tab selected
- * - screen=home: Navigate directly to PerpsHomeView
- * - screen=markets: Navigate to PerpsHomeView (backwards compatibility)
+ * - screen=home: Navigate directly to PerpsHomeView, or the Pro home market when mode=pro will be persisted
+ * - screen=markets: Navigate to PerpsHomeView (backwards compatibility), or the Pro home market when mode=pro will be persisted
  * - screen=market-list: Navigate to PerpsMarketListView with optional tab filter
  * - screen=asset&symbol=X: Navigate directly to asset market details
  *
@@ -245,11 +389,10 @@ const perpsHomeTarget = (): DeeplinkIntent['target'] => {
  * - Standard crypto: 'BTC', 'ETH'
  * - HIP-3 (dex:symbol): 'xyz:TSLA', 'xyz:xyz100' → marketSource='xyz'
  */
-const resolvePerpsTarget = async ({
-  perpsPath,
-}: HandlePerpsUrlParams): Promise<DeeplinkIntent['target']> => {
-  // Parse navigation parameters from URL
-  const navParams = parsePerpsNavigationParams(perpsPath);
+const resolvePerpsTarget = async (
+  navParams: PerpsNavigationParams,
+  activatePro: boolean,
+): Promise<DeeplinkIntent['target']> => {
   DevLogger.log('[handlePerpsUrl] Parsed navigation parameters:', navParams);
 
   // Check if user is first-time perps user - always goes to tutorial first
@@ -270,16 +413,16 @@ const resolvePerpsTarget = async ({
   // Returning users: route based on screen parameter
   switch (navParams.screen) {
     case 'home':
-      // Explicit navigation to PerpsHomeView
-      DevLogger.log('[handlePerpsUrl] Navigating to PerpsHomeView');
-      return perpsHomeTarget();
+      // Explicit navigation to Perps home (Lite hub, or the Pro market).
+      DevLogger.log('[handlePerpsUrl] Navigating to Perps home');
+      return perpsHomeTarget(activatePro);
 
     case 'markets':
-      // Backwards compatibility: screen=markets → PerpsHomeView
+      // Backwards compatibility: screen=markets → Perps home
       DevLogger.log(
-        '[handlePerpsUrl] Navigating to PerpsHomeView (backwards compat)',
+        '[handlePerpsUrl] Navigating to Perps home (backwards compat)',
       );
-      return perpsHomeTarget();
+      return perpsHomeTarget(activatePro);
 
     case 'market-list': {
       // Navigate to PerpsMarketListView with optional market type filter
@@ -299,7 +442,10 @@ const resolvePerpsTarget = async ({
 
     case 'asset': {
       DevLogger.log('[handlePerpsUrl] Navigating to asset details');
-      const rawSymbol = navParams.symbol || '';
+      // A Pro link without a symbol still opens a market: the default one.
+      const rawSymbol =
+        navParams.symbol ||
+        (isProModeRequested(navParams) ? PERPS_DEFAULT_PRO_MARKET_SYMBOL : '');
       if (!rawSymbol) {
         DevLogger.log(
           '[handlePerpsUrl] No symbol provided, fallback to markets list',
@@ -338,15 +484,12 @@ const resolvePerpsTarget = async ({
  * Fires `PRICE_ALERT_NOTIFICATION_OPENED` when a perps deeplink originates from
  * a price-alert push notification (`source=price_alert_notification`, `screen=asset`).
  *
- * Called exclusively via `createPerpsDeeplinkIntent`, which is on the execution path
- * for both cold-start (locked/killed app — called directly from handleUniversalLink)
- * and warm (app already running — called from handlePerpsUrl → executeDeeplinkIntent).
+ * Called from `buildPerpsDeeplinkIntent`. Cold start reaches that through
+ * `createPerpsDeeplinkIntent`; the warm path calls the builder directly.
  */
 const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
   try {
-    const urlParams = new URLSearchParams(
-      perpsPath.includes('?') ? perpsPath.split('?')[1] : '',
-    );
+    const urlParams = readPerpsQueryParams(perpsPath);
     const source = urlParams.get('source');
     const screen = urlParams.get('screen');
     if (
@@ -380,17 +523,51 @@ const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
   }
 };
 
-export const createPerpsDeeplinkIntent = async ({
-  perpsPath,
-}: HandlePerpsUrlParams): Promise<DeeplinkIntent> => {
+interface PerpsIntentPreparation {
+  /** Whether `prepare` persisted Pro mode; drives warm-path stack cleanup. */
+  proModeActivated: boolean;
+}
+
+/**
+ * Build the deeplink intent plus the outcome of its `prepare` step. The warm
+ * path needs that outcome to decide whether to drop Lite home from the Perps
+ * stack, so it is returned alongside the intent instead of being part of the
+ * intent's public API.
+ */
+const buildPerpsDeeplinkIntent = async (
+  perpsPath: string,
+): Promise<{ intent: DeeplinkIntent; preparation: PerpsIntentPreparation }> => {
   // Track notification-opened on every entry path:
   //  - Cold/startup path: called directly from handleUniversalLink (locked/killed app)
   //  - Warm path: called via handlePerpsUrl → executeDeeplinkIntent (app already running)
   trackPriceAlertNotificationIfApplicable(perpsPath);
+
+  const navParams = parsePerpsNavigationParams(perpsPath);
+  const activatePro =
+    isProModeRequested(navParams) &&
+    selectPerpsProModeEnabledFlag(ReduxService.store.getState());
+  const preparation: PerpsIntentPreparation = { proModeActivated: false };
+
   return {
-    target: await resolvePerpsTarget({ perpsPath }),
+    preparation,
+    intent: {
+      target: await resolvePerpsTarget(navParams, activatePro),
+      // prepare runs before navigation on both the warm and cold-start paths,
+      // so the market screen mounts the Pro layout once. The destination above
+      // already uses this same requested mode, so it does not wait on prepare.
+      ...(activatePro && {
+        prepare: () => {
+          preparation.proModeActivated = activateProMode();
+        },
+      }),
+    },
   };
 };
+
+export const createPerpsDeeplinkIntent = async ({
+  perpsPath,
+}: HandlePerpsUrlParams): Promise<DeeplinkIntent> =>
+  (await buildPerpsDeeplinkIntent(perpsPath)).intent;
 
 export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
   DevLogger.log(
@@ -410,10 +587,18 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     );
   }
 
+  const { intent, preparation } = await buildPerpsDeeplinkIntent(perpsPath);
+
   try {
-    // createPerpsDeeplinkIntent calls trackPriceAlertNotificationIfApplicable
+    // buildPerpsDeeplinkIntent calls trackPriceAlertNotificationIfApplicable
     // internally, covering both warm (here) and cold/startup paths consistently.
-    await executeDeeplinkIntent(await createPerpsDeeplinkIntent({ perpsPath }));
+    await executeDeeplinkIntent(intent);
+    // Drop Lite home only after the market is on the stack. A single Home
+    // entry cannot be removed first: that reset would leave Perps with no
+    // screen. Cold start builds a fresh stack and does not come through here.
+    if (preparation.proModeActivated && isPerpsRootTarget(intent.target)) {
+      scheduleDropPerpsHomeFromDeeplinkHistory();
+    }
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);
     // Fallback to markets list on error
