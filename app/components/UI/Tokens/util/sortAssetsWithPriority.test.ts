@@ -50,6 +50,61 @@ describe('sortAssetsWithPriority', () => {
     ]);
   });
 
+  it('sorts by name descending when order is "dsc"', () => {
+    const assets = [
+      createMockAsset({ name: 'Asset B' }),
+      createMockAsset({ name: 'Asset A' }),
+      createMockAsset({ name: 'Asset Z' }),
+    ];
+
+    const sortedAssets = sortAssetsWithPriority(assets, {
+      key: 'name',
+      order: 'dsc',
+      sortCallback: 'alphaNumeric',
+    });
+
+    expect(extractAssetNames(sortedAssets)).toStrictEqual([
+      'Asset Z',
+      'Asset B',
+      'Asset A',
+    ]);
+  });
+
+  it('sorts by fiat balance ascending when order is "asc"', () => {
+    const assets = [
+      createMockAsset({ name: 'Asset B', fiatBalance: 400 }),
+      createMockAsset({ name: 'Asset A', fiatBalance: 600 }),
+      createMockAsset({ name: 'Asset Z', fiatBalance: 500 }),
+    ];
+
+    const sortedAssets = sortAssetsWithPriority(assets, {
+      key: 'tokenFiatAmount',
+      order: 'asc',
+      sortCallback: 'stringNumeric',
+    });
+
+    expect(extractAssetNames(sortedAssets)).toStrictEqual([
+      'Asset B',
+      'Asset Z',
+      'Asset A',
+    ]);
+  });
+
+  it('keeps native-first tie-breaking when sorting by balance ascending', () => {
+    const assets = [
+      createMockAsset({ name: 'Token', fiatBalance: 0, isNative: false }),
+      createMockAsset({ name: 'Native', fiatBalance: 0, isNative: true }),
+    ];
+
+    const sortedAssets = sortAssetsWithPriority(assets, {
+      key: 'tokenFiatAmount',
+      order: 'asc',
+      sortCallback: 'stringNumeric',
+    });
+
+    expect(extractAssetNames(sortedAssets)).toStrictEqual(['Native', 'Token']);
+  });
+
   it('sorts by fiat balance when key is "tokenFiatAmount"', () => {
     const assets = [
       createMockAsset({ name: 'Asset B', fiatBalance: 400 }),

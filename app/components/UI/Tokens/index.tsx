@@ -16,22 +16,27 @@ import {
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectChainId } from '../../../selectors/networkController';
-import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { goToAddEvmToken } from './util';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Box } from '@metamask/design-system-react-native';
-import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  TabEmptyState,
+  TextFieldSearch,
+} from '@metamask/design-system-react-native';
+import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { useRefreshTokens } from './hooks/useRefreshTokens';
+import { useTokenSearch } from './hooks/useTokenSearch';
 import { TokensEmptyState } from '../TokensEmptyState';
 import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
@@ -89,12 +94,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     },
     ref,
   ) => {
-    const navigation = useNavigation<AppNavigationProp>();
     const { bottom: bottomInset } = useSafeAreaInsets();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
-
-    const currentChainId = useSelector(selectChainId);
 
     const [refreshing, setRefreshing] = useState(false);
     const { refresh: refreshTokensForGroup } = useRefreshTokens();
@@ -122,6 +124,10 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             : sortedTokenKeys,
       [sortedTokenKeys, showOnlyMusd, shouldExcludeMusdFromMainList],
     );
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const searchedTokenKeys = useTokenSearch(tokenKeysForList, searchQuery);
+    const clearSearch = useCallback(() => setSearchQuery(''), []);
 
     const [, forceUpdate] = useState(0);
 
@@ -197,16 +203,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       refresh: onRefresh,
     }));
 
-    const goToAddToken = useCallback(() => {
-      goToAddEvmToken({
-        navigation,
-        trackEvent,
-        createEventBuilder,
-        getDecimalChainId,
-        currentChainId,
-      });
-    }, [navigation, trackEvent, createEventBuilder, currentChainId]);
-
     const handleScamWarningModal = useCallback(
       (chainId: string | null) => {
         setShowScamWarningModal(chainId);
@@ -234,10 +230,29 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         );
       }
 
+      if (tokenKeysForList.length > 0 && searchedTokenKeys.length === 0) {
+        return (
+          <Box twClassName="flex-1 items-center justify-center px-6 py-12">
+            <TabEmptyState
+              icon={
+                <Icon
+                  name={IconName.Search}
+                  size={IconSize.Xl}
+                  color={IconColor.IconMuted}
+                />
+              }
+              description={strings('wallet.no_tokens_match_search')}
+              actionButtonText={strings('wallet.clear_search')}
+              onAction={clearSearch}
+            />
+          </Box>
+        );
+      }
+
       if (tokenKeysForList.length > 0) {
         return (
           <TokenList
-            tokenKeys={tokenKeysForList}
+            tokenKeys={searchedTokenKeys}
             refreshing={refreshing}
             onRefresh={onRefresh}
             showRemoveMenu={showRemoveMenu}
@@ -292,6 +307,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       hideLoadingSkeleton,
       isFullView,
       tokenKeysForList,
+      searchedTokenKeys,
+      clearSearch,
       showOnlyMusd,
       hasMusdBalanceOnAnyChainProp,
       tw,
@@ -312,12 +329,26 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
+        {isFullView && !showOnlyMusd && (
+          <Box twClassName="px-4 pb-2">
+            <TextFieldSearch
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onPressClearButton={clearSearch}
+              placeholder={strings('wallet.search_tokens')}
+              inputProps={{
+                autoComplete: 'off',
+                autoCorrect: false,
+                autoCapitalize: 'none',
+                testID: WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT,
+              }}
+            />
+          </Box>
+        )}
         {!showOnlyMusd && (
-          <TokenListControlBar
-            goToAddToken={goToAddToken}
-            showAddToken={!showOnlyMusd}
-            hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-3` : undefined}
+          <BaseControlBar
+            networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            style={isFullView ? tw`px-4 pb-3 pt-2` : undefined}
           />
         )}
         {tokenContent}

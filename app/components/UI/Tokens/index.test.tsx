@@ -19,8 +19,7 @@ import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
 import { MUSD_TOKEN_ADDRESS } from '../Earn/constants/musd';
-// eslint-disable-next-line import-x/no-namespace
-import * as TokenListControlBarModule from './TokenListControlBar/TokenListControlBar';
+import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 // eslint-disable-next-line import-x/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
 // eslint-disable-next-line import-x/no-namespace
@@ -55,8 +54,9 @@ jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
 }));
 
-jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
-  TokenListControlBar: jest.fn().mockImplementation(() => null),
+jest.mock('../shared/BaseControlBar/BaseControlBar', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => null),
 }));
 
 /**
@@ -65,28 +65,13 @@ jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
  * @returns - Mocked components
  */
 const arrangeMockComponents = () => {
-  const mockTokenListControlBar = jest
-    .spyOn(TokenListControlBarModule, 'TokenListControlBar')
-    .mockImplementation(
-      ({
-        goToAddToken,
-        showAddToken = true,
-      }: {
-        goToAddToken: () => void;
-        showAddToken?: boolean;
-      }) => (
-        <View testID="token-list-control-bar">
-          {showAddToken && (
-            <Button
-              testID="MOCK_TEST_ADD_TOKEN_BUTTON"
-              title="Add Token"
-              onPress={goToAddToken}
-            />
-          )}
-          <Button testID="MOCK_NETWORK_FILTER" title="Network" />
-        </View>
-      ),
-    );
+  const mockBaseControlBar = jest
+    .mocked(BaseControlBar)
+    .mockImplementation(() => (
+      <View testID="token-list-control-bar">
+        <Button testID="MOCK_NETWORK_FILTER" title="Network" />
+      </View>
+    ));
 
   const mockTokensList = jest
     .mocked(TokenList)
@@ -116,7 +101,7 @@ const arrangeMockComponents = () => {
     ));
 
   return {
-    mockTokenListControlBar,
+    mockBaseControlBar,
     mockTokensList,
   };
 };
@@ -242,20 +227,6 @@ describe('Tokens', () => {
     });
   });
 
-  it('performs token addition navigation', async () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    // Act - press add token button
-    await userEvent.press(getByTestId('MOCK_TEST_ADD_TOKEN_BUTTON'));
-
-    // Assert - navigation to add token screen
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
-        assetType: 'token',
-      }),
-    );
-  });
-
   const removeTokenTests = [
     // EVM Token Removal
     {
@@ -372,8 +343,167 @@ describe('Tokens', () => {
     });
   });
 
+  describe('search', () => {
+    const arrangeSearchableAssets = () =>
+      jest
+        .spyOn(AssetsListSelectorsModule, 'selectAssetsBySelectedAccountGroup')
+        .mockReturnValue({
+          '0x1': [
+            {
+              assetId: '0xToken1',
+              chainId: '0x1',
+              symbol: 'AAA',
+              name: 'Alpha',
+            },
+          ],
+          '0x2': [
+            {
+              assetId: '0xToken2',
+              chainId: '0x2',
+              symbol: 'BBB',
+              name: 'Beta',
+            },
+          ],
+          '0x3': [
+            {
+              assetId: '0xToken3',
+              chainId: '0x3',
+              symbol: 'CCC',
+              name: 'Gamma',
+            },
+          ],
+        } as unknown as ReturnType<
+          typeof AssetsListSelectorsModule.selectAssetsBySelectedAccountGroup
+        >);
+
+    it('renders the search bar in full view', () => {
+      arrangeSearchableAssets();
+
+      const { getByTestId } = renderComponent(initialState, true);
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the search bar outside full view', () => {
+      arrangeSearchableAssets();
+
+      const { queryByTestId } = renderComponent(initialState, false);
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render the search bar when showOnlyMusd', () => {
+      arrangeSearchableAssets();
+
+      const { queryByTestId } = renderComponent(initialState, true, true);
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('filters the token list by symbol', () => {
+      arrangeSearchableAssets();
+      const { getByTestId, queryByTestId } = renderComponent(
+        initialState,
+        true,
+      );
+
+      fireEvent.changeText(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+        'bbb',
+      );
+
+      expect(getByTestId('asset-0xToken2')).toBeOnTheScreen();
+      expect(queryByTestId('asset-0xToken1')).not.toBeOnTheScreen();
+      expect(queryByTestId('asset-0xToken3')).not.toBeOnTheScreen();
+    });
+
+    it('filters the token list by name', () => {
+      arrangeSearchableAssets();
+      const { getByTestId, queryByTestId } = renderComponent(
+        initialState,
+        true,
+      );
+
+      fireEvent.changeText(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+        'gam',
+      );
+
+      expect(getByTestId('asset-0xToken3')).toBeOnTheScreen();
+      expect(queryByTestId('asset-0xToken1')).not.toBeOnTheScreen();
+    });
+
+    it('shows a no-results state when nothing matches', () => {
+      arrangeSearchableAssets();
+      const { getByTestId, queryByTestId, getByText } = renderComponent(
+        initialState,
+        true,
+      );
+
+      fireEvent.changeText(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+        'zzz',
+      );
+
+      expect(getByText('No tokens match your search')).toBeOnTheScreen();
+      expect(queryByTestId('tokens-list-scroll-view')).not.toBeOnTheScreen();
+    });
+
+    it('clears the search and restores the list from the no-results state', () => {
+      arrangeSearchableAssets();
+      const { getByTestId, getByText } = renderComponent(initialState, true);
+      fireEvent.changeText(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+        'zzz',
+      );
+
+      fireEvent.press(getByText('Clear search'));
+
+      expect(getByTestId('asset-0xToken1')).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT).props.value,
+      ).toBe('');
+    });
+
+    it('renders the search bar while the list is still loading', () => {
+      arrangeSearchableAssets();
+      jest
+        .spyOn(InteractionManager, 'runAfterInteractions')
+        .mockImplementation(() => ({
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        }));
+
+      const { getByTestId } = renderComponent(initialState, true);
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the search bar visible when there are no tokens to list', () => {
+      arrangeSearchableAssets();
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { getByTestId } = renderComponent(initialState, true);
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('showOnlyMusd (Cash view)', () => {
-    it('does not render TokenListControlBar when showOnlyMusd', async () => {
+    it('does not render the control bar when showOnlyMusd', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
@@ -385,23 +515,7 @@ describe('Tokens', () => {
       });
 
       expect(queryByTestId('token-list-control-bar')).toBeNull();
-      expect(
-        TokenListControlBarModule.TokenListControlBar,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('does not render add token button when showOnlyMusd', async () => {
-      const { mockSelectSortedAssetsBySelectedAccountGroup } =
-        arrangeMockSelectors();
-      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
-
-      const { queryByTestId } = renderComponent(initialState, true, true);
-
-      await waitFor(() => {
-        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
-      });
-
-      expect(queryByTestId('MOCK_TEST_ADD_TOKEN_BUTTON')).toBeNull();
+      expect(BaseControlBar).not.toHaveBeenCalled();
     });
 
     it('shows empty state when showOnlyMusd and no mUSD tokens', async () => {

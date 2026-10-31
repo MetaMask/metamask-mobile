@@ -85,10 +85,8 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
 }));
 
 jest.mock('../Tokens/TokenSortBottomSheet/TokenSortBottomSheet', () => ({
-  createTokensBottomSheetNavDetails: () => [
-    'RootModalFlow',
-    { screen: 'TokensBottomSheet' },
-  ],
+  getSortOption: () => ({ labelKey: 'wallet.sort_balance' }),
+  createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
 }));
 
 jest.mock('../NetworkManager', () => ({
@@ -149,6 +147,11 @@ describe('DeFiPositionsControlBar', () => {
         },
         PreferencesController: {
           selectedAddress: '0x123',
+          tokenSortConfig: {
+            key: 'tokenFiatAmount',
+            order: 'dsc',
+            sortCallback: 'stringNumeric',
+          },
         },
       },
     },
@@ -289,6 +292,11 @@ describe('DeFiPositionsControlBar', () => {
           },
           PreferencesController: {
             selectedAddress: '0x123',
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
           },
         },
       },
@@ -322,7 +330,7 @@ describe('DeFiPositionsControlBar', () => {
     expect(getByTestId('defi-positions-network-filter')).not.toBeDisabled();
   });
 
-  it('should render sort button with filter icon', () => {
+  it('should render the sort button', () => {
     const mockState = createMockState();
     store = mockStore(mockState);
 
@@ -333,5 +341,6 @@ describe('DeFiPositionsControlBar', () => {
     );
 
     expect(getByTestId('defi-positions-network-filter')).toBeDefined();
+    expect(getByTestId('token-sort-button')).toBeDefined();
   });
 });

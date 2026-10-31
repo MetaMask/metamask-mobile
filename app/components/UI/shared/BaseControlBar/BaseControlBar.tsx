@@ -9,14 +9,21 @@ import {
   AvatarNetworkSize,
   SelectButton,
   SelectButtonVariant,
-  ButtonIcon,
-  ButtonIconSize,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName as DsIconName,
+  IconSize,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { createTokensBottomSheetNavDetails } from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
+import {
+  createTokensBottomSheetNavDetails,
+  getSortOption,
+} from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
@@ -45,10 +52,6 @@ export interface BaseControlBarProps {
    */
   onFilterPress?: () => void;
   /**
-   * Custom handler for sort controls (overrides default behavior)
-   */
-  onSortPress?: () => void;
-  /**
    * Whether to show the sort button
    */
   hideSort?: boolean;
@@ -70,13 +73,13 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   networkFilterTestId,
   isDisabled: customIsDisabled,
   onFilterPress,
-  onSortPress,
   hideSort = false,
   additionalButtons,
   customWrapper = 'outer',
   style,
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
+  const tokenSortConfig = useSelector(selectTokenSortConfig);
   const navigation = useNavigation<AppNavigationProp>();
 
   // Shared selectors
@@ -132,13 +135,12 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     navigateWithDetails(navigation, createNetworkManagerNavDetails({}));
   }, [navigation]);
 
-  const defaultShowSortControls = useCallback(() => {
+  const handleSortControls = useCallback(() => {
     navigateWithDetails(navigation, createTokensBottomSheetNavDetails({}));
   }, [navigation]);
 
   // Use custom handlers if provided, otherwise use defaults
   const handleFilterControls = onFilterPress || defaultHandleFilterControls;
-  const handleSortControls = onSortPress || defaultShowSortControls;
 
   // Shared network image logic
   const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
@@ -182,12 +184,30 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     />
   );
 
+  const sortLabel = strings(getSortOption(tokenSortConfig).labelKey);
   const sortButton = !hideSort && (
-    <ButtonIcon
+    <SelectButton
       testID={WalletViewSelectorsIDs.SORT_BUTTON}
-      size={ButtonIconSize.Md}
+      variant={SelectButtonVariant.Secondary}
+      placeholder={sortLabel}
+      value={sortLabel}
       onPress={handleSortControls}
-      iconName={IconName.Filter}
+      hideEndArrow
+      textProps={{
+        variant: TextVariant.BodyMd,
+        fontWeight: FontWeight.Medium,
+      }}
+      endAccessory={
+        <Icon
+          name={
+            tokenSortConfig.order === 'asc'
+              ? DsIconName.Arrow2Up
+              : DsIconName.Arrow2Down
+          }
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      }
     />
   );
 
