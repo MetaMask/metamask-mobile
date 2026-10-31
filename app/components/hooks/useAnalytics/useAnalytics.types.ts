@@ -11,7 +11,10 @@ import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,
 } from '../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
+import type {
+  AnalyticsContext,
+  AnalyticsUserTraits,
+} from '@metamask/analytics-controller';
 
 type AnalyticsEventBuilderType = ReturnType<
   typeof AnalyticsEventBuilder.createEventBuilder
@@ -46,7 +49,7 @@ export interface UseAnalyticsHook {
    * Associate traits to the current user
    */
   identify(userTraits: AnalyticsUserTraits): Promise<void>;
-  trackEvent(event: AnalyticsTrackingEvent): void;
+  trackEvent(event: AnalyticsTrackingEvent, context?: AnalyticsContext): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
   checkDataDeleteStatus(): Promise<IDeleteRegulationStatus>;
   getDeleteRegulationCreationDate(): DataDeleteDate;
