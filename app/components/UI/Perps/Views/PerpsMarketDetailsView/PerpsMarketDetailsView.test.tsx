@@ -259,6 +259,7 @@ const mockCanGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockGetState = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
+const mockIsFocused = jest.fn(() => true);
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
@@ -277,6 +278,10 @@ const mockNavigateToTutorial = jest.fn();
 const mockNavigateToAdjustMargin = jest.fn();
 const mockOpenAdjustMarginSheet = jest.fn();
 const mockScreenVsBottomSheetAbTest = { useBottomSheet: false };
+const mockCheckAccountSupport = jest.fn<
+  Promise<'supported' | 'unsupported' | 'stale'>,
+  []
+>();
 const mockNavigateToMarketList = jest.fn();
 const mockNavigateToMarketListFromHeader = jest.fn();
 const mockNavigateBack = jest.fn();
@@ -323,6 +328,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
       canGoBack: mockCanGoBack,
+      isFocused: mockIsFocused,
       setOptions: jest.fn(),
       getState: mockGetState,
       addListener: mockAddListener,
@@ -754,6 +760,26 @@ jest.mock('../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
 }));
 
+jest.mock('../../hooks/usePerpsAccountSupport', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    usePerpsAccountSupport: () => {
+      const [isVisible, setIsVisible] = ReactActual.useState(false);
+      return {
+        isAccountUnsupportedModalVisible: isVisible,
+        checkAccountSupport: async () => {
+          const support = await mockCheckAccountSupport();
+          if (support === 'unsupported') {
+            setIsVisible(true);
+          }
+          return support;
+        },
+        closeAccountUnsupportedModal: () => setIsVisible(false),
+      };
+    },
+  };
+});
+
 // Mock useABTest to return default (control/white) variant
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: () => ({
@@ -915,14 +941,20 @@ jest.mock(
         isVisible,
         onClose,
         testID,
+        contentKey,
       }: {
         isVisible: boolean;
         onClose?: () => void;
-        testID: string;
+        testID?: string;
+        contentKey?: string;
       }) {
         return isVisible ? (
           <TouchableOpacity testID={testID} onPress={onClose}>
-            <Text>Geo Block Tooltip</Text>
+            <Text>
+              {contentKey === 'account_not_supported'
+                ? 'Account not supported'
+                : 'Geo Block Tooltip'}
+            </Text>
           </TouchableOpacity>
         ) : null;
       },
@@ -1091,6 +1123,8 @@ describe('PerpsMarketDetailsView', () => {
       maxLeverage: '40x',
     };
     mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+    mockCheckAccountSupport.mockResolvedValue('supported');
+    mockIsFocused.mockReturnValue(true);
     mockComplianceState.isBlocked = false;
     mockRouteParams.transactionActiveAbTests = undefined;
     mockRouteParams.source = undefined;
@@ -3199,6 +3233,42 @@ describe('PerpsMarketDetailsView', () => {
       expect(playImpact).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
       expect(playSelection).not.toHaveBeenCalled();
+    });
+
+    it('does not open the Lite order sheet after Market Details loses focus during the support check', async () => {
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+      mockRouteParams.market = {
+        ...mockRouteParams.market,
+        providerId: 'lighter',
+      } as PerpsMarketData;
+      let resolveSupport:
+        | ((support: 'supported' | 'unsupported' | 'stale') => void)
+        | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported' | 'unsupported' | 'stale'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      act(() => {
+        fireEvent.press(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+        );
+      });
+      mockIsFocused.mockReturnValue(false);
+      await act(async () => {
+        resolveSupport?.('supported');
+        await Promise.resolve();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
     });
 
     it('passes marketData defaults to order screen when available', async () => {

@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
@@ -231,6 +232,31 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows unsupported account content inside the trade sheet', async () => {
+    const onSubmit = jest.fn().mockResolvedValue('accountUnsupported');
+    render(<PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigateTo).toHaveBeenCalledWith('accountUnsupported');
+    });
+  });
+
+  it('keeps the trade screen in place when submission aborts silently', async () => {
+    const onSubmit = jest.fn().mockResolvedValue(undefined);
+    render(<PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(mockNavigateTo).not.toHaveBeenCalledWith('accountUnsupported');
   });
 
   it('shows the payment asset icon beside the pay with value', () => {

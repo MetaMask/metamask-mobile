@@ -82,6 +82,7 @@ import RewardsAnimations, {
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsAccountUnsupportedModal from '../../components/PerpsAccountUnsupportedModal';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import PerpsRebateBanner from '../../components/PerpsRebateBanner';
@@ -97,6 +98,7 @@ import PerpsTradeBottomSheet, {
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
+  PerpsTradeAccountUnsupportedScreen,
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
   PerpsTradePayWithScreen,
@@ -117,6 +119,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import { usePerpsAccountSupport } from '../../hooks/usePerpsAccountSupport';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -311,6 +314,7 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   payWith: 1,
   marginInfo: 1,
   liquidationInfo: 1,
+  accountUnsupported: 1,
 };
 /** Nested screens that size to their content instead of the Trade screen height. */
 const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
@@ -318,6 +322,7 @@ const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
   'payWith',
   'marginInfo',
   'liquidationInfo',
+  'accountUnsupported',
 ];
 
 /**
@@ -493,6 +498,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { isInitialized } = usePerpsConnection();
   const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
+  const {
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -1733,6 +1743,28 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { onConfirm: onDepositConfirm } = useTransactionConfirm();
   const validateOrderNow = orderValidation.validateNow;
+  const buildDataMonitoringIntent = useCallback(() => {
+    const asset = orderForm.asset;
+    const initialPosition = stream.positions
+      .getSnapshot()
+      ?.find((position) => position.symbol === asset);
+
+    return {
+      asset,
+      monitorOrders: true,
+      monitorPositions: true,
+      initialOrderCount: (stream.orders.getSnapshot() ?? []).filter(
+        (order) => order.symbol === asset,
+      ).length,
+      initialPosition: initialPosition
+        ? {
+            size: initialPosition.size,
+            entryPrice: initialPosition.entryPrice,
+          }
+        : null,
+    };
+  }, [orderForm.asset, stream]);
+
   const navigateToMarketAfterOrder = useCallback(() => {
     if (stayOnCurrentScreen) {
       // A pay-token deposit already dismissed back to the presenting screen.
@@ -1753,15 +1785,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           symbol: orderForm.asset,
           name: orderForm.asset,
         },
-        monitoringIntent: {
-          asset: orderForm.asset,
-          monitorOrders: true,
-          monitorPositions: true,
-        },
+        monitoringIntent: buildDataMonitoringIntent(),
       },
       pop: true,
     });
-  }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
+  }, [
+    buildDataMonitoringIntent,
+    navigation,
+    navigationMarketData,
+    orderForm.asset,
+    stayOnCurrentScreen,
+  ]);
 
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
@@ -1802,6 +1836,28 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
         });
       }
+
+      // Cover this await with the submit lock. The validating path sets the
+      // same lock only after this read, so a second tap in the same turn
+      // would otherwise start a parallel placement.
+      isSubmittingRef.current = true;
+      let accountSupport: Awaited<ReturnType<typeof checkAccountSupport>> =
+        'stale';
+      try {
+        accountSupport = await checkAccountSupport();
+      } finally {
+        isSubmittingRef.current = false;
+      }
+      // A user-initiated submit no longer owns the action once its view has
+      // closed. Keep the committed post-deposit re-entry running so a
+      // confirmed deposit still produces its order.
+      if (!forceTrade && isDismissedRef.current) {
+        return;
+      }
+      if (accountSupport === 'unsupported') {
+        return 'accountUnsupported' as const;
+      }
+      if (accountSupport === 'stale') return;
 
       if (liquidityError) {
         showToast(
@@ -1969,11 +2025,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       symbol: orderForm.asset,
                       name: orderForm.asset,
                     },
-                    monitoringIntent: {
-                      asset: orderForm.asset,
-                      monitorOrders: true,
-                      monitorPositions: true,
-                    },
+                    monitoringIntent: buildDataMonitoringIntent(),
                   },
                 },
               ],
@@ -2206,6 +2258,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       assetData.price,
       navigation,
       navigationMarketData,
+      buildDataMonitoringIntent,
       navigateToMarketAfterOrder,
       currentMarketPosition,
       executeOrder,
@@ -2235,6 +2288,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       estimatedSlippageBps,
       exceedsMaxSlippage,
       liquidityError,
+      checkAccountSupport,
       vipTier,
       useBottomSheet,
       fireImpact,
@@ -2818,6 +2872,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             marginInfo: <PerpsTradeInfoScreen contentKey="margin" />,
             liquidationInfo: (
               <PerpsTradeInfoScreen contentKey="liquidation_price" />
+            ),
+            accountUnsupported: (
+              <PerpsTradeAccountUnsupportedScreen
+                onDismiss={closeAccountUnsupportedModal}
+              />
             ),
           }}
         />
@@ -3437,6 +3496,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           }
         />
       )}
+      <PerpsAccountUnsupportedModal
+        isVisible={!useBottomSheet && isAccountUnsupportedModalVisible}
+        onClose={closeAccountUnsupportedModal}
+      />
     </SafeAreaView>
   );
 };

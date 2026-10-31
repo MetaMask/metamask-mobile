@@ -20,8 +20,10 @@ import {
   type PriceUpdate,
   type OrderBookData,
   type OrderBookLevel,
+  type PerpsControllerState,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -34,6 +36,7 @@ import {
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
@@ -80,6 +83,22 @@ const eligibleOverrides = {
       },
     },
   },
+};
+
+const setMockPerpsControllerState = (state: PerpsControllerState) => {
+  const engineState: unknown = Reflect.get(Engine, 'state');
+  if (
+    engineState !== undefined &&
+    (typeof engineState !== 'object' ||
+      engineState === null ||
+      Array.isArray(engineState))
+  ) {
+    throw new Error('Expected the component-view Engine mock to expose state');
+  }
+  Reflect.set(Engine, 'state', {
+    ...(engineState ?? {}),
+    PerpsController: state,
+  });
 };
 
 const marketDetailsRoute: PerpsExtraRoute = {
@@ -160,6 +179,10 @@ describe('PerpsOrderView', () => {
         success: true,
         orderId: 'component-view-order',
       });
+    jest
+      .mocked(Engine.context.PerpsController.getAccountSupport)
+      .mockReset()
+      .mockResolvedValue({ isSupported: true });
     // Place-order confirmation waits on a module-level resolver. A prior case
     // that leaves that waiter pending blocks the next submit, so the TP/SL
     // error toast never replaces "Order submitted".
@@ -256,6 +279,185 @@ describe('PerpsOrderView', () => {
       { timeout: TIMEOUT_MS },
     );
     await waitForDeferredOrderData();
+  });
+
+  it('blocks an unsupported full-screen order and dismisses the explanation', async () => {
+    const getAccountSupport = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    getAccountSupport.mockResolvedValue({
+      isSupported: false,
+      reason: 'multi_sig_account',
+    });
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    expect(
+      await screen.findByText(
+        strings('perps.tooltips.account_not_supported.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.tooltips.account_not_supported.content')),
+    ).toBeOnTheScreen();
+    expect(placeOrder).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('shows and dismisses the unsupported-account explanation in the Trade sheet', async () => {
+    const getAccountSupport = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    getAccountSupport.mockResolvedValue({
+      isSupported: false,
+      reason: 'multi_sig_account',
+    });
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+        useBottomSheet: true,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const placeOrderButton = await waitForEnabledPlaceOrderButton(
+      PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    expect(
+      await screen.findByText(
+        strings('perps.tooltips.account_not_supported.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(placeOrder).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_GOT_IT_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(
+          strings('perps.tooltips.account_not_supported.title'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).toBeOnTheScreen();
+    expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('abandons a Trade sheet submission when its account-support context becomes stale', async () => {
+    const getAccountSupport = jest.mocked(
+      Engine.context.PerpsController.getAccountSupport,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    let resolveAccountSupport: (
+      result: Awaited<ReturnType<typeof getAccountSupport>>,
+    ) => void = () => undefined;
+    const pendingAccountSupport = new Promise<
+      Awaited<ReturnType<typeof getAccountSupport>>
+    >((resolve) => {
+      resolveAccountSupport = resolve;
+    });
+    getAccountSupport
+      .mockResolvedValueOnce({ isSupported: true })
+      .mockReturnValueOnce(pendingAccountSupport);
+    const { stream, store } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+        useBottomSheet: true,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const submitButton = await waitForEnabledPlaceOrderButton(
+      PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    fireEvent.press(submitButton);
+    await waitFor(() => expect(getAccountSupport).toHaveBeenCalledTimes(2));
+    const currentPerpsState =
+      store.getState().engine.backgroundState.PerpsController;
+    act(() => {
+      setMockPerpsControllerState({
+        ...currentPerpsState,
+        isTestnet: true,
+      });
+      store.dispatch(updateBgState({ key: 'PerpsController' }));
+    });
+    setMockPerpsControllerState(currentPerpsState);
+    await act(async () => {
+      resolveAccountSupport({
+        isSupported: false,
+        reason: 'multi_sig_account',
+      });
+      await pendingAccountSupport;
+    });
+
+    expect(placeOrder).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(strings('perps.tooltips.account_not_supported.title')),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows promotional pricing when Core returns a grant fee quote', async () => {

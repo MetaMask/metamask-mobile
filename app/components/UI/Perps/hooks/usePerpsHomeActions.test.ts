@@ -17,6 +17,8 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 
+const mockCheckAccountSupport = jest.fn();
+
 // Mock dependencies
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -55,6 +57,14 @@ jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(() => ({
     depositWithConfirmation: jest.fn().mockReturnValue(Promise.resolve()),
   })),
+}));
+
+jest.mock('./usePerpsAccountSupport', () => ({
+  usePerpsAccountSupport: () => ({
+    isAccountUnsupportedModalVisible: false,
+    checkAccountSupport: mockCheckAccountSupport,
+    closeAccountUnsupportedModal: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
@@ -104,6 +114,7 @@ describe('usePerpsHomeActions', () => {
     navigate: jest.fn(),
     dispatch: jest.fn(),
     goBack: jest.fn(),
+    isFocused: jest.fn(() => true),
     getState: jest.fn(() => ({
       index: 1,
       routes: [
@@ -128,6 +139,8 @@ describe('usePerpsHomeActions', () => {
     mockDepositWithConfirmation.mockReset();
     mockDepositWithConfirmation.mockResolvedValue(undefined);
     mockWithdrawWithConfirmation.mockResolvedValue(undefined);
+    mockCheckAccountSupport.mockResolvedValue('supported');
+    mockNavigation.isFocused.mockReturnValue(true);
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -531,6 +544,45 @@ describe('usePerpsHomeActions', () => {
 
       expect(result.current.isProcessing).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('handleWithdraw - unsupported account', () => {
+    it('does not start either withdrawal flow', async () => {
+      mockCheckAccountSupport.mockResolvedValue('unsupported');
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('does not start a withdrawal after the screen loses focus during the support check', async () => {
+      let resolveSupport:
+        | ((support: 'supported' | 'unsupported' | 'stale') => void)
+        | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported' | 'unsupported' | 'stale'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const { result } = renderHook(() => usePerpsHomeActions());
+      let withdrawPromise: Promise<void> | undefined;
+
+      act(() => {
+        withdrawPromise = result.current.handleWithdraw();
+      });
+      mockNavigation.isFocused.mockReturnValue(false);
+      await act(async () => {
+        resolveSupport?.('supported');
+        await withdrawPromise;
+      });
+
+      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
   });
 

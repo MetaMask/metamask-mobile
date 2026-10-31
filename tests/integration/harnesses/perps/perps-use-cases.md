@@ -39,14 +39,15 @@ Domain rollout phases and perps harness-shape detail: [`STRATEGY.md`](STRATEGY.m
 
 ## Account / funds
 
-| Use case                         |  U  |  CV   |   I   | E2E | Coverage notes                                                                                            |
-| -------------------------------- | :-: | :---: | :---: | :-: | --------------------------------------------------------------------------------------------------------- |
-| Deposit USDC into perps account  |     |   ✓   | **✓** |  ✓  | I: deposit validation, state preparation. CV: deposit form. E2E: real signing of the deposit transaction. |
-| Withdraw USDC from perps account |     |   ✓   | **✓** |  ✓  | Same shape as deposit.                                                                                    |
-| View account balance / equity    |     | **✓** |       |     | Pure rendering of state; selectors do composition. CV is the right scope.                                 |
-| View open positions list         |     | **✓** |       |     | Same.                                                                                                     |
-| View open orders list            |     | **✓** |       |     | Same.                                                                                                     |
-| View order history / fills       |     | **✓** |       |     | Same. CV with mocked state per variant (empty, populated, paginated).                                     |
+| Use case                         |  U  |  CV   |   I   | E2E | Coverage notes                                                                                                                                            |
+| -------------------------------- | :-: | :---: | :---: | :-: | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deposit USDC into perps account  |     |   ✓   | **✓** |  ✓  | I: deposit validation, state preparation. CV: deposit form. E2E: real signing of the deposit transaction.                                                 |
+| Withdraw USDC from perps account |     |   ✓   | **✓** |  ✓  | Same shape as deposit.                                                                                                                                    |
+| Check provider account support   |  ✓  |   ✓   | **✓** |     | I: real Core/Hyperliquid multisig decision with venue I/O mocked. CV: unsupported explanation and blocked trade navigation. U: route/stale hook contract. |
+| View account balance / equity    |     | **✓** |       |     | Pure rendering of state; selectors do composition. CV is the right scope.                                                                                 |
+| View open positions list         |     | **✓** |       |     | Same.                                                                                                                                                     |
+| View open orders list            |     | **✓** |       |     | Same.                                                                                                                                                     |
+| View order history / fills       |     | **✓** |       |     | Same. CV with mocked state per variant (empty, populated, paginated).                                                                                     |
 
 ## Market data / discovery
 

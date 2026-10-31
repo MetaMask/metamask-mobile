@@ -55,6 +55,8 @@ const mockRouteParams: { stayOnCurrentScreen?: boolean } = {};
 const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
+const mockCheckAccountSupport = jest.fn();
+const mockCloseAccountUnsupportedModal = jest.fn();
 const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
@@ -377,6 +379,9 @@ jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
     isEligibilityModalVisible: false,
     closeEligibilityModal: mockCloseEligibilityModal,
     showEligibilityModal: mockShowEligibilityModal,
+    isAccountUnsupportedModalVisible: false,
+    checkAccountSupport: mockCheckAccountSupport,
+    closeAccountUnsupportedModal: mockCloseAccountUnsupportedModal,
   }),
 }));
 
@@ -658,6 +663,7 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCheckAccountSupport.mockResolvedValue('supported');
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
     mockOrderForm.direction = 'long';
@@ -3201,6 +3207,88 @@ describe('usePerpsProOrderForm', () => {
       );
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('skips execution for an unsupported account', async () => {
+      mockCheckAccountSupport.mockResolvedValue('unsupported');
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it.each(['unmount', 'submission state'] as const)(
+      'abandons a regular order when %s changes during account support',
+      async (transition) => {
+        let resolveSupport: ((support: 'supported') => void) | undefined;
+        mockCheckAccountSupport.mockReturnValueOnce(
+          new Promise<'supported'>((resolve) => {
+            resolveSupport = resolve;
+          }),
+        );
+        const form = renderProForm();
+        let submission: Promise<void> | undefined;
+
+        act(() => {
+          submission = form.result.current.onPlaceOrderPress();
+        });
+        await waitFor(() =>
+          expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid'),
+        );
+        if (transition === 'unmount') {
+          form.unmount();
+        } else {
+          mockOrderForm.amount = '200';
+          form.rerender({});
+        }
+        await act(async () => {
+          resolveSupport?.('supported');
+          await submission;
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(playImpact).not.toHaveBeenCalled();
+        expect(mockShowToast).not.toHaveBeenCalled();
+      },
+    );
+
+    it('keeps a market order when unrelated Scale support finishes during account support', async () => {
+      let resolveSupport: ((support: 'supported') => void) | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const scaleOptions: RenderProFormScaleOptions = { pending: true };
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        scaleOptions,
+      );
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid'),
+      );
+      scaleOptions.pending = false;
+      form.rerender({});
+      await act(async () => {
+        resolveSupport?.('supported');
+        await submission;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('skips geo handling and execution when compliance gate blocks', async () => {
@@ -6105,6 +6193,44 @@ describe('usePerpsProOrderForm', () => {
         expect.objectContaining({ id: 'validationError' }),
       );
     });
+
+    it.each(['unmount', 'submission state'] as const)(
+      'abandons Scale placement when %s changes during account support',
+      async (transition) => {
+        let resolveSupport: ((support: 'supported') => void) | undefined;
+        mockCheckAccountSupport.mockReturnValueOnce(
+          new Promise<'supported'>((resolve) => {
+            resolveSupport = resolve;
+          }),
+        );
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        const form = renderProForm();
+        configureScaleOrder(form.result);
+        let submission: Promise<void> | undefined;
+
+        act(() => {
+          submission = form.result.current.onPlaceOrderPress();
+        });
+        await waitFor(() =>
+          expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid'),
+        );
+        if (transition === 'unmount') {
+          form.unmount();
+        } else {
+          mockOrderForm.amount = '700';
+          form.rerender({});
+        }
+        await act(async () => {
+          resolveSupport?.('supported');
+          await submission;
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(playImpact).not.toHaveBeenCalled();
+        expect(mockShowToast).not.toHaveBeenCalled();
+      },
+    );
 
     it.each([
       { unmount: false, toastCount: 1 },
