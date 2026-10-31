@@ -12598,12 +12598,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tooling-insight@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@metamask/tooling-insight@npm:1.0.1"
+"@metamask/tooling-insight@npm:@metamask-previews/tooling-insight@1.0.1-preview-cd6ed5e":
+  version: 1.0.1-preview-cd6ed5e
+  resolution: "@metamask-previews/tooling-insight@npm:1.0.1-preview-cd6ed5e"
   bin:
     metamask-daily-anonymizer: ./dist/daily-anonymizer.mjs
-  checksum: 10/32792434263a931a81d095fac8171dc6fe5cfced7483f32a6e586634422b428536682089fecc0f69efab561f4eb183e22e65ca78ccab90102cac9f389b87949d
+    tooling-insight-claude: ./dist/hooks/claude.mjs
+    tooling-insight-cursor-pre-tool: ./dist/hooks/cursor-pre-tool.mjs
+    tooling-insight-cursor-prompt: ./dist/hooks/cursor-prompt.mjs
+  checksum: 10/54fb0a17c7841d95a1870abb571273053d76a791a5a6f3a325576f709e455fac9afdf6b3b90da87a6055ee46efb44a98ad341d4901f67beb2a9f0eae923e8b83
   languageName: node
   linkType: hard
 
