@@ -1012,7 +1012,7 @@ describe('TradeWalletActions', () => {
       expect(mockOnDismiss).toHaveBeenCalled();
       expect(mockWithTiming).toHaveBeenCalledWith(
         0,
-        expect.objectContaining({ duration: 180 }),
+        expect.objectContaining({ duration: 200 }),
       );
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockGoToSwaps).toHaveBeenCalled();
@@ -1088,8 +1088,8 @@ describe('TradeWalletActions', () => {
         expect.objectContaining({ duration: 110 }),
       );
       expect(mockWithTiming).toHaveBeenCalledWith(
-        0.9,
-        expect.objectContaining({ duration: 120 }),
+        0.35,
+        expect.objectContaining({ duration: 200 }),
       );
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockGoToSwaps).toHaveBeenCalled();

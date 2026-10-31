@@ -82,20 +82,20 @@ describe('springboardExit', () => {
     });
   });
 
-  it('shrinks and fades the menu with short timings', () => {
+  it('retracts into the anchor while the fade holds', () => {
     springboardExit();
 
     expect(mockWithTiming).toHaveBeenCalledWith(
       0,
       expect.objectContaining({
-        duration: 110,
+        duration: 200,
         reduceMotion: ReduceMotion.Never,
       }),
     );
     expect(mockWithTiming).toHaveBeenCalledWith(
-      0.9,
+      0.35,
       expect.objectContaining({
-        duration: 120,
+        duration: 200,
         reduceMotion: ReduceMotion.System,
       }),
     );
