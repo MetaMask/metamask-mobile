@@ -30816,23 +30816,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eth-ens-namehash@npm:2.0.8, eth-ens-namehash@npm:^2.0.8":
+"eth-ens-namehash@npm:^2.0.8":
   version: 2.0.8
   resolution: "eth-ens-namehash@npm:2.0.8"
   dependencies:
     idna-uts46-hx: "npm:^2.3.1"
     js-sha3: "npm:^0.5.7"
   checksum: 10/098c04378b0b998191b4bcd2f1a59be976946bbb80cea7bc2a6d1df3a035e061b2fd120b16bf41558c4beb2dd846433742058b091b20195e4b0e1fc64b67979f
-  languageName: node
-  linkType: hard
-
-"eth-ens-namehash@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "eth-ens-namehash@npm:1.0.2"
-  dependencies:
-    idna-uts46: "npm:^1.0.1"
-    js-sha3: "npm:^0.5.7"
-  checksum: 10/051ca6179077101de80a19864381c579a770ff2a7e7bc52b04dcb1adbb84acfe7b60700437a2fb5abca9774c8c583d441a9e5a67c0e6f0a7d5e4b319eb28e61a
   languageName: node
   linkType: hard
 
@@ -30912,13 +30902,6 @@ __metadata:
     "@scure/bip32": "npm:1.7.0"
     "@scure/bip39": "npm:1.6.0"
   checksum: 10/35c72fdfe26861e20b6a37bca9b4f22517d0fe130370d2b0071890225ca10a30848c8c784a1389544de2b5308f22a76a6e60c234449b8a504c5a4c092a04785c
-  languageName: node
-  linkType: hard
-
-"ethereum-ens-network-map@npm:^1.0.0":
-  version: 1.0.2
-  resolution: "ethereum-ens-network-map@npm:1.0.2"
-  checksum: 10/34fa160f2b1ee8ec31bfe3dcec7b4becd4a6110acde171f43b9c28e0adc126dbded9dc6747d03088b6c99f04582887e6a23cb24b718321712c85208965835ea1
   languageName: node
   linkType: hard
 
@@ -31029,17 +31012,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethjs-abi@npm:0.2.0":
-  version: 0.2.0
-  resolution: "ethjs-abi@npm:0.2.0"
-  dependencies:
-    bn.js: "npm:4.11.6"
-    js-sha3: "npm:0.5.5"
-    number-to-bn: "npm:1.7.0"
-  checksum: 10/65bf7256cf2aa767b6066bfef69e533b4027dbf205b1914f7e491781b5d03abc5724ac7f53c7b323f5c3b9c0b1ec79724bd424fd70aea4498e6f26313038f4ad
-  languageName: node
-  linkType: hard
-
 "ethjs-abi@npm:^0.2.0":
   version: 0.2.1
   resolution: "ethjs-abi@npm:0.2.1"
@@ -31051,89 +31023,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethjs-contract@npm:^0.1.7":
-  version: 0.1.9
-  resolution: "ethjs-contract@npm:0.1.9"
-  dependencies:
-    ethjs-abi: "npm:0.2.0"
-    ethjs-filter: "npm:0.1.5"
-    ethjs-util: "npm:0.1.3"
-    js-sha3: "npm:0.5.5"
-  checksum: 10/aaffb4bb9384ac64553a2d4fa139f1e1218547d3a00b1fa4951a51e900578e1851a5d2dde8181f74e7877df3adc9fd5bf4f7c5f6849126c14450db743cd1753c
-  languageName: node
-  linkType: hard
-
-"ethjs-ens@npm:2.0.1":
-  version: 2.0.1
-  resolution: "ethjs-ens@npm:2.0.1"
-  dependencies:
-    eth-ens-namehash: "npm:^1.0.2"
-    ethereum-ens-network-map: "npm:^1.0.0"
-    ethjs-contract: "npm:^0.1.7"
-    ethjs-query: "npm:^0.2.4"
-  checksum: 10/59c8dc7d38f7556a8ed474857100994b6864fdc0fd4e2e05a38396de19898eeb692f3b55f163c49031fc126302219aa84c474676ec0a3fd6269dbcf038168463
-  languageName: node
-  linkType: hard
-
-"ethjs-filter@npm:0.1.5":
-  version: 0.1.5
-  resolution: "ethjs-filter@npm:0.1.5"
-  checksum: 10/4bf5c201760f13a2e0034f0f868d5a90bc8bbe7ff22be1fa6f65132580909149410394bbe8f10e4b3bfd19364c2c9cfeda1afab7864a416015969d8be96d08cb
-  languageName: node
-  linkType: hard
-
-"ethjs-format@npm:0.2.2":
-  version: 0.2.2
-  resolution: "ethjs-format@npm:0.2.2"
-  dependencies:
-    bn.js: "npm:4.11.6"
-    ethjs-schema: "npm:0.1.5"
-    ethjs-util: "npm:0.1.3"
-    is-hex-prefixed: "npm:1.0.0"
-    number-to-bn: "npm:1.7.0"
-    strip-hex-prefix: "npm:1.0.0"
-  checksum: 10/0e0b6b27a2cad675e727c3912c125722756fac741806a710868e8c78707a1ee15949d5cb0c64afda99b5803db1eb43debc547d31b85d3962dd6bb1f2abda75e0
-  languageName: node
-  linkType: hard
-
-"ethjs-query@npm:^0.2.4":
-  version: 0.2.9
-  resolution: "ethjs-query@npm:0.2.9"
-  dependencies:
-    ethjs-format: "npm:0.2.2"
-    ethjs-rpc: "npm:0.1.5"
-  checksum: 10/14122607b4f10cd4dcf88d9dc00c45a92a6b5f0f71a0ac4568f3b4dd80bfc5031557c2a7fde07f1aff263f389087f0f2b8e34356e837844c374c446f6b168b75
-  languageName: node
-  linkType: hard
-
-"ethjs-rpc@npm:0.1.5":
-  version: 0.1.5
-  resolution: "ethjs-rpc@npm:0.1.5"
-  checksum: 10/385f4dcd2f6d222f912c0c11270dccbf87e36f432c8ca05ea0f212b6fb6cad9630384033d8f6307c6685a27a12f2eec76bf84a51bb0c466da3913ff09f099032
-  languageName: node
-  linkType: hard
-
-"ethjs-schema@npm:0.1.5":
-  version: 0.1.5
-  resolution: "ethjs-schema@npm:0.1.5"
-  checksum: 10/03bb1a2957f770f08088c9da61013b5500606da3e6a1e8f2584a94845b893c340c33b5a3b7762c12ddeb8ad4e8da280b7d14a3e1a935c6fbc11707051427a104
-  languageName: node
-  linkType: hard
-
 "ethjs-schema@npm:0.2.1":
   version: 0.2.1
   resolution: "ethjs-schema@npm:0.2.1"
   checksum: 10/9e2806518e208650a035aa2bc1e508a57c31ff629b46b63de4c7101e760f5e6987e6f8b70522eb44cf4a97d2c4c6348d1adaeea56915e75e4deadd1e176d5aa9
-  languageName: node
-  linkType: hard
-
-"ethjs-util@npm:0.1.3":
-  version: 0.1.3
-  resolution: "ethjs-util@npm:0.1.3"
-  dependencies:
-    is-hex-prefixed: "npm:1.0.0"
-    strip-hex-prefix: "npm:1.0.0"
-  checksum: 10/f2c368f388e441f713e6b5aeefddd7e7a4f584e5308cf737fcdff7e65c7a17ad513ec3620c04c56495fc4aa83f397312178e8ad8c8dad885e25357bf2a1249a4
   languageName: node
   linkType: hard
 
@@ -34440,15 +34333,6 @@ __metadata:
   dependencies:
     punycode: "npm:2.1.0"
   checksum: 10/5cb65dbc375d42ce9b38dab6e2a7f41b8c059f9a88d236bc9ca32084485f5f22fec11ea5b4e6b61239448148443c3f825fddaa5f298d22e12ecfe845de71a807
-  languageName: node
-  linkType: hard
-
-"idna-uts46@npm:^1.0.1":
-  version: 1.1.0
-  resolution: "idna-uts46@npm:1.1.0"
-  dependencies:
-    punycode: "npm:^2.1.0"
-  checksum: 10/8ac6072e1ac6d901905cf66da2730108243259c9bc658b6ead64a8e4dccddb675839e654d5525cd90ea7ef995a5a8015752cc25d98796b4fe5896fca743e5543
   languageName: node
   linkType: hard
 
@@ -38457,8 +38341,6 @@ __metadata:
     "@metamask/eth-simple-keyring": "npm:13.0.0"
     "@metamask/eth-snap-keyring": "npm:^24.1.1"
     "@metamask/etherscan-link": "npm:^2.0.0"
-    "@metamask/ethjs-contract": "npm:^0.4.1"
-    "@metamask/ethjs-query": "npm:^0.7.1"
     "@metamask/ethjs-unit": "npm:^0.3.0"
     "@metamask/foundryup": "npm:1.0.0"
     "@metamask/gas-fee-controller": "npm:^27.0.0"
@@ -38712,12 +38594,10 @@ __metadata:
     eslint-plugin-react-compiler: "npm:^19.1.0-rc.2"
     eslint-plugin-react-native: "npm:^4.0.0"
     eslint-plugin-tailwindcss: "npm:^3.18.2"
-    eth-ens-namehash: "npm:2.0.8"
     eth-url-parser: "npm:1.0.4"
     ethereumjs-abi: "npm:^0.6.8"
     ethereumjs-util: "npm:^7.0.10"
     ethers: "npm:^5.0.14"
-    ethjs-ens: "npm:2.0.1"
     eventemitter2: "npm:^6.4.9"
     events: "npm:3.0.0"
     execa: "npm:^8.0.1"
@@ -38763,7 +38643,6 @@ __metadata:
     lottie-react-native: "npm:~7.3.8"
     luxon: "npm:^3.5.0"
     mockttp: "npm:^3.15.2"
-    multihashes: "npm:0.4.14"
     nock: "npm:^14.0.11"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
@@ -40265,16 +40144,6 @@ __metadata:
   version: 9.9.0
   resolution: "multiformats@npm:9.9.0"
   checksum: 10/ad55c7d480d22f4258a68fd88aa2aab744fe0cb1e68d732fc886f67d858b37e3aa6c2cec12b2960ead7730d43be690931485238569952d8a3d7f90fdc726c652
-  languageName: node
-  linkType: hard
-
-"multihashes@npm:0.4.14":
-  version: 0.4.14
-  resolution: "multihashes@npm:0.4.14"
-  dependencies:
-    bs58: "npm:^4.0.1"
-    varint: "npm:^5.0.0"
-  checksum: 10/1a130f37704d4486eef3e38c7663df47c88b6d1277842275ddbcf164babd2e7b78a3e5600d7bf408bbf33a1d69e222ee8057da1eec7dfb48eaa13d54fd677426
   languageName: node
   linkType: hard
 
