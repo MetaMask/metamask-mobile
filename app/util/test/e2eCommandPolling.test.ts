@@ -1,5 +1,9 @@
 import axios, { type AxiosResponse } from 'axios';
-import { handleExportStateCommand } from './e2eStateExport';
+import DevLogger from '../../core/SDKConnect/utils/DevLogger';
+import {
+  handleExportAppStateCommand,
+  handleExportStateCommand,
+} from './e2eStateExport';
 
 let mockHasTestOverrides = false;
 jest.mock('./utils', () => ({
@@ -15,6 +19,7 @@ jest.mock('../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 jest.mock('./e2eStateExport', () => ({
   handleExportStateCommand: jest.fn().mockResolvedValue(undefined),
+  handleExportAppStateCommand: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockDispatchPerpsCommand = jest.fn();
@@ -36,6 +41,47 @@ const probeResponse = {
   status: 200,
   data: { queue: [] },
 } as AxiosResponse;
+
+const SECRET_JWT =
+  'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJlMmUtZml4dHVyZSJ9.e2e-signature';
+const SECRET_MNEMONIC =
+  'e2e abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+
+function renderLogValue(value: unknown, seen = new WeakSet<object>()): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    value == null
+  ) {
+    return String(value);
+  }
+  if (typeof value !== 'object') {
+    return String(value);
+  }
+  if (seen.has(value)) {
+    return '';
+  }
+  seen.add(value);
+  if (value instanceof Error) {
+    const extras = Object.fromEntries(Object.entries(value));
+    return `${value.name} ${value.message} ${renderLogValue(extras, seen)}`;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => renderLogValue(item, seen)).join(' ');
+  }
+  return Object.entries(value)
+    .map(([key, entry]) => `${key} ${renderLogValue(entry, seen)}`)
+    .join(' ');
+}
+
+function renderedPollingLogs(): string {
+  return (DevLogger.log as jest.Mock).mock.calls
+    .map((call: unknown[]) => call.map((arg) => renderLogValue(arg)).join(' '))
+    .join('\n');
+}
 
 // Helper to flush async microtasks so pollOnce promise chains resolve
 async function flushMicrotasks(count = 10) {
@@ -139,6 +185,51 @@ describe('e2eCommandPolling', () => {
     await flushMicrotasks();
 
     expect(handleExportStateCommand).toHaveBeenCalled();
+  });
+
+  it('dispatches export-app-state command to handleExportAppStateCommand', async () => {
+    mockHasTestOverrides = true;
+    const { startE2ECommandPolling } = loadModule();
+    mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
+      status: 200,
+      data: {
+        queue: [{ type: 'export-app-state', args: {} }],
+      },
+    } as AxiosResponse);
+
+    await startE2ECommandPolling();
+    jest.advanceTimersByTime(0);
+    await flushMicrotasks();
+
+    expect(handleExportAppStateCommand).toHaveBeenCalled();
+  });
+
+  it('leaves export-app-state errors out of polling logs', async () => {
+    mockHasTestOverrides = true;
+    const { startE2ECommandPolling } = loadModule();
+    const exportError = Object.assign(new Error('export failed'), {
+      config: {
+        data: JSON.stringify({
+          engine: { AuthenticationController: { jwt: SECRET_JWT } },
+        }),
+      },
+    });
+    (handleExportAppStateCommand as jest.Mock).mockRejectedValueOnce(
+      exportError,
+    );
+    mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
+      status: 200,
+      data: {
+        queue: [{ type: 'export-app-state', args: {} }],
+      },
+    } as AxiosResponse);
+
+    await startE2ECommandPolling();
+    jest.advanceTimersByTime(0);
+    await flushMicrotasks();
+
+    expect(renderedPollingLogs()).not.toContain(SECRET_JWT);
+    expect(handleExportAppStateCommand).toHaveBeenCalled();
   });
 
   it('reschedules after receiving an empty queue', async () => {
@@ -385,6 +476,60 @@ describe('e2eCommandPolling', () => {
     expect(handleExportStateCommand).toHaveBeenCalled();
     // Polling should still be rescheduled despite the error
     expect(jest.getTimerCount()).toBe(1);
+  });
+
+  it('leaves command secrets out of polling logs', async () => {
+    mockHasTestOverrides = true;
+    const { startE2ECommandPolling } = loadModule();
+    mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
+      status: 200,
+      data: {
+        queue: [
+          {
+            type: 'apply-qr-sync-sync-ready',
+            args: { mnemonic: SECRET_MNEMONIC, idToken: SECRET_JWT },
+          },
+        ],
+      },
+    } as AxiosResponse);
+
+    await startE2ECommandPolling();
+    jest.advanceTimersByTime(0);
+    await flushMicrotasks();
+
+    const logs = renderedPollingLogs();
+    expect(logs).not.toContain(SECRET_MNEMONIC);
+    expect(logs).not.toContain(SECRET_JWT);
+    expect(mockDispatchQrSyncCommand).toHaveBeenCalled();
+  });
+
+  it('leaves export request bodies out of polling error logs', async () => {
+    mockHasTestOverrides = true;
+    const { startE2ECommandPolling } = loadModule();
+    const exportError = Object.assign(new Error('export failed'), {
+      config: {
+        data: JSON.stringify({
+          engine: { AuthenticationController: { jwt: SECRET_JWT } },
+          redux: { settings: { mnemonic: SECRET_MNEMONIC } },
+        }),
+      },
+    });
+    (handleExportStateCommand as jest.Mock).mockRejectedValueOnce(exportError);
+    mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
+      status: 200,
+      data: {
+        queue: [{ type: 'export-state', args: {} }],
+      },
+    } as AxiosResponse);
+
+    await startE2ECommandPolling();
+    jest.advanceTimersByTime(0);
+    await flushMicrotasks();
+
+    const logs = renderedPollingLogs();
+    expect(logs).not.toContain(SECRET_JWT);
+    expect(logs).not.toContain(SECRET_MNEMONIC);
+    expect(handleExportStateCommand).toHaveBeenCalled();
   });
 
   it('uses debug.json endpoint for server probe', async () => {

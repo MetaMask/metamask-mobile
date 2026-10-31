@@ -547,10 +547,8 @@ export function formatSchemaDiff(diff: FixtureSchemaDiff): string {
     lines.push(separator);
     lines.push('Value mismatches:');
     lines.push(separator);
-    for (const { key, expected, received } of diff.valueMismatches) {
-      lines.push(
-        `  ~ ${key}: expected ${JSON.stringify(expected)}, received ${JSON.stringify(received)}`,
-      );
+    for (const { key } of diff.valueMismatches) {
+      lines.push(`  ~ ${key}`);
     }
     lines.push('');
   }

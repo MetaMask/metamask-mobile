@@ -1,4 +1,5 @@
 import FixtureBuilder from './FixtureBuilder';
+import { STATE_LOG_SEEDED_MARKERS } from './state-log-omitted-fields';
 import defaultFixture from './json/default-fixture.json';
 
 /**
@@ -94,5 +95,28 @@ describe('FixtureBuilder legacy asset controllers', () => {
         marketData: {},
       });
     });
+  });
+});
+
+describe('FixtureBuilder state log fields', () => {
+  it('seeds every marker for fields excluded from state logs', () => {
+    const fixture = new FixtureBuilder().withStateLogOmittedFields().build();
+
+    const serialized = JSON.stringify(fixture.state.engine.backgroundState);
+
+    for (const marker of STATE_LOG_SEEDED_MARKERS) {
+      expect(serialized).toContain(marker);
+    }
+  });
+
+  it('keeps existing card controller fields while seeding excluded ones', () => {
+    const fixture = new FixtureBuilder().withStateLogOmittedFields().build();
+    const card = fixture.state.engine.backgroundState.CardController as {
+      activeProviderId: string;
+      providerUserId: string;
+    };
+
+    expect(card.activeProviderId).toBe('baanx');
+    expect(card.providerUserId).toBe('state-export-card-user');
   });
 });

@@ -266,6 +266,8 @@ export enum E2ECommandTypes {
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
   exportState = 'export-state',
+  /** State log export, sanitized the same way as the in-app state logs. */
+  exportAppState = 'export-app-state',
   /** Inject QR sync sync-ready SRP payload (HAS_TEST_OVERRIDES Appium/Detox). */
   applyQrSyncSyncReady = 'apply-qr-sync-sync-ready',
 }

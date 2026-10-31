@@ -24,6 +24,7 @@ class CommandQueueServer implements Resource {
   private _server: ReturnType<Koa['listen']> | undefined;
   private _queue: CommandQueueItem[];
   private _exportedState: Record<string, unknown> | null;
+  private _exportedAppState: Record<string, unknown> | null;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
@@ -31,6 +32,7 @@ class CommandQueueServer implements Resource {
     this._app = new Koa();
     this._queue = [];
     this._exportedState = null;
+    this._exportedAppState = null;
     this._serverPort = 0; // will be set with setServerPort()
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
@@ -72,6 +74,24 @@ class CommandQueueServer implements Resource {
           return;
         }
         ctx.body = this._exportedState;
+        return;
+      }
+
+      if (this._isExportedAppStatePost(ctx)) {
+        const body = await this._parseJsonBody(ctx);
+        this._exportedAppState = body as Record<string, unknown>;
+        ctx.status = 200;
+        ctx.body = { success: true };
+        return;
+      }
+
+      if (this._isExportedAppStateGet(ctx)) {
+        if (this._exportedAppState === null) {
+          ctx.status = 404;
+          ctx.body = { error: 'No exported app state available' };
+          return;
+        }
+        ctx.body = this._exportedAppState;
         return;
       }
     });
@@ -192,6 +212,17 @@ class CommandQueueServer implements Resource {
     });
   }
 
+  /**
+   * Asks the app for the same sanitized document as its in-app state log export.
+   */
+  requestAppStateExport() {
+    this._exportedAppState = null;
+    this._queue.push({
+      type: E2ECommandTypes.exportAppState,
+      args: {},
+    });
+  }
+
   async getExportedState(
     timeout = 10000,
     pollInterval = 500,
@@ -213,6 +244,27 @@ class CommandQueueServer implements Resource {
     );
   }
 
+  async getExportedAppState(
+    timeout = 10000,
+    pollInterval = 500,
+  ): Promise<Record<string, unknown>> {
+    const deadline = Date.now() + timeout;
+
+    while (Date.now() < deadline) {
+      if (this._exportedAppState !== null) {
+        const state = this._exportedAppState;
+        this._exportedAppState = null;
+        return state;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    throw new Error(
+      `getExportedAppState timed out after ${timeout}ms — the app did not POST to /exported-app-state. ` +
+        'Ensure the command queue server is running and the app is polling /queue.json.',
+    );
+  }
+
   private _isQueueRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/queue.json';
   }
@@ -227,6 +279,14 @@ class CommandQueueServer implements Resource {
 
   private _isExportedStateGet(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/exported-state.json';
+  }
+
+  private _isExportedAppStatePost(ctx: Context) {
+    return ctx.method === 'POST' && ctx.path === '/exported-app-state';
+  }
+
+  private _isExportedAppStateGet(ctx: Context) {
+    return ctx.method === 'GET' && ctx.path === '/exported-app-state.json';
   }
 
   private _parseJsonBody(ctx: Context): Promise<unknown> {
