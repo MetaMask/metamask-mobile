@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectDefaultMoneyAccount } from '../../../../selectors/moneyAccountController';
 
 export type MoneyAccountBindingEnsureResult =
   | 'bound'
@@ -15,7 +15,7 @@ export interface UseMoneyAccountSweepstakesBindingResult {
 }
 
 /**
- * Bind (or re-assert) the primary Money Account address to the active rewards
+ * Bind (or re-assert) the default Money Account address to the active rewards
  * subscription via POST /wr/money-account/binding/signed.
  *
  * - No address / subscription → `'unavailable'` (non-fatal; re-assert later).
@@ -24,12 +24,12 @@ export interface UseMoneyAccountSweepstakesBindingResult {
  */
 export function useMoneyAccountSweepstakesBinding(): UseMoneyAccountSweepstakesBindingResult {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const defaultMoneyAccount = useSelector(selectDefaultMoneyAccount);
   const [bindingConflict, setBindingConflict] = useState(false);
 
   const ensureBound =
     useCallback(async (): Promise<MoneyAccountBindingEnsureResult> => {
-      const moneyAccountAddress = primaryMoneyAccount?.address;
+      const moneyAccountAddress = defaultMoneyAccount?.address;
       if (!subscriptionId || !moneyAccountAddress) {
         return 'unavailable';
       }
@@ -51,7 +51,7 @@ export function useMoneyAccountSweepstakesBinding(): UseMoneyAccountSweepstakesB
       } catch {
         return 'unavailable';
       }
-    }, [primaryMoneyAccount?.address, subscriptionId]);
+    }, [defaultMoneyAccount?.address, subscriptionId]);
 
   return {
     ensureBound,
