@@ -1,11 +1,12 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import Banner from '../../../component-library/components/Banners/Banner/Banner';
-import { BannerVariant } from '../../../component-library/components/Banners/Banner';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -43,18 +44,13 @@ const CollectibleDetectionModal = () => {
 
   return (
     <View style={styles.alertBar}>
-      <Banner
-        variant={BannerVariant.Alert}
+      <BannerAlert
+        severity={BannerAlertSeverity.Info}
         title={strings('wallet.nfts_autodetect_title')}
         description={strings('wallet.nfts_autodetection_desc')}
-        actionButtonProps={{
-          testID: 'collectible-detection-modal-button',
-          variant: ButtonVariants.Link,
-          label: strings('wallet.nfts_autodetect_cta'),
-          onPress: showToastAndEnableNFtDetection,
-          //@ts-expect-error this prop is being added by the name of labelTextVariant by this PR https://github.com/MetaMask/metamask-mobile/pull/10307
-          textVariant: TextVariant.BodyMD,
-        }}
+        actionButtonLabel={strings('wallet.nfts_autodetect_cta')}
+        actionButtonOnPress={showToastAndEnableNFtDetection}
+        actionButtonProps={{ testID: 'collectible-detection-modal-button' }}
       />
     </View>
   );
