@@ -8,6 +8,7 @@ import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { AuthConnection } from '../../../../core/OAuthService/OAuthInterface';
 import AppConstants from '../../../../core/AppConstants';
@@ -37,6 +38,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ButtonGlass from '../../../../component-library/components-temp/ButtonGlass';
 import { OnboardingScreenIds } from '../../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../../hooks/performance/useNavigationPerformance';
+import { selectAddDeviceSyncEnabled } from '../../../../selectors/featureFlagController/addDeviceSync';
 import { useScreenPerformance } from '../../../../hooks/performance/useScreenPerformance';
 
 export interface OnboardingSheetProps {
@@ -46,6 +48,7 @@ export interface OnboardingSheetProps {
   onPressContinueWithGoogle?: (createWallet: boolean) => void | Promise<void>;
   onPressContinueWithApple?: (createWallet: boolean) => void | Promise<void>;
   onPressContinueWithTelegram?: (createWallet: boolean) => void | Promise<void>;
+  onPressImportFromExtension?: () => void;
   createWallet?: boolean;
   loadingProvider?: AuthConnection | null;
 }
@@ -63,12 +66,14 @@ const OnboardingSheet = ({
   onPressContinueWithGoogle,
   onPressContinueWithApple,
   onPressContinueWithTelegram,
+  onPressImportFromExtension,
   createWallet = false,
   loadingProvider = null,
 }: OnboardingSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const isSocialLoading = loadingProvider !== null;
+  const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -95,6 +100,12 @@ const OnboardingSheet = ({
 
   const onPressContinueWithTelegramAction = () =>
     onPressContinueWithTelegram?.(createWallet);
+
+  const onPressImportFromExtensionAction = () => {
+    if (onPressImportFromExtension) {
+      onPressImportFromExtension();
+    }
+  };
 
   const goTo = useCallback(
     (url: string, title: string) => {
@@ -246,6 +257,20 @@ const OnboardingSheet = ({
           </Text>
           <Box twClassName="flex-1 h-px bg-border-muted" />
         </Box>
+        {!createWallet && isAddDeviceSyncEnabled ? (
+          <ButtonGlass
+            isGlass={false}
+            variant={ButtonVariant.Secondary}
+            onPress={onPressImportFromExtensionAction}
+            testID={OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON}
+            isFullWidth
+            size={ButtonSize.Lg}
+            containerStyle={tw.style('self-stretch')}
+            isDisabled={isSocialLoading}
+          >
+            {strings('import_from_seed.import_from_extension_menu')}
+          </ButtonGlass>
+        ) : null}
         <ButtonGlass
           isGlass={false}
           variant={ButtonVariant.Secondary}
