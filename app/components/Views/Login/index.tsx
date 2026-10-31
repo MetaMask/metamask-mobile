@@ -79,6 +79,7 @@ import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEv
 import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
+import Aggregate3CodecBenchmarkButton from './Aggregate3CodecBenchmarkButton';
 import Device from '../../../util/device';
 import { hasTestOverrides } from '../../../util/test/utils';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
@@ -590,71 +591,74 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <OnboardingLoginCanvas
-        canvasColor={canvasColor}
-        containerTestID={LoginViewSelectors.CONTAINER}
-        startFoxAnimation={startFoxAnimation}
-        setStartFoxAnimation={handleStartFoxAnimation}
-        renderWordmark={renderWordmark}
-        showScreenshotDeterrent
-      >
-        <Box flexDirection={BoxFlexDirection.Column} gap={2}>
-          <TextField
-            placeholder={strings('login.password_placeholder')}
-            inputRef={fieldRef}
-            onChangeText={handlePasswordChange}
-            value={password}
-            endAccessory={
-              capabilities ? (
-                <DeviceAuthenticationButton
-                  disabled={loading}
-                  onPress={unlockWithDeviceAuthentication}
-                  hidden={shouldHideDeviceAuthenticationButton}
-                  iconName={capabilities.authIcon}
-                />
-              ) : null
-            }
-            isError={!!error}
-            isDisabled={loading}
-            inputProps={{
-              testID: LoginViewSelectors.PASSWORD_INPUT,
-              accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
-              returnKeyType: 'done',
-              autoCapitalize: 'none',
-              secureTextEntry: true,
-              onSubmitEditing: unlockWithPassword,
-              keyboardAppearance: themeAppearance,
+      <Box twClassName="flex-1">
+        <OnboardingLoginCanvas
+          canvasColor={canvasColor}
+          containerTestID={LoginViewSelectors.CONTAINER}
+          startFoxAnimation={startFoxAnimation}
+          setStartFoxAnimation={handleStartFoxAnimation}
+          renderWordmark={renderWordmark}
+          showScreenshotDeterrent
+        >
+          <Box flexDirection={BoxFlexDirection.Column} gap={2}>
+            <TextField
+              placeholder={strings('login.password_placeholder')}
+              inputRef={fieldRef}
+              onChangeText={handlePasswordChange}
+              value={password}
+              endAccessory={
+                capabilities ? (
+                  <DeviceAuthenticationButton
+                    disabled={loading}
+                    onPress={unlockWithDeviceAuthentication}
+                    hidden={shouldHideDeviceAuthenticationButton}
+                    iconName={capabilities.authIcon}
+                  />
+                ) : null
+              }
+              isError={!!error}
+              isDisabled={loading}
+              inputProps={{
+                testID: LoginViewSelectors.PASSWORD_INPUT,
+                accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+                returnKeyType: 'done',
+                autoCapitalize: 'none',
+                secureTextEntry: true,
+                onSubmitEditing: unlockWithPassword,
+                keyboardAppearance: themeAppearance,
+              }}
+            />
+            {!!error && (
+              <HelpText
+                severity={HelpTextSeverity.Error}
+                variant={DSTextVariant.BodyMD}
+                testID={LoginViewSelectors.PASSWORD_ERROR}
+              >
+                {error}
+              </HelpText>
+            )}
+          </Box>
+          <FooterGlass
+            twClassName="px-0"
+            primaryButtonProps={{
+              children: strings('login.unlock_button'),
+              size: ctaSize,
+              onPress: unlockWithPassword,
+              isDisabled: password.length === 0 || loading,
+              isLoading: loading,
+              testID: LoginViewSelectors.LOGIN_BUTTON_ID,
+            }}
+            tertiaryButtonProps={{
+              children: strings('login.forgot_password'),
+              size: ctaSize,
+              onPress: toggleWarningModal,
+              isDisabled: loading,
+              testID: LoginViewSelectors.RESET_WALLET,
             }}
           />
-          {!!error && (
-            <HelpText
-              severity={HelpTextSeverity.Error}
-              variant={DSTextVariant.BodyMD}
-              testID={LoginViewSelectors.PASSWORD_ERROR}
-            >
-              {error}
-            </HelpText>
-          )}
-        </Box>
-        <FooterGlass
-          twClassName="px-0"
-          primaryButtonProps={{
-            children: strings('login.unlock_button'),
-            size: ctaSize,
-            onPress: unlockWithPassword,
-            isDisabled: password.length === 0 || loading,
-            isLoading: loading,
-            testID: LoginViewSelectors.LOGIN_BUTTON_ID,
-          }}
-          tertiaryButtonProps={{
-            children: strings('login.forgot_password'),
-            size: ctaSize,
-            onPress: toggleWarningModal,
-            isDisabled: loading,
-            testID: LoginViewSelectors.RESET_WALLET,
-          }}
-        />
-      </OnboardingLoginCanvas>
+        </OnboardingLoginCanvas>
+        <Aggregate3CodecBenchmarkButton />
+      </Box>
     </ErrorBoundary>
   );
 };
