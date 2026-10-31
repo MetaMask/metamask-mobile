@@ -10,26 +10,24 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { createProcessingInfoModalNavigationDetails } from '../Modals/ProcessingInfoModal/ProcessingInfoModal';
 import {
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
-  Text,
-  TextVariant,
-  BoxFlexDirection,
-  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontFamily,
   FontWeight,
   Icon,
   IconName,
   IconSize,
-  Button,
-  ButtonVariant,
-  ButtonSize,
+  KeyValueRow,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import BadgeNetwork from '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
 import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
@@ -52,9 +50,6 @@ const TERMINAL_STATUSES = new Set([
 ]);
 
 const localStyles = StyleSheet.create({
-  badgeWrapperCenter: {
-    alignSelf: 'center',
-  },
   inlineIcon: {
     transform: [{ translateY: 4 }],
   },
@@ -62,10 +57,6 @@ const localStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
-  },
-  orderIdRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
 });
 
@@ -339,21 +330,21 @@ const OrderContent: React.FC<OrderContentProps> = ({
     <Box twClassName="w-full flex-1">
       <Box twClassName="items-center pt-8 pb-6">
         <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          style={localStyles.badgeWrapperCenter}
-          badgeElement={
+          twClassName="self-center"
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
             networkImageSource ? (
-              <BadgeNetwork
-                name={networkName}
-                imageSource={networkImageSource}
-              />
+              <BadgeNetwork name={networkName} src={networkImageSource} />
             ) : null
           }
         >
           <AvatarToken
             name={cryptoSymbol}
-            imageSource={cryptoImageSource}
-            size={AvatarSize.Lg}
+            src={cryptoImageSource}
+            size={AvatarTokenSize.Lg}
+            imageOrSvgProps={{
+              imageProps: { testID: 'token-avatar-image' },
+            }}
           />
         </BadgeWrapper>
 
@@ -381,23 +372,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </Text>
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-default"
-        >
-          {strings('ramps_order_details.status')}
-        </Text>
-        <Box twClassName="items-end">
-          {isLoading ? (
-            <Box twClassName="bg-muted rounded h-[18px] w-24" />
+      <KeyValueRow
+        twClassName="h-auto px-0 py-3"
+        keyLabel={strings('ramps_order_details.status')}
+        value={
+          isLoading ? (
+            <Box twClassName="h-[18px] w-24 rounded bg-muted" />
           ) : (
-            <>
+            <Box twClassName="items-end">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -405,14 +387,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
               >
                 {getStatusText()}
               </Text>
-              {providerOrderLink && (
+              {providerOrderLink ? (
                 <TouchableOpacity
                   onPress={handleProviderLinkPress}
                   style={localStyles.providerLink}
                 >
                   <Text
                     variant={TextVariant.BodySm}
-                    twClassName="text-primary-default mr-1"
+                    twClassName="mr-1 text-primary-default"
                   >
                     {strings('ramps_order_details.view_on_provider', {
                       provider: providerName,
@@ -424,133 +406,89 @@ const OrderContent: React.FC<OrderContentProps> = ({
                     twClassName="text-primary-default"
                   />
                 </TouchableOpacity>
-              )}
-            </>
-          )}
-        </Box>
-      </Box>
+              ) : null}
+            </Box>
+          )
+        }
+      />
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-default"
-        >
-          {strings('ramps_order_details.order_id')}
-        </Text>
-        {isLoading ? (
-          <Box twClassName="bg-muted rounded h-[18px] w-32" />
-        ) : (
-          <TouchableOpacity
-            onPress={handleCopyOrderId}
-            style={localStyles.orderIdRow}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              twClassName="mr-2"
-            >
-              {shortOrderId}
-            </Text>
-            <Icon
-              name={IconName.Copy}
-              size={IconSize.Md}
-              twClassName="text-default"
-            />
-          </TouchableOpacity>
-        )}
-      </Box>
+      <KeyValueRow
+        twClassName="h-auto px-0 py-3"
+        keyLabel={strings('ramps_order_details.order_id')}
+        value={
+          isLoading ? (
+            <Box twClassName="h-[18px] w-32 rounded bg-muted" />
+          ) : (
+            shortOrderId
+          )
+        }
+        valueEndButtonIconProps={
+          isLoading
+            ? undefined
+            : {
+                iconName: IconName.Copy,
+                accessibilityLabel: strings('ramps_order_details.order_id'),
+                onPress: handleCopyOrderId,
+              }
+        }
+      />
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-default"
-        >
-          {strings('ramps_order_details.date_and_time')}
-        </Text>
-        {isLoading ? (
-          <Box twClassName="bg-muted rounded h-[18px] w-40" />
-        ) : (
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {order.createdAt ? toDateFormat(order.createdAt) : '...'}
-          </Text>
-        )}
-      </Box>
+      <KeyValueRow
+        twClassName="h-auto px-0 py-3"
+        keyLabel={strings('ramps_order_details.date_and_time')}
+        value={
+          isLoading ? (
+            <Box twClassName="h-[18px] w-40 rounded bg-muted" />
+          ) : order.createdAt ? (
+            toDateFormat(order.createdAt)
+          ) : (
+            AMOUNT_PLACEHOLDER
+          )
+        }
+      />
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-default"
-        >
-          {strings('ramps_order_details.fees')}
-        </Text>
-        {isLoading ? (
-          <Box twClassName="bg-muted rounded h-[18px] w-20" />
-        ) : (
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {hasAmounts
-              ? formatWithThreshold(
-                  Number(order.totalFeesFiat ?? 0),
-                  0,
-                  I18n.locale,
-                  {
-                    style: 'currency',
-                    currency: fiatCurrencyCode,
-                    minimumFractionDigits: fiatDecimals,
-                    maximumFractionDigits: fiatDecimals,
-                  },
-                )
-              : AMOUNT_PLACEHOLDER}
-          </Text>
-        )}
-      </Box>
+      <KeyValueRow
+        twClassName="h-auto px-0 py-3"
+        keyLabel={strings('ramps_order_details.fees')}
+        value={
+          isLoading ? (
+            <Box twClassName="h-[18px] w-20 rounded bg-muted" />
+          ) : hasAmounts ? (
+            formatWithThreshold(
+              Number(order.totalFeesFiat ?? 0),
+              0,
+              I18n.locale,
+              {
+                style: 'currency',
+                currency: fiatCurrencyCode,
+                minimumFractionDigits: fiatDecimals,
+                maximumFractionDigits: fiatDecimals,
+              },
+            )
+          ) : (
+            AMOUNT_PLACEHOLDER
+          )
+        }
+      />
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-default"
-        >
-          {strings('ramps_order_details.total')}
-        </Text>
-        {isLoading ? (
-          <Box twClassName="bg-muted rounded h-[18px] w-24" />
-        ) : (
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {hasAmounts
-              ? formatWithThreshold(
-                  Number(order.fiatAmount ?? 0),
-                  0,
-                  I18n.locale,
-                  {
-                    style: 'currency',
-                    currency: fiatCurrencyCode,
-                    minimumFractionDigits: fiatDecimals,
-                    maximumFractionDigits: fiatDecimals,
-                  },
-                )
-              : AMOUNT_PLACEHOLDER}
-          </Text>
-        )}
-      </Box>
+      <KeyValueRow
+        twClassName="h-auto px-0 py-3"
+        keyLabel={strings('ramps_order_details.total')}
+        value={
+          isLoading ? (
+            <Box twClassName="h-[18px] w-24 rounded bg-muted" />
+          ) : hasAmounts ? (
+            formatWithThreshold(Number(order.fiatAmount ?? 0), 0, I18n.locale, {
+              style: 'currency',
+              currency: fiatCurrencyCode,
+              minimumFractionDigits: fiatDecimals,
+              maximumFractionDigits: fiatDecimals,
+            })
+          ) : (
+            AMOUNT_PLACEHOLDER
+          )
+        }
+      />
 
       {hasBankDetails && bankDetailFields && !isLoading && (
         <Box twClassName="mt-4 pt-4 border-t border-alternative">

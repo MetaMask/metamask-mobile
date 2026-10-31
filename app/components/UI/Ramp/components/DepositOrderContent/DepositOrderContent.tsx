@@ -1,39 +1,38 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  Box,
   FontFamily,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  KeyValueRow,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { hasDepositOrderField } from '../../utils/depositUtils';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import BadgeNetwork from '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Loader from '../../../../../component-library/components-temp/Loader/Loader';
+import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
-import styleSheet from './DepositOrderContent.styles';
 import { DepositOrder } from '../../types/legacyDeposit';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
@@ -42,13 +41,11 @@ interface DepositOrderContentProps {
 }
 
 const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
   const accountName = useAccountGroupName();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getCryptoToken = () => {
@@ -78,18 +75,13 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
       })
     : null;
 
-  const getIconContainerStyle = () => {
-    if (order.state === FIAT_ORDER_STATES.COMPLETED) {
-      return styles.successIconContainer;
-    }
-    if (
-      order.state === FIAT_ORDER_STATES.CANCELLED ||
-      order.state === FIAT_ORDER_STATES.FAILED
-    ) {
-      return styles.errorIconContainer;
-    }
-    return styles.processingIconContainer;
-  };
+  const isCompleted = order.state === FIAT_ORDER_STATES.COMPLETED;
+  const isFailed =
+    order.state === FIAT_ORDER_STATES.CANCELLED ||
+    order.state === FIAT_ORDER_STATES.FAILED;
+  const isProcessing =
+    order.state === FIAT_ORDER_STATES.PENDING ||
+    order.state === FIAT_ORDER_STATES.CREATED;
 
   const providerOrderId = (order.data as DepositOrder).providerOrderId;
 
@@ -108,53 +100,57 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     currency,
   );
 
+  const statusIconClassName = isCompleted
+    ? 'bg-success-muted'
+    : isFailed
+      ? 'bg-error-muted'
+      : '';
+
   return (
     <>
-      <View style={styles.mainSection}>
-        <View style={styles.iconRow}>
-          <View style={getIconContainerStyle()}>
-            {order.state === FIAT_ORDER_STATES.PENDING ||
-            order.state === FIAT_ORDER_STATES.CREATED ? (
-              <Loader size="large" color={theme.colors.primary.default} />
-            ) : order.state === FIAT_ORDER_STATES.COMPLETED ? (
+      <Box twClassName="mb-6 items-center">
+        <Box twClassName="mb-5 flex-row items-center gap-4">
+          <Box
+            twClassName={`h-10 w-10 items-center justify-center rounded-full ${statusIconClassName}`}
+          >
+            {isProcessing ? (
+              <ActivityIndicator size="large" />
+            ) : isCompleted ? (
               <Icon
                 name={IconName.CheckBold}
                 size={IconSize.Xl}
-                color={IconColor.Success}
+                color={IconColor.SuccessDefault}
               />
             ) : (
               <Icon
                 name={IconName.Close}
                 size={IconSize.Xl}
-                color={IconColor.Error}
+                color={IconColor.ErrorDefault}
               />
             )}
-          </View>
+          </Box>
           {cryptoToken ? (
             <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
+              position={BadgeWrapperPosition.BottomRight}
+              badge={
                 networkImageSource ? (
-                  <BadgeNetwork
-                    name={networkName}
-                    imageSource={networkImageSource}
-                  />
+                  <BadgeNetwork name={networkName} src={networkImageSource} />
                 ) : null
               }
             >
               <AvatarToken
                 name={cryptoToken.symbol}
-                imageSource={{ uri: cryptoToken.iconUrl }}
-                size={AvatarSize.Lg}
+                src={{ uri: cryptoToken.iconUrl }}
+                size={AvatarTokenSize.Lg}
               />
             </BadgeWrapper>
           ) : null}
-        </View>
+        </Box>
 
         <Text
           variant={TextVariant.AmountDisplayLg}
           fontFamily={FontFamily.Hero}
-          style={styles.mainAmount}
+          twClassName="mb-4 text-center"
         >
           {order.cryptoAmount} {order.cryptocurrency}
         </Text>
@@ -165,83 +161,65 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            style={styles.subtitle}
+            twClassName="text-center"
           >
             {order.data.statusDescription}
           </Text>
         ) : null}
-      </View>
+      </Box>
 
-      <View style={styles.detailsContainer}>
-        <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('deposit.order_processing.account')}
-          </Text>
-          <View style={styles.accountInfo}>
-            {selectedAddress ? (
-              <Avatar
-                variant={AvatarVariant.Account}
-                type={accountAvatarType}
-                accountAddress={selectedAddress}
-                size={AvatarSize.Xs}
+      <Box twClassName="mb-4 rounded-3xl border border-muted bg-default py-2">
+        <KeyValueRow
+          keyLabel={strings('deposit.order_processing.account')}
+          value={accountName ?? ''}
+          valueTextProps={{ twClassName: 'shrink min-w-0' }}
+          valueStartAccessory={
+            selectedAddress ? (
+              <AvatarAccount
+                address={selectedAddress}
+                size={AvatarAccountSize.Xs}
+                variant={getAvatarAccountVariant(accountAvatarType)}
               />
-            ) : null}
-            <Text variant={TextVariant.BodyMd}>{accountName}</Text>
-          </View>
-        </View>
+            ) : undefined
+          }
+        />
+        <KeyValueRow
+          keyLabel={strings('deposit.order_processing.network')}
+          value={networkName}
+          valueStartAccessory={
+            networkImageSource ? (
+              <AvatarNetwork
+                name={networkName}
+                size={AvatarNetworkSize.Xs}
+                src={networkImageSource}
+              />
+            ) : undefined
+          }
+        />
+        <KeyValueRow
+          keyLabel={strings('deposit.order_processing.order_id')}
+          value={`..${shortOrderId}`}
+          valueEndButtonIconProps={{
+            iconName: IconName.Copy,
+            accessibilityLabel: strings('deposit.order_processing.order_id'),
+            onPress: handleCopyOrderId,
+          }}
+        />
 
-        <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('deposit.order_processing.network')}
-          </Text>
-          <View style={styles.networkInfo}>
-            {networkImageSource ? (
-              <Image source={networkImageSource} style={styles.networkIcon} />
-            ) : null}
-            <Text variant={TextVariant.BodyMd}>{networkName}</Text>
-          </View>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('deposit.order_processing.order_id')}
-          </Text>
-          <TouchableOpacity
-            style={styles.orderIdContainer}
-            onPress={handleCopyOrderId}
-          >
-            <Text variant={TextVariant.BodyMd}>..{shortOrderId}</Text>
-            <Icon
-              name={IconName.Copy}
-              size={IconSize.Lg}
-              color={theme.colors.icon.default}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.separator} />
+        <Box twClassName="my-2 h-px bg-border-muted" />
 
         {Boolean(orderFee) && (
-          <View style={styles.detailRow}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('deposit.order_processing.fees')}
-            </Text>
-            <Text variant={TextVariant.BodyMd}>{orderFee}</Text>
-          </View>
+          <KeyValueRow
+            keyLabel={strings('deposit.order_processing.fees')}
+            value={orderFee}
+          />
         )}
 
-        <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('deposit.order_processing.total')}
-          </Text>
-          <Text variant={TextVariant.BodyMd}>
-            {formatCurrency(Number(order.amount), currency)}
-          </Text>
-        </View>
-      </View>
+        <KeyValueRow
+          keyLabel={strings('deposit.order_processing.total')}
+          value={formatCurrency(Number(order.amount), currency)}
+        />
+      </Box>
     </>
   );
 };
