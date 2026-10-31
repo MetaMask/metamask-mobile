@@ -68,7 +68,7 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     // Fox-and-coins art from the Money Home card (Figma node 2267-17522).
     heroArt: {
       source: moneyVbaGetStartedArt,
-      width: 94,
+      width: 106.5,
       height: 88,
     },
     ctaClassName: 'bg-icon-default',
