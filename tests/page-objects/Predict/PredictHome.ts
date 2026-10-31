@@ -107,6 +107,12 @@ class PredictHome {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button on Predict home',
     });
+    // A successful back tap can still race the Predict-home pop. Callers that
+    // immediately open Activity need the container out of the tree first.
+    await Assertions.expectElementToNotExist(this.container, {
+      timeout: resolveE2EWaitTimeoutMs(15_000),
+      description: 'Predict home dismissed after back',
+    });
   }
 
   async expectPrimaryValueVisible(
