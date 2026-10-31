@@ -19,6 +19,54 @@ import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 /** Dapp <h1 id="logo-text">; always at the top of the page, unlike the action buttons. */
 const TEST_DAPP_LOAD_LABEL = 'E2E Test Dapp';
 const TEST_DAPP_LOAD_TIMEOUT_MS = 30_000;
+const DAPP_HOST_READY_TIMEOUT_MS = 15_000;
+const DAPP_HOST_READY_POLL_MS = 500;
+
+/**
+ * Poll the local test-dapp origin from the host until it accepts HTTP.
+ *
+ * Android WebView `localhost` is adb-reversed to this host port. Re-navigating
+ * while the Node dapp server is still refusing leaves the in-app
+ * `net::ERR_CONNECTION_REFUSED` interstitial (no `#logo-text`) for the full
+ * CDP window — the post-#37581 / #37616 residual on token-approve smokes.
+ *
+ * Same shape as `waitForDappServerReady` in mm-connect utils; kept local so
+ * `waitForTestDappToLoad` callers do not import a feature helper.
+ */
+const waitForLocalDappHostReachable = async (
+  pageUrl: string,
+  timeoutMs: number = DAPP_HOST_READY_TIMEOUT_MS,
+): Promise<void> => {
+  let origin: string;
+  try {
+    origin = new URL(pageUrl).origin;
+  } catch {
+    origin = pageUrl;
+  }
+
+  const deadline = Date.now() + timeoutMs;
+  let lastError: string | undefined;
+
+  while (Date.now() < deadline) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2_000);
+      const response = await fetch(origin, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      // Any HTTP response means the server is accepting connections.
+      if (response.status > 0) {
+        return;
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    await sleep(DAPP_HOST_READY_POLL_MS);
+  }
+
+  throw new Error(
+    `Local test dapp host ${origin} not reachable within ${timeoutMs}ms (last error=${lastError ?? 'none'})`,
+  );
+};
 
 /**
  * Android WebView a11y often omits the heading text even after the page has
@@ -36,9 +84,10 @@ const TEST_DAPP_LOAD_TIMEOUT_MS = 30_000;
  * `scrollTo=`) like `waitForTestDappButtonReady`, then fall back to a native
  * URL-bar navigation if CDP recovery is still stuck.
  *
- * Post-#37581 residual: one href + one native re-navigate can still leave
- * `#logo-text` null when the local dapp accepts connections a beat late.
- * Run a second recovery cycle with a shorter CDP poll and a brief settle.
+ * Post-#37581 / #37616 residual: href + native re-navigate still leaves
+ * `#logo-text` null when recovery runs before the local dapp accepts
+ * connections. Gate each recovery (and the first CDP poll) on a host HTTP
+ * reachability probe so we do not re-fetch a refused document.
  */
 const waitForAndroidTestDappHeadingViaCdp = async (
   pageUrl: string,
@@ -62,6 +111,8 @@ const waitForAndroidTestDappHeadingViaCdp = async (
   const recoverViaHrefThenNative = async (
     pollTimeoutMs: number,
   ): Promise<string | null> => {
+    await waitForLocalDappHostReachable(pageUrl);
+
     await ChromeCdpHelpers.evaluateInWebView(
       pageUrl,
       `(() => { location.href = ${JSON.stringify(pageUrl)}; return true; })()`,
@@ -77,6 +128,7 @@ const waitForAndroidTestDappHeadingViaCdp = async (
 
     // Native URL bar re-entry recovers when the WebView stays on the connection
     // refused interstitial and CDP assign did not replace the document.
+    await waitForLocalDappHostReachable(pageUrl, 10_000);
     await BrowserView.navigateToURL(pageUrl, {
       skipUrlEditorDismissal: true,
     });
@@ -85,6 +137,9 @@ const waitForAndroidTestDappHeadingViaCdp = async (
 
     return pollHeading(pollTimeoutMs);
   };
+
+  // Happy path: server already up → one quick fetch, then CDP heading.
+  await waitForLocalDappHostReachable(pageUrl);
 
   let text = await pollHeading();
   if (headingReady(text)) {
