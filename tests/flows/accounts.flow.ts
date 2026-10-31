@@ -18,6 +18,7 @@ import EditAccountName from '../page-objects/MultichainAccounts/EditAccountName'
 import Utilities from '../framework/Utilities';
 import ContactsView from '../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../page-objects/Settings/Contacts/AddContactView';
+import ToastModal from '../page-objects/wallet/ToastModal';
 import {
   ensureAccountListOpenPlaywright,
   loginToAppPlaywright,
@@ -30,6 +31,23 @@ export const openImportSrpFromAccountList = async (): Promise<void> => {
   await AccountListBottomSheet.openAddAccountSheet();
   await AddAccountBottomSheet.tapImportSrp();
   await Assertions.expectElementToBeVisible(ImportSrpView.container);
+};
+
+/**
+ * Imports an SRP from the account list and waits until wallet home is ready.
+ * After Continue, navigation can pass through a loading/splash state and an
+ * import-success toast can cover the account-name label — settle both before
+ * callers assert the selected account.
+ */
+export const importSrpAndReturnToWalletHome = async (
+  mnemonic: string,
+  options: { walletHomeTimeout?: number } = {},
+): Promise<void> => {
+  await openImportSrpFromAccountList();
+  await ImportSrpView.enterSrp(mnemonic);
+  await ImportSrpView.tapImportButton();
+  await waitForWalletHomePlaywright(options.walletHomeTimeout ?? 20_000);
+  await ToastModal.waitForToastToDismiss({ appearTimeout: 10_000 });
 };
 
 export const goToImportSrp = async () => {
