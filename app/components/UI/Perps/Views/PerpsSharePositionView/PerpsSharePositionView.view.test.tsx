@@ -21,7 +21,6 @@ import {
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import {
   clearLeaderboardApiMock,
-  getLeaderboardMessengerSpy,
   setupLeaderboardApiMock,
 } from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import { PerpsSharePositionSheetSelectorsIDs } from '../../Perps.testIds';
@@ -33,6 +32,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
+import {
   SocialPostComposerView,
   SocialPostComposerViewSelectorsIDs,
 } from '../../../../Views/SocialLeaderboard/SocialPostComposerView';
@@ -40,7 +43,6 @@ import PerpsSharePositionView from './PerpsSharePositionView';
 import { PERPS_SHARE_POSITION_INTERACTION_TYPE } from './PerpsSharePositionView.constants';
 
 const LINKED_ADDRESS = '0x0000000000000000000000000000000000000001';
-const OTHER_ADDRESS = '0x0000000000000000000000000000000000000002';
 const MARKET_PRICE = '2900';
 
 const socialEthLong: SocialPosition = {
@@ -68,6 +70,20 @@ const socialEthLong: SocialPosition = {
 const profileOverrides: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
+      KeyringController: { isUnlocked: true },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          perpsSocialEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+          [SOCIAL_V1_AB_KEY]: SocialV1Variant.Treatment,
+          aiSocialLeaderboardEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
       ProfileController: {
         profile: {
           profileId: 'profile-1',
@@ -129,7 +145,12 @@ const createPositionHost = (
     useEffect(() => {
       navigation.navigate(Routes.PERPS.MODALS.ROOT, {
         screen: Routes.PERPS.MODALS.SHARE_POSITION,
-        params: { position, marketPrice: MARKET_PRICE, accountAddress },
+        params: {
+          position,
+          marketPrice: MARKET_PRICE,
+          accountAddress,
+          socialPosition: socialEthLong,
+        },
       });
     }, [navigation]);
     return (
@@ -181,18 +202,6 @@ const renderSharePositionSheet = ({
     ],
   });
 
-const waitForOpenPositionsFetch = async () => {
-  await waitFor(() =>
-    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
-      'SocialService:fetchOpenPositions',
-      expect.objectContaining({ addressOrId: LINKED_ADDRESS }),
-    ),
-  );
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  });
-};
-
 describe('PerpsSharePositionView', () => {
   afterEach(() => {
     clearLeaderboardApiMock();
@@ -235,12 +244,11 @@ describe('PerpsSharePositionView', () => {
   it('opens the composer with the matching Social position and the Trending redirect', async () => {
     setupLeaderboardApiMock({ openPositions: [socialEthLong] });
     renderSharePositionSheet();
-    const postRow = await screen.findByTestId(
-      PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
+      ),
     );
-    await waitFor(() => expect(postRow).toBeEnabled());
-
-    fireEvent.press(postRow);
 
     expect(
       await screen.findByTestId(
@@ -259,59 +267,29 @@ describe('PerpsSharePositionView', () => {
     );
   });
 
-  it('keeps Post to MetaMask disabled when no open Social position matches the symbol and side', async () => {
-    setupLeaderboardApiMock({
-      openPositions: [
-        {
-          ...socialEthLong,
-          positionId: 'eth-short',
-          perpPositionType: 'short',
-        },
-        { ...socialEthLong, positionId: 'btc-long', tokenSymbol: 'BTC' },
-      ],
-    });
+  it('does not render a disabled Post to MetaMask state', async () => {
+    setupLeaderboardApiMock({ openPositions: [socialEthLong] });
     renderSharePositionSheet();
-    await waitForOpenPositionsFetch();
 
-    const postRow = screen.getByTestId(
-      PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
-    );
-    fireEvent.press(postRow);
-
-    expect(postRow).toBeDisabled();
     expect(
-      screen.getByText(strings('perps.share_position.post_not_ready')),
+      await screen.findByText(strings('perps.share_position.post_to_metamask')),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.POST_COMPOSER)),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('keeps Post to MetaMask disabled for a position from another wallet, even when the linked wallet holds the same position', async () => {
-    const messengerSpy = setupLeaderboardApiMock({
-      openPositions: [socialEthLong],
-    });
-    renderSharePositionSheet({ accountAddress: OTHER_ADDRESS });
-
-    const postRow = await screen.findByTestId(
-      PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
-    );
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-    fireEvent.press(postRow);
-
-    expect(postRow).toBeDisabled();
-    expect(
-      screen.getByText(strings('perps.share_position.post_other_account')),
+      screen.getByText(
+        strings('perps.share_position.post_to_metamask_description'),
+      ),
     ).toBeOnTheScreen();
-    expect(messengerSpy).not.toHaveBeenCalledWith(
-      'SocialService:fetchOpenPositions',
-      expect.anything(),
-    );
     expect(
-      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.POST_COMPOSER)),
-    ).not.toBeOnTheScreen();
+      screen.queryByText("This position isn't ready to post yet"),
+    ).toBeNull();
+    expect(
+      screen.queryByText(
+        "Only positions from your profile's wallet can be posted",
+      ),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK),
+    ).toBeEnabled();
     expect(
       screen.getByTestId(PerpsSharePositionSheetSelectorsIDs.SHARE_EXTERNALLY),
     ).toBeEnabled();
@@ -334,12 +312,15 @@ describe('PerpsSharePositionView', () => {
       swapComment,
     });
     renderSharePositionSheet({ withRealComposer: true });
-    const postRow = await screen.findByTestId(
-      PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
+      ),
     );
-    await waitFor(() => expect(postRow).toBeEnabled());
-
-    fireEvent.press(postRow);
+    fireEvent.changeText(
+      await screen.findByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'Long ETH into the weekend',
+    );
     fireEvent.press(
       await screen.findByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
@@ -356,26 +337,8 @@ describe('PerpsSharePositionView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps Post to MetaMask disabled for a Lighter position even when a Hyperliquid one matches', async () => {
-    setupLeaderboardApiMock({ openPositions: [socialEthLong] });
-    renderSharePositionSheet({
-      position: { ...defaultPositionForViews, providerId: 'lighter' },
-    });
-    await waitForOpenPositionsFetch();
-
-    const postRow = screen.getByTestId(
-      PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
-    );
-    fireEvent.press(postRow);
-
-    expect(postRow).toBeDisabled();
-    expect(
-      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.POST_COMPOSER)),
-    ).not.toBeOnTheScreen();
-  });
-
   it('opens the PnL hero card from Share externally', async () => {
-    setupLeaderboardApiMock({ openPositions: [] });
+    setupLeaderboardApiMock({ openPositions: [socialEthLong] });
     renderSharePositionSheet();
 
     fireEvent.press(
@@ -419,7 +382,6 @@ describe('PerpsSharePositionView', () => {
         setupLeaderboardApiMock({ openPositions: [socialEthLong] });
         renderSharePositionSheet();
         const row = await screen.findByTestId(rowTestId);
-        await waitFor(() => expect(row).toBeEnabled());
 
         act(() => {
           fireEvent.press(row);
@@ -443,7 +405,7 @@ describe('PerpsSharePositionView', () => {
   it('tracks the sheet display and the selected option', async () => {
     const trackEvent = jest.spyOn(analytics, 'trackEvent');
     try {
-      setupLeaderboardApiMock({ openPositions: [] });
+      setupLeaderboardApiMock({ openPositions: [socialEthLong] });
       renderSharePositionSheet();
       const expectInteraction = (interactionType: string) =>
         expect(trackEvent).toHaveBeenCalledWith(

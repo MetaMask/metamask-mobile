@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { KeyboardAvoidingView, FlatList, Platform } from 'react-native';
+import { KeyboardAvoidingView, FlatList } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -288,7 +288,7 @@ const ManualBackupStep1 = () => {
 
   const renderConfirmPassword = () => (
     <KeyboardAvoidingView
-      style={tw.style('flex-1 flex-row self-center mb-[30px]')}
+      style={tw.style('flex-1 flex-row self-center')}
       behavior={'padding'}
     >
       <KeyboardAwareScrollView style={tw.style('flex-grow')} enableOnAndroid>
@@ -331,7 +331,7 @@ const ManualBackupStep1 = () => {
           </Box>
           <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
             <FooterGlass
-              twClassName="px-0"
+              twClassName="px-0 py-2"
               primaryButtonProps={{
                 children: strings('manual_backup_step_1.confirm'),
                 onPress: tryUnlock,
@@ -419,7 +419,7 @@ const ManualBackupStep1 = () => {
         )}
       </Box>
       <FooterGlass
-        twClassName={`px-0 ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}
+        twClassName="px-0 py-2"
         primaryButtonProps={{
           children: strings('manual_backup_step_1.continue'),
           onPress: goNext,

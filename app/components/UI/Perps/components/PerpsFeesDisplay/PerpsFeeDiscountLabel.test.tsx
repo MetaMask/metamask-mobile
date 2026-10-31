@@ -39,7 +39,7 @@ describe('PerpsFeeDiscountLabel', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders promotional copy without VIP treatment for a grant', () => {
+  it('renders the promo seal without VIP treatment for a grant', () => {
     render(
       <PerpsFeeDiscountLabel
         feeDiscountPercentage={75}
@@ -48,14 +48,35 @@ describe('PerpsFeeDiscountLabel', () => {
     );
 
     expect(
-      screen.getByText(strings('perps.tooltips.fees.promotional_discount')),
-    ).toBeOnTheScreen();
-    expect(
       screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
     ).toBeOnTheScreen();
     expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByLabelText(
+        strings('perps.tooltips.fees.promotional_discount'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
       screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('names the promo seal when it is the only discount indicator', () => {
+    render(
+      <PerpsFeeDiscountLabel
+        feeDiscountPercentage={75}
+        feeDiscountKind="promotional"
+        accessibilityLabel={strings('perps.tooltips.fees.promotional_discount')}
+      />,
+    );
+
+    expect(
+      screen.getByLabelText(
+        strings('perps.tooltips.fees.promotional_discount'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('renders generic copy for unknown attribution', () => {

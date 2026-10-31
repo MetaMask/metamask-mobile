@@ -6,6 +6,7 @@ import {
   isSocialV1Treatment,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
 interface HandleSocialTraderUrlParams {
   actionPath: string;
@@ -19,6 +20,12 @@ const parseTraderId = (actionPath: string): string | undefined => {
 };
 
 const navigateToFallback = () => {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+  ) {
+    return;
+  }
   NavigationService.navigation.navigate(
     getFollowTradingHomeRoute(),
     undefined,
@@ -56,7 +63,15 @@ export const handleSocialTraderUrl = ({
       return;
     }
 
-    if (isSocialV1Treatment()) {
+    const isV1Treatment = isSocialV1Treatment();
+    if (
+      isV1Treatment &&
+      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+    ) {
+      return;
+    }
+
+    if (isV1Treatment) {
       navigateToSocialV1Profile(NavigationService.navigation, {
         traderId,
         source: 'deep_link',

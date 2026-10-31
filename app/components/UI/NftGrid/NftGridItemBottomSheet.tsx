@@ -11,7 +11,7 @@ import {
 import React, { useCallback, useRef } from 'react';
 import { Alert, Modal, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import { Nft } from '@metamask/assets-controllers';
+import { Nft, Source } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
 
@@ -67,6 +67,9 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
       nft.address,
       nft.tokenId,
       networkClientId,
+      // Refreshing is not a new add: Source.Detected never overwrites the
+      // stored source, whereas the default (Source.Custom) would.
+      { source: Source.Detected },
     );
   }, [nft, getNetworkClientId]);
 
