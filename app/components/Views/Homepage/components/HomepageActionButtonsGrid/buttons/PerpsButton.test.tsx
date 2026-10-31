@@ -8,7 +8,12 @@ import {
   selectIsFirstTimePerpsUser,
   selectPerpsLastViewedMarketSymbol,
   selectPerpsMode,
+  selectPerpsWatchlistMarkets,
 } from '../../../../../UI/Perps/selectors/perpsController';
+import {
+  PERPS_HEADER_NAV_VARIANTS,
+  PerpsHeaderNavVariant,
+} from '../../../../../UI/Perps/abTestConfig';
 import { selectPerpsProModeEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
 import { ActionPosition } from '../../../../../../util/analytics/actionButtonTracking';
 import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.testIds';
@@ -25,6 +30,21 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+const mockHeaderAssignment = {
+  variant: PERPS_HEADER_NAV_VARIANTS[PerpsHeaderNavVariant.Control],
+};
+
+jest.mock('../../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: mockHeaderAssignment.variant,
+    variantName:
+      mockHeaderAssignment.variant.destination === 'marketList'
+        ? 'treatment'
+        : 'control',
+    isActive: mockHeaderAssignment.variant.destination === 'marketList',
+  }),
 }));
 
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -44,6 +64,7 @@ interface SelectorOverrides {
   isProModeEnabled?: boolean;
   perpsMode?: PerpsMode;
   lastViewedMarketSymbol?: string;
+  watchlist?: string[];
 }
 
 const mockSelectorState = (overrides: SelectorOverrides = {}) => {
@@ -54,6 +75,7 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
     isProModeEnabled = false,
     perpsMode = PerpsMode.Lite,
     lastViewedMarketSymbol = 'BTC',
+    watchlist = [],
   } = overrides;
 
   mockUseSelector.mockImplementation((selector: unknown) => {
@@ -64,6 +86,7 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
     if (selector === selectPerpsMode) return perpsMode;
     if (selector === selectPerpsLastViewedMarketSymbol)
       return lastViewedMarketSymbol;
+    if (selector === selectPerpsWatchlistMarkets) return watchlist;
     return undefined;
   });
 };
@@ -71,6 +94,8 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
 describe('PerpsButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHeaderAssignment.variant =
+      PERPS_HEADER_NAV_VARIANTS[PerpsHeaderNavVariant.Control];
     mockSelectorState();
   });
 

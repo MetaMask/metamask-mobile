@@ -285,6 +285,7 @@ const PerpsProMarketView = ({
       : activeProvider);
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  const buttonLocation = route.params?.button_location;
   // Set by entry points that already carry a trade intent (e.g. spot token
   // details Long/Short), so the inline form opens on the right side.
   const initialDirection = route.params?.direction;
@@ -509,8 +510,12 @@ const PerpsProMarketView = ({
       ...(sourceSection && {
         [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: sourceSection,
       }),
+      ...(buttonLocation && {
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: buttonLocation,
+      }),
     }),
     [
+      buttonLocation,
       chartAnalyticsProperties,
       isServiceInterruptionBannerEnabled,
       market?.symbol,

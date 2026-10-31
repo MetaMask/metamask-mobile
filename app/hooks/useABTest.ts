@@ -73,6 +73,14 @@ export interface ABTestExposureMetadata<T extends ABTestVariants> {
 const trackedExposureAssignments = new Set<string>();
 const MAX_TRACKED_EXPOSURE_ASSIGNMENTS = 500;
 
+/**
+ * Clears the module-level Experiment Viewed dedupe set.
+ * View tests call this so exposure assertions do not depend on test order.
+ */
+export const clearTrackedABTestExposureForTests = (): void => {
+  trackedExposureAssignments.clear();
+};
+
 const getExposureCacheKey = (experimentId: string, variationId: string) =>
   `${experimentId}::${variationId}`;
 

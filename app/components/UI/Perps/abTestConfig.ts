@@ -1,3 +1,4 @@
+import { PerpsMode } from '@metamask/perps-controller';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 
@@ -101,6 +102,59 @@ export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
       EVENT_NAME.PERPS_TRADE_TRANSACTION,
     ],
   };
+
+/**
+ * Pro-mode Perps entry points open the market list.
+ *
+ * Eligible users are already in Pro mode, or are switching into Pro from the
+ * Perps Home lite pill. Lite and casual callers still resolve the assignment,
+ * but they skip Experiment Viewed and keep today's home target.
+ * Missing or invalid flags fall back to `control` via `useABTest`.
+ *
+ * LaunchDarkly JSON threshold array (50/50 at launch; dark-launch at 100%
+ * control first). Team token is `perps`, matching the other Perps experiments.
+ */
+export const PERPS_HEADER_AB_TEST_KEY =
+  'perpsTAT4021AbtestPerpsHeaderMarketList';
+
+export enum PerpsHeaderNavVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsHeaderNavVariantConfig {
+  destination: 'lastViewedMarket' | 'marketList';
+}
+
+export const PERPS_HEADER_NAV_VARIANTS: Record<
+  PerpsHeaderNavVariant,
+  PerpsHeaderNavVariantConfig
+> = {
+  [PerpsHeaderNavVariant.Control]: { destination: 'lastViewedMarket' },
+  [PerpsHeaderNavVariant.Treatment]: { destination: 'marketList' },
+};
+
+export const PERPS_HEADER_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Header Market List Redirect',
+  variationNames: {
+    control: 'Deep-link to market details',
+    treatment: 'Open market list',
+  },
+} as const;
+
+export const PERPS_HEADER_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
+  flagKey: PERPS_HEADER_AB_TEST_KEY,
+  validVariants: Object.values(PerpsHeaderNavVariant),
+  eventNames: [
+    EVENT_NAME.PERPS_UI_INTERACTION,
+    EVENT_NAME.PERPS_SCREEN_VIEWED,
+    EVENT_NAME.PERPS_TRADE_TRANSACTION,
+  ],
+  // Lite/casual Perps events carry perps_mode: 'lite' and stay unassigned.
+  injectWhenPropertiesMatch: {
+    perps_mode: PerpsMode.Pro,
+  },
+};
 
 /**
  * TAT-3793: Perps home Explore table.

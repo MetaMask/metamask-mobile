@@ -150,11 +150,13 @@ jest.mock('../../UI/Perps/selectors/perpsController', () => {
     selectIsFirstTimePerpsUser: jest.fn(),
     selectPerpsMode: jest.fn(() => MockedPerpsMode.Lite),
     selectPerpsLastViewedMarketSymbol: jest.fn(() => 'BTC'),
+    selectPerpsWatchlistMarkets: jest.fn(() => []),
   };
 });
 
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(),
+  selectPerpsWatchlistEnabledFlag: jest.fn(() => true),
 }));
 
 const mockHasCompletedPerpsModeSelection = jest.fn(() =>
@@ -1396,6 +1398,11 @@ describe('TradeWalletActions', () => {
   });
 
   describe('action navigation', () => {
+    // Press-to-destination stays here. TradeWalletActions navigates only after
+    // a Reanimated exit callback and requestAnimationFrame. Component-view
+    // tests do not flush that callback, so the Perps route probe never mounts.
+    // WalletActions.view.test.tsx covers the same Pro header targets with real
+    // Redux state.
     it('calls goToSwaps after dismissing RootModalFlow when Swap is pressed', async () => {
       const { getByTestId } = renderScreen(
         TradeWalletActions,

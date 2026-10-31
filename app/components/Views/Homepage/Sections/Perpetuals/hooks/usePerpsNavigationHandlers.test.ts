@@ -18,9 +18,17 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../UI/Perps/utils/perpsModeSwitch', () => ({
-  useGetPerpsHomeNavigationTarget: () => mockGetPerpsHomeNavigationTarget,
   toPerpsNavigatorScreenParams: (target: unknown) => target,
 }));
+
+jest.mock(
+  '../../../../../UI/Perps/hooks/usePerpsHeaderEntryNavigation',
+  () => ({
+    usePerpsHeaderEntryNavigation: () => ({
+      getTarget: mockGetPerpsHomeNavigationTarget,
+    }),
+  }),
+);
 
 const analyticsContext: NavigationAnalyticsContext = {
   id: 'balance-breakdown-navigation',
@@ -68,6 +76,17 @@ describe('usePerpsNavigationHandlers', () => {
 
     expect(mockGetPerpsHomeNavigationTarget).toHaveBeenCalledWith({
       source: 'home_section',
+    });
+  });
+
+  it('tags the section header tap so it can be isolated from other home Perps taps', () => {
+    const { result } = renderHook(() => usePerpsNavigationHandlers());
+
+    act(() => result.current.handleViewAllPerps());
+
+    expect(mockGetPerpsHomeNavigationTarget).toHaveBeenCalledWith({
+      source: 'home_section',
+      button_location: 'perps_section_header',
     });
   });
 });
