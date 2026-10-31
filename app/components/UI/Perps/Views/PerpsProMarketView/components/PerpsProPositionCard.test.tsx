@@ -159,11 +159,19 @@ describe('PerpsProPositionCard', () => {
     expect(screen.getByText(/^\+\$150/)).toBeOnTheScreen();
     expect(screen.getByText('Close')).toBeOnTheScreen();
     expect(screen.getByText('Reverse')).toBeOnTheScreen();
-    expect(screen.queryByText('Share')).toBeNull();
+    expect(screen.getByText('Share')).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_SHARE),
     ).toBeOnTheScreen();
-    expect(screen.getByLabelText('Share')).toBeOnTheScreen();
+  });
+
+  it('calls onShare when the labeled Share button is pressed', () => {
+    const onShare = jest.fn();
+    render(<PerpsProPositionCard position={position} onShare={onShare} />);
+
+    fireEvent.press(screen.getByText('Share'));
+
+    expect(onShare).toHaveBeenCalledWith(position);
   });
 
   it('renders all six summary labels', () => {

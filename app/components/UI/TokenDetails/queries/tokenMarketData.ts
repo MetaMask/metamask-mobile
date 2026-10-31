@@ -6,6 +6,8 @@ import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 
 export type TokenMarketData = FungibleAssetPrice & {
   liquidity?: number;
+  pricePercentChange5m?: number;
+  pricePercentChange4h?: number;
 };
 
 const SPOT_PRICES_PATH = '/v3/spot-prices';

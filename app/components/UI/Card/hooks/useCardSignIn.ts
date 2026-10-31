@@ -16,6 +16,7 @@ import type {
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useImmersveResumeOnboarding } from './useImmersveResumeOnboarding';
+import { useImmersveMfaHandoff } from './useImmersveMfaHandoff';
 import { CardEntryPoint } from '../util/metrics';
 
 function useCandidateAddresses(): {
@@ -103,6 +104,7 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
   const [retryEpoch, setRetryEpoch] = useState(0);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const resumeImmersveOnboarding = useImmersveResumeOnboarding();
+  const handoffMfa = useImmersveMfaHandoff();
   const lastTrackedKey = useRef<string | null>(null);
 
   const retry = useCallback(() => {
@@ -192,12 +194,28 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
       resumeOnboarding?: boolean;
     }) => {
       const checksummed = safeToChecksumAddress(address) ?? address;
-      await Engine.context.CardController.authenticateWithWallet({
-        option,
-        address: checksummed,
-        country: signInCountry,
-        autoSignup: false,
-      });
+      const result = await Engine.context.CardController.authenticateWithWallet(
+        {
+          option,
+          address: checksummed,
+          country: signInCountry,
+          autoSignup: false,
+        },
+      );
+
+      if (
+        handoffMfa(result, {
+          country: signInCountry,
+          address: checksummed,
+          continuation: {
+            entrypoint: CardEntryPoint.AUTHENTICATION,
+            showAccountExistsToast: false,
+            navigateFromRoot: true,
+          },
+        })
+      ) {
+        return;
+      }
 
       if (resumeOnboarding) {
         await resumeImmersveOnboarding({
@@ -210,7 +228,7 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
         });
       }
     },
-    [resumeImmersveOnboarding],
+    [handoffMfa, resumeImmersveOnboarding],
   );
 
   return {
