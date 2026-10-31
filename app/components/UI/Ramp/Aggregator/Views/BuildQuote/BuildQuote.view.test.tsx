@@ -779,7 +779,6 @@ describe('Aggregator BuildQuote', () => {
 
       await waitForBuildQuoteReady({ getByText, queryByText });
 
-      // DAI is offered on mainnet and is not in the fixture balance map.
       await selectTokenViaSearch(
         {
           findByText,

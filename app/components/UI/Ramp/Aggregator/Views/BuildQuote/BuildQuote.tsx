@@ -108,14 +108,6 @@ export interface BuildQuoteParams extends RampIntent {
 export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
 
-/**
- * Formats the balance held by the account `useBalance` resolved.
- * Non-EVM balances already include their unit, for example "5.5 SOL".
- *
- * @param balance - Token amount from `useBalance`, without a fiat conversion.
- * @param symbol - Asset symbol appended when `balance` has no unit.
- * @returns Display string, or null when the amount is missing.
- */
 function formatHeldBalance(
   balance: string | number | null | undefined,
   symbol?: string,
@@ -125,6 +117,7 @@ function formatHeldBalance(
   }
 
   const balanceText = String(balance);
+  // Non-EVM amounts already include a unit, for example "5.5 SOL".
   if (/\s/.test(balanceText) || !symbol) {
     return balanceText;
   }
@@ -362,9 +355,6 @@ const BuildQuote = () => {
       : undefined,
   );
 
-  // ERC-20 sells spend the chain's native asset on gas. The lookup has to use
-  // that chain id; without it the native balance is unknown and this check
-  // never runs.
   const { balanceBN: nativeTokenBalanceBN } = useBalance(
     isBuy || !selectedAsset || selectedAsset.address === NATIVE_ADDRESS
       ? undefined
@@ -418,9 +408,6 @@ const BuildQuote = () => {
     );
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
-  // A missing balance (still loading, untracked chain, or a token not in the
-  // balance map yet) is unknown, not insufficient. Sell stays blocked until
-  // the held amount can be compared.
   const isSellBalanceUnknown = isSell && balanceBN == null;
 
   const hasInsufficientBalance = useMemo(() => {
