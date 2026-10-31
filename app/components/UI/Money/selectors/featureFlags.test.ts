@@ -1,6 +1,7 @@
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
 import {
+  selectMoneyAccountDebugEnabledFlag,
   selectMoneyEnableActivityDetailsFlag,
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableCardActivityEnrichmentFlag,
@@ -188,6 +189,61 @@ describe('selectMoneyEnableActivityDetailsFlag', () => {
     const state = createState({});
 
     const result = selectMoneyEnableActivityDetailsFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyAccountDebugEnabledFlag', () => {
+  const originalEnv = process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    delete process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED;
+  });
+
+  afterEach(() => {
+    if (originalEnv === undefined) {
+      delete process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED;
+    } else {
+      process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED = originalEnv;
+    }
+  });
+
+  it('returns true when remote flag is enabled', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const result = selectMoneyAccountDebugEnabledFlag.resultFunc({
+      moneyAccountDebugEnabled: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled even if env is enabled', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED = 'true';
+
+    const result = selectMoneyAccountDebugEnabledFlag.resultFunc({
+      moneyAccountDebugEnabled: { enabled: false, minimumVersion: '0.0.0' },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('falls back to env when remote flag is absent', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED = 'true';
+
+    const result = selectMoneyAccountDebugEnabledFlag.resultFunc({});
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag and env are both absent', () => {
+    mockedValidate.mockReturnValue(undefined);
+
+    const result = selectMoneyAccountDebugEnabledFlag.resultFunc({});
 
     expect(result).toBe(false);
   });

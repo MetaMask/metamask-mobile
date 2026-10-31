@@ -1,6 +1,9 @@
 import type { Json } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
-import { handleMoney } from '../handleMoney';
+import {
+  handleMoney,
+  MONEY_ACCOUNT_STATUS_DEEPLINK_PATH,
+} from '../handleMoney';
 import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,6 +11,7 @@ import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
 import { selectIsMoneyAccountGeoEligible } from '../../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyAccountDebugEnabledFlag } from '../../../../../components/UI/Money/selectors/featureFlags';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectRawRemoteFeatureFlags,
@@ -42,6 +46,10 @@ jest.mock('../../../../../reducers/user', () => ({
 
 jest.mock('../../../../../components/UI/Money/selectors/eligibility', () => ({
   selectIsMoneyAccountGeoEligible: jest.fn(),
+}));
+
+jest.mock('../../../../../components/UI/Money/selectors/featureFlags', () => ({
+  selectMoneyAccountDebugEnabledFlag: jest.fn(),
 }));
 
 jest.mock(
@@ -149,6 +157,7 @@ describe('handleMoney', () => {
     jest
       .mocked(selectMoneyOnboardingStepperAnimationEnabled)
       .mockReturnValue(true);
+    jest.mocked(selectMoneyAccountDebugEnabledFlag).mockReturnValue(true);
   });
 
   it('navigates to disabled deeplink modal when type 1 flag is disabled', () => {
@@ -274,6 +283,59 @@ describe('handleMoney', () => {
       },
       { pop: true },
     );
+  });
+
+  it.each([
+    `/${MONEY_ACCOUNT_STATUS_DEEPLINK_PATH}`,
+    `/${MONEY_ACCOUNT_STATUS_DEEPLINK_PATH}/`,
+    `/${MONEY_ACCOUNT_STATUS_DEEPLINK_PATH}?utm_source=test`,
+  ])('navigates to MONEY.ACCOUNT_STATUS for action path %s', (actionPath) => {
+    jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
+
+    handleMoney({ actionPath });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACCOUNT_STATUS);
+  });
+
+  it('navigates to MONEY.HOME instead of MONEY.ACCOUNT_STATUS when the debug flag is disabled', () => {
+    jest.mocked(selectMoneyAccountDebugEnabledFlag).mockReturnValue(false);
+
+    handleMoney({ actionPath: `/${MONEY_ACCOUNT_STATUS_DEEPLINK_PATH}` });
+
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.ACCOUNT_STATUS);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
+  });
+
+  it('navigates to MONEY.HOME for an unrecognised action path', () => {
+    handleMoney({ actionPath: '/unknown' });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
+  });
+
+  it('applies the geo block before routing to MONEY.ACCOUNT_STATUS', () => {
+    jest.mocked(selectIsMoneyAccountGeoEligible).mockReturnValue(false);
+
+    handleMoney({ actionPath: `/${MONEY_ACCOUNT_STATUS_DEEPLINK_PATH}` });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.ACCOUNT_STATUS);
   });
 
   it('logs error and navigates to WALLET.HOME when selector throws', () => {

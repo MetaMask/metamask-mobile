@@ -1,5 +1,5 @@
 import { StructError } from '@metamask/superstruct';
-import { parseChompApiConfig } from './index';
+import { parseChompApiConfig, selectChompApiBaseUrl } from './index';
 
 describe('parseChompApiConfig', () => {
   it('returns undefined for undefined', () => {
@@ -26,5 +26,25 @@ describe('parseChompApiConfig', () => {
 
   it('throws when the value is not an object', () => {
     expect(() => parseChompApiConfig('not-an-object')).toThrow(StructError);
+  });
+});
+
+describe('selectChompApiBaseUrl', () => {
+  it('returns the base URL from the flag', () => {
+    expect(
+      selectChompApiBaseUrl.resultFunc({
+        moneyAccountChompConfig: { baseUrl: 'https://example.com' },
+      }),
+    ).toBe('https://example.com');
+  });
+
+  it('returns undefined when the flag is not set', () => {
+    expect(selectChompApiBaseUrl.resultFunc({})).toBeUndefined();
+  });
+
+  it('returns undefined when the flag is malformed', () => {
+    expect(
+      selectChompApiBaseUrl.resultFunc({ moneyAccountChompConfig: {} }),
+    ).toBeUndefined();
   });
 });
