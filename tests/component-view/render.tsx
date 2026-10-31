@@ -52,7 +52,7 @@ export function createComponentViewQueryClient() {
   });
 }
 
-function QueryClientBoundary({
+export function QueryClientBoundary({
   children,
   client,
 }: {

@@ -436,7 +436,7 @@ function isRewardsHomeInitialVariant(
   );
 }
 
-const RewardsHome = () => {
+export const RewardsHome = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
