@@ -37,6 +37,45 @@ describe('ButtonIconGlass', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('stretches the tap area over the capsule ring', () => {
+    const { getByTestId } = render(
+      <ButtonIconGlass
+        isCapsule
+        iconName={IconName.Search}
+        onPress={jest.fn()}
+        testID="search"
+      />,
+    );
+
+    expect(getByTestId('search').props.hitSlop).toBe(4);
+  });
+
+  it('keeps a hit slop passed by the caller', () => {
+    const { getByTestId } = render(
+      <ButtonIconGlass
+        isCapsule
+        hitSlop={8}
+        iconName={IconName.Search}
+        onPress={jest.fn()}
+        testID="search"
+      />,
+    );
+
+    expect(getByTestId('search').props.hitSlop).toBe(8);
+  });
+
+  it('leaves the plain icon button tap area unchanged', () => {
+    const { getByTestId } = render(
+      <ButtonIconGlass
+        iconName={IconName.Search}
+        onPress={jest.fn()}
+        testID="search"
+      />,
+    );
+
+    expect(getByTestId('search').props.hitSlop).toBeUndefined();
+  });
+
   it.each([
     [ButtonIconSize.Xs, 28],
     [ButtonIconSize.Sm, 32],

@@ -17,7 +17,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandard,
   IconName,
   Text,
   TextColor,
@@ -81,6 +80,8 @@ import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import {
   TabItem,
   TabsBar,
@@ -572,6 +573,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   const predictPortfolioEnabled = useSelector(
     selectPredictPortfolioEnabledFlag,
   );
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -693,7 +695,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             backgroundColor: colors.background.default,
           })}
         >
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isBrandRefresh}
+            isFloating={false}
             includesTopInset
             onBack={handleBackPress}
             backButtonProps={{

@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -28,6 +29,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
 import {
@@ -135,6 +138,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const { height: windowHeight } = useWindowDimensions();
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
@@ -527,26 +531,32 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     </Box>
   ) : undefined;
 
+  const headerProps = {
+    onBack,
+    backButtonProps: {
+      testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
+    },
+    endButtonIconProps: [
+      {
+        iconName: IconName.Share,
+        onPress: handleSharePress,
+        testID: PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON,
+      },
+    ],
+    testID: PredictCryptoUpDownDetailsSelectorsIDs.HEADER,
+  };
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       edges={['left', 'right', 'top']}
       testID={PredictCryptoUpDownDetailsSelectorsIDs.SCREEN}
     >
-      <HeaderCompactStandard
-        onBack={onBack}
-        backButtonProps={{
-          testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Share,
-            onPress: handleSharePress,
-            testID: PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON,
-          },
-        ]}
-        testID={PredictCryptoUpDownDetailsSelectorsIDs.HEADER}
-      />
+      {isBrandRefresh ? (
+        <HeaderStandardGlass isFloating={false} {...headerProps} />
+      ) : (
+        <HeaderCompactStandard {...headerProps} />
+      )}
 
       <ScrollView
         testID={PredictCryptoUpDownDetailsSelectorsIDs.SCROLL_VIEW}
