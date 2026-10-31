@@ -3,7 +3,10 @@
  */
 
 import { getDriver } from './AppiumUtilities.ts';
-import { tapWebIdFallingBackToDomClick } from './IosWebViewTap.ts';
+import {
+  runRecoveringFromLavaMoatScuttling,
+  tapWebIdFallingBackToDomClick,
+} from './IosWebViewTap.ts';
 
 jest.mock('./AppiumUtilities.ts', () => ({
   getDriver: jest.fn(),
@@ -11,6 +14,10 @@ jest.mock('./AppiumUtilities.ts', () => ({
 
 const LAVAMOAT_CLICK_ERROR = new Error(
   'WebDriverError: Remote debugger error: Error: LavaMoat - property "self" of globalThis is inaccessible under scuttling mode. when running "element/click" with method "POST"',
+);
+
+const LAVAMOAT_FIND_ERROR = new Error(
+  'unknown error: WebDriverError: Remote debugger error with code \'undefined\': Error: LavaMoat - property "navigator" of globalThis is inaccessible under scuttling mode. when running "element" with method "POST"',
 );
 
 describe('tapWebIdFallingBackToDomClick', () => {
@@ -62,5 +69,31 @@ describe('tapWebIdFallingBackToDomClick', () => {
     await expect(
       tapWebIdFallingBackToDomClick('missingButton', tap),
     ).rejects.toThrow('WebView element #missingButton not found for DOM click');
+  });
+});
+
+describe('runRecoveringFromLavaMoatScuttling', () => {
+  const execute = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    execute.mockResolvedValue(true);
+    jest.mocked(getDriver).mockReturnValue({
+      execute,
+    } as unknown as ReturnType<typeof getDriver>);
+  });
+
+  it('clicks via DOM when Appium element find hits LavaMoat navigator scuttling', async () => {
+    const action = jest.fn().mockRejectedValue(LAVAMOAT_FIND_ERROR);
+
+    await runRecoveringFromLavaMoatScuttling(
+      'download_button',
+      action,
+      'find/tap',
+    );
+
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0]?.[0]).toContain('download_button');
   });
 });

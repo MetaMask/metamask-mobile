@@ -1,13 +1,13 @@
-import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Assertions from '../../../framework/Assertions';
 import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
 import AppiumContextHelpers from '../../../framework/AppiumContextHelpers';
+import WebView from '../../../framework/WebView';
 import type { AppiumElement } from '../../../framework';
 import {
+  DownloadFileWebsiteSelectorsIDs,
   DownloadFileWebsiteSelectorsText,
-  DownloadFileWebsiteSelectorsXPath,
 } from '../../../selectors/Browser/DownloadFileWebsite.selectors';
 
 class DownloadFileWebsite {
@@ -20,14 +20,6 @@ class DownloadFileWebsite {
   get androidDownloadButton(): Promise<AppiumElement> {
     return Matchers.getElementByAndroidUIAutomator(
       DownloadFileWebsiteSelectorsText.DOWNLOAD_BUTTON,
-    );
-  }
-
-  getWebDownloadButton(pageUrl: string): Promise<AppiumElement> {
-    return Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      DownloadFileWebsiteSelectorsXPath.DOWNLOAD_BUTTON,
-      pageUrl,
     );
   }
 
@@ -49,12 +41,13 @@ class DownloadFileWebsite {
       return;
     }
 
-    // Matchers.getElementByXPath switches into WEBVIEW and does not restore
-    // NATIVE_APP (unlike withWebViewAction). Native Save-sheet asserts need it.
-    await Gestures.waitAndTap(this.getWebDownloadButton(pageUrl), {
-      elemDescription: 'Download File website - Download button (iOS)',
+    // iOS: WebView.tapById recovers from LavaMoat scuttling on find/tap via
+    // page-script click (remote-debugger `element` can fail on `navigator`).
+    // Always restores NATIVE_APP so Save-sheet asserts stay in native context.
+    await WebView.tapById(DownloadFileWebsiteSelectorsIDs.DOWNLOAD_BUTTON, {
+      pageUrl,
+      description: 'Download File website - Download button (iOS)',
     });
-    await AppiumContextHelpers.switchToNativeContext();
   }
 }
 
