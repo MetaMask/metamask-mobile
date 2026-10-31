@@ -28,6 +28,7 @@ import {
   type MoneyVbaHomeCardVariant,
 } from './MoneyVbaHomeCardConfig';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
+import MoneyVbaHomeCardHeroAnimation from './MoneyVbaHomeCardHeroAnimation';
 
 const styles = StyleSheet.create({
   heroContainer: {
@@ -61,7 +62,7 @@ const CTA_REENTRY_WINDOW_MS = 1000;
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
  * kyc_decision); all per-variant differences — copy, analytics names, CTA
- * treatment, hero art — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
+ * treatment, hero art and optional Rive hero — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA routes
  * immediately to the onboarding loading screen, which hydrates status and
@@ -93,7 +94,8 @@ const MoneyVbaHomeCard = ({
   }, [trackComponentViewed]);
 
   const handleCtaPress = useCallback(() => {
-    if (hasPendingCtaOpenRef.current) {
+    // A status-only CTA (KYC_PENDING) is disabled and never fires.
+    if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
     startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
@@ -104,7 +106,7 @@ const MoneyVbaHomeCard = ({
     }, CTA_REENTRY_WINDOW_MS);
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: config.buttonIntent,
+      button_intent: config.cta.buttonIntent,
       label_key: `${config.i18nPrefix}.cta`,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
@@ -129,17 +131,27 @@ const MoneyVbaHomeCard = ({
     return null;
   }
 
-  const ctaButton = (
+  const { cta } = config;
+  const ctaLabel = strings(`${config.i18nPrefix}.cta`);
+  const ctaButton = cta.isDisabled ? (
     <ButtonBase
       size={ButtonBaseSize.Lg}
       isFullWidth
-      startIconName={config.ctaStartIconName}
-      twClassName={config.ctaClassName}
-      textClassName={() => config.ctaTextClassName}
+      isDisabled
+      testID={testIds.CTA_BUTTON}
+    >
+      {ctaLabel}
+    </ButtonBase>
+  ) : (
+    <ButtonBase
+      size={ButtonBaseSize.Lg}
+      isFullWidth
+      twClassName={cta.className}
+      textClassName={() => cta.textClassName}
       onPress={handleCtaPress}
       testID={testIds.CTA_BUTTON}
     >
-      {strings(`${config.i18nPrefix}.cta`)}
+      {ctaLabel}
     </ButtonBase>
   );
 
@@ -155,11 +167,21 @@ const MoneyVbaHomeCard = ({
         angle={HERO_GRADIENT_ANGLE}
         style={styles.heroContainer}
       >
-        <Image
-          source={config.heroArt.source}
-          style={{ width: config.heroArt.width, height: config.heroArt.height }}
-          resizeMode="contain"
-        />
+        {config.heroAnimation ? (
+          <MoneyVbaHomeCardHeroAnimation
+            animation={config.heroAnimation}
+            fallback={config.heroArt}
+          />
+        ) : (
+          <Image
+            source={config.heroArt.source}
+            style={{
+              width: config.heroArt.width,
+              height: config.heroArt.height,
+            }}
+            resizeMode="contain"
+          />
+        )}
       </LinearGradient>
       <Box twClassName="gap-1 py-4">
         <Text
