@@ -15,7 +15,13 @@ import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
-import { getPositionFlagLabelKey } from '../utils/positionFlags';
+import {
+  formatFlaggedPositionAccessibilityLabel,
+  getPositionFlagAccessibilityReasonKey,
+  getPositionFlagLabelKey,
+  type FlaggedPositionPnlDirection,
+  type FlaggedPositionPresentation,
+} from '../utils/positionFlags';
 import {
   EM_DASH,
   formatPercent,
@@ -39,10 +45,50 @@ export interface PositionRowProps {
   isClosed?: boolean;
   showTradeDate?: boolean;
   /**
-   * When true, positions with server flags render greyed out, show an
-   * exclusion label, and ignore `onPress`.
+   * Visual treatment for positions that carry server flags.
+   * `excluded` greys the row, mutes P&L colour, and shows the long exclusion label on its own line (legacy trader profile).
+   * `subline` keeps full opacity and P&L colour, and appends the short flag word to the existing subtitle (V1 profile).
+   * Either value ignores `onPress` for flagged rows. Omit it to leave flagged data looking and behaving like an unflagged row.
    */
-  showFlaggedState?: boolean;
+  flaggedPresentation?: FlaggedPositionPresentation;
+}
+
+/** Headline USD for an open row, or signed closed PnL. A closed perp with no PnL is an em dash. */
+function formatPositionHeadlineValue(
+  isClosed: boolean,
+  isPerp: boolean,
+  currentValueUSD: number | null | undefined,
+  perpPnlValue: number | null,
+  realizedPnl: number | null | undefined,
+): string {
+  if (!isClosed) {
+    return formatUsd(currentValueUSD ?? null);
+  }
+  if (!isPerp) {
+    return formatSignedUsd(realizedPnl);
+  }
+  if (perpPnlValue == null) {
+    return EM_DASH;
+  }
+  return formatSignedUsd(perpPnlValue);
+}
+
+/** Screen-reader P&L direction. `null` when the percent is missing. */
+function getFlaggedPositionPnlDirection(
+  hasPnlPercent: boolean,
+  isPnlZero: boolean,
+  isPnlPositive: boolean,
+): FlaggedPositionPnlDirection | null {
+  if (!hasPnlPercent) {
+    return null;
+  }
+  if (isPnlZero) {
+    return 'flat';
+  }
+  if (isPnlPositive) {
+    return 'up';
+  }
+  return 'down';
 }
 
 const PositionRowComponent: React.FC<PositionRowProps> = ({
@@ -50,7 +96,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   onPress,
   isClosed: isClosedProp,
   showTradeDate,
-  showFlaggedState,
+  flaggedPresentation,
 }) => {
   // Honor main's spot closed-detection; the explicit prop (from the profile's
   // Open/Closed tab) overrides it, which perps rely on.
@@ -80,15 +126,18 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   const isPnlPositive = pnlSignSource != null && pnlSignSource > 0;
 
   const testID = `position-row-${position.tokenSymbol}`;
-  const flagLabelKey = showFlaggedState
-    ? getPositionFlagLabelKey(position)
+  const flagLabelKey = flaggedPresentation
+    ? getPositionFlagLabelKey(position, flaggedPresentation)
     : null;
   const isFlagged = flagLabelKey != null;
+  const isExcluded = flaggedPresentation === 'excluded' && isFlagged;
+  const isSublineFlag = flaggedPresentation === 'subline' && isFlagged;
   const isPressable = Boolean(onPress) && !isFlagged;
-  // Flagged rows drop success/error so the signed % and closed PnL look
-  // disabled, not just faded green/red under opacity-50.
+  // The legacy excluded treatment drops success/error so the signed % and
+  // closed PnL look disabled, not just faded green/red under opacity-50.
+  // The subline treatment keeps the normal P&L colours.
   const pnlColorClass =
-    isFlagged || pnlSignSource == null || isPnlZero
+    isExcluded || pnlSignSource == null || isPnlZero
       ? undefined
       : isPnlPositive
         ? 'text-success-default'
@@ -108,31 +157,29 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   // neutral white (matching spot). Closed positions show signed, colored
   // realized PnL: perps via `perpPnlValue` (realized + unrealized), spot via
   // `realizedPnl`.
-  const topRight = !isClosed ? (
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {formatUsd(position.currentValueUSD ?? null)}
-    </Text>
-  ) : isPerp ? (
+  const headlineValue = formatPositionHeadlineValue(
+    isClosed,
+    isPerp,
+    position.currentValueUSD,
+    perpPnlValue,
+    position.realizedPnl,
+  );
+  const topRight = isClosed ? (
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
       twClassName={pnlColorClass}
       color={pnlColorClass ? undefined : TextColor.TextAlternative}
     >
-      {perpPnlValue != null ? formatSignedUsd(perpPnlValue) : EM_DASH}
+      {headlineValue}
     </Text>
   ) : (
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      twClassName={pnlColorClass}
-      color={pnlColorClass ? undefined : TextColor.TextAlternative}
+      color={TextColor.TextDefault}
     >
-      {formatSignedUsd(position.realizedPnl)}
+      {headlineValue}
     </Text>
   );
 
@@ -142,6 +189,42 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
     hasPnlPercent && pnlSignSource != null && !isPnlZero
       ? Math.abs(displayPnlPercent) * (isPnlPositive ? 1 : -1)
       : displayPnlPercent;
+  const subtitle =
+    isClosed || showTradeDate
+      ? formatTradeDate(position.lastTradeAt)
+      : `${formatTokenAmount(
+          isPerp
+            ? Math.abs(
+                position.positionAmountWithLeverage ?? position.positionAmount,
+              )
+            : position.positionAmount,
+        )} ${displaySymbol}`;
+  const flagLabel = flagLabelKey ? strings(flagLabelKey) : null;
+  const subtitleText =
+    isSublineFlag && flagLabel ? `${subtitle} · ${flagLabel}` : subtitle;
+  const accessibilityReasonKey = isSublineFlag
+    ? getPositionFlagAccessibilityReasonKey(position)
+    : null;
+  const pnlDirection = getFlaggedPositionPnlDirection(
+    hasPnlPercent,
+    isPnlZero,
+    isPnlPositive,
+  );
+  const accessibilityLabel =
+    accessibilityReasonKey != null
+      ? formatFlaggedPositionAccessibilityLabel({
+          symbol: displaySymbol,
+          value: headlineValue,
+          direction: pnlDirection,
+          percent:
+            pnlDirection == null
+              ? null
+              : formatPercent(Math.abs(displayPnlPercent ?? 0), {
+                  showSign: false,
+                }),
+          reasonKey: accessibilityReasonKey,
+        })
+      : undefined;
   const bottomRight = (
     <Text
       variant={TextVariant.BodySm}
@@ -157,8 +240,10 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName={isFlagged ? 'px-4 py-3 opacity-50' : 'px-4 py-3'}
+      twClassName={isExcluded ? 'px-4 py-3 opacity-50' : 'px-4 py-3'}
       testID={isPressable ? undefined : testID}
+      accessible={!isPressable && accessibilityLabel != null}
+      accessibilityLabel={isPressable ? undefined : accessibilityLabel}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -195,26 +280,18 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             numberOfLines={1}
+            testID={`position-row-subtitle-${position.tokenSymbol}`}
           >
-            {isClosed || showTradeDate
-              ? formatTradeDate(position.lastTradeAt)
-              : `${formatTokenAmount(
-                  isPerp
-                    ? Math.abs(
-                        position.positionAmountWithLeverage ??
-                          position.positionAmount,
-                      )
-                    : position.positionAmount,
-                )} ${displaySymbol}`}
+            {subtitleText}
           </Text>
-          {flagLabelKey ? (
+          {isExcluded && flagLabel ? (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
               numberOfLines={1}
               testID={`position-row-flag-label-${position.tokenSymbol}`}
             >
-              {strings(flagLabelKey)}
+              {flagLabel}
             </Text>
           ) : null}
         </Box>
@@ -229,7 +306,12 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
 
   if (isPressable) {
     return (
-      <TouchableOpacity onPress={handlePress} testID={testID}>
+      <TouchableOpacity
+        onPress={handlePress}
+        testID={testID}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+      >
         {content}
       </TouchableOpacity>
     );

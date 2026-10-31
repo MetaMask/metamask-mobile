@@ -1626,7 +1626,22 @@
     "position_flags": {
       "insider": "Insider allocation - excluded",
       "developer": "Contract creator - excluded",
-      "excluded": "Excluded from PnL"
+      "excluded": "Excluded from PnL",
+      "short": {
+        "insider": "Insider",
+        "creator": "Creator",
+        "excluded": "Excluded"
+      },
+      "accessibility": {
+        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
+        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
+        "direction_up": "up",
+        "direction_down": "down",
+        "direction_flat": "unchanged",
+        "reason_insider": "insider",
+        "reason_creator": "creator",
+        "reason_excluded": "excluded"
+      }
     },
     "trader_profile": {
       "followers_count": "{{count}} follower",
