@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import {
   AvatarBase,
@@ -9,6 +9,11 @@ import {
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { useTheme } from '../../../../../util/theme';
 import { getAssetIconUrls } from '../../utils/marketUtils';
+import {
+  recordFailedPerpsIconUrl,
+  selectAvailablePerpsIconUrl,
+  useFailedPerpsIconUrlRevision,
+} from './failedPerpsIconUrls';
 import {
   ASSETS_REQUIRING_DARK_BG,
   ASSETS_REQUIRING_LIGHT_BG,
@@ -35,8 +40,8 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   recyclingKey,
 }) => {
   const { colors, themeAppearance } = useTheme();
-  const [useFallbackUrl, setUseFallbackUrl] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  // Subscribes every instance to the session cache so one miss updates them all.
+  useFailedPerpsIconUrlRevision();
 
   // Re-apply theme-aware background for tokens that need contrast in certain themes:
   // - Tokens with dark logos (e.g. ETH, XRP) need a white bg in dark mode
@@ -63,42 +68,37 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
     return getAssetIconUrls(symbol, K_PREFIX_ASSETS);
   }, [symbol]);
 
-  useEffect(() => {
-    setUseFallbackUrl(false);
-    setHasError(false);
-  }, [symbol]);
-
-  const imageUri = iconUrls
-    ? useFallbackUrl
-      ? iconUrls.fallback
-      : iconUrls.primary
-    : null;
+  const imageUri = selectAvailablePerpsIconUrl(iconUrls);
 
   const fallbackText = useMemo(() => {
     const displaySymbol = getPerpsDisplaySymbol(symbol || '');
     return displaySymbol.substring(0, 2).toUpperCase();
   }, [symbol]);
 
-  // Handle image error with dual-URL fallback:
-  // 1. If primary URL fails, try the HyperLiquid fallback URL
-  // 2. If fallback URL also fails, show text fallback
+  // 1. Primary (MetaMask) fails → remember it and try the Hyperliquid URL.
+  // 2. Fallback fails → remember it and show the monogram.
+  // Do not log here. expo-image already reports the native failure; a JS log
+  // would add another Sentry breadcrumb for an expected miss.
   const handleImageError = useCallback(() => {
-    if (!useFallbackUrl && iconUrls?.fallback) {
-      setUseFallbackUrl(true);
-    } else {
-      setHasError(true);
+    if (!imageUri) {
+      return;
     }
-  }, [useFallbackUrl, iconUrls?.fallback]);
 
-  const showFallback = !symbol || !imageUri || hasError;
+    recordFailedPerpsIconUrl(imageUri);
+  }, [imageUri]);
 
-  const imageKey = `${recyclingKey || symbol}-${useFallbackUrl ? 'fallback' : 'primary'}`;
+  const showFallback = !symbol || !imageUri;
+
+  const imageKey = `${recyclingKey || symbol}-${imageUri}`;
 
   return (
     <AvatarBase
       size={mapToAvatarBaseSize(size)}
       shape={AvatarBaseShape.Circle}
       fallbackText={showFallback ? fallbackText : undefined}
+      fallbackTextProps={
+        showFallback && testID ? { testID: `${testID}-fallback` } : undefined
+      }
       testID={testID}
       twClassName={`w-[${size}px] h-[${size}px]`}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
