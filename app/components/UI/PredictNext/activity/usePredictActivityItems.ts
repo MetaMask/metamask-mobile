@@ -1,6 +1,7 @@
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { usePredictImplementation } from '../implementation';
 import { usePredictActivityItems as useLegacyPredictActivityItems } from './internal/legacy/usePredictActivityItems';
+import { useNextActivityItems } from './internal/next/useNextActivityItems';
 
 export interface PredictActivityItemsResult {
   items: ActivityListItem[];
@@ -13,9 +14,16 @@ export interface PredictActivityItemsResult {
   hasMore: boolean;
   /** Whether a load-more request is currently in flight. */
   isFetchingMore: boolean;
+  /**
+   * Whether a Predictions row from another source, such as a funding
+   * transaction, belongs to a Venue other than the Active Venue. Predictions
+   * views hide those rows; generic wallet history keeps them.
+   */
+  isInactiveVenueItem: (item: ActivityListItem) => boolean;
 }
 
 const settled = () => Promise.resolve();
+const noInactiveVenueItems = () => false;
 
 const NO_ACTIVITY: PredictActivityItemsResult = {
   items: [],
@@ -25,6 +33,7 @@ const NO_ACTIVITY: PredictActivityItemsResult = {
   loadMore: settled,
   hasMore: false,
   isFetchingMore: false,
+  isInactiveVenueItem: noInactiveVenueItems,
 };
 
 const RESOLVING_ACTIVITY: PredictActivityItemsResult = {
@@ -43,9 +52,8 @@ export interface UsePredictActivityItemsOptions {
 /**
  * The Active Venue's Predict Activity as shared {@link ActivityListItem}s for
  * the unified Activity list. The legacy branch passes `usePredictActivity`
- * through `mapPredictActivity` unchanged and is the only branch that runs
- * while legacy is active. The next branch returns no items until E5
- * (PRED-1410).
+ * through `mapPredictActivity` unchanged. The next branch maps the Venue's
+ * canonical Trades and Settlements. Only the active branch reads.
  */
 export const usePredictActivityItems = ({
   enabled = true,
@@ -53,12 +61,19 @@ export const usePredictActivityItems = ({
   const resolution = usePredictImplementation();
   const isLegacy =
     resolution.status === 'ready' && resolution.implementation === 'legacy';
+  const nextVenueId =
+    resolution.status === 'ready' && resolution.implementation === 'next'
+      ? resolution.venueId
+      : undefined;
   const legacy = useLegacyPredictActivityItems({
     enabled: enabled && isLegacy,
   });
+  const next = useNextActivityItems({ venueId: nextVenueId, enabled });
 
   if (resolution.status === 'resolving') {
     return enabled ? RESOLVING_ACTIVITY : NO_ACTIVITY;
   }
-  return isLegacy ? legacy : NO_ACTIVITY;
+  return isLegacy
+    ? { ...legacy, isInactiveVenueItem: noInactiveVenueItems }
+    : next;
 };

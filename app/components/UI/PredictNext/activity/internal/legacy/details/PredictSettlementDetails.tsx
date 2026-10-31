@@ -10,6 +10,7 @@ import { getHumanReadableTokenAmount } from '../../../../../../../util/activity-
 import {
   ActivityDetailRow,
   ActivityDetailSection,
+  ActivityDetailsDoItAgainButton,
   ActivityDetailsTemplateFrame,
 } from '../../../../../../Views/ActivityDetails/components';
 import {
@@ -26,6 +27,7 @@ import {
   getPredictSettlementOutcome,
   type PredictSettlementOutcome,
 } from './PredictDetails.utils';
+import { useOpenPredictHome } from './useOpenPredictHome';
 
 const OUTCOME_LABEL_KEYS: Record<PredictSettlementOutcome, string> = {
   won: 'predict.transactions.settlement_result_won',
@@ -40,7 +42,8 @@ const SIDE_LABEL_KEYS = {
 
 /**
  * Details for a Settlement: a resolved Market paying out a held Position.
- * Renders from the item alone; the mapper carries everything it needs.
+ * Renders from the item alone; the mapper carries everything it needs. A
+ * Market outside the catalog has no title, so it shows neutral copy.
  */
 export function PredictSettlementDetails({
   item,
@@ -48,6 +51,7 @@ export function PredictSettlementDetails({
   item: PredictSettlementListItem;
 }) {
   const { data } = item;
+  const openPredictHome = useOpenPredictHome();
   const proceedsAmount = data.token
     ? getHumanReadableTokenAmount(data.token)
     : undefined;
@@ -71,7 +75,11 @@ export function PredictSettlementDetails({
           <PredictMarketContext
             icon={data.icon}
             outcome={data.outcomeLabel ?? strings(SIDE_LABEL_KEYS[data.side])}
-            title={data.marketQuestion ?? data.eventTitle}
+            title={
+              data.marketQuestion ??
+              data.eventTitle ??
+              strings('predict_next.portfolio.unknown_market')
+            }
           />
           <StatusAndDateRows item={item} />
           <ActivityDetailRow
@@ -106,7 +114,12 @@ export function PredictSettlementDetails({
           </ActivityDetailSection>
         )
       }
-      footer={null}
+      footer={
+        <ActivityDetailsDoItAgainButton
+          label={strings('predict.transactions.place_another_prediction')}
+          onPress={openPredictHome}
+        />
+      }
     />
   );
 }
