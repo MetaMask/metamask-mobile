@@ -1,8 +1,6 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StackActions, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -15,12 +13,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { navigateToVbaOnboardingDestination } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import VbaIllustration, {
   VbaIllustrationSource,
 } from '../../components/Illustration';
@@ -32,32 +25,17 @@ export const VbaIdentityVerifiedSelectorsIDs = {
   CONTINUE_BUTTON: 'vba-identity-verified-continue-button',
 } as const;
 
-/**
- * KYC approved, no usable autoramp yet. Continue opens Choose Currency when
- * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details.
- * Back goes to Money home.
- */
-const VbaIdentityVerified = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+interface VbaIdentityVerifiedProps {
+  onBack: () => void;
+  onContinue: () => void;
+}
+
+/** KYC approved. The host decides where Back and Continue lead. */
+const VbaIdentityVerified = ({
+  onBack,
+  onContinue,
+}: VbaIdentityVerifiedProps) => {
   const tw = useTailwind();
-  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
-
-  const handleBack = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
-
-  const handleContinue = useCallback(() => {
-    if (chooseCurrency) {
-      navigation.dispatch(
-        StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY),
-      );
-      return;
-    }
-    navigateToVbaOnboardingDestination(navigation, 'complete');
-  }, [chooseCurrency, navigation]);
 
   return (
     <SafeAreaView
@@ -65,7 +43,7 @@ const VbaIdentityVerified = () => {
       style={tw.style('flex-1 bg-default')}
     >
       <HeaderStandard
-        onBack={handleBack}
+        onBack={onBack}
         backButtonProps={{
           testID: VbaIdentityVerifiedSelectorsIDs.BACK_BUTTON,
         }}
@@ -102,7 +80,7 @@ const VbaIdentityVerified = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={handleContinue}
+          onPress={onContinue}
           testID={VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON}
         >
           {strings('virtual_bank_account.identity_verified.button')}

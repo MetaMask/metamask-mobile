@@ -40,10 +40,7 @@ import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
-  getVbaSourceCurrencyForCountry,
   isVbaSourceCurrency,
   VBA_CHOOSABLE_SOURCE_CURRENCIES,
 } from '../../../../../util/region/getVbaSourceCurrency';
@@ -67,7 +64,7 @@ import {
   logAccountCreateFailure,
 } from './accountCreateError';
 import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
-import VbaCreatingAccount from './VbaCreatingAccount';
+import { useVbaRegionSourceCurrency } from './hooks/useVbaRegionSourceCurrency';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -236,24 +233,7 @@ const VbaDetails = () => {
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
-  const location = useSelector(selectGeolocationLocation);
-  const {
-    chooseCurrency,
-    regionCurrencies,
-    regions,
-    defaultCurrency,
-    regionOverride,
-  } = useSelector(selectMoneyMovementNeobank);
-  const effectiveLocation = regionOverride ?? location;
-  // With chooseCurrency on, only the picked currency may create an account.
-  const regionCurrency = chooseCurrency
-    ? undefined
-    : getVbaSourceCurrencyForCountry(
-        effectiveLocation,
-        regionCurrencies,
-        regions,
-        defaultCurrency,
-      );
+  const regionCurrency = useVbaRegionSourceCurrency();
   const requestedCurrency = route.params?.sourceCurrency;
   // EUR stays out until that deposit layout exists. Ignore anything else too.
   const pickedCurrency =
@@ -281,8 +261,6 @@ const VbaDetails = () => {
     null,
   );
   const [loadError, setLoadError] = useState(false);
-  const [awaitingProviderApproval, setAwaitingProviderApproval] =
-    useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
@@ -408,7 +386,6 @@ const VbaDetails = () => {
           sourceCurrency,
         );
         if (!autoramp) {
-          setAwaitingProviderApproval(outcome === 'awaiting_provider');
           setAutorampId(null);
           setAutorampStatus(null);
           setInstructions(null);
@@ -418,7 +395,6 @@ const VbaDetails = () => {
       if (!stillCurrent()) {
         return;
       }
-      setAwaitingProviderApproval(false);
 
       let status = autoramp.status;
       if (status !== 'Approved' && ramps.refreshAutoramp) {
@@ -569,7 +545,6 @@ const VbaDetails = () => {
     transactionsFetchedForRef.current = null;
     setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
     setLoadError(false);
-    setAwaitingProviderApproval(false);
     setAutorampId(null);
     setAutorampStatus(
       walletAddress
@@ -756,6 +731,15 @@ const VbaDetails = () => {
     contentReady: hasCurrentAccountState && (rows.length > 0 || loadError),
     contentState: accountDetailsContentState,
   });
+  // Until the account is Approved this screen shows its skeleton, which
+  // replaces the old account-creation screen.
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.ACCOUNT_CREATION,
+    resetKey: accountKey,
+    enabled: !isApproved && hasCurrentAccountState,
+    contentReady: true,
+  });
   useEffect(() => {
     if (hasCurrentAccountState && rows.length > 0) {
       endVbaCufJourney(true);
@@ -766,18 +750,14 @@ const VbaDetails = () => {
     (!instructions && sourceCurrency === 'USD');
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
-  const errorMessage = loadError
-    ? strings('virtual_bank_account.vba_details.load_error')
-    : null;
-
-  if (!isApproved) {
-    return (
-      <VbaCreatingAccount
-        onBack={handleDone}
-        awaitingProviderApproval={awaitingProviderApproval}
-      />
-    );
-  }
+  // While the account is still being created, failed polls just retry.
+  const errorMessage =
+    loadError && isApproved
+      ? strings('virtual_bank_account.vba_details.load_error')
+      : null;
+  const skeletonRowIds = isBankTransfer
+    ? ['account-holder', 'routing-number', 'account-number', 'bank-name']
+    : ['pix-key', 'copia-cola'];
 
   return (
     <SafeAreaView
@@ -873,7 +853,7 @@ const VbaDetails = () => {
                 jump when the details land. Both bars sit in the title slot
                 because it is the only full-width slot, so the 85% bar has a
                 width to resolve against. */}
-            {['pix-key', 'copia-cola'].map((id) => (
+            {skeletonRowIds.map((id) => (
               <ListItem
                 key={id}
                 title={

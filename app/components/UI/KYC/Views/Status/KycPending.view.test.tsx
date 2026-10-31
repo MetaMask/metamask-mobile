@@ -3,7 +3,9 @@ import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { fireEvent } from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -15,16 +17,18 @@ import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
-import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
+import {
+  VbaIdentityVerifiedAdapter,
+  VbaKycPendingAdapter,
+} from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import { VbaKycPendingSelectorsIDs } from './KycPending';
-import VbaIdentityVerified, {
-  VbaIdentityVerifiedSelectorsIDs,
-} from './IdentityVerified';
+import { VbaIdentityVerifiedSelectorsIDs } from './IdentityVerified';
 
 const VbaKycPendingViewSelectorsIDs = {
   OPEN_PENDING: 'vba-kyc-pending-open-from-previous-screen',
@@ -86,7 +90,7 @@ const OnboardingNavigator = () => (
     />
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
-      component={VbaIdentityVerified}
+      component={VbaIdentityVerifiedAdapter}
     />
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.KYC_REJECTED}
@@ -166,6 +170,8 @@ interface KycSession {
   kycStatus: string;
 }
 
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
 const engineContext = Engine.context as unknown as {
   RampsController: {
     hydrateVbaOnboarding?: jest.Mock;
@@ -243,6 +249,7 @@ describeForPlatforms('VbaKycPending', () => {
     }
     previousKycController = engineContext.KycController;
     previousHydrate = engineContext.RampsController.hydrateVbaOnboarding;
+    resetMusdAutorampSetupGuard();
     engineContext.RampsController.registerMoneyAccountWallet = jest.fn();
     engineContext.RampsController.createAutoramp = jest.fn();
     engineContext.KycController = {
@@ -255,6 +262,7 @@ describeForPlatforms('VbaKycPending', () => {
   });
 
   afterEach(() => {
+    netInfoMock.__resetMockNetInfo();
     engineContext.KycController = previousKycController;
     engineContext.RampsController.hydrateVbaOnboarding = previousHydrate;
     if (hadStore && previousStore) {
@@ -340,10 +348,11 @@ describeForPlatforms('VbaKycPending', () => {
     },
   );
 
-  it('opens identity verified when KYC is approved without a usable autoramp', async () => {
+  it('opens identity verified and starts account creation when KYC is approved without a usable autoramp', async () => {
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     engineContext.RampsController.hydrateVbaOnboarding = jest
       .fn()
-      .mockResolvedValue(hydratedSnapshot('approved', 'not_ready'));
+      .mockResolvedValue(hydratedSnapshot('approved', 'needs_source_currency'));
     const { findByTestId, queryByTestId } = renderKycScreen(<RampNavigator />, {
       finalStatus: 'approved',
       kycStatus: 'approved',
@@ -356,12 +365,21 @@ describeForPlatforms('VbaKycPending', () => {
         { timeout: REDIRECT_TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
+    await waitFor(() =>
+      expect(engineContext.RampsController.createAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+        }),
+      ),
+    );
+    expect(engineContext.RampsController.createAutoramp).toHaveBeenCalledTimes(
+      1,
+    );
     expect(
       queryByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
     ).not.toBeOnTheScreen();
     expect(
-      engineContext.RampsController.registerMoneyAccountWallet,
-    ).not.toHaveBeenCalled();
-    expect(engineContext.RampsController.createAutoramp).not.toHaveBeenCalled();
+      queryByTestId(VbaIdentityVerifiedSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 });

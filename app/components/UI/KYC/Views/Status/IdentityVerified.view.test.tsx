@@ -4,7 +4,7 @@ import { Text } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import renderWithProvider, {
@@ -22,9 +22,8 @@ import VbaDetails, {
 import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
 import VbaChooseCurrency from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency';
 import { VbaChooseCurrencySelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency.testIds';
-import VbaIdentityVerified, {
-  VbaIdentityVerifiedSelectorsIDs,
-} from './IdentityVerified';
+import { VbaIdentityVerifiedSelectorsIDs } from './IdentityVerified';
+import { VbaIdentityVerifiedAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 
 const Onboarding = createNativeStackNavigator();
 const Root = createNativeStackNavigator();
@@ -39,7 +38,7 @@ const OnboardingNavigator = () => (
   >
     <Onboarding.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
-      component={VbaIdentityVerified}
+      component={VbaIdentityVerifiedAdapter}
     />
     <Onboarding.Screen
       name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
@@ -135,7 +134,23 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     });
   };
 
-  it('opens account details from Continue without signing or creating', async () => {
+  it('creates the BRL account while Identity verified is shown', async () => {
+    const { getByTestId } = render(Probe(Routes.RAMP.VBA_DETAILS));
+
+    await waitFor(() =>
+      expect(ramps.createAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+        }),
+      ),
+    );
+    expect(ramps.createAutoramp).toHaveBeenCalledTimes(1);
+    expect(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens account details from Continue', async () => {
     const { findByTestId, getByTestId } = render(
       Probe(Routes.RAMP.VBA_DETAILS),
     );
@@ -147,11 +162,9 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
     ).toBeOnTheScreen();
-    expect(ramps.registerMoneyAccountWallet).not.toHaveBeenCalled();
-    expect(ramps.createAutoramp).not.toHaveBeenCalled();
   });
 
-  it('shows Creating your bank account, then the details once the BRL autoramp is Approved', async () => {
+  it('lands on the details title and skeleton from Continue, then shows the details once the BRL autoramp is Approved', async () => {
     let releaseCreate: () => void = () => undefined;
     const createGate = new Promise<void>((resolve) => {
       releaseCreate = resolve;
@@ -177,15 +190,17 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       brCode: '00020126',
       instruction: 'Pay with PIX',
     });
-    const { findByTestId, findByText, getByTestId } = render(VbaDetails);
+    const { findByTestId, getByTestId, queryByText } = render(VbaDetails);
 
     fireEvent.press(
       getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
 
-    expect(
-      await findByText(strings('virtual_bank_account.creating_account.title')),
-    ).toBeOnTheScreen();
+    expect(await findByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+      strings('virtual_bank_account.vba_details.title'),
+    );
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(queryByText('Creating your bank account')).toBeNull();
     releaseCreate();
     expect(
       await findByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
@@ -196,6 +211,39 @@ describeForPlatforms('VbaIdentityVerified view', () => {
         source_currencies: [{ type: 'Fiat', code: 'BRL' }],
       }),
     );
+  });
+
+  it('shows the details from Continue after the account was created on Identity verified', async () => {
+    ramps.createAutoramp?.mockImplementation(
+      async (request: { recipient_account: { address: string } }) => {
+        const autoramp = {
+          id: 'ar-new',
+          walletAddress: request.recipient_account.address,
+          status: 'Approved',
+        };
+        ramps.state = { autoramps: [autoramp] };
+        return autoramp;
+      },
+    );
+    ramps.refreshAutoramp?.mockImplementation(async (id: string) =>
+      ramps.state?.autoramps.find((autoramp) => autoramp.id === id),
+    );
+    engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue({
+      type: 'Pix',
+      brCode: '00020126',
+      instruction: 'Pay with PIX',
+    });
+    const { findByTestId, getByTestId } = render(VbaDetails);
+    await waitFor(() => expect(ramps.createAutoramp).toHaveBeenCalled());
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await findByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
+    ).toBeOnTheScreen();
+    expect(ramps.createAutoramp).toHaveBeenCalledTimes(1);
   });
 
   it('opens Choose Currency from Continue when chooseCurrency is on', async () => {
@@ -235,7 +283,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       },
     );
     ramps.refreshAutoramp?.mockResolvedValue({ status: 'Created' });
-    const { findByTestId, findByText, getByTestId } = render(VbaDetails, {
+    const { findByTestId, getByTestId } = render(VbaDetails, {
       chooseCurrency: true,
     });
 
@@ -246,9 +294,11 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
     );
 
-    expect(
-      await findByText(strings('virtual_bank_account.creating_account.title')),
-    ).toBeOnTheScreen();
+    expect(await findByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+      strings('virtual_bank_account.vba_details.bank_transfer_title'),
+    );
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(ramps.createAutoramp).toHaveBeenCalledTimes(1);
     expect(ramps.createAutoramp).toHaveBeenCalledWith(
       expect.objectContaining({
         source_currencies: [{ type: 'Fiat', code: 'USD' }],
