@@ -89,22 +89,20 @@ describe('PriceChart', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows overlay when there are fewer than 5 data points', () => {
-      const fourPoints: TokenPrice[] = [
+    it('shows overlay when there are fewer than 3 data points', () => {
+      const twoPoints: TokenPrice[] = [
         ['1736761237983', 100],
         ['1736761237986', 105],
-        ['1736761237989', 110],
-        ['1736761237992', 108],
       ];
 
       const { getByTestId } = render(
-        <PriceChart {...defaultProps} prices={fourPoints} />,
+        <PriceChart {...defaultProps} prices={twoPoints} />,
       );
 
       expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
     });
 
-    it('does not show overlay when there are at least 5 data points', () => {
+    it('does not show overlay when there are at least 3 data points', () => {
       const { queryByText } = render(
         <PriceChart {...defaultProps} prices={fiveTokenPrices()} />,
       );
