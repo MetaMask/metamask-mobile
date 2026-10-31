@@ -9381,8 +9381,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Add money from your bank",
-        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "title": "Convert to digital dollars",
+        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
