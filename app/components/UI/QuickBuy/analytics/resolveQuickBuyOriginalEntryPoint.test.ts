@@ -13,6 +13,12 @@ describe('resolveQuickBuyOriginalEntryPointFromProfile', () => {
     );
   });
 
+  it('maps explore_perps to the trader_profile entry point', () => {
+    expect(resolveQuickBuyOriginalEntryPointFromProfile('explore_perps')).toBe(
+      'trader_profile',
+    );
+  });
+
   it('maps notification to notification', () => {
     expect(resolveQuickBuyOriginalEntryPointFromProfile('notification')).toBe(
       'notification',

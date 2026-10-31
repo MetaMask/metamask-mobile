@@ -106,7 +106,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - Watchlist: `'watchlist'` — emitted instead of the filter when the watchlist toggle is active
 - `source_section` (optional): Specific sub-section within the origin screen. Present on `asset_details` events and on per-section `perps_home` impression events. Values vary by `source`:
   - **`source = perps_home`**: `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_gainers'` | `'top_losers'` | `'crypto'` | `'commodity'` | `'stock'` | `'forex'`
-  - **`source = explore`**: `'perps_movers'` | `'perps_crypto'` | `'perps_stocks_commodities'` | `'perps_markets'`
+  - **`source = explore`**: `'perps_movers'` | `'perps_crypto'` | `'perps_markets'` | `'perps_tab_markets'`
   - **`source = perp_markets`**: `'all_markets'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'new'` | `'watchlist'` | `'active_search'`
   - _All values come from `PERPS_EVENT_VALUE.SOURCE_SECTION` in `@metamask/perps-controller`._
 - `section_name` (optional): Stable identifier for a home screen section viewed via scroll impression. Present only on `perps_home` impression events emitted by `usePerpsHomeSectionTracking`. Values: `'balance'` | `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_movers'` | `'explore_crypto'` | `'explore_commodities'` | `'explore_stocks'` | `'explore_forex'` | `'recent_activity'` | `'explore'` | `'recently_added'`. _(`PERPS_EVENT_PROPERTY.SECTION_NAME`; values from `PERPS_EVENT_VALUE.SECTION_NAME`, including `EXPLORE` and `RECENTLY_ADDED`.)_
@@ -143,7 +143,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
   - **Chase interactions:** `'chase_backgrounded_converted'` | `'chase_terminated'` | `'chase_max_distance_hit'` | `'chase_concurrency_limit_hit'` | `'chase_reprice'`
   - **Discovery interactions:** `'related_market_clicked'`
-  - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(`PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER`)_
+  - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(`PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER`)_. The Explore Perps tab emits the same filter, `filter_applied`, `sort_applied` and `favorite_toggled` events with `source = explore`.
   - **Mode selection:** `'mode_selection_dismissed'` — Lite/Pro chooser closed without selecting _(local constant `PERPS_MODE_SELECTION_DISMISSED`, pending addition to `PERPS_EVENT_VALUE`)_. Includes `source`, `entry`, and `time_on_screen_ms`. Selection itself uses `button_clicked` with `perps_mode`. Header toggles also use `button_clicked` with `perps_mode`, but only after the mode is actually applied (not when the chooser opens instead).
   - **Chase Mobile-local coverage:** Mobile emits `chase_max_distance_hit` from the typed controller lifecycle event, `chase_concurrency_limit_hit` when the five-order banner first appears or a stale preflight/execution reaches the limit, and `chase_reprice` at each newly observed tenth cumulative reprice. The first observed reprice count is a baseline and is not backfilled. Successful user termination includes `fill_pct_at_terminate`, calculated from the last Mobile-observed `originalSize` and `remainingSize`; it is not an exact venue-time fill percentage.
   - **Chase lifecycle limitations:** Controller v16 emits the correlated `reduce_only` property on every `Perp Trade Transaction` lifecycle event. Its typed tracking payload still exposes no correlated `chase_max_distance_bps`, so Mobile does not add an untyped property or attempt an out-of-band join that could misattribute concurrent orders. The max-distance notification also has no controller `notification_type`, so its local notification intentionally omits fabricated attribution.
@@ -672,12 +672,12 @@ When a user taps a market in `PerpsHomeView`, `source = perps_home` and `source_
 
 When a user taps a market in the Explore/Trending view, `source = explore` and `source_section` identifies the tab's Perps section:
 
-| Explore tab | Perps section            | `source_section` value       | Constant                                                    |
-| ----------- | ------------------------ | ---------------------------- | ----------------------------------------------------------- |
-| Now         | Perps Movers (pill list) | `'perps_movers'`             | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_MOVERS`             |
-| Crypto      | Crypto Perps (tiles)     | `'perps_crypto'`             | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_CRYPTO`             |
-| Macro       | Stocks & Commodities     | `'perps_stocks_commodities'` | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_STOCKS_COMMODITIES` |
-| RWAs        | RWA markets              | `'perps_markets'`            | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_MARKETS`            |
+| Explore tab | Perps section            | `source_section` value | Constant                                         |
+| ----------- | ------------------------ | ---------------------- | ------------------------------------------------ |
+| Now         | Perps Movers (pill list) | `'perps_movers'`       | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_MOVERS`  |
+| Crypto      | Crypto Perps (tiles)     | `'perps_crypto'`       | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_CRYPTO`  |
+| Perps       | Markets (list)           | `'perps_tab_markets'`  | — (string literal, no controller constant yet)   |
+| RWAs        | RWA markets              | `'perps_markets'`      | `PERPS_EVENT_VALUE.SOURCE_SECTION.PERPS_MARKETS` |
 
 ### 3. Market list taps (`source = perp_markets`)
 

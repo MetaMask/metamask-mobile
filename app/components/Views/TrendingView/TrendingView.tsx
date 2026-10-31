@@ -44,7 +44,7 @@ import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import { useIsExploreHeaderRefreshEnabled } from './hooks/useIsExploreHeaderRefreshEnabled';
 import NowTab from './tabs/NowTab';
-import MacroTab from './tabs/MacroTab';
+import PerpsTab from './tabs/PerpsTab';
 import RwasTab from './tabs/RwasTab';
 import CryptoTab from './tabs/CryptoTab';
 import SportsTab from './tabs/SportsTab';
@@ -59,7 +59,7 @@ import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndic
 
 const TAB_NAMES: ExploreTabName[] = [
   'Now',
-  'Macro',
+  'Perps',
   'RWAs',
   'Crypto',
   'Sports',
@@ -284,11 +284,11 @@ export const ExploreFeed: React.FC = () => {
         <NowTab {...tabProps} />
       </Box>,
       <Box
-        key="macro"
+        key="perps"
         twClassName="flex-1"
-        {...({ tabLabel: strings('trending.tabs.macro') } as TabViewProps)}
+        {...({ tabLabel: strings('trending.tabs.perps') } as TabViewProps)}
       >
-        <MacroTab {...tabProps} />
+        <PerpsTab {...tabProps} />
       </Box>,
       <Box
         key="rwas"

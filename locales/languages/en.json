@@ -12889,7 +12889,7 @@
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
-    "macro_stocks_commodity_perps": "Perps",
+    "perps_trending_lists": "Trending lists",
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
@@ -12918,7 +12918,7 @@
     },
     "tabs": {
       "now": "Now",
-      "macro": "Macro",
+      "perps": "Perps",
       "rwas": "RWAs",
       "crypto": "Crypto",
       "sports": "Sports",

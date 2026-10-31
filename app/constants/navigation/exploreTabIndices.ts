@@ -1,6 +1,6 @@
 export const EXPLORE_TAB_INDEX = {
   NOW: 0,
-  MACRO: 1,
+  PERPS: 1,
   RWAS: 2,
   CRYPTO: 3,
   SPORTS: 4,

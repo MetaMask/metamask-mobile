@@ -20,12 +20,12 @@ describe('ExploreActiveTabContext', () => {
 
   it('exposes the provided active tab to descendants', () => {
     render(
-      <ExploreActiveTabProvider activeTab="Macro">
+      <ExploreActiveTabProvider activeTab="Perps">
         <ActiveTabProbe />
       </ExploreActiveTabProvider>,
     );
 
-    expect(screen.getByTestId('active-tab')).toHaveTextContent('Macro');
+    expect(screen.getByTestId('active-tab')).toHaveTextContent('Perps');
   });
 
   it('updates descendants when the active tab changes', () => {

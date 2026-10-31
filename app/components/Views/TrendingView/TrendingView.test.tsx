@@ -31,10 +31,10 @@ jest.mock('./tabs/NowTab', () => ({
     return null;
   },
 }));
-jest.mock('./tabs/MacroTab', () => ({
+jest.mock('./tabs/PerpsTab', () => ({
   __esModule: true,
   default: () => {
-    mockTrackTabRender('Macro');
+    mockTrackTabRender('Perps');
     return null;
   },
 }));
@@ -494,9 +494,9 @@ describe('TrendingView', () => {
 
       fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
 
-      // The "Macro" tab (index 1) mounts once it becomes active.
+      // The "Perps" tab (index 1) mounts once it becomes active.
       await waitFor(() => {
-        expect(mockTabRenderCounts.Macro).toBeGreaterThanOrEqual(1);
+        expect(mockTabRenderCounts.Perps).toBeGreaterThanOrEqual(1);
       });
 
       // "Now" isn't a consumer of the active-tab context, so switching away
