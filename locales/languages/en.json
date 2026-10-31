@@ -1697,6 +1697,7 @@
       "posts": "Posts",
       "section_tokens": "Tokens",
       "section_perpetuals": "Perpetuals",
+      "not_counted_in_pnl": "Not counted in P&L",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
       "empty_open_tokens": "No open tokens",

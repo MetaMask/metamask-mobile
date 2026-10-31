@@ -47,6 +47,7 @@ export const MyProfileViewSelectorsIDs = {
   POSITIONS_LIST: 'my-profile-view-positions-list',
   TOKENS_SECTION: 'my-profile-view-tokens-section',
   PERPS_SECTION: 'my-profile-view-perps-section',
+  UNCOUNTED_SECTION: 'my-profile-view-uncounted-section',
   POSITIONS_EMPTY: 'my-profile-view-positions-empty',
   POSITIONS_ERROR: 'my-profile-view-positions-error',
   POSITIONS_RETRY_BUTTON: 'my-profile-view-positions-retry-button',
