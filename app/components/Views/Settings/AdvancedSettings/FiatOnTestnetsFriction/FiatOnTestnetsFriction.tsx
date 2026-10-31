@@ -1,8 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {
@@ -10,6 +7,8 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -30,9 +29,12 @@ const FiatOnTestnetsFriction = () => {
   const { colors } = useTheme();
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View style={styles.frictionContainer}>
         <Icon
           name={IconName.Danger}

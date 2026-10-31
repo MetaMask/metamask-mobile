@@ -1,31 +1,18 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PermittedNetworksInfoSheet from './PermittedNetworksInfoSheet';
 import { strings } from '../../../../../locales/i18n';
 import { PermittedNetworksInfoSheetTestIds } from './PermittedNetworksInfoSheet.constants';
 
-const mockHandleClose = jest.fn() as jest.Mock<void, []>;
+const mockGoBack = jest.fn();
 
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockBottomSheet = ({
-      children,
-      ref,
-    }: {
-      children: React.ReactNode;
-      ref: { current: { onCloseBottomSheet: () => void } | null };
-    }) => {
-      if (ref) {
-        ref.current = {
-          onCloseBottomSheet: mockHandleClose,
-        };
-      }
-      return <>{children}</>;
-    };
-    return MockBottomSheet;
-  },
-);
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+}));
 
 describe('PermittedNetworksInfoSheet', () => {
   beforeEach(() => {
@@ -79,5 +66,15 @@ describe('PermittedNetworksInfoSheet', () => {
       flexDirection: 'row',
       gap: 16,
     });
+  });
+
+  it('navigates back when Got It button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<PermittedNetworksInfoSheet />);
+
+    fireEvent.press(
+      getByTestId(PermittedNetworksInfoSheetTestIds.GOT_IT_BUTTON),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
