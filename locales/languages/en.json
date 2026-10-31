@@ -4804,6 +4804,29 @@
       "custom_info_desc": "Token detection is not available on this network yet. Import the token manually and make sure you trust it. Learn about ",
       "custom_info_link": "token scams and security risks.",
       "custom_security_tips": "Security tips"
+    },
+    "owned_tokens": {
+      "find_tokens": "Find tokens",
+      "tokens_i_own": "Tokens I own",
+      "search_placeholder": "Search name, symbol, or address",
+      "search_label": "Search",
+      "search_close": "Close search",
+      "search_clear": "Clear search",
+      "filter_all": "All",
+      "filter_hidden": "Hidden",
+      "filter_undetected": "Not detected",
+      "tag_hidden": "Hidden",
+      "tag_undetected": "Not detected",
+      "empty_body": "Hidden tokens and undetected balances will show up here.",
+      "empty_filter_body": "Try another filter or search.",
+      "error": "Could not load the tokens you own.",
+      "retry": "Try again",
+      "add_one": "Add token",
+      "add_many": "Add {{count}} tokens",
+      "added_title": "Tokens added",
+      "added_one": "Added {{symbol}} to your wallet.",
+      "added_many": "Added {{count}} tokens to your wallet.",
+      "add_failed": "Those tokens could not be added. Try again."
     }
   },
   "defi_positions": {
