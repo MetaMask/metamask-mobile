@@ -160,8 +160,6 @@ const OrderDetails = () => {
           });
         }
 
-        // addOrder stores the order under the internal code from `id`
-        // (`/orders/<code>`), not the provider's native providerOrderId.
         const internalOrderCode = getInternalOrderCode(fetchedOrder);
         showV2OrderToast({
           orderId: internalOrderCode,

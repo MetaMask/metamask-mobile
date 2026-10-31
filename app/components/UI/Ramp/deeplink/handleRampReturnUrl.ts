@@ -16,10 +16,6 @@ interface RampReturnNavigationParams {
   walletAddress?: string;
 }
 
-/**
- * Selected account address for the callback fetch. Deeplinks can arrive before
- * the store is ready, and a missing wallet must not block navigation.
- */
 function readSelectedWalletAddress(): string | undefined {
   try {
     return (
@@ -27,6 +23,8 @@ function readSelectedWalletAddress(): string | undefined {
       undefined
     );
   } catch (error) {
+    // ReduxService.store throws when unset. That must not reach the outer catch,
+    // which skips navigation.
     Logger.error(error as Error, {
       message: 'handleRampReturnUrl: unable to read selected wallet',
     });
@@ -34,11 +32,6 @@ function readSelectedWalletAddress(): string | undefined {
   }
 }
 
-/**
- * Providers redirect to `metamask://on-ramp/...`. Relative paths are what the
- * universal-link handler forwards; rebuild that callback URL so order details
- * can resolve the order the same way as the iOS in-app browser return.
- */
 function buildCallbackUrl(rampReturnPath: string): string | undefined {
   if (!rampReturnPath) {
     return undefined;
