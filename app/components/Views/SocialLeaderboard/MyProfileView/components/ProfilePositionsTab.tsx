@@ -18,7 +18,6 @@ import React, { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import PositionRow from '../../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeletons';
-import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import {
   getFilteredPositionSections,
@@ -72,11 +71,8 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         isClosed={isClosed}
         showTradeDate={isClosed}
         showFlaggedState={showFlaggedState}
-        onPress={
-          showFlaggedState && getPositionFlagLabelKey(position)
-            ? undefined
-            : onPositionPress
-        }
+        allowFlaggedPress
+        onPress={onPositionPress}
       />
     ));
 

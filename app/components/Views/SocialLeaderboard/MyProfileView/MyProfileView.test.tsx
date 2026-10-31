@@ -202,23 +202,40 @@ jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
 });
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+  const { Pressable, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       position,
       onPress,
+      showFlaggedState,
+      allowFlaggedPress,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
-    }) => (
-      <Pressable
-        testID={`position-row-${position.tokenSymbol}`}
-        onPress={() => onPress?.(position)}
-      >
-        <Text>{position.tokenSymbol}</Text>
-      </Pressable>
-    ),
+      showFlaggedState?: boolean;
+      allowFlaggedPress?: boolean;
+    }) => {
+      const flagged =
+        showFlaggedState === true && Boolean(position.flags?.length);
+      const pressable = Boolean(onPress) && (!flagged || allowFlaggedPress);
+      if (!pressable) {
+        return (
+          <View testID={`position-row-${position.tokenSymbol}`}>
+            <Text>{position.tokenSymbol}</Text>
+          </View>
+        );
+      }
+      return (
+        <Pressable
+          accessibilityRole="button"
+          testID={`position-row-${position.tokenSymbol}`}
+          onPress={() => onPress?.(position)}
+        >
+          <Text>{position.tokenSymbol}</Text>
+        </Pressable>
+      );
+    },
   };
 });
 
@@ -1477,6 +1494,60 @@ describe('MyProfileView', () => {
       traderAddress: undefined,
       tokenSymbol: 'ETH',
       position: openSpot,
+      source: 'profile_position',
+      isClosed: false,
+    });
+  });
+
+  it('opens position history from a flagged row on another trader profile', () => {
+    const nigel: Position = {
+      positionId: 'd11488e1-89d8-4010-b772-a8ec23fe2589',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '8EnmgofrT5zp6uUiNfECkUMBnYA42pMqPj35vVXUpump',
+      chain: 'solana',
+      positionAmount: 24198367.115879,
+      boughtUsd: 1620.37,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 1620.37,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'shittymike.sol',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [nigel],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+
+    expect(screen.getByTestId('position-row-Nigel')).toHaveProp(
+      'accessibilityRole',
+      'button',
+    );
+
+    fireEvent.press(screen.getByTestId('position-row-Nigel'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      traderId: 'trader-1',
+      traderName: 'shittymike.sol',
+      traderImageUrl: undefined,
+      traderAddress: '0xabc',
+      tokenSymbol: 'Nigel',
+      position: nigel,
       source: 'profile_position',
       isClosed: false,
     });

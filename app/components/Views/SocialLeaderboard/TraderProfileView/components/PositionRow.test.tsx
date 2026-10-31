@@ -207,13 +207,15 @@ describe('PositionRow', () => {
       <PositionRow position={basePosition} onPress={onPress} />,
     );
 
+    expect(screen.getByRole('button')).toBeOnTheScreen();
+
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onPress).toHaveBeenCalledWith(basePosition);
   });
 
-  it('shows the insider label and ignores onPress when showFlaggedState is set', () => {
+  it('keeps a flagged row non-pressable when showFlaggedState is set', () => {
     const onPress = jest.fn();
     const position = { ...basePosition, flags: ['insider'] };
 
@@ -225,7 +227,33 @@ describe('PositionRow', () => {
       screen.getByTestId('position-row-flag-label-STARKBOT'),
     ).toHaveTextContent('Insider allocation - excluded');
     expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
-    expect(onPress).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
+    ).toBeUndefined();
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.onPress,
+    ).toBeUndefined();
+  });
+
+  it('calls onPress when a flagged row sets allowFlaggedPress', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(
+      <PositionRow
+        position={position}
+        onPress={onPress}
+        showFlaggedState
+        allowFlaggedPress
+      />,
+    );
+
+    expect(screen.getByRole('button')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledWith(position);
   });
 
   it('uses muted color for flagged percent instead of PnL color', () => {
@@ -240,6 +268,7 @@ describe('PositionRow', () => {
 
     expect(percentColor).toBeDefined();
     expect(percentColor).toBe(labelColor);
+    expect(screen.queryByRole('button')).toBeNull();
   });
 
   it('shows the generic excluded label for unrecognized flags when showFlaggedState is set', () => {

@@ -39,10 +39,15 @@ export interface PositionRowProps {
   isClosed?: boolean;
   showTradeDate?: boolean;
   /**
-   * When true, positions with server flags render greyed out, show an
-   * exclusion label, and ignore `onPress`.
+   * When true, flagged positions show their exclusion label and stay
+   * non-pressable. `onPress` is not used unless `allowFlaggedPress` is set.
    */
   showFlaggedState?: boolean;
+  /**
+   * V1 profile opt-in. With `showFlaggedState`, the row is a button when
+   * `onPress` is provided. Legacy profile leaves this unset.
+   */
+  allowFlaggedPress?: boolean;
 }
 
 const PositionRowComponent: React.FC<PositionRowProps> = ({
@@ -51,6 +56,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   isClosed: isClosedProp,
   showTradeDate,
   showFlaggedState,
+  allowFlaggedPress,
 }) => {
   // Honor main's spot closed-detection; the explicit prop (from the profile's
   // Open/Closed tab) overrides it, which perps rely on.
@@ -84,7 +90,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
     ? getPositionFlagLabelKey(position)
     : null;
   const isFlagged = flagLabelKey != null;
-  const isPressable = Boolean(onPress) && !isFlagged;
+  const isPressable = Boolean(onPress) && (!isFlagged || allowFlaggedPress);
   // Flagged rows drop success/error so the signed % and closed PnL look
   // disabled, not just faded green/red under opacity-50.
   const pnlColorClass =
@@ -229,7 +235,11 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
 
   if (isPressable) {
     return (
-      <TouchableOpacity onPress={handlePress} testID={testID}>
+      <TouchableOpacity
+        accessibilityRole="button"
+        onPress={handlePress}
+        testID={testID}
+      >
         {content}
       </TouchableOpacity>
     );
