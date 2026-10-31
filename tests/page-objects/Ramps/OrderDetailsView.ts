@@ -16,6 +16,15 @@ class OrderDetailsView {
   get tokenAmount(): Promise<AppiumElement> {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT);
   }
+
+  get status(): Promise<AppiumElement> {
+    return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.STATUS);
+  }
+
+  get provider(): Promise<AppiumElement> {
+    return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.PROVIDER);
+  }
+
   get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.BACK_BUTTON);
   }

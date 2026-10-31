@@ -34,6 +34,12 @@ import {
   BUY_ORDER_CALLBACK_RESPONSE,
 } from './responses/ramps-buy-order-checkout-response.ts';
 import { createBuyOrderResponse } from './responses/ramps-buy-order-status-response.ts';
+import {
+  REVOLUT_CALLBACK_RESPONSE,
+  REVOLUT_PROVIDERS_RESPONSE,
+  createRevolutOrderResponse,
+  createRevolutQuoteResponse,
+} from './responses/ramps-revolut-response.ts';
 import { createDepositOrderResponse } from './responses/ramps-deposit-order-status-response.ts';
 import {
   isRampCacheHost,
@@ -531,4 +537,78 @@ export const setupBuyOnRampMocks = async (
   await RAMPS_QUOTE_MOCKS(mockServer);
   await RAMPS_CHECKOUT_MOCKS(mockServer);
   await BUY_ORDER_STATUS_MOCKS(mockServer);
+};
+
+const matchesRampUrl = (requestUrl: string, pattern: RegExp): boolean =>
+  pattern.test(getDecodedProxiedURL(requestUrl));
+
+export const setupRevolutBuyOnRampMocks = async (
+  mockServer: Mockttp,
+  selectedRegion: RampsRegion,
+): Promise<void> => {
+  await setupBuyOnRampMocks(mockServer, selectedRegion);
+
+  const revolutQuote = createRevolutQuoteResponse();
+  const quoteOverridePriority = 1000;
+
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: rampUrl(
+        'on-ramp-cache',
+        String.raw`/v2/regions/[^/]+/providers\?.*$`,
+      ),
+      response: REVOLUT_PROVIDERS_RESPONSE,
+      responseCode: 200,
+    },
+    quoteOverridePriority,
+  );
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: rampUrl('on-ramp', String.raw`/v2/quotes\?.*$`),
+      response: revolutQuote,
+      responseCode: 200,
+    },
+    quoteOverridePriority,
+  );
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: rampUrl('on-ramp', String.raw`/providers/all/quote\?.*$`),
+      response: revolutQuote,
+      responseCode: 200,
+    },
+    quoteOverridePriority,
+  );
+
+  const revolutCallbackUrl = rampUrl(
+    'on-ramp',
+    String.raw`/v2/providers/revolut/callback(\?.*)?$`,
+  );
+  const revolutOrderUrl = rampUrl(
+    'on-ramp',
+    String.raw`/v2/providers/revolut/orders/[^/]+(\?.*)?$`,
+  );
+
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => matchesRampUrl(request.url, revolutCallbackUrl))
+    .asPriority(quoteOverridePriority)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: REVOLUT_CALLBACK_RESPONSE,
+    }));
+
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => matchesRampUrl(request.url, revolutOrderUrl))
+    .asPriority(quoteOverridePriority)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: createRevolutOrderResponse(),
+    }));
 };

@@ -399,6 +399,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           ) : (
             <>
               <Text
+                testID={RampsOrderDetailsSelectorsIDs.STATUS}
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 twClassName={getStatusColor()}
@@ -411,6 +412,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                   style={localStyles.providerLink}
                 >
                   <Text
+                    testID={RampsOrderDetailsSelectorsIDs.PROVIDER}
                     variant={TextVariant.BodySm}
                     twClassName="text-primary-default mr-1"
                   >
