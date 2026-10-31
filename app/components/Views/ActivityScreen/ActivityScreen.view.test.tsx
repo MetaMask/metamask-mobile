@@ -89,11 +89,6 @@ const monToBaseBridgeState = (
     | typeof activityCvBridgeMonToBaseHistoryEntry,
 ) =>
   initialStateActivityWithLocalTransactions([transaction])
-    .withRemoteFeatureFlags({
-      // List redesign + details redesign (both required for list → ActivityDetails nav).
-      tmcuActivityRedesignEnabled: true,
-      tmcuTransactionsRedesignEnabled: true,
-    })
     .withOverrides(activityMonadBaseNetworkOverride)
     .withOverrides(activityMonToBaseTokenRatesOverride)
     .withOverrides({
@@ -1898,7 +1893,6 @@ describeForPlatforms('ActivityScreen — Monad bridge status', () => {
   };
 
   // One tree: pending list → live controller update → Bridged → press → Details
-  // (requires both tmcuActivityRedesignEnabled + tmcuTransactionsRedesignEnabled).
   it('shows Bridging then Bridged after dest completes, not Swap, with Amount Fee Total via details nav', async () => {
     setupAccountsTransactionsApiMock([]);
 

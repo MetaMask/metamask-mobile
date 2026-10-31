@@ -85,10 +85,10 @@ function buildLocalRpcFixture({
 
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupSimulationEnabledNetworksMocks(mockServer);
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    ...Object.assign({}, ...confirmationFeatureFlags),
-    tmcuActivityRedesignEnabled: true,
-  });
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...confirmationFeatureFlags),
+  );
 };
 
 appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {

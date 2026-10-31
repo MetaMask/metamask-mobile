@@ -40,10 +40,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-jest.mock(
-  '../../UI/MultichainTransactionListItem',
-  () => 'MockTransactionListItem',
-);
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   ActivityListItemRow: jest.fn(() => null),
 }));
@@ -132,20 +128,6 @@ describe('MultichainTransactionsView', () => {
     },
   ];
 
-  const customRender = (ui: React.ReactElement) => {
-    const utils = render(ui);
-
-    return {
-      ...utils,
-      queryAllByTestId: (id: string) => {
-        if (id === 'transaction-item') {
-          return Array(mockTransactions.length).fill({});
-        }
-        return utils.queryAllByTestId(id);
-      },
-    };
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -198,7 +180,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    const { getByText } = customRender(
+    const { getByText } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -206,18 +188,6 @@ describe('MultichainTransactionsView', () => {
     );
 
     expect(getByText('wallet.no_transactions')).toBeTruthy();
-  });
-
-  it('renders transaction list items when transactions are available', async () => {
-    const { queryAllByTestId } = customRender(
-      <MultichainTransactionsView
-        selectedAddress={mockSelectedAddress}
-        chainId={SolScope.Mainnet}
-      />,
-    );
-
-    const transactionItems = queryAllByTestId('transaction-item');
-    expect(transactionItems.length).toBe(2);
   });
 
   it('renders activity rows for asset details', async () => {
@@ -231,7 +201,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    const { queryAllByTestId } = customRender(
+    const { queryAllByTestId } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -295,7 +265,7 @@ describe('MultichainTransactionsView', () => {
         return null;
       });
 
-      customRender(
+      render(
         <MultichainTransactionsView
           selectedAddress={mockSelectedAddress}
           chainId={SolScope.Mainnet}
@@ -345,7 +315,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -402,7 +372,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -430,7 +400,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -498,7 +468,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -572,7 +542,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -614,7 +584,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -636,7 +606,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('does not render view more link for bitcoin activity', async () => {
-    const { queryByText } = customRender(
+    const { queryByText } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={BtcScope.Mainnet}
@@ -649,7 +619,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('tracks External Link Clicked when view more explorer link is pressed', () => {
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -677,7 +647,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('moves the refresh spinner below a floating header', () => {
-    const { UNSAFE_getByType } = customRender(
+    const { UNSAFE_getByType } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -692,7 +662,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('pads the list to clear a footer floating over it', () => {
-    const { UNSAFE_getByType } = customRender(
+    const { UNSAFE_getByType } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -708,7 +678,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('keeps the default bottom padding without an inset', () => {
-    const { UNSAFE_getByType } = customRender(
+    const { UNSAFE_getByType } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}

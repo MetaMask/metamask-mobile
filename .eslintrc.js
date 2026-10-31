@@ -66,7 +66,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Money/constants/activityStyles.ts',
   'app/components/UI/Money/hooks/useMoneyAccountBalance.ts',
   'app/components/UI/Money/utils/moneyActivityFiat.ts',
-  'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
   'app/components/UI/Notification/TransactionNotification/index.js',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
