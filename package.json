@@ -696,7 +696,7 @@
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
     "@babel/preset-env": "^7.25.3",
-    "@babel/register": "^7.24.6",
+    "@babel/register": "^8.0.6",
     "@babel/runtime": "^7.25.0",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
