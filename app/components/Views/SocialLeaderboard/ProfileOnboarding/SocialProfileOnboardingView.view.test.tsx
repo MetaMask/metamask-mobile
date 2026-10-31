@@ -76,9 +76,8 @@ const leaveReadyStep = async () => {
 
 const FeedExitStackProbe = () => {
   const navigation = useNavigation();
-  const routeNames = navigation
-    .getState()
-    .routes.map((route) => route.name)
+  const routeNames = (navigation.getState()?.routes ?? [])
+    .map((route) => route.name)
     .join(',');
 
   return (
