@@ -1,8 +1,5 @@
 import { useSelector } from 'react-redux';
-import {
-  TransactionMeta,
-  TransactionStatus,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import {
   selectBatchSellHistoryItemsForTxHash,
   selectBridgeHistoryForAccount,
@@ -11,12 +8,6 @@ import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { findBridgeHistoryItem } from '../findBridgeHistoryItem';
 import { FeatureId } from '@metamask/bridge-controller';
-
-export const FINAL_NON_CONFIRMED_STATUSES = [
-  TransactionStatus.failed,
-  TransactionStatus.dropped,
-  TransactionStatus.rejected,
-];
 
 export interface UseBridgeTxHistoryDataProps {
   evmTxMeta?: TransactionMeta;

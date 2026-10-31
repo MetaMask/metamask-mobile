@@ -1,5 +1,3 @@
-import type { TransactionMeta } from '@metamask/transaction-controller';
-
 /**
  * Modal navigation parameters
  */
@@ -46,31 +44,6 @@ export interface SelectSRPParams {
 /** Seedphrase modal parameters */
 export interface SeedphraseModalParams {
   seedPhrase?: string[];
-}
-
-/** Transaction details sheet parameters (matches TransactionDetailsSheet route). */
-export interface TransactionDetailsSheetParams {
-  tx: TransactionMeta;
-  transactionElement: {
-    actionKey: string;
-    value?: string;
-    [key: string]: unknown;
-  };
-  transactionDetails: {
-    hash?: string;
-    renderFrom?: string;
-    renderTo?: string;
-    renderValue?: string;
-    summaryAmount?: string;
-    summaryFee?: string;
-    summaryTotalAmount?: string;
-    summarySecondaryTotalAmount?: string;
-    transactionType?: string;
-    txChainId?: string;
-    [key: string]: unknown;
-  };
-  showSpeedUpModal: () => void;
-  showCancelModal: () => void;
 }
 
 /** Show NFT display media parameters */
