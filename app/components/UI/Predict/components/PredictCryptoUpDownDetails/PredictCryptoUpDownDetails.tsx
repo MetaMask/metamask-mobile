@@ -11,7 +11,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { Image } from 'expo-image';
+import AvatarPredict from '../AvatarPredict';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -565,17 +565,13 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <Box testID={PredictCryptoUpDownDetailsSelectorsIDs.TITLE_SECTION}>
           <TitleSubpage
             startAccessory={
-              <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-                {selectedMarket.image ? (
-                  <Image
-                    source={{ uri: selectedMarket.image }}
-                    style={tw.style('w-full h-full')}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <Box twClassName="w-full h-full bg-muted" />
-                )}
-              </Box>
+              <AvatarPredict
+                src={
+                  selectedMarket.image
+                    ? { uri: selectedMarket.image }
+                    : undefined
+                }
+              />
             }
             title={title}
             bottomLabel={twapWindowSeconds ? undefined : subtitle}

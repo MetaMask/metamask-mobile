@@ -7,6 +7,7 @@ import {
 } from '../../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { AvatarPredictSelectorsIDs } from '../AvatarPredict/AvatarPredict.testIds';
 // Mock strings function from i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string | number>) => {
@@ -77,6 +78,14 @@ const renderComponent = (
 };
 
 describe('PredictPositionResolved', () => {
+  it('renders the position icon', () => {
+    renderComponent();
+
+    const image = screen.getByTestId(AvatarPredictSelectorsIDs.IMAGE);
+    expect(image).toBeOnTheScreen();
+    expect(image.props.source).toEqual({ uri: basePosition.icon });
+  });
+
   it('renders primary position info for winning position', () => {
     renderComponent();
 

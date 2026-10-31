@@ -1,4 +1,5 @@
 import {
+  AvatarBaseSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -13,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { Image } from 'expo-image';
+import AvatarPredict from '../AvatarPredict';
 import { strings } from '../../../../../../locales/i18n';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -193,20 +194,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             alignItems={BoxAlignItems.Center}
             twClassName={isCarousel ? 'mb-2 gap-2' : 'mb-3 gap-4'}
           >
-            <Box
-              twClassName={`${isCarousel ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-muted overflow-hidden`}
-            >
-              {market.image && (
-                <Box twClassName="w-full h-full">
-                  <Image
-                    source={{ uri: market.image }}
-                    style={tw.style('w-full h-full')}
-                    contentFit="cover"
-                    recyclingKey={market.image}
-                  />
-                </Box>
-              )}
-            </Box>
+            <AvatarPredict
+              src={market.image ? { uri: market.image } : undefined}
+              size={isCarousel ? AvatarBaseSize.Md : AvatarBaseSize.Lg}
+            />
             <Box twClassName="flex-1">
               <Text
                 variant={

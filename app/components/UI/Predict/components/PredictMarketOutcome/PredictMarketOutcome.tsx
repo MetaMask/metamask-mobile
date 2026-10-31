@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { memo } from 'react';
 import { View } from 'react-native';
-import { Image } from 'expo-image';
+import AvatarPredict from '../AvatarPredict';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -120,17 +120,10 @@ const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
         alignItems={BoxAlignItems.Center}
         twClassName="w-full gap-3"
       >
-        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden self-start">
-          {getImageUrl() ? (
-            <Image
-              source={{ uri: getImageUrl() }}
-              style={tw.style('w-full h-full')}
-              contentFit="cover"
-            />
-          ) : (
-            <Box twClassName="w-full h-full bg-muted" />
-          )}
-        </Box>
+        <AvatarPredict
+          src={getImageUrl() ? { uri: getImageUrl() } : undefined}
+          twClassName="self-start"
+        />
         <Box twClassName="flex-1 -mt-1">
           <Text
             variant={TextVariant.BodyMd}

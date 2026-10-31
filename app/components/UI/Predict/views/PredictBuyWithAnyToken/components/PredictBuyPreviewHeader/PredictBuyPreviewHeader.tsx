@@ -9,12 +9,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { Image } from 'expo-image';
+import AvatarPredict from '../../../../components/AvatarPredict';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
   OrderPreview,
@@ -63,7 +62,6 @@ export function PredictBuyPreviewHeaderTitle({
   outcomeToken,
   preview,
 }: PredictBuyPreviewHeaderTitleProps) {
-  const tw = useTailwind();
   const { title: outcomeTokenTitle, sharePrice } = getOutcomeTokenLabel(
     outcome,
     outcomeToken,
@@ -82,10 +80,7 @@ export function PredictBuyPreviewHeaderTitle({
       alignItems={BoxAlignItems.Center}
       twClassName="flex-1 min-w-0 gap-3"
     >
-      <Image
-        source={{ uri: outcome.image }}
-        style={tw.style('w-10 h-10 rounded')}
-      />
+      <AvatarPredict src={outcome.image ? { uri: outcome.image } : undefined} />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Text variant={TextVariant.HeadingSm}>{market.title}</Text>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1 flex-wrap">

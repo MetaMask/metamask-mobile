@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Image } from 'expo-image';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import {
   Box,
@@ -28,6 +27,7 @@ import {
   getPredictPositionDisplay,
 } from '../../../../../UI/Predict/utils/orders';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
+import AvatarPredict from '../../../../../UI/Predict/components/AvatarPredict';
 import { strings } from '../../../../../../../locales/i18n';
 
 interface PredictPositionRowProps {
@@ -72,14 +72,10 @@ const PredictPositionRowBase = ({
       testID={`predict-position-row-${position.id}`}
       style={tw.style('flex-row items-start px-4 py-3 gap-4')}
     >
-      {position.icon ? (
-        <Image
-          source={{ uri: position.icon }}
-          style={tw.style('w-10 h-10 rounded-lg mt-1')}
-        />
-      ) : (
-        <Box twClassName="w-10 h-10 rounded-lg mt-1 bg-background-alternative" />
-      )}
+      <AvatarPredict
+        src={position.icon ? { uri: position.icon } : undefined}
+        twClassName="mt-1"
+      />
       <Box style={tw.style('flex-1')} gap={0}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
           {title}
