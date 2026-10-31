@@ -41,8 +41,14 @@ import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 import {
   buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
+  buildRealMpcMoneyKeyringBuilder,
 } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
-import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
+import {
+  isMpcMoneyKeyringBuildEnabled,
+  isMpcTwoFactorApprovalBuildEnabled,
+  isRealMpcMoneyKeyringBuildEnabled,
+} from '../../../constants/featureFlags';
+import { createMpcTwoFactorApproval } from '../../MpcMoneyKeyring/mpc-two-factor-approval';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -67,6 +73,29 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
  * `getLedgerDmkMode`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
+/**
+ * Prompts for 2-step verification before a Money MPC signature.
+ */
+async function verifyMoneyMpcSignature(): Promise<void> {
+  // Loaded lazily: the MFA flow pulls in UI and store modules that import the Engine.
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { verifyOrEnroll } = require('../../../util/identity/mfa/useMfa');
+  const {
+    MONEY_MFA_METHODS,
+  } = require('../../../components/UI/Money/hooks/useMoneyMfa');
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  const { token } = await verifyOrEnroll({
+    methods: MONEY_MFA_METHODS,
+    verifyWith: MONEY_MFA_METHODS,
+    // Every transfer needs its own verification; never reuse a session.
+    maxSessionAgeMs: 0,
+    reason: { operation: 'money.mpcSign' },
+  });
+  if (!token) {
+    throw new Error('Money MPC signature needs 2-step verification');
+  }
+}
+
 export function getKeyringBuilders(
   messenger: RootMessenger,
   useDmk: boolean,
@@ -83,7 +112,7 @@ export function getKeyringBuilders(
     const keyring = new QrKeyring({ bridge: qrKeyringBridge });
     // To fix the bug in #9560, forgetDevice will reset all keyring properties
     // to default.
-    keyring.forgetDevice();
+    void keyring.forgetDevice();
     return keyring;
   };
 
@@ -156,7 +185,24 @@ export function getKeyringBuilders(
   // yet hold a Money MPC keyring in its vault, so a build without the flag
   // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
   if (isMpcMoneyKeyringBuildEnabled()) {
-    keyrings.push(buildMpcMoneyKeyringBuilder());
+    keyrings.push(
+      isRealMpcMoneyKeyringBuildEnabled()
+        ? buildRealMpcMoneyKeyringBuilder({
+            getBearerToken: () =>
+              messenger.call('AuthenticationController:getBearerToken'),
+            getTwoFactorApproval: isMpcTwoFactorApprovalBuildEnabled()
+              ? createMpcTwoFactorApproval({
+                  requestMfaApproval: (request) =>
+                    messenger.call(
+                      'AuthenticationController:requestMfaApproval',
+                      request,
+                    ),
+                  verify: verifyMoneyMpcSignature,
+                })
+              : undefined,
+          })
+        : buildMpcMoneyKeyringBuilder(),
+    );
   }
 
   return keyrings;

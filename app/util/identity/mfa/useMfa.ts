@@ -25,7 +25,7 @@ const clientOptions: Pick<
     }),
 };
 
-const verifyOrEnroll = ({
+export const verifyOrEnroll = ({
   reason,
   ...request
 }: VerifyOrEnrollOptions): Promise<MfaFlowResult> =>

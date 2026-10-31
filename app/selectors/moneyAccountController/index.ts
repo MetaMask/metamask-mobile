@@ -3,6 +3,7 @@ import type { MoneyAccountControllerState } from '@metamask/money-account-contro
 import { RootState } from '../../reducers';
 import { selectPrimaryHDKeyring } from '../keyringController';
 import { isMnemonicMoneyAccount } from '../../lib/Money/money-accounts';
+import { isMpcMoneyKeyringBuildEnabled } from '../../constants/featureFlags';
 
 /**
  * Selects the MoneyAccountController state from the root Redux state.
@@ -24,8 +25,15 @@ export const selectMoneyAccounts = createSelector(
   (state: MoneyAccountControllerState) => state.moneyAccounts,
 );
 
+const selectDefaultMoneyAccountId = createSelector(
+  selectMoneyAccountControllerState,
+  (state: MoneyAccountControllerState) => state.defaultMoneyAccountId,
+);
+
 /**
- * Selects the primary Money account.
+ * Selects the primary Money account: the MPC Money account once Money 2-step
+ * verification created it (builds with the MPC keyring), otherwise the one
+ * derived from the primary SRP.
  *
  * @param state - The root Redux state.
  * @returns The primary Money account.
@@ -33,7 +41,17 @@ export const selectMoneyAccounts = createSelector(
 export const selectPrimaryMoneyAccount = createSelector(
   selectMoneyAccounts,
   selectPrimaryHDKeyring,
-  (moneyAccounts, primaryHDKeyring) => {
+  selectDefaultMoneyAccountId,
+  (moneyAccounts, primaryHDKeyring, defaultMoneyAccountId) => {
+    const defaultAccount = defaultMoneyAccountId
+      ? moneyAccounts[defaultMoneyAccountId]
+      : undefined;
+    if (
+      isMpcMoneyKeyringBuildEnabled() &&
+      defaultAccount?.options?.entropy?.type === 'mpc'
+    ) {
+      return defaultAccount;
+    }
     const primaryKeyringId = primaryHDKeyring?.metadata?.id;
     if (!primaryKeyringId) {
       return undefined;

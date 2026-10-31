@@ -90,6 +90,11 @@ jest.mock('../Braze', () => ({
   clearBrazeUser: () => mockClearBrazeUser(),
 }));
 
+const mockClearMoneyMfaDeviceState = jest.fn();
+jest.mock('../../lib/Money/mfa/clearMoneyMfaDeviceState', () => ({
+  clearMoneyMfaDeviceState: () => mockClearMoneyMfaDeviceState(),
+}));
+
 jest.mock('../Braze/resetInProgress', () => {
   let value = false;
   return {
@@ -5083,6 +5088,12 @@ describe('Authentication', () => {
 
     afterEach(() => {
       EngineClass.disableAutomaticVaultBackup = false;
+    });
+
+    it('clears the Money 2FA state saved on the device', async () => {
+      await Authentication.deleteWallet();
+
+      expect(mockClearMoneyMfaDeviceState).toHaveBeenCalledTimes(1);
     });
 
     it('calls resetWalletState followed by deleteUser', async () => {

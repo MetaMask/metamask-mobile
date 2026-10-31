@@ -10,11 +10,16 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import MoneyMfaHeaderBadge from '../MoneyMfa/MoneyMfaHeaderBadge';
 
 export interface MoneyNativeHeaderParams {
   onMenuPress: () => void;
   onBack?: () => void;
   isEnabled: boolean;
+  /** Shows the green shield next to the title when 2-step verification is on. */
+  isMfaEnabled?: boolean;
+  /** Opens the 2-step verification sheet from the shield. */
+  onMfaBadgePress?: () => void;
 }
 
 /**
@@ -26,15 +31,25 @@ export const useMoneyNativeHeader = ({
   onMenuPress,
   onBack,
   isEnabled,
+  isMfaEnabled,
+  onMfaBadgePress,
 }: MoneyNativeHeaderParams): boolean => {
   const leftItems = useCallback((): NativeStackHeaderItem[] => {
     const titleItem: NativeStackHeaderItem = {
       type: 'custom',
       hidesSharedBackground: true,
       element: (
-        <Text variant={TextVariant.HeadingLg} testID={MoneyHeaderTestIds.TITLE}>
-          {strings('money.title')}
-        </Text>
+        <Box twClassName="flex-row items-center gap-1">
+          <Text
+            variant={TextVariant.HeadingLg}
+            testID={MoneyHeaderTestIds.TITLE}
+          >
+            {strings('money.title')}
+          </Text>
+          {isMfaEnabled ? (
+            <MoneyMfaHeaderBadge onPress={onMfaBadgePress} />
+          ) : null}
+        </Box>
       ),
     };
     if (!onBack) {
@@ -50,7 +65,7 @@ export const useMoneyNativeHeader = ({
       },
       titleItem,
     ];
-  }, [onBack]);
+  }, [onBack, isMfaEnabled, onMfaBadgePress]);
 
   const rightItems = useCallback(
     (): NativeStackHeaderItem[] => [

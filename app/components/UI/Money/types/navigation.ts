@@ -92,6 +92,10 @@ export type MoneyModalsNavigationParamList = {
     | { variant?: 'default' | 'deposit'; showMoneyHomeCta?: boolean }
     | undefined;
   MoneyGeoBlockSheet: undefined;
+  MoneyMfaPromptSheet: undefined;
+  MoneyMfaEnabledSheet: undefined;
+  MoneyMfaSettingUpSheet: undefined;
+  MoneyMfaTurnOffSheet: undefined;
 };
 
 interface MoneyPotentialEarningsParams {

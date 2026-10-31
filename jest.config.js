@@ -89,6 +89,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/controller-utils',
   '@metamask/core-backend',
   '@metamask/cryptography',
+  '@metamask/money-account-mfa-whitelist',
   '@metamask/eth-block-tracker',
   '@metamask/eth-json-rpc-middleware',
   '@metamask/eth-json-rpc-provider',
@@ -104,6 +105,11 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
+  '@metamask/mfa-wallet-cl24',
+  '@metamask/mfa-wallet-dkls23',
+  '@metamask/mfa-wallet-interface',
+  '@metamask/mfa-wallet-network',
+  '@metamask/mpc-interface',
   // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
   '@metamask/money-account-upgrade-controller',
   // 2.x ships ESM-only under dist/*.js (1.x used a CJS build).

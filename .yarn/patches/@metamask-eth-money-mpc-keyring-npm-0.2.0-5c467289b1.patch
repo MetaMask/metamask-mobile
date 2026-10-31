@@ -1,0 +1,59 @@
+diff --git a/dist/cloud.cjs b/dist/cloud.cjs
+index 88b8d1eb8e11d51d4d1674324c580200a6c3d1dc..31a5ec6c6a87381b37d10239f31df11b4d46a293 100644
+--- a/dist/cloud.cjs
++++ b/dist/cloud.cjs
+@@ -216,7 +216,7 @@ async function sign(opts) {
+             clientNetId: opts.clientNetId,
+             nonce: opts.nonce,
+             shareEpoch: opts.shareEpoch,
+             ...(opts.request === undefined ? {} : { request: opts.request }),
+-        }),
++        }, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)),
+     }, signErrorPrefix);
+     const body = await readJsonBody(response);
+diff --git a/dist/cloud.mjs b/dist/cloud.mjs
+index 677eab4c6a35770fd5ae2703a70003a71a8a38e1..0842e4055dfa72c36a5ce3ccf809a455a5b72d9a 100644
+--- a/dist/cloud.mjs
++++ b/dist/cloud.mjs
+@@ -211,7 +211,7 @@ export async function sign(opts) {
+             nonce: opts.nonce,
+             shareEpoch: opts.shareEpoch,
+             ...(opts.request === undefined ? {} : { request: opts.request }),
+-        }),
++        }, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)),
+     }, signErrorPrefix);
+     const body = await readJsonBody(response);
+     if (is(body, MfaRequiredBodyStruct)) {
+diff --git a/dist/mpc-money-keyring.cjs b/dist/mpc-money-keyring.cjs
+index efdb63b8cd5963ffdd86e44fe31ebfcad85d3251..36960c39589da23ec74c53e3c81aa7f3a872a342 100644
+--- a/dist/mpc-money-keyring.cjs
++++ b/dist/mpc-money-keyring.cjs
+@@ -398,6 +398,7 @@ class MpcMoneyKeyring {
+      * @returns The signature of the message.
+      */
+     async signPersonalMessage(address, msgHex, _opts) {
++        if (!(0, utils_1.isHexString)(msgHex)) { msgHex = (0, utils_1.bytesToHex)((0, utils_1.stringToBytes)(msgHex)); }
+         const rawMsg = (0, utils_1.hexToBytes)(msgHex);
+         const msgHash = (0, util_1.hashPersonalMessage)(rawMsg);
+         const signature = await __classPrivateFieldGet(this, _MpcMoneyKeyring_instances, "m", _MpcMoneyKeyring_signHash).call(this, address, msgHash, {
+diff --git a/dist/mpc-money-keyring.mjs b/dist/mpc-money-keyring.mjs
+index c043a5b05558c4f843f081c467787a2fecc9fd48..c7a5a0c95979c316b54678a16d5f2c6beb5eb92b 100644
+--- a/dist/mpc-money-keyring.mjs
++++ b/dist/mpc-money-keyring.mjs
+@@ -17,7 +17,7 @@ import { Dkls23TssLib } from "@metamask/mfa-wallet-dkls23";
+ import { CentrifugeIdentitySerializer, CentrifugeNetworkManager, createScopedSessionId } from "@metamask/mfa-wallet-network";
+ import { getMfaRequirement } from "@metamask/money-account-mfa-whitelist";
+ import { integer, is, min, nonempty, nullable, string, type } from "@metamask/superstruct";
+-import { bytesToHex, hexToBytes, JsonStruct } from "@metamask/utils";
++import { bytesToHex, hexToBytes, isHexString, stringToBytes, JsonStruct } from "@metamask/utils";
+ import { checkKeyShare as checkKeyShareRemote, createKey as startCreateKey, getNetId, loadKeyShareBackup, registerClient, rotateKeyShares as startRotateKeyShares, setActiveEpoch, sign as startSign, storeKeyShareBackup } from "./cloud.mjs";
+ import { MFA_REQUIRED_CODE } from "./types.mjs";
+ import { AES_GCM_IV_LENGTH, decryptBytes, encryptBytes, equalAddresses, generateSessionNonce, getSignedTypedDataHash, parseSignedTypedDataVersion, publicKeyToAddressHex, toEthSig } from "./util.mjs";
+@@ -395,6 +395,7 @@ export class MpcMoneyKeyring {
+      * @returns The signature of the message.
+      */
+     async signPersonalMessage(address, msgHex, _opts) {
++        if (!isHexString(msgHex)) { msgHex = bytesToHex(stringToBytes(msgHex)); }
+         const rawMsg = hexToBytes(msgHex);
+         const msgHash = hashPersonalMessage(rawMsg);
+         const signature = await __classPrivateFieldGet(this, _MpcMoneyKeyring_instances, "m", _MpcMoneyKeyring_signHash).call(this, address, msgHash, {
