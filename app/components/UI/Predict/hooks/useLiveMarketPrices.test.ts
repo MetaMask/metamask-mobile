@@ -6,6 +6,10 @@ import {
 import Engine from '../../../../core/Engine';
 import { PriceUpdate } from '../types';
 
+jest.mock('@react-navigation/native', () => ({
+  useIsFocused: jest.fn(() => true),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
