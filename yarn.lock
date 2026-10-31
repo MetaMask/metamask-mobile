@@ -9858,7 +9858,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/client-utils@npm:^3.0.2":
+"@metamask/client-utils@npm:3.0.2":
   version: 3.0.2
   resolution: "@metamask/client-utils@npm:3.0.2"
   dependencies:
@@ -9871,6 +9871,22 @@ __metadata:
     "@metamask/utils": "npm:^12.0.0"
     eth-chainlist: "npm:^0.0.795"
   checksum: 10/7b16f80abb73eae10cfa530aed0de7740486ff7b3ac75325c7bba0eee3ee89262fa564975b60e84bdcde942c15f08a750dc88e6a848fd444d2c40a4681a22629
+  languageName: node
+  linkType: hard
+
+"@metamask/client-utils@patch:@metamask/client-utils@npm%3A3.0.2#~/.yarn/patches/@metamask-client-utils-npm-3.0.2-df2b94452e.patch":
+  version: 3.0.2
+  resolution: "@metamask/client-utils@patch:@metamask/client-utils@npm%3A3.0.2#~/.yarn/patches/@metamask-client-utils-npm-3.0.2-df2b94452e.patch::version=3.0.2&hash=7decd4"
+  dependencies:
+    "@metamask/contract-metadata": "npm:^2.4.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/core-backend": "npm:^11.0.0"
+    "@metamask/keyring-api": "npm:^24.0.0"
+    "@metamask/slip44": "npm:^4.3.0"
+    "@metamask/transaction-controller": "npm:^70.1.0"
+    "@metamask/utils": "npm:^12.0.0"
+    eth-chainlist: "npm:^0.0.795"
+  checksum: 10/96332484988b496b7566f01aa8a51f2d63fe6c0d220ff8ab462036bd54a02bea954457149fde1b020ab87a120bb6e02ffb57f690cb50342a9e81372fbdaae5cd
   languageName: node
   linkType: hard
 

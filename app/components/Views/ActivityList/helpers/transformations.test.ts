@@ -385,5 +385,42 @@ describe('ActivityList transformations', () => {
         },
       });
     });
+
+    it('keeps a relayed (sponsored) ERC-20 send as a send with its decimals', () => {
+      const relayedSend = buildTransaction({
+        hash: '0xrelayed',
+        from: otherAddress,
+        to: '0xdb9b1e94b5b69df7e401ddbede43491141047db3',
+        chainId: 143,
+        methodId: '0xcef6d209',
+        transactionCategory: 'CONTRACT_CALL',
+        valueTransfers: [
+          {
+            amount: '10000',
+            contractAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+            decimal: 6,
+            from: address,
+            name: 'USDC',
+            symbol: 'USDC',
+            to: '0xe14ea8311c9ced9c61a60a27ecc611f35279731f',
+            transferType: 'erc20',
+          },
+        ],
+      } as Partial<V1TransactionByHashResponse>);
+
+      const result = selectApiEvmTransactions({ address })(
+        buildData([relayedSend]),
+      );
+
+      expect(result.pages[0].data[0]).toMatchObject({
+        type: 'send',
+        hash: '0xrelayed',
+        data: {
+          from: address,
+          to: '0xe14ea8311c9ced9c61a60a27ecc611f35279731f',
+          token: { amount: '10000', decimals: 6, symbol: 'USDC' },
+        },
+      });
+    });
   });
 });

@@ -45,6 +45,16 @@ export const isBridgeHistoryForEvmTransaction = (
     );
   });
 
+function isRelayedSend(
+  address: string,
+  transaction: V1TransactionByHashResponse,
+) {
+  return (
+    transaction.transactionCategory === 'CONTRACT_CALL' &&
+    mapApiTransaction({ subjectAddress: address, transaction }).type === 'send'
+  );
+}
+
 /**
  * Participation gate shared by the activity list and the Activity details
  * by-hash lookup: excluded hashes, transactions the subject does not take part
@@ -67,7 +77,9 @@ export function shouldSkipUnrelatedTransaction(
   }
 
   if (!hasTopLevelAddressMatch) {
-    return true;
+    // A relayer submits sponsored (gasless) sends, so the subject is neither
+    // `from` nor `to`. Keep the transaction only when it maps to their send.
+    return !isRelayedSend(address, transaction);
   }
 
   return (
