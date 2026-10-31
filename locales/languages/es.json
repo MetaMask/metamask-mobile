@@ -1200,14 +1200,16 @@
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
-      "description": "A few details need your attention. Review each item below, then try again.",
+      "description": "A few details need your attention. Review each item below, then contact support.",
+      "retry_description": "A few details need your attention. Review each item below, then try again.",
       "identity_document_title": "Check your identity document",
       "identity_document_description": "Make sure it is valid, clear, and fully visible",
       "selfie_title": "Retake your selfie",
       "selfie_description": "Use good lighting and show your face clearly",
       "details_title": "Review your details",
       "details_description": "Make sure your information matches your documents",
-      "button": "Inténtalo de nuevo"
+      "button": "Contact support",
+      "retry_button": "Try again"
     },
     "account_provisioning_error": {
       "title": "Couldn't create your account",
@@ -1451,7 +1453,7 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Posición",
       "chip_gif": "GIF",
-      "gifs_title": "GIFs",
+      "gifs_title": "Add a GIF",
       "gifs_close": "Close GIFs",
       "gifs_search_placeholder": "Search GIFs",
       "gifs_empty": "No GIFs found",
@@ -1621,6 +1623,11 @@
       "muted_accessibility_label_named": "{{traderName}} silenciado. Toca para volver a activar las notificaciones"
     },
     "all_networks": "Todas las redes",
+    "position_flags": {
+      "insider": "Insider allocation - excluded",
+      "developer": "Contract creator - excluded",
+      "excluded": "Excluded from PnL"
+    },
     "trader_profile": {
       "followers_count": "{{count}} seguidor",
       "followers_count_plural": "{{count}} seguidores",
@@ -1649,6 +1656,13 @@
       "closed": "Cerrado",
       "no_positions": "Aún no hay posiciones",
       "error_loading_profile": "No se pudo cargar el perfil",
+      "more_options": "More options",
+      "profile_options": "Profile options",
+      "profile_options_description": "Blocking hides this profile's posts and positions on this device for this session. It also unfollows them.",
+      "block_user": "Block @{{name}}",
+      "unblock": "Unblock",
+      "blocked_title": "You blocked @{{name}}",
+      "blocked_description": "Their posts and positions are hidden on this device for this session.",
       "twitter_link": "Ver en X (Twitter)",
       "sort": {
         "value": "Valor",
@@ -1680,7 +1694,6 @@
       "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
-      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
       "section_tokens": "Tokens",
       "section_perpetuals": "Contratos perpetuos",
@@ -1691,13 +1704,22 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "empty_title": "Aún no hay publicaciones",
-      "debug_reset_profile": "debug: reset profile",
       "joined": "Se unió: {{time}}",
+      "x_link": "X",
       "load_profile_error": "No se pudo cargar tu perfil.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
       "retry": "Inténtalo de nuevo"
+    },
+    "terms": {
+      "title": "Review our Terms of Use",
+      "close": "Close",
+      "checkbox": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+      "agree": "Agree",
+      "scroll_helper": "Please scroll to read all sections",
+      "scroll_to_bottom": "Scroll to the bottom",
+      "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
     "profile_onboarding": {
       "intro_title": "See trades as they happen",
@@ -1707,6 +1729,8 @@
       "just_now": "en este momento",
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
+      "connect_x_before_logo": "Connect",
+      "connect_x_after_logo": "account",
       "create_manually": "Create profile manually",
       "choose_x_identity": "Elige un nombre de usuario y un avatar de MetaMask",
       "choose_x_identity_description": "Así te identificarán los demás traders.",
@@ -1739,10 +1763,6 @@
       "link_account": "Elige una cuenta para vincularla con tu perfil",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Seleccionar una cuenta",
-      "link_account_benefit_trades": "Tu perfil muestra las operaciones, la tasa de éxito y las ganancias y pérdidas de esta cuenta durante los últimos 30 días.",
-      "link_account_benefit_private": "La dirección de tu cuenta se mantiene privada.",
-      "link_account_benefit_follow": "Otros traders pueden seguir tu perfil.",
-      "link_account_benefit_fees": "Obtén 15 % de las tarifas cada vez que alguien copie tus operaciones.",
       "link_account_change_footnote": "Puedes cambiar tu cuenta vinculada cada 30 días.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
@@ -1752,6 +1772,13 @@
       "lets_go": "Vamos",
       "continue": "Continuar"
     },
+    "trading_activity_benefits": {
+      "positions": "Your profile shows all of this account's positions.",
+      "performance": "Trade performance, including profit and win rate, covers the last 30 days.",
+      "fees": "Earn 15% on fees when someone copies your trades.",
+      "private": "Your account address stays private.",
+      "follow": "Other traders can follow your profile."
+    },
     "manage_profile": {
       "title": "Manage profile",
       "about": "Acerca de",
@@ -1759,7 +1786,7 @@
       "display_name": "Mostrar nombre",
       "handle": "Handle",
       "bio": "Bio",
-      "socials": "Socials",
+      "x_account": "X account",
       "trading_activity": "Actividad de trading",
       "trading_activity_on": "Activado",
       "trading_activity_off": "Desact.",
@@ -1773,7 +1800,6 @@
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
-      "show_trading_activity_subtitle": "Public and available to copy",
       "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
       "trading_activity_info": "More information about trading activity",
       "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
@@ -1900,6 +1926,12 @@
       "order_summary": "Resumen de la orden",
       "includes_fee": "Incluye una tarifa del {{feePercentage}} %",
       "includes_fee_with_bridge": "Includes {{feePercentage}}% fee + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_with_bridge": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_discounted": "Includes {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_discounted_with_bridge": "Includes {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_a11y": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%",
+      "includes_fee_after_promo_a11y_with_bridge": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, plus {{bridgeFee}} bridge fee",
       "amount_slider_accessibility_label": "Monto de la orden",
       "order_type_accessibility_label": "{{orderType}} tipo de orden",
       "show_asset_value": "Mostrar valor del activo",
@@ -2936,6 +2968,7 @@
       "no_positions": "No hay posiciones abiertas",
       "card": {
         "position_title": "Posición",
+        "post_to_feed": "Post to feed",
         "pnl_label": "P&L",
         "return_label": "Rendimiento",
         "size_label": "Tamaño",
@@ -3101,8 +3134,9 @@
         "discount_message": "Estás ahorrando un {{percentage}} % en tarifas como VIP.",
         "member_discount_message": "Como miembro, estás ahorrando un {{percentage}} % en tarifas.",
         "promotional_discount": "Descuento promocional",
+        "original_fee_value": "was {{fee}}",
         "fee_discount": "Descuento en tarifas",
-        "promotional_discount_message": "Descuento promocional: {{percentage}} % de descuento en la tarifa de MetaMask.",
+        "promotional_discount_message": "{{percentage}}% off the MetaMask fee.",
         "fee_discount_message": "Estás ahorrando un {{percentage}} % en la tarifa de MetaMask."
       },
       "size_skew": {
@@ -3611,8 +3645,6 @@
       "title": "Compartir posición",
       "post_to_metamask": "Publicar en MetaMask",
       "post_to_metamask_description": "Obtén el 15 % de las tarifas cada vez que alguien copie tus movimientos.",
-      "post_not_ready": "Esta posición aún no está lista para publicarse",
-      "post_other_account": "Solo se pueden publicar posiciones de la billetera vinculada a tu perfil",
       "new_badge": "Nuevo",
       "share_externally": "Compartir externamente"
     },
@@ -3682,7 +3714,9 @@
       "unavailable": "No markets are available right now."
     },
     "event": {
-      "your_positions": "Tus posiciones"
+      "your_positions": "Tus posiciones",
+      "game_lines": "Game Lines",
+      "outcome": "Outcome"
     },
     "search": {
       "placeholder": "Buscar mercados",
@@ -4227,6 +4261,7 @@
       "buy_title": "Previsto",
       "sell_title": "Cobrado",
       "claim_title": "Ganancias reclamadas",
+      "settled_title": "Settled",
       "claim_pending": "Reclamación pendiente",
       "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, abre los detalles del mercado",
       "prediction_lost_title": "Predicción perdida",
@@ -4242,6 +4277,11 @@
       "predicted_amount": "Monto previsto",
       "shares_bought": "Acciones compradas",
       "shares_sold": "Acciones vendidas",
+      "shares_settled": "Shares settled",
+      "settlement_result": "Result",
+      "settlement_result_won": "Won",
+      "settlement_result_lost": "Lost",
+      "settlement_result_partial": "Partial payout",
       "price_per_share": "Precio por acción",
       "price_impact": "Impacto sobre el precio",
       "net_pnl": "P&L neto",
@@ -5106,7 +5146,7 @@
     "card_update_badge": "Actualizar",
     "settings": "Configuración",
     "networks": "Redes",
-    "log_out": "Bloquear",
+    "log_out": "Lock",
     "notifications": "Notificaciones",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Únete a MetaMask Orange",
@@ -5659,7 +5699,9 @@
         "unlink_money_account_button": "Desvincular Money Account de la tarjeta",
         "unlink_money_account_disabled_hint": "No hay ninguna vinculación activa para eliminar.",
         "reset_card_arrival_description": "Borra el estado de la animación de llegada de la carta para que la revelación se reproduzca de nuevo la próxima vez que abras el panel de tarjetas.",
-        "reset_card_arrival_button": "Restablecer animación de llegada"
+        "reset_card_arrival_button": "Restablecer animación de llegada",
+        "reset_apple_pay_splash_description": "Show the Apple Pay availability splash again the next time you open Card Home while signed in.",
+        "reset_apple_pay_splash_button": "Reset Apple Pay splash"
       },
       "identity": {
         "title": "Identidad",
@@ -5675,7 +5717,9 @@
         "title": "Clasificación social",
         "description": "Restablece la configuración inicial de la clasificación social para que vuelva a mostrarse la próxima vez que abras esta función.",
         "onboarding_seen": "Configuración inicial vista: {{seen}}",
-        "reset_onboarding": "Reiniciar configuración inicial"
+        "reset_onboarding": "Reiniciar configuración inicial",
+        "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
+        "reset_terms": "Reset Social Terms of Use"
       },
       "new_wallet": {
         "title": "Nueva billetera",
@@ -8234,7 +8278,10 @@
       "next": "Siguiente",
       "hold_to_send": "Mantener para enviar",
       "send": "Enviar",
-      "sent": "Enviado!"
+      "sent": "Enviado!",
+      "insufficient_tron_resources": "This account needs more TRX or network resources to complete the transaction.",
+      "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
+      "retry_validation": "Try again"
     },
     "notifications": {
       "purchase_failed_title": "Error en la compra de {{currency}}. Vuelve a intentarlo en un momento.",
@@ -10921,11 +10968,11 @@
     "add_wallet": "Agregar billetera",
     "add_wallet_srp_description": "Usando una frase semilla de 12, 18 o 24 palabras",
     "add_wallet_private_key_description": "Mediante una clave privada",
-    "add_wallet_hardware_description": "Usando Bluetooth o un código QR",
+    "add_wallet_hardware_description": "Using Bluetooth or a QR code",
     "add_hardware_wallet": "Agregar billetera física",
     "syncing": "Sincronización",
-    "link_metamask_extension": "Importar cuentas desde la extensión de MetaMask",
-    "link_metamask_extension_description": "Importa cuentas desde la extensión de MetaMask a tu billetera",
+    "link_metamask_extension": "Import from MetaMask extension",
+    "link_metamask_extension_description": "Scan a QR code to add your accounts",
     "account_details": {
       "header_title": "Detalles de la cuenta",
       "account_name": "Nombre de la cuenta",
@@ -11844,6 +11891,28 @@
       "try_again": "Inténtalo de nuevo",
       "reset_success": "Contraseña restablecida correctamente"
     },
+    "mfa": {
+      "method_title": "Verify it's you",
+      "method_description": "Choose where to send a code, then enter the full phone number or email.",
+      "method_phone": "Text message",
+      "method_email": "Email",
+      "phone_label": "Phone number",
+      "email_label": "Email",
+      "country_code": "Country code",
+      "country_code_label": "Country code, +{{code}}",
+      "continue": "Continue",
+      "code_title": "Enter your code",
+      "code_description": "Enter the code sent to {{destination}}.",
+      "start_over": "Start over",
+      "errors": {
+        "destination_mismatch": "That doesn't match the contact on your account. Check it and try again.",
+        "invalid_code": "That code is incorrect. Try again.",
+        "code_expired": "That code expired. Start over to get a new one.",
+        "attempts_exceeded": "Too many incorrect codes. Start over to try again.",
+        "restart_required": "Verification needs to start over.",
+        "no_verified_contact": "This account has no verified phone number or email to send a code to."
+      }
+    },
     "card_otp_authentication": {
       "title": "Confirma tu número de teléfono",
       "description_with_phone_number": "Ingresa el código de verificación enviado a\n{{maskedPhoneNumber}}",
@@ -11854,6 +11923,29 @@
       "didnt_receive_code": "¿No recibiste el código? ",
       "resend_verification": "Reenviarlo",
       "resend_cooldown": "Reenvío disponible en {{seconds}} segundos"
+    },
+    "apple_pay_splash": {
+      "title": "MetaMask with Apple Pay",
+      "description": "Apple Pay is an easy, secure, and private way to pay with your iPhone and Apple Watch.",
+      "no_downloads": "There are no additional app downloads, sign ups, or fees.",
+      "setup": "Get set up in seconds.",
+      "close": "Close"
+    },
+    "apple_pay_usage": {
+      "learn_more": "Learn more about Apple Pay",
+      "row_title": "How to use Apple Pay",
+      "title": "Using Apple Pay",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "got_it": "Got it"
+    },
+    "apple_pay_confirmation": {
+      "title": "Card Added Successfully",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "done": "Done"
     },
     "push_provisioning": {
       "add_to_wallet": "Agregar a {{walletName}}",
@@ -12188,12 +12280,12 @@
       "apply_success": "¡Código de bono aplicado!"
     },
     "optout": {
-      "title": "Eliminar del programa de Recompensas",
-      "description": "Esto eliminará tus cuentas del programa Recompensas y tu progreso en cualquier campaña en la que hayas participado. Hazlo solo si estás completamente seguro de que quieres borrar tu progreso.",
+      "title": "Opt out of Rewards campaigns",
+      "description": "This removes your accounts from Rewards campaigns and benefits, and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
       "erase_button": "Borrar progreso",
       "modal": {
         "confirmation_title": "¿Estás seguro?",
-        "confirmation_description": "Esto borrará todo tu progreso y no se podrá revertir. Si te reincorporas al programa Recompensas más adelante, comenzarás desde cero.",
+        "confirmation_description": "This will erase your progress in Rewards campaigns and benefits, and can't be reversed. If you rejoin later, you'll start back at 0.",
         "type_to_confirm": "Escribe \"borrar progreso\" para continuar",
         "confirm_phrase": "borrar progreso",
         "cancel": "Cancelar",

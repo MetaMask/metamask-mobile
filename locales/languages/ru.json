@@ -1200,14 +1200,16 @@
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
-      "description": "A few details need your attention. Review each item below, then try again.",
+      "description": "A few details need your attention. Review each item below, then contact support.",
+      "retry_description": "A few details need your attention. Review each item below, then try again.",
       "identity_document_title": "Check your identity document",
       "identity_document_description": "Make sure it is valid, clear, and fully visible",
       "selfie_title": "Retake your selfie",
       "selfie_description": "Use good lighting and show your face clearly",
       "details_title": "Review your details",
       "details_description": "Make sure your information matches your documents",
-      "button": "Повторить попытку"
+      "button": "Contact support",
+      "retry_button": "Try again"
     },
     "account_provisioning_error": {
       "title": "Couldn't create your account",
@@ -1451,7 +1453,7 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Позиция",
       "chip_gif": "GIF",
-      "gifs_title": "GIFs",
+      "gifs_title": "Add a GIF",
       "gifs_close": "Close GIFs",
       "gifs_search_placeholder": "Search GIFs",
       "gifs_empty": "No GIFs found",
@@ -1621,6 +1623,11 @@
       "muted_accessibility_label_named": "Уведомления от {{traderName}} отключены. Нажмите, чтобы включить их снова"
     },
     "all_networks": "Все сети",
+    "position_flags": {
+      "insider": "Insider allocation - excluded",
+      "developer": "Contract creator - excluded",
+      "excluded": "Excluded from PnL"
+    },
     "trader_profile": {
       "followers_count": "{{count}} подписчик",
       "followers_count_plural": "{{count}} подписчика(-ов)",
@@ -1649,6 +1656,13 @@
       "closed": "Закрыто",
       "no_positions": "Пока нет позиций",
       "error_loading_profile": "Не удалось загрузить профиль",
+      "more_options": "More options",
+      "profile_options": "Profile options",
+      "profile_options_description": "Blocking hides this profile's posts and positions on this device for this session. It also unfollows them.",
+      "block_user": "Block @{{name}}",
+      "unblock": "Unblock",
+      "blocked_title": "You blocked @{{name}}",
+      "blocked_description": "Their posts and positions are hidden on this device for this session.",
       "twitter_link": "Смотреть в X (Twitter)",
       "sort": {
         "value": "Значение",
@@ -1680,7 +1694,6 @@
       "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
-      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
       "section_tokens": "Токены",
       "section_perpetuals": "Бессрочные контракты",
@@ -1691,13 +1704,22 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "empty_title": "Публикаций пока нет",
-      "debug_reset_profile": "debug: reset profile",
       "joined": "Регистрация: {{time}}",
+      "x_link": "X",
       "load_profile_error": "Не удалось загрузить ваш профиль.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
       "retry": "Повторить попытку"
+    },
+    "terms": {
+      "title": "Review our Terms of Use",
+      "close": "Close",
+      "checkbox": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+      "agree": "Agree",
+      "scroll_helper": "Please scroll to read all sections",
+      "scroll_to_bottom": "Scroll to the bottom",
+      "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
     "profile_onboarding": {
       "intro_title": "See trades as they happen",
@@ -1707,6 +1729,8 @@
       "just_now": "только что",
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
+      "connect_x_before_logo": "Connect",
+      "connect_x_after_logo": "account",
       "create_manually": "Create profile manually",
       "choose_x_identity": "Выберите имя пользователя и аватар MetaMask",
       "choose_x_identity_description": "Так вас будут узнавать другие трейдеры.",
@@ -1739,10 +1763,6 @@
       "link_account": "Выберите счет для привязки к профилю",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Выбрать счет",
-      "link_account_benefit_trades": "В вашем профиле отображаются сделки этого счета, доля прибыльных сделок и П/У за последние 30 дней.",
-      "link_account_benefit_private": "Адрес вашего счета остается скрытым.",
-      "link_account_benefit_follow": "Другие трейдеры могут подписаться на ваш профиль.",
-      "link_account_benefit_fees": "Получайте 15% от комиссий, когда кто-то копирует ваши сделки.",
       "link_account_change_footnote": "Привязанный счет можно менять раз в 30 дней.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
@@ -1752,6 +1772,13 @@
       "lets_go": "Вперед",
       "continue": "Продолжить"
     },
+    "trading_activity_benefits": {
+      "positions": "Your profile shows all of this account's positions.",
+      "performance": "Trade performance, including profit and win rate, covers the last 30 days.",
+      "fees": "Earn 15% on fees when someone copies your trades.",
+      "private": "Your account address stays private.",
+      "follow": "Other traders can follow your profile."
+    },
     "manage_profile": {
       "title": "Manage profile",
       "about": "О MetaMask",
@@ -1759,7 +1786,7 @@
       "display_name": "Экранное имя",
       "handle": "Handle",
       "bio": "Bio",
-      "socials": "Socials",
+      "x_account": "X account",
       "trading_activity": "Торговая активность",
       "trading_activity_on": "Вкл.",
       "trading_activity_off": "Выкл.",
@@ -1773,7 +1800,6 @@
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
-      "show_trading_activity_subtitle": "Public and available to copy",
       "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
       "trading_activity_info": "More information about trading activity",
       "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
@@ -1900,6 +1926,12 @@
       "order_summary": "Сводка по ордеру",
       "includes_fee": "Включает комиссию {{feePercentage}}%",
       "includes_fee_with_bridge": "Includes {{feePercentage}}% fee + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_with_bridge": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_discounted": "Includes {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_discounted_with_bridge": "Includes {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_a11y": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%",
+      "includes_fee_after_promo_a11y_with_bridge": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, plus {{bridgeFee}} bridge fee",
       "amount_slider_accessibility_label": "Сумма ордера",
       "order_type_accessibility_label": "Тип ордера: {{orderType}}",
       "show_asset_value": "Показать стоимость актива",
@@ -2936,6 +2968,7 @@
       "no_positions": "Нет открытых позиций",
       "card": {
         "position_title": "Позиция",
+        "post_to_feed": "Post to feed",
         "pnl_label": "П/У",
         "return_label": "Доход",
         "size_label": "Размер",
@@ -3101,8 +3134,9 @@
         "discount_message": "Вы экономите {{percentage}}% на комиссиях как VIP.",
         "member_discount_message": "Как подписчик вы экономите {{percentage}}% на комиссиях.",
         "promotional_discount": "Акционная скидка",
+        "original_fee_value": "was {{fee}}",
         "fee_discount": "Скидка на комиссию",
-        "promotional_discount_message": "Акционная скидка: {{percentage}}% на комиссию MetaMask.",
+        "promotional_discount_message": "{{percentage}}% off the MetaMask fee.",
         "fee_discount_message": "Вы экономите {{percentage}}% на комиссии MetaMask."
       },
       "size_skew": {
@@ -3611,8 +3645,6 @@
       "title": "Поделиться позицией",
       "post_to_metamask": "Опубликовать в MetaMask",
       "post_to_metamask_description": "Получайте 15% от комиссий каждый раз, когда кто-то копирует ваши сделки.",
-      "post_not_ready": "Эту позицию пока нельзя опубликовать",
-      "post_other_account": "Публиковать можно только позиции из кошелька, привязанного к профилю",
       "new_badge": "Новые",
       "share_externally": "Поделиться в других приложениях"
     },
@@ -3682,7 +3714,9 @@
       "unavailable": "No markets are available right now."
     },
     "event": {
-      "your_positions": "Ваши позиции"
+      "your_positions": "Ваши позиции",
+      "game_lines": "Game Lines",
+      "outcome": "Outcome"
     },
     "search": {
       "placeholder": "Поиск рынков",
@@ -4227,6 +4261,7 @@
       "buy_title": "Спрогнозировано",
       "sell_title": "Деньги выведены",
       "claim_title": "Востребованные выигрыши",
+      "settled_title": "Settled",
       "claim_pending": "Ожидание запроса",
       "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, открывает детали рынка",
       "prediction_lost_title": "Прогноз не сбылся",
@@ -4242,6 +4277,11 @@
       "predicted_amount": "Прогнозируемая сумма",
       "shares_bought": "Акции куплены",
       "shares_sold": "Акции проданы",
+      "shares_settled": "Shares settled",
+      "settlement_result": "Result",
+      "settlement_result_won": "Won",
+      "settlement_result_lost": "Lost",
+      "settlement_result_partial": "Partial payout",
       "price_per_share": "Цена за акцию",
       "price_impact": "Влияние на цену",
       "net_pnl": "Чистая П/У",
@@ -5106,7 +5146,7 @@
     "card_update_badge": "Обновить",
     "settings": "Настройки",
     "networks": "Сети",
-    "log_out": "Заблокировать",
+    "log_out": "Lock",
     "notifications": "Уведомления",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Подключить MetaMask Orange",
@@ -5659,7 +5699,9 @@
         "unlink_money_account_button": "Отвязать Money Account от карты",
         "unlink_money_account_disabled_hint": "Нет активной привязки для удаления.",
         "reset_card_arrival_description": "Очистить состояние анимации прибытия карты, чтобы при следующем открытии панели управления карты показ воспроизводился снова.",
-        "reset_card_arrival_button": "Сбросить анимацию прибытия"
+        "reset_card_arrival_button": "Сбросить анимацию прибытия",
+        "reset_apple_pay_splash_description": "Show the Apple Pay availability splash again the next time you open Card Home while signed in.",
+        "reset_apple_pay_splash_button": "Reset Apple Pay splash"
       },
       "identity": {
         "title": "Идентификация",
@@ -5675,7 +5717,9 @@
         "title": "Таблица лидеров в соцсетях",
         "description": "Сбросить онбординг для таблицы лидеров в соцсетях, чтобы она снова отображалась при следующем открытии этой функции.",
         "onboarding_seen": "Онбординг просмотрен: {{seen}}",
-        "reset_onboarding": "Сбросить онбординг"
+        "reset_onboarding": "Сбросить онбординг",
+        "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
+        "reset_terms": "Reset Social Terms of Use"
       },
       "new_wallet": {
         "title": "Новый кошелек",
@@ -8234,7 +8278,10 @@
       "next": "Далее",
       "hold_to_send": "Удерживайте, чтобы отправить",
       "send": "Отправить",
-      "sent": "Отправлено!"
+      "sent": "Отправлено!",
+      "insufficient_tron_resources": "This account needs more TRX or network resources to complete the transaction.",
+      "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
+      "retry_validation": "Try again"
     },
     "notifications": {
       "purchase_failed_title": "Не удалось купить {{currency}}. Повторите попытку через мгновение.",
@@ -10921,11 +10968,11 @@
     "add_wallet": "Добавить кошелек",
     "add_wallet_srp_description": "Используя секретную фразу из 12, 18 или 24 слов",
     "add_wallet_private_key_description": "С помощью закрытого ключа",
-    "add_wallet_hardware_description": "Используя Bluetooth или QR-код",
+    "add_wallet_hardware_description": "Using Bluetooth or a QR code",
     "add_hardware_wallet": "Добавить аппаратный кошелек",
     "syncing": "Синхронизируется",
-    "link_metamask_extension": "Импорт аккаунтов из расширения MetaMask",
-    "link_metamask_extension_description": "Импортируйте аккаунты из расширения MetaMask в свой кошелек",
+    "link_metamask_extension": "Import from MetaMask extension",
+    "link_metamask_extension_description": "Scan a QR code to add your accounts",
     "account_details": {
       "header_title": "Сведения о счете",
       "account_name": "Имя счета",
@@ -11844,6 +11891,28 @@
       "try_again": "Повторить попытку",
       "reset_success": "Пароль успешно сброшен"
     },
+    "mfa": {
+      "method_title": "Verify it's you",
+      "method_description": "Choose where to send a code, then enter the full phone number or email.",
+      "method_phone": "Text message",
+      "method_email": "Email",
+      "phone_label": "Phone number",
+      "email_label": "Email",
+      "country_code": "Country code",
+      "country_code_label": "Country code, +{{code}}",
+      "continue": "Continue",
+      "code_title": "Enter your code",
+      "code_description": "Enter the code sent to {{destination}}.",
+      "start_over": "Start over",
+      "errors": {
+        "destination_mismatch": "That doesn't match the contact on your account. Check it and try again.",
+        "invalid_code": "That code is incorrect. Try again.",
+        "code_expired": "That code expired. Start over to get a new one.",
+        "attempts_exceeded": "Too many incorrect codes. Start over to try again.",
+        "restart_required": "Verification needs to start over.",
+        "no_verified_contact": "This account has no verified phone number or email to send a code to."
+      }
+    },
     "card_otp_authentication": {
       "title": "Подтвердите свой номер телефона",
       "description_with_phone_number": "Введите проверочный код, отправленный на\n{{maskedPhoneNumber}}",
@@ -11854,6 +11923,29 @@
       "didnt_receive_code": "Не получили код? ",
       "resend_verification": "Отправить повторно",
       "resend_cooldown": "Повторная отправка станет доступна через {{seconds}} секунд(-ы)"
+    },
+    "apple_pay_splash": {
+      "title": "MetaMask with Apple Pay",
+      "description": "Apple Pay is an easy, secure, and private way to pay with your iPhone and Apple Watch.",
+      "no_downloads": "There are no additional app downloads, sign ups, or fees.",
+      "setup": "Get set up in seconds.",
+      "close": "Close"
+    },
+    "apple_pay_usage": {
+      "learn_more": "Learn more about Apple Pay",
+      "row_title": "How to use Apple Pay",
+      "title": "Using Apple Pay",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "got_it": "Got it"
+    },
+    "apple_pay_confirmation": {
+      "title": "Card Added Successfully",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "done": "Done"
     },
     "push_provisioning": {
       "add_to_wallet": "Добавить в {{walletName}}",
@@ -12188,12 +12280,12 @@
       "apply_success": "Бонусный код применен!"
     },
     "optout": {
-      "title": "Отказаться от участия в программе вознаграждений",
-      "description": "Это удалит ваши счета из Бонусной программы и ваш прогресс в любых кампаниях, к которым вы присоединились. Делайте это только в том случае, если вы абсолютно уверены, что хотите удалить свой прогресс.",
+      "title": "Opt out of Rewards campaigns",
+      "description": "This removes your accounts from Rewards campaigns and benefits, and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
       "erase_button": "Удалить прогресс",
       "modal": {
         "confirmation_title": "Вы уверены?",
-        "confirmation_description": "Это удалит весь ваш прогресс, и это действие нельзя отменить. Если вы позже снова присоединитесь к Бонусной программе, вы начнете с нуля.",
+        "confirmation_description": "This will erase your progress in Rewards campaigns and benefits, and can't be reversed. If you rejoin later, you'll start back at 0.",
         "type_to_confirm": "Введите «удалить прогресс», чтобы продолжить",
         "confirm_phrase": "удалить прогресс",
         "cancel": "Отмена",

@@ -1200,14 +1200,16 @@
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
-      "description": "A few details need your attention. Review each item below, then try again.",
+      "description": "A few details need your attention. Review each item below, then contact support.",
+      "retry_description": "A few details need your attention. Review each item below, then try again.",
       "identity_document_title": "Check your identity document",
       "identity_document_description": "Make sure it is valid, clear, and fully visible",
       "selfie_title": "Retake your selfie",
       "selfie_description": "Use good lighting and show your face clearly",
       "details_title": "Review your details",
       "details_description": "Make sure your information matches your documents",
-      "button": "Subukang muli"
+      "button": "Contact support",
+      "retry_button": "Try again"
     },
     "account_provisioning_error": {
       "title": "Couldn't create your account",
@@ -1451,7 +1453,7 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Posisyon",
       "chip_gif": "GIF",
-      "gifs_title": "GIFs",
+      "gifs_title": "Add a GIF",
       "gifs_close": "Close GIFs",
       "gifs_search_placeholder": "Search GIFs",
       "gifs_empty": "No GIFs found",
@@ -1621,6 +1623,11 @@
       "muted_accessibility_label_named": "Naka-mute si {{traderName}}. I-tap para i-on muli ang mga notipikasyon"
     },
     "all_networks": "Lahat ng network",
+    "position_flags": {
+      "insider": "Insider allocation - excluded",
+      "developer": "Contract creator - excluded",
+      "excluded": "Excluded from PnL"
+    },
     "trader_profile": {
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} (na) follower",
@@ -1649,6 +1656,13 @@
       "closed": "Nakasara",
       "no_positions": "Wala pang mga posisyon",
       "error_loading_profile": "Hindi mai-load ang profile",
+      "more_options": "More options",
+      "profile_options": "Profile options",
+      "profile_options_description": "Blocking hides this profile's posts and positions on this device for this session. It also unfollows them.",
+      "block_user": "Block @{{name}}",
+      "unblock": "Unblock",
+      "blocked_title": "You blocked @{{name}}",
+      "blocked_description": "Their posts and positions are hidden on this device for this session.",
       "twitter_link": "Tingnan sa X (Twitter)",
       "sort": {
         "value": "Value",
@@ -1680,7 +1694,6 @@
       "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
-      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
       "section_tokens": "Mga Token",
       "section_perpetuals": "Perpetuals",
@@ -1691,13 +1704,22 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "empty_title": "Wala pang mga post",
-      "debug_reset_profile": "debug: reset profile",
       "joined": "Sumali {{time}}",
+      "x_link": "X",
       "load_profile_error": "Hindi mai-load ang iyong profile.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
       "retry": "Subukang muli"
+    },
+    "terms": {
+      "title": "Review our Terms of Use",
+      "close": "Close",
+      "checkbox": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+      "agree": "Agree",
+      "scroll_helper": "Please scroll to read all sections",
+      "scroll_to_bottom": "Scroll to the bottom",
+      "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
     "profile_onboarding": {
       "intro_title": "See trades as they happen",
@@ -1707,6 +1729,8 @@
       "just_now": "ngayon lang",
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
+      "connect_x_before_logo": "Connect",
+      "connect_x_after_logo": "account",
       "create_manually": "Create profile manually",
       "choose_x_identity": "Pumili ng MetaMask username at avatar",
       "choose_x_identity_description": "Sa ganitong paraan ka makikilala ng ibang mga trader.",
@@ -1739,10 +1763,6 @@
       "link_account": "Pumili ng account na ili-link sa iyong profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Pumili ng account",
-      "link_account_benefit_trades": "Ipinapakita ng iyong profile ang mga trade, win rate, at P&L ng account na ito mula sa nakalipas na 30 araw.",
-      "link_account_benefit_private": "Nananatiling pribado ang address ng iyong account.",
-      "link_account_benefit_follow": "Maaaring i-follow ng ibang trader ang iyong profile.",
-      "link_account_benefit_fees": "Kumita ng 15% sa bayarin kapag may kumopya sa iyong mga trade.",
       "link_account_change_footnote": "Maaari mong palitan ang iyong naka-link na account kada 30 araw.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
@@ -1752,6 +1772,13 @@
       "lets_go": "Tara na",
       "continue": "Magpatuloy"
     },
+    "trading_activity_benefits": {
+      "positions": "Your profile shows all of this account's positions.",
+      "performance": "Trade performance, including profit and win rate, covers the last 30 days.",
+      "fees": "Earn 15% on fees when someone copies your trades.",
+      "private": "Your account address stays private.",
+      "follow": "Other traders can follow your profile."
+    },
     "manage_profile": {
       "title": "Manage profile",
       "about": "Tungkol Dito",
@@ -1759,7 +1786,7 @@
       "display_name": "Ipinapakitang pangalan",
       "handle": "Handle",
       "bio": "Bio",
-      "socials": "Socials",
+      "x_account": "X account",
       "trading_activity": "Aktibidad na pag-trade",
       "trading_activity_on": "Naka-on",
       "trading_activity_off": "I-off",
@@ -1773,7 +1800,6 @@
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
-      "show_trading_activity_subtitle": "Public and available to copy",
       "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
       "trading_activity_info": "More information about trading activity",
       "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
@@ -1900,6 +1926,12 @@
       "order_summary": "Buod ng order",
       "includes_fee": "Kabilang ang {{feePercentage}}% bayad",
       "includes_fee_with_bridge": "Includes {{feePercentage}}% fee + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_with_bridge": "Includes {{originalFeePercentage}}% {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_discounted": "Includes {{feePercentage}}% fee after promo",
+      "includes_fee_after_promo_discounted_with_bridge": "Includes {{feePercentage}}% fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_a11y": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%",
+      "includes_fee_after_promo_a11y_with_bridge": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, plus {{bridgeFee}} bridge fee",
       "amount_slider_accessibility_label": "Halaga ng order",
       "order_type_accessibility_label": "{{orderType}} uri ng order",
       "show_asset_value": "Ipakita ang halaga ng asset",
@@ -2936,6 +2968,7 @@
       "no_positions": "Walang mga bukas na posisyon",
       "card": {
         "position_title": "Posisyon",
+        "post_to_feed": "Post to feed",
         "pnl_label": "P&L",
         "return_label": "Tutubuin",
         "size_label": "Laki",
@@ -3101,8 +3134,9 @@
         "discount_message": "Nakakatipid ka ng {{percentage}}% sa mga bayarin bilang VIP.",
         "member_discount_message": "Nakakatipid ka ng {{percentage}}% sa mga bayarin bilang miyembro.",
         "promotional_discount": "Diskwento sa promosyon",
+        "original_fee_value": "was {{fee}}",
         "fee_discount": "Diskwento sa bayad",
-        "promotional_discount_message": "Diskwento sa promosyon: {{percentage}}% bawas sa bayad sa MetaMask.",
+        "promotional_discount_message": "{{percentage}}% off the MetaMask fee.",
         "fee_discount_message": "Nakakatipid ka ng {{percentage}}% sa bayad sa MetaMask."
       },
       "size_skew": {
@@ -3611,8 +3645,6 @@
       "title": "I-share ng posisyon",
       "post_to_metamask": "I-post sa MetaMask",
       "post_to_metamask_description": "Kumita ng 15% sa bayarin sa tuwing may kumukopya sa iyong mga galaw.",
-      "post_not_ready": "Ang posisyon na ito ay hindi pa handang i-post",
-      "post_other_account": "Tanging mga posisyon mula sa wallet ng iyong profile ang maaaring i-post",
       "new_badge": "Bago",
       "share_externally": "I-share sa labas"
     },
@@ -3682,7 +3714,9 @@
       "unavailable": "No markets are available right now."
     },
     "event": {
-      "your_positions": "Mga position mo"
+      "your_positions": "Mga position mo",
+      "game_lines": "Game Lines",
+      "outcome": "Outcome"
     },
     "search": {
       "placeholder": "Maghanap ng mga market",
@@ -4227,6 +4261,7 @@
       "buy_title": "Hinulaan",
       "sell_title": "Na-cash out",
       "claim_title": "Na-claim na mga panalo",
+      "settled_title": "Settled",
       "claim_pending": "Nakabinbin ang claim",
       "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, mga detalye ng magbubukas na market",
       "prediction_lost_title": "Talo ang Prediction",
@@ -4242,6 +4277,11 @@
       "predicted_amount": "Hinulaang halaga",
       "shares_bought": "Biniling shares",
       "shares_sold": "Nabentang shares",
+      "shares_settled": "Shares settled",
+      "settlement_result": "Result",
+      "settlement_result_won": "Won",
+      "settlement_result_lost": "Lost",
+      "settlement_result_partial": "Partial payout",
       "price_per_share": "Presyo kada share",
       "price_impact": "Epekto ng presyo",
       "net_pnl": "Net P&L",
@@ -5106,7 +5146,7 @@
     "card_update_badge": "I-update",
     "settings": "Mga Setting",
     "networks": "Mga Network",
-    "log_out": "I-lock",
+    "log_out": "Lock",
     "notifications": "Mga notipikasyon",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Sumali sa MetaMask Orange",
@@ -5659,7 +5699,9 @@
         "unlink_money_account_button": "I-unlink ang Money Account mula sa Card",
         "unlink_money_account_disabled_hint": "Walang aalisin na aktibong pagka-link.",
         "reset_card_arrival_description": "I-clear ang estado ng animation ng pagdating ng card para muling mag-play ang reveal sa susunod na buksan mo ang dashboard ng Card.",
-        "reset_card_arrival_button": "I-reset ang pagdating ng animation"
+        "reset_card_arrival_button": "I-reset ang pagdating ng animation",
+        "reset_apple_pay_splash_description": "Show the Apple Pay availability splash again the next time you open Card Home while signed in.",
+        "reset_apple_pay_splash_button": "Reset Apple Pay splash"
       },
       "identity": {
         "title": "Pagkakakilanlan",
@@ -5675,7 +5717,9 @@
         "title": "Social Leaderboard",
         "description": "I-reset ang pag-onboard sa Social Leaderboard para makita itong muli sa susunod na buksan ang feature.",
         "onboarding_seen": "Seen sa pag-onboard: {{seen}}",
-        "reset_onboarding": "I-reset ang pag-onboard"
+        "reset_onboarding": "I-reset ang pag-onboard",
+        "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
+        "reset_terms": "Reset Social Terms of Use"
       },
       "new_wallet": {
         "title": "Bagong wallet",
@@ -8234,7 +8278,10 @@
       "next": "Susunod",
       "hold_to_send": "Pindutin nang matagal para ipadala",
       "send": "Ipadala",
-      "sent": "Nagpadala!"
+      "sent": "Nagpadala!",
+      "insufficient_tron_resources": "This account needs more TRX or network resources to complete the transaction.",
+      "tron_validation_failed": "We couldn't verify this transfer. Please try again.",
+      "retry_validation": "Try again"
     },
     "notifications": {
       "purchase_failed_title": "Nabigo ang pagbili ng {{currency}}. Subukan muli sa ilang sandali.",
@@ -10921,11 +10968,11 @@
     "add_wallet": "Magdagdag ng wallet",
     "add_wallet_srp_description": "Paggamit ng 12, 18, 0 24 na salitang seed phrase",
     "add_wallet_private_key_description": "Sa pamamagitan ng pribadong key",
-    "add_wallet_hardware_description": "Paggamit ng Bluetooth o QR code",
+    "add_wallet_hardware_description": "Using Bluetooth or a QR code",
     "add_hardware_wallet": "Magdagdag ng wallet na hardware",
     "syncing": "Sini-sync",
-    "link_metamask_extension": "Iimport ang mga account mula sa MetaMask extension",
-    "link_metamask_extension_description": "Iimport ang mga account mula sa MetaMask extension papunta sa iyong wallet",
+    "link_metamask_extension": "Import from MetaMask extension",
+    "link_metamask_extension_description": "Scan a QR code to add your accounts",
     "account_details": {
       "header_title": "Mga detalye ng account",
       "account_name": "Pangalan ng account",
@@ -11844,6 +11891,28 @@
       "try_again": "Subukang muli",
       "reset_success": "Matagumpay na nai-reset ang password"
     },
+    "mfa": {
+      "method_title": "Verify it's you",
+      "method_description": "Choose where to send a code, then enter the full phone number or email.",
+      "method_phone": "Text message",
+      "method_email": "Email",
+      "phone_label": "Phone number",
+      "email_label": "Email",
+      "country_code": "Country code",
+      "country_code_label": "Country code, +{{code}}",
+      "continue": "Continue",
+      "code_title": "Enter your code",
+      "code_description": "Enter the code sent to {{destination}}.",
+      "start_over": "Start over",
+      "errors": {
+        "destination_mismatch": "That doesn't match the contact on your account. Check it and try again.",
+        "invalid_code": "That code is incorrect. Try again.",
+        "code_expired": "That code expired. Start over to get a new one.",
+        "attempts_exceeded": "Too many incorrect codes. Start over to try again.",
+        "restart_required": "Verification needs to start over.",
+        "no_verified_contact": "This account has no verified phone number or email to send a code to."
+      }
+    },
     "card_otp_authentication": {
       "title": "Kumpirmahin ang numero ng telepono mo",
       "description_with_phone_number": "Ilagay ang verification code na ipinadala sa {{maskedPhoneNumber}}",
@@ -11854,6 +11923,29 @@
       "didnt_receive_code": "Hindi natanggap ang code? ",
       "resend_verification": "Ipadala itong muli",
       "resend_cooldown": "Ipadala muli ang available sa pagkalipas ng {{seconds}} segundo"
+    },
+    "apple_pay_splash": {
+      "title": "MetaMask with Apple Pay",
+      "description": "Apple Pay is an easy, secure, and private way to pay with your iPhone and Apple Watch.",
+      "no_downloads": "There are no additional app downloads, sign ups, or fees.",
+      "setup": "Get set up in seconds.",
+      "close": "Close"
+    },
+    "apple_pay_usage": {
+      "learn_more": "Learn more about Apple Pay",
+      "row_title": "How to use Apple Pay",
+      "title": "Using Apple Pay",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "got_it": "Got it"
+    },
+    "apple_pay_confirmation": {
+      "title": "Card Added Successfully",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "done": "Done"
     },
     "push_provisioning": {
       "add_to_wallet": "Idagdag sa {{walletName}}",
@@ -12188,12 +12280,12 @@
       "apply_success": "Nailapat na ang bonus code!"
     },
     "optout": {
-      "title": "Umalis sa Rewards program",
-      "description": "Aalisin nito ang mga account mo mula sa programa ng Mga Reward at ang anumang progreso mo sa anumang campaign na sinalihan mo. Gawin lang ito kung siguradong-sigurado kang gusto mong mawala ang progreso mo.",
+      "title": "Opt out of Rewards campaigns",
+      "description": "This removes your accounts from Rewards campaigns and benefits, and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
       "erase_button": "Burahin ang progreso",
       "modal": {
         "confirmation_title": "Sigurado ka ba?",
-        "confirmation_description": "Buburahin nito ang lahat ng iyong progreso at hindi na ito maibabalik. Kung sasali ka ulit sa programa ng Mga Reward sa hinaharap, magsisimula kang muli sa 0.",
+        "confirmation_description": "This will erase your progress in Rewards campaigns and benefits, and can't be reversed. If you rejoin later, you'll start back at 0.",
         "type_to_confirm": "I-type ang 'burahin ang progreso' para magpatuloy",
         "confirm_phrase": "burahin ang progreso",
         "cancel": "Kanselahin",
