@@ -4,6 +4,11 @@ import {
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   BUTTON_COLOR_VARIANTS,
   ButtonColorVariant,
+  FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING,
+  FEE_DISPLAY_AB_TEST_EXPOSURE_OPTIONS,
+  FEE_DISPLAY_AB_TEST_KEY,
+  FEE_DISPLAY_VARIANTS,
+  FeeDisplayVariant,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
   PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
   PERPS_HOME_EXPLORE_AB_TEST_KEY,
@@ -189,6 +194,75 @@ describe('Perps abTestConfig', () => {
     it('is registered for shared-path active_ab_tests enrichment', () => {
       expect(AB_TEST_ANALYTICS_MAPPINGS).toContain(
         PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
+      );
+    });
+  });
+
+  describe('FEE_DISPLAY_AB_TEST_KEY', () => {
+    it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
+      expect(FEE_DISPLAY_AB_TEST_KEY).toBe(
+        'perpsTAT4046AbtestFeeDisplayFormat',
+      );
+      expect(FEE_DISPLAY_AB_TEST_KEY).toMatch(
+        /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
+      );
+    });
+  });
+
+  describe('FEE_DISPLAY_VARIANTS', () => {
+    it('includes a control variant', () => {
+      expect(FEE_DISPLAY_VARIANTS).toHaveProperty(FeeDisplayVariant.Control);
+    });
+
+    it('maps control to the dollar fee amount', () => {
+      expect(FEE_DISPLAY_VARIANTS[FeeDisplayVariant.Control]).toEqual({
+        feeDisplayMode: 'dollar',
+      });
+    });
+
+    it('maps treatment to the taker/maker percentage rates', () => {
+      expect(FEE_DISPLAY_VARIANTS[FeeDisplayVariant.Treatment]).toEqual({
+        feeDisplayMode: 'percentage',
+      });
+    });
+  });
+
+  describe('FEE_DISPLAY_AB_TEST_EXPOSURE_OPTIONS', () => {
+    it('names the experiment and both variations for exposure tracking', () => {
+      expect(FEE_DISPLAY_AB_TEST_EXPOSURE_OPTIONS).toEqual({
+        experimentName: 'Perps Fee Display Format',
+        variationNames: {
+          control: 'Dollar fee amount',
+          treatment: 'Taker/Maker percentage rates',
+        },
+      });
+    });
+  });
+
+  describe('FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING', () => {
+    it('references the fee display flag key', () => {
+      expect(FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING.flagKey).toBe(
+        FEE_DISPLAY_AB_TEST_KEY,
+      );
+    });
+
+    it('declares control and treatment as valid variants', () => {
+      expect(FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING.validVariants).toEqual([
+        FeeDisplayVariant.Control,
+        FeeDisplayVariant.Treatment,
+      ]);
+    });
+
+    it('registers the screen viewed and trade transaction events', () => {
+      expect(FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING.eventNames).toEqual([
+        EVENT_NAME.PERPS_SCREEN_VIEWED,
+        EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      ]);
+    });
+
+    it('is registered for shared-path active_ab_tests enrichment', () => {
+      expect(AB_TEST_ANALYTICS_MAPPINGS).toContain(
+        FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING,
       );
     });
   });

@@ -43,6 +43,7 @@ import Logger from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
+import { FEE_DISPLAY_AB_TEST_KEY } from '../../abTestConfig';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
 import {
@@ -5559,5 +5560,120 @@ describe('Pro market Lighter limit order take profit and stop loss', () => {
       ),
     ).toBeOnTheScreen();
     await waitFor(() => expect(submit).toBeDisabled());
+  });
+});
+
+describe('Pro fee display format', () => {
+  const calculateFees = () =>
+    Engine.context.PerpsController.calculateFees as jest.Mock;
+
+  afterEach(() => {
+    calculateFees().mockReset().mockResolvedValue({});
+  });
+
+  const renderTreatmentProMarket = ({
+    positionSize,
+  }: {
+    positionSize?: string;
+  } = {}) =>
+    renderPerpsProMarketView({
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: positionSize
+          ? [createLongPositionForViews({ size: positionSize })]
+          : [],
+        orders: [],
+      },
+      overrides: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [FEE_DISPLAY_AB_TEST_KEY]: 'treatment',
+              },
+            },
+          },
+        },
+      },
+    });
+
+  it('renders taker and maker rates for treatment and dollars after reduce-only', async () => {
+    calculateFees().mockImplementation(({ isMaker }: { isMaker: boolean }) =>
+      Promise.resolve(
+        isMaker
+          ? { protocolFeeRate: 0.00015, metamaskFeeRate: 0.00005 }
+          : { protocolFeeRate: 0.00045, metamaskFeeRate: 0.00005 },
+      ),
+    );
+    renderTreatmentProMarket({ positionSize: '-1' });
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '120');
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(ids.SUMMARY_FEES_VALUE_TAKER),
+      ).toHaveTextContent('Taker 0.050% /');
+      expect(
+        screen.getByTestId(ids.SUMMARY_FEES_VALUE_MAKER),
+      ).toHaveTextContent('Maker 0.020%');
+    });
+    expect(calculateFees()).toHaveBeenCalledWith(
+      expect.objectContaining({ orderType: 'limit', isMaker: true }),
+    );
+
+    fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SUMMARY_FEES_VALUE)).toHaveTextContent(
+        '$0.06',
+      );
+    });
+    expect(
+      screen.queryByTestId(ids.SUMMARY_FEES_VALUE_TAKER),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(ids.SUMMARY_FEES_VALUE_MAKER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps a treatment TWAP order on the dollar fee', async () => {
+    calculateFees().mockImplementation(() =>
+      Promise.resolve({
+        protocolFeeRate: 0.0005,
+        metamaskFeeRate: 0,
+      }),
+    );
+    const { store } = renderProMarketWithTwapFlag(true);
+    const remoteFeatureFlagController = store.getState().engine.backgroundState
+      .RemoteFeatureFlagController as unknown as {
+      remoteFeatureFlags: Record<string, unknown>;
+    };
+    act(() => {
+      syncEngineControllerState(store, 'RemoteFeatureFlagController', {
+        ...remoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...remoteFeatureFlagController.remoteFeatureFlags,
+          [FEE_DISPLAY_AB_TEST_KEY]: 'treatment',
+        },
+      });
+    });
+    const { sizeInput } = await openTwapOrderForm();
+    calculateFees().mockClear();
+    fireEvent.changeText(sizeInput, '120');
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SUMMARY_FEES_VALUE)).toHaveTextContent(
+        '$0.06',
+      );
+    });
+    expect(
+      screen.queryByTestId(ids.SUMMARY_FEES_VALUE_TAKER),
+    ).not.toBeOnTheScreen();
+    expect(calculateFees()).toHaveBeenCalledWith(
+      expect.objectContaining({ orderType: 'twap' }),
+    );
+    expect(calculateFees()).not.toHaveBeenCalledWith(
+      expect.objectContaining({ orderType: 'limit' }),
+    );
   });
 });

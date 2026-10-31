@@ -1901,6 +1901,36 @@ describe('PerpsProOrderForm', () => {
     });
   });
 
+  describe('Fee Display Format A/B test', () => {
+    it('passes feeDisplayMode and both rates through to PerpsFeesDisplay for treatment', () => {
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          feeDisplayMode: 'percentage',
+          takerFeeRate: 0.00143,
+          makerFeeRate: 0.00114,
+        },
+      });
+
+      const feesValue = screen.getByTestId(ids.SUMMARY_FEES_VALUE);
+      expect(feesValue).toHaveProp('feeDisplayMode', 'percentage');
+      expect(feesValue).toHaveProp('takerFeeRate', 0.00143);
+      expect(feesValue).toHaveProp('makerFeeRate', 0.00114);
+    });
+
+    it('leaves PerpsFeesDisplay in dollar mode with no rates when feeDisplayMode is omitted', () => {
+      renderForm({
+        summary: { margin: '--', liquidationPrice: '--' },
+      });
+
+      const feesValue = screen.getByTestId(ids.SUMMARY_FEES_VALUE);
+      expect(feesValue).toHaveProp('feeDisplayMode', undefined);
+      expect(feesValue).toHaveProp('takerFeeRate', undefined);
+      expect(feesValue).toHaveProp('makerFeeRate', undefined);
+    });
+  });
+
   describe('Figma layout', () => {
     it('uses 16-point spacing between form sections', () => {
       renderForm();

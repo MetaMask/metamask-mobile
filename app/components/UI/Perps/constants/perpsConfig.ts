@@ -57,6 +57,13 @@ export const PERPS_MIN_BALANCE_THRESHOLD = 0.01;
 export const PERPS_MIN_AGGREGATORS_FOR_TRUST = 2;
 
 /**
+ * Decimal places shown for a taker/maker fee rate percentage (e.g.
+ * `0.00143` → `"0.143"`). Used by `PerpsFeesDisplay`'s percentage mode
+ * (Perps Fee Display Format A/B test).
+ */
+export const PERPS_FEE_RATE_DISPLAY_DECIMALS = 3;
+
+/**
  * Checks if an asset is trustworthy for displaying the Perps Discovery Banner.
  * An asset is considered trustworthy if:
  * - It is a native asset (ETH, BNB, SOL, etc.), OR
