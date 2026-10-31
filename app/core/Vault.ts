@@ -3,8 +3,15 @@ import Logger from '../util/Logger';
 import ReduxService from './redux';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
-import { Authentication } from './Authentication/Authentication';
+import { completeSeedlessPasswordChangeKeySync } from './Authentication/seedlessPasswordChangeCoordinator';
+import {
+  SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
+  haltIfSeedlessPasswordChangeKillAfter,
+  registerSeedlessPasswordChangeKillDeepLinkHandler,
+} from './Authentication/seedlessPasswordChangeKillSwitch';
 import { signOutCardAfterPasswordChange } from './signOutCardAfterPasswordChange';
+
+registerSeedlessPasswordChangeKillDeepLinkHandler();
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
@@ -84,17 +91,20 @@ export const recreateVaultsWithNewPassword = async (
     ReduxService.store.getState(),
   );
 
-  // we change the password in the seedless flow first
-  // if it succed seedless change password but fail on the change password on local, we will prompt user password out of date
-  // and ask user to login with new password
   if (isSeedlessFlow) {
     await recreateSeedlessVaultWithNewPassword(newPassword, password);
+    await haltIfSeedlessPasswordChangeKillAfter(
+      SEEDLESS_PASSWORD_CHANGE_KILL_AFTER.SeedlessChangePassword,
+    );
   }
 
   await KeyringController.changePassword(newPassword);
 
   if (isSeedlessFlow) {
-    await Authentication.syncKeyringEncryptionKey();
+    await haltIfSeedlessPasswordChangeKillAfter(
+      SEEDLESS_PASSWORD_CHANGE_KILL_AFTER.KeyringChange,
+    );
+    await completeSeedlessPasswordChangeKeySync();
   }
   Engine.setSelectedAddress(selectedAddress);
   // Card logout is a remote call with no timeout. It must not delay the
