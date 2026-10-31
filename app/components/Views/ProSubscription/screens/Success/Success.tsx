@@ -20,8 +20,6 @@ interface SuccessProps {
   onSuccess: () => void;
 }
 
-const ALY_NAME = 'Aly';
-
 const Success = ({ onSuccess }: SuccessProps) => (
   <Box
     twClassName="flex-1 bg-background-default"
@@ -51,7 +49,7 @@ const Success = ({ onSuccess }: SuccessProps) => (
           twClassName="w-[85%]"
           testID={SuccessTestIds.TITLE}
         >
-          {strings('pro_subscription.success.title', { name: ALY_NAME })}
+          {strings('pro_subscription.success.title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}

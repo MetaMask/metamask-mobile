@@ -56,13 +56,9 @@ describe('getMembershipBannerModel', () => {
     I18n.locale = originalLocale;
   });
 
-  it.each([
-    SUBSCRIPTION_STATUSES.active,
-    SUBSCRIPTION_STATUSES.trialing,
-    SUBSCRIPTION_STATUSES.provisional,
-  ])('shows Active with no alert for a %s plan', (status) => {
+  it('shows Active with no alert for an active plan', () => {
     const subscription = createSubscription({
-      status,
+      status: SUBSCRIPTION_STATUSES.active,
       trialPeriodDays: 14,
       trialEnd: '2026-10-04T12:00:00.000Z',
       cancelAtPeriodEnd: true,
@@ -73,6 +69,46 @@ describe('getMembershipBannerModel', () => {
     expect(model).toEqual({
       statusKind: MembershipStatusKind.Active,
       statusKey: 'pro_hub.membership_status.active',
+    });
+  });
+
+  it('shows Active with no alert for a provisional plan that is not a trial', () => {
+    const model = getMembershipBannerModel(
+      createSubscription({ status: SUBSCRIPTION_STATUSES.provisional }),
+    );
+
+    expect(model).toEqual({
+      statusKind: MembershipStatusKind.Active,
+      statusKey: 'pro_hub.membership_status.active',
+    });
+  });
+
+  it('shows Free trial with no alert for a provisional plan that still has trial days', () => {
+    const model = getMembershipBannerModel(
+      createSubscription({
+        status: SUBSCRIPTION_STATUSES.provisional,
+        trialPeriodDays: 14,
+      }),
+    );
+
+    expect(model).toEqual({
+      statusKind: MembershipStatusKind.FreeTrial,
+      statusKey: 'pro_hub.membership_status.free_trial',
+    });
+  });
+
+  it('shows Free trial with no alert for a trialing plan', () => {
+    const model = getMembershipBannerModel(
+      createSubscription({
+        status: SUBSCRIPTION_STATUSES.trialing,
+        trialPeriodDays: 14,
+        trialEnd: '2026-10-04T12:00:00.000Z',
+      }),
+    );
+
+    expect(model).toEqual({
+      statusKind: MembershipStatusKind.FreeTrial,
+      statusKey: 'pro_hub.membership_status.free_trial',
     });
   });
 

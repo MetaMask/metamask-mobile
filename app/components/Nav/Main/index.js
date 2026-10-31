@@ -39,6 +39,7 @@ import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
 import MoneyTransactionMonitor from '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor';
+import ProSubscriptionPaymentMonitor from '../../Views/ProSubscription/components/ProSubscriptionPaymentMonitor/ProSubscriptionPaymentMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -365,7 +366,7 @@ const Main = (props) => {
   }, [connectionChangeHandler]);
 
   const openDeprecatedNetworksArticle = () => {
-    Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
+    Linking.openURL(GOERLI_DEPRECATED_ARTICLE).catch(() => undefined);
   };
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
@@ -404,6 +405,7 @@ const Main = (props) => {
         <RampOrders />
         <EarnTransactionMonitor />
         <MoneyTransactionMonitor />
+        <ProSubscriptionPaymentMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,

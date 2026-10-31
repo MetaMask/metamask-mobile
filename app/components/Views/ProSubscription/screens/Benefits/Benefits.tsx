@@ -43,10 +43,13 @@ import {
   type SelectedPlusPlan,
 } from './utils/getSelectedPlusPlan';
 import { useStartProSubscription } from '../../hooks/useStartProSubscription';
+import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
 import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
 
 interface BenefitsProps {
   onSuccess: (plan: SelectedPlusPlan) => void;
+  /** On-ramp or bridge funding is still in flight. Caller opens Pro Hub. */
+  onProcessing: () => void;
   onCheckoutStart: () => void;
   onCheckoutError: () => void;
   onPlanChange?: (planId: PlanId) => void;
@@ -55,6 +58,7 @@ interface BenefitsProps {
 
 const Benefits = ({
   onSuccess,
+  onProcessing,
   onCheckoutStart,
   onCheckoutError,
   onPlanChange,
@@ -127,9 +131,13 @@ const Benefits = ({
     onCheckoutStart();
 
     try {
-      await startSubscription(checkoutPlan, {
+      const { outcome } = await startSubscription(checkoutPlan, {
         isTrial: selectedPlanOffersTrial,
       });
+      if (outcome === StartProSubscriptionOutcome.Processing) {
+        onProcessing();
+        return;
+      }
       onSuccess(checkoutPlan);
     } catch {
       // The hook logs the failure and exposes localized error state.
@@ -139,6 +147,7 @@ const Benefits = ({
     isCtaDisabled,
     onCheckoutError,
     onCheckoutStart,
+    onProcessing,
     onSuccess,
     plusPricing,
     resolvedPlan,
