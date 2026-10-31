@@ -45,4 +45,10 @@ export const MONEY_VBA_HOME_CARD_TEST_IDS: Record<
     CTA_BUTTON: 'money-vba-kyc-decision-card-cta-button',
     DISMISS_BUTTON: 'money-vba-kyc-decision-card-dismiss-button',
   },
+  kyc_retry: {
+    CONTAINER: 'money-vba-kyc-retry-card-container',
+    TITLE: 'money-vba-kyc-retry-card-title',
+    DESCRIPTION: 'money-vba-kyc-retry-card-description',
+    CTA_BUTTON: 'money-vba-kyc-retry-card-cta-button',
+  },
 };

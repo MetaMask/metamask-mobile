@@ -46,11 +46,15 @@ export type VbaHomeCard =
   /** FINISH_VERIFICATION — Figma node 2267-18364. */
   | { type: 'finish_verification' }
   /**
-   * KYC rejected or retry — stub. No card exists in Figma for this state yet
-   * (design question pending in TRAM-4099); hosts render it as `none` until
-   * design answers.
+   * KYC_DECISION — Figma node 3841-39885 (main file). KYC rejected: terminal,
+   * the user can only contact support.
    */
-  | { type: 'kyc_decision' };
+  | { type: 'kyc_decision' }
+  /**
+   * KYC_RETRY — KYC retry: the provider asked for fixes and the user can
+   * resubmit. Reuses the KYC_DECISION layout with a single primary CTA.
+   */
+  | { type: 'kyc_retry' };
 
 /** Inputs for {@link getVbaHomeCard}. */
 export interface VbaHomeCardInputs {
@@ -134,8 +138,7 @@ const hasWalletRegistration = (
  * wallet whose only autoramp is dead, with no session, terms, or
  * registration) renders no card — reinstall discovery is a follow-up.
  *
- * @returns The card identity. `{ type: 'kyc_decision' }` is a stub that hosts
- * render as `none` until the rejected/retry design lands.
+ * @returns The card identity.
  */
 export function getVbaHomeCard({
   isEligible,
@@ -179,13 +182,17 @@ export function getVbaHomeCard({
     return { type: 'account_is_ready' };
   }
 
-  // 4. KYC rejected or retry — no card exists in Figma yet (design question
-  // pending in TRAM-4099). Stub: hosts render this as `none` for now.
-  if (
-    sessionStatus?.finalStatus === 'rejected' ||
-    sessionStatus?.finalStatus === 'retry'
-  ) {
+  // 4. KYC decided. Rejected is terminal (kyc_decision, contact support).
+  // Retry means the provider asked for fixes and the user can resubmit
+  // (kyc_retry). A retry whose kycStatus is already rejected counts as
+  // rejected, matching the onboarding retry screen (`canRetryKycSession`).
+  if (sessionStatus?.finalStatus === 'rejected') {
     return { type: 'kyc_decision' };
+  }
+  if (sessionStatus?.finalStatus === 'retry') {
+    return sessionStatus.kycStatus === 'rejected'
+      ? { type: 'kyc_decision' }
+      : { type: 'kyc_retry' };
   }
 
   // 5. Genuinely in review: the relay decision is pending, or the provider

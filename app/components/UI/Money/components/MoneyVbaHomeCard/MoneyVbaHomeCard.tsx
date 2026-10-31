@@ -60,7 +60,7 @@ const CTA_REENTRY_WINDOW_MS = 1000;
 /**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
- * kyc_decision); all per-variant differences — copy, analytics names, CTA
+ * kyc_decision, kyc_retry); all per-variant differences — copy, analytics names, CTA
  * treatment, hero art — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA routes

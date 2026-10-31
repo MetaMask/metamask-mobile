@@ -78,18 +78,29 @@ describe('VbaKycRejected', () => {
       <VbaKycRejected action="retry" onAction={mockOnAction} />,
     );
 
+    expect(getByText('A few details need fixing')).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_rejected.retry_description')),
+      getByText(
+        'We couldn’t confirm some of your details. Check them, then submit again to carry on.',
+      ),
     ).toBeOnTheScreen();
-    expect(
-      getByText(strings('virtual_bank_account.kyc_rejected.retry_button')),
-    ).toBeOnTheScreen();
+    expect(getByText('Try again')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(VbaKycRejectedSelectorsIDs.RETRY_BUTTON));
 
     await waitFor(() => {
       expect(mockOnAction).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('keeps the rejected title off the retry screen', () => {
+    const { queryByText } = renderWithProvider(
+      <VbaKycRejected action="retry" onAction={mockOnAction} />,
+    );
+
+    expect(
+      queryByText(strings('virtual_bank_account.kyc_rejected.title')),
+    ).toBeNull();
   });
 
   it('navigates back from the header', () => {

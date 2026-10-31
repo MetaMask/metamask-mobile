@@ -313,7 +313,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'account_is_ready' });
   });
 
-  it('renders the kyc_decision stub when finalStatus is rejected (decision rule 5)', () => {
+  it('renders kyc_decision when finalStatus is rejected (decision rule 4)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -326,12 +326,24 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_decision' });
   });
 
-  it('renders the kyc_decision stub when finalStatus is retry (decision rule 5)', () => {
+  it('renders kyc_retry when finalStatus is retry (decision rule 4)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
         finalStatus: 'retry',
         kycStatus: 'retry',
+      }),
+    });
+
+    expect(card).toEqual({ type: 'kyc_retry' });
+  });
+
+  it('renders kyc_decision when finalStatus is retry but kycStatus is rejected (decision rule 4)', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      sessionStatus: makeSession({
+        finalStatus: 'retry',
+        kycStatus: 'rejected',
       }),
     });
 
@@ -525,6 +537,20 @@ describe('useVbaHomeCard', () => {
     const { result } = renderHook(() => useVbaHomeCard());
 
     expect(result.current).toEqual({ type: 'kyc_decision' });
+  });
+
+  it('honors a retry dev KYC status override with the kyc_retry card', () => {
+    mockGetVbaKycStatusOverride.mockReturnValue('retry');
+    setupSelectors({
+      sessionStatus: makeSession({
+        finalStatus: 'pending',
+        kycStatus: 'new',
+      }),
+    });
+
+    const { result } = renderHook(() => useVbaHomeCard());
+
+    expect(result.current).toEqual({ type: 'kyc_retry' });
   });
 
   it('treats local vendor terms as not accepted while loading, then flips once accepted', async () => {
