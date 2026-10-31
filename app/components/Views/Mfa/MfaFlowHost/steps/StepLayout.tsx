@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 import {
   Box,
-  FontWeight,
   HelpText,
   HelpTextSeverity,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -74,22 +74,20 @@ export const StepError = ({
   return (
     <HelpText
       severity={HelpTextSeverity.Danger}
-      fontWeight={FontWeight.Medium}
+      accessibilityRole="alert"
       testID={MfaFlowSelectorsIDs.ERROR}
     >
       {getErrorMessage(code, method)}
       {link ? (
         <>
           {' '}
-          <Text
+          <TextButton
             variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
             onPress={() => Linking.openURL(link)}
             testID={MfaFlowSelectorsIDs.ERROR_LINK}
           >
             {strings('mfa.errors.learn_more')}
-          </Text>
+          </TextButton>
         </>
       ) : null}
     </HelpText>

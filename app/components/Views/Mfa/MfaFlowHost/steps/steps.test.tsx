@@ -503,6 +503,16 @@ describe('CodeStep', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
+  it('hides the wrong-code error once the user types again', () => {
+    const { getByTestId, queryByTestId } = renderCode(otp(true), {
+      error: 'invalid_code',
+    });
+
+    expect(getByTestId(MfaFlowSelectorsIDs.ERROR)).toBeOnTheScreen();
+    fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), '1');
+    expect(queryByTestId(MfaFlowSelectorsIDs.ERROR)).toBeNull();
+  });
+
   it('counts down instead of showing the cooldown error', () => {
     const { onAction, getByText, getByTestId, queryByTestId } = renderCode(
       otp(true),
@@ -545,11 +555,13 @@ describe('CodeStep', () => {
     ).toBeOnTheScreen();
   });
 
-  it('pastes a copied code and submits it', async () => {
+  it('pastes a copied code on a long press and submits it', async () => {
     jest.spyOn(Clipboard, 'getString').mockResolvedValue('Code: 123456');
     const { onAction, getByTestId } = renderCode(otp(true));
 
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON));
+    const tapArea = getByTestId(MfaFlowSelectorsIDs.CODE_TAP_AREA);
+    fireEvent(tapArea, 'longPress');
+    fireEvent(tapArea, 'pressOut', { nativeEvent: {} });
 
     await waitFor(() =>
       expect(onAction).toHaveBeenCalledWith({
