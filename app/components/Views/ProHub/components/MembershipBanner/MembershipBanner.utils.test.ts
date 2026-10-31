@@ -204,38 +204,7 @@ describe('getMembershipBannerModel', () => {
     expect(model.alert?.action).toBe(MembershipAlertAction.AddFunds);
   });
 
-  it('uses endDate when an awaiting-funds plan has no period end', () => {
-    const subscription = createSubscription({
-      status: SUBSCRIPTION_STATUSES.awaitingFunds,
-      currentPeriodEnd: undefined,
-      endDate: '2026-11-01T12:00:00.000Z',
-    });
-
-    const model = getMembershipBannerModel(subscription);
-
-    expect(model.alert?.titleKey).toBe(
-      'pro_hub.membership_alert.low_balance.title',
-    );
-    expect(model.alert?.descriptionValues).toEqual({ date: 'Nov 1, 2026' });
-  });
-
-  it('uses the description as the title when an awaiting-funds plan has no date', () => {
-    const subscription = createSubscription({
-      status: SUBSCRIPTION_STATUSES.awaitingFunds,
-      currentPeriodEnd: undefined,
-      endDate: undefined,
-    });
-
-    const model = getMembershipBannerModel(subscription);
-
-    expect(model.alert?.titleKey).toBe(
-      'pro_hub.membership_alert.low_balance.description',
-    );
-    expect(model.alert?.descriptionKey).toBeUndefined();
-    expect(model.alert?.descriptionValues).toBeUndefined();
-  });
-
-  it('shows the add-funds alert while a plan is waiting for funds', () => {
+  it('shows the waiting-for-funds alert while a plan is waiting for funds', () => {
     const subscription = createSubscription({
       status: SUBSCRIPTION_STATUSES.awaitingFunds,
     });
@@ -246,11 +215,20 @@ describe('getMembershipBannerModel', () => {
     expect(model.iconColor).toBe(IconColor.PrimaryDefault);
     expect(model.alert).toEqual({
       severity: BannerAlertSeverity.Info,
-      titleKey: 'pro_hub.membership_alert.low_balance.title',
-      descriptionKey: 'pro_hub.membership_alert.low_balance.description',
-      descriptionValues: { date: 'Oct 12, 2026' },
-      actionKey: 'pro_hub.membership_alert.low_balance.action',
-      action: MembershipAlertAction.AddFunds,
+      titleKey: 'pro_hub.membership_alert.awaiting_funds.title',
+      descriptionKey: 'pro_hub.membership_alert.awaiting_funds.description',
     });
+  });
+
+  it('omits a date from the waiting-for-funds alert', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.awaitingFunds,
+      currentPeriodEnd: undefined,
+      endDate: '2026-11-01T12:00:00.000Z',
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.alert?.descriptionValues).toBeUndefined();
   });
 });

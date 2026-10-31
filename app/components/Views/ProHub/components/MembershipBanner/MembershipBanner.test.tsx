@@ -131,21 +131,27 @@ describe('MembershipBanner', () => {
     });
   });
 
-  it('renders the awaiting-funds title with the due date', () => {
-    const { getByTestId } = renderBanner(
+  it('renders the waiting-for-funds alert without an action for an awaiting-funds plan', () => {
+    const { getByTestId, queryByTestId } = renderBanner(
       createSubscription({ status: SUBSCRIPTION_STATUSES.awaitingFunds }),
     );
 
-    expect(
-      getByTestId(
-        ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Active),
-      ),
-    ).toHaveTextContent(
-      strings('pro_hub.membership_alert.low_balance.title', {
-        date: 'Oct 12, 2026',
-      }),
+    const banner = getByTestId(
+      ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Active),
+    );
+    expect(banner).toHaveTextContent(
+      strings('pro_hub.membership_alert.awaiting_funds.title'),
       { exact: false },
     );
+    expect(banner).toHaveTextContent(
+      strings('pro_hub.membership_alert.awaiting_funds.description'),
+      { exact: false },
+    );
+    expect(
+      queryByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Active),
+      ),
+    ).toBeNull();
   });
 
   it('renders Cancelled with the renew-before date', () => {

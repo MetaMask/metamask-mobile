@@ -156,8 +156,8 @@ export function resolvePredictFeatureFlags(
     flags.predictSportCardLivePrices,
     true,
   );
-  const isMembershipFeeWaiverEnabled = resolveVersionGatedBooleanFlag(
-    flags.predictSubscriptionFeeWaiverEnabled,
+  const isMembershipFeeWaiverEnabled = Boolean(
+    flags?.predictSubscriptionFeeWaiverEnabled,
   );
   const disablePolymarketV2Markets = resolveVersionGatedBooleanFlag(
     flags.predictDisablePolymarketV2Markets,
