@@ -67,6 +67,27 @@ export interface NeobankBankTransferActivity {
 }
 
 /**
+ * Bank microdeposit: a small test credit a bank sends to verify a linked
+ * account. It never settles on-chain — the bank later pulls the total back
+ * with one debit that our providers do not report — so the row exists only
+ * to explain a credit the user sees on their bank statement.
+ */
+export interface MicrodepositActivity {
+  /**
+   * Synthetic identity. MoonPay's microdeposit payload has no id, so this is
+   * built from the fields that identify the credit.
+   */
+  id: string;
+  /** Decimal fiat amount, exactly as MoonPay sends it. */
+  amount: string;
+  currencyCode: string;
+  /** Sending bank or account name when MoonPay reports one. */
+  counterpartyName?: string;
+  /** Epoch ms parsed from MoonPay's `created_at`. */
+  time: number;
+}
+
+/**
  * One row in the Money activity list, tagged by source.
  **/
 export type MoneyActivityItem =
@@ -78,6 +99,12 @@ export type MoneyActivityItem =
       id: string;
       time: number;
       tx: NeobankBankTransferActivity;
+    }
+  | {
+      kind: 'microdeposit';
+      id: string;
+      time: number;
+      tx: MicrodepositActivity;
     };
 
 export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
@@ -107,6 +134,15 @@ export const neobankItem = (
   tx: NeobankBankTransferActivity,
 ): MoneyActivityItem => ({
   kind: 'neobank',
+  id: tx.id,
+  time: tx.time,
+  tx,
+});
+
+export const microdepositItem = (
+  tx: MicrodepositActivity,
+): MoneyActivityItem => ({
+  kind: 'microdeposit',
   id: tx.id,
   time: tx.time,
   tx,

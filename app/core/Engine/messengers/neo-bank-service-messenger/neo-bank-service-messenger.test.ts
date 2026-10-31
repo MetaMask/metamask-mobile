@@ -42,13 +42,16 @@ describe('getNeoBankServiceMessenger', () => {
     );
   });
 
-  it('delegates AuthenticationController:getBearerToken to the service messenger', () => {
+  it('delegates the authentication actions the service needs', () => {
     const mockRootMessenger = createMockRootMessenger();
 
     const result = getNeoBankServiceMessenger(mockRootMessenger as never);
 
     expect(mockRootMessenger.delegate).toHaveBeenCalledWith({
-      actions: ['AuthenticationController:getBearerToken'],
+      actions: [
+        'AuthenticationController:getBearerToken',
+        'AuthenticationController:getSessionProfile',
+      ],
       events: [],
       messenger: result,
     });

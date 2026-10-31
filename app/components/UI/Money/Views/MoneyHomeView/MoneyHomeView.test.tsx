@@ -220,6 +220,14 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyMicrodeposits', () => ({
+  useMoneyMicrodeposits: jest.fn(() => ({
+    microdeposits: [],
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
 }));

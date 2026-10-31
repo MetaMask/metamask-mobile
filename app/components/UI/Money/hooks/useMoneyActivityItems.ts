@@ -4,9 +4,11 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   accountsApiItem,
   cardProviderItem,
+  microdepositItem,
   neobankItem,
   onchainItem,
   type AccountsApiActivity,
+  type MicrodepositActivity,
   type MoneyActivityItem,
   type NeobankBankTransferActivity,
 } from '../types/moneyActivity';
@@ -14,6 +16,7 @@ import { MoneyActivityFilter } from '../constants/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
+import { useMoneyMicrodeposits } from './useMoneyMicrodeposits';
 import {
   selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
@@ -97,7 +100,8 @@ export interface UseMoneyActivityItemsOptions {
  * tiebreak would sort them above an already-rendered row. In-flight VBA rows
  * are exempt: they are pinned at the top of the list, so the gate cannot
  * reorder them, and withholding one would hide a deposit already known to be
- * in progress.
+ * in progress. Microdeposits are exempt too: their list is fetched whole, so
+ * there is no un-fetched page they could pop in above.
  */
 function safeItems(
   items: MoneyActivityItem[],
@@ -109,7 +113,8 @@ function safeItems(
   return items.filter(
     (item) =>
       item.time > watermark ||
-      (item.kind === 'neobank' && isNeobankPendingStatus(item.tx.status)),
+      (item.kind === 'neobank' && isNeobankPendingStatus(item.tx.status)) ||
+      item.kind === 'microdeposit',
   );
 }
 
@@ -119,15 +124,16 @@ function onchainOnly(items: MoneyActivityItem[]): MoneyActivityItem[] {
 }
 
 /**
- * Merge local on-chain Money transactions with Accounts-API activity and
- * completed/in-flight VBA API transfers into a single source-tagged,
- * time-descending list.
+ * Merge local on-chain Money transactions with Accounts-API activity,
+ * completed/in-flight VBA API transfers, and bank microdeposits into a single
+ * source-tagged, time-descending list.
  */
 export function mergeMoneyActivity(
   onchainTransactions: TransactionMeta[],
   apiActivity: AccountsApiActivity[],
   declinedCardTxs: CardTransaction[] = [],
   neobankActivity: NeobankBankTransferActivity[] = [],
+  microdeposits: readonly MicrodepositActivity[] = [],
 ): MoneyActivityItem[] {
   const apiHashes = new Set(apiActivity.map((a) => a.hash.toLowerCase()));
   const onchainHashes = new Set(
@@ -166,6 +172,7 @@ export function mergeMoneyActivity(
     ...apiActivity.map(accountsApiItem),
     ...declinedCardTxs.map(cardProviderItem),
     ...neobank,
+    ...microdeposits.map(microdepositItem),
   ].sort((a, b) => b.time - a.time || a.id.localeCompare(b.id));
 }
 
@@ -179,6 +186,7 @@ export function buildMoneyActivityBuckets(
   watermark: number = Number.NEGATIVE_INFINITY,
   declinedCardTxs: CardTransaction[] = [],
   neobankActivity: NeobankBankTransferActivity[] = [],
+  microdeposits: readonly MicrodepositActivity[] = [],
 ): MoneyActivityBuckets {
   return {
     [MoneyActivityFilter.All]: safeItems(
@@ -187,22 +195,25 @@ export function buildMoneyActivityBuckets(
         apiActivity,
         declinedCardTxs,
         neobankActivity,
+        microdeposits,
       ),
       watermark,
     ),
-    // Deposits: on-chain deposits plus completed or in-flight VBA transfers.
-    // Other API kinds are merged only to dedupe hashes, then dropped. Declined
-    // card txs stay on All / Purchases.
+    // Deposits: on-chain deposits plus completed or in-flight VBA transfers
+    // and bank microdeposits. Other API kinds are merged only to dedupe
+    // hashes, then dropped. Declined card txs stay on All / Purchases.
     [MoneyActivityFilter.Deposits]: safeItems(
       mergeMoneyActivity(
         onchain.deposits,
         apiActivity,
         [],
         neobankActivity,
+        microdeposits,
       ).filter(
         (item) =>
           item.kind === 'onchain' ||
           item.kind === 'neobank' ||
+          item.kind === 'microdeposit' ||
           (item.kind === 'accountsApi' && item.tx.kind === 'bank_transfer'),
       ),
       watermark,
@@ -250,6 +261,11 @@ export function useMoneyActivityItems({
     isLoading: isVbaTransfersLoading,
     refetch: refetchVbaTransfers,
   } = useMoneyVbaTransfers();
+  const {
+    microdeposits,
+    isLoading: isMicrodepositsLoading,
+    refetch: refetchMicrodeposits,
+  } = useMoneyMicrodeposits(moneyAddress);
   const mappedVbaTransfers = useMemo(
     () =>
       moneyAddress
@@ -353,6 +369,7 @@ export function useMoneyActivityItems({
         watermark,
         declinedForFeed,
         visibleVbaActivity,
+        microdeposits,
       ),
     [
       allTransactions,
@@ -363,6 +380,7 @@ export function useMoneyActivityItems({
       watermark,
       declinedForFeed,
       visibleVbaActivity,
+      microdeposits,
     ],
   );
 
@@ -371,11 +389,13 @@ export function useMoneyActivityItems({
     if (completedActivityEnabled || pendingActivityEnabled) {
       refetchVbaTransfers().catch(() => undefined);
     }
+    refetchMicrodeposits();
   }, [
     completedActivityEnabled,
     pendingActivityEnabled,
     refetchApiActivity,
     refetchVbaTransfers,
+    refetchMicrodeposits,
   ]);
 
   // Minimum-viable upfront fetch: pull more pages until the target bucket
@@ -404,6 +424,7 @@ export function useMoneyActivityItems({
       ((enrichmentEnabled && isEnrichmentSettling) ||
         ((completedActivityEnabled || pendingActivityEnabled) &&
           isVbaTransfersLoading) ||
+        isMicrodepositsLoading ||
         wantsMorePages ||
         isLoadingMore));
 
