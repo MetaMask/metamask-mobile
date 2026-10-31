@@ -2,7 +2,10 @@ import { Wallet } from '@metamask/wallet';
 import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { initializeWallet } from './initialization';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
-import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
+import {
+  getClientConfigApiServiceInstanceOptions,
+  getRemoteFeatureFlagControllerInstanceOptions,
+} from './instance-options/remote-feature-flag-controller';
 import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
@@ -27,6 +30,9 @@ jest.mock('./instance-options/keyring-controller', () => ({
   getKeyringControllerInstanceOptions: jest.fn(() => 'keyring-options'),
 }));
 jest.mock('./instance-options/remote-feature-flag-controller', () => ({
+  getClientConfigApiServiceInstanceOptions: jest.fn(
+    () => 'client-config-api-service-options',
+  ),
   getRemoteFeatureFlagControllerInstanceOptions: jest.fn(() => 'rffc-options'),
 }));
 jest.mock('./instance-options/connectivity-controller', () => ({
@@ -99,6 +105,7 @@ describe('initializeWallet', () => {
         subscriptionService: 'subscription-service-options',
         shieldApiService: 'shield-api-service-options',
         claimsService: 'claims-service-options',
+        clientConfigApiService: 'client-config-api-service-options',
         configRegistryApiService: 'config-registry-api-service-options',
         networkController: 'network-options',
         permissionController: {
@@ -121,6 +128,7 @@ describe('initializeWallet', () => {
       messenger,
       false,
     );
+    expect(getClientConfigApiServiceInstanceOptions).toHaveBeenCalledWith();
     expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
       messenger,
       state,

@@ -11,7 +11,6 @@ import { mockNetworkState } from '../../util/test/network';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
-import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
 import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
@@ -96,14 +95,6 @@ jest.mock('@metamask/assets-controllers', () => {
   };
 });
 
-jest.mock('@metamask/remote-feature-flag-controller', () => ({
-  ...jest.requireActual('@metamask/remote-feature-flag-controller'),
-  ClientConfigApiService: jest.fn().mockReturnValue({
-    remoteFeatureFlags: {},
-    cacheTimestamp: 0,
-  }),
-}));
-
 // `__esModule: true` lets the override test mutate
 // `isRemoteFeatureFlagOverrideActivated` live; interop would otherwise snapshot
 // the export. Other exports are preserved via `requireActual`.
@@ -120,8 +111,6 @@ jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),
   rejectOriginApprovals: jest.fn(),
 }));
-
-const ClientConfigApiServiceMock = jest.mocked(ClientConfigApiService);
 
 describe('Engine', () => {
   // Create a shared mock account for tests
@@ -603,12 +592,15 @@ describe('Engine', () => {
       );
     };
 
+    const mockFlagsResponse = (body: unknown = [], status = 200) =>
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValue(new Response(JSON.stringify(body), { status }));
+
+    const isFlagsRequest = ([url]: Parameters<typeof fetch>) =>
+      String(url).includes('/flags?');
+
     afterEach(() => {
-      // `jest.mock` return values survive `restoreAllMocks()`, so reset the
-      // ones these tests override back to their file-level defaults.
-      ClientConfigApiServiceMock
-        // @ts-expect-error Partial service: matches the file-level default shape.
-        .mockReturnValue({ remoteFeatureFlags: {}, cacheTimestamp: 0 });
       mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = false;
       jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
     });
@@ -618,24 +610,18 @@ describe('Engine', () => {
       // seeds `disabled`, then the Engine startup gate re-reads it), so use a
       // persistent return rather than `mockReturnValueOnce`.
       jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
-      const fetchRemoteFeatureFlags = jest.fn();
-      ClientConfigApiServiceMock
-        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
-        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const fetchSpy = mockFlagsResponse();
       const logSpy = jest.spyOn(Logger, 'log');
 
       Engine.init(TEST_ANALYTICS_ID, {});
 
       expect(logSpy).toHaveBeenCalledWith('Feature flag controller disabled.');
-      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+      expect(fetchSpy.mock.calls.filter(isFlagsRequest)).toHaveLength(0);
     });
 
     it('logs and skips the fetch when the override is active', () => {
       mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = true;
-      const fetchRemoteFeatureFlags = jest.fn();
-      ClientConfigApiServiceMock
-        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
-        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const fetchSpy = mockFlagsResponse();
       const logSpy = jest.spyOn(Logger, 'log');
 
       Engine.init(TEST_ANALYTICS_ID, {});
@@ -643,19 +629,12 @@ describe('Engine', () => {
       expect(logSpy).toHaveBeenCalledWith(
         'Remote feature flags override activated.',
       );
-      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+      expect(fetchSpy.mock.calls.filter(isFlagsRequest)).toHaveLength(0);
     });
 
     it('logs success after the startup fetch resolves', async () => {
       (Date.now as jest.Mock).mockReturnValue(1000000);
-      ClientConfigApiServiceMock
-        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
-        .mockReturnValue({
-          fetchRemoteFeatureFlags: jest.fn().mockResolvedValue({
-            remoteFeatureFlags: {},
-            cacheTimestamp: 1,
-          }),
-        });
+      mockFlagsResponse([{}]);
       const logSpy = jest.spyOn(Logger, 'log');
 
       Engine.init(TEST_ANALYTICS_ID, {
@@ -679,11 +658,7 @@ describe('Engine', () => {
     it('logs failure when the startup fetch rejects', async () => {
       (Date.now as jest.Mock).mockReturnValue(1000000);
       const fetchError = new Error('Network error');
-      ClientConfigApiServiceMock
-        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
-        .mockReturnValue({
-          fetchRemoteFeatureFlags: jest.fn().mockRejectedValue(fetchError),
-        });
+      jest.spyOn(global, 'fetch').mockRejectedValue(fetchError);
       const logSpy = jest.spyOn(Logger, 'log');
 
       Engine.init(TEST_ANALYTICS_ID, {
