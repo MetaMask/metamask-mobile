@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
@@ -16,6 +16,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -29,6 +30,8 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import Routes from '../../../../../constants/navigation/Routes';
+import DottedUnderline from '../../../DottedUnderline';
+import { useTheme } from '../../../../../util/theme';
 
 export interface BalanceProjectionProps {
   amountFiat: string;
@@ -40,6 +43,8 @@ export function BalanceProjection({
   projectedYears,
 }: BalanceProjectionProps) {
   const navigation = useNavigation<AppNavigationProp>();
+  const { colors } = useTheme();
+  const tw = useTailwind();
   const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyVaultApy();
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
@@ -137,21 +142,30 @@ export function BalanceProjection({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-0.5"
+        twClassName="gap-1"
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('confirm.custom_amount.earn_up_to_apy', {
-            percentage: apyPercent,
-          })}
+          {strings('confirm.custom_amount.earn_up_to_apy_prefix')}
         </Text>
-        <ButtonIcon
-          iconName={IconName.Info}
-          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-          size={ButtonIconSize.Sm}
+        <Pressable
           onPress={handleApyInfoPress}
+          accessibilityRole="button"
           accessibilityLabel={strings('money.apy_info_label')}
-          testID="balance-projection-apy-pitch-info-button"
-        />
+          testID="balance-projection-apy-pitch-button"
+          style={({ pressed }) => pressed && tw.style('opacity-50')}
+        >
+          <DottedUnderline
+            color={colors.text.alternative}
+            testID="balance-projection-apy-pitch-underline"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('money.apy_label', { percentage: apyPercent })}
+            </Text>
+          </DottedUnderline>
+        </Pressable>
       </Box>
     </View>
   );
