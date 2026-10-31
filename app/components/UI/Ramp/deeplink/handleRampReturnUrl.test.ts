@@ -2,6 +2,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import handleRampReturnUrl from './handleRampReturnUrl';
 import NavigationService from '../../../../core/NavigationService';
 import Logger from '../../../../util/Logger';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
 jest.mock('../../../../core/NavigationService', () => ({
   navigation: {
@@ -13,9 +14,25 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({})),
+    },
+  },
+}));
+
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
+}));
+
 describe('handleRampReturnUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (
+      selectSelectedInternalAccountAddress as unknown as jest.Mock
+    ).mockReturnValue(undefined);
   });
 
   it('navigates to RAMPS_ORDER_DETAILS with orderId from query string', () => {
@@ -23,7 +40,11 @@ describe('handleRampReturnUrl', () => {
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       Routes.RAMP.RAMPS_ORDER_DETAILS,
-      { orderId: 'abc123', showCloseButton: true },
+      {
+        orderId: 'abc123',
+        showCloseButton: true,
+        callbackUrl: 'metamask://on-ramp/?orderId=abc123',
+      },
     );
   });
 
@@ -32,7 +53,11 @@ describe('handleRampReturnUrl', () => {
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       Routes.RAMP.RAMPS_ORDER_DETAILS,
-      { orderId: 'order-42', showCloseButton: true },
+      {
+        orderId: 'order-42',
+        showCloseButton: true,
+        callbackUrl: 'metamask://on-ramp/return?orderId=order-42',
+      },
     );
   });
 
@@ -43,7 +68,11 @@ describe('handleRampReturnUrl', () => {
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       Routes.RAMP.RAMPS_ORDER_DETAILS,
-      { orderId: 'zzz', showCloseButton: true },
+      {
+        orderId: 'zzz',
+        showCloseButton: true,
+        callbackUrl: 'https://example.com/return?orderId=zzz',
+      },
     );
   });
 
@@ -52,7 +81,11 @@ describe('handleRampReturnUrl', () => {
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       Routes.RAMP.RAMPS_ORDER_DETAILS,
-      { orderId: undefined, showCloseButton: true },
+      {
+        orderId: undefined,
+        showCloseButton: true,
+        callbackUrl: 'metamask://on-ramp/?other=value',
+      },
     );
   });
 
@@ -61,7 +94,32 @@ describe('handleRampReturnUrl', () => {
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       Routes.RAMP.RAMPS_ORDER_DETAILS,
-      { orderId: undefined, showCloseButton: true },
+      {
+        orderId: undefined,
+        showCloseButton: true,
+        callbackUrl: 'metamask://on-ramp/some-path',
+      },
+    );
+  });
+
+  it('passes the Revolut return URL, provider code, and selected wallet', () => {
+    (
+      selectSelectedInternalAccountAddress as unknown as jest.Mock
+    ).mockReturnValue('0xwallet');
+
+    handleRampReturnUrl({
+      rampReturnPath: '/providers/revolut?orderId=REV-1',
+    });
+
+    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+      Routes.RAMP.RAMPS_ORDER_DETAILS,
+      {
+        orderId: 'REV-1',
+        showCloseButton: true,
+        callbackUrl: 'metamask://on-ramp/providers/revolut?orderId=REV-1',
+        providerCode: 'revolut',
+        walletAddress: '0xwallet',
+      },
     );
   });
 
