@@ -10,6 +10,37 @@ import {
 } from '../../constants/engagement';
 import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
 import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
+import type { AnalyticsHelper } from '../../util/analytics/analytics';
+
+/**
+ * Lazy import the analytics helper to avoid a circular dependency.
+ * A static import pulls in the Redux store, which pulls in Engine, and Engine
+ * imports this module while the analytics controller initializes.
+ * The helper is only accessed at runtime, not at module load time.
+ */
+const getAnalytics = (): AnalyticsHelper =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../util/analytics/analytics').analytics;
+
+/**
+ * Banner impression, click, and custom events call the Braze SDK directly.
+ * AnalyticsController drops product events until MetaMetrics consent is
+ * granted, so these calls check the same consent and skip when it is off or
+ * unreadable.
+ *
+ * @returns True when the user has granted MetaMetrics consent.
+ */
+function hasMetaMetricsConsent(): boolean {
+  try {
+    return getAnalytics().isEnabled();
+  } catch (error) {
+    Logger.log(
+      '[Braze] Failed to read MetaMetrics consent, skipping Braze event',
+      error,
+    );
+    return false;
+  }
+}
 
 let brazePlugin: BrazePlugin | undefined;
 
@@ -159,7 +190,8 @@ export function refreshBrazeBanners(
  *
  * Braze records the SDK dismissal and applies campaign re-eligibility on the
  * backend. The custom event is skipped when `properties` is null (no
- * `campaign_name`). Safe to call more than once for the same banner.
+ * `campaign_name`) or when MetaMetrics consent is off. Safe to call more than
+ * once for the same banner.
  */
 export function dismissBrazeBanner(
   placementId: string,
@@ -169,7 +201,7 @@ export function dismissBrazeBanner(
     Logger.log('[Braze] Dismissing banner', { placementId, properties });
     Braze.dismissBanner(placementId);
 
-    if (properties) {
+    if (properties && hasMetaMetricsConsent()) {
       Braze.logCustomEvent(BANNER_EVENT_DISMISSED, properties);
       Braze.requestImmediateDataFlush();
     }
@@ -183,14 +215,18 @@ export function dismissBrazeBanner(
  * custom event with the supplied properties.
  *
  * Pass `null` when there are no extra properties to attach (e.g. the banner
- * has no `banner_id`). The SDK `logBannerImpression` call always fires;
- * `logCustomEvent` is skipped when `properties` is null.
+ * has no `banner_id`). Both SDK calls are skipped when MetaMetrics consent is
+ * off. `logCustomEvent` is also skipped when `properties` is null.
  */
 export function logBrazeBannerImpression(
   placementId: string,
   properties: { [key: string]: unknown } | null,
 ): void {
   try {
+    if (!hasMetaMetricsConsent()) {
+      return;
+    }
+
     Braze.logBannerImpression(placementId);
 
     if (properties) {
@@ -202,10 +238,18 @@ export function logBrazeBannerImpression(
 }
 
 /**
- * Log a Braze banner click
+ * Log a Braze banner click straight to the Braze SDK.
+ *
+ * Skipped when MetaMetrics consent is off.
+ *
+ * @param placementId - Braze banner placement that was clicked.
  */
 export function logBrazeBannerClick(placementId: string): void {
   try {
+    if (!hasMetaMetricsConsent()) {
+      return;
+    }
+
     Braze.logBannerClick(placementId, null);
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner click');

@@ -16,6 +16,15 @@ import {
   BANNER_EVENT_DISMISSED,
   BANNER_EVENT_DISPLAY,
 } from '../../constants/engagement';
+import { analytics } from '../../util/analytics/analytics';
+
+const mockIsMetaMetricsEnabled = jest.mocked(analytics.isEnabled);
+
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(() => true),
+  },
+}));
 
 const mockSetBrazeProfileId = jest.fn();
 const mockSetBlockedEvents = jest.fn();
@@ -48,6 +57,7 @@ describe('Braze service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
+    mockIsMetaMetricsEnabled.mockReturnValue(true);
     MockBrazePlugin.mockImplementation(
       () =>
         ({
@@ -154,6 +164,27 @@ describe('Braze service', () => {
     it('skips logCustomEvent when properties is null', () => {
       logBrazeBannerImpression('placement-1', null);
 
+      expect(Braze.logBannerImpression).toHaveBeenCalledWith('placement-1');
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
+    });
+
+    it('skips the impression and display event when MetaMetrics consent is off', () => {
+      mockIsMetaMetricsEnabled.mockReturnValue(false);
+
+      logBrazeBannerImpression('placement-1', { banner_id: 'campaign-abc' });
+
+      expect(Braze.logBannerImpression).not.toHaveBeenCalled();
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
+    });
+
+    it('skips the impression when MetaMetrics consent cannot be read', () => {
+      mockIsMetaMetricsEnabled.mockImplementation(() => {
+        throw new Error('store unavailable');
+      });
+
+      logBrazeBannerImpression('placement-1', { banner_id: 'campaign-abc' });
+
+      expect(Braze.logBannerImpression).not.toHaveBeenCalled();
       expect(Braze.logCustomEvent).not.toHaveBeenCalled();
     });
   });
@@ -163,6 +194,24 @@ describe('Braze service', () => {
       logBrazeBannerClick('placement-1');
 
       expect(Braze.logBannerClick).toHaveBeenCalledWith('placement-1', null);
+    });
+
+    it('skips logBannerClick when MetaMetrics consent is off', () => {
+      mockIsMetaMetricsEnabled.mockReturnValue(false);
+
+      logBrazeBannerClick('placement-1');
+
+      expect(Braze.logBannerClick).not.toHaveBeenCalled();
+    });
+
+    it('skips logBannerClick when MetaMetrics consent cannot be read', () => {
+      mockIsMetaMetricsEnabled.mockImplementation(() => {
+        throw new Error('store unavailable');
+      });
+
+      logBrazeBannerClick('placement-1');
+
+      expect(Braze.logBannerClick).not.toHaveBeenCalled();
     });
   });
 
@@ -219,6 +268,16 @@ describe('Braze service', () => {
 
     it('skips the custom dismissed event when properties is null', () => {
       dismissBrazeBanner('placement-1', null);
+
+      expect(Braze.dismissBanner).toHaveBeenCalledWith('placement-1');
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
+      expect(Braze.requestImmediateDataFlush).not.toHaveBeenCalled();
+    });
+
+    it('still dismisses the banner and skips the custom event when MetaMetrics consent is off', () => {
+      mockIsMetaMetricsEnabled.mockReturnValue(false);
+
+      dismissBrazeBanner('placement-1', { campaign_name: 'campaign-abc' });
 
       expect(Braze.dismissBanner).toHaveBeenCalledWith('placement-1');
       expect(Braze.logCustomEvent).not.toHaveBeenCalled();
