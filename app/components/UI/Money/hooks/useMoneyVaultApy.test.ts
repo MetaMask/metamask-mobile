@@ -1,10 +1,12 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import useMoneyVaultApy from './useMoneyVaultApy';
+import { selectHasMoneyAccountPremiumApyEntitlement } from '../../../../selectors/subscriptionController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 import type { MoneyVaultApyRemoteConfig } from '../selectors/featureFlags.types';
+import useMoneyPremiumVaultRate from './useMoneyPremiumVaultRate';
+import useMoneyVaultApy from './useMoneyVaultApy';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -15,8 +17,14 @@ jest.mock('@metamask/react-data-query', () => ({
   useQuery: jest.fn(),
 }));
 
+jest.mock('./useMoneyPremiumVaultRate', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseQuery = jest.mocked(useQuery);
+const mockUseMoneyPremiumVaultRate = jest.mocked(useMoneyPremiumVaultRate);
 
 interface QueryState {
   data: { apy: number } | undefined;
@@ -38,18 +46,30 @@ const DEFAULT_QUERY: QueryState = {
 const setup = ({
   remoteApyConfig = DEFAULT_REMOTE_APY_CONFIG,
   query = DEFAULT_QUERY,
-}: {
-  remoteApyConfig?: MoneyVaultApyRemoteConfig;
-  query?: QueryState;
+  isEntitled = false,
+  premiumRate = undefined as string | undefined,
+  premiumRateLoading = false,
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyVaultApyRemoteConfig) {
       return remoteApyConfig;
     }
-
+    if (selector === selectHasMoneyAccountPremiumApyEntitlement) {
+      return isEntitled;
+    }
     return undefined;
   });
   mockUseQuery.mockReturnValue(query as never);
+  mockUseMoneyPremiumVaultRate.mockReturnValue({
+    rate: premiumRate,
+    ratePercent: undefined,
+    ratePercentFormatted: undefined,
+    vaultRateQuery: {
+      isLoading: premiumRateLoading,
+      isError: false,
+      data: premiumRate ? { rate: premiumRate } : undefined,
+    },
+  } as never);
 };
 
 describe('useMoneyVaultApy', () => {
@@ -76,12 +96,17 @@ describe('useMoneyVaultApy', () => {
     );
   });
 
-  it('returns the service APY in decimal, percent, and formatted forms', () => {
+  it('returns the base service APY for a non-subscriber', () => {
     const { result } = renderHook(() => useMoneyVaultApy());
 
     expect(result.current.apyDecimal).toBe(0.05);
     expect(result.current.apyPercent).toBe(5);
     expect(result.current.apyPercentFormatted).toBe('5%');
+    expect(result.current.baseApyDecimal).toBe(0.05);
+    expect(result.current.baseApyPercent).toBe(5);
+    expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 
   it('leaves APY values undefined while the query is loading', () => {
@@ -95,6 +120,8 @@ describe('useMoneyVaultApy', () => {
     expect(result.current.apyDecimal).toBeUndefined();
     expect(result.current.apyPercent).toBeUndefined();
     expect(result.current.apyPercentFormatted).toBeUndefined();
+    expect(result.current.baseApyDecimal).toBeUndefined();
+    expect(result.current.isBaseApyLoading).toBe(true);
   });
 
   it('uses the fallback when the settled query has no service APY', () => {
@@ -170,5 +197,87 @@ describe('useMoneyVaultApy', () => {
 
     expect(result.current.apyPercent).toBe(3.8);
     expect(result.current.apyPercentFormatted).toBe('3.8%');
+  });
+
+  it('does not report the base APY as loading when an override is already set', () => {
+    setup({
+      query: { data: undefined, isLoading: true, isError: false },
+      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.baseApyDecimal).toBe(0.08);
+    expect(result.current.isBaseApyLoading).toBe(false);
+  });
+
+  it('reports base APY loading while an entitled user already has a premium rate', () => {
+    setup({
+      isEntitled: true,
+      premiumRate: '0.08',
+      query: { data: undefined, isLoading: true, isError: false },
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.vaultApyQuery.isLoading).toBe(false);
+    expect(result.current.apyDecimal).toBe(0.08);
+    expect(result.current.baseApyDecimal).toBeUndefined();
+    expect(result.current.isBaseApyLoading).toBe(true);
+  });
+
+  it('returns the premium rate for an entitled user', () => {
+    setup({
+      isEntitled: true,
+      premiumRate: '0.08',
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
+      enabled: true,
+    });
+    expect(result.current.apyDecimal).toBe(0.08);
+    expect(result.current.apyPercent).toBe(8);
+    expect(result.current.apyPercentFormatted).toBe('8%');
+    expect(result.current.baseApyDecimal).toBe(0.05);
+    expect(result.current.baseApyPercent).toBe(5);
+    expect(result.current.vaultApyQuery.isLoading).toBe(false);
+  });
+
+  it('keeps APY undefined while the premium rate loads for an entitled user', () => {
+    setup({
+      isEntitled: true,
+      premiumRate: undefined,
+      premiumRateLoading: true,
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.apyDecimal).toBeUndefined();
+    expect(result.current.apyPercent).toBeUndefined();
+    expect(result.current.vaultApyQuery.isLoading).toBe(true);
+  });
+
+  it('returns undefined APY when an entitled user has an unparsable premium rate', () => {
+    setup({
+      isEntitled: true,
+      premiumRate: 'not-a-rate',
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.apyDecimal).toBeUndefined();
+    expect(result.current.apyPercent).toBeUndefined();
+  });
+
+  it('disables the premium rate query when the hook is disabled for an entitled user', () => {
+    setup({ isEntitled: true, premiumRate: '0.08' });
+
+    renderHook(() => useMoneyVaultApy({ enabled: false }));
+
+    expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 });

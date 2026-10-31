@@ -186,6 +186,47 @@ describe('useMoneyPremiumVaultRate', () => {
     expect(result.current.ratePercentFormatted).toBeUndefined();
   });
 
+  it.each([
+    ['card payment', { paymentType: 'card' as const }],
+    ['crypto payment without a token address', { tokenAddress: '' }],
+  ])(
+    'reads the premium APY from the fallback vault for a %s',
+    (_label, selectorOverrides) => {
+      setSelectors(selectorOverrides);
+      mockPositions([
+        { vault_address: MOCK_VAULT_ADDRESS, current_apy: '0.07' },
+      ]);
+
+      const { result } = renderHook(() =>
+        useMoneyPremiumVaultRate({ vaultAddress: MOCK_VAULT_ADDRESS }),
+      );
+
+      expect(result.current.rate).toBe('0.07');
+      expect(result.current.ratePercentFormatted).toBe('7%');
+    },
+  );
+
+  it('prefers the crypto payment token over the fallback vault', () => {
+    mockPositions([
+      { vault_address: MOCK_VAULT_ADDRESS, current_apy: '0.07' },
+      { vault_address: OTHER_VAULT_ADDRESS, current_apy: '0.04' },
+    ]);
+
+    const { result } = renderHook(() =>
+      useMoneyPremiumVaultRate({ vaultAddress: OTHER_VAULT_ADDRESS }),
+    );
+
+    expect(result.current.rate).toBe('0.07');
+  });
+
+  it('disables the positions query when enabled is false', () => {
+    renderHook(() => useMoneyPremiumVaultRate({ enabled: false }));
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('returns no rate when the positions query has no data', () => {
     const { result } = renderHook(() => useMoneyPremiumVaultRate());
 

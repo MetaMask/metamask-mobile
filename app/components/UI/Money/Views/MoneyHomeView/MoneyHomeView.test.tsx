@@ -8,7 +8,10 @@ import {
 import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
 import type { MoneyAccount } from '@metamask/money-account-controller';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  type DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -40,6 +43,7 @@ import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransac
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
+import useMoneyVaultState from '../../hooks/useMoneyVaultState';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import {
@@ -254,6 +258,12 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+jest.mock('../../hooks/useMoneyVaultState', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+// Child surfaces (onboarding card, how-it-works, etc.) still read the base APY
+// hook; Money home itself uses useMoneyVaultState.
 jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -604,6 +614,7 @@ const CARD_TX: AccountsApiActivity = {
 };
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultState = jest.mocked(useMoneyVaultState);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInterest = jest.mocked(useMoneyAccountInterest);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
@@ -765,6 +776,7 @@ describe('MoneyHomeView', () => {
   });
 
   let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
+  let defaultMoneyVaultState: ReturnType<typeof useMoneyVaultState>;
   let defaultMoneyVaultApy: ReturnType<typeof useMoneyVaultApy>;
 
   beforeEach(() => {
@@ -854,16 +866,31 @@ describe('MoneyHomeView', () => {
         isLoading: false,
       },
     } as unknown as ReturnType<typeof useMoneyAccountBalance>;
+    defaultMoneyVaultState = {
+      status: 'base',
+      currentVault: 'base',
+      apyDecimal: 0.05,
+      apyPercent: 5,
+      isLoading: false,
+      positionsQuery: {
+        data: undefined,
+        isLoading: false,
+        isError: false,
+      },
+    } as unknown as ReturnType<typeof useMoneyVaultState>;
     defaultMoneyVaultApy = {
       apyDecimal: 0.05,
       apyPercent: 5,
       apyPercentFormatted: '5%',
+      baseApyDecimal: 0.05,
+      baseApyPercent: 5,
       vaultApyQuery: {
         data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
       },
     } as unknown as ReturnType<typeof useMoneyVaultApy>;
     mockUseMoneyAccountBalance.mockReturnValue(defaultMoneyAccountBalance);
+    mockUseMoneyVaultState.mockReturnValue(defaultMoneyVaultState);
     mockUseMoneyVaultApy.mockReturnValue(defaultMoneyVaultApy);
 
     // Activity list renders when there are at least 10 transactions; pad the
@@ -1172,13 +1199,10 @@ describe('MoneyHomeView', () => {
 
   describe('time to content telemetry', () => {
     it('marks APY and earnings ready when cached content is visible during refetch', () => {
-      mockUseMoneyVaultApy.mockReturnValue({
-        ...defaultMoneyVaultApy,
-        vaultApyQuery: {
-          ...defaultMoneyVaultApy.vaultApyQuery,
-          isLoading: true,
-        },
-      } as ReturnType<typeof useMoneyVaultApy>);
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        isLoading: true,
+      } as ReturnType<typeof useMoneyVaultState>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
@@ -1218,16 +1242,18 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: undefined,
         isBalanceLoading: true,
       } as ReturnType<typeof useMoneyAccountBalance>);
-      mockUseMoneyVaultApy.mockReturnValue({
+      mockUseMoneyVaultState.mockReturnValue({
+        status: 'base',
+        currentVault: 'base',
         apyDecimal: undefined,
         apyPercent: undefined,
-        apyPercentFormatted: undefined,
-        vaultApyQuery: {
+        isLoading: true,
+        positionsQuery: {
           data: undefined,
           isLoading: true,
           isError: false,
         },
-      } as ReturnType<typeof useMoneyVaultApy>);
+      } as unknown as ReturnType<typeof useMoneyVaultState>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
@@ -1253,14 +1279,15 @@ describe('MoneyHomeView', () => {
     });
 
     it('treats displayed APY and earnings fallbacks as successful content', () => {
-      mockUseMoneyVaultApy.mockReturnValue({
-        ...defaultMoneyVaultApy,
-        vaultApyQuery: {
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        isLoading: false,
+        positionsQuery: {
           data: undefined,
           isLoading: false,
           isError: true,
         },
-      } as ReturnType<typeof useMoneyVaultApy>);
+      } as unknown as ReturnType<typeof useMoneyVaultState>);
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
@@ -2286,7 +2313,125 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: 5 },
+      params: { apy: 5, vaultStatus: 'base' },
+    });
+  });
+
+  describe('vault status on Money home', () => {
+    it('shows neither the Premium tag nor a pending pill in the base state', () => {
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        status: 'base',
+      } as ReturnType<typeof useMoneyVaultState>);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the Premium tag when vault status is premium', () => {
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        status: 'premium',
+        currentVault: 'premium',
+        apyDecimal: 0.08,
+        apyPercent: 8,
+      } as ReturnType<typeof useMoneyVaultState>);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the upgrading pill when vault status is upgrading', () => {
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        status: 'upgrading',
+        currentVault: 'base',
+      } as ReturnType<typeof useMoneyVaultState>);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).toHaveTextContent('Upgrading to Premium APY');
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the upgrading pill when the vault rate has not resolved', () => {
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        status: 'upgrading',
+        currentVault: 'base',
+        apyDecimal: undefined,
+        apyPercent: undefined,
+        isLoading: true,
+      } as ReturnType<typeof useMoneyVaultState>);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).toHaveTextContent('Upgrading to Premium APY');
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.APY),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the downgrading pill when vault status is downgrading', () => {
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        status: 'downgrading',
+        currentVault: 'premium',
+        apyDecimal: 0.08,
+        apyPercent: 8,
+      } as ReturnType<typeof useMoneyVaultState>);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).toHaveTextContent('Moving to standard APY');
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('passes vaultStatus to the APY info sheet', () => {
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        status: 'upgrading',
+        currentVault: 'base',
+      } as ReturnType<typeof useMoneyVaultState>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
+        params: { apy: 5, vaultStatus: 'upgrading' },
+      });
     });
   });
 

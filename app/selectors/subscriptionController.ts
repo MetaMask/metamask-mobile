@@ -224,6 +224,25 @@ export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
 );
 
 /**
+ * Selects whether the JWT grants the Money Account Plus `premiumApy`
+ * entitlement. Entitlements are independent of subscription status, so a
+ * lapsed or paused subscriber keeps premium APY until the server revokes it.
+ * Fails closed when the controller is absent or the feature is omitted.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether the premium APY entitlement is granted.
+ */
+export const selectHasMoneyAccountPremiumApyEntitlement = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): boolean =>
+    selectHasEntitlement(
+      subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      MoneyAccountFeature.PremiumApy,
+    ),
+);
+
+/**
  * Selects persisted Money Account Plus benefit usage for the current billing
  * period. Undefined until `getBenefits()` has stored a snapshot.
  *
