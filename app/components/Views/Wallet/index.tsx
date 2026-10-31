@@ -136,6 +136,7 @@ import { createAccountSelectorNavDetails } from '../AccountSelector';
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
+import HomeSectionGapControl from '../shared/homeSectionGap/HomeSectionGapControl';
 import {
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
@@ -1494,6 +1495,7 @@ const Wallet = ({
                     />
                   </ConditionalScrollView>
                 </HomepageScrollContext.Provider>
+                <HomeSectionGapControl />
               </View>
             </>
           ) : (

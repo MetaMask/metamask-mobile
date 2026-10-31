@@ -9,11 +9,8 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../shared/homeSectionGap/HomepageSectionDivider';
 import SectionRow from '../../components/SectionRow';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
@@ -217,7 +214,7 @@ const WatchlistSection = forwardRef<
 
   return (
     <View ref={sectionViewRef} onLayout={onLayout}>
-      <SectionDivider />
+      <HomepageSectionDivider />
       <SectionHeader
         title={title}
         isInteractive

@@ -8,10 +8,8 @@ import React, {
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { SectionHeader } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../shared/homeSectionGap/HomepageSectionDivider';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
@@ -116,7 +114,7 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     if (!isLoading && isError) {
       return (
         <View ref={sectionViewRef} onLayout={handleLayout}>
-          <SectionDivider />
+          <HomepageSectionDivider />
           <SectionHeader
             title={title}
             isInteractive
@@ -140,7 +138,7 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={handleLayout}>
-        <SectionDivider />
+        <HomepageSectionDivider />
         <SectionHeader
           title={title}
           isInteractive

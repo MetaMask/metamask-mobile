@@ -9,6 +9,8 @@ import {
   EARN_MODULE_SCREEN_NAMES,
 } from '../../../../UI/Earn/constants/earnModuleEvents';
 import type { EarnModuleSurfaceLocation } from '../../../../UI/Earn/types/earnModuleEvents.types';
+import { homeSectionDividerMarginStep } from '../../../shared/homeSectionGap/homeSectionGap';
+import { useHomeSectionGapSelection } from '../../../shared/homeSectionGap/homeSectionGapStore';
 
 interface HomepageEarnSectionProps {
   sectionIndex: number;
@@ -34,6 +36,11 @@ const HomepageEarnSection = forwardRef<
   HomepageEarnSectionProps
 >(({ sectionIndex, totalSectionsLoaded, showDividers }, ref) => {
   const isFocused = useIsFocused();
+  const sectionGap = useHomeSectionGapSelection();
+  const dividerMarginVertical =
+    sectionGap === 'production'
+      ? undefined
+      : homeSectionDividerMarginStep(sectionGap);
 
   return (
     <EarnSection
@@ -42,6 +49,7 @@ const HomepageEarnSection = forwardRef<
       analyticsContext={HOMEPAGE_EARN_ANALYTICS_CONTEXT}
       homeAnalytics={{ sectionIndex, totalSectionsLoaded }}
       showDividers={showDividers}
+      dividerMarginVertical={dividerMarginVertical}
       enabled={isFocused}
     />
   );

@@ -1,9 +1,6 @@
 import React from 'react';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../../shared/homeSectionGap/HomepageSectionDivider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
 import { strings } from '../../../../../../../locales/i18n';
@@ -40,7 +37,7 @@ const HomepagePredictPositions = ({
   <>
     {showHeader && (
       <>
-        <SectionDivider />
+        <HomepageSectionDivider />
         <SectionHeader
           title={title}
           isInteractive

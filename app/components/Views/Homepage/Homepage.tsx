@@ -61,6 +61,7 @@ import {
   SOCIAL_V1_VARIANTS,
 } from '../../../constants/socialV1';
 import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
+import HomeHeaderToContent from '../shared/homeSectionGap/HomeHeaderToContent';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -351,50 +352,8 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                   deviceCapability={homepageDeviceCapability}
                 />
               ) : null}
-              {showTopTradersAboveAllocation && (
-                <TopTradersSection
-                  key="top-traders"
-                  ref={topTradersSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                />
-              )}
-              {showPerpsAboveTokens ? (
-                <>
-                  {perpsSection}
-                  {tokensSection}
-                </>
-              ) : (
-                <>
-                  {tokensSection}
-                  {perpsSection}
-                </>
-              )}
-              {shouldRenderEarnSection && (
-                <HomepageEarnSection
-                  ref={earnSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                  showDividers
-                />
-              )}
-              {shouldMountOptionalSections && (
-                <PredictionsSection
-                  ref={predictionsSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                />
-              )}
-              {shouldMountOptionalSections && isWatchlistEnabled && (
-                <WatchlistSection
-                  ref={watchlistSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                />
-              )}
-              {shouldMountOptionalSections &&
-                isTopTradersEnabled &&
-                !showTopTradersAboveAllocation && (
+              <HomeHeaderToContent>
+                {showTopTradersAboveAllocation && (
                   <TopTradersSection
                     key="top-traders"
                     ref={topTradersSectionRef}
@@ -402,21 +361,67 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                     totalSectionsLoaded={totalSectionsLoaded}
                   />
                 )}
-              {shouldMountOptionalSections && isDeFiEnabled && (
-                <DeFiSection
-                  ref={defiSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                />
-              )}
-              {shouldMountOptionalSections && (
-                <NFTsSection
-                  ref={nftsSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                />
-              )}
-              <MoreSection />
+                {showPerpsAboveTokens ? (
+                  <>
+                    {perpsSection}
+                    {tokensSection}
+                  </>
+                ) : (
+                  <>
+                    {tokensSection}
+                    {perpsSection}
+                  </>
+                )}
+                {shouldRenderEarnSection && (
+                  <HomepageEarnSection
+                    ref={earnSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                    showDividers
+                  />
+                )}
+                {shouldMountOptionalSections && (
+                  <PredictionsSection
+                    ref={predictionsSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
+                {shouldMountOptionalSections && isWatchlistEnabled && (
+                  <WatchlistSection
+                    ref={watchlistSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
+                {shouldMountOptionalSections &&
+                  isTopTradersEnabled &&
+                  !showTopTradersAboveAllocation && (
+                    <TopTradersSection
+                      key="top-traders"
+                      ref={topTradersSectionRef}
+                      sectionIndex={getSectionIndex(
+                        HomeSectionNames.TOP_TRADERS,
+                      )}
+                      totalSectionsLoaded={totalSectionsLoaded}
+                    />
+                  )}
+                {shouldMountOptionalSections && isDeFiEnabled && (
+                  <DeFiSection
+                    ref={defiSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
+                {shouldMountOptionalSections && (
+                  <NFTsSection
+                    ref={nftsSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
+                <MoreSection />
+              </HomeHeaderToContent>
             </Box>
           </PerpsStreamProvider>
         </PerpsConnectionProvider>

@@ -16,6 +16,7 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  type BoxSpacing,
   FontWeight,
   Icon,
   IconColor,
@@ -91,6 +92,11 @@ export interface EarnSectionProps {
   analyticsContext: EarnModuleSurfaceLocation;
   homeAnalytics?: EarnSectionHomeAnalytics;
   showDividers?: boolean;
+  /**
+   * Homepage-only override for the section line. Explore leaves this unset
+   * so the divider keeps its 20px default.
+   */
+  dividerMarginVertical?: BoxSpacing;
   refresh?: RefreshConfig;
   enabled?: boolean;
 }
@@ -166,6 +172,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       analyticsContext,
       homeAnalytics,
       showDividers = false,
+      dividerMarginVertical,
       refresh: exploreFeedRefreshConfig,
       enabled = true,
     },
@@ -508,7 +515,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         onLayout={isHomepageSection ? onLayout : onExploreSectionLayout}
       >
         <Box testID="earn-section">
-          {showDividers && <SectionDivider />}
+          {showDividers && (
+            <SectionDivider marginVertical={dividerMarginVertical} />
+          )}
           <SectionHeader
             title={strings('homepage.sections.earn')}
             isInteractive
