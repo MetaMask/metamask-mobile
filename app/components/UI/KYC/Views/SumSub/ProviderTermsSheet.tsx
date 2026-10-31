@@ -1,26 +1,27 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { Linking } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import type { GestureResponderEvent } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
   Box,
   ButtonSize,
+  Checkbox,
   ContentVariant,
   FontWeight,
   Icon,
-  IconColor,
   IconName,
-  IconSize,
   ListItem,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { openExternalUrl } from '../../utils/openExternalUrl';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  METAMASK_PRIVACY_POLICY_URL,
-  METAMASK_TERMS_URL,
+  IDOS_PRIVACY_NOTICE_URL,
+  KYC_SESSION_DISCLAIMER_DISPLAY,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
@@ -37,23 +38,52 @@ interface TermsLink {
   testID: string;
 }
 
+const toTermsLink = (
+  disclaimer: KycCatalogDisclaimerLink,
+  title: string,
+): TermsLink => ({
+  id: disclaimer.id,
+  title,
+  url: disclaimer.url,
+  testID: `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+});
+
+/**
+ * Picks the documents legal asked for, in their order and with their labels.
+ * Falls back to the full catalog with backend titles if none match, so the
+ * sheet is never empty when the catalog changes shape.
+ */
+const getDisplayedLinks = (
+  disclaimers: KycCatalogDisclaimerLink[],
+): TermsLink[] => {
+  const displayed = KYC_SESSION_DISCLAIMER_DISPLAY.flatMap((entry) => {
+    const disclaimer = disclaimers.find(
+      (item) => item.id === `${entry.group}:${entry.key}`,
+    );
+    return disclaimer ? [toTermsLink(disclaimer, strings(entry.titleKey))] : [];
+  });
+
+  return displayed.length
+    ? displayed
+    : disclaimers.map((disclaimer) =>
+        toTermsLink(disclaimer, disclaimer.title),
+      );
+};
+
 const TermsLinkRow = ({ link }: { link: TermsLink }) => {
-  const openLink = useCallback(() => Linking.openURL(link.url), [link.url]);
+  const openLink = useCallback(() => openExternalUrl(link.url), [link.url]);
 
   return (
     <ListItem
       isInteractive
       variant={ContentVariant.OneLine}
       title={link.title}
-      endAccessory={
-        <Icon
-          name={IconName.Arrow2UpRight}
-          size={IconSize.Lg}
-          color={IconColor.IconDefault}
-        />
-      }
+      endAccessory={<Icon name={IconName.Arrow2UpRight} />}
       onPress={openLink}
       accessibilityRole="link"
+      accessibilityHint={strings(
+        'virtual_bank_account.verify_identity.opens_in_browser_hint',
+      )}
       testID={link.testID}
     />
   );
@@ -67,9 +97,11 @@ interface VbaProviderTermsSheetProps {
 }
 
 /**
- * "Data and privacy" confirm sheet over Verify your identity. Agreeing closes
- * the sheet, then hands off to the provider step, which records the session
- * consents and launches SumSub back-to-back.
+ * "Data and privacy" confirm sheet over Verify your identity. idOS needs an
+ * explicit, separate biometric consent before any data is collected, so Agree
+ * stays disabled until the consent checkbox is ticked. Agreeing closes the sheet,
+ * then hands off to the provider step, which records the session consents and
+ * launches SumSub back-to-back.
  */
 const VbaProviderTermsSheet = ({
   disclaimers,
@@ -77,6 +109,13 @@ const VbaProviderTermsSheet = ({
   onClose,
 }: VbaProviderTermsSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const [hasBiometricConsent, setHasBiometricConsent] = useState(false);
+
+  // Stop the press reaching the Checkbox so opening the notice doesn't tick it.
+  const openIdosPrivacyNotice = useCallback((event?: GestureResponderEvent) => {
+    event?.stopPropagation?.();
+    openExternalUrl(IDOS_PRIVACY_NOTICE_URL);
+  }, []);
 
   useScreenPerformance({
     config: KYC_SCREEN_PERFORMANCE_CONFIG,
@@ -88,31 +127,7 @@ const VbaProviderTermsSheet = ({
     sheetRef.current?.onCloseBottomSheet(onAgree);
   }, [onAgree]);
 
-  const links = useMemo<TermsLink[]>(
-    () => [
-      {
-        id: 'metamask-privacy-policy',
-        title: strings(
-          'virtual_bank_account.verify_identity.metamask_privacy_policy',
-        ),
-        url: METAMASK_PRIVACY_POLICY_URL,
-        testID: VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK,
-      },
-      {
-        id: 'metamask-terms',
-        title: strings('virtual_bank_account.verify_identity.metamask_terms'),
-        url: METAMASK_TERMS_URL,
-        testID: VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK,
-      },
-      ...disclaimers.map((disclaimer) => ({
-        id: disclaimer.id,
-        title: disclaimer.title,
-        url: disclaimer.url,
-        testID: `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
-      })),
-    ],
-    [disclaimers],
-  );
+  const links = useMemo(() => getDisplayedLinks(disclaimers), [disclaimers]);
 
   return (
     <BottomSheet
@@ -141,6 +156,44 @@ const VbaProviderTermsSheet = ({
             <TermsLinkRow key={link.id} link={link} />
           ))}
         </Box>
+        <Box twClassName="px-4">
+          <Checkbox
+            isSelected={hasBiometricConsent}
+            onChange={setHasBiometricConsent}
+            accessibilityLabel={`${strings(
+              'virtual_bank_account.verify_identity.biometric_consent_label',
+            )}${strings(
+              'virtual_bank_account.verify_identity.biometric_consent_link',
+            )}${strings(
+              'virtual_bank_account.verify_identity.biometric_consent_label_end',
+            )}`}
+            testID={VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX}
+            label={
+              <Box twClassName="ml-3 flex-1">
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'virtual_bank_account.verify_identity.biometric_consent_label',
+                  )}
+                  <TextButton
+                    variant={TextVariant.BodyMd}
+                    onPress={openIdosPrivacyNotice}
+                    accessibilityRole="link"
+                    testID={
+                      VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK
+                    }
+                  >
+                    {strings(
+                      'virtual_bank_account.verify_identity.biometric_consent_link',
+                    )}
+                  </TextButton>
+                  {strings(
+                    'virtual_bank_account.verify_identity.biometric_consent_label_end',
+                  )}
+                </Text>
+              </Box>
+            }
+          />
+        </Box>
       </Box>
       <BottomSheetFooter
         twClassName="pb-2"
@@ -149,6 +202,7 @@ const VbaProviderTermsSheet = ({
             'virtual_bank_account.verify_identity.terms_sheet_button',
           ),
           size: ButtonSize.Lg,
+          isDisabled: !hasBiometricConsent,
           onPress: handleAgree,
           testID: VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON,
         }}

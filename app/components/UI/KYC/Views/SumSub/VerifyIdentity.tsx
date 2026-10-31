@@ -13,7 +13,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   HeaderStandard,
   Icon,
   IconColor,
@@ -30,11 +29,15 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { openExternalUrl } from '../../utils/openExternalUrl';
 import { strings } from '../../../../../../locales/i18n';
-import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
+import {
+  METAMASK_PRIVACY_POLICY_URL,
+  METAMASK_TERMS_URL,
+} from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_CONTENT_STATE,
@@ -71,9 +74,10 @@ interface VbaVerifyIdentityProps {
 }
 
 /**
- * Provider terms step of identity verification. Continue opens the
- * "Data and privacy" sheet with the MetaMask, idOS, and SumSub documents;
- * agreeing there calls `onSuccess`.
+ * Provider terms step of identity verification. The footer links MetaMask's
+ * Terms and Conditions and Privacy Policy, which the user accepts with
+ * Agree & Continue. That opens the "Data and privacy" sheet with the idOS and
+ * SumSub documents; agreeing there calls `onSuccess`.
  */
 const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -108,6 +112,14 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
 
   const openTermsSheet = useCallback(() => setIsTermsSheetOpen(true), []);
   const closeTermsSheet = useCallback(() => setIsTermsSheetOpen(false), []);
+  const openMetaMaskTerms = useCallback(
+    () => openExternalUrl(METAMASK_TERMS_URL),
+    [],
+  );
+  const openMetaMaskPrivacyPolicy = useCallback(
+    () => openExternalUrl(METAMASK_PRIVACY_POLICY_URL),
+    [],
+  );
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -185,11 +197,35 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
             </Box>
           ) : null}
           <Text
-            variant={TextVariant.BodyXs}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            {strings('virtual_bank_account.verify_identity.footer')}
+            {strings(
+              'virtual_bank_account.verify_identity.footer_agreement_start',
+            )}
+            <TextButton
+              variant={TextVariant.BodySm}
+              onPress={openMetaMaskTerms}
+              testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK}
+            >
+              {strings('virtual_bank_account.verify_identity.footer_terms')}
+            </TextButton>
+            {strings('virtual_bank_account.verify_identity.footer_and')}
+            <TextButton
+              variant={TextVariant.BodySm}
+              onPress={openMetaMaskPrivacyPolicy}
+              testID={
+                VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK
+              }
+            >
+              {strings(
+                'virtual_bank_account.verify_identity.footer_privacy_policy',
+              )}
+            </TextButton>
+            {strings(
+              'virtual_bank_account.verify_identity.footer_agreement_end',
+            )}
           </Text>
           <Button
             variant={ButtonVariant.Primary}
@@ -200,24 +236,10 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
             onPress={openTermsSheet}
             testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
           >
-            {strings('virtual_bank_account.verify_identity.button')}
+            {strings(
+              'virtual_bank_account.verify_identity.agree_and_continue_button',
+            )}
           </Button>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="h-10 gap-1 opacity-40"
-          testID={VbaVerifyIdentitySelectorsIDs.POWERED_BY}
-        >
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {strings('virtual_bank_account.verify_identity.powered_by')}
-          </Text>
-          <MoonPayLogo name="moonpay-logo" width={77} height={18} />
         </Box>
       </SafeAreaView>
 
