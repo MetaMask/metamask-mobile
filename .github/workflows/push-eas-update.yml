@@ -41,6 +41,11 @@ on:
           - unofficial
           - nightly
         default: unofficial
+      commit_sha:
+        description: 'Optional full SHA. When set, the PR head must still match it or the publish fails.'
+        required: false
+        type: string
+        default: ''
 
   workflow_call:
     inputs:
@@ -74,6 +79,13 @@ on:
         type: string
         required: false
         default: ''
+      commit_sha:
+        description: >-
+          Optional full SHA that must equal the PR head. Runway OTA Production
+          passes the SHA that already passed ci.yml's "Check all jobs pass".
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -104,8 +116,54 @@ jobs:
           PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
         run: |
           .github/scripts/validate-pr-commit.sh
+
+  require-ci:
+    # Not "Check all jobs pass". That name belongs to ci.yml. A top-level job
+    # records a check under its own name on the shipped SHA, and a non-production
+    # skip would otherwise publish a successful check that a later production
+    # gate could accept.
+    name: Require ci.yml success
+    needs: validate-pr
+    # Always runs so non-production channels are not stuck behind a skipped job.
+    # The check itself applies only to production; every other channel passes
+    # this job without reading CI. A failed production check blocks approval
+    # and both publish jobs. require-ci-before-publish runs the same check
+    # again after approval.
+    if: always() && !cancelled() && needs.validate-pr.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+      actions: read # list ci.yml workflow runs, not same-named checks
+    steps:
+      - name: Skip CI gate for non-production channels
+        if: inputs.channel != 'production'
+        run: echo "Channel '${TARGET_CHANNEL}' does not require Check all jobs pass."
+
+      - name: Checkout gate script
+        if: inputs.channel == 'production'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/require-check-all-jobs-pass.mts
+            .nvmrc
+
+      - name: Setup Node.js
+        if: inputs.channel == 'production'
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Require Check all jobs pass on the shipped SHA
+        if: inputs.channel == 'production'
+        env:
+          COMMIT_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/require-check-all-jobs-pass.mts
 
   verify-release-branch:
     name: Verify release branch (production only)
@@ -174,7 +232,7 @@ jobs:
 
   ota-summary:
     name: OTA Update Summary
-    needs: validate-pr
+    needs: [validate-pr, require-ci]
     runs-on: ubuntu-latest
     steps:
       - name: Display OTA Summary
@@ -196,6 +254,7 @@ jobs:
     needs:
       - validate-pr
       - verify-release-branch
+      - require-ci
     permissions:
       contents: read
       id-token: write # requested by setup-node-modules.yml
@@ -212,6 +271,7 @@ jobs:
     needs:
       - validate-pr
       - verify-release-branch
+      - require-ci
     permissions:
       contents: read
       id-token: write # requested by setup-node-modules.yml
@@ -225,7 +285,7 @@ jobs:
 
   prepare:
     name: Load OTA build config
-    needs: [validate-pr, verify-release-branch]
+    needs: [validate-pr, verify-release-branch, require-ci]
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -412,6 +472,7 @@ jobs:
     needs:
       - fingerprint-comparison
       - validate-pr
+      - require-ci
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       inputs.channel == 'production'
@@ -435,6 +496,50 @@ jobs:
           pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ steps.get-token.outputs.token }}
 
+  require-ci-before-publish:
+    name: Require ci.yml success before publish
+    needs: [validate-pr, require-ci, approval]
+    # Approval can sit for a long time. Re-read ci.yml on the same SHA after it
+    # returns, and fail closed if that result is no longer a completed success.
+    # Non-production skips approval and skips this read; the job still succeeds
+    # so RC and exp publishes are not stuck.
+    if: >
+      always() && !cancelled() &&
+      needs.validate-pr.result == 'success' &&
+      needs.require-ci.result == 'success' &&
+      (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+      actions: read
+    steps:
+      - name: Skip CI gate for non-production channels
+        if: inputs.channel != 'production'
+        run: echo "Channel '${TARGET_CHANNEL}' does not require Check all jobs pass."
+
+      - name: Checkout gate script
+        if: inputs.channel == 'production'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/require-check-all-jobs-pass.mts
+            .nvmrc
+
+      - name: Setup Node.js
+        if: inputs.channel == 'production'
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Require Check all jobs pass on the shipped SHA
+        if: inputs.channel == 'production'
+        env:
+          COMMIT_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/require-check-all-jobs-pass.mts
+
   push-update-ios:
     name: Push EAS Update (iOS)
     needs:
@@ -444,6 +549,8 @@ jobs:
       - verify-release-branch
       - setup-dependencies
       - prepare
+      - require-ci
+      - require-ci-before-publish
     # approval is intentionally skipped for non-production channels, so the default implicit
     # success() (which treats a skipped dependency as failing) must be overridden here.
     if: >
@@ -453,11 +560,15 @@ jobs:
       needs.verify-release-branch.result == 'success' &&
       needs.setup-dependencies.result == 'success' &&
       needs.prepare.result == 'success' &&
+      needs.require-ci.result == 'success' &&
+      needs.require-ci-before-publish.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
     permissions:
       contents: read
+      checks: read # eas-update-platform.yml re-reads ci.yml before the EAS push
+      actions: read
       id-token: write # AWS OIDC role assumption in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
@@ -480,6 +591,8 @@ jobs:
       - validate-pr
       - setup-dependencies
       - prepare
+      - require-ci
+      - require-ci-before-publish
     # approval is intentionally skipped for non-production channels, so the default implicit
     # success() (which treats a skipped dependency as failing) must be overridden here.
     if: >
@@ -488,11 +601,15 @@ jobs:
       needs.validate-pr.result == 'success' &&
       needs.setup-dependencies.result == 'success' &&
       needs.prepare.result == 'success' &&
+      needs.require-ci.result == 'success' &&
+      needs.require-ci-before-publish.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'android')
     permissions:
       contents: read
+      checks: read # eas-update-platform.yml re-reads ci.yml before the EAS push
+      actions: read
       id-token: write # AWS OIDC role assumption in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:

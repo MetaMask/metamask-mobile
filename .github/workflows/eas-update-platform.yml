@@ -61,6 +61,13 @@ jobs:
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     environment: ${{ inputs.github_environment }}
+    permissions:
+      contents: read
+      # Re-read ci.yml after this environment's reviewers approve. The job does
+      # not start until then, so this is the last read before the EAS push.
+      checks: read
+      actions: read
+      id-token: write # AWS OIDC in configure-aws-credentials
     env:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
@@ -80,6 +87,32 @@ jobs:
       # "Apply build config" step cannot overwrite it via GITHUB_ENV.
       METAMASK_BUILD_ATTRIBUTION: ${{ inputs.build_attribution }}
     steps:
+      # Environment reviewers approve before any step. Production re-reads
+      # ci.yml here, after that wait, and before checkout of the published SHA
+      # replaces this worktree. The script is taken from the workflow ref.
+      - name: Checkout CI gate script
+        if: inputs.channel == 'production'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          path: ota-ci-gate
+          sparse-checkout: |
+            .github/scripts/require-check-all-jobs-pass.mts
+            .nvmrc
+
+      - name: Setup Node.js for the CI gate
+        if: inputs.channel == 'production'
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ota-ci-gate/.nvmrc
+
+      - name: Require ci.yml success before the EAS push
+        if: inputs.channel == 'production'
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node ota-ci-gate/.github/scripts/require-check-all-jobs-pass.mts
+
       - name: Checkout repository (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}

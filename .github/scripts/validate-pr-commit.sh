@@ -10,6 +10,8 @@
 #   PR_NUMBER       - The PR number to resolve
 #   GITHUB_TOKEN    - GitHub API token for authentication
 #   GITHUB_REPOSITORY - Repository in format "owner/repo"
+#   EXPECTED_COMMIT_SHA - Optional full SHA. When set, the PR head must match
+#                         it or the script exits 1 (production OTA CI gate).
 #
 # Outputs (to GITHUB_OUTPUT):
 #   pr_number   - The PR number (for downstream steps)
@@ -52,6 +54,23 @@ if echo "$pr_details" | jq -e '.id' > /dev/null 2>&1; then
 
   echo "  PR head SHA: ${pr_head_sha}" >&2
   echo "  PR state: ${pr_state}" >&2
+
+  # Production OTA passes the SHA that already passed "Check all jobs pass".
+  # Publishing a newer head would skip that gate, so a mismatch fails closed.
+  if [[ -n "${EXPECTED_COMMIT_SHA:-}" ]]; then
+    expected_sha=$(printf '%s' "${EXPECTED_COMMIT_SHA}" | tr '[:upper:]' '[:lower:]')
+    actual_sha=$(printf '%s' "${pr_head_sha}" | tr '[:upper:]' '[:lower:]')
+    if [[ ! "${expected_sha}" =~ ^[0-9a-f]{40}$ ]]; then
+      echo "❌ EXPECTED_COMMIT_SHA must be a full 40-character commit SHA" >&2
+      exit 1
+    fi
+    if [[ "${actual_sha}" != "${expected_sha}" ]]; then
+      echo "❌ PR #${PR_NUMBER} head ${actual_sha} moved after the CI gate (expected ${expected_sha})" >&2
+      echo "Re-run the production workflow so the new SHA is checked." >&2
+      exit 1
+    fi
+    pr_head_sha="${actual_sha}"
+  fi
 else
   echo "❌ PR #${PR_NUMBER} not found" >&2
   exit 1
