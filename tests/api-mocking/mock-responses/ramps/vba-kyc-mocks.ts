@@ -1,7 +1,6 @@
 import type { Mockttp } from 'mockttp';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import { getDecodedProxiedURL } from '../../../smoke-appium/notifications/utils/helpers.ts';
-import type { SeenProxiedRequest } from '../../helpers/mockHelpers.ts';
 
 const { getE2EIdentifierFromJwt } = AuthenticationController.Mocks;
 
@@ -59,6 +58,37 @@ export const VBA_KYC_JOURNEY_PATH = `/sessions/${VBA_KYC_SESSION_ID}/journey`;
 export const VBA_KYC_CREATE_SESSION_PATH = '/sessions';
 const MOCK_PRIORITY = 1100;
 
+/**
+ * Counts SumSub token and session-creation requests and holds token requests
+ * open until {@link VbaKycRequestTracker.releaseJourneyRequests} is called.
+ */
+export class VbaKycRequestTracker {
+  journeyRequests = 0;
+
+  sessionCreateRequests = 0;
+
+  #releaseJourney: () => void = () => undefined;
+
+  readonly #journeyReleased = new Promise<void>((resolve) => {
+    this.#releaseJourney = resolve;
+  });
+
+  get counts(): { journey: number; sessionCreate: number } {
+    return {
+      journey: this.journeyRequests,
+      sessionCreate: this.sessionCreateRequests,
+    };
+  }
+
+  waitForJourneyReleased(): Promise<void> {
+    return this.#journeyReleased;
+  }
+
+  releaseJourneyRequests(): void {
+    this.#releaseJourney();
+  }
+}
+
 const parseKycApiUrl = (requestUrl: string): URL | null => {
   const url = new URL(getDecodedProxiedURL(requestUrl));
   return KYC_API_HOST.test(url.origin) ? url : null;
@@ -91,13 +121,14 @@ const externalUserIdFromHeaders = (
  *
  * The session status echoes the caller's profile id so the session passes the
  * ownership check in `RampsController.hydrateVbaOnboarding`. The journey
- * (SumSub applicant token) request never resolves, so the native SumSub SDK is
- * never presented; specs count journey requests to assert whether the provider
- * launch was attempted.
+ * (SumSub applicant token) request is held open until the tracker releases it,
+ * so the native SumSub SDK is never presented; specs read the tracker counts to
+ * assert whether the provider launch was attempted.
  */
 export const setupVbaKycMocks = async (
   mockServer: Mockttp,
   scenario: VbaKycScenario,
+  tracker: VbaKycRequestTracker,
 ): Promise<void> => {
   await mockServer
     .forGet('/proxy')
@@ -176,23 +207,24 @@ export const setupVbaKycMocks = async (
     .forPost('/proxy')
     .matching(kycApiPathMatches(VBA_KYC_JOURNEY_PATH))
     .asPriority(MOCK_PRIORITY)
-    .thenTimeout();
+    .thenCallback(async () => {
+      tracker.journeyRequests += 1;
+      await tracker.waitForJourneyReleased();
+      return {
+        statusCode: 503,
+        json: { message: 'SumSub is not available in E2E' },
+      };
+    });
 
   await mockServer
     .forPost('/proxy')
     .matching(kycApiPathMatches(VBA_KYC_CREATE_SESSION_PATH))
     .asPriority(MOCK_PRIORITY)
-    .thenJson(409, { message: 'session creation is not expected' });
+    .thenCallback(() => {
+      tracker.sessionCreateRequests += 1;
+      return {
+        statusCode: 409,
+        json: { message: 'session creation is not expected' },
+      };
+    });
 };
-
-export const isVbaKycJourneyRequest = (request: SeenProxiedRequest): boolean =>
-  request.method === 'POST' &&
-  request.proxiedUrl.includes('kyc-api.') &&
-  new URL(request.proxiedUrl).pathname === VBA_KYC_JOURNEY_PATH;
-
-export const isVbaKycSessionCreateRequest = (
-  request: SeenProxiedRequest,
-): boolean =>
-  request.method === 'POST' &&
-  request.proxiedUrl.includes('kyc-api.') &&
-  new URL(request.proxiedUrl).pathname === VBA_KYC_CREATE_SESSION_PATH;

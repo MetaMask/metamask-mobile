@@ -98,10 +98,12 @@ class MoneyHomeView {
   }
 
   async tapVbaKycDecisionCardCta(): Promise<void> {
-    await Gestures.scrollIntoView(this.vbaKycDecisionCardCta, {
-      direction: 'down',
+    await Assertions.expectElementToExist(this.vbaKycDecisionCardCta, {
+      timeout: MONEY_HOME_LOAD_TIMEOUT_MS,
+      description: 'Money Home VBA KYC decision card CTA should be rendered',
     });
     await Gestures.waitAndTap(this.vbaKycDecisionCardCta, {
+      checkVisibility: false,
       elemDescription: 'Money Home VBA KYC decision card CTA',
     });
   }

@@ -14,8 +14,6 @@ import {
 } from '../../framework';
 
 const KYC_REJECTED_COPY = enContent.virtual_bank_account.kyc_rejected;
-const SUMSUB_ERROR_TITLE =
-  enContent.virtual_bank_account.sumsub_kyc.error_title;
 const VBA_STATUS_TIMEOUT_MS = 30_000;
 
 class VbaKycStatusView {
@@ -82,7 +80,7 @@ class VbaKycStatusView {
     await Assertions.expectElementToNotExist(this.retryButton, {
       description: 'Try again must not be offered for a rejected session',
     });
-    await Assertions.expectTextNotDisplayed(SUMSUB_ERROR_TITLE, {
+    await Assertions.expectElementToNotExist(this.sumSubError, {
       description: "Couldn't start verification must not be displayed",
     });
     await Assertions.expectElementToNotExist(this.onboardingErrorStub, {

@@ -1,13 +1,9 @@
-import type { Mockttp } from 'mockttp';
 import MoneyHomeView from '../page-objects/Money/MoneyHomeView';
 import MoneyAddMoneySheet from '../page-objects/Money/MoneyAddMoneySheet';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import VbaKycStatusView from '../page-objects/Ramps/VbaKycStatusView';
-import { collectSeenProxiedRequests } from '../api-mocking/helpers/mockHelpers';
-import {
-  isVbaKycJourneyRequest,
-  isVbaKycSessionCreateRequest,
-} from '../api-mocking/mock-responses/ramps/vba-kyc-mocks';
+import Utilities from '../framework/Utilities';
+import type { VbaKycRequestTracker } from '../api-mocking/mock-responses/ramps/vba-kyc-mocks';
 
 export type VbaEntryPoint =
   | 'money-home-kyc-card'
@@ -46,12 +42,18 @@ export const leaveVbaStatusToMoneyHome = async (): Promise<void> => {
   await MoneyHomeView.expectMoneyHomeVisible();
 };
 
-export const countVbaKycProviderRequests = async (
-  mockServer: Mockttp,
-): Promise<{ journey: number; sessionCreate: number }> => {
-  const seen = await collectSeenProxiedRequests(mockServer);
-  return {
-    journey: seen.filter(isVbaKycJourneyRequest).length,
-    sessionCreate: seen.filter(isVbaKycSessionCreateRequest).length,
-  };
+export const waitForSumSubTokenRequest = async (
+  tracker: VbaKycRequestTracker,
+): Promise<void> => {
+  await Utilities.executeWithRetry(
+    async () => {
+      if (tracker.journeyRequests < 1) {
+        throw new Error('SumSub applicant token has not been requested yet');
+      }
+    },
+    {
+      timeout: 60_000,
+      description: 'SumSub applicant token requested after Try again',
+    },
+  );
 };
