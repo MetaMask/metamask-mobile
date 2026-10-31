@@ -73,10 +73,32 @@ const makeNftBuyItem = (
     data: {
       from: '0xseller',
       to: '0xbuyer',
-      token: { direction: 'in', symbol: 'FLUF World' },
+      token: {
+        direction: 'in',
+        symbol: 'FLUF World',
+        assetType: 'erc721',
+      },
     },
   } as unknown as ActivityListItem;
 };
+
+const makeNftSendItem = (): ActivityListItem =>
+  ({
+    type: 'send',
+    chainId: 'eip155:1',
+    status: 'success',
+    timestamp: 1,
+    hash: '0xlocal-hash',
+    data: {
+      from: '0xSENDER',
+      to: '0xRECIPIENT',
+      token: {
+        direction: 'out',
+        assetId: 'eip155:1/erc1155:0xCONTRACT/57',
+        assetType: 'erc1155',
+      },
+    },
+  }) as ActivityListItem;
 
 describe('useNftActivityImage', () => {
   beforeEach(() => {
@@ -116,6 +138,40 @@ describe('useNftActivityImage', () => {
 
     expect(result.current).toBeUndefined();
     expect(mockSelectNftByIdentity).not.toHaveBeenCalled();
+  });
+
+  it('resolves the NFT identity for a send activity', () => {
+    const item = {
+      ...makeNftBuyItem(),
+      type: 'send',
+    } as ActivityListItem;
+
+    renderUseNftActivityImage(item);
+
+    expect(mockSelectNftByIdentity).toHaveBeenCalledWith(
+      expect.anything(),
+      '0xCONTRACT',
+      '984',
+      '0x1',
+    );
+  });
+
+  it('resolves a local NFT send identity from the token asset id', () => {
+    mockSelectNftByIdentity.mockReturnValue({
+      address: '0xCONTRACT',
+      tokenId: '57',
+      image: 'https://example.com/fluf.png',
+    } as unknown as Nft);
+
+    const { result } = renderUseNftActivityImage(makeNftSendItem());
+
+    expect(mockSelectNftByIdentity).toHaveBeenCalledWith(
+      expect.anything(),
+      '0xCONTRACT',
+      '57',
+      '0x1',
+    );
+    expect(result.current).toBe('https://example.com/fluf.png');
   });
 
   it('selects the NFT leg matching the activity, not the first NFT transfer', () => {

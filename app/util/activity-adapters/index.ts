@@ -16,6 +16,8 @@ export {
   KALSHI_VENUE_CHAIN_ID,
   PERPS_ORDER_KINDS,
   isPerpsOrderKind,
+  isNftAssetType,
+  isNftToken,
 } from './types';
 export { isNftTransferType, isSpendingCapUnlimited } from './adapters/helpers';
 export {
