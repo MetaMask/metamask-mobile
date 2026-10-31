@@ -8,6 +8,7 @@ import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import Utilities from '../../framework/Utilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import type { AppiumElement } from '../../framework';
 import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
@@ -42,6 +43,14 @@ const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 class SolanaTestDApp {
+  private async getConnectionStatus(): Promise<string | null> {
+    return this.evaluate<string>(
+      `document.querySelector(${JSON.stringify(
+        sel(header.connectionStatus),
+      )})?.textContent?.trim() || null`,
+    ).catch(() => null);
+  }
+
   /** Exact native text match via XPath (name/label/text/content-desc). */
   private getExactTextElement(text: string): Promise<AppiumElement> {
     const escaped = text.replace(/'/g, "\\'");
@@ -221,14 +230,145 @@ class SolanaTestDApp {
   ): Promise<boolean> {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
-      const actual = await this.evaluate<string>(
-        `document.querySelector(${JSON.stringify(
-          sel(header.connectionStatus),
-        )})?.textContent?.trim() || null`,
-      ).catch(() => null);
+      const actual = await this.getConnectionStatus();
       if (actual === expected) {
         return true;
       }
+      await wait(POLL_MS);
+    }
+    return false;
+  }
+
+  /** Clicks a dapp element. Returns false when the element is not in the page. */
+  private async clickInPage(cssSelector: string): Promise<boolean> {
+    const clicked = await this.evaluate<boolean>(
+      `(() => {
+        const el = document.querySelector(${JSON.stringify(cssSelector)});
+        if (!(el instanceof HTMLElement)) return false;
+        el.click();
+        return true;
+      })()`,
+    );
+    return clicked === true;
+  }
+
+  /**
+   * After reload, auto-reconnect may leave the dapp on "Not connected" without
+   * opening the native MetaMask sheet. Poll for Connected, approve the native
+   * sheet when it is visible, and otherwise re-drive Connect from the dapp —
+   * same recovery shape as BitcoinTestDapp.waitForReconnect.
+   */
+  private async waitForReconnect(
+    timeoutMs = CONNECT_TIMEOUT_MS,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let lastNativeConnectAttemptAt = 0;
+    let lastDappConnectAttemptAt = 0;
+    let actual: string | null = null;
+
+    while (Date.now() < deadline) {
+      actual = await this.getConnectionStatus();
+      if (actual === 'Connected') return;
+
+      // Auto-reconnect may re-open the MetaMask connect sheet after wallets register.
+      if (Date.now() - lastNativeConnectAttemptAt >= 3_000) {
+        lastNativeConnectAttemptAt = Date.now();
+        const lookBudget = Math.min(500, deadline - Date.now());
+        if (lookBudget > 0) {
+          const connectVisible = await Utilities.isElementVisible(
+            DappConnectionModal.connectButton,
+            lookBudget,
+          );
+          const tapBudget = Math.min(5_000, deadline - Date.now());
+          if (connectVisible && tapBudget > 0) {
+            await DappConnectionModal.tapConnectButton({ timeout: tapBudget });
+            continue;
+          }
+        }
+      }
+
+      // Native sheet never appeared — re-open wallet adapter from the dapp.
+      if (
+        actual === 'Not connected' &&
+        Date.now() - lastDappConnectAttemptAt >= 5_000 &&
+        deadline - Date.now() > 0
+      ) {
+        lastDappConnectAttemptAt = Date.now();
+        await this.attemptDappReconnectBestEffort(deadline);
+      }
+
+      await wait(POLL_MS);
+    }
+
+    throw new Error(
+      `Timed out waiting for Solana reconnect: expected "Connected", got "${actual}"`,
+    );
+  }
+
+  /**
+   * Re-drive Connect from the Solana test dapp after refresh. Returns without
+   * throwing so {@link waitForReconnect} can keep polling. Each wait uses only
+   * the time left until `deadline`.
+   *
+   * Solana wallet-adapter path: Connect → MetaMask wallet option → native approve.
+   * Wait for wallet-standard registration before opening the adapter so the
+   * modal does not capture an empty wallet list.
+   */
+  private async attemptDappReconnectBestEffort(
+    deadline: number,
+  ): Promise<void> {
+    const remaining = () => Math.max(0, deadline - Date.now());
+    const connectSelector = `${sel(header.connect)} button`;
+    const walletOptionSelector = SolanaTestDappSelectorsWebIDs.WALLET_BUTTON;
+
+    if (remaining() <= 0) {
+      return;
+    }
+
+    await this.waitForSolanaWalletRegistered(Math.min(8_000, remaining()));
+    if (remaining() <= 0 || !(await this.clickInPage(connectSelector))) {
+      return;
+    }
+
+    const walletReady = await this.waitForElementWithin(
+      walletOptionSelector,
+      Math.min(8_000, remaining()),
+    );
+    if (!walletReady || !(await this.clickInPage(walletOptionSelector))) {
+      return;
+    }
+
+    const nativeBudget = Math.min(5_000, remaining());
+    if (nativeBudget <= 0) {
+      return;
+    }
+    const nativeConnectVisible = await Utilities.isElementVisible(
+      DappConnectionModal.connectButton,
+      nativeBudget,
+    );
+    const tapBudget = Math.min(5_000, remaining());
+    if (nativeConnectVisible && tapBudget > 0) {
+      await DappConnectionModal.tapConnectButton({ timeout: tapBudget });
+    }
+  }
+
+  /**
+   * Polls until `cssSelector` is in the page, or `timeoutMs` elapses.
+   * Resolves false on timeout instead of throwing, so reconnect can keep polling.
+   */
+  private async waitForElementWithin(
+    cssSelector: string,
+    timeoutMs: number,
+  ): Promise<boolean> {
+    if (timeoutMs <= 0) {
+      return false;
+    }
+    const end = Date.now() + timeoutMs;
+    while (Date.now() < end) {
+      const exists = await this.evaluate<boolean>(
+        `Boolean(document.querySelector(${JSON.stringify(cssSelector)}))`,
+      ).catch(() => false);
+      if (exists) return true;
       await wait(POLL_MS);
     }
     return false;
@@ -264,11 +404,7 @@ class SolanaTestDApp {
         return;
       }
 
-      lastStatus = await this.evaluate<string>(
-        `document.querySelector(${JSON.stringify(
-          sel(header.connectionStatus),
-        )})?.textContent?.trim() || null`,
-      ).catch(() => null);
+      lastStatus = await this.getConnectionStatus();
     }
 
     throw new Error(
@@ -376,7 +512,7 @@ class SolanaTestDApp {
 
   async reload(): Promise<void> {
     await this.reloadDapp();
-    await this.pollForText(sel(header.connectionStatus), 'Connected');
+    await this.waitForReconnect();
   }
 }
 
