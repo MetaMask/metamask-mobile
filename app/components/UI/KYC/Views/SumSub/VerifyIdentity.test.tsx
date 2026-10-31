@@ -10,12 +10,18 @@ import {
   METAMASK_TERMS_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
+import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_CONTENT_STATE,
   KYC_SCREEN_ID,
   KYC_SCREEN_PERFORMANCE_CONFIG,
 } from '../../kycScreenPerformance';
+
+jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics', () => ({
+  ...jest.requireActual('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
+}));
 
 jest.mock('../../hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
@@ -310,5 +316,61 @@ describe('VbaVerifyIdentity', () => {
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeOnTheScreen();
     expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  describe('analytics', () => {
+    const identityTermsProperties = () =>
+      jest
+        .mocked(trackVbaEvent)
+        .mock.calls.filter(
+          ([event]) => event.category === 'KYC Identity Terms Updated',
+        )
+        .map(([, buildProperties]) => buildProperties());
+    const identityTermsStatuses = () =>
+      identityTermsProperties().map((properties) => properties.status);
+
+    it('tracks viewed once when the page opens', () => {
+      renderScreen();
+
+      expect(identityTermsStatuses()).toStrictEqual(['viewed']);
+      expect(identityTermsProperties()[0]).toMatchObject({
+        screen_name: 'vba_onboarding',
+        kyc_provider: 'sumsub',
+      });
+    });
+
+    it('tracks failed when the terms fail to load', () => {
+      mockUseKycSessionDisclaimers.mockReturnValue({
+        disclaimers: null,
+        isLoading: false,
+        error: 'Request timed out',
+        retry: mockRetry,
+      });
+
+      renderScreen();
+
+      expect(identityTermsStatuses()).toStrictEqual(['viewed', 'failed']);
+    });
+
+    it('tracks accepted when the user agrees, before advancing', async () => {
+      const { getByTestId } = renderScreen();
+      openTermsSheet(getByTestId);
+
+      fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON));
+
+      expect(identityTermsStatuses()).toStrictEqual(['viewed', 'accepted']);
+      expect(
+        jest.mocked(trackVbaEvent).mock.invocationCallOrder.at(-1),
+      ).toBeLessThan(mockOnSuccess.mock.invocationCallOrder[0]);
+    });
+
+    it('does not track accepted when the sheet is dismissed', () => {
+      const { getByTestId } = renderScreen();
+      openTermsSheet(getByTestId);
+
+      fireEvent.press(getByTestId(MOCK_SHEET_OVERLAY));
+
+      expect(identityTermsStatuses()).toStrictEqual(['viewed']);
+    });
   });
 });

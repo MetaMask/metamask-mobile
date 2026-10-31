@@ -7,6 +7,12 @@ import VbaOnboardingStub, {
 } from './VbaOnboardingStub';
 import { VbaOnboardingErrorSelectorsIDs } from '../../../KYC/components/OnboardingError';
 import { strings } from '../../../../../../locales/i18n';
+import { trackVbaEvent } from './vbaAnalytics';
+
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
 const mockOnContinue = jest.fn();
@@ -79,4 +85,24 @@ describe('VbaOnboardingStub', () => {
 
     expect(mockGoBack).toHaveBeenCalled();
   });
+
+  it.each([
+    ['error', 'vba_error'],
+    ['account_provisioning_error', 'vba_account_provisioning_error'],
+  ] as const)(
+    'tracks Money VBA Error Viewed once for the %s stub',
+    (variant, screenName) => {
+      const { rerender } = renderWithProvider(
+        <VbaOnboardingStub variant={variant} onContinue={mockOnContinue} />,
+      );
+      rerender(
+        <VbaOnboardingStub variant={variant} onContinue={mockOnContinue} />,
+      );
+
+      expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({ category: 'Money VBA Error Viewed' });
+      expect(buildProperties()).toMatchObject({ screen_name: screenName });
+    },
+  );
 });

@@ -7,12 +7,14 @@ import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
+import { trackVbaEvent } from './vbaAnalytics';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
 } from './vbaScreenPerformance';
+
 const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -21,6 +23,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
   }),
+}));
+
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
 }));
 
 jest.mock('./hooks/useKycDisclaimers');
@@ -385,5 +392,90 @@ describe('CreateVirtualBankAccount', () => {
 
     fireEvent.press(getByText('Try again'));
     expect(mockRetry).toHaveBeenCalledTimes(1);
+  });
+
+  describe('analytics', () => {
+    const vendorTermsProperties = () =>
+      jest
+        .mocked(trackVbaEvent)
+        .mock.calls.filter(
+          ([event]) => event.category === 'Money VBA Vendor Terms Updated',
+        )
+        .map(([, buildProperties]) => buildProperties());
+    const vendorTermsStatuses = () =>
+      vendorTermsProperties().map((properties) => properties.status);
+
+    it('tracks viewed once when the screen opens', () => {
+      renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      expect(vendorTermsStatuses()).toStrictEqual(['viewed']);
+    });
+
+    it('tracks failed with a failure reason when the terms are unavailable', () => {
+      mockUseKycDisclaimers.mockReturnValue({
+        disclaimers: null,
+        isLoading: false,
+        isAccepting: false,
+        error: 'No KYC disclaimers returned',
+        acceptDisclaimers: mockAcceptDisclaimers,
+        retry: mockRetry,
+      });
+
+      renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'failed']);
+      expect(vendorTermsProperties().at(-1)).toMatchObject({
+        failure_reason: 'terms_unavailable',
+      });
+    });
+
+    it('tracks accepted after the terms are saved and before advancing', async () => {
+      const { getByTestId } = renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() =>
+        expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'accepted']),
+      );
+      const acceptedCall = jest
+        .mocked(trackVbaEvent)
+        .mock.invocationCallOrder.at(-1) as number;
+      expect(acceptedCall).toBeLessThan(
+        mockOnSuccess.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('tracks a submission failure when the terms loaded but were not saved', async () => {
+      mockAcceptDisclaimers.mockResolvedValue(false);
+      const { getByTestId } = renderWithProvider(
+        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+          ),
+        );
+      });
+
+      expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'failed']);
+      expect(vendorTermsProperties().at(-1)).toMatchObject({
+        failure_reason: 'terms_submission_failed',
+      });
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
   });
 });

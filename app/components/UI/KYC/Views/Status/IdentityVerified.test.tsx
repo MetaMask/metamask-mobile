@@ -7,6 +7,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import VbaIdentityVerified, {
   VbaIdentityVerifiedSelectorsIDs,
 } from './IdentityVerified';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
+
+jest.mock('../../hooks/useTrackKycResultViewed');
 
 const mockNavigate = jest.fn();
 const mockParentDispatch = jest.fn();
@@ -81,5 +84,11 @@ describe('VbaIdentityVerified', () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
+  });
+
+  it('reports the approved result as viewed', () => {
+    renderWithProvider(<VbaIdentityVerified />);
+
+    expect(useTrackKycResultViewed).toHaveBeenCalledWith('approved');
   });
 });

@@ -13,6 +13,7 @@ import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 import { VBA_KYC_VENDOR } from '../constants';
+import { buildVbaBaseProperties } from '../vbaAnalytics';
 import { TraceName } from '../../../../../../util/trace';
 import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
@@ -836,6 +837,21 @@ describe('resolveVbaOnboarding', () => {
     mockStartSession.mockResolvedValue({ id: 'session-1' });
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+    });
+  });
+
+  it('remembers the hydrated facts for analytics', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      kycStatus: 'pending',
+      autorampStatus: 'in_progress',
+    });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(buildVbaBaseProperties()).toMatchObject({
+      kyc_status: 'pending',
+      autoramp_status: 'in_progress',
     });
   });
 

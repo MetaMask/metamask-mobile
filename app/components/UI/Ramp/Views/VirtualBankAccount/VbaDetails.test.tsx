@@ -7,6 +7,7 @@ import renderWithProvider, {
   type ProviderValues,
 } from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
+import ReduxService from '../../../../../core/redux';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,6 +20,7 @@ import {
   setCachedDepositInstructions,
 } from './vbaDepositInstructionsCache';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
+import { trackVbaEvent } from './vbaAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -53,6 +55,11 @@ let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
 let mockCanGoBack = true;
+
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
+}));
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -219,6 +226,18 @@ describe('VbaDetails', () => {
     jest.clearAllMocks();
     mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
     resetMusdAutorampSetupGuard();
+    // Region on the analytics events is read from the app store. Without one,
+    // that read logs a missing-store error before it is swallowed.
+    ReduxService.store = {
+      getState: () => ({
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: mockLocation },
+          },
+        },
+      }),
+      dispatch: () => undefined,
+    } as never;
     clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
@@ -1378,6 +1397,41 @@ describe('VbaDetails', () => {
       enabled: true,
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
+  });
+
+  describe('analytics', () => {
+    const detailsViewedCalls = () =>
+      jest
+        .mocked(trackVbaEvent)
+        .mock.calls.filter(
+          ([event]) => event.category === 'Money VBA Details Viewed',
+        );
+
+    it('tracks Money VBA Details Viewed once for an approved account', async () => {
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+      });
+      expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+      expect(detailsViewedCalls()).toHaveLength(1);
+      expect(detailsViewedCalls()[0][1]()).toMatchObject({
+        screen_name: 'vba_details',
+      });
+    });
+
+    it('does not track Money VBA Details Viewed while the account is still being created', async () => {
+      setAutoramps([{ ...approvedAutoramp, status: 'Created' }]);
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(detailsViewedCalls()).toHaveLength(0);
     });
   });
 });
