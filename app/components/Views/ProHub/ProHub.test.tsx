@@ -265,7 +265,7 @@ describe('ProHub', () => {
       expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
-    it('stays open for a non-canceled status without an entitlement', () => {
+    it('stays open for a paused plan without an entitlement', () => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
         MoneyAccountPlusAccess.Eligible,
       );
@@ -276,6 +276,22 @@ describe('ProHub', () => {
 
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
+    });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.incomplete,
+      SUBSCRIPTION_STATUSES.incompleteExpired,
+    ])('leaves when the Plus plan is %s', (status) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+
+      const { queryByTestId } = renderProHub({
+        subscriptions: [createPlusSubscription(status)],
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
     it('leaves when Pro is disabled even if a plan is still displayed', () => {

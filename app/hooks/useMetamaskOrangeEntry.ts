@@ -47,8 +47,9 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
     : 'accounts_menu.join_metamask_orange';
 
   const onPress = useCallback(() => {
-    // Every Plus status except canceled opens the hub. Canceled, no
-    // subscription, and a still-loading membership open Benefits.
+    // Statuses Pro Hub can show open the hub. Canceled, incomplete,
+    // incomplete-expired, no subscription, and a still-loading membership
+    // open Benefits.
     const destination = hasMembership
       ? {
           button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,

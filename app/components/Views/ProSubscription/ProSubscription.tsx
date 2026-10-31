@@ -63,7 +63,7 @@ const ProSubscription = () => {
   >();
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
 
-  // Dismiss when the Pro flag is off. Any Plus status except canceled already
+  // Dismiss when the Pro flag is off. A Plus status the hub can show already
   // owns a membership, so send them to the hub instead of Benefits.
   useEffect(() => {
     if (proAccess === MoneyAccountPlusAccess.Disabled) {

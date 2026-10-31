@@ -413,8 +413,6 @@ describe('subscriptionController selectors', () => {
       SUBSCRIPTION_STATUSES.paused,
       SUBSCRIPTION_STATUSES.awaitingFunds,
       SUBSCRIPTION_STATUSES.unpaid,
-      SUBSCRIPTION_STATUSES.incomplete,
-      SUBSCRIPTION_STATUSES.incompleteExpired,
     ])('opens Pro Hub for a %s Money Account Plus subscription', (status) => {
       const state = createState({
         subscriptions: [
@@ -430,13 +428,17 @@ describe('subscriptionController selectors', () => {
       expect(selectHasMoneyAccountPlusMembership(state)).toBe(true);
     });
 
-    it('keeps a canceled subscription on Benefits', () => {
+    it.each([
+      SUBSCRIPTION_STATUSES.canceled,
+      SUBSCRIPTION_STATUSES.incomplete,
+      SUBSCRIPTION_STATUSES.incompleteExpired,
+    ])('keeps a %s subscription on Benefits', (status) => {
       const state = createState({
         subscriptions: [
           createSubscription({
             id: 'sub-money-account-plus',
             products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
-            status: SUBSCRIPTION_STATUSES.canceled,
+            status,
           }),
         ],
         trialedProducts: [],

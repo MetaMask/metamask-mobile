@@ -37,6 +37,19 @@ const EXISTING_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   ...ACTIVE_SUBSCRIPTION_STATUSES,
   SUBSCRIPTION_STATUSES.paused,
 ]);
+/**
+ * Plus statuses Pro Hub can render. Matches `getMembershipBannerModel`:
+ * active, trialing, provisional, and awaiting funds show Active; past due
+ * shows Overdue; paused and unpaid show Deactivated. Canceled, incomplete,
+ * and incomplete-expired stay on the join label and Benefits.
+ */
+const MEMBERSHIP_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
+  ...ACTIVE_SUBSCRIPTION_STATUSES,
+  SUBSCRIPTION_STATUSES.awaitingFunds,
+  SUBSCRIPTION_STATUSES.pastDue,
+  SUBSCRIPTION_STATUSES.paused,
+  SUBSCRIPTION_STATUSES.unpaid,
+]);
 const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
 
 /**
@@ -132,8 +145,9 @@ export const selectIsMoneyAccountPlusSubscriber = createSelector(
 /**
  * Selects whether the Plus subscription should open Pro Hub.
  *
- * Every Plus status except `canceled` uses the MetaMask Orange label and Pro
- * Hub. A canceled plan, or no plan, stays on the join label and Benefits.
+ * Active, trialing, provisional, awaiting funds, past due, paused, and unpaid
+ * use the MetaMask Orange label and Pro Hub. Canceled, incomplete, and
+ * incomplete-expired plans stay on the join label and Benefits.
  *
  * @param state - The root Redux state.
  * @returns True when the Orange row should label the membership and open Pro Hub.
@@ -144,7 +158,7 @@ export const selectHasMoneyAccountPlusMembership = createSelector(
     subscriptions.some(
       (subscription) =>
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS) &&
-        subscription.status !== SUBSCRIPTION_STATUSES.canceled,
+        MEMBERSHIP_SUBSCRIPTION_STATUSES.has(subscription.status),
     ),
 );
 
