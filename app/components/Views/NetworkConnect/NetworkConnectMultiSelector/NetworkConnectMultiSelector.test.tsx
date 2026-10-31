@@ -10,7 +10,8 @@ import {
   selectNetworkConfigurationsByCaipChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { getNetworkImageSource } from '../../../../util/networks';
 
 const mockNavigate = jest.fn();
@@ -28,21 +29,30 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../util/networks'),
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-image' })),
 }));
 
 const mockNetworkConfigurations = {
-  'eip155:1': {
-    chainId: '0x1',
-    name: 'Ethereum Mainnet',
+  // Intentionally unordered across namespaces to assert request-scoped sorting.
+  'eip155:11155111': {
+    chainId: '0xaa36a7',
+    name: 'Sepolia',
     rpcEndpoints: [
       {
-        url: 'https://mainnet.infura.io/v3',
-        networkClientId: 'mainnet',
+        url: 'https://sepolia.infura.io/v3',
+        networkClientId: 'sepolia',
       },
     ],
     defaultRpcEndpointIndex: 0,
-    caipChainId: 'eip155:1',
+    caipChainId: 'eip155:11155111',
+  },
+  [BtcScope.Mainnet]: {
+    chainId: BtcScope.Mainnet,
+    name: 'Bitcoin',
+    rpcEndpoints: [],
+    defaultRpcEndpointIndex: 0,
+    caipChainId: BtcScope.Mainnet,
   },
   'eip155:137': {
     chainId: '0x89',
@@ -56,6 +66,37 @@ const mockNetworkConfigurations = {
     defaultRpcEndpointIndex: 0,
     caipChainId: 'eip155:137',
   },
+  [SolScope.Mainnet]: {
+    chainId: SolScope.Mainnet,
+    name: 'Solana',
+    rpcEndpoints: [],
+    defaultRpcEndpointIndex: 0,
+    caipChainId: SolScope.Mainnet,
+  },
+  'eip155:59141': {
+    chainId: '0xe705',
+    name: 'Linea Sepolia',
+    rpcEndpoints: [
+      {
+        url: 'https://linea-sepolia.infura.io/v3',
+        networkClientId: 'linea-sepolia',
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    caipChainId: 'eip155:59141',
+  },
+  'eip155:1': {
+    chainId: '0x1',
+    name: 'Ethereum Mainnet',
+    rpcEndpoints: [
+      {
+        url: 'https://mainnet.infura.io/v3',
+        networkClientId: 'mainnet',
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    caipChainId: 'eip155:1',
+  },
 };
 
 describe('NetworkConnectMultiSelector', () => {
@@ -65,7 +106,11 @@ describe('NetworkConnectMultiSelector', () => {
     onSubmit: jest.fn(),
     onBack: jest.fn(),
     isRenderedAsBottomSheet: true,
-    defaultSelectedChainIds: ['eip155:1' as CaipChainId],
+    defaultSelectedChainIds: [
+      'eip155:1' as CaipChainId,
+      SolScope.Mainnet as CaipChainId,
+    ],
+    requestedNamespaces: [KnownCaipNamespace.Eip155],
   };
 
   beforeEach(() => {
@@ -90,6 +135,25 @@ describe('NetworkConnectMultiSelector', () => {
         ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
       )[0],
     ).toBeOnTheScreen();
+  });
+
+  it('orders in-scope eip155 mainnets before other namespaces and testnets', () => {
+    renderWithProvider(<NetworkConnectMultiSelector {...defaultProps} />);
+
+    const networkNames = screen
+      .getAllByTestId(/-(selected|not-selected)$/)
+      .map((element) =>
+        String(element.props.testID).replace(/-(selected|not-selected)$/, ''),
+      );
+
+    expect(networkNames).toEqual([
+      'Ethereum Mainnet',
+      'Polygon',
+      'Solana',
+      'Bitcoin',
+      'Linea Sepolia',
+      'Sepolia',
+    ]);
   });
 
   it('reuses derived networks when network configurations are unchanged', () => {
@@ -134,7 +198,7 @@ describe('NetworkConnectMultiSelector', () => {
     const selectAllbutton = getAllByTestId(
       ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
     );
-    fireEvent.press(selectAllbutton[0]);
+    // Partially selected → select all remaining networks
     fireEvent.press(selectAllbutton[0]);
 
     const updateButton = getByTestId(
@@ -145,6 +209,10 @@ describe('NetworkConnectMultiSelector', () => {
     expect(defaultProps.onSubmit).toHaveBeenCalledWith([
       'eip155:1',
       'eip155:137',
+      BtcScope.Mainnet,
+      SolScope.Mainnet,
+      'eip155:59141',
+      'eip155:11155111',
     ]);
   });
 
@@ -165,7 +233,10 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:137']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith([
+      SolScope.Mainnet,
+      'eip155:137',
+    ]);
   });
 
   it('shows update button when some networks are selected', () => {

@@ -30,6 +30,7 @@ import { getNetworkImageSource } from '../../../../util/networks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnectMultiSelector.testIds';
+import { sortNetworksForDappPermissionSelector } from './sortNetworksForDappPermissionSelector';
 
 import { CaipChainId } from '@metamask/utils';
 
@@ -40,6 +41,8 @@ const NetworkConnectMultiSelector = ({
   onBack,
   isRenderedAsBottomSheet = true,
   defaultSelectedChainIds,
+  requestedCaipChainIds,
+  requestedNamespaces,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
@@ -57,24 +60,34 @@ const NetworkConnectMultiSelector = ({
     onSubmit(selectedChainIds);
   }, [onSubmit, selectedChainIds]);
   // TODO: [SOLANA]  When we support non evm networks, refactor this
-  const networks = useMemo(
-    () =>
-      Object.entries(networkConfigurations).map(
-        ([key, network]: [
-          string,
-          EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-        ]) => ({
-          id: key,
-          name: network.name,
-          isSelected: false,
-          imageSource: getNetworkImageSource({
-            chainId: network.caipChainId,
-          }),
-          caipChainId: network.caipChainId,
+  const networks = useMemo(() => {
+    const networkItems = Object.entries(networkConfigurations).map(
+      ([key, network]: [
+        string,
+        EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+      ]) => ({
+        id: key,
+        name: network.name,
+        isSelected: false,
+        imageSource: getNetworkImageSource({
+          chainId: network.caipChainId,
         }),
-      ),
-    [networkConfigurations],
-  );
+        caipChainId: network.caipChainId,
+      }),
+    );
+
+    // In-scope (request / selected namespaces) → other mainnets → testnets.
+    return sortNetworksForDappPermissionSelector(networkItems, {
+      preferredChainIds: defaultSelectedChainIds,
+      requestedCaipChainIds,
+      requestedNamespaces,
+    });
+  }, [
+    networkConfigurations,
+    defaultSelectedChainIds,
+    requestedCaipChainIds,
+    requestedNamespaces,
+  ]);
 
   const onSelectNetwork = useCallback(
     (chainId: CaipChainId) => {
