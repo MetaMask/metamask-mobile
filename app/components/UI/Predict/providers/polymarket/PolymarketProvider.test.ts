@@ -1514,6 +1514,76 @@ describe('PolymarketProvider', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
+  it('shares one account-state resolution across overlapping callers', async () => {
+    let resolveContractCheck: (isContract: boolean) => void = () => undefined;
+    mockIsSmartContractAddress.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveContractCheck = resolve;
+        }),
+    );
+    const provider = createProvider();
+
+    const first = provider.getAccountState({ ownerAddress: signer.address });
+    const second = provider.getAccountState({
+      ownerAddress: signer.address.toLowerCase(),
+    });
+
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(1);
+
+    resolveContractCheck(true);
+    const [firstState, secondState] = await Promise.all([first, second]);
+
+    expect(secondState).toEqual(firstState);
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries account state after an in-flight resolution rejects', async () => {
+    mockIsSmartContractAddress.mockRejectedValueOnce(new Error('rpc down'));
+    const provider = createProvider();
+
+    await expect(
+      provider.getAccountState({ ownerAddress: signer.address }),
+    ).rejects.toThrow('rpc down');
+
+    await provider.getAccountState({ ownerAddress: signer.address });
+
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(2);
+  });
+
+  it('drops an in-flight account-state read that was invalidated before it finished', async () => {
+    let resolveFirstCheck: (isContract: boolean) => void = () => undefined;
+    mockIsSmartContractAddress.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFirstCheck = resolve;
+        }),
+    );
+    mockIsSmartContractAddress.mockResolvedValueOnce(false);
+    const provider = createProvider();
+
+    const first = provider.getAccountState({ ownerAddress: signer.address });
+    provider.invalidateAccountState(signer.address);
+    const second = provider.getAccountState({ ownerAddress: signer.address });
+    resolveFirstCheck(true);
+
+    const firstState = await first;
+    const secondState = await second;
+    const thirdState = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    expect(firstState.walletType).toBe('safe');
+    expect(secondState).toEqual({
+      address: depositWalletAddress,
+      isDeployed: true,
+      walletType: 'deposit-wallet',
+    });
+    expect(thirdState).toEqual(secondState);
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledTimes(1);
+  });
+
   it('re-fetches account state once the deployed-wallet TTL expires', async () => {
     const provider = createProvider();
     const start = 1_700_000_000_000;
