@@ -9469,6 +9469,11 @@
         "description": "Your virtual account details are ready.",
         "cta": "View account details"
       },
+      "account_pending": {
+        "title": "Account pending approval",
+        "description": "We’ll let you know when it’s ready.",
+        "cta": "Check status"
+      },
       "kyc_pending": {
         "title": "Verifying your identity",
         "description": "We’re reviewing your details. We’ll let you know when the check is complete.",

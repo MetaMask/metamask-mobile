@@ -23,6 +23,7 @@ import {
 } from '../../../../../../selectors/rampsController';
 import { useVbaEligibility } from './useVbaEligibility';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import { isVbaProviderApprovalPending } from '../vbaProviderApprovalStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 
 /**
@@ -38,6 +39,11 @@ export type VbaHomeCard =
   | { type: 'get_started' }
   /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved. */
   | { type: 'account_is_ready' }
+  /**
+   * ACCOUNT_PENDING — KYC approved, but account setup last stopped because
+   * the provider (MoonPay) had not activated the customer yet.
+   */
+  | { type: 'account_pending' }
   /**
    * KYC_PENDING — Figma node 2254-13372. Vendor still processing, or flow
    * submitted.
@@ -73,6 +79,11 @@ export interface VbaHomeCardInputs {
   autoramps: readonly AutorampAccount[];
   /** RampsController Money Account wallet registrations. */
   walletRegistrations: readonly MoneyAccountWalletRegistration[];
+  /**
+   * Whether account setup last stopped waiting for provider approval (async
+   * storage, not Redux). Treated as `false` while the read is in flight.
+   */
+  isProviderApprovalPending: boolean;
 }
 
 /**
@@ -111,6 +122,16 @@ const hasAnyAutorampForWallet = (
  * Whether the wallet has a Money Account registration row. A `disabled` row
  * still counts as registration evidence.
  */
+const hasApprovedAutorampForWallet = (
+  walletAddress: string,
+  autoramps: readonly AutorampAccount[],
+): boolean =>
+  autoramps.some(
+    (autoramp) =>
+      matchesWallet(walletAddress, autoramp.walletAddress) &&
+      autoramp.status === 'Approved',
+  );
+
 const hasWalletRegistration = (
   walletAddress: string,
   walletRegistrations: readonly MoneyAccountWalletRegistration[],
@@ -121,9 +142,11 @@ const hasWalletRegistration = (
 
 /**
  * Pure decision resolving the single VBA status card for Money home. An
- * approved session always gets `account_is_ready`: the onboarding funnel
+ * approved session gets `account_is_ready`: the onboarding funnel
  * (`getVbaDestinationForSnapshot`) opens details when a usable autoramp
  * exists and Identity verified when it does not, and details creates it.
+ * The exception is `account_pending`, when setup last stopped on provider
+ * approval and no autoramp for the wallet is Approved yet.
  *
  * The approved check is `finalStatus === 'approved' || kycStatus === 'approved'`
  * (relay approval counts while the vendor `finalStatus` is still pending).
@@ -146,6 +169,7 @@ export function getVbaHomeCard({
   hasAcceptedVendorTerms,
   autoramps,
   walletRegistrations,
+  isProviderApprovalPending,
 }: VbaHomeCardInputs): VbaHomeCard {
   // Not eligible, or the geo lookup has not resolved yet — hold.
   if (!isEligible || isEligibilityLoading) {
@@ -171,12 +195,16 @@ export function getVbaHomeCard({
     sessionStatus?.finalStatus === 'approved' ||
     sessionStatus?.kycStatus === 'approved';
 
-  // 3. KYC approved. Identity is no longer being verified, so show
-  // account_is_ready with or without a usable autoramp. Its CTA opens
-  // onboarding, which sends a user without one through Identity verified to
-  // the details screen, where the autoramp is created.
+  // 3. KYC approved. Identity is no longer being verified. When setup last
+  // stopped on provider approval and no account is Approved yet, say so.
+  // Otherwise show account_is_ready with or without a usable autoramp: its CTA
+  // opens onboarding, which sends a user without one through Identity
+  // verified to the details screen, where the autoramp is created.
   if (isApproved) {
-    return { type: 'account_is_ready' };
+    return isProviderApprovalPending &&
+      !hasApprovedAutorampForWallet(walletAddress, autoramps)
+      ? { type: 'account_pending' }
+      : { type: 'account_is_ready' };
   }
 
   // 4. KYC rejected or retry — no card exists in Figma yet (design question
@@ -216,31 +244,32 @@ export function getVbaHomeCard({
 }
 
 /**
- * Reads local vendor-terms acceptance for `walletAddress` and reports the
- * result unless the caller has already cancelled.
+ * Reads a per-wallet flag from async storage and reports the result unless
+ * the caller has already cancelled.
  *
- * @param walletAddress - Wallet the acceptance was stored under.
- * @param onAccepted - Receives whether that wallet has accepted terms.
+ * @param read - Storage read for the flag.
+ * @param step - Name of the read, for error logs.
+ * @param walletAddress - Wallet the flag was stored under.
+ * @param onValue - Receives the flag for that wallet.
  * @returns Cleanup that ignores a late resolution.
  */
-const readVendorTermsAcceptance = (
+const readWalletFlag = (
+  read: (walletAddress: string) => Promise<boolean>,
+  step: string,
   walletAddress: string,
-  onAccepted: (accepted: boolean) => void,
+  onValue: (value: boolean) => void,
 ): (() => void) => {
   let isCancelled = false;
-  hasAcceptedVbaVendorTerms(walletAddress)
-    .then((accepted) => {
+  read(walletAddress)
+    .then((value) => {
       if (!isCancelled) {
-        onAccepted(accepted);
+        onValue(value);
       }
     })
     .catch((error) => {
       Logger.error(error as Error, {
         tags: { feature: 'money-home' },
-        context: {
-          name: 'useVbaHomeCard',
-          data: { step: 'hasAcceptedVbaVendorTerms' },
-        },
+        context: { name: 'useVbaHomeCard', data: { step } },
       });
     });
   return () => {
@@ -314,8 +343,38 @@ export const useVbaHomeCard = (): VbaHomeCard => {
     if (!walletAddress) {
       return undefined;
     }
-    return readVendorTermsAcceptance(walletAddress, setHasAcceptedVendorTerms);
+    return readWalletFlag(
+      hasAcceptedVbaVendorTerms,
+      'hasAcceptedVbaVendorTerms',
+      walletAddress,
+      setHasAcceptedVendorTerms,
+    );
   }, [walletAddress]);
+
+  const [isProviderApprovalPending, setIsProviderApprovalPending] =
+    useState(false);
+  const [pendingWalletAddress, setPendingWalletAddress] =
+    useState(walletAddress);
+  if (pendingWalletAddress !== walletAddress) {
+    setPendingWalletAddress(walletAddress);
+    setIsProviderApprovalPending(false);
+  }
+
+  // Account details sets this flag and then returns to Money home, which
+  // stays mounted underneath, so read it again on every focus.
+  useFocusEffect(
+    useCallback(() => {
+      if (!walletAddress) {
+        return undefined;
+      }
+      return readWalletFlag(
+        isVbaProviderApprovalPending,
+        'isVbaProviderApprovalPending',
+        walletAddress,
+        setIsProviderApprovalPending,
+      );
+    }, [walletAddress]),
+  );
 
   return useMemo(
     () =>
@@ -328,6 +387,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
         hasAcceptedVendorTerms,
         autoramps,
         walletRegistrations,
+        isProviderApprovalPending,
       }),
     [
       isEligible,
@@ -338,6 +398,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
       hasAcceptedVendorTerms,
       autoramps,
       walletRegistrations,
+      isProviderApprovalPending,
     ],
   );
 };

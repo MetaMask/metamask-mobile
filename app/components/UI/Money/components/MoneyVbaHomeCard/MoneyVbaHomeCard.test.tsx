@@ -9,6 +9,7 @@ import {
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { VBA_ACCOUNT_PENDING_SOURCE } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
@@ -50,6 +51,7 @@ const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'get_started',
   'account_is_ready',
+  'account_pending',
   'kyc_pending',
   'finish_verification',
   'kyc_decision',
@@ -78,6 +80,12 @@ const VARIANT_EXPECTATIONS: Record<
     componentName: COMPONENT_NAMES.MONEY_VBA_ACCOUNT_READY_CARD,
     source: 'vba-home-card-account-is-ready',
     i18nPrefix: 'money.vba_home_card.account_is_ready',
+    buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+  },
+  account_pending: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_ACCOUNT_PENDING_CARD,
+    source: 'vba-home-card-account-pending',
+    i18nPrefix: 'money.vba_home_card.account_pending',
     buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
   },
   kyc_pending: {
@@ -163,6 +171,36 @@ describe('MoneyVbaHomeCard', () => {
       );
     },
   );
+
+  it('renders the account_pending copy and Check status CTA', () => {
+    const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.account_pending;
+
+    const { getByTestId } = render(
+      <MoneyVbaHomeCard variant="account_pending" />,
+    );
+
+    expect(getByTestId(testIds.TITLE)).toHaveTextContent(
+      'Account pending approval',
+    );
+    expect(getByTestId(testIds.DESCRIPTION)).toHaveTextContent(
+      'We’ll let you know when it’s ready.',
+    );
+    expect(getByTestId(testIds.CTA_BUTTON)).toHaveTextContent('Check status');
+  });
+
+  it('opens the VBA entry with the account-pending source from the account_pending CTA', () => {
+    const { getByTestId } = render(
+      <MoneyVbaHomeCard variant="account_pending" />,
+    );
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.account_pending.CTA_BUTTON),
+    );
+
+    expect(mockOpenVbaEntry).toHaveBeenCalledWith(mockNavigation, {
+      source: VBA_ACCOUNT_PENDING_SOURCE,
+    });
+  });
 
   it('does not put the CTA into a busy state', () => {
     const { getByTestId } = render(

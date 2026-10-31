@@ -26,6 +26,7 @@ import {
 import { useVbaEligibility, type VbaEligibility } from './useVbaEligibility';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import { isVbaProviderApprovalPending } from '../vbaProviderApprovalStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 import {
   getVbaHomeCard,
@@ -60,6 +61,7 @@ jest.mock('../../../../../../selectors/kycController');
 jest.mock('./useVbaEligibility');
 jest.mock('../../../../../../hooks/useNetworkTier');
 jest.mock('../vbaVendorTermsStorage');
+jest.mock('../vbaProviderApprovalStorage');
 jest.mock('../vbaDevOverrides', () => ({
   ...jest.requireActual('../vbaDevOverrides'),
   getVbaKycStatusOverride: jest.fn(),
@@ -79,6 +81,9 @@ const mockSelectKycProviderFlowStatus = jest.mocked(
   selectKycProviderFlowStatus,
 );
 const mockHasAcceptedVbaVendorTerms = jest.mocked(hasAcceptedVbaVendorTerms);
+const mockIsVbaProviderApprovalPending = jest.mocked(
+  isVbaProviderApprovalPending,
+);
 const mockGetVbaKycStatusOverride = jest.mocked(getVbaKycStatusOverride);
 const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
   typeof useFocusEffect
@@ -156,6 +161,7 @@ const baseInputs: VbaHomeCardInputs = {
   hasAcceptedVendorTerms: false,
   autoramps: [],
   walletRegistrations: [],
+  isProviderApprovalPending: false,
 };
 
 describe('getVbaHomeCard', () => {
@@ -437,6 +443,63 @@ describe('getVbaHomeCard', () => {
 
     expect(card).toEqual({ type: 'none' });
   });
+
+  it.each([
+    ['account_pending', 'no Approved autoramp', WALLET, AutorampStatus.Created],
+    [
+      'account_is_ready',
+      'an Approved autoramp',
+      WALLET,
+      AutorampStatus.Approved,
+    ],
+    [
+      'account_pending',
+      'an Approved autoramp for another wallet',
+      OTHER_WALLET,
+      AutorampStatus.Approved,
+    ],
+  ])(
+    'renders %s for an approved session waiting on provider approval with %s',
+    (expected, _case, walletAddress, status) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        sessionStatus: makeSession({
+          finalStatus: 'approved',
+          kycStatus: 'approved',
+        }),
+        autoramps: [makeAutoramp({ walletAddress, status })],
+        isProviderApprovalPending: true,
+      });
+
+      expect(card).toEqual({ type: expected });
+    },
+  );
+
+  it.each([
+    {
+      expected: 'kyc_decision',
+      sessionStatus: makeSession({
+        finalStatus: 'rejected',
+        kycStatus: 'rejected',
+      }),
+    },
+    { expected: 'kyc_pending', sessionStatus: makeSession() },
+    {
+      expected: 'finish_verification',
+      sessionStatus: makeSession({ finalStatus: 'new', kycStatus: 'new' }),
+    },
+  ])(
+    'renders $expected regardless of the provider approval flag when the session is not approved',
+    ({ expected, sessionStatus }) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        sessionStatus,
+        isProviderApprovalPending: true,
+      });
+
+      expect(card).toEqual({ type: expected });
+    },
+  );
 });
 
 describe('shouldRefreshKycSessionOnFocus', () => {
@@ -484,10 +547,12 @@ describe('useVbaHomeCard', () => {
       moneyAccountWalletRegistrations: walletRegistrations,
     } as RampsControllerState);
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
+    mockIsVbaProviderApprovalPending.mockResolvedValue(false);
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseFocusEffect.mockReset();
     mockGetVbaKycStatusOverride.mockReset();
     mockUseSelector.mockImplementation((selector) =>
       selector(undefined as never),
@@ -588,6 +653,54 @@ describe('useVbaHomeCard', () => {
       2,
       OTHER_WALLET,
     );
+  });
+
+  describe('provider approval flag', () => {
+    // The hook's focus callback captured by the `useFocusEffect` mock; calling
+    // it is the focus event.
+    let focusCallback: (() => undefined | (() => void)) | undefined;
+    const approvedSession = makeSession({
+      finalStatus: 'approved',
+      kycStatus: 'approved',
+    });
+
+    beforeEach(() => {
+      focusCallback = undefined;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback as () => undefined | (() => void);
+      });
+    });
+
+    it('reads the flag for the wallet on every focus', async () => {
+      setupSelectors({ sessionStatus: approvedSession });
+      mockIsVbaProviderApprovalPending
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+      const { result } = renderHook(() => useVbaHomeCard());
+      await act(async () => {
+        focusCallback?.();
+      });
+      expect(result.current).toEqual({ type: 'account_is_ready' });
+
+      await act(async () => {
+        focusCallback?.();
+      });
+
+      expect(mockIsVbaProviderApprovalPending).toHaveBeenCalledTimes(2);
+      expect(mockIsVbaProviderApprovalPending).toHaveBeenCalledWith(WALLET);
+      expect(result.current).toEqual({ type: 'account_pending' });
+    });
+
+    it('does not read the flag without a selected wallet', async () => {
+      setupSelectors({ walletAddress: null });
+      renderHook(() => useVbaHomeCard());
+
+      await act(async () => {
+        focusCallback?.();
+      });
+
+      expect(mockIsVbaProviderApprovalPending).not.toHaveBeenCalled();
+    });
   });
 });
 

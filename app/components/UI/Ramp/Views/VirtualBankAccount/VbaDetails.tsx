@@ -65,6 +65,10 @@ import {
 } from './accountCreateError';
 import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
 import { useVbaRegionSourceCurrency } from './hooks/useVbaRegionSourceCurrency';
+import {
+  clearVbaProviderApprovalPending,
+  markVbaProviderApprovalPending,
+} from './vbaProviderApprovalStorage';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -385,6 +389,18 @@ const VbaDetails = () => {
           walletAddress,
           sourceCurrency,
         );
+        if (!autoramp && outcome === 'awaiting_provider') {
+          // The provider review can take a while. Wait on Money home, where
+          // the pending-approval card shows, instead of on this screen.
+          pollingDoneRef.current = true;
+          markVbaProviderApprovalPending(walletAddress).catch(() => undefined);
+          endVbaCufJourney(false, VBA_CUF_END_REASON.AWAITING_PROVIDER);
+          navigation.navigate(Routes.HOME_TABS, {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          });
+          return;
+        }
         if (!autoramp) {
           setAutorampId(null);
           setAutorampStatus(null);
@@ -395,6 +411,7 @@ const VbaDetails = () => {
       if (!stillCurrent()) {
         return;
       }
+      clearVbaProviderApprovalPending(walletAddress).catch(() => undefined);
 
       let status = autoramp.status;
       if (status !== 'Approved' && ramps.refreshAutoramp) {
