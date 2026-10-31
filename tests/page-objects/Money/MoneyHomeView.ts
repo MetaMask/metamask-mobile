@@ -103,7 +103,7 @@ class MoneyHomeView {
       description: 'Money Home VBA KYC decision card CTA should be rendered',
     });
     await Gestures.waitAndTap(this.vbaKycDecisionCardCta, {
-      checkVisibility: false,
+      checkForDisplayed: false,
       elemDescription: 'Money Home VBA KYC decision card CTA',
     });
   }
