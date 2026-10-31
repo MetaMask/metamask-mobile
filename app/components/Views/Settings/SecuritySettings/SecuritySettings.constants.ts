@@ -10,6 +10,8 @@ export const META_METRICS_DATA_MARKETING_SECTION =
 export const DELETE_METRICS_BUTTON = 'delete-metrics-button';
 export const SECURITY_SETTINGS_DELETE_WALLET_BUTTON =
   'security-settings-delete-wallet-buttons';
+export const SECURITY_SETTINGS_IDENTITY_VERIFICATION_BUTTON =
+  'security-settings-identity-verification-button';
 export const THIRD_PARTY_SECTION = 'third-party-section';
 export const SUPPORT_CONSENT_PREFERENCE_TOGGLE =
   'support-consent-preference-toggle';

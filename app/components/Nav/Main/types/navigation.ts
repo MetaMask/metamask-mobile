@@ -119,6 +119,7 @@ export type SettingsStackParamList = {
   NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   BackupAndSyncSettings: undefined;
+  IdentityVerificationSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   SnapsSettingsList: undefined;
 };

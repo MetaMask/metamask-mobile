@@ -800,6 +800,7 @@ export type RootStackParamList = {
   NetworksManagement: undefined;
   NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
+  IdentityVerificationSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   ProfileDrawer: undefined;
   ManageProfile: ManageProfileParams | undefined;
