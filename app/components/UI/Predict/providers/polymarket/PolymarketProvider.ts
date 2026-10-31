@@ -2495,7 +2495,10 @@ export class PolymarketProvider implements PredictProvider {
       this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
-    const pnlResponse = await fetchWithTimeout(
+    // The series and the open-position walk share no data. Starting the walk
+    // only after the series returns adds a full positions round trip to every
+    // portfolio P&L load, including each positions-screen focus.
+    const pnlResponsePromise = fetchWithTimeout(
       `${DATA_API_ENDPOINT}/v2/user-pnl?user=${predictAddress}`,
       {
         method: 'GET',
@@ -2504,6 +2507,15 @@ export class PolymarketProvider implements PredictProvider {
         },
       },
     );
+    const openPositionsPromise = this.getPositions({
+      address,
+      claimable: false,
+    });
+    // A bad series throws before the walk is read. Attach a handler so that
+    // rejection does not surface as unhandled while the series error wins.
+    void openPositionsPromise.catch(() => undefined);
+
+    const pnlResponse = await pnlResponsePromise;
 
     if (!pnlResponse.ok) {
       throw new Error('Failed to fetch unrealized P&L');
@@ -2528,10 +2540,7 @@ export class PolymarketProvider implements PredictProvider {
 
     // percentUpnl mirrors the portfolio header formula (getPositionsPnl):
     // (Σ current_value − Σ entry_cost) / Σ entry_cost over open positions.
-    const openPositions = await this.getPositions({
-      address,
-      claimable: false,
-    });
+    const openPositions = await openPositionsPromise;
     const totals = openPositions.reduce(
       (acc, position) => ({
         currentValue: acc.currentValue + position.currentValue,
