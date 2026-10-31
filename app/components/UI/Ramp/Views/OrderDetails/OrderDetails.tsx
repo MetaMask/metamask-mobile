@@ -16,9 +16,11 @@ import {
   ButtonSize,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  getInternalOrderCode,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
 import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
-import { extractOrderCode } from '../../utils/extractOrderCode';
 import {
   getNavigateAfterExternalBrowserRoutes,
   type RampsOrderDetailsParams,
@@ -86,14 +88,19 @@ const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder, getOrderFromCallback, addOrder } =
     useRampsOrders();
-  const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
+  const orderCode = params.orderId ? getInternalOrderCode(params.orderId) : '';
   const order = getOrderById(orderCode);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
   const hasCallbackParams = Boolean(
     params.callbackUrl && params.providerCode && params.walletAddress,
   );
+  const shouldLoadMissingOrder = Boolean(
+    params.orderId && !order && !hasCallbackParams,
+  );
 
-  const [isLoading, setIsLoading] = useState(isPending || hasCallbackParams);
+  const [isLoading, setIsLoading] = useState(
+    isPending || hasCallbackParams || shouldLoadMissingOrder,
+  );
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
@@ -153,15 +160,18 @@ const OrderDetails = () => {
           });
         }
 
+        // addOrder stores the order under the internal code from `id`
+        // (`/orders/<code>`), not the provider's native providerOrderId.
+        const internalOrderCode = getInternalOrderCode(fetchedOrder);
         showV2OrderToast({
-          orderId: fetchedOrder.providerOrderId,
+          orderId: internalOrderCode,
           cryptocurrency:
             fetchedOrder.cryptoCurrency?.symbol ?? params.cryptocurrency ?? '',
           cryptoAmount: fetchedOrder.cryptoAmount,
           status: fetchedOrder.status,
         });
         navigation.setParams({
-          orderId: fetchedOrder.providerOrderId,
+          orderId: internalOrderCode,
           callbackUrl: undefined,
           providerCode: undefined,
           walletAddress: undefined,
@@ -247,6 +257,62 @@ const OrderDetails = () => {
     });
   }, [order]);
 
+  const fetchMissingOrder = useCallback(async () => {
+    const orderId = params.orderId;
+    if (!orderId || !params.providerCode || !params.walletAddress) {
+      setError(strings('ramps_order_details.error_message'));
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setError(null);
+      setIsLoading(true);
+      await refreshOrder(
+        params.providerCode,
+        getInternalOrderCode(orderId),
+        params.walletAddress,
+      );
+    } catch (fetchError) {
+      const normalizedError =
+        fetchError instanceof Error
+          ? fetchError
+          : new Error(String(fetchError));
+      Logger.error(normalizedError, {
+        message: 'RampsOrderDetails: error fetching order missing from state',
+        orderId,
+        provider: params.providerCode,
+      });
+      setError(
+        fetchError instanceof Error && fetchError.message
+          ? fetchError.message
+          : strings('ramps_order_details.error_message'),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [params.orderId, params.providerCode, params.walletAddress, refreshOrder]);
+
+  const missingOrderFetchKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!shouldLoadMissingOrder || !params.orderId) {
+      return;
+    }
+    const fetchKey = `${params.orderId}|${params.providerCode ?? ''}|${params.walletAddress ?? ''}`;
+    if (missingOrderFetchKeyRef.current === fetchKey) {
+      return;
+    }
+    missingOrderFetchKeyRef.current = fetchKey;
+    fetchMissingOrder();
+  }, [
+    shouldLoadMissingOrder,
+    params.orderId,
+    params.providerCode,
+    params.walletAddress,
+    fetchMissingOrder,
+  ]);
+
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;
     try {
@@ -275,6 +341,25 @@ const OrderDetails = () => {
       setIsRefreshing(false);
     }
   }, [order, refreshOrder]);
+
+  const handleRetry = useCallback(() => {
+    if (hasCallbackParams) {
+      handleRetryCallbackFetch();
+      return;
+    }
+    if (!order && params.orderId) {
+      fetchMissingOrder();
+      return;
+    }
+    handleOnRefresh();
+  }, [
+    hasCallbackParams,
+    handleRetryCallbackFetch,
+    order,
+    params.orderId,
+    fetchMissingOrder,
+    handleOnRefresh,
+  ]);
 
   // Preserve prior mount-only semantics: evaluate once on first effect run.
   // Marking the ref before the condition matters — callback success clears
@@ -339,10 +424,9 @@ const OrderDetails = () => {
     );
   }
 
-  if (error) {
-    const onRetry = hasCallbackParams
-      ? handleRetryCallbackFetch
-      : handleOnRefresh;
+  if (error || !order) {
+    const displayedError =
+      error ?? strings('ramps_order_details.error_message');
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -371,34 +455,17 @@ const OrderDetails = () => {
               variant={TextVariant.BodyMd}
               twClassName="text-alternative text-center mb-8"
             >
-              {error}
+              {displayedError}
             </Text>
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               isFullWidth
-              onPress={onRetry}
+              onPress={handleRetry}
             >
               {strings('ramps_order_details.try_again')}
             </Button>
           </Box>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
-  if (!order) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <HeaderStandard
-            title={strings('ramps_order_details.title')}
-            onBack={handleHeaderBack}
-            backButtonProps={{
-              testID: 'ramps-order-details-back-navbar-button',
-            }}
-            includesTopInset
-          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );

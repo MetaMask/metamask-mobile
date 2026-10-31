@@ -269,10 +269,129 @@ describe('OrderDetails', () => {
     expect(getByTestId('order-content')).toBeOnTheScreen();
   });
 
-  it('renders empty ScreenLayout when order is not found', () => {
+  it('shows loading then error and retry when the order id is unknown', async () => {
+    mockUseParams.mockReturnValue({
+      orderId: 'missing-order',
+      providerCode: 'revolut',
+      walletAddress: '0xwallet',
+    });
     mockGetOrderById.mockReturnValue(undefined);
-    const { queryByTestId } = render();
-    expect(queryByTestId('order-content')).not.toBeOnTheScreen();
+    let rejectRefresh: (reason?: unknown) => void = () => undefined;
+    mockRefreshOrder.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectRefresh = reject;
+        }),
+    );
+
+    const { getByText, UNSAFE_getAllByType, queryByTestId } = render();
+
+    expect(UNSAFE_getAllByType(ActivityIndicator).length).toBeGreaterThan(0);
+    expect(queryByTestId('order-content')).toBeNull();
+
+    await act(async () => {
+      rejectRefresh(new Error('Order not found'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('Order not found')).toBeOnTheScreen();
+    });
+    expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
+    expect(mockRefreshOrder).toHaveBeenCalledWith(
+      'revolut',
+      'missing-order',
+      '0xwallet',
+    );
+
+    mockRefreshOrder.mockRejectedValue(new Error('Order not found'));
+    await act(async () => {
+      fireEvent.press(getByText('ramps_order_details.try_again'));
+    });
+
+    await waitFor(() => {
+      expect(mockRefreshOrder).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('renders details for a Revolut callback order looked up by internal order code', async () => {
+    const { showV2OrderToast } = jest.requireMock(
+      '../../utils/v2OrderToast',
+    ) as { showV2OrderToast: jest.Mock };
+    const revolutOrder = {
+      id: '/providers/revolut/orders/ABC',
+      providerOrderId: 'REV-1',
+      status: RampsOrderStatus.Completed,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.05',
+      provider: { id: 'revolut' },
+      walletAddress: '0x123',
+    };
+    const storedOrder = { ...revolutOrder, providerOrderId: 'ABC' };
+
+    let routeParams: Record<string, string | undefined> = {
+      callbackUrl: 'metamask://on-ramp/providers/revolut?orderId=REV-1',
+      providerCode: 'revolut',
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockImplementation(() => routeParams);
+    mockGetOrderById.mockImplementation((orderId: string) =>
+      orderId === 'ABC' ? storedOrder : undefined,
+    );
+    mockGetOrderFromCallback.mockResolvedValue(revolutOrder);
+
+    const OrderDetailsHarness = () => {
+      const [, setVersion] = React.useState(0);
+
+      React.useEffect(() => {
+        mockSetParams.mockImplementation(
+          (next: Record<string, string | undefined>) => {
+            routeParams = { ...routeParams, ...next };
+            setVersion((version) => version + 1);
+          },
+        );
+      }, []);
+
+      return <OrderDetails />;
+    };
+
+    const { getByTestId, getByText } = renderScreen(OrderDetailsHarness, {
+      name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+    expect(getByText('ABC')).toBeOnTheScreen();
+    expect(showV2OrderToast).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: 'ABC' }),
+    );
+    expect(mockSetParams).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: 'ABC' }),
+    );
+    expect(mockGetOrderById).toHaveBeenCalledWith('ABC');
+    expect(mockAddOrder).toHaveBeenCalledWith(revolutOrder);
+  });
+
+  it('resolves a legacy prefixed order id to the stored order', async () => {
+    const legacyOrder = {
+      ...mockOrder,
+      providerOrderId: 'legacy-1',
+    };
+    mockUseParams.mockReturnValue({
+      orderId: '/providers/transak/orders/legacy-1',
+    });
+    mockGetOrderById.mockImplementation((orderId: string) =>
+      orderId === 'legacy-1' ? legacyOrder : undefined,
+    );
+
+    const { getByTestId, getByText } = render();
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+    expect(getByText('legacy-1')).toBeOnTheScreen();
+    expect(mockGetOrderById).toHaveBeenCalledWith('legacy-1');
+    expect(mockRefreshOrder).not.toHaveBeenCalled();
   });
 
   it('shows loading state when order is pending and refreshing', () => {
