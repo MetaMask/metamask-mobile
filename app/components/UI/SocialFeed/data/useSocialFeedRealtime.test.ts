@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type {
+  AuthorComment,
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
   SocialFeedEventListener,
@@ -74,6 +75,13 @@ const buildEvent = (
 
 const positionIds = (posts: SocialV1FeedPost[]) =>
   posts.map((post) => post.position?.positionId);
+
+const buildCall = (uid: string): AuthorComment => ({
+  uid,
+  text: 'this is alpha',
+  timestamp: 1_700_000_000,
+  engagement: { reactions: [], userReaction: null },
+});
 
 describe('useSocialFeedRealtime', () => {
   let listener: SocialFeedEventListener | undefined;
@@ -401,6 +409,45 @@ describe('useSocialFeedRealtime', () => {
 
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
+  });
+
+  it('clears the rest authorComment when a realtime update carries a null authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const rows = [
+      buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+    ];
+    const { result } = renderRealtime({ rows, dataUpdatedAt: 1_000 });
+
+    emit(buildEvent('pos-a', { revision: 2, data: { authorComment: null } }));
+
+    expect(result.current?.posts[0]?.commentId).toBeUndefined();
+  });
+
+  it('keeps the rest authorComment when a realtime update omits authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const rows = [
+      buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+    ];
+    const { result } = renderRealtime({ rows, dataUpdatedAt: 1_000 });
+
+    emit(buildEvent('pos-a', { revision: 2 }));
+
+    expect(result.current?.posts[0]?.commentId).toBe('call-rest');
+  });
+
+  it('clears the comment when a server row promotes a socket-only post with a null authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const { result, rerender } = renderRealtime();
+    emit(buildEvent('pos-a', { revision: 2, data: { authorComment: null } }));
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+      ],
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
+    expect(result.current?.posts[0]?.commentId).toBeUndefined();
   });
 
   it('keeps socket posts while inactive', () => {
