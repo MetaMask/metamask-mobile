@@ -137,6 +137,7 @@ import {
   predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
+import { predictDeviceAuthServiceInit } from './controllers/predict-device-auth-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
 import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { sentinelFeeTokensDataServiceInit } from './controllers/sentinel-fee-tokens-data-service-init';
@@ -371,6 +372,7 @@ export class Engine {
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         PredictOrderService: predictOrderServiceInit,
+        PredictDeviceAuthService: predictDeviceAuthServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
         SentinelFeeTokensDataService: sentinelFeeTokensDataServiceInit,
@@ -670,6 +672,7 @@ export class Engine {
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictDeviceAuthService: messengerClientsByName.PredictDeviceAuthService,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
       LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
@@ -1357,6 +1360,7 @@ export class Engine {
       KycController,
       PredictOrderService,
       PredictPortfolioService,
+      PredictDeviceAuthService,
     } = this.context;
 
     // Remove all permissions.
@@ -1417,6 +1421,8 @@ export class Engine {
         'Engine: failed to clear cached PredictNext account data',
       );
     }
+
+    await PredictDeviceAuthService.reset();
   };
 
   removeAllListeners() {

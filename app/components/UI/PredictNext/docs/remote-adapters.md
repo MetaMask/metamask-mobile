@@ -26,6 +26,7 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 - user-visible intent and confirmation,
 - selected Funding Wallet context,
 - wallet transaction signing and submission,
+- the device signature over each Kalshi request, and sending that payload plus signature to predict-api,
 - canonical rendering and safe local workflow projection,
 - runtime validation of backend responses,
 - client/contract compatibility headers.
@@ -34,7 +35,7 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 
 - Kalshi admin or per-user credentials,
 - authoritative Predict User to Venue Account mapping,
-- Kalshi request signing,
+- delivery of the signed request to Kalshi,
 - durable external-operation outcomes,
 - Venue retry/reconciliation policy.
 
@@ -42,11 +43,13 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 
 - validating authenticated MetaMask identity,
 - deriving the authoritative Predict User and resolving the Venue Account,
-- Kalshi credential custody and request signing,
+- Kalshi credential custody, and delivery of the device-signed payload and signature to Kalshi,
 - durable Account Setup and financial-operation records,
 - Venue DTO normalization,
 - protocol-specific rate limiting and safe reconciliation,
 - redacted observability, kill switches, and support references.
+
+The device signs the Kalshi request. Mobile forwards the payload and the signature to predict-api, and predict-api delivers both to Kalshi.
 
 A privileged backend route never authorizes from a client-supplied wallet address, email, profile ID, user ID, or Kalshi external user ID. Wallet addresses used for Deposit or Withdraw are validated operation parameters, not proof of person identity.
 
