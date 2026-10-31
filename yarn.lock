@@ -38870,7 +38870,7 @@ __metadata:
     redux-saga-test-plan: "npm:^4.0.6"
     redux-thunk: "npm:^2.4.2"
     regenerator-runtime: "npm:0.13.9"
-    reselect: "npm:^5.1.1"
+    reselect: "npm:^5.3.0"
     rxjs: "npm:^7.8.1"
     semver: "npm:^7.7.3"
     serve-handler: "npm:^6.1.5"
