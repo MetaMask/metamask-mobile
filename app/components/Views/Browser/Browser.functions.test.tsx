@@ -159,7 +159,7 @@ describe('Browser - Function Coverage Tests', () => {
   });
 
   describe('takeScreenshot function', () => {
-    it('captures screen and updates tab with image', async () => {
+    it('captures screen and updates tab with image only', async () => {
       const mockCaptureScreen = captureScreen as jest.Mock;
       mockCaptureScreen.mockResolvedValue('screenshot-uri.jpg');
 
@@ -219,13 +219,9 @@ describe('Browser - Function Coverage Tests', () => {
       }
 
       expect(mockCaptureScreen).toHaveBeenCalled();
-      expect(mockUpdateTab).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({
-          url: 'https://example.com',
-          image: 'screenshot-uri.jpg',
-        }),
-      );
+      expect(mockUpdateTab).toHaveBeenCalledWith(1, {
+        image: 'screenshot-uri.jpg',
+      });
     });
 
     it('logs error when screenshot fails', async () => {
@@ -473,6 +469,126 @@ describe('Browser - Function Coverage Tests', () => {
       expect(mockUpdateTab).toHaveBeenCalledWith(1, {
         url: 'https://newurl.com',
       });
+    });
+  });
+
+  describe('newTab entryPoint', () => {
+    const renderBrowserWithParams = ({
+      tabs,
+      params,
+      createNewTab = jest.fn(),
+      updateTab = jest.fn(),
+    }: {
+      tabs: {
+        id: number;
+        url: string;
+        image: string;
+        isArchived: boolean;
+        lastActiveAt: number;
+      }[];
+      params: Record<string, unknown>;
+      createNewTab?: jest.Mock;
+      updateTab?: jest.Mock;
+    }) =>
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <IndependentNavigationContainer>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params }}
+                    tabs={tabs}
+                    activeTab={tabs[0]?.id ?? null}
+                    navigation={mockNavigation}
+                    createNewTab={createNewTab}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={updateTab}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </IndependentNavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: { tabs, activeTab: tabs[0]?.id ?? null },
+          },
+        },
+      );
+
+    it('passes the route entryPoint to the new tab', () => {
+      const mockCreateNewTab = jest.fn();
+
+      renderBrowserWithParams({
+        tabs: [],
+        params: {
+          newTabUrl: 'https://app.uniswap.org',
+          timestamp: Date.now().toString(),
+          fromTrending: true,
+          entryPoint: 'explore_search',
+        },
+        createNewTab: mockCreateNewTab,
+      });
+
+      expect(mockCreateNewTab).toHaveBeenCalledWith(
+        'https://app.uniswap.org',
+        undefined,
+        'explore_search',
+      );
+    });
+
+    it('tags the reused active tab when max tabs is reached', () => {
+      const maxTabs = Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        url: `https://tab${i + 1}.com`,
+        image: '',
+        isArchived: false,
+        lastActiveAt: Date.now() - i * 1000,
+      }));
+      const mockUpdateTab = jest.fn();
+
+      renderBrowserWithParams({
+        tabs: maxTabs,
+        params: {
+          newTabUrl: 'https://app.uniswap.org',
+          timestamp: Date.now().toString(),
+          fromTrending: true,
+          entryPoint: 'explore_search',
+        },
+        updateTab: mockUpdateTab,
+      });
+
+      expect(mockUpdateTab).toHaveBeenCalledWith(1, {
+        url: 'https://app.uniswap.org',
+        entryPoint: 'explore_search',
+      });
+    });
+
+    it('clears a stale entryPoint on the reused tab for untagged opens', () => {
+      const maxTabs = Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        url: `https://tab${i + 1}.com`,
+        image: '',
+        isArchived: false,
+        lastActiveAt: Date.now() - i * 1000,
+      }));
+      const mockUpdateTab = jest.fn();
+
+      renderBrowserWithParams({
+        tabs: maxTabs,
+        params: {
+          newTabUrl: 'https://metamask.io',
+          timestamp: Date.now().toString(),
+          fromTrending: true,
+        },
+        updateTab: mockUpdateTab,
+      });
+
+      const [, data] = mockUpdateTab.mock.calls[0];
+      expect(data).toHaveProperty('entryPoint', undefined);
     });
   });
 
@@ -873,6 +989,7 @@ describe('Browser - Function Coverage Tests', () => {
       expect(mockCreateNewTab).toHaveBeenCalledWith(
         expect.stringMatching(/^https:\/\//),
         undefined,
+        undefined,
       );
     });
   });
@@ -916,6 +1033,7 @@ describe('Browser - Function Coverage Tests', () => {
       // Should create new tab with homePageUrl
       expect(mockCreateNewTab).toHaveBeenCalledWith(
         expect.stringMatching(/^https:\/\//),
+        undefined,
         undefined,
       );
     });
@@ -982,9 +1100,8 @@ describe('Browser - Function Coverage Tests', () => {
         });
       }
 
-      // Should use activeTab 2's URL (https://second.com)
+      // Should screenshot activeTab 2
       expect(mockUpdateTab).toHaveBeenCalledWith(2, {
-        url: 'https://second.com',
         image: 'screenshot.jpg',
       });
     });
@@ -1336,6 +1453,7 @@ describe('Browser - Function Coverage Tests', () => {
       // Should create new tab with homePageUrl when no tabs exist
       expect(mockCreateNewTab).toHaveBeenCalledWith(
         expect.stringMatching(/^https:\/\//),
+        undefined,
         undefined,
       );
     });

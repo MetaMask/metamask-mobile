@@ -20,6 +20,7 @@ import {
   type SearchFeedPill,
 } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { BROWSER_ENTRY_POINT } from '../../../../constants/browser';
 import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../UI/Perps/constants/perpsAnalytics';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import EarnSearchRow from './EarnSearchRow';
@@ -146,7 +147,12 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       case 'predictions':
         return <PredictionSearchRowItem market={item as PredictMarketType} />;
       case 'sites':
-        return <SiteRowItem site={item as SiteData} />;
+        return (
+          <SiteRowItem
+            site={item as SiteData}
+            entryPoint={BROWSER_ENTRY_POINT.EXPLORE_SEARCH}
+          />
+        );
       case 'earn':
         return (
           <Box twClassName="-mx-4" testID={EARN_ROW_WRAPPER_TEST_ID}>

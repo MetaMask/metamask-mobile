@@ -8,14 +8,20 @@ import SiteRowItemBase, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { removeBookmark } from '../../../../../actions/bookmarks';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { BrowserEntryPoint } from '../../../../../constants/browser';
 
-const openSiteInBrowser = (navigation: AppNavigationProp, site: SiteData) => {
+const openSiteInBrowser = (
+  navigation: AppNavigationProp,
+  site: SiteData,
+  entryPoint?: BrowserEntryPoint,
+) => {
   navigation.navigate(Routes.BROWSER.HOME, {
     screen: Routes.BROWSER.VIEW,
     params: {
       newTabUrl: site.url,
       timestamp: Date.now(),
       fromTrending: true,
+      ...(entryPoint ? { entryPoint } : {}),
     },
   });
 };
@@ -26,10 +32,16 @@ interface SiteRowItemProps {
   onCardPress?: () => void;
 }
 
+interface GenericSiteRowItemProps extends SiteRowItemProps {
+  /** Tags the opened browser tab for dapp and connect analytics. */
+  entryPoint?: BrowserEntryPoint;
+}
+
 /** Generic site row (sites + dapps_favorites without remove action). */
-export const SiteRowItem: React.FC<SiteRowItemProps> = ({
+export const SiteRowItem: React.FC<GenericSiteRowItemProps> = ({
   site,
   onCardPress,
+  entryPoint,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   return (
@@ -37,7 +49,7 @@ export const SiteRowItem: React.FC<SiteRowItemProps> = ({
       site={site}
       onPress={() => {
         onCardPress?.();
-        openSiteInBrowser(navigation, site);
+        openSiteInBrowser(navigation, site, entryPoint);
       }}
     />
   );
