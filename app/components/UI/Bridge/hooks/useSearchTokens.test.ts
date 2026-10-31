@@ -476,7 +476,7 @@ describe('useSearchTokens', () => {
         mockCreateEventBuilder.mock.results[0].value.addProperties,
       ).toHaveBeenCalledWith({
         feature_id: FeatureId.LIMIT_ORDER,
-        query: 'nope',
+        search_query: 'nope',
         location: 'Main View',
       });
     });

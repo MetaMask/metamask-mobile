@@ -226,6 +226,10 @@ jest.mock('../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../reducers/rewardsMoney/selectors', () => ({
+  selectSettingsReferralAvailable: jest.fn(() => true),
+}));
+
 jest.mock('../../../reducers/rewards/selectors', () => ({
   selectIsRewardsVersionBlocked: jest.fn(),
   selectPendingDeeplink: jest.fn(),
@@ -348,6 +352,7 @@ jest.mock('./components/RewardsUpdateRequired/RewardsUpdateRequired', () => {
 
 // Import mocked selectors and hooks for setup
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectSettingsReferralAvailable } from '../../../reducers/rewardsMoney/selectors';
 import {
   selectIsRewardsVersionBlocked,
   selectPendingDeeplink,
@@ -405,6 +410,7 @@ describe('RewardsNavigator', () => {
       fetchVersionRequirements: jest.fn(),
     });
     mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
+    jest.mocked(selectSettingsReferralAvailable).mockReturnValue(true);
 
     // Create a mock store
     store = configureStore({
@@ -604,7 +610,7 @@ describe('RewardsNavigator', () => {
         (selector: (state: unknown) => unknown) =>
           selector({
             index: 0,
-            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+            routes: [{ name: Routes.REWARDS_VIP_VIEW }],
           }),
       );
 
@@ -616,6 +622,45 @@ describe('RewardsNavigator', () => {
         expect(mockGoBack).toHaveBeenCalledTimes(1);
       });
       expect(queryByTestId('rewards-earnings-history-view')).toBeNull();
+      expect(queryByTestId('rewards-vip-view')).toBeNull();
+    });
+
+    it('opens settings without a points subscription', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+          }),
+      );
+
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dismisses settings without a subscription when the money referral is unavailable', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      jest.mocked(selectSettingsReferralAvailable).mockReturnValue(false);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+          }),
+      );
+
+      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
       expect(queryByTestId('rewards-settings-view')).toBeNull();
     });
 

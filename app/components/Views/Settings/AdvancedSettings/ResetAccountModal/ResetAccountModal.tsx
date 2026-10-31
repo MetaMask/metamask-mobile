@@ -1,8 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ActionModal from '../../../../UI/ActionModal';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
@@ -58,10 +56,10 @@ export const ResetAccountModal = ({
       onConfirmPress={resetAccount}
     >
       <View style={styles.modalView}>
-        <Text style={styles.modalTitle} variant={TextVariant.HeadingMD}>
+        <Text style={styles.modalTitle} variant={TextVariant.HeadingMd}>
           {strings('app_settings.reset_account_modal_title')}
         </Text>
-        <Text style={styles.modalText}>
+        <Text style={styles.modalText} variant={TextVariant.BodyMd}>
           {strings('app_settings.reset_account_modal_message')}
         </Text>
       </View>

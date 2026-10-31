@@ -10,9 +10,8 @@ import { useSelector } from 'react-redux';
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { SOCIAL_TRACE_TABS } from '../../../../../../util/social/socialPerformance';
 
-/** Trending reads the generic `leaderboard` scope, Following the per-user one. */
 const TAB_SCOPE = {
-  trending: 'leaderboard',
+  trending: 'trending',
   following: 'following',
 } as const satisfies Record<SocialV1FeedTab, FeedScope>;
 
@@ -35,10 +34,10 @@ export interface UseSocialV1FeedOptions {
  * V1 feed data source: live trader activity from `SocialService:fetchFeed`,
  * mapped into the V1 card model with the missing enrichment mocked and flagged.
  *
- * Delegates fetching to `useSocialFeed`, which shares its query key with V0's
- * `useTraderFeed`, so either surface warms the cache for the other. The
- * viewer's own new posts appear on Following only: it is the feed that serves
- * them (Trending reads the leaderboard traders' activity).
+ * Delegates fetching to `useSocialFeed`. Following shares its query key with
+ * V0's Following feed (`useTraderFeed`), so either surface warms the cache for
+ * the other. The viewer's own new posts appear on Following only: it is the
+ * feed that serves them.
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',

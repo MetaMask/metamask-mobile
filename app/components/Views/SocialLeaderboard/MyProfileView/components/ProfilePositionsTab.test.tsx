@@ -176,6 +176,28 @@ describe('ProfilePositionsTab', () => {
     expect(onPositionPress).toHaveBeenCalledWith(openSpot);
   });
 
+  it('does not notify when a flagged row is pressed with showFlaggedState', () => {
+    const flagged = { ...openSpot, flags: ['insider'] };
+
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[flagged]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+        showFlaggedState
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(onPositionPress).not.toHaveBeenCalled();
+  });
+
   it('retries after a load error', () => {
     renderWithProvider(
       <ProfilePositionsTab

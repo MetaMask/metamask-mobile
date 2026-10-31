@@ -208,7 +208,6 @@ export const useTokenStats = ({
   currentCurrency,
 }: UseTokenStatsParams): TokenStatValues =>
   useMemo(() => {
-    const { locale } = i18n;
     const financialStats = securityData?.financialStats;
     const features = securityData?.features ?? [];
     const markets = financialStats?.markets ?? [];
@@ -281,7 +280,6 @@ export const useTokenStats = ({
           marketData?.high1d,
           marketData?.low1d,
           currentCurrency,
-          locale,
         ),
         isLoading: isMarketDataLoading,
       },

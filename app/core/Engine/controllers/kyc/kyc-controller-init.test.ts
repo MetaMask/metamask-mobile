@@ -3,6 +3,10 @@ import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getKycControllerMessenger } from '../../messengers/kyc/kyc-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { kycControllerInit } from './kyc-controller-init';
+import {
+  handleKycStatusChangedForMetrics,
+  handleVerificationStatusChangedForMetrics,
+} from './event-handlers/analytics';
 import { sumsubLauncher } from './sumSubLauncher';
 import {
   KycController,
@@ -23,6 +27,11 @@ jest.mock('@metamask/kyc-controller', () => {
 
   return { KycController: MockKycController };
 });
+
+jest.mock('./event-handlers/analytics', () => ({
+  handleVerificationStatusChangedForMetrics: jest.fn(),
+  handleKycStatusChangedForMetrics: jest.fn(),
+}));
 
 interface MockKycControllerConstructor {
   lastConstructorArgs: Record<string, unknown>[];
@@ -108,5 +117,14 @@ describe('kycControllerInit', () => {
     kycControllerInit(getInitRequestMock());
 
     expect(getLastConstructorArgs()?.sumsubLauncher).toBe(sumsubLauncher);
+  });
+
+  it('passes the analytics callbacks to the controller', () => {
+    kycControllerInit(getInitRequestMock());
+
+    expect(getLastConstructorArgs()?.trackKycAnalytics).toStrictEqual({
+      verificationOutcome: handleVerificationStatusChangedForMetrics,
+      statusChanged: handleKycStatusChangedForMetrics,
+    });
   });
 });

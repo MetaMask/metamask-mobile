@@ -485,6 +485,10 @@ class Browser {
     await Gestures.waitAndTap(this.backToSafetyButton, {
       elemDescription: 'Back to safety button',
     });
+    // Do not wait here for the button to stay gone. `goBackToSafety` hides the
+    // modal after 500ms, and an iframe rescan can show it again about a second
+    // later. iOS keeps the control displayed across that rescan, so a reverse
+    // visibility wait fails the tap before the URL assertion can re-dismiss.
   }
 
   async tapReturnHomeButton(): Promise<void> {
@@ -516,16 +520,20 @@ class Browser {
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
     //
     // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
-    // rescan can cover the URL bar again about a second later. The label stays
-    // in the tree with `resolvedUrl`, but `isDisplayed()` is false while the
-    // modal covers it (local: element found, displayed=false, got ""). Read
-    // the text whenever the node exists. Create each locator inside a 300ms
+    // rescan can cover the URL bar again about a second later. While the modal
+    // is up, display text may be empty or may still show the blocked origin.
+    // Read text when the node exists. A URL that no longer shows the blocked
+    // origin passes. Otherwise, if Back to safety is visible, re-dismiss
+    // (bounded) and re-read. Create each locator inside a 300ms
     // implicit wait so a missing Cancel does not burn the 3.5s session wait.
     await AppiumContextHelpers.switchToNativeContext();
     const assertionDescription =
       description ?? `URL input box text is not "${text}"`;
     // Same budget as AppiumAssertions poll probes.
     const probeImplicitWaitMs = 300;
+    // Cap re-dismisses so a stuck phishing modal fails with a clear error.
+    let phishingReDismisses = 0;
+    const maxPhishingReDismisses = 2;
 
     await Utilities.executeWithRetry(
       async () => {
@@ -540,8 +548,37 @@ class Browser {
           },
         );
 
+        // A safe URL satisfies this assertion. Do not re-dismiss after that,
+        // or a leftover overlay can exhaust the re-tap cap and fail a pass.
         if (urlText && !urlText.includes(text)) {
           return;
+        }
+
+        // The URL is still empty or still shows the blocked origin. Re-tap
+        // whenever Back to safety is visible, then re-read the URL.
+        const phishingVisible = await withImplicitWait(
+          probeImplicitWaitMs,
+          async () => {
+            const back = await this.backToSafetyButton;
+            return (
+              (await back.unwrap().isExisting()) && (await back.isVisible())
+            );
+          },
+        );
+        if (phishingVisible) {
+          if (phishingReDismisses >= maxPhishingReDismisses) {
+            throw new Error(
+              'Phishing modal still visible after re-dismiss limit',
+            );
+          }
+          phishingReDismisses += 1;
+          await Gestures.waitAndTap(this.backToSafetyButton, {
+            elemDescription: `Back to safety re-dismiss (${phishingReDismisses})`,
+            timeout: 5_000,
+          });
+          throw new Error(
+            `Phishing modal reappeared (re-dismiss ${phishingReDismisses})`,
+          );
         }
 
         // Display text is opacity 0 while the editor is focused. Dismiss only
@@ -570,7 +607,8 @@ class Browser {
         );
       },
       {
-        timeout: 12_000,
+        // Product delay (500ms) + modal out + possible iframe re-warning cycle.
+        timeout: 20_000,
         interval: 200,
         description: assertionDescription,
         elemDescription: 'browser URL bar',

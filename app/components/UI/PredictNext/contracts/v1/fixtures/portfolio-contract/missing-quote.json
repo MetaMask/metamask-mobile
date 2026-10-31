@@ -1,0 +1,45 @@
+{
+  "$comment": "Generated from the C1 contract (metamask-mobile app/components/UI/PredictNext/docs/canonical-portfolio-activity-catalog-contract.md), section \"Missing quote\". Payloads are verbatim; nextCursor values are opaque placeholders.",
+  "requests": {
+    "positions": "/v1/venues/kalshi/positions",
+    "summary": "/v1/venues/kalshi/portfolio/summary"
+  },
+  "positions": {
+    "venueId": "kalshi",
+    "positions": [
+      {
+        "venueId": "kalshi",
+        "marketId": "KXNFLGAME-26OCT25KCBUF-KC",
+        "side": "yes",
+        "status": "open",
+        "shares": "40",
+        "averagePrice": "0.55",
+        "costBasis": "22.62",
+        "currentValue": "24.40",
+        "unrealizedPnl": "1.78",
+        "unrealizedPnlPercent": "7.85"
+      },
+      {
+        "venueId": "kalshi",
+        "marketId": "KXNCAAFGAME-25OCT25ORPUR-PUR",
+        "side": "yes",
+        "status": "open",
+        "shares": "10",
+        "averagePrice": "0.21",
+        "costBasis": "2.17"
+      }
+    ]
+  },
+  "summary": {
+    "venueId": "kalshi",
+    "currency": "USD",
+    "availableBalance": "50.00",
+    "positionsValue": "24.40",
+    "claimableValue": "0",
+    "totalValue": "74.40",
+    "unrealizedPnl": "1.78",
+    "unrealizedPnlPercent": "7.85",
+    "asOf": "2026-10-23T12:00:05.120Z",
+    "complete": false
+  }
+}
