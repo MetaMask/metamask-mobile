@@ -14,7 +14,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -71,11 +70,15 @@ import BadgeWrapper from '../../../../../component-library/components/Badges/Bad
 import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
 
 const PerpsWithdrawView: React.FC = () => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -346,7 +349,9 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isBrandRefresh}
+          isFloating={false}
           title={strings('perps.withdrawal.title')}
           onBack={handleBack}
           backButtonProps={{

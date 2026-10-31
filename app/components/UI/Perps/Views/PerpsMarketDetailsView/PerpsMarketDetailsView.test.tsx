@@ -54,6 +54,7 @@ let mockMarketContextReady = true;
 let mockConnectionInitialized = true;
 let mockActiveProvider: PerpsActiveProviderMode | undefined;
 
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 jest.mock('../../../../../util/haptics');
 
 jest.mock('react-native-modal', () => {
@@ -6205,6 +6206,99 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith(
         expect.objectContaining({ enabled: false }),
       );
+    });
+  });
+
+  describe('brand refresh insets', () => {
+    const edgeInsets = { top: 47, bottom: 34 };
+    const headerGlassTestID = `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-glass`;
+
+    const withSelectors = (overrides: Map<unknown, unknown>) => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const baseSelectorImpl = useSelector.getMockImplementation();
+      useSelector.mockImplementation((selector: unknown) =>
+        overrides.has(selector)
+          ? overrides.get(selector)
+          : baseSelectorImpl?.(selector),
+      );
+    };
+
+    const renderLite = (props: { edgeInsets?: typeof edgeInsets } = {}) =>
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView {...props} />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+    it('insets the scroll content below the header on iOS so the refresh spinner clears it', () => {
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      const { getByTestId, queryByTestId } = renderLite({ edgeInsets });
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+
+      // Status bar (47) plus the 64px header.
+      expect(scrollView).toHaveProp('contentInset', { top: 111 });
+      expect(scrollView).toHaveProp('contentOffset', { x: 0, y: -111 });
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
+      ).toBeNull();
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 47 });
+    });
+
+    it('reserves the header height with a spacer on Android', () => {
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      try {
+        const { getByTestId } = renderLite({ edgeInsets });
+
+        expect(
+          within(
+            getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+          ).getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
+        ).toHaveStyle({ height: 111 });
+      } finally {
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('clears the home indicator at the bottom', () => {
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      const { getByTestId } = renderLite({ edgeInsets });
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER),
+      ).toHaveStyle({ height: 34 });
+    });
+
+    it('lets the service banner pad the status bar instead of the header', () => {
+      withSelectors(
+        new Map<unknown, unknown>([
+          [selectPerpsBrandRefreshEnabled, true],
+          [selectPerpsServiceInterruptionBannerEnabledFlag, true],
+        ]),
+      );
+
+      const { getByTestId } = renderLite({ edgeInsets });
+
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 0 });
+    });
+
+    it('adds no spacers with the flag off', () => {
+      const { queryByTestId } = renderLite();
+
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER),
+      ).toBeNull();
+      expect(queryByTestId(headerGlassTestID)).toBeNull();
     });
   });
 });

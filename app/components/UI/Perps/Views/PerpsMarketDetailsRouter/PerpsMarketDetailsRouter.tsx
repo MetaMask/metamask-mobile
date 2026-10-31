@@ -13,7 +13,13 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+  type Edge,
+} from 'react-native-safe-area-context';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
 import PerpsProMarketView from '../PerpsProMarketView';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
@@ -23,12 +29,16 @@ import type { PerpsStackParamList } from '../../types/navigation';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import PerpsLoader from '../../components/PerpsLoader';
 import PerpsConnectionErrorView from '../../components/PerpsConnectionErrorView';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
 // The outreach banner sits above the market header and paints its background up
 // to the top edge of the screen, so it applies the top inset itself and the
 // container must not apply it a second time.
 const SAFE_AREA_EDGES_UNDER_BANNER: Edge[] = ['bottom', 'left', 'right'];
+// The brand refresh runs the market content under the status bar and home
+// indicator, so the layouts apply the top and bottom insets themselves.
+const SAFE_AREA_EDGES_EDGE_TO_EDGE: Edge[] = ['left', 'right'];
 
 function resolveGenerationTrigger(
   explicitTrigger: 'market_switch' | undefined,
@@ -67,6 +77,14 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   const isFocused = useIsFocused();
   const { activeProvider, switchProvider } = usePerpsProvider();
   const { campaign: outreachCampaign } = usePerpsOutreachCampaign();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
+  const safeAreaInsets = useSafeAreaInsets();
+  const edgeInsets = isBrandRefresh
+    ? {
+        top: outreachCampaign ? 0 : safeAreaInsets.top,
+        bottom: safeAreaInsets.bottom,
+      }
+    : undefined;
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const navigation =
@@ -145,21 +163,38 @@ const PerpsMarketDetailsRouter: React.FC = () => {
       <SafeAreaView
         style={tw.style('flex-1 bg-default')}
         edges={
-          outreachCampaign ? SAFE_AREA_EDGES_UNDER_BANNER : SAFE_AREA_EDGES
+          edgeInsets
+            ? SAFE_AREA_EDGES_EDGE_TO_EDGE
+            : outreachCampaign
+              ? SAFE_AREA_EDGES_UNDER_BANNER
+              : SAFE_AREA_EDGES
         }
       >
         {isProModeEnabled && venueSwitch === 'failed' ? (
-          <PerpsConnectionErrorView
-            error="Unable to select the market's trading provider"
-            onRetry={selectVenue}
-            showBackButton
-          />
+          <View
+            style={tw.style('flex-1', {
+              paddingTop: edgeInsets?.top,
+              paddingBottom: edgeInsets?.bottom,
+            })}
+          >
+            <PerpsConnectionErrorView
+              error="Unable to select the market's trading provider"
+              onRetry={selectVenue}
+              showBackButton
+            />
+          </View>
         ) : !isVenueReady ? (
           <PerpsLoader />
         ) : isProModeEnabled ? (
-          <PerpsProMarketView generationTrigger={generationTrigger} />
+          <PerpsProMarketView
+            generationTrigger={generationTrigger}
+            edgeInsets={edgeInsets}
+          />
         ) : (
-          <PerpsMarketDetailsView generationTrigger={generationTrigger} />
+          <PerpsMarketDetailsView
+            generationTrigger={generationTrigger}
+            edgeInsets={edgeInsets}
+          />
         )}
       </SafeAreaView>
     </>

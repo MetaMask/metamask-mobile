@@ -2,12 +2,12 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
-  HeaderSubpage,
   SelectButton,
   SelectButtonSize,
   SelectButtonVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   getPerpsDisplaySymbol,
   type OrderType,
@@ -17,6 +17,8 @@ import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveFocusedPrice } from '../../hooks/stream';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import HeaderSubpageGlass from '../../../../../component-library/components-temp/HeaderSubpageGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -40,6 +42,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   isLoading,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
 
   // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
   // TAT-3334) — the same source PerpsOrderView already uses for its own
@@ -145,7 +148,9 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   }, [handleOrderTypePress, isLoading, orderType, orderTypeLabel]);
 
   return (
-    <HeaderSubpage
+    <HeaderSubpageGlass
+      isGlass={isBrandRefresh}
+      isFloating={false}
       includesTopInset
       twClassName="min-h-14 h-auto bg-default justify-center pr-4"
       testID={PerpsOrderHeaderSelectorsIDs.HEADER}

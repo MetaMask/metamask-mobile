@@ -6,7 +6,6 @@ import React, {
   useMemo,
 } from 'react';
 import {
-  HeaderStandard,
   Text,
   TextColor,
   TextFieldSearch,
@@ -79,6 +78,8 @@ import {
   selectPerpsMode,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 // Stable empty reference so the always-mounted list header doesn't churn when
 // the Recently Viewed rail has nothing to show.
@@ -92,6 +93,7 @@ const PerpsMarketListView = ({
   showBalanceActions: propShowBalanceActions,
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const { styles, theme } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const listContentContainerStyle = useMemo(
@@ -969,7 +971,9 @@ const PerpsMarketListView = ({
 
   return (
     <View style={styles.container}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}

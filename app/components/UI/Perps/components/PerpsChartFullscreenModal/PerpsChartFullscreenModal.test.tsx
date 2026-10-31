@@ -24,6 +24,9 @@ import {
 } from '@metamask/perps-controller/constants';
 
 jest.mock('expo-screen-orientation');
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 jest.mock('../../../../../util/Logger');
 
 const mockTrack = jest.fn();
