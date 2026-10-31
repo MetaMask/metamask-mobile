@@ -20,6 +20,7 @@ import {
 import {
   selectRampsControllerState,
   selectSelectedVbaWalletAddress,
+  selectUsableVbaAutoramp,
 } from '../../../../../../selectors/rampsController';
 import { useVbaEligibility } from './useVbaEligibility';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
@@ -73,6 +74,8 @@ export interface VbaHomeCardInputs {
   autoramps: readonly AutorampAccount[];
   /** RampsController Money Account wallet registrations. */
   walletRegistrations: readonly MoneyAccountWalletRegistration[];
+  /** The Money account already has a usable autoramp (`selectUsableVbaAutoramp`). */
+  hasUsableAutoramp: boolean;
 }
 
 /**
@@ -128,6 +131,9 @@ const hasWalletRegistration = (
  * The approved check is `finalStatus === 'approved' || kycStatus === 'approved'`
  * (relay approval counts while the vendor `finalStatus` is still pending).
  *
+ * A usable autoramp renders `account_is_ready` right after rule 1, ahead of
+ * every session rule, whatever the eligibility gate says.
+ *
  * Rules 1–2 (none and get_started) short-circuit before the session rules, so
  * an approved session always reaches rule 3 and a fresh user without any
  * evidence always reaches rule 2. Anything left after rule 6 (for example a
@@ -146,15 +152,22 @@ export function getVbaHomeCard({
   hasAcceptedVendorTerms,
   autoramps,
   walletRegistrations,
+  hasUsableAutoramp,
 }: VbaHomeCardInputs): VbaHomeCard {
-  // Not eligible, or the geo lookup has not resolved yet — hold.
-  if (!isEligible || isEligibilityLoading) {
+  // Not eligible, or the geo lookup has not resolved yet: hold, unless an
+  // account already exists.
+  if (!hasUsableAutoramp && (!isEligible || isEligibilityLoading)) {
     return { type: 'none' };
   }
 
   // 1. Nothing to hang a card on without a Money account wallet.
   if (!walletAddress) {
     return { type: 'none' };
+  }
+
+  // A stale session must not hide an existing account.
+  if (hasUsableAutoramp) {
+    return { type: 'account_is_ready' };
   }
 
   // 2. Brand-new user: nothing started and no evidence of prior setup.
@@ -265,6 +278,7 @@ const readVendorTermsAcceptance = (
 export const useVbaHomeCard = (): VbaHomeCard => {
   const { isEligible, isLoading: isEligibilityLoading } = useVbaEligibility();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const hasUsableAutoramp = Boolean(useSelector(selectUsableVbaAutoramp));
   const sessionStatus = useSelector(selectKycSessionStatus);
   const providerFlowStatus = useSelector(selectKycProviderFlowStatus);
   // Dev-only demo override: honor MM_MONEY_VBA_KYC_STATUS_OVERRIDE for the
@@ -328,6 +342,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
         hasAcceptedVendorTerms,
         autoramps,
         walletRegistrations,
+        hasUsableAutoramp,
       }),
     [
       isEligible,
@@ -338,6 +353,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
       hasAcceptedVendorTerms,
       autoramps,
       walletRegistrations,
+      hasUsableAutoramp,
     ],
   );
 };

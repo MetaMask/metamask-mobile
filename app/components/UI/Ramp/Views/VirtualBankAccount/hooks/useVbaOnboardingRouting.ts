@@ -10,7 +10,10 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
-import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
+import {
+  findUsableVbaAutoramp,
+  selectSelectedVbaWalletAddress,
+} from '../../../../../../selectors/rampsController';
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -391,9 +394,21 @@ export const resolveVbaOnboarding = async (
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
     endVbaCufChildTrace(hydrateTraceId, true);
+    // An existing autoramp opens the account even when the funnel facts are
+    // missing.
+    const hasExistingAccount =
+      getVbaKycStatusOverride() === null &&
+      Boolean(
+        findUsableVbaAutoramp(
+          Engine.context.RampsController.state?.autoramps ?? [],
+          walletAddress,
+        ),
+      );
     return {
       status: 'ready',
-      destinationId: getVbaDestinationForSnapshot(snapshot),
+      destinationId: hasExistingAccount
+        ? 'complete'
+        : getVbaDestinationForSnapshot(snapshot),
       snapshot,
     };
   } catch (error) {

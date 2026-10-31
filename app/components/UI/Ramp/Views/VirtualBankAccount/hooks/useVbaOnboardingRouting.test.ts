@@ -117,6 +117,9 @@ const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
 const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
 
 jest.mock('../../../../../../selectors/rampsController', () => ({
+  findUsableVbaAutoramp: jest.requireActual(
+    '../../../../../../selectors/rampsController',
+  ).findUsableVbaAutoramp,
   selectSelectedVbaWalletAddress: jest.fn(
     (state: { address?: string }) => state.address ?? null,
   ),
@@ -837,6 +840,50 @@ describe('resolveVbaOnboarding', () => {
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
     });
+    mockRampsState.autoramps = [];
+  });
+
+  it('opens the account when the Money account already has a usable autoramp, even with no funnel facts', async () => {
+    mockRampsState.autoramps = [
+      { id: 'ar-1', walletAddress: '0xABC', status: 'Pending' },
+    ];
+
+    const resolved = await resolveVbaOnboarding('money-home-card');
+
+    expect(resolved).toEqual(
+      expect.objectContaining({ status: 'ready', destinationId: 'complete' }),
+    );
+  });
+
+  it('lets the dev KYC status override win over an existing autoramp', async () => {
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('rejected');
+    mockRampsState.autoramps = [
+      { id: 'ar-1', walletAddress: '0xabc', status: 'Approved' },
+    ];
+
+    const resolved = await resolveVbaOnboarding('money-home-card');
+
+    expect(resolved).toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'kycRejected',
+      }),
+    );
+  });
+
+  it('does not treat an autoramp on another address as an existing account', async () => {
+    mockRampsState.autoramps = [
+      { id: 'ar-1', walletAddress: '0xdef', status: 'Approved' },
+    ];
+
+    const resolved = await resolveVbaOnboarding('money-home-card');
+
+    expect(resolved).toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'vendorTerms',
+      }),
+    );
   });
 
   it('returns an error when no wallet address is selected', async () => {
