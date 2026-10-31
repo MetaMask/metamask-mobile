@@ -15,6 +15,7 @@ import {
 import {
   CandlePeriod,
   PERPS_ERROR_CODES,
+  PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type CandleData,
   type PriceUpdate,
@@ -22,6 +23,8 @@ import {
   type OrderBookLevel,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { analytics } from '../../../../../util/analytics/analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -51,6 +54,7 @@ import {
 } from '../../utils/formatUtils';
 import { resetPerpsCufTraceForTests } from '../../utils/perpsCufTrace';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PERPS_ANALYTICS_SIZE_UNIT } from '../../constants/perpsAnalytics';
 
 const TIMEOUT_MS = 5000;
 
@@ -1564,6 +1568,174 @@ describe('PerpsOrderView', () => {
       expect(
         screen.queryByText(strings('perps.slippage.cannot_fill')),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('saved size unit on the real Trade sheet', () => {
+    const savedCoinSettings = {
+      settings: {
+        perpsSizeDenomination: 'asset' as const,
+        perpsChartPreferences: {
+          preferredCandlePeriod: CandlePeriod.FifteenMinutes,
+        },
+      },
+    };
+
+    const sizeUnitEvents = (
+      events: { name: string; properties: Record<string, unknown> }[],
+      name: string,
+    ) => events.filter((event) => event.name === name);
+
+    it('shows USD and reports usd before the price, then coin once the price can project it', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_asset_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      await waitFor(
+        () => {
+          const considered = sizeUnitEvents(
+            events,
+            MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
+          );
+          expect(considered.length).toBeGreaterThan(0);
+          expect(considered[0].properties[PERPS_ANALYTICS_SIZE_UNIT]).toBe(
+            'usd',
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_fiat_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await waitFor(() => {
+        expect(placeOrderButton).not.toBeDisabled();
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(() => {
+        const placeOrders = sizeUnitEvents(
+          events,
+          MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+        ).filter(
+          (event) =>
+            event.properties[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+        );
+        expect(placeOrders).toEqual([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+            }),
+          }),
+        ]);
+      });
+
+      trackEventSpy.mockRestore();
+    });
+
+    it('reports usd on the full-screen form when coin is saved', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await waitFor(() => {
+        expect(placeOrderButton).not.toBeDisabled();
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(() => {
+        const placeOrders = sizeUnitEvents(
+          events,
+          MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+        ).filter(
+          (event) =>
+            event.properties[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+        );
+        expect(placeOrders).toEqual([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+            }),
+          }),
+        ]);
+      });
+
+      trackEventSpy.mockRestore();
     });
   });
 });

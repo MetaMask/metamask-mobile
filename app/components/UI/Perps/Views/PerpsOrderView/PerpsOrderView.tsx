@@ -116,7 +116,15 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
+import {
+  resolveShownPerpsSizeDenomination,
+  toPerpsSizeUnitAnalyticsValue,
+} from '../../utils/perpsSizeDenomination';
+import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -408,6 +416,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
   const { track } = usePerpsEventTracking();
+  const { denomination: sizeDenomination } = usePerpsSizeDenomination();
+  const sizeDenominationRef = useRef(sizeDenomination);
+  sizeDenominationRef.current = sizeDenomination;
+  // Price used to decide the unit on screen. Assigned once effectivePrice
+  // exists; events read it at fire time so a price tick does not restart
+  // the considered debounce.
+  const sizePriceRef = useRef(0);
+  // Set when a saved coin unit is still shown in USD and the user types.
+  // Cleared when the keypad closes, matching PerpsTradeScreen.
+  const holdUsdSizeEditRef = useRef(false);
+  // Full-screen Lite has no coin toggle. Read the arm at event time so a
+  // saved coin unit is not reported for a USD entry.
+  const useBottomSheetRef = useRef(useBottomSheet);
+  useBottomSheetRef.current = useBottomSheet;
   const { openTooltipModal } = useTooltipModal();
 
   // Feature flags
@@ -665,6 +687,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  if (!isInputFocused) {
+    holdUsdSizeEditRef.current = false;
+  }
   const [isLimitPriceFocused, setIsLimitPriceFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
@@ -992,6 +1017,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isLoadingMarketData,
     ],
   );
+  sizePriceRef.current = effectivePrice;
 
   // Live position size for the token-size subtitle only — cheap synchronous
   // calc, safe to recompute every drag frame off the live display amount.
@@ -1088,6 +1114,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [currentMarketPositionSize, orderForm.direction],
   );
 
+  // Same decision as the Trade sheet: saved coin stays `usd` until a positive
+  // price can project it, and while a pre-price USD edit is still open.
+  // Full-screen Lite has no coin toggle. Reads refs at fire time so a price
+  // tick or a unit toggle does not restart the considered debounce.
+  const readShownSizeUnit = useCallback(
+    (): 'usd' | 'coin' =>
+      toPerpsSizeUnitAnalyticsValue(
+        resolveShownPerpsSizeDenomination({
+          saved: useBottomSheetRef.current
+            ? sizeDenominationRef.current
+            : 'usd',
+          price: sizePriceRef.current,
+          holdUsdEdit: holdUsdSizeEditRef.current,
+        }),
+      ),
+    [],
+  );
+
   // Emit "transaction considered" once the user has a stable,
   // meaningful fill. Debounced 1s and reset on each change so it fires once per
   // settled fill instead of on every keystroke.
@@ -1115,6 +1159,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: Boolean(orderForm.stopLossPrice),
         [PERPS_EVENT_PROPERTY.LEVERAGE]: orderForm.leverage,
         [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: hasCustomTokenSelected,
+        [PERPS_ANALYTICS_SIZE_UNIT]: readShownSizeUnit(),
       };
       if (hasCustomTokenSelected && payToken) {
         consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
@@ -1135,6 +1180,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     consideredTradeAction,
     hasCustomTokenSelected,
     payToken,
+    readShownSizeUnit,
     track,
   ]);
 
@@ -1541,6 +1587,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isAssetAmount?: boolean;
     }) => {
       inputMethodRef.current = 'keypad';
+      // A saved coin unit shown in USD (no price yet) must stay in USD for the
+      // rest of this keypad session. Coin entries set isAssetAmount.
+      if (
+        !isAssetAmount &&
+        useBottomSheetRef.current &&
+        sizeDenominationRef.current === 'asset'
+      ) {
+        holdUsdSizeEditRef.current = true;
+      }
       // The digit cap applies to what the user typed. A coin entry is already
       // capped, then converted to USD — that USD string can be longer than
       // the cap (1 cheap coin is a long decimal) and must still commit.
@@ -1800,6 +1855,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderForm.direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_ANALYTICS_SIZE_UNIT]: readShownSizeUnit(),
         });
       }
 
@@ -2237,6 +2293,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       liquidityError,
       vipTier,
       useBottomSheet,
+      readShownSizeUnit,
       fireImpact,
     ],
   );

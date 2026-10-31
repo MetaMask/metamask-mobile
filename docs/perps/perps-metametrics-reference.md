@@ -188,7 +188,14 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `completion_duration_tutorial` (optional): Time spent in tutorial (number)
 - `steps_viewed` (optional): Number of tutorial steps viewed (number)
 - `view_occurrences` (optional): Number of times tutorial was viewed (number)
+- `size_unit` (optional): Order-size denomination on Place Order taps: `'usd' | 'coin'`. _(local constant `PERPS_ANALYTICS_SIZE_UNIT`; `@metamask/perps-controller` `PERPS_EVENT_PROPERTY` does not export this key as of 22.0.0)_. Pro and the Lite Trade sheet send the unit on screen. A saved coin choice still sends `'usd'` until a positive price can project it, and while a USD edit started before that price is open. Full-screen Lite always sends `'usd'` because that form has no coin toggle.
 - `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
+
+### Perp Transaction Considered
+
+Lite emits `Perp Transaction Considered` once a filled order form settles.
+
+- `size_unit`: `'usd' | 'coin'` _(local constant `PERPS_ANALYTICS_SIZE_UNIT`; not on `PERPS_EVENT_PROPERTY` as of `@metamask/perps-controller` 22.0.0)_. Same Place Order rule, including the pre-price USD window.
 
 ### 3. PERPS_TRADE_TRANSACTION
 

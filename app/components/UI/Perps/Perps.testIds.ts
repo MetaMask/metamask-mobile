@@ -1117,6 +1117,9 @@ export const PerpsTradeSheetSelectorsIDs = {
     'perps-trade-sheet-limit-price-preset-percentage-1',
   LIMIT_PRICE_PRESET_PERCENTAGE_2:
     'perps-trade-sheet-limit-price-preset-percentage-2',
+  KEYPAD_25_PERCENT_BUTTON: 'perps-trade-sheet-keypad-25-percent-button',
+  KEYPAD_50_PERCENT_BUTTON: 'perps-trade-sheet-keypad-50-percent-button',
+  KEYPAD_MAX_BUTTON: 'perps-trade-sheet-keypad-max-button',
   KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };

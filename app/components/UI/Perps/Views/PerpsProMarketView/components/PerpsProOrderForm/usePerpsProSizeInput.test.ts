@@ -1,4 +1,12 @@
-import { act, renderHook } from '@testing-library/react-native';
+import React from 'react';
+import { Provider } from 'react-redux';
+import {
+  act,
+  renderHook as renderHookWithStore,
+  type RenderHookOptions,
+} from '@testing-library/react-native';
+import configureStore from '../../../../../../../util/test/configureStore';
+import type { PerpsSizeDenomination } from '../../../../utils/perpsSizeDenomination';
 import {
   usePerpsProSizeInput,
   type UsePerpsProSizeInputParams,
@@ -60,6 +68,24 @@ const {
   getTestOrderBookPreferences: () => { currency: 'usd' | 'base' };
 };
 
+let store = configureStore({});
+
+const renderHook = <Result, Props>(
+  hook: (props: Props) => Result,
+  options?: RenderHookOptions<Props>,
+) =>
+  renderHookWithStore(hook, {
+    ...options,
+    wrapper: ({ children }) =>
+      React.createElement(Provider, { store } as never, children),
+  });
+
+const setStoredSizeDenomination = (denomination: PerpsSizeDenomination) => {
+  store = configureStore({
+    settings: { perpsSizeDenomination: denomination },
+  });
+};
+
 const mockSetAmount = jest.fn();
 
 const createParams = (
@@ -78,6 +104,7 @@ const createParams = (
 describe('usePerpsProSizeInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    store = configureStore({});
     resetTestOrderBookPreferences();
   });
 
@@ -194,6 +221,169 @@ describe('usePerpsProSizeInput', () => {
 
     expect(result.current.sizeInput.value).toBe('100');
     expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+  });
+
+  it('keeps coin denomination on the next form instance', () => {
+    const { result, unmount } = renderHook(() =>
+      usePerpsProSizeInput(createParams()),
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+
+    unmount();
+    const nextForm = renderHook(() =>
+      usePerpsProSizeInput(createParams({ assetSymbol: 'ETH' })),
+    );
+
+    expect(nextForm.result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'ETH',
+    });
+  });
+
+  it('writes base order-book currency when settings restore coin against a USD book', () => {
+    setStoredSizeDenomination('asset');
+    setTestOrderBookPreferences({ currency: 'usd' });
+
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '100', effectivePrice: 100 }),
+      ),
+    );
+
+    expect(getTestOrderBookPreferences().currency).toBe('base');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.sizeInput.value).toBe('1');
+  });
+
+  it('shows the USD amount until a persisted coin unit can be priced', () => {
+    setStoredSizeDenomination('asset');
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({ usdAmount: '100', effectivePrice: 0 }),
+      },
+    );
+
+    expect(result.current.sizeInput.value).toBe('100');
+    expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+    expect(result.current.effectiveUsdAmount).toBe('100');
+    expect(result.current.sizeInput.canToggleDenomination).toBe(false);
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+    });
+    rerender(createParams({ usdAmount: '100', effectivePrice: 50 }));
+
+    expect(result.current.sizeInput.value).toBe('2');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.effectiveUsdAmount).toBe('100');
+  });
+
+  it('keeps a pre-price USD edit visible until blur projects it into coin', () => {
+    setStoredSizeDenomination('asset');
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({ usdAmount: '100', effectivePrice: 0 }),
+      },
+    );
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+      result.current.sizeInput.onChange('40');
+    });
+
+    expect(result.current.sizeInput.value).toBe('40');
+    expect(result.current.effectiveUsdAmount).toBe('40');
+
+    rerender(createParams({ usdAmount: '40', effectivePrice: 25 }));
+
+    expect(result.current.sizeInput.value).toBe('40');
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+
+    act(() => {
+      result.current.sizeInput.onBlur();
+    });
+
+    expect(result.current.sizeInput.value).toBe('1.6');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.effectiveUsdAmount).toBe('40');
+  });
+
+  it('projects a blurred pre-price USD edit into coin once the price arrives', () => {
+    setStoredSizeDenomination('asset');
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({ usdAmount: '100', effectivePrice: 0 }),
+      },
+    );
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+      result.current.sizeInput.onChange('40');
+    });
+    rerender(createParams({ usdAmount: '40', effectivePrice: 0 }));
+    act(() => {
+      result.current.sizeInput.onBlur();
+    });
+
+    expect(result.current.sizeInput.value).toBe('40');
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+
+    rerender(createParams({ usdAmount: '40', effectivePrice: 25 }));
+
+    expect(result.current.sizeInput.value).toBe('1.6');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.effectiveUsdAmount).toBe('40');
+  });
+
+  it('keeps a focused USD edit in USD after its echo and the price arrive separately', () => {
+    setStoredSizeDenomination('asset');
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({ usdAmount: '100', effectivePrice: 0 }),
+      },
+    );
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+      result.current.sizeInput.onChange('40');
+    });
+    rerender(createParams({ usdAmount: '40', effectivePrice: 0 }));
+    rerender(createParams({ usdAmount: '40', effectivePrice: 25 }));
+
+    expect(result.current.sizeInput.value).toBe('40');
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+    expect(result.current.effectiveUsdAmount).toBe('40');
+
+    act(() => {
+      result.current.sizeInput.onChange('405');
+    });
+
+    expect(result.current.sizeInput.value).toBe('405');
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+    expect(result.current.effectiveUsdAmount).toBe('405');
   });
 
   it('keeps an empty USD draft while committing zero', () => {

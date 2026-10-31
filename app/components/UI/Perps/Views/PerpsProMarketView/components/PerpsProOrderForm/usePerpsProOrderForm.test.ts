@@ -18,7 +18,10 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
@@ -487,6 +490,27 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
+let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
+
+jest.mock('../../../../hooks/usePerpsSizeDenomination', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+
+  return {
+    usePerpsSizeDenomination: () => {
+      const [denomination, setDenominationState] = React.useState(
+        mockPerpsSizeDenomination,
+      );
+
+      return {
+        denomination,
+        setDenomination: (next: 'usd' | 'asset') => {
+          mockPerpsSizeDenomination = next;
+          setDenominationState(next);
+        },
+      };
+    },
+  };
+});
 jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => ({
   usePerpsOrderBookPreferences: () => ({
     preferences: { currency: 'usd', metric: 'total' },
@@ -657,6 +681,7 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
+    mockPerpsSizeDenomination = 'usd';
     jest.clearAllMocks();
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
@@ -1957,6 +1982,7 @@ describe('usePerpsProOrderForm', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
             PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
       expect(mockTrack).not.toHaveBeenCalledWith(
@@ -1972,6 +1998,49 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       expect(chaseSubmitted).not.toHaveBeenCalled();
+    });
+
+    it('reports usd on place order when coin is saved but the price is not ready', async () => {
+      mockPerpsSizeDenomination = 'asset';
+      mockLivePrice = '0';
+      mockLiveMarkPrice = '0';
+      const { result } = renderProForm();
+
+      expect(result.current.sizeInput.denomination.unit).toBe('usd');
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+        }),
+      );
+    });
+
+    it('reports coin on place order after the size denomination is switched', async () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+        }),
+      );
     });
 
     it('does not show Chase feedback for a stale non-Chase fingerprint', async () => {

@@ -34,6 +34,7 @@ import {
   createFundedAccountForViews,
   createEthMarketForViews,
   createLongPositionForViews,
+  createShortPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -55,6 +56,7 @@ import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
+  getPerpsProPositionRowSelector,
   PerpsTPSLViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
   getPerpsProChaseHandleSelector,
@@ -3295,6 +3297,72 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
     },
   );
+
+  itForPlatforms('keeps coin sizing after opening another market', async () => {
+    const { store } = renderPerpsProMarketView({
+      streamOverrides: {
+        account: createFundedAccountForViews('1000'),
+        marketData: [
+          createEthMarketForViews({ providerId: 'hyperliquid' }),
+          createBtcMarketForViews({ providerId: 'hyperliquid' }),
+        ],
+        prices: {
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            markPrice: '2500',
+            percentChange24h: '2',
+            timestamp: 1,
+            isTradable: true,
+          },
+          BTC: {
+            symbol: 'BTC',
+            price: '50000',
+            markPrice: '50000',
+            percentChange24h: '1',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+        positions: [createShortPositionForViews()],
+      },
+    });
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
+    await waitFor(() => expect(sizeInput).toHaveProp('value', '100'));
+    fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+    await waitFor(() => {
+      expect(sizeInput).toHaveProp('value', '0.04');
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (ETH)',
+      );
+    });
+    // ETH szDecimals is 2, so a third decimal place is rejected.
+    fireEvent.changeText(sizeInput, '0.123');
+    expect(sizeInput).toHaveProp('value', '0.04');
+    expect(store.getState().settings.perpsSizeDenomination).toBe('asset');
+
+    const btcRow = await screen.findByTestId(
+      getPerpsProPositionRowSelector('BTC'),
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    fireEvent.press(within(btcRow).getByText('BTC'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (BTC)',
+      );
+    });
+    const nextSizeInput = screen.getByTestId(ids.SIZE_INPUT);
+    // BTC szDecimals is 5. A sixth decimal is rejected once market data lands.
+    // Stay under the balance cap so the draft is not clamped back to USD.
+    await waitFor(() => {
+      fireEvent.changeText(nextSizeInput, '0.00123');
+      fireEvent.changeText(nextSizeInput, '0.001234');
+      expect(nextSizeInput).toHaveProp('value', '0.00123');
+    });
+  });
 
   itForPlatforms(
     'opens the size field and order book in the saved coin denomination',

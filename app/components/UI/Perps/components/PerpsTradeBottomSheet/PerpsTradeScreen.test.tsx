@@ -2,11 +2,12 @@ import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import {
   fireEvent,
-  render,
+  render as renderRoot,
   screen,
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import { Provider } from 'react-redux';
 import {
   Text as DSText,
   TextColor,
@@ -20,6 +21,22 @@ import {
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
+import { setPerpsSizeDenomination } from '../../../../../actions/settings';
+import configureStore from '../../../../../util/test/configureStore';
+
+let store = configureStore({});
+
+const render: typeof renderRoot = (ui, options) =>
+  renderRoot(<Provider store={store}>{ui}</Provider>, options);
+
+const mockSetOrderBookPreferences = jest.fn();
+
+jest.mock('../../hooks/usePerpsOrderBookPreferences', () => ({
+  usePerpsOrderBookPreferences: () => ({
+    preferences: { currency: 'usd', metric: 'total' },
+    setOrderBookPreferences: mockSetOrderBookPreferences,
+  }),
+}));
 
 jest.mock('../../../../../util/haptics');
 
@@ -153,6 +170,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
 
 describe('PerpsTradeScreen errors', () => {
   beforeEach(() => {
+    store = configureStore({});
     jest.clearAllMocks();
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;
@@ -356,6 +374,84 @@ describe('PerpsTradeScreen errors', () => {
     expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
   });
 
+  it('keeps a pre-price USD edit in USD after the price arrives', () => {
+    store = configureStore({});
+    store.dispatch(setPerpsSizeDenomination('asset'));
+    const onKeypadChange = jest.fn();
+    const { rerender } = render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        amount="0"
+        tokenAmount="0"
+        amountPrice={0}
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_5));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '5', valueAsNumber: 5 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+
+    onKeypadChange.mockClear();
+    rerender(
+      <Provider store={store}>
+        <PerpsTradeScreen
+          {...defaultProps}
+          amount="5"
+          tokenAmount="0.2"
+          amountPrice={25}
+          isInputFocused
+          onKeypadChange={onKeypadChange}
+        />
+      </Provider>,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_0));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '50', valueAsNumber: 50 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+  });
+
+  it('keeps the USD keypad when a saved coin unit has no price yet', () => {
+    store = configureStore({});
+    store.dispatch(setPerpsSizeDenomination('asset'));
+    const onKeypadChange = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        amount="0"
+        tokenAmount="1.5"
+        amountPrice={0}
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '1', valueAsNumber: 1 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+  });
+
   it('applies a keypad digit to the coin amount after the display toggle', () => {
     const onKeypadChange = jest.fn();
     const peoplePrice = 1 / 121;
@@ -399,6 +495,34 @@ describe('PerpsTradeScreen errors', () => {
     expect(within(toggle).getByTestId('perps-swap-icon')).toBeOnTheScreen();
     expect(
       screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('writes the order-book currency when the trade sheet switches back to USD', () => {
+    store.dispatch(setPerpsSizeDenomination('asset'));
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show fiat value' }));
+
+    expect(store.getState().settings.perpsSizeDenomination).toBe('usd');
+    expect(mockSetOrderBookPreferences).toHaveBeenCalledWith({
+      currency: 'usd',
+    });
+  });
+
+  it('keeps coin sizing after the trade screen remounts', () => {
+    const { unmount } = render(<PerpsTradeScreen {...defaultProps} />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    expect(
+      screen.getByRole('button', { name: 'Show fiat value' }),
+    ).toBeOnTheScreen();
+
+    unmount();
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Show fiat value' }),
     ).toBeOnTheScreen();
   });
 

@@ -356,6 +356,10 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
+        // `.rejects.toMatchObject(...)` attaches its handler to the service
+        // promise synchronously, so the pending rejection below is never
+        // unobserved while the timer still has to advance to produce it.
+        // eslint-disable-next-line jest/valid-expect -- awaited below via `pending`, not here
         const pending = expect(
           service.validateReferralCode('ABC123'),
         ).rejects.toMatchObject({
@@ -420,6 +424,10 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
+        // `.rejects.toMatchObject(...)` attaches its handler to the service
+        // promise synchronously, so the pending rejection below is never
+        // unobserved while the timer still has to advance to produce it.
+        // eslint-disable-next-line jest/valid-expect -- awaited below via `pending`, not here
         const pending = expect(service.getReferralMe()).rejects.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
@@ -1064,6 +1072,10 @@ describe('RewardsMoneyDataService', () => {
       });
       jest.useFakeTimers();
       try {
+        // `.rejects.toMatchObject(...)` attaches its handler to the service
+        // promise synchronously, so the pending rejection below is never
+        // unobserved while the timer still has to advance to produce it.
+        // eslint-disable-next-line jest/valid-expect -- awaited below via `busyQuotePending`, not here
         const busyQuotePending = expect(
           service.getRebateQuote({ product: 'perps' }),
         ).rejects.toMatchObject({
