@@ -366,7 +366,7 @@ const Main = (props) => {
   }, [connectionChangeHandler]);
 
   const openDeprecatedNetworksArticle = () => {
-    Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
+    Linking.openURL(GOERLI_DEPRECATED_ARTICLE).catch(() => undefined);
   };
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
