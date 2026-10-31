@@ -32,9 +32,12 @@ const MoneyDepositDeeplinkBridge = () => {
     geolocationStatus === 'loading';
 
   const navigateToGeoBlockSheet = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-    });
+    navigation.dispatch((state) => ({
+      ...StackActions.replace(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      }),
+      target: state.key,
+    }));
   }, [navigation]);
 
   useEffect(() => {

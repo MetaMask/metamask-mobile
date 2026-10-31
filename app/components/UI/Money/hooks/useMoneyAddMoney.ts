@@ -14,8 +14,11 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { MoneyButtonClickedInputProperties } from '../types/moneyEvents.types';
+import {
+  navigateToMoneyAccountAccessNotice,
+  useMoneyAccountAvailability,
+} from './useMoneyAccountAvailability';
 
 interface UseMoneyAddMoneyOptions {
   buttonLabelKey?: string;
@@ -34,20 +37,12 @@ export function useMoneyAddMoney({
   const isOnboardingEnabled = useSelector(
     selectMoneyOnboardingStepperAnimationEnabled,
   );
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
-  );
-
-  const navigateToGeoBlockSheet = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-    });
-  }, [navigation]);
+  const { accessBlockReason } = useMoneyAccountAvailability();
 
   const handleAddPress = useCallback(async () => {
-    const redirectedToGeoBlock = !isMoneyAccountGeoEligible;
+    const redirectedToGeoBlock = accessBlockReason === 'geo_blocked';
     const redirectedToOnboarding =
-      !redirectedToGeoBlock && !hasSeenMoneyOnboarding && isOnboardingEnabled;
+      !accessBlockReason && !hasSeenMoneyOnboarding && isOnboardingEnabled;
 
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -55,15 +50,17 @@ export function useMoneyAddMoney({
         ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
         : MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_key: buttonLabelKey,
-      redirect_target: redirectedToGeoBlock
-        ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
+      redirect_target: accessBlockReason
+        ? redirectedToGeoBlock
+          ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
+          : BOTTOM_SHEET_NAMES.MONEY_DEEPLINK_MODAL
         : redirectedToOnboarding
           ? SCREEN_NAMES.MONEY_ONBOARDING
           : SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    if (redirectedToGeoBlock) {
-      navigateToGeoBlockSheet();
+    if (accessBlockReason) {
+      navigateToMoneyAccountAccessNotice(navigation, accessBlockReason);
       return;
     }
 
@@ -84,13 +81,12 @@ export function useMoneyAddMoney({
       });
     }
   }, [
+    accessBlockReason,
     buttonLabelKey,
     hasSeenMoneyOnboarding,
     initiateDeposit,
-    isMoneyAccountGeoEligible,
     isOnboardingEnabled,
     logTag,
-    navigateToGeoBlockSheet,
     navigation,
     trackButtonClicked,
   ]);
