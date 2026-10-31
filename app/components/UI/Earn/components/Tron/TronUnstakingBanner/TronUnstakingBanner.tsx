@@ -1,18 +1,17 @@
 import React from 'react';
-import { strings } from '../../../../../../../locales/i18n';
-import Banner, {
+import {
+  BannerAlert,
   BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../../component-library/components/Banners/Banner';
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface TronUnstakingBannerProps {
   amount: string;
 }
 
 const TronUnstakingBanner = ({ amount }: TronUnstakingBannerProps) => (
-  <Banner
+  <BannerAlert
     severity={BannerAlertSeverity.Info}
-    variant={BannerVariant.Alert}
     title={strings('stake.tron.unstaking_banner.title', { amount })}
     description={strings('stake.tron.unstaking_banner.description')}
   />
