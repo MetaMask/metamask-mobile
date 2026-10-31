@@ -1,6 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { readFileSync } from 'node:fs';
-import { findPackageJSON } from 'node:module';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -144,10 +143,16 @@ function resolveBundledHelperArtifact(
 }
 
 function resolveAgentDevicePackageRoot(): string {
-  const packageJsonPath = findPackageJSON('agent-device', __filename);
-  if (!packageJsonPath) {
-    throw new Error('Unable to locate the installed agent-device package');
-  }
+  // tsx/CJS interop can leave `node:module.findPackageJSON` undefined at runtime.
+  const packageJsonPath = join(
+    dirname(__filename),
+    '..',
+    '..',
+    '..',
+    'node_modules',
+    'agent-device',
+    'package.json',
+  );
   return dirname(packageJsonPath);
 }
 
