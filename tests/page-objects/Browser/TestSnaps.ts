@@ -414,8 +414,11 @@ class TestSnaps {
   ): Promise<void> {
     // Appium uses dapp:// deeplink for https test-snaps URLs in navigateToURL.
     // Tapping the URL bar first is unnecessary and races with browser chrome.
+    // iOS tab cleanup opens the tabs overview and flakes, so never close tabs there.
     await Browser.navigateToURL(TEST_SNAPS_URL, {
-      closeAllTabsIfOpen: !options.skipTabCleanup,
+      closeAllTabsIfOpen: PlatformDetector.isIOSAppium()
+        ? false
+        : !options.skipTabCleanup,
     });
     await waitForTestSnapsToLoad();
   }
@@ -528,6 +531,59 @@ class TestSnaps {
       'This is an alert dialog',
       timeout,
       'enabled Snap alert dialog',
+    );
+  }
+
+  /**
+   * After re-enabling a Snap, the first Send Alert WebView taps can miss because
+   * the Snap runtime is not ready yet (post-#35803 residual). Re-tap with a
+   * short visibility probe; if still missing after a couple cycles, reload the
+   * test-snaps page once (same provider/registration recovery shape as
+   * BitcoinTestDapp / MultichainTestDApp) and continue until the enabled dialog
+   * is visible.
+   */
+  async tapSendAlertAndExpectEnabled(
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? 60_000;
+    let firstAttempt = true;
+    let reloaded = false;
+    let attempts = 0;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        attempts += 1;
+
+        if (!firstAttempt) {
+          const dialogAlreadyVisible = await Utilities.isElementVisible(
+            Matchers.getElementByText('This is an alert dialog'),
+            1_000,
+          );
+          if (dialogAlreadyVisible) {
+            return;
+          }
+
+          // After two failed tap cycles, reload the open tab once so the Snap
+          // client remounts. A dapp:// deeplink would stack a second iOS tab,
+          // and the next tap would hit the stale WebView.
+          if (!reloaded && attempts >= 3) {
+            reloaded = true;
+            await Browser.tapReloadButton();
+            await waitForTestSnapsToLoad();
+          }
+        }
+
+        firstAttempt = false;
+        await this.tapButton('sendAlertButton');
+        await this.expectEnabledSnapAlert(8_000);
+      },
+      {
+        timeout,
+        interval: 500,
+        maxRetries: 8,
+        elemDescription: 'Send Alert button / enabled Snap alert dialog',
+        description: 'Send enabled Snap alert until dialog is visible',
+      },
     );
   }
 
