@@ -68,6 +68,7 @@ import ROBINHOOD from './robinhood.png';
 import GNOSIS_NATIVE from './gnosis-native-token-logo.png';
 import ZERO_G_NATIVE from './0g-native-logo.png';
 import SOMNIA_NATIVE from './somnia.png';
+import WCAHT_NATIVE from './wcaht.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
@@ -156,4 +157,5 @@ export default {
   XDAI: GNOSIS_NATIVE,
   '0G': ZERO_G_NATIVE,
   SOMI: SOMNIA_NATIVE,
+  WCAHT: WCAHT_NATIVE,
 };
