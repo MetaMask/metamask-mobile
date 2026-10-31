@@ -10,8 +10,11 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   Text,
+  TextColor,
   TextVariant,
   Button,
   ButtonVariant,
@@ -45,11 +48,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
-import CLText from '../../../../../component-library/components/Texts/Text/Text';
 import Logger from '../../../../../util/Logger';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import {
@@ -422,19 +420,19 @@ const AddCustomToken = ({
         {/* Banner */}
         {isTokenDetectionSupported ? (
           <Box twClassName="mt-5">
-            <Banner
-              variant={BannerVariant.Alert}
+            <BannerAlert
               severity={BannerAlertSeverity.Warning}
               description={
-                <CLText>
+                <Text variant={TextVariant.BodyMd}>
                   {strings('add_asset.banners.custom_warning_desc')}
-                  <CLText
-                    style={tw.style('text-info-default')}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.InfoDefault}
                     onPress={navigateToSecurityTips}
                   >
                     {strings('add_asset.banners.custom_warning_link')}
-                  </CLText>
-                </CLText>
+                  </Text>
+                </Text>
               }
             />
           </Box>
