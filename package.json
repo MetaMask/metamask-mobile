@@ -188,7 +188,18 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/approval-controller": {
+      "type": "non-breaking",
+      "previewVersion": "10.0.0-preview-35f016caa"
+    },
+    "@metamask/permission-controller": {
+      "type": "non-breaking",
+      "previewVersion": "14.0.0-preview-35f016caa"
+    }
+  },
   "resolutions": {
+    "@metamask/eth-json-rpc-provider@^7.0.0": "npm:@metamask-previews/eth-json-rpc-provider@7.0.0-preview-35f016caa",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "^37.1.1",
