@@ -14,7 +14,7 @@ export interface EarnModuleEventLocation {
   screen_name?: EARN_MODULE_SCREEN_NAMES;
   component_name?: EARN_MODULE_COMPONENT_NAMES;
   bottom_sheet_name?: EARN_MODULE_BOTTOM_SHEET_NAMES;
-  /** Entry point for the tracked Earn flow (e.g. homepage, explore_now_tab, explore_crypto_tab, explore_search) */
+  /** Entry point for the tracked Earn flow (e.g. explore_now_tab, explore_crypto_tab, explore_search) */
   entry_point: EARN_MODULE_ENTRY_POINTS;
 }
 
