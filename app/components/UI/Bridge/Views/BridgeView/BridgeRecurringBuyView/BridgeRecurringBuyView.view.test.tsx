@@ -7,6 +7,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
+import NetInfo from '@react-native-community/netinfo';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   renderBridgeViewWithModals as renderBridgeView,
@@ -65,8 +66,10 @@ import {
   getMockRecurringOrders,
   setupRecurringOrdersDataServiceMock,
 } from '../../../../../../../tests/component-view/api-mocking/recurringOrders';
+import type NetInfoMock from '../../../../../../../__mocks__/@react-native-community/netinfo';
 
 const errorColor = lightTheme.colors.error.default;
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const ETH_USD_RATE = 2000;
 const ETH_EUR_RATE = 1800;
@@ -452,6 +455,10 @@ async function selectPriceRangeSourceToken(
 
 describeForPlatforms('BridgeRecurringBuyView', () => {
   beforeEach(() => {
+    netInfoMock.__setMockNetInfo({
+      type: 'wifi',
+      isInternetReachable: true,
+    });
     recurringOrdersRequest.mockClear();
     recurringOrdersRequest.mockImplementation(getMockRecurringOrders);
     setupRecurringOrdersDataServiceMock({
@@ -461,6 +468,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
+    netInfoMock.__resetMockNetInfo();
   });
 
   it('shows default every 1 hour and repeat 10 after opening the recurring tab', async () => {
