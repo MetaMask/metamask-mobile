@@ -15,6 +15,14 @@ import { store } from '../../store';
 import { analytics } from '../analytics/analytics';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import Logger from '../Logger';
+import {
+  takeImportedWalletFundingAmountRange,
+  type FundingAmountRange,
+} from '../analytics/fundingAmountRange';
+
+jest.mock('../analytics/fundingAmountRange', () => ({
+  takeImportedWalletFundingAmountRange: jest.fn(),
+}));
 
 jest.mock(
   '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences',
@@ -156,6 +164,86 @@ describe('finalizeOnboardingCompletion', () => {
         }),
       }),
     );
+  });
+
+  describe('funding_amount_range', () => {
+    const mockTakeFundingAmountRange = jest.mocked(
+      takeImportedWalletFundingAmountRange,
+    );
+
+    const finalizeWith = (successFlow: ONBOARDING_SUCCESS_FLOW) =>
+      finalizeOnboardingCompletion({
+        successFlow,
+        accountType: AccountType.Imported,
+        isBasicFunctionalityEnabled: true,
+        walletSetupAttributionProps: { utm_source: 'email' },
+        dispatch: mockDispatch,
+      });
+
+    it('waits for the shared import fetch before tracking ONBOARDING_COMPLETED with its range', async () => {
+      let resolveFetch: (range: FundingAmountRange | undefined) => void = () =>
+        undefined;
+      mockTakeFundingAmountRange.mockReturnValueOnce(
+        new Promise<FundingAmountRange | undefined>((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+
+      finalizeWith(ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE);
+
+      expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+
+      resolveFetch('100.00 - 999.99');
+      await Promise.resolve();
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Onboarding Completed',
+          properties: expect.objectContaining({
+            wallet_setup_type: 'import',
+            funding_amount_range: '100.00 - 999.99',
+            utm_source: 'email',
+          }),
+        }),
+      );
+    });
+
+    it('omits the prop when the shared import fetch resolves undefined', async () => {
+      mockTakeFundingAmountRange.mockReturnValueOnce(
+        Promise.resolve(undefined),
+      );
+
+      finalizeWith(ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE);
+      await Promise.resolve();
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(
+        mockAnalytics.trackEvent.mock.calls[0][0].properties,
+      ).not.toHaveProperty('funding_amount_range');
+    });
+
+    it('tracks immediately without the prop when no import fetch is pending', () => {
+      mockTakeFundingAmountRange.mockReturnValueOnce(undefined);
+
+      finalizeWith(ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE);
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(
+        mockAnalytics.trackEvent.mock.calls[0][0].properties,
+      ).not.toHaveProperty('funding_amount_range');
+    });
+
+    it('never takes the import fetch for create-wallet flows', () => {
+      finalizeWith(ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP);
+
+      expect(mockTakeFundingAmountRange).not.toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(
+        mockAnalytics.trackEvent.mock.calls[0][0].properties,
+      ).not.toHaveProperty('funding_amount_range');
+    });
   });
 
   it('only clears attribution when successFlow is ineligible', () => {
