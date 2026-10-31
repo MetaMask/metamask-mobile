@@ -38,6 +38,7 @@ import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSour
 import { TraceName } from '../../../../../../util/trace';
 import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
+import { prefetchVbaVendorDisclaimers } from '../vbaVendorDisclaimersQuery';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -353,6 +354,10 @@ export const resolveVbaOnboarding = async (
       return { status: 'error' };
     }
 
+    // Vendor terms is the usual first step. Load its disclaimers alongside
+    // hydrate so the screen opens with its legal links and an active button.
+    const vendorDisclaimersPrefetch = prefetchVbaVendorDisclaimers();
+
     await resumePersistedKycSession();
 
     const accountSnapshot = applyVbaDevOverrides(
@@ -391,9 +396,15 @@ export const resolveVbaOnboarding = async (
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
     endVbaCufChildTrace(hydrateTraceId, true);
+    const destinationId = getVbaDestinationForSnapshot(snapshot);
+    if (destinationId === 'vendorTerms') {
+      // Keep the caller's loading state up until the terms are in the cache.
+      // A failed load still opens vendor terms, which shows its retry.
+      await vendorDisclaimersPrefetch;
+    }
     return {
       status: 'ready',
-      destinationId: getVbaDestinationForSnapshot(snapshot),
+      destinationId,
       snapshot,
     };
   } catch (error) {
