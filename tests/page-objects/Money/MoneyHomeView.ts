@@ -3,6 +3,7 @@ import { MoneyActivityListTestIds } from '../../../app/components/UI/Money/compo
 import { MoneyBalanceSummaryTestIds } from '../../../app/components/UI/Money/components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { MoneyEarningsTestIds } from '../../../app/components/UI/Money/components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../../app/components/UI/Money/components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
+import { MONEY_VBA_HOME_CARD_TEST_IDS } from '../../../app/components/UI/Money/components/MoneyVbaHomeCard/MoneyVbaHomeCard.testIds';
 import { MoneyHomeViewTestIds } from '../../../app/components/UI/Money/Views/MoneyHomeView/MoneyHomeView.testIds';
 import Assertions from '../../framework/Assertions';
 import type { AppiumElement } from '../../framework/AppiumElement';
@@ -72,6 +73,37 @@ class MoneyHomeView {
 
   get transferButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyActionButtonRowTestIds.TRANSFER_BUTTON);
+  }
+
+  get detailsButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(MoneyActionButtonRowTestIds.DETAILS_BUTTON);
+  }
+
+  get vbaKycDecisionCard(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER,
+    );
+  }
+
+  get vbaKycDecisionCardCta(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CTA_BUTTON,
+    );
+  }
+
+  async tapDetails(): Promise<void> {
+    await Gestures.waitAndTap(this.detailsButton, {
+      elemDescription: 'Money Home Details (bank account) button',
+    });
+  }
+
+  async tapVbaKycDecisionCardCta(): Promise<void> {
+    await Gestures.scrollIntoView(this.vbaKycDecisionCardCta, {
+      direction: 'down',
+    });
+    await Gestures.waitAndTap(this.vbaKycDecisionCardCta, {
+      elemDescription: 'Money Home VBA KYC decision card CTA',
+    });
   }
 
   async expectMoneyHomeVisible(

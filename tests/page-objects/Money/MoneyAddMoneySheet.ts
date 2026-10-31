@@ -60,6 +60,12 @@ class MoneyAddMoneySheet {
     });
   }
 
+  async tapBankAccount(): Promise<void> {
+    await Gestures.waitAndTap(this.bankAccountRow, {
+      elemDescription: 'Add money sheet - Bank account row',
+    });
+  }
+
   async tapMoveMusd(): Promise<void> {
     await Gestures.waitAndTap(this.moveMusdOption, {
       elemDescription: 'Add money sheet - Move/Add mUSD option',
