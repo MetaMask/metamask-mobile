@@ -397,21 +397,6 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('version-gates activity and transactions redesigns on at 8.5.0', () => {
-      expect(
-        getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: true,
-        minimumVersion: '8.5.0',
-      });
-      expect(
-        getRegistryEntry('tmcuTransactionsRedesignEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: true,
-        minimumVersion: '8.5.0',
-      });
-    });
-
     it('keeps Social AI comment translation off until the flag is enabled', () => {
       expect(
         getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
