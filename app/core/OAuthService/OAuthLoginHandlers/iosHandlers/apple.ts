@@ -49,6 +49,7 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
       authServerUrl: params.authServerUrl,
       clientId: params.clientId,
       web3AuthNetwork: params.web3AuthNetwork,
+      nonce: params.nonce,
     });
     this.clientId = params.clientId;
   }
@@ -62,6 +63,7 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
     try {
       const credential = await signInAsync({
         requestedScopes: this.#scope,
+        ...(this.hasCallerNonce ? { nonce: this.nonce } : {}),
       });
 
       if (credential.identityToken) {
