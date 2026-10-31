@@ -38814,7 +38814,7 @@ __metadata:
     react-native-blob-util: "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch"
     react-native-branch: "npm:^5.6.2"
     react-native-browser-polyfill: "npm:0.1.2"
-    react-native-confirmation-code-field: "npm:^7.6.1"
+    react-native-confirmation-code-field: "npm:^9.0.0"
     react-native-crypto: "npm:2.2.1"
     react-native-default-preference: "npm:^1.4.3"
     react-native-device-info: "npm:^9.0.2"
@@ -44543,18 +44543,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-confirmation-code-field@npm:^7.6.1":
-  version: 7.6.1
-  resolution: "react-native-confirmation-code-field@npm:7.6.1"
+"react-native-confirmation-code-field@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "react-native-confirmation-code-field@npm:9.0.0"
   peerDependencies:
-    react: ">=16.4.0"
-    react-native: ">=0.64.0"
+    react: ">=19.0.0"
+    react-native: ">=0.78.0"
   peerDependenciesMeta:
     react:
       optional: true
     react-native:
       optional: true
-  checksum: 10/56050f0778da640ef400c5fdef354957427458a3da06c6bdce9c70e4f0539e74959d2f4caca213e6d9401cb879a8ad6ace085ceeec5cac7b5401173161d09cbd
+  checksum: 10/2c752e84d0a3e753ed837c0181ba4d8b30f8d75dad7b3d1f83f9d1f4af5f5bf8abd7d730aca95bf2c47689e77f968d3b688a3eccb4fa188171456c57ececf695
   languageName: node
   linkType: hard
 

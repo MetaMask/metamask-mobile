@@ -609,7 +609,7 @@
     "react-native-blob-util": "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch",
     "react-native-branch": "^5.6.2",
     "react-native-browser-polyfill": "0.1.2",
-    "react-native-confirmation-code-field": "^7.6.1",
+    "react-native-confirmation-code-field": "^9.0.0",
     "react-native-crypto": "2.2.1",
     "react-native-default-preference": "^1.4.3",
     "react-native-device-info": "^9.0.2",
