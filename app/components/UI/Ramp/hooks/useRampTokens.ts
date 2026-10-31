@@ -2,30 +2,26 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { handleFetch } from '@metamask/controller-utils';
 import type { DepositCryptoCurrency } from '../types/legacyDeposit';
+import { ApiEnv, getApiEnv } from '../../../../core/apiEnv';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import Logger from '../../../../util/Logger';
 
 const SDK_VERSION = '2.1.5';
 
-const TOKEN_API_URL = {
-  STAGING: 'https://on-ramp-cache.uat-api.cx.metamask.io',
-  PRODUCTION: 'https://on-ramp-cache.api.cx.metamask.io',
-} as const;
-
 /**
- * Determines the base URL for the token cache API based on the MetaMask environment.
- *
- * @returns The base URL for production or staging environment
+ * Dev has no on-ramp-cache host, so the token list is read from the dev
+ * on-ramp API. UAT and prod use the cache.
  */
-function getBaseUrl(): string {
-  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  const isProduction =
-    metamaskEnvironment === 'production' ||
-    metamaskEnvironment === 'beta' ||
-    metamaskEnvironment === 'rc';
+const TOKEN_API_URL: Record<ApiEnv, string> = {
+  [ApiEnv.Dev]: 'https://on-ramp.dev-api.cx.metamask.io',
+  [ApiEnv.Uat]: 'https://on-ramp-cache.uat-api.cx.metamask.io',
+  [ApiEnv.Prod]: 'https://on-ramp-cache.api.cx.metamask.io',
+};
 
-  return isProduction ? TOKEN_API_URL.PRODUCTION : TOKEN_API_URL.STAGING;
+/** Token-list host for the cluster selected by `MM_API_ENV`. */
+function getBaseUrl(): string {
+  return TOKEN_API_URL[getApiEnv()];
 }
 
 export interface RampsToken extends DepositCryptoCurrency {
