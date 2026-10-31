@@ -59,9 +59,39 @@ const claimActivity: PredictActivity = {
 const givenActiveVenue = (resolution: ActiveVenueResolution) =>
   jest.mocked(useActiveVenue).mockReturnValue(resolution);
 
+const mockGetCanonicalActivity = jest.fn();
+
+const kalshiSettlement = {
+  type: 'settlement',
+  venueId: 'kalshi',
+  id: 'settlement-1',
+  marketId: 'KXNCAAFGAME-18OCT25UTAHBYU-UTAH',
+  side: 'yes',
+  shares: '10',
+  result: 'yes',
+  proceeds: '10',
+  realizedPnl: '4.2',
+  timestamp: '2026-10-19T04:12:00.000Z',
+  context: {
+    eventId: 'KXNCAAFGAME-18OCT25UTAHBYU',
+    eventTitle: 'Utah at BYU',
+    marketQuestion: 'Utah to win?',
+    outcomeLabel: 'Utah',
+  },
+};
+
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: Infinity,
+        queryFn: ({ queryKey, pageParam }) => {
+          const [, venueId, params] = queryKey as [string, string, unknown];
+          return mockGetCanonicalActivity(venueId, params, pageParam);
+        },
+      },
+    },
   });
 
   return ({ children }: { children: React.ReactNode }) =>
@@ -76,6 +106,10 @@ describe('usePredictActivityDetailsItem', () => {
       nextCursor: undefined,
     });
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockGetCanonicalActivity.mockResolvedValue({
+      venueId: 'kalshi',
+      activity: [kalshiSettlement],
+    });
   });
 
   describe('while the next implementation is active', () => {
@@ -85,20 +119,80 @@ describe('usePredictActivityDetailsItem', () => {
 
     it('never ensures Polygon or reads legacy Activity', async () => {
       await expectInactiveHookHasNoSideEffects({
-        useInactiveHook: () => usePredictActivityDetailsItem('predict-claim'),
+        useInactiveHook: () =>
+          usePredictActivityDetailsItem('settlement-1', 'kalshi:mainnet'),
         sideEffects: [mockEnsurePolygonNetworkExists, mockGetActivity],
         wrapper: createWrapper(),
       });
     });
 
-    it('resolves no item', () => {
+    it('resolves the canonical entry by the venue chain id', async () => {
       const { result } = renderHook(
-        () => usePredictActivityDetailsItem('predict-claim'),
+        () => usePredictActivityDetailsItem('settlement-1', 'kalshi:mainnet'),
         { wrapper: createWrapper() },
       );
 
-      expect(result.current).toEqual({ item: undefined, isLoading: false });
+      expect(result.current.isLoading).toBe(true);
+      await waitFor(() => expect(result.current.item).toBeDefined());
+      expect(mockGetCanonicalActivity).toHaveBeenCalledWith(
+        'kalshi',
+        { limit: 20 },
+        undefined,
+      );
+      expect(result.current).toEqual({
+        isLoading: false,
+        item: expect.objectContaining({
+          type: 'predictionSettled',
+          chainId: 'kalshi:mainnet',
+          status: 'success',
+          hash: 'settlement-1',
+          data: expect.objectContaining({
+            token: expect.objectContaining({ amount: '10', symbol: 'USD' }),
+            outcomeLabel: 'Utah',
+            marketQuestion: 'Utah to win?',
+            side: 'yes',
+            result: 'yes',
+            shares: '10',
+            realizedPnl: '4.2',
+          }),
+        }),
+      });
     });
+
+    it('matches the opaque id exactly', async () => {
+      const { result } = renderHook(
+        () => usePredictActivityDetailsItem('SETTLEMENT-1', 'kalshi:mainnet'),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.item).toBeUndefined();
+    });
+
+    it.each([
+      ['Polygon', 'eip155:137'],
+      ['no', undefined],
+    ] as const)(
+      'resolves nothing and reads nothing for %s chain id',
+      async (_label, chainId) => {
+        await expectInactiveHookHasNoSideEffects({
+          useInactiveHook: () =>
+            usePredictActivityDetailsItem('settlement-1', chainId),
+          sideEffects: [
+            mockEnsurePolygonNetworkExists,
+            mockGetActivity,
+            mockGetCanonicalActivity,
+          ],
+          wrapper: createWrapper(),
+        });
+
+        const { result } = renderHook(
+          () => usePredictActivityDetailsItem('settlement-1', chainId),
+          { wrapper: createWrapper() },
+        );
+        expect(result.current).toEqual({ item: undefined, isLoading: false });
+      },
+    );
   });
 
   describe('while the legacy implementation is active', () => {
@@ -114,6 +208,7 @@ describe('usePredictActivityDetailsItem', () => {
 
       await waitFor(() => expect(result.current.item).toBeDefined());
       expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
+      expect(mockGetCanonicalActivity).not.toHaveBeenCalled();
       expect(result.current).toEqual({
         isLoading: false,
         item: expect.objectContaining({
@@ -124,6 +219,19 @@ describe('usePredictActivityDetailsItem', () => {
             token: expect.objectContaining({ amount: '250', symbol: 'USDC' }),
           }),
         }),
+      });
+    });
+
+    it('never resolves a Kalshi chain id', async () => {
+      await expectInactiveHookHasNoSideEffects({
+        useInactiveHook: () =>
+          usePredictActivityDetailsItem('settlement-1', 'kalshi:mainnet'),
+        sideEffects: [
+          mockEnsurePolygonNetworkExists,
+          mockGetActivity,
+          mockGetCanonicalActivity,
+        ],
+        wrapper: createWrapper(),
       });
     });
 

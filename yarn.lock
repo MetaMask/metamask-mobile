@@ -10043,6 +10043,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/core-backend@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "@metamask/core-backend@npm:13.0.0"
+  dependencies:
+    "@metamask/account-tree-controller": "npm:^11.2.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    "@metamask/utils": "npm:^12.0.1"
+    "@tanstack/query-core": "npm:^5.103.2"
+    async-mutex: "npm:^0.5.0"
+    cockatiel: "npm:^3.2.1"
+    uuid: "npm:^14.0.0"
+  checksum: 10/7fdd621f3dd38cff0ab4d1e69de1ab2a6bc201a6556d6952de5f7d03a21451a85700b9e2f13f3b76008ca873fc390a3d86a24b6c0fd50848b5827fd78a346614
+  languageName: node
+  linkType: hard
+
 "@metamask/cryptography@npm:^1.1.0, @metamask/cryptography@npm:^1.1.2":
   version: 1.1.2
   resolution: "@metamask/cryptography@npm:1.1.2"
@@ -12411,19 +12430,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.14.0":
-  version: 3.14.0
-  resolution: "@metamask/social-controllers@npm:3.14.0"
+"@metamask/social-controllers@npm:^3.14.2":
+  version: 3.14.2
+  resolution: "@metamask/social-controllers@npm:3.14.2"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/core-backend": "npm:^12.3.0"
+    "@metamask/core-backend": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.1"
-  checksum: 10/8d0bd64171e1a0d067226a19daf25636760e7677913542cdfcbd8a71d852421022b725c1b2749004a4b37af386cc5d7736a3cf1431081a326f268c6533b80f0c
+  checksum: 10/0dea6008d5d450ddf6d898575796f32cfc4f77cea8e130c8da1cf8d81e171dfdfe491c77f9fc4c0d0d8fd71931ab79b0bb83d1bbb042b9b8b22c319c6fcb628f
   languageName: node
   linkType: hard
 
@@ -38537,7 +38556,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
-    "@metamask/social-controllers": "npm:^3.14.0"
+    "@metamask/social-controllers": "npm:^3.14.2"
     "@metamask/solana-wallet-snap": "npm:^7.2.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
