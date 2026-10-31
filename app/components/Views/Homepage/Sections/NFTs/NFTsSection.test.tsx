@@ -70,10 +70,18 @@ jest.mock('../../context/HomepageScrollContext', () => ({
 const mockNft = (address: string, tokenId: string) => ({
   address,
   tokenId,
+  chainId: 1,
   isCurrentlyOwned: true,
   name: `NFT ${tokenId}`,
   image: 'https://example.com/nft.png',
 });
+
+jest.mock(
+  '../../../../hooks/useNftMaliciousNftScan/useNftMaliciousNftScan',
+  () => ({
+    useNftMaliciousNftScan: jest.fn(),
+  }),
+);
 
 jest.mock('./hooks', () => ({
   useOwnedNfts: jest.fn(() => []),
@@ -243,6 +251,23 @@ describe('NFTsSection', () => {
     // NFTs beyond the limit (indices 6-7) should NOT be displayed
     expect(screen.queryByText('NFT 6')).not.toBeOnTheScreen();
     expect(screen.queryByText('NFT 7')).not.toBeOnTheScreen();
+  });
+
+  it('scans only the NFTs it shows (first 6), not the extras', () => {
+    const nfts = Array.from({ length: 8 }, (__, i) =>
+      mockNft(`0x${i}`, `${i}`),
+    );
+    jest.requireMock('./hooks').useOwnedNfts.mockReturnValue(nfts);
+    const mockScan = jest.requireMock(
+      '../../../../hooks/useNftMaliciousNftScan/useNftMaliciousNftScan',
+    ).useNftMaliciousNftScan;
+
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      { state: stateWithNftPreferences },
+    );
+
+    expect(mockScan).toHaveBeenCalledWith(nfts.slice(0, 6));
   });
 
   it('opens bottom sheet when an NFT item is long-pressed', () => {

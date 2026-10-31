@@ -27,6 +27,7 @@ import { isNftFetchingProgressSelector } from '../../../../../reducers/collectib
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
 import { useNftDetection } from '../../../../hooks/useNftDetection';
+import { useNftMaliciousNftScan } from '../../../../hooks/useNftMaliciousNftScan/useNftMaliciousNftScan';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import useHomeViewedEvent, {
@@ -125,6 +126,9 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),
       [ownedNfts],
     );
+
+    // Scans only the NFTs shown here and removes the ones from malicious contracts.
+    useNftMaliciousNftScan(displayNfts);
 
     // Split NFTs into rows of NFTS_PER_ROW
     const nftRows = useMemo(() => {

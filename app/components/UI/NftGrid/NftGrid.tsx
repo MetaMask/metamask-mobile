@@ -50,6 +50,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../util/theme';
 import { useNftDetection } from '../../hooks/useNftDetection';
+import { useNftMaliciousNftScan } from '../../hooks/useNftMaliciousNftScan/useNftMaliciousNftScan';
 
 interface NftGridProps {
   isFullView?: boolean;
@@ -182,6 +183,9 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
       return itemsToProcess;
     }, [allFilteredCollectibles, maxItems]);
+
+    // Scans only the NFTs rendered here and removes the ones from malicious contracts.
+    useNftMaliciousNftScan(collectiblesToRender);
 
     useEffect(() => {
       if (
