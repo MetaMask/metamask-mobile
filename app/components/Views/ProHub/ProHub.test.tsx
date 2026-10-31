@@ -239,6 +239,23 @@ describe('ProHub', () => {
       expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
+    it.each([
+      SUBSCRIPTION_STATUSES.pastDue,
+      SUBSCRIPTION_STATUSES.awaitingFunds,
+      SUBSCRIPTION_STATUSES.unpaid,
+    ])('shows the hub for a %s plan while access is unresolved', (status) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { getByTestId } = renderProHub({
+        subscriptions: [createPlusSubscription(status)],
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
+    });
+
     it('stays open for an entitled subscriber', () => {
       renderProHub();
 

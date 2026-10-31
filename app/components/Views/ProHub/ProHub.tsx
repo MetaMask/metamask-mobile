@@ -142,10 +142,11 @@ const ProHub = () => {
     ],
   );
   const moneyBalanceApy = ratePercentFormatted ?? '—';
+  // A cached membership is enough to render the hub. Access stays Unknown
+  // for past-due, awaiting-funds, and unpaid plans until the subscriptions
+  // query settles, and a failed refresh would otherwise leave only the header.
   const showHubContent =
-    hasMembership &&
-    proAccess !== MoneyAccountPlusAccess.Disabled &&
-    proAccess !== MoneyAccountPlusAccess.Unknown;
+    hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
