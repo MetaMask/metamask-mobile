@@ -22,6 +22,15 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
 }
 
 /**
+ * Build-time gate for the real Money MPC keyring (DKLS23/CL24 via
+ * `@metamask/mpc-react-native`) instead of the stub. Needs
+ * `MM_MONEY_MPC_KEYRING_ENABLED` too.
+ */
+export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
+  return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
+}
+
+/**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
  * in app/selectors/featureFlagController/
