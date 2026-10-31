@@ -207,6 +207,7 @@ import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
+import { useMoneyMfaHomePrompt } from '../../UI/Money/hooks/useMoneyMfaHomePrompt';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -367,6 +368,7 @@ const Wallet = ({
 }: WalletProps) => {
   const appNavigation = useNavigation<AppNavigationProp>();
   const { navigate } = appNavigation;
+  useMoneyMfaHomePrompt();
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
@@ -642,7 +644,7 @@ const Wallet = ({
 
   useEffect(() => {
     if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
-      checkAndNavigateToPerpsGTM();
+      void checkAndNavigateToPerpsGTM();
     }
   }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
@@ -695,7 +697,7 @@ const Wallet = ({
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           toast?.closeToast();
-          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+          void Linking.openURL(CONSENSYS_PRIVACY_POLICY);
         },
       },
       hasNoTimeout: true,

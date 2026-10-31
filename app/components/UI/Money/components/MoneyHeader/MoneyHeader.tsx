@@ -6,6 +6,9 @@ import { strings } from '../../../../../../locales/i18n';
 import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import MoneyMfaHeaderBadge, {
+  getMoneyMfaHeaderBadgeProps,
+} from '../MoneyMfa/MoneyMfaHeaderBadge';
 
 interface MoneyHeaderCommonProps {
   /**
@@ -19,6 +22,10 @@ interface MoneyHeaderCommonProps {
   isGlass?: boolean;
   /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** Shows the green shield next to the title when 2-step verification is on. */
+  isMfaEnabled?: boolean;
+  /** Opens the 2-step verification sheet from the shield. */
+  onMfaBadgePress?: () => void;
 }
 
 /**
@@ -45,7 +52,13 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, isGlass = false, onLayout } = props;
+  const {
+    onMenuPress,
+    isGlass = false,
+    onLayout,
+    isMfaEnabled,
+    onMfaBadgePress,
+  } = props;
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -74,7 +87,13 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
           accessibilityLabel: strings('navigation.back'),
           testID: MoneyHeaderTestIds.BACK_BUTTON,
         }}
-        endButtonIconProps={[menuButtonProps]}
+        // The collapsing title has no accessory slot, so the shield sits
+        // with the end buttons.
+        endButtonIconProps={
+          isMfaEnabled
+            ? [getMoneyMfaHeaderBadgeProps(onMfaBadgePress), menuButtonProps]
+            : [menuButtonProps]
+        }
       />
     );
   }
@@ -91,6 +110,11 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       titleProps={{
         testID: MoneyHeaderTestIds.TITLE,
       }}
+      titleAccessory={
+        isMfaEnabled ? (
+          <MoneyMfaHeaderBadge onPress={onMfaBadgePress} />
+        ) : undefined
+      }
       endButtonIconProps={[menuButtonProps]}
     />
   );
