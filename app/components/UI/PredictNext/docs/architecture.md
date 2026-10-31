@@ -103,6 +103,17 @@ Use repository controller and data-service primitives where they fit. Do not cre
 
 A composition root may build the enabled graph and own initialization/teardown. It must remain stateless, expose no same-name workflow proxies, and stay off read/write hot paths.
 
+`PredictDeviceAuthService` is an Engine-owned stateless capability service. It
+owns the unlocked P-256 key and in-memory A2T lifecycle, delegates only the
+Authentication, Keyring, feature-flag, and message-signing Snap dependencies it
+needs, and exposes no generic signing action. PredictNext may ask it to prepare
+credentials without blocking rendering. Lock, identity replacement, flag
+disable, and wallet reset invalidate the appropriate credentials independently
+of React mount state. The service binds a bundled authentication profile to an
+allowlisted key implementation; configuration may select the bundled profile
+ID but cannot supply cryptographic instructions. Profile IDs version protocol
+behavior, while stable key slots define key rotation.
+
 ### 3. React integration
 
 A query hook triggers one Venue-qualified query. A component needing only Balance must not also fetch Positions or Activity.
@@ -178,15 +189,16 @@ Rules:
 
 Choose state by lifetime and authority:
 
-| State                                               | Owner                                         |
-| --------------------------------------------------- | --------------------------------------------- |
-| Server read models                                  | Shared query/data-service cache               |
-| Cross-screen workflow projection                    | The service/controller that owns the workflow |
-| Durable remote setup/financial operation            | MetaMask Predict backend                      |
-| Transport, retry, in-flight, subscription internals | Private service fields                        |
-| Form input and visual interaction                   | React local state                             |
+| State                                               | Owner                                            |
+| --------------------------------------------------- | ------------------------------------------------ |
+| Server read models                                  | Shared query/data-service cache                  |
+| Cross-screen workflow projection                    | The service/controller that owns the workflow    |
+| Durable remote setup/financial operation            | MetaMask Predict backend                         |
+| Transport, retry, in-flight, subscription internals | Private service fields                           |
+| Form input and visual interaction                   | React local state                                |
+| Kalshi device P-256 key and its salt                | SecureKeychain ciphertext, memory while unlocked |
 
-Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. Cache/query keys must contain no sensitive identity or payload data.
+Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. The Kalshi device private key and salt are the exception stored as SecureKeychain ciphertext, and their plaintext exists only while the wallet is unlocked. Cache/query keys must contain no sensitive identity or payload data.
 
 ## Failure boundaries
 

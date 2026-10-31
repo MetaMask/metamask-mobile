@@ -47,7 +47,7 @@ The first delivery track is defined by [PRED-1109](https://consensyssoftware.atl
 - Kalshi account-scoped operations and credentials remain behind the MetaMask Predict backend.
 - The backend derives authorization from authenticated identity, never from client-supplied wallet, email, profile, user, or external Venue identifiers.
 - Venue DTOs and protocol details do not escape the adapter boundary.
-- Credentials, bearer tokens, OTPs, PII/KYC values, and transfer-authorization material never enter Redux, persisted mobile storage, logs, analytics, traces, or fixtures.
+- Credentials, bearer tokens, OTPs, PII/KYC values, and transfer-authorization material never enter Redux, logs, analytics, traces, or fixtures. The Kalshi device key ciphertext is stored in SecureKeychain and loaded only after the wallet unlocks.
 - Financial writes use prepare → user confirmation → commit → reconciliation. A local operation key does not make an external write safe to retry.
 - Unsupported capabilities are absent, not stubbed with methods that throw.
 - Every slice includes runtime contract validation and risk-appropriate tests.
@@ -89,6 +89,7 @@ These are boundaries, not a requirement to create every possible directory or mo
 - [`docs/remote-adapters.md`](./docs/remote-adapters.md) — remote trust and transport rules.
 - [`docs/live-data-subscriptions.md`](./docs/live-data-subscriptions.md) — viewport-driven live-data subscriptions, per-surface granularity, live-game gating, and cap degradation.
 - [`docs/agents/issue-tracker.md`](./docs/agents/issue-tracker.md) — Predict Jira conventions.
+- [`docs/kalshi-device-key.md`](./docs/kalshi-device-key.md) — Kalshi P-256 device key in SecureKeychain, and the native keystore work that replaces it.
 
 ## Development rule
 

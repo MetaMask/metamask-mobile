@@ -2046,6 +2046,8 @@ class AuthenticationService {
         // Cancel any running bulk link saga before resetting rewards state
         ReduxService.store.dispatch(cancelBulkLink());
 
+        await Engine.controllerMessenger.call('PredictDeviceAuthService:reset');
+
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 
         // Clear all Card auth/session/onboarding data (CARD-431)
