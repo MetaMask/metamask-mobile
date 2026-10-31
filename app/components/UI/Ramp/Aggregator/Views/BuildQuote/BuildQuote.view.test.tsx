@@ -24,9 +24,17 @@ import {
 } from '../../../../../../../tests/component-view/presets/ramps';
 import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../../tests/component-view/presets/multichainAccounts';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { MOCK_SOLANA_ACCOUNT } from '../../../../../../util/test/accountsControllerTestUtils';
+import {
+  MOCK_ACCOUNT_BIP122_P2WPKH,
+  MOCK_SOLANA_ACCOUNT,
+} from '../../../../../../util/test/accountsControllerTestUtils';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
-import { SolAccountType, SolScope } from '@metamask/keyring-api';
+import {
+  SolAccountType,
+  SolScope,
+  TrxAccountType,
+  TrxScope,
+} from '@metamask/keyring-api';
 import { RAMPS_OFF_RAMP_NON_EVM_FLAG_KEY } from '../../../../../../selectors/featureFlagController/offRampNonEvm';
 import type { RootState } from '../../../../../../reducers';
 import type { DeepPartial } from '../../../../../../util/test/renderWithProvider';
@@ -143,6 +151,56 @@ const mixedAccountGroupState: DeepPartial<RootState> = {
 };
 
 const ETH_MAINNET_ASSET_ID = 'eip155:1/slip44:60';
+
+const MOCK_TRON_ACCOUNT = {
+  id: 'tron-account',
+  address: 'TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf',
+  type: TrxAccountType.Eoa,
+  scopes: [TrxScope.Mainnet],
+  options: {},
+  methods: [],
+  metadata: {
+    name: 'Tron Account',
+    keyring: { type: 'snap' },
+    importTime: 1,
+    lastSelected: 1,
+  },
+};
+
+function nonEvmAccountSelectedState(account: {
+  id: string;
+}): DeepPartial<RootState> {
+  return {
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: account.id,
+            accounts: {
+              [account.id]: account,
+            },
+          },
+        },
+        AccountTreeController: {
+          accountTree: {
+            wallets: {
+              'entropy:wallet1': {
+                groups: {
+                  'entropy:wallet1/0': {
+                    accounts: [
+                      MULTICHAIN_TEST_ACCOUNTS.account1.id,
+                      account.id,
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
 
 async function waitForBuildQuoteReady({
   getByText,
@@ -702,6 +760,239 @@ describe('Aggregator BuildQuote', () => {
         expect(queryByText('Apple Pay')).not.toBeOnTheScreen();
       });
       expect(await findByText('SEPA Bank Transfer')).toBeOnTheScreen();
+    });
+
+    it('shows no balance error and disables get quotes when the token balance is missing', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+      });
+      const {
+        findByRole,
+        findByTestId,
+        findByText,
+        getByTestId,
+        getByText,
+        queryByTestId,
+        queryByText,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      // DAI is offered on mainnet and is not in the fixture balance map.
+      await selectTokenViaSearch(
+        {
+          findByText,
+          findByTestId,
+          queryByTestId,
+          getAllByText: renderApi.getAllByText,
+        },
+        'DAI',
+        'Dai Stablecoin',
+      );
+
+      await enterSellAmountViaKeypad(
+        { findByRole, findByTestId, getByTestId },
+        '20',
+        'DAI',
+      );
+
+      expect(
+        queryByTestId(BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR),
+      ).not.toBeOnTheScreen();
+      expect(await findByRole('button', { name: 'Get quotes' })).toBeDisabled();
+    });
+
+    it('shows the network fee error when an ERC-20 sell has a low ETH balance', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        overrides: {
+          engine: {
+            backgroundState: {
+              GasFeeController: {
+                gasEstimateType: 'fee-market',
+                gasFeeEstimates: {
+                  low: { suggestedMaxFeePerGas: '1' },
+                  medium: { suggestedMaxFeePerGas: '50' },
+                  high: { suggestedMaxFeePerGas: '100' },
+                },
+              },
+              AssetsController: {
+                assetsBalance: {
+                  [MULTICHAIN_TEST_ACCOUNTS.account1.id]: {
+                    'eip155:1/slip44:60': { amount: '0' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const {
+        findByRole,
+        findByTestId,
+        findByText,
+        getByTestId,
+        getByText,
+        queryByTestId,
+        queryByText,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      await selectTokenViaSearch(
+        {
+          findByText,
+          findByTestId,
+          queryByTestId,
+          getAllByText: renderApi.getAllByText,
+        },
+        'mUSD',
+        'mUSD',
+      );
+
+      await enterSellAmountViaKeypad(
+        { findByRole, findByTestId, getByTestId },
+        '20',
+        'mUSD',
+      );
+
+      expect(
+        await findByTestId(
+          BuildQuoteSelectors.INSUFFICIENT_NATIVE_BALANCE_ERROR,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ['Bitcoin', MOCK_ACCOUNT_BIP122_P2WPKH],
+      ['Tron', MOCK_TRON_ACCOUNT],
+    ])(
+      'sells an EVM asset using the holding account when %s is selected',
+      async (_label, account) => {
+        const renderApi = renderBuildQuoteWithRoutes({
+          rampType: RampType.SELL,
+          useFranceSellFixture: true,
+          overrides: nonEvmAccountSelectedState(account),
+        });
+        const {
+          findByRole,
+          findByTestId,
+          findByText,
+          getByTestId,
+          getByText,
+          queryByTestId,
+          queryByText,
+        } = renderApi;
+
+        await waitForBuildQuoteReady({ getByText, queryByText });
+
+        expect(await findByText(/100 ETH/)).toBeOnTheScreen();
+
+        await selectTokenViaSearch(
+          {
+            findByText,
+            findByTestId,
+            queryByTestId,
+            getAllByText: renderApi.getAllByText,
+          },
+          'mUSD',
+          'mUSD',
+        );
+
+        await waitFor(() => {
+          expect(getByText(/Current balance:/)).toHaveTextContent(/mUSD/);
+          expect(getByText(/Current balance:/)).not.toHaveTextContent(
+            /:\s*0 mUSD/,
+          );
+        });
+
+        await enterSellAmountViaKeypad(
+          { findByRole, findByTestId, getByTestId },
+          '50',
+          'mUSD',
+        );
+
+        expect(
+          queryByTestId(BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR),
+        ).not.toBeOnTheScreen();
+        expect(
+          await findByRole('button', { name: 'Get quotes' }),
+        ).not.toBeDisabled();
+      },
+    );
+
+    it('fills 50% of the EVM balance when Solana is selected', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        overrides: nonEvmAccountSelectedState(MOCK_SOLANA_ACCOUNT),
+      });
+      const {
+        findByTestId,
+        findByText,
+        getByText,
+        queryByTestId,
+        queryByText,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      await selectTokenViaSearch(
+        {
+          findByText,
+          findByTestId,
+          queryByTestId,
+          getAllByText: renderApi.getAllByText,
+        },
+        'mUSD',
+        'mUSD',
+      );
+
+      fireEvent.press(await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(await findByText('50%'));
+
+      await waitFor(() => {
+        expect(queryByText('0 mUSD')).not.toBeOnTheScreen();
+      });
+    });
+
+    it('fills the max EVM balance when Solana is selected', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        overrides: nonEvmAccountSelectedState(MOCK_SOLANA_ACCOUNT),
+      });
+      const {
+        findByTestId,
+        findByText,
+        getByText,
+        queryByTestId,
+        queryByText,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      await selectTokenViaSearch(
+        {
+          findByText,
+          findByTestId,
+          queryByTestId,
+          getAllByText: renderApi.getAllByText,
+        },
+        'mUSD',
+        'mUSD',
+      );
+
+      fireEvent.press(await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(await findByText('Max'));
+
+      await waitFor(() => {
+        expect(queryByText('0 mUSD')).not.toBeOnTheScreen();
+      });
     });
 
     it('shows min limit error when sell amount is below minimum', async () => {

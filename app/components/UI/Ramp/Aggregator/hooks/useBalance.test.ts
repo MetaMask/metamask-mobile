@@ -1,6 +1,8 @@
 import { toHex } from '@metamask/controller-utils';
+import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
 import {
   createMockAccountsControllerStateWithSnap,
+  MOCK_ACCOUNT_BIP122_P2WPKH,
   MOCK_SOLANA_ACCOUNT,
 } from '../../../../../util/test/accountsControllerTestUtils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -37,6 +39,20 @@ const BNB_NATIVE_ASSET_ID = 'eip155:56/slip44:60';
 const POLYGON_NATIVE_ASSET_ID = 'eip155:137/slip44:966';
 const POLYGON_USDC_ASSET_ID =
   'eip155:137/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+
+const MOCK_TRON_ACCOUNT = {
+  id: 'tron-account',
+  address: 'TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf',
+  type: TrxAccountType.Eoa,
+  scopes: [TrxScope.Mainnet],
+  options: {},
+  methods: [],
+  metadata: {
+    name: 'Tron Account',
+    importTime: 1,
+    keyring: { type: 'Snap Keyring' },
+  },
+};
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
@@ -458,6 +474,73 @@ describe('useBalance', () => {
       );
     });
 
+    it('returns the native balance when the chain id is hex', () => {
+      mockEvmAccountInGroup();
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useBalance({
+            address: NATIVE_ADDRESS,
+            decimals: 18,
+            chainId: '0x1',
+            assetId: 'slip44:60',
+          }),
+        { state: stateWithSolanaSelected },
+      );
+
+      expect(result.current.balance).toBe('12.345');
+      expect(result.current.balanceBN).toStrictEqual(
+        hexToBigInt(toHex('12345000000000000000')),
+      );
+    });
+
+    it.each([
+      ['Bitcoin', MOCK_ACCOUNT_BIP122_P2WPKH],
+      ['Tron', MOCK_TRON_ACCOUNT],
+    ])(
+      'returns the EVM native balance when the selected account is %s',
+      (_label, account) => {
+        mockEvmAccountInGroup();
+
+        const { result } = renderHookWithProvider(
+          () =>
+            useBalance({
+              address: NATIVE_ADDRESS,
+              decimals: 18,
+              chainId: '0x1',
+              assetId: 'slip44:60',
+            }),
+          {
+            state: {
+              ...stateWithSolanaSelected,
+              engine: {
+                backgroundState: {
+                  ...stateWithSolanaSelected.engine.backgroundState,
+                  AccountsController: {
+                    ...stateWithSolanaSelected.engine.backgroundState
+                      .AccountsController,
+                    internalAccounts: {
+                      selectedAccount: account.id,
+                      accounts: {
+                        ...stateWithSolanaSelected.engine.backgroundState
+                          .AccountsController.internalAccounts.accounts,
+                        [account.id]: account,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        );
+
+        expect(result.current.balance).toBe('12.345');
+        expect(result.current.balanceBN).toStrictEqual(
+          hexToBigInt(toHex('12345000000000000000')),
+        );
+      },
+    );
+
     it('returns the ERC20 balance held by the EVM account in the group', () => {
       mockEvmAccountInGroup();
 
@@ -477,5 +560,54 @@ describe('useBalance', () => {
         hexToBigInt(toHex('22000000')),
       );
     });
+
+    it('returns the ERC20 balance for a hex chain id', () => {
+      mockEvmAccountInGroup();
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useBalance({
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            decimals: 6,
+            chainId: '0x1',
+            assetId: 'erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          }),
+        { state: stateWithSolanaSelected },
+      );
+
+      expect(result.current.balance).toBe('22');
+      expect(result.current.balanceBN).toStrictEqual(
+        hexToBigInt(toHex('22000000')),
+      );
+    });
+  });
+
+  it('returns a null minimal balance when the chain is not tracked', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useBalance({
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+          chainId: '0x539',
+        }),
+      { state: initialState },
+    );
+
+    expect(result.current.balance).toBeNull();
+    expect(result.current.balanceBN).toBeNull();
+  });
+
+  it('returns a null minimal balance when the token is not in balances', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useBalance({
+          address: '0x1111111111111111111111111111111111111111',
+          decimals: 18,
+          chainId: '0x1',
+        }),
+      { state: initialState },
+    );
+
+    expect(result.current.balanceBN).toBeNull();
   });
 });

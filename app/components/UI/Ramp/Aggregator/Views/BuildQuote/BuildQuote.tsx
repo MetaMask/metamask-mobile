@@ -36,8 +36,6 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useOffRampNonEvmEnabled from '../../hooks/useOffRampNonEvmEnabled';
 import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
-import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
-import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -67,11 +65,7 @@ import {
   navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import {
-  formatAmount,
-  getCaipChainIdFromCryptoCurrency,
-  getHexChainIdFromCryptoCurrency,
-} from '../../utils';
+import { formatAmount, getCaipChainIdFromCryptoCurrency } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
@@ -98,10 +92,7 @@ import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
-import {
-  isNonEvmAddress,
-  isNonEvmChainId,
-} from '../../../../../../core/Multichain/utils';
+import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -116,6 +107,30 @@ export interface BuildQuoteParams extends RampIntent {
 
 export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
+
+/**
+ * Formats the balance held by the account `useBalance` resolved.
+ * Non-EVM balances already include their unit, for example "5.5 SOL".
+ *
+ * @param balance - Token amount from `useBalance`, without a fiat conversion.
+ * @param symbol - Asset symbol appended when `balance` has no unit.
+ * @returns Display string, or null when the amount is missing.
+ */
+function formatHeldBalance(
+  balance: string | number | null | undefined,
+  symbol?: string,
+): string | null {
+  if (balance == null || balance === '') {
+    return null;
+  }
+
+  const balanceText = String(balance);
+  if (/\s/.test(balanceText) || !symbol) {
+    return balanceText;
+  }
+
+  return `${balanceText} ${symbol}`;
+}
 
 const BuildQuote = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -336,42 +351,6 @@ const BuildQuote = () => {
     estimateRange: 'high',
   });
 
-  const assetForBalance = useMemo(
-    () =>
-      selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
-        ? {
-            address: selectedAsset.address,
-            symbol: selectedAsset.symbol,
-            decimals: selectedAsset.decimals,
-          }
-        : {
-            isETH: true,
-          },
-    [selectedAsset],
-  );
-
-  const addressForBalance = useMemo(
-    () =>
-      selectedAddress && isNonEvmAddress(selectedAddress)
-        ? undefined
-        : selectedAddress,
-    [selectedAddress],
-  );
-
-  const hexChainIdForBalance = useMemo(() => {
-    if (!addressForBalance) {
-      return;
-    }
-    return getHexChainIdFromCryptoCurrency(selectedAsset);
-  }, [selectedAsset, addressForBalance]);
-
-  const { addressBalance } = useAddressBalance(
-    assetForBalance as Asset,
-    addressForBalance ?? undefined,
-    true,
-    hexChainIdForBalance,
-  );
-
   const { balanceFiat, balanceBN, balance } = useBalance(
     selectedAsset && selectedAddress && selectedAsset.network
       ? {
@@ -383,12 +362,16 @@ const BuildQuote = () => {
       : undefined,
   );
 
+  // ERC-20 sells spend the chain's native asset on gas. The lookup has to use
+  // that chain id; without it the native balance is unknown and this check
+  // never runs.
   const { balanceBN: nativeTokenBalanceBN } = useBalance(
     isBuy || !selectedAsset || selectedAsset.address === NATIVE_ADDRESS
       ? undefined
       : {
           address: NATIVE_ADDRESS,
           decimals: 18,
+          chainId: selectedAsset.network?.chainId,
         },
   );
 
@@ -435,15 +418,22 @@ const BuildQuote = () => {
     );
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
+  // A missing balance (still loading, untracked chain, or a token not in the
+  // balance map yet) is unknown, not insufficient. Sell stays blocked until
+  // the held amount can be compared.
+  const isSellBalanceUnknown = isSell && balanceBN == null;
+
   const hasInsufficientBalance = useMemo(() => {
-    if (amountBNMinimalUnit === undefined || amountBNMinimalUnit === 0n) {
+    if (
+      !isSell ||
+      amountBNMinimalUnit === undefined ||
+      amountBNMinimalUnit === 0n ||
+      balanceBN == null
+    ) {
       return false;
     }
-    if (balanceBN == null) {
-      return true;
-    }
     return balanceBN < amountBNMinimalUnit;
-  }, [balanceBN, amountBNMinimalUnit]);
+  }, [amountBNMinimalUnit, balanceBN, isSell]);
 
   const hasInsufficientNativeBalanceForGas = useMemo(() => {
     if (
@@ -469,16 +459,10 @@ const BuildQuote = () => {
     selectedAsset,
   ]);
 
-  const displayBalance = useMemo(() => {
-    if (!selectedAddress) {
-      return null;
-    }
-
-    const isNonEvm = isNonEvmAddress(selectedAddress);
-    const balanceValue = isNonEvm ? balance : addressBalance;
-
-    return balanceValue ?? null;
-  }, [selectedAddress, balance, addressBalance]);
+  const displayBalance = useMemo(
+    () => formatHeldBalance(balance, selectedAsset?.symbol),
+    [balance, selectedAsset?.symbol],
+  );
 
   const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
 
@@ -1028,7 +1012,8 @@ const BuildQuote = () => {
               {isFetchingRegions ||
               isFetchingFiatCurrency ||
               isFetchingCryptoCurrencies ||
-              !selectedAsset?.id ? (
+              !selectedAsset?.id ||
+              isSellBalanceUnknown ? (
                 <SkeletonText thin medium />
               ) : (
                 <Text
@@ -1095,6 +1080,7 @@ const BuildQuote = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
+                  testID={BuildQuoteSelectors.INSUFFICIENT_NATIVE_BALANCE_ERROR}
                 >
                   {strings(
                     'fiat_on_ramp_aggregator.insufficient_native_balance',
@@ -1179,7 +1165,9 @@ const BuildQuote = () => {
               size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
               isFullWidth
-              isDisabled={amountNumber <= 0 || isFetching}
+              isDisabled={
+                amountNumber <= 0 || isFetching || isSellBalanceUnknown
+              }
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </Button>

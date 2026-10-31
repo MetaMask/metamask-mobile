@@ -527,14 +527,37 @@ describe('BuildQuote View', () => {
   });
 
   describe('Balance display', () => {
-    it('displays balance from useBalance for non-EVM addresses', () => {
+    afterEach(() => {
+      mockUseBalanceValues = { ...mockUseBalanceInitialValue };
+    });
+
+    it('displays the balance held by the asset account', () => {
+      mockUseBalanceValues = {
+        ...mockUseBalanceInitialValue,
+        balance: '9.5',
+      };
+
+      render(BuildQuote);
+
+      expect(screen.getByText(/Current balance/)).toBeOnTheScreen();
+      expect(screen.getByText(/9\.5 ETH/)).toBeOnTheScreen();
+      expect(screen.queryByText(/5\.36385 ETH/)).not.toBeOnTheScreen();
+    });
+
+    it('displays the held balance when the selected address is non-EVM', () => {
       mockIsNonEvmAddress.mockReturnValue(true);
       mockUseRampSDKValues.selectedAddress =
         'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
-      mockUseBalanceValues.balance = '1.5';
+      mockUseBalanceValues = {
+        ...mockUseBalanceInitialValue,
+        balance: '1.5',
+      };
+
       render(BuildQuote);
+
       expect(screen.getByText(/Current balance/)).toBeOnTheScreen();
-      expect(screen.getByText(/1\.5/)).toBeOnTheScreen();
+      expect(screen.getByText(/1\.5 ETH/)).toBeOnTheScreen();
+      expect(screen.queryByText(/5\.36385 ETH/)).not.toBeOnTheScreen();
     });
   });
 
@@ -1206,6 +1229,111 @@ describe('BuildQuote View', () => {
       expect(
         screen.getByText('This amount is higher than your balance'),
       ).toBeTruthy();
+    });
+
+    describe('balance availability', () => {
+      afterEach(() => {
+        mockUseBalanceValues = { ...mockUseBalanceInitialValue };
+        jest
+          .mocked(useBalance)
+          .mockImplementation(
+            () => mockUseBalanceValues as ReturnType<typeof useBalance>,
+          );
+      });
+
+      it('leaves get quotes disabled and shows no balance error when the balance is missing', () => {
+        mockUseBalanceValues = {
+          balance: null,
+          balanceFiat: null,
+          balanceBN: null,
+        };
+
+        render(BuildQuote);
+        const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+        fireEvent.press(getByRoleButton(`0 ${symbol}`));
+        fireEvent.press(getByRoleButton(VALID_AMOUNT.toString()));
+
+        expect(
+          screen.queryByText('This amount is higher than your balance'),
+        ).not.toBeOnTheScreen();
+        const quotesButton = getByRoleButton(
+          BuildQuoteSelectors.GET_QUOTES_BUTTON,
+        );
+        expect(
+          quotesButton.props.accessibilityState?.disabled ??
+            quotesButton.props.disabled,
+        ).toBe(true);
+      });
+
+      it('requests the native balance on the asset chain for an ERC-20 sell', () => {
+        render(BuildQuote);
+
+        expect(jest.mocked(useBalance)).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: NATIVE_ADDRESS,
+            decimals: 18,
+            chainId: mockUseRampSDKValues.selectedAsset?.network?.chainId,
+          }),
+        );
+      });
+
+      it('requests the native balance when the asset chain id is hex', () => {
+        mockUseRampSDKValues = {
+          ...mockUseRampSDKValues,
+          selectedAsset: {
+            ...mockCryptoCurrenciesData[0],
+            network: {
+              ...mockCryptoCurrenciesData[0].network,
+              chainId: '0x1',
+            },
+          },
+        };
+
+        render(BuildQuote);
+
+        expect(jest.mocked(useBalance)).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: NATIVE_ADDRESS,
+            decimals: 18,
+            chainId: '0x1',
+          }),
+        );
+      });
+
+      it('shows the network fee error when an ERC-20 sell has a low native balance', () => {
+        const tokenDecimals =
+          mockUseRampSDKValues.selectedAsset?.decimals || 18;
+        jest.mocked(useBalance).mockImplementation((asset) =>
+          asset?.address === NATIVE_ADDRESS
+            ? {
+                balance: '0.0001',
+                balanceFiat: '$0.20',
+                balanceBN: 1n,
+              }
+            : {
+                balance: '100',
+                balanceFiat: '$100.00',
+                balanceBN: toTokenMinimalUnit('100', tokenDecimals),
+              },
+        );
+        mockUseGasPriceEstimationValue = {
+          estimatedGasFee: toTokenMinimalUnit('1', 18),
+        };
+
+        render(BuildQuote);
+        const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+        fireEvent.press(getByRoleButton(`0 ${symbol}`));
+        fireEvent.press(getByRoleButton(VALID_AMOUNT.toString()));
+
+        expect(
+          screen.getByTestId(
+            BuildQuoteSelectors.INSUFFICIENT_NATIVE_BALANCE_ERROR,
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByText('This amount is higher than your balance'),
+        ).not.toBeOnTheScreen();
+      });
     });
 
     it('does not show insufficient balance error when amount is 0', () => {
