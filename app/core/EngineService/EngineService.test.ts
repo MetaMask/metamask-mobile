@@ -481,6 +481,46 @@ describe('EngineService', () => {
     });
   });
 
+  describe('BridgeController updates', () => {
+    const eventNames =
+      BACKGROUND_STATE_CHANGE_EVENT_NAMES as unknown as string[];
+
+    beforeEach(() => {
+      eventNames.push('BridgeController:stateChange');
+    });
+
+    afterEach(() => {
+      eventNames.splice(eventNames.indexOf('BridgeController:stateChange'), 1);
+    });
+
+    it.each([
+      [0, false],
+      [1, true],
+      [2, false],
+    ])(
+      'with %i quotes, dispatches immediately: %s',
+      async (quoteCount, isImmediate) => {
+        await engineService.start();
+        (
+          Engine.context as unknown as Record<string, unknown>
+        ).BridgeController = {
+          state: { quotes: new Array(quoteCount).fill({}) },
+        };
+        const [, emitStateChange] = (
+          Engine.controllerMessenger.subscribe as unknown as jest.Mock
+        ).mock.calls.find(
+          (call: unknown[]) =>
+            call[0] === 'BridgeController:stateChange' && call.length === 2,
+        ) as [string, () => void];
+        mockDispatch.mockClear();
+
+        emitStateChange();
+
+        expect(mockDispatch).toHaveBeenCalledTimes(isImmediate ? 1 : 0);
+      },
+    );
+  });
+
   describe('initializeControllers edge cases', () => {
     // Type for accessing private methods
     interface EngineServiceWithInitializeControllers {
