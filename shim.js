@@ -343,7 +343,50 @@ if (enableApiCallLogs || isTestEnvironment) {
     'auth-service.uat-api.cx.metamask.io',
   ];
 
+  // Resolve data: URLs in pure JS — Android's NativeRequest rejects them with
+  // MalformedURLException because java.net.URL does not know the data: protocol.
+  const resolveDataUrl = (dataUrl) => {
+    try {
+      const commaIdx = dataUrl.indexOf(',');
+      if (commaIdx === -1) {
+        return Promise.reject(new TypeError('Invalid data URL'));
+      }
+      const meta = dataUrl.slice(5, commaIdx); // strip leading 'data:'
+      const encoded = dataUrl.slice(commaIdx + 1);
+      const isBase64 = meta.endsWith(';base64');
+      const mimeType =
+        (isBase64 ? meta.slice(0, -7) : meta) || 'text/plain;charset=US-ASCII';
+      let bodyInit;
+      if (isBase64) {
+        const binary = global.atob(encoded);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        bodyInit = bytes.buffer;
+      } else {
+        bodyInit = decodeURIComponent(encoded);
+      }
+      return Promise.resolve(
+        new global.Response(bodyInit, {
+          status: 200,
+          headers: { 'Content-Type': mimeType },
+        }),
+      );
+    } catch (err) {
+      return Promise.reject(
+        new TypeError(`Failed to fetch data URL: ${err.message}`),
+      );
+    }
+  };
+
   const shouldBypassProxy = (targetUrl) => {
+    // data: URLs are handled inline by resolveDataUrl — bypass the proxy so
+    // resolveDataUrl gets control before installedFetch is called.
+    // Leave ws: and wss: alone so resolveWebSocketTarget can still route them.
+    if (typeof targetUrl === 'string' && targetUrl.startsWith('data:')) {
+      return true;
+    }
     if (!isPerformanceTest) {
       return false;
     }
@@ -374,6 +417,9 @@ if (enableApiCallLogs || isTestEnvironment) {
 
     const MOCKTTP_URL = await mockReady;
     if (!MOCKTTP_URL || shouldBypassProxy(urlString)) {
+      if (typeof urlString === 'string' && urlString.startsWith('data:')) {
+        return resolveDataUrl(urlString);
+      }
       return installedFetch(url, options);
     }
 

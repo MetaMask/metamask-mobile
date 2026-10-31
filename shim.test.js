@@ -238,6 +238,47 @@ describe('E2E network shim', () => {
     );
   });
 
+  it('resolves data URLs in pure JS without calling the native fetch', async () => {
+    loadShim();
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    // base64-encoded "foo"
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    const response = await global.fetch(dataUrl);
+
+    // Must not reach the native fetch (which throws on Android) or the proxy.
+    expect(underlyingFetch).not.toHaveBeenCalledWith(dataUrl, undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(
+      `${MOCK_SERVER_URL}/proxy?url=${encodeURIComponent(dataUrl)}`,
+      undefined,
+    );
+    expect(response.status).toBe(200);
+    const text = await response.text();
+    expect(text).toBe('foo');
+  });
+
+  it('still routes unmatched WebSocket URLs through the mock proxy', async () => {
+    const opened = [];
+    global.WebSocket = function MockWebSocket(url, protocols) {
+      opened.push({ url, protocols });
+    };
+    loadShim();
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const wsUrl = 'wss://example.com/socket';
+    // eslint-disable-next-line no-new
+    new global.WebSocket(wsUrl);
+
+    expect(opened).toEqual([
+      {
+        url: `ws://localhost:8000/proxy-ws?url=${encodeURIComponent(wsUrl)}`,
+        protocols: undefined,
+      },
+    ]);
+  });
+
   it('rejects when the proxied fetch fails, without retrying the original URL directly', async () => {
     loadShim();
     answerHealthCheck({ ok: true });
