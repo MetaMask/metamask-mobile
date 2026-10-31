@@ -6,7 +6,6 @@ import WalletView from '../../page-objects/wallet/WalletView.js';
 import TokensView from '../../page-objects/wallet/TokensView.js';
 import EarnLendingView from '../../page-objects/Earn/EarnLendingView.js';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import StakeView from '../../page-objects/Stake/StakeView.js';
 import { SmokeStake } from '../../tags.js';
@@ -72,7 +71,9 @@ appiumTest.describe(SmokeStake('Lending Withdrawal from Wallet'), () => {
           await EarnLendingView.tapConfirm(30000);
           await FooterActions.tapConfirmButton();
 
-          await TabBarComponent.tapActivity();
+          // App redirects to Activity on withdraw transactionSubmitted; do not
+          // tap the Activity tab while redirect chrome is mid-transition.
+          await ActivitiesView.waitForVisibleAfterLendingConfirm(60000);
           await Assertions.expectElementToBeVisible(
             ActivitiesView.lendingWithdrawalActivity,
             {

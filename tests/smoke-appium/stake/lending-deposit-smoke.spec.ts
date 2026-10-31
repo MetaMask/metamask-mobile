@@ -7,7 +7,6 @@ import TokensView from '../../page-objects/wallet/TokensView.js';
 import StakeView from '../../page-objects/Stake/StakeView.js';
 import EarnLendingView from '../../page-objects/Earn/EarnLendingView.js';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView.js';
 import { SmokeStake } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
@@ -67,15 +66,20 @@ appiumTest.describe(SmokeStake('Lending Deposit from Wallet'), () => {
           await EarnLendingView.expectDepositConfirmationVisible();
           await EarnLendingView.expectConfirmButtonVisible(30000);
 
-          // Step 1: Approve — tap lending footer then confirm the spending cap
+          // Forked allowance may already cover the deposit → Confirm-only path.
+          // Otherwise: Approve spending cap, then Deposit Confirm.
+          const needsApprove = await EarnLendingView.isApproveStepVisible();
           await EarnLendingView.tapConfirm(30000);
           await FooterActions.tapConfirmButton();
 
-          // Step 2: Deposit — wait for button label to change to "Confirm"
-          await EarnLendingView.tapConfirmByLabel(60000);
-          await FooterActions.tapConfirmButton(30000);
+          if (needsApprove) {
+            await EarnLendingView.waitForConfirmLabel(120000);
+            await EarnLendingView.tapConfirm(30000);
+            await FooterActions.tapConfirmButton(30000);
+          }
 
-          await TabBarComponent.tapActivity();
+          // App redirects to Activity on deposit transactionSubmitted.
+          await ActivitiesView.waitForVisibleAfterLendingConfirm(60000);
           await Assertions.expectElementToBeVisible(
             ActivitiesView.lendingDepositActivity,
             {
