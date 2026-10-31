@@ -26,12 +26,14 @@ const mockOnSuccess = jest.fn();
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    canGoBack: mockCanGoBack,
   }),
 }));
 
@@ -152,7 +154,18 @@ describe('VbaVerifyIdentity', () => {
     });
   });
 
-  it('returns to Money home when the header back button is pressed', () => {
+  it('goes back to the screen that opened onboarding when the header back button is pressed', () => {
+    mockCanGoBack.mockReturnValue(true);
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('returns to Money home when there is nothing to go back to', () => {
+    mockCanGoBack.mockReturnValue(false);
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.BACK_BUTTON));
