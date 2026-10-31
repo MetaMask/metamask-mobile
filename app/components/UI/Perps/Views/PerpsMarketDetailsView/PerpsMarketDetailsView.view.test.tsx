@@ -64,8 +64,10 @@ import {
   PerpsModeToggleSelectorsIDs,
   PerpsBottomSheetTooltipSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
 } from '../../Perps.testIds';
+import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 import {
   getCandlePeriodSelectorSelectors as getPerpsCandlePeriodSelector,
   getCandlePeriodBottomSheetSelectors as getPerpsCandlePeriodBottomSheetSelector,
@@ -1222,6 +1224,90 @@ describe('PerpsMarketDetailsView', () => {
           getRouteProbeTestId(Routes.PERPS.PNL_HERO_CARD),
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('explains the post-only network-upgrade window when a TP/SL update is rejected', async () => {
+      const updatePositionTPSL = jest.mocked(
+        Engine.context.PerpsController.updatePositionTPSL,
+      );
+      updatePositionTPSL.mockResolvedValueOnce({
+        success: false,
+        error:
+          'order 0: Only post-only orders allowed immediately after network upgrade',
+      });
+      const position = createLongPositionForViews();
+      const { stream } = renderPerpsMarketDetailsView({
+        includeToasts: true,
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                isEligible: true,
+                isFirstTimeUser: { mainnet: false, testnet: false },
+              },
+            },
+          },
+        },
+        initialParams: { market: createEthMarketForViews() },
+        streamOverrides: {
+          account: createFundedAccountForViews('10000'),
+          positions: [position],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+        extraRoutes: [
+          {
+            name: Routes.PERPS.TPSL,
+            Component: PerpsTPSLView as unknown as ComponentType<unknown>,
+          },
+        ],
+      });
+      act(() => {
+        stream.emitPrices({
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            markPrice: '2500',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+
+      fireEvent.press(
+        within(
+          await screen.findByTestId(PerpsPositionCardSelectorsIDs.CARD),
+        ).getByText(strings('perps.auto_close.set_button')),
+      );
+      fireEvent.changeText(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+        ),
+        '2300',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      expect(
+        await screen.findByText(
+          strings('perps.errors.postOnlyWindow'),
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(updatePositionTPSL).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', stopLossPrice: '2300' }),
+      );
+      expect(
+        screen.getByText(strings('perps.position.tpsl.update_failed')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryAllByText(/only post-only orders allowed/i),
+      ).toHaveLength(0);
+      expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
     });
 
     it('renders tutorial card', async () => {

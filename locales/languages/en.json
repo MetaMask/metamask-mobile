@@ -2631,7 +2631,8 @@
       "updating_your_order": "Updating your order",
       "order_updated": "Order updated",
       "order_update_failed": "Failed to update order",
-      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size.",
+      "order_update_post_only_would_cross": "Your order was cancelled because the new price would cross the spread. Place it again with a different price or as a non-post-only order."
     },
     "slippage": {
       "config_title": "Set slippage",
@@ -2940,6 +2941,8 @@
       "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
       "rateLimitExceeded": "Too many requests. Wait a moment and try again.",
       "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
+      "postOnlyWindow": "Trading is temporarily restricted after a network upgrade and will resume shortly. Try again in a few minutes.",
+      "postOnlyWouldCross": "This price would cross the spread, so the post-only order wasn't placed. Adjust the price or use a non-post-only order.",
       "networkErrorSimple": "Network error occurred. Check your connection and try again.",
       "insufficientBalance": "Insufficient balance to complete this operation. Check your available funds.",
       "connectionFailed": {

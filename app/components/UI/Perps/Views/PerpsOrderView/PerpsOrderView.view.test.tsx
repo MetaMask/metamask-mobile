@@ -401,6 +401,60 @@ describe('PerpsOrderView', () => {
     },
   );
 
+  it('explains the post-only network-upgrade window when a market order is rejected', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    placeOrder.mockResolvedValue({
+      success: false,
+      error:
+        'order 0: Only post-only orders allowed immediately after network upgrade',
+    });
+    const { stream } = renderPerpsOrderView({
+      includeToasts: true,
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+      extraRoutes: [marketDetailsRoute],
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    expect(
+      await screen.findByText(
+        strings('perps.errors.postOnlyWindow'),
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(strings('perps.order.order_failed')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.order.your_funds_have_been_returned_to_you'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryAllByText(/only post-only orders allowed/i),
+    ).toHaveLength(0);
+    expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
+  });
+
   it('keeps the minimum-order error visible during protocol validation', async () => {
     const validateOrder = Engine.context.PerpsController
       .validateOrder as jest.Mock;

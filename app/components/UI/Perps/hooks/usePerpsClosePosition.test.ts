@@ -894,6 +894,39 @@ describe('usePerpsClosePosition', () => {
           );
         });
 
+        it.each(['market', 'limit'] as const)(
+          'explains the post-only network-upgrade window on a %s close',
+          async (orderType) => {
+            // Arrange
+            mockClosePosition.mockResolvedValue({
+              success: false,
+              error:
+                'order 0: Only post-only orders allowed immediately after network upgrade',
+            });
+            const { result } = renderHook(() => usePerpsClosePosition());
+
+            // Act
+            await act(async () => {
+              await expect(
+                result.current.handleClosePosition({
+                  position: mockPosition,
+                  orderType,
+                  limitPrice: orderType === 'limit' ? '3000' : undefined,
+                }),
+              ).rejects.toThrow('perps.errors.postOnlyWindow');
+            });
+
+            // Assert
+            const failureToast = mockShowToast.mock.calls[1][0];
+            expect(failureToast.labelOptions).toContainEqual(
+              expect.objectContaining({ label: 'perps.errors.postOnlyWindow' }),
+            );
+            expect(JSON.stringify(failureToast.labelOptions)).not.toMatch(
+              /network upgrade/,
+            );
+          },
+        );
+
         it('should show failure toast for partial position market close', async () => {
           const failureResult: OrderResult = {
             success: false,

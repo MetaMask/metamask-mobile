@@ -74,6 +74,8 @@ jest.mock('../../../../store', () => ({
 }));
 
 jest.mock('../utils/translatePerpsError', () => ({
+  isPostOnlyWouldCrossError: jest.requireActual('../utils/translatePerpsError')
+    .isPostOnlyWouldCrossError,
   handlePerpsError: ({
     error,
     fallbackMessage,
@@ -627,6 +629,50 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toContainEqual({
           label: 'Long 5 BTC',
           isBold: false,
+        });
+      });
+
+      describe('post-only edit failures', () => {
+        it('says the order was cancelled when a post-only edit would cross the spread', () => {
+          // Arrange
+          const venueError =
+            'Error placing new order during modify: Post only order would have immediately matched, bbo was 2347@2347.1.';
+          const { result } = renderHook(() => usePerpsToasts());
+
+          // Act
+          const config =
+            result.current.PerpsToastOptions.orderManagement.limit.editFailed(
+              venueError,
+            );
+
+          // Assert
+          expect(config.labelOptions).toEqual([
+            { label: strings('perps.order.order_update_failed'), isBold: true },
+            { label: '\n', isBold: false },
+            {
+              label: strings('perps.order.order_update_post_only_would_cross'),
+              isBold: false,
+            },
+          ]);
+          expect(JSON.stringify(config.labelOptions)).not.toMatch(
+            /bbo|2347|still open|\[missing/i,
+          );
+        });
+
+        it('keeps the previous-order fallback for edit failures that are not post-only', () => {
+          // Arrange
+          const { result } = renderHook(() => usePerpsToasts());
+
+          // Act
+          const config =
+            result.current.PerpsToastOptions.orderManagement.limit.editFailed();
+
+          // Assert
+          expect(config.labelOptions).toContainEqual({
+            label: strings('perps.order.order_update_failed_subtitle'),
+            isBold: false,
+          });
+          expect(JSON.stringify(config.labelOptions)).not.toMatch(/\[missing/);
         });
       });
     });
