@@ -1,0 +1,138 @@
+##############################################################################################
+#
+# AI test plan for an auto RC build.
+#
+# build-rc-auto.yml posts the RC comment (build links, environment, what's in
+# the RC) as soon as both platforms succeed, then dispatches this workflow.
+# Generation edits that comment in place. The RC build workflow does not wait
+# on it, and it does not share a job with the comment's token: the provider
+# keys stay on this workflow's release-ci environment.
+#
+# Dispatched with the release branch as the ref, so the analyzer and this file
+# are the ones on that branch. source_sha pins the checkout to the built commit.
+#
+# A newer dispatch for the same release branch cancels an in-flight plan. The
+# updater also refuses to edit a comment once a newer RC comment exists.
+#
+# Re-run from the Actions tab (or dispatch manually) to regenerate a plan. The
+# same inputs replace the test plan section on the matching RC comment.
+#
+##############################################################################################
+name: RC AI test plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Release PR that received the RC comment
+        required: true
+        type: string
+      semver:
+        description: Release version (x.y.z)
+        required: true
+        type: string
+      ios_build_number:
+        description: iOS build number posted on the RC comment
+        required: true
+        type: string
+      android_build_number:
+        description: Android build number posted on the RC comment
+        required: true
+        type: string
+      source_sha:
+        description: Full commit SHA the RC build compiled
+        required: true
+        type: string
+
+concurrency:
+  group: rc-ai-test-plan-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-post:
+    name: Generate AI test plan and update RC comment
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    # Provider keys are scoped to release-ci. Environment rules may wait here;
+    # that wait does not hold the RC build comment.
+    environment: release-ci
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Validate dispatch inputs
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+          SEMVER: ${{ inputs.semver }}
+          IOS_BUILD_NUMBER: ${{ inputs.ios_build_number }}
+          ANDROID_BUILD_NUMBER: ${{ inputs.android_build_number }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::pr_number must be a positive integer"
+            exit 1
+          fi
+          if [[ ! "$SEMVER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::semver must look like x.y.z"
+            exit 1
+          fi
+          if [[ ! "$IOS_BUILD_NUMBER" =~ ^[0-9]+$ || ! "$ANDROID_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::build numbers must be integers"
+            exit 1
+          fi
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::source_sha must be a full 40-character commit SHA"
+            exit 1
+          fi
+
+      - name: Checkout built commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          package-manager-cache: false
+
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Generate test plan and update RC comment
+        timeout-minutes: 15
+        run: node -r esbuild-register scripts/build-announce/post-test-plan.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          SEMVER: ${{ inputs.semver }}
+          IOS_BUILD_NUMBER: ${{ inputs.ios_build_number }}
+          ANDROID_BUILD_NUMBER: ${{ inputs.android_build_number }}
+          # Artifact below is uploaded by this run, so the comment links here.
+          BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
+          E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
+
+      - name: Upload test plan JSON artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-plan-${{ inputs.semver }}
+          path: release-test-plan.json
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 90
