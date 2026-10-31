@@ -43,7 +43,9 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
     source: 'asset_details',
   });
   const { balance } = useTokenBalance(token);
-  const hasTokenBalance = balance !== undefined && Number(balance) > 0;
+  // Balance is locale-formatted (`1,234,567`, `<0.00001`). Number() is NaN
+  // for those strings and would hide Sell on a real holding.
+  const hasTokenBalance = Boolean(balance) && balance !== '0';
   const header = useOpenPositionHeader(token);
   const { openComposer } = useOpenSocialPostComposer();
   const isSocialLeaderboardEnabled = useSelector(
