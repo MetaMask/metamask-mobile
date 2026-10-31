@@ -26,6 +26,11 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { Alert, InteractionManager } from 'react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
+import {
+  clearQrSyncAccountsReview,
+  getQrSyncAccountsReviewSnapshot,
+  setQrSyncAccountsReview,
+} from '../../../core/QrSync/qrSyncAccountsReview';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -1529,9 +1534,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       ).toBeNull();
     });
 
-    it('calls navigation.goBack when back is pressed on the password step', async () => {
-      const mockGoBack = jest.fn();
+    it('returns to add this device when back is pressed on the password step', async () => {
+      const mockNavigate = jest.fn();
       const Stack = createNativeStackNavigator();
+      setQrSyncAccountsReview({ mode: 'new-user', sections: [] });
 
       const { getByTestId } = renderWithProvider(
         <NavigationContainer>
@@ -1541,7 +1547,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
               initialParams={{ qrSyncImport: true }}
             >
               {({ navigation }) => {
-                jest.spyOn(navigation, 'goBack').mockImplementation(mockGoBack);
+                jest
+                  .spyOn(navigation, 'navigate')
+                  .mockImplementation(mockNavigate);
                 return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
@@ -1560,9 +1568,18 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
 
       await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+          undefined,
+          { pop: true },
+        );
         expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
       });
+      expect(getQrSyncAccountsReviewSnapshot()).toEqual({
+        review: null,
+        holdInstructions: true,
+      });
+      clearQrSyncAccountsReview();
     });
 
     it('does not prefill the seed phrase when qrSyncImport is false', async () => {

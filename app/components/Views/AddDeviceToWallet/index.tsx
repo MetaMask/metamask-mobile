@@ -31,12 +31,17 @@ import {
   QRTabSwitcherScreens,
   // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
+import AccountsImported from './AccountsImported';
 import DeviceAdded from './DeviceAdded';
 import { useMessenger } from '../../../hooks/useMessenger';
 import { RouteMessengerInstance } from './messenger';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
+import {
+  releaseQrSyncAccountsReviewHold,
+  useQrSyncAccountsReviewSnapshot,
+} from '../../../core/QrSync/qrSyncAccountsReview';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import {
   QrSyncOperations,
@@ -112,6 +117,13 @@ const AddDeviceToWallet = () => {
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+  const { review, holdInstructions } = useQrSyncAccountsReviewSnapshot();
+
+  useEffect(() => {
+    if (presentation === 'instructions') {
+      releaseQrSyncAccountsReviewHold();
+    }
+  }, [presentation]);
 
   const handleBack = useCallback(() => {
     Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
@@ -183,7 +195,11 @@ const AddDeviceToWallet = () => {
     });
   }, [submitManualQrPayload]);
 
-  if (presentation === 'device-linked' && !isScannerOpen) {
+  if (!holdInstructions && review && !isScannerOpen) {
+    return <AccountsImported />;
+  }
+
+  if (!holdInstructions && presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
   }
 

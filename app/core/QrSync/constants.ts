@@ -24,7 +24,7 @@ export const QrSyncPhases = {
   DISPLAYING_OTP: 'displaying-otp',
   /** Sync-offer sent; waiting for sync-ready from the extension. */
   AWAITING_SYNC_READY: 'awaiting-sync-ready',
-  /** Import payload received; navigate to onboarding import. */
+  /** Import payload received; review accounts before password or home. */
   REVIEWING_IMPORT: 'reviewing-import',
   COMPLETED: 'completed',
   FAILED: 'failed',
