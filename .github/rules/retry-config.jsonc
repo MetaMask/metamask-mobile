@@ -1,0 +1,234 @@
+// Configuration for classify-failures.mts — determines whether a failed
+// workflow run should be retried.
+//
+// Based on analysis of 50 recent CI failures in MetaMask Mobile.
+// See: .github/scripts/analyze-ci-failures.sh for analysis methodology.
+{
+  "defaults": {
+    // Jobs not matching any pattern use this category. Unmatched jobs trigger
+    // a warning in the report and a ci.retry.unmatchedJobCount Sentry
+    // attribute — add explicit patterns to avoid this.
+    "unmatchedCategory": "retryableOnTransientError"
+  },
+
+  // Blockers (blockerPatterns) control cascade logic — if one fails
+  // non-transiently, all downstream jobs are marked jobRetryable=false. Each blocker
+  // must also appear in a jobClassification category (usually
+  // retryableOnTransientError) so it gets proper transient error detection.
+  "blockerPatterns": [
+    "^Get workflow",
+    "^Prepare CI JS dependencies",
+    "^Compute native build fingerprint"
+  ],
+
+  "jobClassification": {
+    // Jobs that are frequently flaky and should always be retried.
+    // Based on analysis: Appium E2E tests are the most common failures
+    // and are typically flaky (element visibility timeouts, etc.)
+    "alwaysRetryable": {
+      "patterns": [
+        "^Appium Smoke Tests",
+        "appium-.*-smoke",
+        "^E2E",
+        "^e2e-",
+        "^Detox"
+      ]
+    },
+
+    // Jobs that are normally deterministic but can fail due to infrastructure
+    // issues (OOM, network errors, etc.). Retried only if error matches a
+    // transient pattern from the global transientErrorPatterns list.
+    "retryableOnTransientError": {
+      "patterns": [
+        "^Build Android",
+        "^Build iOS",
+        "^Build.*APK",
+        "^Build.*IPA",
+        "^bundle",
+        "^Check diff",
+        "^Check workflows",
+        "^Component view tests",
+        "^Compute native build fingerprint",
+        "^Dedupe",
+        "^Dependency audit",
+        "^Get workflow",
+        "^Integration tests",
+        "^JS bundle size",
+        "^Prepare CI JS dependencies",
+        "^Prepare E2E",
+        "^Run `constraints`",
+        "^Run `format:check`",
+        "^Run `lint",
+        "^Run `test:",
+        "^Run lint",
+        "^Security code scan",
+        "^Smart E2E",
+        "^SonarCloud",
+        "^Unit tests",
+        "^Validate E2E"
+      ]
+    },
+
+    // Optional jobs — their failure does not influence the retry decision.
+    // "Check all jobs pass" is the gateway job; it always fails when any
+    // upstream job fails, so classifying it separately avoids double-counting.
+    "optional": {
+      "patterns": [
+        "^Check all jobs pass",
+        "^ci-status-gate"
+      ]
+    }
+  },
+
+  // Patterns to detect transient errors in job logs. If a
+  // retryableOnTransientError job fails and its logs match any of these,
+  // it will be marked jobRetryable=true.
+  //
+  // Includes Mobile-specific patterns (simulator, emulator, Appium, Metro, etc.)
+  // plus common infrastructure patterns from Extension.
+  "transientErrorPatterns": [
+    // === HTTP/Network errors ===
+    "429 Too Many Requests",
+    "500 Internal Server Error",
+    "502 Bad Gateway",
+    "503 Service Unavailable",
+    "504 Gateway Time-out",
+    "API rate limit exceeded",
+    "Could not resolve host",
+    "EAI_AGAIN",
+    "ECONNREFUSED",
+    "ECONNRESET",
+    "ENOTFOUND",
+    "ESOCKETTIMEDOUT",
+    "ETIMEDOUT",
+    "net::ERR_",
+    "socket hang up",
+    "read ECONNRESET",
+
+    // === Memory/Resource errors ===
+    "ENOMEM",
+    "heap out of memory",
+    "JavaScript heap out of memory",
+    "OOMKilled",
+    "No space left on device",
+    "resource temporarily unavailable",
+
+    // === Yarn/npm errors ===
+    "npm ERR! network",
+    "Back off \\d+(\\.\\d+)? seconds before retry",
+    "Command failed after \\d+ attempts",
+    "Yarn is terminating due to an unexpected empty event loop",
+    "doesn't seem to be present in your lockfile",
+
+    // === Git errors ===
+    "Authentication failed for",
+    "expected flush after ref listing",
+    "fatal: unable to access",
+    "git.* failed with exit code 128",
+
+    // === Mobile-specific: iOS Simulator ===
+    "Simulator.*boot.*failed",
+    "Simulator.*not.*responding",
+    "SimDevice.*unavailable",
+    "CoreSimulator.*error",
+    "Unable to boot device",
+    "Timed out waiting for.*simulator",
+
+    // === Mobile-specific: Android Emulator ===
+    "emulator.*crash",
+    "emulator.*timeout",
+    "adb.*connection.*reset",
+    "adb.*device.*offline",
+    "INSTALL_FAILED",
+
+    // === Mobile-specific: Appium/WebDriver ===
+    "Appium.*session.*not created",
+    "WebDriverAgent.*fail",
+    "WDA.*timeout",
+    "Could not start.*session",
+    "session.*deleted",
+    "An unknown server-side error occurred",
+    "Original error:",
+
+    // === Mobile-specific: Metro Bundler ===
+    "Metro.*error",
+    "Metro.*timeout",
+    "Watchman.*error",
+
+    // === Mobile-specific: Xcode/iOS Build ===
+    "xcodebuild.*timeout",
+    "Code signing.*error",
+    "Provisioning profile.*expired",
+    "Build.*timed out",
+
+    // === Mobile-specific: Gradle/Android Build ===
+    "Gradle.*daemon.*crash",
+    "Gradle.*timeout",
+    "Could not resolve.*dependencies",
+
+    // === Mobile-specific: CocoaPods ===
+    "pod install.*fail",
+    "CDN.*unavailable",
+    "trunk.cocoapods.org.*error",
+
+    // === Test framework errors ===
+    "Exceeded timeout of \\d+ ms for a test",
+    "worker process has failed to exit gracefully",
+    "Jest worker encountered",
+
+    // === GitHub Actions infrastructure ===
+    "Failed to FinalizeArtifact",
+    "Failed to resolve action download info",
+    "Upload progress stalled",
+    "Internal Server Error occurred while resolving",
+
+    // === SonarCloud ===
+    "Fail to request.*sonarcloud\\.io",
+    "Could not find the pullrequest with key"
+  ],
+
+  // Patterns that indicate deterministic failures — errors that will never
+  // self-heal on retry (code errors, policy mismatches, snapshot drift).
+  // Checked against annotations + log tail when no transient pattern matched.
+  "deterministicErrorPatterns": [
+    // === Lint/Format errors ===
+    "✖ \\d+ problems? \\(",
+    "Code style issues found",
+    "Format issues found",
+
+    // === TypeScript errors ===
+    "error TS\\d+:",
+    "Cannot find module",
+    "Module not found",
+    "Unable to resolve module",
+    "ERR_PACKAGE_PATH_NOT_EXPORTED",
+
+    // === JavaScript errors ===
+    "SyntaxError:",
+    "ReferenceError:",
+    "TypeError:",
+
+    // === Test assertion failures ===
+    "expect\\(received\\)\\.toEqual\\(expected\\)",
+    "expect\\(received\\)\\.toBe\\(expected\\)",
+    "Test Suites:.*failed",
+    "Tests:.*\\d+ failed",
+    "snapshots? failed",
+
+    // === Build errors ===
+    "compiled with \\d+ errors?",
+    "Build failed",
+
+    // === Workflow lint errors ===
+    "\\.github/workflows/.*\\.yml:\\d+:\\d+:",
+    "shellcheck reported issue",
+
+    // === Git state errors ===
+    "Working tree dirty",
+    "Not a valid commit name",
+
+    // === Audit failures ===
+    "yarn audit FAILED",
+    "BASELINE VIOLATIONS DETECTED"
+  ]
+}
