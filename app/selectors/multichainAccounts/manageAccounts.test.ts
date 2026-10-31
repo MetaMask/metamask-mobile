@@ -1,6 +1,5 @@
 import {
   selectVisibleAccountGroupsByWallet,
-  selectAccountGroupHidden,
   selectAccountListStats,
   selectHiddenAccountGroupIds,
 } from './manageAccounts';
@@ -158,34 +157,6 @@ describe('manageAccounts selectors', () => {
       const mockState = createMockState(undefined);
       const result = selectVisibleAccountGroupsByWallet(mockState);
       expect(result).toEqual([]);
-    });
-  });
-
-  describe('selectAccountGroupHidden', () => {
-    const mockState = createMockState({
-      accountTree: {
-        wallets: {
-          [WALLET_ID_1]: wallet1,
-          [WALLET_ID_2]: wallet2,
-        },
-      },
-    });
-
-    it('returns false when the group is visible', () => {
-      const isHidden = selectAccountGroupHidden(GROUP_ID_1)(mockState);
-      expect(isHidden).toBe(false);
-    });
-
-    it('returns true when the group is hidden', () => {
-      const isHidden = selectAccountGroupHidden(GROUP_ID_2)(mockState);
-      expect(isHidden).toBe(true);
-    });
-
-    it('returns false for non-existent group', () => {
-      const isHidden = selectAccountGroupHidden(
-        'keyring:nonexistent/0' as AccountGroupId,
-      )(mockState);
-      expect(isHidden).toBe(false);
     });
   });
 

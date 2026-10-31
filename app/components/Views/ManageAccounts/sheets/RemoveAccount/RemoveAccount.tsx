@@ -5,6 +5,7 @@ import {
   type ParamListBase,
   type RouteProp,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
@@ -23,6 +24,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { removeAccount } from '../../../../../util/accounts/removeAccount';
+import Logger from '../../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  AccountRemovedLocation,
+  getAccountWalletMetricProps,
+} from '../../../../../core/Analytics/events/accounts';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { selectWalletByAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { RemoveAccountSelectors } from './RemoveAccount.testIds';
 
 /**
@@ -53,17 +62,38 @@ const RemoveAccount = () => {
   const route = useRoute<RemoveAccountRouteProp>();
   const navigation = useNavigation();
   const { account, accountGroup } = route.params;
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const wallet = useSelector(selectWalletByAccount)(account.id);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleRemove = useCallback(async () => {
+    // Resolved before removal, which takes the wallet out of the tree.
+    const metricProps = getAccountWalletMetricProps(wallet);
     handleClose();
-    await removeAccount({
-      address: account.address,
-      keyringType: account.metadata.keyring.type,
-    });
+    try {
+      await removeAccount({
+        address: account.address,
+        keyringType: account.metadata.keyring.type,
+      });
+    } catch (error) {
+      Logger.error(error as Error, 'RemoveAccount: failed to remove account');
+      toast({
+        title: strings('multichain_accounts.delete_account.error'),
+        severity: ToastSeverity.Danger,
+      });
+      return;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
+        .addProperties({
+          ...metricProps,
+          location: AccountRemovedLocation.ManageAccounts,
+        })
+        .build(),
+    );
     toast({
       title: strings('accounts.account_removed_toast', {
         accountName: accountGroup?.metadata.name,
@@ -74,7 +104,10 @@ const RemoveAccount = () => {
     account.address,
     account.metadata.keyring.type,
     accountGroup?.metadata.name,
+    createEventBuilder,
     handleClose,
+    trackEvent,
+    wallet,
   ]);
 
   const cancelButtonProps = {

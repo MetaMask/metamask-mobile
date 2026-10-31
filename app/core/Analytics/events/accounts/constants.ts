@@ -11,3 +11,32 @@ export enum ManageAccountsViewedSource {
   /** Reserved for a future account menu entry point; unused on mobile today. */
   AccountMenu = 'account_menu',
 }
+
+/**
+ * Surface an account was hidden or unhidden from, for the `Account Hidden`
+ * event.
+ *
+ * String values must match the `location` enum in
+ * `segment-schema/libraries/events/metamask-account-mgmt/account-hidden.yaml`.
+ * Kept separate from {@link AccountRemovedLocation} because the two events
+ * accept different surfaces.
+ */
+export enum AccountHiddenLocation {
+  /** The visibility toggle on the Manage Accounts screen. */
+  ManageAccounts = 'manage_accounts',
+  /** Reserved for a future account menu hide action; unused on mobile today. */
+  AccountMenu = 'account_menu',
+}
+
+/**
+ * Surface an account was removed from, for the `Account Removed` event.
+ *
+ * String values must match the `location` enum in
+ * `segment-schema/libraries/events/metamask-account-mgmt/account-removed.yaml`.
+ */
+export enum AccountRemovedLocation {
+  /** The remove action on the Manage Accounts screen. */
+  ManageAccounts = 'manage_accounts',
+  /** The remove action on an account details screen. */
+  AccountDetails = 'account_details',
+}

@@ -593,8 +593,10 @@ enum EVENT_NAME {
   ACCOUNT_RENAMED = 'Account Renamed',
 
   // Remove an account
-  ACCOUNT_REMOVED = 'Account removed',
+  ACCOUNT_REMOVED = 'Account Removed',
   ACCOUNT_REMOVE_FAILED = 'Account remove failed',
+  // Hide or unhide an account
+  ACCOUNT_HIDDEN = 'Account Hidden',
   // Account added
   ACCOUNT_ADDED = 'Account Added',
   // Multi SRP
@@ -1613,6 +1615,7 @@ const events = {
   // Remove an account
   ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
   ACCOUNT_REMOVE_FAILED: generateOpt(EVENT_NAME.ACCOUNT_REMOVE_FAILED),
+  ACCOUNT_HIDDEN: generateOpt(EVENT_NAME.ACCOUNT_HIDDEN),
   ACCOUNT_ADDED: generateOpt(EVENT_NAME.ACCOUNT_ADDED),
 
   // Smart transactions

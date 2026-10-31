@@ -24,6 +24,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     AccountTreeController: {
       setAccountGroupHidden: jest.fn(),
+      state: { accountTree: { wallets: {} } },
       syncWithUserStorage: jest.fn(),
     },
   },
@@ -106,14 +107,21 @@ const renderUseManageAccountsView = ({
     account: InternalAccount,
     accountGroup: AccountGroupObject,
   ) => void;
-} = {}) =>
-  renderHookWithProvider(
+} = {}) => {
+  // The hide toggle reads the account tree from the controller.
+  jest.replaceProperty(
+    Engine.context.AccountTreeController,
+    'state',
+    state.engine.backgroundState.AccountTreeController,
+  );
+  return renderHookWithProvider(
     () =>
       useManageAccountsView({
         navigateToRemoveAccount,
       }),
     { state },
   );
+};
 
 describe('useManageAccountsView', () => {
   beforeEach(() => {
