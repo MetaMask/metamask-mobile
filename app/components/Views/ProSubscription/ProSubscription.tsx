@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -37,6 +38,12 @@ const ProSubscriptionScreen = {
 
 type ProSubscriptionScreen =
   (typeof ProSubscriptionScreen)[keyof typeof ProSubscriptionScreen];
+
+// iOS presents this route as a sheet that already starts below the status
+// bar. Android draws the modal edge to edge, so the close button needs the
+// top inset or it sits on the status icons.
+const SAFE_AREA_EDGES: Edge[] =
+  Platform.OS === 'android' ? ['top', 'bottom'] : ['bottom'];
 
 const ProSubscription = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -142,7 +149,7 @@ const ProSubscription = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+      edges={SAFE_AREA_EDGES}
     >
       {/* Shared close button — sits above both Benefits and Success screens */}
       <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">
