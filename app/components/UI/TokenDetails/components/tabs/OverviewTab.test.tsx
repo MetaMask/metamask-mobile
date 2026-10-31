@@ -6,8 +6,6 @@ import ContentDisplay from '../../../AssetOverview/AboutAsset/ContentDisplay';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
-import { selectAllTokens } from '../../../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
 import {
   useTokenTransactions,
@@ -51,17 +49,6 @@ jest.mock('../../../../../selectors/networkController', () => ({
 jest.mock('../../../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(),
 }));
-
-jest.mock('../../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
-}));
-
-jest.mock(
-  '../../../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
-  }),
-);
 
 jest.mock('../../hooks/useTokenPerformance', () => ({
   useTokenPerformance: jest.fn(),
