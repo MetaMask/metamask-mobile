@@ -3,8 +3,6 @@ import { InteractionManager, LayoutAnimation, Platform } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
-import Alert, { AlertType } from '../../../../Base/Alert';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../../../constants/on-ramp';
 import NotificationManager from '../../../../../core/NotificationManager';
@@ -15,6 +13,8 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -178,7 +178,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const [selectedAssets, setSelectedAssets] = useState<ImportAsset[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const { colors, themeAppearance } = useTheme();
+  const { themeAppearance } = useTheme();
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
 
@@ -395,51 +395,26 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       return null;
     }
     return (
-      <Alert
-        type={AlertType.Info}
-        style={tw.style('mx-5 mt-5 pr-0')}
-        renderIcon={() => (
-          <FontAwesome
-            style={tw.style('pt-1 pr-2')}
-            name={'exclamation-circle'}
-            color={colors.primary.default}
-            size={18}
-          />
-        )}
-      >
-        <>
-          <Text style={tw.style('text-default')}>
-            {strings('add_asset.banners.search_desc', {
-              network: selectedChainId
-                ? FORMATTED_NETWORK_NAMES[selectedChainId]
-                : '',
-            })}
-          </Text>
-          <Text
-            suppressHighlighting
-            onPress={() => {
-              navigation.navigate('SettingsView', {
-                screen: 'AdvancedSettings',
-                params: {
-                  scrollToBottom: true,
-                },
-              });
-            }}
-            style={tw.style('text-primary-default')}
-          >
-            {strings('add_asset.banners.search_link')}
-          </Text>
-        </>
-      </Alert>
+      <BannerAlert
+        severity={BannerAlertSeverity.Info}
+        twClassName="mx-5 mt-5"
+        description={strings('add_asset.banners.search_desc', {
+          network: selectedChainId
+            ? FORMATTED_NETWORK_NAMES[selectedChainId]
+            : '',
+        })}
+        actionButtonLabel={strings('add_asset.banners.search_link')}
+        actionButtonOnPress={() => {
+          navigation.navigate('SettingsView', {
+            screen: 'AdvancedSettings',
+            params: {
+              scrollToBottom: true,
+            },
+          });
+        }}
+      />
     );
-  }, [
-    navigation,
-    isSearchFocused,
-    isTokenDetectionEnabled,
-    colors,
-    tw,
-    selectedChainId,
-  ]);
+  }, [navigation, isSearchFocused, isTokenDetectionEnabled, selectedChainId]);
 
   return (
     <Box twClassName="flex-1">
