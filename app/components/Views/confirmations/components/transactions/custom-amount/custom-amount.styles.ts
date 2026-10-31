@@ -3,7 +3,7 @@ import { Theme } from '../../../../../../util/theme/models';
 
 /** Returns the legacy font size breakpoints used by confirmation amounts. */
 export const getFontSizeForConfirmationAmount = (length: number): number => {
-  if (length <= 8) return 64;
+  if (length <= 8) return 88;
   if (length <= 13) return 40;
   if (length <= 18) return 30;
   return 20;
@@ -21,13 +21,12 @@ const styleSheet = (params: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      minHeight: 70,
+      minHeight: 88,
     },
     input: {
       textAlign: 'center',
       fontSize,
-      lineHeight: fontSize * 1.1,
-      fontWeight: '500',
+      lineHeight: fontSize,
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
         : params.vars.disabled
@@ -39,9 +38,12 @@ const styleSheet = (params: {
     },
     cursor: {
       width: 1,
-      height: Math.round(fontSize * 0.7),
-      backgroundColor: params.theme.colors.primary.default,
-      transform: [{ translateY: Math.round(fontSize * -0.08) }],
+      height: Math.round(fontSize * 0.95),
+      backgroundColor: params.theme.colors.text.muted,
+      transform: [{ translateY: Math.round(fontSize * -0.04) }],
+    },
+    skeleton: {
+      borderRadius: 8,
     },
     alertMessage: {
       textAlign: 'center',

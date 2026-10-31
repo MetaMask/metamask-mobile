@@ -10,10 +10,6 @@ jest.mock('react-native-reanimated', () => ({
   useReducedMotion: jest.fn(() => false),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: () => ({}) }),
-}));
-
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
 const styles = StyleSheet.create({
   containerPadding: { paddingHorizontal: 8 },

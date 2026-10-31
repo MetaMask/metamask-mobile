@@ -4,6 +4,8 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
+  FontFamily,
+  Text as DesignText,
   TextColor as DesignTextColor,
   TextVariant as DesignTextVariant,
 } from '@metamask/design-system-react-native';
@@ -217,9 +219,17 @@ const InputDisplay = ({
           }
           onPress={onPressAmount}
           style={styles.amountText}
-          suffix={isFiat ? currentCurrency.toUpperCase() : ticker}
-          suffixColor={DesignTextColor.TextMuted}
-          suffixStyle={styles.amountText}
+          suffix={
+            <DesignText
+              color={DesignTextColor.TextMuted}
+              fontFamily={FontFamily.Hero}
+              style={styles.amountText}
+              testID={INPUT_DISPLAY_TEST_IDS.AMOUNT_SUFFIX}
+              variant={DesignTextVariant.DisplayMd}
+            >
+              {isFiat ? currentCurrency.toUpperCase() : ticker}
+            </DesignText>
+          }
           value={isFiat ? amountFiatNumber : amountToken}
           variant={DesignTextVariant.DisplayMd}
         />

@@ -8,6 +8,7 @@ import {
   CustomAmountInfoProps,
   AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
+  PrefillCustomAmountInfoSkeleton,
 } from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
@@ -807,6 +808,7 @@ describe('CustomAmountInfo', () => {
     const { getByTestId, getByText } = render();
 
     expect(getByTestId('alert-message-banner')).toBeOnTheScreen();
+    expect(getByTestId('alert-message-banner')).toHaveStyle({ fontSize: 16 });
     expect(getByText('Test Help Text')).toBeDefined();
   });
 
@@ -2968,16 +2970,42 @@ describe('CustomAmountInfo', () => {
 
 describe('CustomAmountInfoSkeleton', () => {
   it('renders skeleton without AccountSelectorSkeleton', () => {
-    const { queryByTestId } = renderWithProvider(<CustomAmountInfoSkeleton />, {
-      state: merge(
-        {},
-        simpleSendTransactionControllerMock,
-        transactionApprovalControllerMock,
-        otherControllersMock,
-      ),
-    });
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <CustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
 
     expect(queryByTestId('account-selector-skeleton')).toBeNull();
+    expect(getByTestId('custom-amount-caption')).toHaveStyle({
+      position: 'absolute',
+    });
+  });
+});
+
+describe('PrefillCustomAmountInfoSkeleton', () => {
+  it('pins the caption skeleton outside the amount flow', () => {
+    const { getByTestId } = renderWithProvider(
+      <PrefillCustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(getByTestId('custom-amount-caption')).toHaveStyle({
+      position: 'absolute',
+    });
   });
 });
 
@@ -2998,6 +3026,9 @@ describe('AdvancedCustomAmountInfoSkeleton', () => {
     expect(getByTestId('account-selector-skeleton')).toBeTruthy();
     expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
     expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
+    expect(getByTestId('custom-amount-caption')).toHaveStyle({
+      position: 'absolute',
+    });
   });
 
   it('renders skeleton without account and pay-with rows when autoSelectFiatPayment param is set', () => {

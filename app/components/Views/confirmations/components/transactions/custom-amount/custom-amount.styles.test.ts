@@ -6,7 +6,7 @@ import styleSheet, {
 
 describe('custom-amount.styles', () => {
   it.each([
-    [8, 64],
+    [8, 88],
     [9, 40],
     [13, 40],
     [14, 30],
@@ -30,5 +30,7 @@ describe('custom-amount.styles', () => {
     });
 
     expect(styles.input.fontSize).toBe(40);
+    expect(styles.input.lineHeight).toBe(40);
+    expect(styles.cursor.height).toBe(38);
   });
 });

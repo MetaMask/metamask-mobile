@@ -336,7 +336,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         !isPrefillPending &&
         !hasUserOpenedKeypadRef.current
       ) {
-        handleDone();
+        void handleDone();
       }
       wasPrefillPending.current = isPrefillPending;
     }, [isPrefillPending, handleDone]);
@@ -367,7 +367,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
         isPrefillSkipReleasedRef.current = false;
-        handleDone();
+        void handleDone();
       }
     }, [
       isDepositPrefilled,
@@ -379,7 +379,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const handleDonePress = useCallback(() => {
       hasUserCommittedAmountRef.current = true;
-      handleDone();
+      void handleDone();
     }, [handleDone]);
 
     const isMaxAutoSubmitPending = useRef(false);
@@ -412,7 +412,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         amountFiat !== '0'
       ) {
         isMaxAutoSubmitPending.current = false;
-        handleDone();
+        void handleDone();
       }
     }, [amountFiat, handleDone, stage]);
 
@@ -451,40 +451,53 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
-          <CustomAmount
-            amountFiat={amountFiat}
-            currency={currency}
-            hasAlert={hasAlert}
-            isLoading={
-              !hasAccountNoFunds &&
-              stage !== CustomAmountStage.AmountInput &&
-              (isPrefillPending || isDepositPrefillLoading)
-            }
-            // Editable amounts remain an escape hatch from stalled quotes.
-            onPress={isMembershipSubscription ? undefined : handleAmountPress}
-            disabled={!hasPaymentOption}
-            showCursor={
-              !isMembershipSubscription &&
-              stage === CustomAmountStage.AmountInput
-            }
-          />
-          {hasAlert && (
-            <AlertMessage content={alertContent} alertMessage={alertMessage} />
-          )}
-          {!hidePayTokenAmount &&
-            disablePay !== true &&
-            !hasAlert &&
-            (isMembershipSubscription ? (
-              <MembershipInfo amountFiat={amountFiat} />
-            ) : isMoneyAccountDeposit ? (
-              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
-            ) : (
-              <PayTokenAmount
-                amountHuman={amountHuman}
-                disabled={!hasPaymentOption || isAccountSelectionNeeded}
-              />
-            ))}
-          {!hidePayTokenAmount && !hasAlert && children}
+          <View style={styles.amountBlock}>
+            <CustomAmount
+              amountFiat={amountFiat}
+              currency={currency}
+              hasAlert={hasAlert}
+              isLoading={
+                !hasAccountNoFunds &&
+                stage !== CustomAmountStage.AmountInput &&
+                (isPrefillPending || isDepositPrefillLoading)
+              }
+              // Editable amounts remain an escape hatch from stalled quotes.
+              onPress={isMembershipSubscription ? undefined : handleAmountPress}
+              disabled={!hasPaymentOption}
+              showCursor={
+                !isMembershipSubscription &&
+                stage === CustomAmountStage.AmountInput
+              }
+            />
+            <View style={styles.amountCaption}>
+              {hasAlert ? (
+                <AlertMessage
+                  content={alertContent}
+                  alertMessage={alertMessage}
+                  style={styles.amountAlert}
+                />
+              ) : (
+                <>
+                  {!hidePayTokenAmount &&
+                    disablePay !== true &&
+                    (isMembershipSubscription ? (
+                      <MembershipInfo amountFiat={amountFiat} />
+                    ) : isMoneyAccountDeposit ? (
+                      <BalanceProjection
+                        amountFiat={amountFiat}
+                        projectedYears={1}
+                      />
+                    ) : (
+                      <PayTokenAmount
+                        amountHuman={amountHuman}
+                        disabled={!hasPaymentOption || isAccountSelectionNeeded}
+                      />
+                    ))}
+                  {!hidePayTokenAmount && children}
+                </>
+              )}
+            </View>
+          </View>
         </Box>
         <Box
           gap={16}
@@ -634,8 +647,12 @@ export function CustomAmountInfoSkeleton() {
   return (
     <Box style={styles.container}>
       <Box style={styles.inputContainer}>
-        <CustomAmountSkeleton />
-        <PayTokenAmountSkeleton />
+        <View style={styles.amountBlock}>
+          <CustomAmountSkeleton />
+          <View style={styles.amountCaption} testID="custom-amount-caption">
+            <PayTokenAmountSkeleton />
+          </View>
+        </View>
       </Box>
       <Box style={styles.bottomBlock}>
         <PayWithRowSkeleton />
@@ -651,8 +668,12 @@ export function PrefillCustomAmountInfoSkeleton() {
   return (
     <View style={styles.container} testID="prefill-custom-amount-info-skeleton">
       <View style={styles.inputContainer}>
-        <CustomAmountSkeleton />
-        <Skeleton height={20} width={200} />
+        <View style={styles.amountBlock}>
+          <CustomAmountSkeleton />
+          <View style={styles.amountCaption} testID="custom-amount-caption">
+            <Skeleton height={20} width={200} />
+          </View>
+        </View>
       </View>
       <View style={styles.bottomBlock}>
         <View style={styles.skeletonRow}>
@@ -700,8 +721,12 @@ export function AdvancedCustomAmountInfoSkeleton() {
       testID="advanced-custom-amount-info-skeleton"
     >
       <View style={styles.inputContainer}>
-        <CustomAmountSkeleton />
-        <PayTokenAmountSkeleton />
+        <View style={styles.amountBlock}>
+          <CustomAmountSkeleton />
+          <View style={styles.amountCaption} testID="custom-amount-caption">
+            <PayTokenAmountSkeleton />
+          </View>
+        </View>
       </View>
       <View style={styles.bottomBlock}>
         {!hideAccountRows && (

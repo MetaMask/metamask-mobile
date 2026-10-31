@@ -62,6 +62,7 @@ describe('CustomAmount', () => {
     );
 
     expect(getByText('$')).toBeOnTheScreen();
+    expect(getByText('$')).toHaveStyle({ fontFamily: 'GrotzecCond-Bold' });
   });
 
   it('renders the amount in the error colour when an alert is active', () => {
@@ -248,6 +249,9 @@ describe('CustomAmount', () => {
       ).toHaveTextContent('10000.');
       expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
       expect(getByTestId('custom-amount-assistive')).toHaveTextContent('00');
+      expect(getByTestId('custom-amount-assistive')).toHaveStyle({
+        fontFamily: 'GrotzecCond-Bold',
+      });
     });
 
     it('displays single "0" assistive text when one decimal digit is typed', () => {
