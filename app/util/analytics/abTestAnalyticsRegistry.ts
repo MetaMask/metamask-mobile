@@ -27,7 +27,6 @@ import {
 } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 import {
-  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/UI/Perps/abTestConfig';
@@ -74,7 +73,6 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   SOCIAL_V1_AB_TEST_ANALYTICS_MAPPING,
 
   // Perps
-  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
   PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
 
