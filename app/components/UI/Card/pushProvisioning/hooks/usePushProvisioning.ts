@@ -117,7 +117,10 @@ export function usePushProvisioning(
   const walletType = getWalletTypeForPlatform();
   const isPushProvisioningFeatureEnabled = useSelector(
     (state: Parameters<typeof selectPushProvisioningEnabled>[0]) =>
-      selectPushProvisioningEnabled(state, activeProviderId, walletType),
+      selectPushProvisioningEnabled(state, activeProviderId, walletType, {
+        countryCode: walletProvisioning?.countryCode,
+        cardProcessor: walletProvisioning?.cardProcessor,
+      }),
   );
   const suppressImmersveApplePay = shouldSuppressImmersveApplePayUi(
     activeProviderId,
