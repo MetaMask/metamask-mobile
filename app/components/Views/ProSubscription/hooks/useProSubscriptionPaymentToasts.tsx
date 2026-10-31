@@ -25,6 +25,7 @@ import {
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { openProHubFromSubscriptionModal } from '../utils/openProHubFromSubscriptionModal';
 import { shouldShowActiveMembershipCta } from '../utils/proSubscriptionPaymentStatus';
 
 type PaymentToastOptions = Omit<
@@ -150,6 +151,17 @@ export function useProSubscriptionPaymentToasts(): ProSubscriptionPaymentToasts 
             label: strings('pro_subscription.payment.view_membership'),
             onPress: () => {
               closeToast();
+              // The checkout modal is still up while a funded plan is
+              // provisional. navigate() only dismisses that modal on iOS.
+              if (
+                NavigationService.getCurrentRoute()?.name ===
+                Routes.PRO_SUBSCRIPTION.ROOT
+              ) {
+                NavigationService.navigation.dispatch(
+                  openProHubFromSubscriptionModal,
+                );
+                return;
+              }
               NavigationService.navigation.navigate(Routes.PRO_HUB.ROOT);
             },
           }

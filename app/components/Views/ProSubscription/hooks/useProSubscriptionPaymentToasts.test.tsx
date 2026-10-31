@@ -3,11 +3,13 @@ import { renderHook } from '@testing-library/react-native';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import { openProHubFromSubscriptionModal } from '../utils/openProHubFromSubscriptionModal';
 import { useProSubscriptionPaymentToasts } from './useProSubscriptionPaymentToasts';
 
 const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockGetCurrentRoute = jest.fn();
 
 jest.mock('../../../../core/NavigationService', () => ({
@@ -16,6 +18,7 @@ jest.mock('../../../../core/NavigationService', () => ({
     getCurrentRoute: () => mockGetCurrentRoute(),
     navigation: {
       navigate: (...args: unknown[]) => mockNavigate(...args),
+      dispatch: (...args: unknown[]) => mockDispatch(...args),
     },
   },
 }));
@@ -76,6 +79,25 @@ describe('useProSubscriptionPaymentToasts', () => {
 
     expect(mockCloseToast).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT);
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('resets the stack when View membership is pressed from the checkout modal', () => {
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.PRO_SUBSCRIPTION.ROOT,
+    });
+    const { result } = renderHook(() => useProSubscriptionPaymentToasts(), {
+      wrapper,
+    });
+
+    result.current.showActiveToast();
+
+    const toast = mockShowToast.mock.calls[0][0];
+    toast.linkButtonOptions.onPress();
+
+    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(openProHubFromSubscriptionModal);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('hides the Pro Hub action when the user is already on Pro Hub', () => {
