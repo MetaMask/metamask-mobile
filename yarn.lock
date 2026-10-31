@@ -12572,10 +12572,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/test-dapp@npm:9.5.0":
-  version: 9.5.0
-  resolution: "@metamask/test-dapp@npm:9.5.0"
-  checksum: 10/38d88f93bcaa9fe79a619d0fbaf676dd9d006baa0b0db14f0b2d41019502f94fd90744e5e023d206a7384a498aa6ea5998bf772534a97f4ab4d8c10f97a07681
+"@metamask/test-dapp@npm:9.9.0":
+  version: 9.9.0
+  resolution: "@metamask/test-dapp@npm:9.9.0"
+  checksum: 10/b99eaa6e4c52723a17192e1fcefa80b6853af8c9cc451a575b35522679ffda6fe40274bffbf4c8cb6d590d556707835b3d32532008037aa716bb81925eec3553
   languageName: node
   linkType: hard
 
@@ -38546,7 +38546,7 @@ __metadata:
     "@metamask/subscription-controller": "npm:15.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
-    "@metamask/test-dapp": "npm:9.5.0"
+    "@metamask/test-dapp": "npm:9.9.0"
     "@metamask/test-dapp-bitcoin": "npm:^0.2.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
