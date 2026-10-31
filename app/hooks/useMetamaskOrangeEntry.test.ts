@@ -9,8 +9,8 @@ import {
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
 import Routes from '../constants/navigation/Routes';
 import { strings } from '../../locales/i18n';
+import { useHasProMembership } from './useHasProMembership';
 import { useMetamaskOrangeEntry } from './useMetamaskOrangeEntry';
-import { usePlusAccess } from './usePlusAccess';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 
 const mockNavigate = jest.fn();
@@ -29,11 +29,8 @@ jest.mock('./useProSubscriptionEnabled', () => ({
   })),
 }));
 
-jest.mock('./usePlusAccess', () => ({
-  usePlusAccess: jest.fn(() => ({
-    isPlusSubscriber: false,
-    isPlusAccessUnknown: false,
-  })),
+jest.mock('./useHasProMembership', () => ({
+  useHasProMembership: jest.fn(() => false),
 }));
 
 jest.mock('../components/UI/Money/hooks/useMoneyAnalytics', () => ({
@@ -43,7 +40,7 @@ jest.mock('../components/UI/Money/hooks/useMoneyAnalytics', () => ({
 }));
 
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
-const mockUsePlusAccess = jest.mocked(usePlusAccess);
+const mockUseHasProMembership = jest.mocked(useHasProMembership);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 
 describe('useMetamaskOrangeEntry', () => {
@@ -52,10 +49,7 @@ describe('useMetamaskOrangeEntry', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
-    mockUsePlusAccess.mockReturnValue({
-      isPlusSubscriber: false,
-      isPlusAccessUnknown: false,
-    });
+    mockUseHasProMembership.mockReturnValue(false);
     mockUseMoneyAnalytics.mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
@@ -67,18 +61,30 @@ describe('useMetamaskOrangeEntry', () => {
     expect(result.current.showOrangeEntry).toBe(false);
   });
 
-  it('stays hidden while membership access is unresolved', () => {
+  it('shows the join label while membership access is unresolved', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
-    mockUsePlusAccess.mockReturnValue({
-      isPlusSubscriber: false,
-      isPlusAccessUnknown: true,
-    });
+    mockUseHasProMembership.mockReturnValue(false);
 
     const { result } = renderHook(() => useMetamaskOrangeEntry());
 
-    expect(result.current.showOrangeEntry).toBe(false);
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(true);
+    expect(result.current.label).toBe(
+      strings('accounts_menu.join_metamask_orange'),
+    );
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+      component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+      label_key: 'accounts_menu.join_metamask_orange',
+      redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+      source: 'accounts_menu',
+    });
   });
 
   it('invites a non-member to join and opens the subscription flow', () => {
@@ -113,10 +119,7 @@ describe('useMetamaskOrangeEntry', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
-    mockUsePlusAccess.mockReturnValue({
-      isPlusSubscriber: true,
-      isPlusAccessUnknown: false,
-    });
+    mockUseHasProMembership.mockReturnValue(true);
 
     const { result } = renderHook(() => useMetamaskOrangeEntry());
 

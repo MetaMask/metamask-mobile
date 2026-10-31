@@ -169,12 +169,9 @@ jest.mock('../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
 }));
 
-const mockUsePlusAccess = jest.fn(() => ({
-  isPlusSubscriber: false,
-  isPlusAccessUnknown: false,
-}));
-jest.mock('../../../hooks/usePlusAccess', () => ({
-  usePlusAccess: () => mockUsePlusAccess(),
+const mockUseHasProMembership = jest.fn(() => false);
+jest.mock('../../../hooks/useHasProMembership', () => ({
+  useHasProMembership: () => mockUseHasProMembership(),
 }));
 
 const mockTrackButtonClicked = jest.fn();
@@ -212,10 +209,7 @@ describe('AccountsMenu', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
-    mockUsePlusAccess.mockReturnValue({
-      isPlusSubscriber: false,
-      isPlusAccessUnknown: false,
-    });
+    mockUseHasProMembership.mockReturnValue(false);
     mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
     mockActiveProviderId = 'baanx';
     mockUseCardUkMigrationState.mockReturnValue({
@@ -725,20 +719,22 @@ describe('AccountsMenu', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('stays hidden while membership access is unresolved', () => {
+    it('shows the join label while membership access is unresolved', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: false,
-        isPlusAccessUnknown: true,
-      });
+      mockUseHasProMembership.mockReturnValue(false);
 
-      const { queryByTestId } = render(<AccountsMenu />);
+      const { getByTestId } = render(<AccountsMenu />);
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
 
       expect(
-        queryByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
-      ).not.toBeOnTheScreen();
+        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).toHaveTextContent('accounts_menu.join_metamask_orange');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
     });
 
     it('invites a non-member to join and opens the subscription flow', () => {
@@ -769,10 +765,7 @@ describe('AccountsMenu', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: true,
-        isPlusAccessUnknown: false,
-      });
+      mockUseHasProMembership.mockReturnValue(true);
 
       const { getByTestId } = render(<AccountsMenu />);
 

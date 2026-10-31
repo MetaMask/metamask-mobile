@@ -108,12 +108,18 @@ const createPlusSubscription = (status: Subscription['status']): Subscription =>
     status,
   }) as Subscription;
 
-const createState = (isTrialing: boolean): RootState =>
+const createState = ({
+  isTrialing = false,
+  subscriptions,
+}: {
+  isTrialing?: boolean;
+  subscriptions?: Subscription[];
+} = {}): RootState =>
   ({
     engine: {
       backgroundState: {
         SubscriptionController: {
-          subscriptions: [
+          subscriptions: subscriptions ?? [
             createPlusSubscription(
               isTrialing
                 ? SUBSCRIPTION_STATUSES.trialing
@@ -126,9 +132,17 @@ const createState = (isTrialing: boolean): RootState =>
     },
   }) as unknown as RootState;
 
-const renderProHub = ({ isTrialing = false } = {}) =>
+const renderProHub = ({
+  isTrialing = false,
+  subscriptions,
+}: {
+  isTrialing?: boolean;
+  subscriptions?: Subscription[];
+} = {}) =>
   render(
-    <Provider store={configureStore(createState(isTrialing))}>
+    <Provider
+      store={configureStore(createState({ isTrialing, subscriptions }))}
+    >
       <ProHub />
     </Provider>,
   );
@@ -194,13 +208,22 @@ describe('ProHub', () => {
   // ── Access guard ───────────────────────────────────────────────────────────
 
   describe('Access guard', () => {
-    it.each([
-      ['disabled', MoneyAccountPlusAccess.Disabled],
-      ['eligible but not entitled', MoneyAccountPlusAccess.Eligible],
-    ])('navigates back when Pro access is %s', (_label, access) => {
-      mockUseMoneyAccountPlusAccess.mockReturnValue(access);
+    it('navigates back when Pro is disabled', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Disabled,
+      );
 
       renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates back when there is no Plus membership', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+
+      renderProHub({ subscriptions: [] });
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
@@ -210,10 +233,27 @@ describe('ProHub', () => {
         MoneyAccountPlusAccess.Unknown,
       );
 
-      const { queryByTestId } = renderProHub();
+      const { queryByTestId } = renderProHub({ subscriptions: [] });
 
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.pastDue,
+      SUBSCRIPTION_STATUSES.awaitingFunds,
+      SUBSCRIPTION_STATUSES.unpaid,
+    ])('shows the hub for a %s plan while access is unresolved', (status) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { getByTestId } = renderProHub({
+        subscriptions: [createPlusSubscription(status)],
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
     });
 
     it('stays open for an entitled subscriber', () => {
@@ -234,7 +274,38 @@ describe('ProHub', () => {
         subscription: { id: 'sub-last' } as Subscription,
       });
 
-      const { queryByTestId } = renderProHub();
+      const { queryByTestId } = renderProHub({
+        subscriptions: [createPlusSubscription(SUBSCRIPTION_STATUSES.canceled)],
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
+    it('stays open for a paused plan without an entitlement', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+
+      const { getByTestId } = renderProHub({
+        subscriptions: [createPlusSubscription(SUBSCRIPTION_STATUSES.paused)],
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
+    });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.incomplete,
+      SUBSCRIPTION_STATUSES.incompleteExpired,
+    ])('leaves when the Plus plan is %s', (status) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+
+      const { queryByTestId } = renderProHub({
+        subscriptions: [createPlusSubscription(status)],
+      });
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
@@ -258,12 +329,12 @@ describe('ProHub', () => {
       expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
-    it('does not render subscriber content without access', () => {
+    it('does not render subscriber content without a membership', () => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
         MoneyAccountPlusAccess.Eligible,
       );
 
-      const { queryByTestId } = renderProHub();
+      const { queryByTestId } = renderProHub({ subscriptions: [] });
 
       expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
