@@ -50,7 +50,9 @@ function createPhishingMock(domain: string): TestSpecificMock {
 }
 
 appiumTest.describe(SmokeBrowser('Browser Phishing Detection'), () => {
-  appiumTest.describe.configure({ timeout: 150000 });
+  // Login + browser open + redirect/iframe scan + modal can exceed 150s on
+  // Android CI when phishing paint is late — keep headroom for the assert.
+  appiumTest.describe.configure({ timeout: 210_000 });
 
   appiumTest(
     'shows phishing warning when navigating to a blocked site',
@@ -75,12 +77,9 @@ appiumTest.describe(SmokeBrowser('Browser Phishing Detection'), () => {
           // Navigate to a local page that redirects to the phishing domain.
           // The redirect triggers dapp-scanning which returns BLOCK.
           //
-          // Skip the URL editor dismissal that `navigateToURL` normally does
-          // under Detox: phishing detection writes to AsyncStorage v2
-          // immediately after navigation, and a Cancel-button tap landing on
-          // top of those writes races with Detox's AsyncStorageIdlingResource.
-          // On Appium this option is a no-op (URL bar path dismisses itself);
-          // keep it for parity with the Detox counterpart.
+          // Skip Cancel after URL submit: phishing detection writes AsyncStorage
+          // and paints the modal right after navigation. A Cancel tap races that
+          // work on both Detox and Appium (URL-bar path must honor the flag).
           await Browser.tapUrlInputBox();
           await Browser.navigateToURL(
             `${getDappUrl(0)}/redirect-to-phishing.html`,
@@ -119,7 +118,7 @@ appiumTest.describe(SmokeBrowser('Browser Phishing Detection'), () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
           await navigateToBrowserView();
           await Browser.tapUrlInputBox();
-          // Skip URL editor dismissal — see comment on the redirect test above.
+          // Skip Cancel after URL submit — see comment on the redirect test.
           await Browser.navigateToURL(`${getDappUrl(0)}/iframe-test.html`, {
             skipUrlEditorDismissal: true,
           });
