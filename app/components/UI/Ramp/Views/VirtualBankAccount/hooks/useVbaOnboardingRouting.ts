@@ -298,6 +298,13 @@ export interface OpenVbaOnboardingRequest {
  * Re-submits capability authorization for a KYC session that already exists.
  * First-time creation stays on the email screen, which also has the signed-in
  * token `startSession` needs when no session exists.
+ *
+ * `startSession` fetches the session status before refreshing authorization,
+ * so a session the backend no longer has (cleared server-side, or persisted
+ * by another profile) rejects here with a 404 instead of reaching
+ * `hydrateVbaOnboarding`'s own 404 handling. Mirrors that handling: drop the
+ * stale session so the caller's hydrate sees no session and restarts
+ * onboarding at vendor terms instead of surfacing the setup error.
  */
 const resumePersistedKycSession = async (): Promise<void> => {
   const kycController = Engine.context.KycController;
@@ -305,9 +312,17 @@ const resumePersistedKycSession = async (): Promise<void> => {
     return;
   }
 
-  await kycController.startSession({
-    vendor: VBA_KYC_VENDOR,
-  });
+  try {
+    await kycController.startSession({
+      vendor: VBA_KYC_VENDOR,
+    });
+  } catch (error) {
+    if ((error as { httpStatus?: number })?.httpStatus === 404) {
+      kycController.clearState();
+      return;
+    }
+    throw error;
+  }
 };
 
 const resolveOpenRequest = (
