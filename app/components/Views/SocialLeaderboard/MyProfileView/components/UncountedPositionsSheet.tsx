@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
+  ButtonSize,
   FontWeight,
   Text,
   TextColor,
@@ -48,18 +49,13 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  useEffect(() => {
-    sheetRef.current?.onOpenBottomSheet();
-  }, []);
-
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
-  };
+  }, []);
 
   return (
     <BottomSheet
       ref={sheetRef}
-      isInteractable
       onClose={onClose}
       testID={MyProfileViewSelectorsIDs.UNCOUNTED_SHEET}
     >
@@ -99,6 +95,7 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
+          size: ButtonSize.Lg,
           children: strings(
             'social_leaderboard.my_profile.not_counted_sheet_dismiss',
           ),
