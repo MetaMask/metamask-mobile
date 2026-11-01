@@ -48,6 +48,7 @@ export interface PositionRowProps {
    * Visual treatment for positions that carry server flags.
    * `excluded` greys the row, mutes P&L colour, and shows the long exclusion label on its own line (legacy trader profile).
    * `subline` keeps full opacity and P&L colour, and appends the short flag word to the existing subtitle (V1 profile).
+   * The flag word is a separate non-shrinking text so the amount or date truncates first.
    * Either value ignores `onPress` for flagged rows. Omit it to leave flagged data looking and behaving like an unflagged row.
    */
   flaggedPresentation?: FlaggedPositionPresentation;
@@ -200,8 +201,6 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
             : position.positionAmount,
         )} ${displaySymbol}`;
   const flagLabel = flagLabelKey ? strings(flagLabelKey) : null;
-  const subtitleText =
-    isSublineFlag && flagLabel ? `${subtitle} · ${flagLabel}` : subtitle;
   const accessibilityReasonKey = isSublineFlag
     ? getPositionFlagAccessibilityReasonKey(position)
     : null;
@@ -276,14 +275,41 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
               />
             ) : null}
           </Box>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-            testID={`position-row-subtitle-${position.tokenSymbol}`}
-          >
-            {subtitleText}
-          </Text>
+          {isSublineFlag && flagLabel ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="min-w-0"
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                twClassName="shrink"
+                testID={`position-row-subtitle-${position.tokenSymbol}`}
+              >
+                {subtitle}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                twClassName="shrink-0"
+                testID={`position-row-flag-suffix-${position.tokenSymbol}`}
+              >
+                {` · ${flagLabel}`}
+              </Text>
+            </Box>
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+              testID={`position-row-subtitle-${position.tokenSymbol}`}
+            >
+              {subtitle}
+            </Text>
+          )}
           {isExcluded && flagLabel ? (
             <Text
               variant={TextVariant.BodySm}

@@ -13,17 +13,28 @@ const opacityOf = (node: ReturnType<typeof screen.getByTestId>) =>
   (StyleSheet.flatten(node.props.style) as { opacity?: number } | undefined)
     ?.opacity;
 
-const rowCopy = (symbol: string) => ({
-  subtitle: screen.getByTestId(`position-row-subtitle-${symbol}`).props
-    .children as string,
-  flagLine:
-    (screen.queryByTestId(`position-row-flag-label-${symbol}`)?.props
-      .children as string | undefined) ?? null,
-  accessibilityLabel:
-    (screen.getByTestId(`position-row-${symbol}`).props.accessibilityLabel as
-      | string
-      | undefined) ?? null,
-});
+const flexShrinkOf = (node: ReturnType<typeof screen.getByTestId>) =>
+  (StyleSheet.flatten(node.props.style) as { flexShrink?: number } | undefined)
+    ?.flexShrink;
+
+const rowCopy = (symbol: string) => {
+  const subtitleNode = screen.getByTestId(`position-row-subtitle-${symbol}`);
+  const flagSuffix = screen.queryByTestId(`position-row-flag-suffix-${symbol}`);
+  const subtitle = flagSuffix
+    ? `${subtitleNode.props.children as string}${flagSuffix.props.children as string}`
+    : (subtitleNode.props.children as string);
+
+  return {
+    subtitle,
+    flagLine:
+      (screen.queryByTestId(`position-row-flag-label-${symbol}`)?.props
+        .children as string | undefined) ?? null,
+    accessibilityLabel:
+      (screen.getByTestId(`position-row-${symbol}`).props.accessibilityLabel as
+        | string
+        | undefined) ?? null,
+  };
+};
 
 jest.mock('../../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
@@ -325,9 +336,12 @@ describe('PositionRow', () => {
       <PositionRow position={position} flaggedPresentation="subline" />,
     );
 
+    expect(screen.getByTestId('position-row-subtitle-STARKBOT')).toHaveTextContent(
+      '1.50B STARKBOT',
+    );
     expect(
-      screen.getByTestId('position-row-subtitle-STARKBOT'),
-    ).toHaveTextContent('1.50B STARKBOT · Creator');
+      screen.getByTestId('position-row-flag-suffix-STARKBOT').props.children,
+    ).toBe(' · Creator');
     expect(screen.getByTestId('position-row-STARKBOT')).toHaveProp(
       'accessibilityLabel',
       'STARKBOT, $2,259.96, up 182.00%, not counted in P&L, creator',
@@ -341,9 +355,12 @@ describe('PositionRow', () => {
       <PositionRow position={position} flaggedPresentation="subline" />,
     );
 
+    expect(screen.getByTestId('position-row-subtitle-STARKBOT')).toHaveTextContent(
+      '1.50B STARKBOT',
+    );
     expect(
-      screen.getByTestId('position-row-subtitle-STARKBOT'),
-    ).toHaveTextContent('1.50B STARKBOT · Excluded');
+      screen.getByTestId('position-row-flag-suffix-STARKBOT').props.children,
+    ).toBe(' · Excluded');
     expect(screen.getByTestId('position-row-STARKBOT')).toHaveProp(
       'accessibilityLabel',
       'STARKBOT, $2,259.96, up 182.00%, not counted in P&L, excluded',
@@ -428,6 +445,27 @@ describe('PositionRow', () => {
       'accessibilityLabel',
       'STARKBOT, $2,259.96, not counted in P&L, insider',
     );
+  });
+
+  it('shrinks the amount before the flag word on a subline row', () => {
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(
+      <PositionRow position={position} flaggedPresentation="subline" />,
+    );
+
+    const amount = screen.getByTestId('position-row-subtitle-STARKBOT');
+    const flag = screen.getByTestId('position-row-flag-suffix-STARKBOT');
+
+    expect(amount.props.children).toBe('1.50B STARKBOT');
+    expect(amount.props.numberOfLines).toBe(1);
+    expect(flexShrinkOf(amount)).toBe(1);
+    expect(flag.props.children).toBe(' · Insider');
+    expect(flag.props.numberOfLines).toBe(1);
+    expect(flexShrinkOf(flag)).toBe(0);
+    expect(
+      opacityOf(screen.getByTestId('position-row-STARKBOT')),
+    ).toBeUndefined();
   });
 
   it('leaves an unflagged row unchanged when the subline presentation is set', () => {
