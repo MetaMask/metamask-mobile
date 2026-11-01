@@ -1,5 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialV1FeedAuthor } from '../types';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
@@ -74,6 +75,26 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
     ).toHaveTextContent('$50K P&L (30d)');
+  });
+
+  it('leaves 12px between the avatar and the content column', () => {
+    renderWithProvider(
+      <SocialTraderIdentityRow
+        author={dolphinAuthor()}
+        handle="cented"
+        imageUrl={null}
+        timestampMs={Date.now()}
+        recyclingKey="row-1"
+        onMorePress={onMorePress}
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.CONTAINER).props
+          .style,
+      ),
+    ).toEqual(expect.objectContaining({ gap: 12 }));
   });
 
   it('omits the invented verified badge when the surface has not opted in', () => {

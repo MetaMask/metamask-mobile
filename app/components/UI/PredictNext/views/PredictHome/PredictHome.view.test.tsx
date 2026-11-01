@@ -407,10 +407,12 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
 
-      expect(watchedEventIds()).toEqual([
-        ...eventIds(nflEvents),
-        ...eventIds(ncaaEvents),
-      ]);
+      // Each section resolves its own preview Feed, so the service may hear
+      // the two watches in either order. The ids are the contract, not the
+      // arrival order; sorting keeps extra or duplicate watches failing.
+      expect(watchedEventIds().sort()).toEqual(
+        [...eventIds(nflEvents), ...eventIds(ncaaEvents)].sort(),
+      );
       expect(
         liveDataCalls().filter(
           ([action]) => action === 'PredictLiveDataService:unwatchEvents',

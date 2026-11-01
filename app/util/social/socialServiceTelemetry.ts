@@ -38,6 +38,8 @@ export type SocialEndpoint =
   | 'unfollow'
   | 'moderation_block'
   | 'blocked_profiles'
+  | 'block'
+  | 'unblock'
   | 'blocked_content';
 
 /**
