@@ -13,6 +13,7 @@ import type { AppNavigationProp } from '../../../app/core/NavigationService/type
 import ReduxService, { type ReduxStore } from '../../../app/core/redux';
 import Routes from '../../../app/constants/navigation/Routes';
 import VbaEmailAdapter from '../../../app/components/UI/KYC/Views/EmailAdapter';
+import VbaIdentityVerificationModule from '../../../app/components/UI/KYC/Views/SumSub/IdentityVerification';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
 import MoneyActivityView from '../../../app/components/UI/Money/Views/MoneyActivityView/MoneyActivityView';
 import { MoneyApiActivityDetailsView } from '../../../app/components/UI/Money/Views/MoneyApiActivityDetailsView/MoneyApiActivityDetailsView';
@@ -278,6 +279,48 @@ export const renderVbaMoneyActivityHistory = (
       },
     ],
     { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+/**
+ * Email step on a stack that also registers the onboarding routes, so a
+ * finished email code can reset onto identity verification.
+ */
+export const renderVbaEmailSessionCreation = (
+  options: RenderVbaOptions = {},
+) => {
+  const result = renderScreenWithRoutes(
+    VbaEmailVerificationHost,
+    { name: VbaOnboardingRoutes.EMAIL },
+    [
+      {
+        name: Routes.MFA.FLOW,
+        Component: MfaFlowHost as unknown as React.ComponentType,
+      },
+      { name: VbaOnboardingRoutes.VENDOR_TERMS },
+      {
+        name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+        Component:
+          VbaIdentityVerificationModule as unknown as React.ComponentType,
+      },
+      { name: Routes.HOME_TABS },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+/** Cold entry: the real onboarding navigator opens on the loading screen. */
+export const renderVbaOnboardingLoading = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    VbaOnboardingNavigator as unknown as React.ComponentType,
+    { name: Routes.RAMP.VBA_ONBOARDING },
+    [{ name: Routes.HOME_TABS }, { name: Routes.RAMP.VBA_DETAILS }],
+    { state: buildVbaState(options) },
+    { screen: VbaOnboardingRoutes.LOADING },
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
   return result;
