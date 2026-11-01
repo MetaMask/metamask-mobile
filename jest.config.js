@@ -35,6 +35,7 @@ const isReassureRun = process.env.REASSURE === 'true';
 
 const DEPENDENCIES_TO_TRANSPILE = [
   '@react-native',
+  'nanoid',
   'react-native',
   'redux-persist-filesystem',
   '@react-navigation',
