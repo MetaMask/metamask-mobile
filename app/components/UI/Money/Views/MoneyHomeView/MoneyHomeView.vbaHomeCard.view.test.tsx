@@ -1,7 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
-import type { KycProviderFlowStatus, KycSessionStatus } from '@metamask/kyc-controller';
+import type {
+  KycProviderFlowStatus,
+  KycSessionStatus,
+} from '@metamask/kyc-controller';
 import {
   AutorampStatus,
   type AutorampAccount,
@@ -35,10 +38,7 @@ import type { MoneyVbaHomeCardVariant } from '../../components/MoneyVbaHomeCard/
 
 const VENDOR_TERMS_STORAGE_KEY = `@MetaMask:vbaTermsOneAccepted:v1:${VBA_TEST_MONEY_ADDRESS.toLowerCase()}`;
 
-const session = (
-  finalStatus: string,
-  kycStatus: string,
-): KycSessionStatus => ({
+const session = (finalStatus: string, kycStatus: string): KycSessionStatus => ({
   id: 'kyc-session-1',
   finalStatus,
   externalUserId: 'external-user-1',
@@ -136,9 +136,7 @@ const installMoneyHomeEngine = () => {
     if (action === 'MoneyAccountBalanceService:getVaultApy') {
       return Promise.resolve({ apy: '0.042' });
     }
-    return previous
-      ? previous(action, ...args)
-      : Promise.resolve(undefined);
+    return previous ? previous(action, ...args) : Promise.resolve(undefined);
   });
   return () => {
     engineCall.mockImplementation(
