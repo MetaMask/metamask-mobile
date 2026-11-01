@@ -25,6 +25,7 @@ import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
 import { VbaKycRejectedAdapter } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
+import type { VbaOnboardingSnapshot } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import { createRouteParamsProbe, renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
 
@@ -169,6 +170,32 @@ export const renderVbaKycRejected = (options: RenderVbaOptions = {}) => {
       },
     ],
     { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+/**
+ * Mounts the real onboarding navigator on Identity verification, so the
+ * SumSub launch, KYC pending, and every destination after it are real screens.
+ */
+export const renderVbaIdentityVerification = (
+  snapshot: VbaOnboardingSnapshot,
+  options: RenderVbaOptions = {},
+) => {
+  const result = renderScreenWithRoutes(
+    VbaOnboardingNavigator as unknown as React.ComponentType,
+    { name: Routes.RAMP.VBA_ONBOARDING },
+    [
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+      {
+        name: Routes.MODAL.ROOT_MODAL_FLOW,
+        Component: VbaSupportConsentModal,
+      },
+    ],
+    { state: buildVbaState(options) },
+    { screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION, params: { snapshot } },
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
   return result;
