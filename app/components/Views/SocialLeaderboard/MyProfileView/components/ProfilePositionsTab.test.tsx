@@ -17,12 +17,15 @@ jest.mock('../../TraderProfileView/components/PositionRow', () => {
     default: ({
       position,
       onPress,
+      showFlaggedState,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
+      showFlaggedState?: boolean;
     }) => (
       <Pressable
         testID={`position-row-${position.tokenSymbol}`}
+        accessibilityState={{ disabled: Boolean(showFlaggedState) }}
         onPress={() => onPress?.(position)}
       >
         <Text>{position.tokenSymbol}</Text>
@@ -259,7 +262,7 @@ describe('ProfilePositionsTab', () => {
     expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
   });
 
-  it('leaves flagged rows in the normal sections when the flagged state is off', () => {
+  it('pins the owner flagged rows and keeps them pressable', () => {
     const flagged = { ...openSpot, flags: ['insider'] };
 
     renderWithProvider(
@@ -275,11 +278,20 @@ describe('ProfilePositionsTab', () => {
       />,
     );
 
-    expect(screen.queryByText('Not counted in P&L')).toBeNull();
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
+    ).toBeNull();
+    expect(
+      screen.getByTestId('position-row-ETH').props.accessibilityState,
+    ).toEqual({ disabled: false });
+
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(onPositionPress).toHaveBeenCalledTimes(1);
+    expect(onPositionPress).toHaveBeenCalledWith(flagged);
   });
 
   it('applies the Tokens filter inside the uncounted section', () => {
@@ -365,6 +377,9 @@ describe('ProfilePositionsTab', () => {
 
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
+    expect(
+      screen.getByTestId('position-row-ETH').props.accessibilityState,
+    ).toEqual({ disabled: true });
     expect(onPositionPress).not.toHaveBeenCalled();
   });
 

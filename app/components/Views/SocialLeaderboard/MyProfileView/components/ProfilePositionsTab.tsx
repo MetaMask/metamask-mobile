@@ -59,19 +59,18 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   showFlaggedState,
 }) => {
   const { tokens, perps, uncounted } = useMemo(() => {
-    // Only other traders grey flagged rows (`showFlaggedState`). The same
-    // gate decides whether those rows leave the Tokens/Perps sections.
-    // This list is already one Open or Closed tab, so the pin is per tab.
-    const split = showFlaggedState
-      ? partitionUncountedPositions(positions)
-      : { counted: positions, uncounted: [] as Position[] };
+    // Every viewer, including the owner, pins flagged rows after Tokens and
+    // Perpetuals. `showFlaggedState` only greys those rows and blocks presses,
+    // which stays limited to other traders. This list is already one Open or
+    // Closed tab, so the pin is per tab.
+    const split = partitionUncountedPositions(positions);
     const sections = getFilteredPositionSections(split.counted, filter);
 
     return {
       ...sections,
       uncounted: filterPositionsByAsset(split.uncounted, filter),
     };
-  }, [filter, positions, showFlaggedState]);
+  }, [filter, positions]);
   const showSectionHeaders = filter === 'all';
   const isEmpty =
     tokens.length === 0 && perps.length === 0 && uncounted.length === 0;
