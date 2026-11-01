@@ -1,5 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -82,11 +82,13 @@ const activityFlagOverrides = {
 
 const engineCall = Engine.controllerMessenger.call as jest.Mock;
 
-const installVbaTransfers = (transfers: unknown[]) => {
+const installVbaTransfers = (transfers: unknown[] | Error) => {
   const previous = engineCall.getMockImplementation();
   engineCall.mockImplementation((action: string, ...args: unknown[]) => {
     if (action === 'MoneyAccountApiDataService:fetchVbaTransfers') {
-      return Promise.resolve({ transfers });
+      return transfers instanceof Error
+        ? Promise.reject(transfers)
+        : Promise.resolve({ transfers });
     }
     if (previous) {
       return previous(action, ...args);
@@ -253,4 +255,26 @@ describeForPlatforms('Money activity VBA history view', () => {
       }),
     );
   });
+
+  // Bug: a failed VBA transfer fetch shows "no activity" instead of the load error.
+  it.failing(
+    'shows the activity load error when the VBA transfer fetch fails',
+    async () => {
+      restoreEngine = installVbaTransfers(
+        new Error('fetchVbaTransfers failed'),
+      );
+      const { findByTestId } = renderActivity();
+
+      await waitFor(() =>
+        expect(engineCall).toHaveBeenCalledWith(
+          'MoneyAccountApiDataService:fetchVbaTransfers',
+          expect.anything(),
+        ),
+      );
+
+      expect(
+        await findByTestId(MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE),
+      ).toHaveTextContent(strings('money.activity.load_error'));
+    },
+  );
 });
