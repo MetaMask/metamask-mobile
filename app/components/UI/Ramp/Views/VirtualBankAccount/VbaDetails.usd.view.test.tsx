@@ -172,18 +172,9 @@ describeForPlatforms('VbaDetails USD bank details view', () => {
     expect(
       engineContext.NeoBankService?.getDepositInstructions,
     ).toHaveBeenCalledWith(USD_AUTORAMP_ID);
-    expect(
-      queryByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(VbaDetailsSelectorsIDs.ROUTING_NUMBER),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(VbaDetailsSelectorsIDs.ACCOUNT_NUMBER),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(VbaDetailsSelectorsIDs.BANK_NAME),
-    ).not.toBeOnTheScreen();
+    for (const row of detailRows) {
+      expect(queryByTestId(row.testID)).not.toBeOnTheScreen();
+    }
 
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON));
 

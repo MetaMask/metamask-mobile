@@ -264,10 +264,8 @@ describeForPlatforms('US VBA entry points', () => {
     ramps.createAutoramp = jest.fn(
       async (request: { recipient_account: { address: string } }) => {
         const created: TestAutoramp = {
-          id: USD_AUTORAMP_ID,
+          ...usdAutoramp,
           walletAddress: request.recipient_account.address,
-          status: 'Approved',
-          depositRailsSummary: { currency: 'USD', ready: true },
         };
         ramps.state = { autoramps: [created] };
         return created;

@@ -63,27 +63,17 @@ const vbaTransfers = [
   ),
 ];
 
+const enabledFlag = { enabled: true, minimumVersion: '0.0.0' };
+
 const activityFlagOverrides = {
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          moneyVbaPendingActivityEnabled: {
-            enabled: true,
-            minimumVersion: '0.0.0',
-          },
-          moneyVbaCompletedActivityEnabled: {
-            enabled: true,
-            minimumVersion: '0.0.0',
-          },
-          moneyEnableActivityDetails: {
-            enabled: true,
-            minimumVersion: '0.0.0',
-          },
-          moneyEnableCardActivityEnrichment: {
-            enabled: false,
-            minimumVersion: '0.0.0',
-          },
+          moneyVbaPendingActivityEnabled: enabledFlag,
+          moneyVbaCompletedActivityEnabled: enabledFlag,
+          moneyEnableActivityDetails: enabledFlag,
+          moneyEnableCardActivityEnrichment: { ...enabledFlag, enabled: false },
         },
       },
     },
