@@ -93,6 +93,7 @@ import {
 } from './useTraderPositionData';
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
+import { getPositionFlagLabelKey } from '../TraderProfileView/utils/positionFlags';
 import {
   buildFollowTradingTokenContext,
   pickFollowTradingDismissedProperties,
@@ -168,6 +169,11 @@ const TraderPositionView = () => {
     !isPerpsEnabled &&
     isPerpPosition(resolvedPosition);
   const displayPosition = isBlockedPerpPosition ? undefined : resolvedPosition;
+  // Any server flag excludes the position from P&L. Those positions must not
+  // be copy-traded, so the history view stays readable without Buy or Trade.
+  const isFlaggedPosition =
+    displayPosition != null &&
+    getPositionFlagLabelKey(displayPosition) != null;
 
   // Nav-param values win on first render to avoid a header flicker; once the
   // profile resolves it fills in any missing fields and powers pull-to-refresh.
@@ -848,7 +854,7 @@ const TraderPositionView = () => {
         </Animated.View>
       </View>
 
-      {isPerp && displayPosition ? (
+      {isFlaggedPosition ? null : isPerp && displayPosition ? (
         <PerpsTradeButton
           symbol={displayPosition.tokenSymbol}
           onTrade={handlePerpTrade}

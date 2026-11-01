@@ -656,6 +656,47 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it.each(['insider', 'developer', 'blocked'] as const)(
+    'hides Buy for a %s position and keeps the history view',
+    (flag) => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        flags: [flag],
+      };
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps Buy when the position has an empty flags list', () => {
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      flags: [],
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('fires Follow Trading Token CTA Clicked with cta_type buy when the Buy button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -742,6 +783,32 @@ describe('TraderPositionView', () => {
       expect(
         screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       ).not.toBeOnTheScreen();
+    });
+
+    it('hides Trade for a flagged perp position and keeps the history view', () => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        tokenSymbol: 'ETH',
+        chain: 'hyperliquid',
+        perpPositionType: 'short',
+        perpLeverage: 10,
+        flags: ['insider'],
+      };
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW),
+      ).toBeOnTheScreen();
     });
 
     it('navigates to the Perps market page (not QuickBuy) when the Trade button is pressed', () => {
