@@ -1171,7 +1171,8 @@
     },
     "kyc_email": {
       "error_title": "Couldn't start verification",
-      "error_description": "Something went wrong opening email verification. Please try again."
+      "error_description": "Something went wrong opening email verification. Please try again.",
+      "http_error": "Something went wrong opening email verification. Please try again."
     },
     "sumsub_kyc": {
       "more_info_title": "We need a little more info",
