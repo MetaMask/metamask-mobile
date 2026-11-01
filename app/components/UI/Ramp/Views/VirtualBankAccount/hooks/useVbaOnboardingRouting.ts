@@ -394,9 +394,11 @@ export const resolveVbaOnboarding = async (
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
     endVbaCufChildTrace(hydrateTraceId, true);
-    // An existing autoramp opens the account even when the funnel facts are
-    // missing.
+    const funnelDestination = getVbaDestinationForSnapshot(snapshot);
+    // An existing autoramp opens the account only when the funnel would send
+    // the user back to vendor terms or email, as it does with no KYC session.
     const hasExistingAccount =
+      (funnelDestination === 'vendorTerms' || funnelDestination === 'email') &&
       getVbaKycStatusOverride() === null &&
       Boolean(
         findUsableVbaAutoramp(
@@ -406,9 +408,7 @@ export const resolveVbaOnboarding = async (
       );
     return {
       status: 'ready',
-      destinationId: hasExistingAccount
-        ? 'complete'
-        : getVbaDestinationForSnapshot(snapshot),
+      destinationId: hasExistingAccount ? 'complete' : funnelDestination,
       snapshot,
     };
   } catch (error) {
