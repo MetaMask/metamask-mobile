@@ -2,7 +2,9 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   IconName,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
 import { strings } from '../../../../../locales/i18n';
@@ -28,6 +30,10 @@ const CopyTradeButton: React.FC<CopyTradeButtonProps> = ({
       size={ButtonSize.Md}
       isFullWidth
       startIconName={IconName.SwapHorizontal}
+      textProps={{
+        variant: TextVariant.BodySm,
+        fontWeight: FontWeight.Medium,
+      }}
       onPress={handlePress}
       testID={testID}
     >

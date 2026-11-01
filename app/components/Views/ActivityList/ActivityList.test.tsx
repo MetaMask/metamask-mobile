@@ -11,7 +11,7 @@ import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
-import { usePredictActivityItems } from './hooks/usePredictActivityItems';
+import { usePredictActivityItems } from '../../UI/PredictNext';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
@@ -539,8 +539,13 @@ jest.mock('./hooks/usePerpsActivityItems', () => ({
   usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
 }));
 
-jest.mock('./hooks/usePredictActivityItems', () => ({
-  usePredictActivityItems: jest.fn(() => mockPredictSourceState),
+const mockIsInactivePredictVenueItem = jest.fn((_item: unknown) => false);
+
+jest.mock('../../UI/PredictNext', () => ({
+  usePredictActivityItems: jest.fn(() => ({
+    isInactiveVenueItem: mockIsInactivePredictVenueItem,
+    ...mockPredictSourceState,
+  })),
 }));
 
 const usePerpsActivityItemsMock = jest.mocked(usePerpsActivityItems);
@@ -1617,6 +1622,46 @@ describe('ActivityList', () => {
 
     expect(screen.getByTestId('row-predict-1')).toBeOnTheScreen();
     expect(usePredictActivityItemsMock).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it.each([
+    [ActivityTypeFilter.Predictions, false],
+    [ActivityTypeFilter.All, true],
+  ])('under %s, shows an inactive Venue row: %s', (typeFilter, isShown) => {
+    selectorValues.predictEnabled = true;
+    mockPredictSourceState = {
+      items: [
+        {
+          type: 'predictionPlaced',
+          chainId: 'kalshi:mainnet',
+          status: 'success',
+          timestamp: 7,
+          hash: 'active-venue-row',
+          data: { token: { symbol: 'USD' } },
+        },
+        {
+          type: 'predictionPlaced',
+          chainId: 'eip155:137',
+          status: 'success',
+          timestamp: 6,
+          hash: 'inactive-venue-row',
+          data: { token: { symbol: 'USDC' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+    mockIsInactivePredictVenueItem.mockImplementation(
+      (item) => (item as { hash?: string }).hash === 'inactive-venue-row',
+    );
+
+    render(<ActivityList typeFilter={typeFilter} />);
+
+    expect(screen.getByTestId('row-active-venue-row')).toBeOnTheScreen();
+    expect(Boolean(screen.queryByTestId('row-inactive-venue-row'))).toBe(
+      isShown,
+    );
+    mockIsInactivePredictVenueItem.mockImplementation(() => false);
   });
 
   it('does not enable the predict query on the Transactions tab', () => {

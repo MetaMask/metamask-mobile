@@ -829,6 +829,10 @@ enum EVENT_NAME {
   MONEY_TOOLTIP_CLICKED = 'Money Tooltip Clicked',
   MONEY_VBA_TRANSACTION_UPDATED = 'Money VBA Transaction Updated',
 
+  // KYC (virtual bank account onboarding)
+  KYC_VERIFICATION_UPDATED = 'KYC Verification Updated',
+  KYC_STATUS_UPDATED = 'KYC Status Updated',
+
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 
@@ -2240,6 +2244,10 @@ const events = {
   MONEY_VBA_TRANSACTION_UPDATED: generateOpt(
     EVENT_NAME.MONEY_VBA_TRANSACTION_UPDATED,
   ),
+
+  // KYC (virtual bank account onboarding)
+  KYC_VERIFICATION_UPDATED: generateOpt(EVENT_NAME.KYC_VERIFICATION_UPDATED),
+  KYC_STATUS_UPDATED: generateOpt(EVENT_NAME.KYC_STATUS_UPDATED),
 
   // Social Leaderboard (follow trading)
   SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED: generateOpt(

@@ -1,13 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  SectionDivider,
-} from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -16,8 +9,13 @@ import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsB
 import type { TabItem } from '../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { pushSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
+import {
+  HYPERLIQUID_CAIP2_CHAIN_ID,
+  SocialFeed,
+  toFeedAssetId,
+} from '../../../SocialFeed';
+import { HYPERLIQUID_CHAIN_NAME } from '../../../SocialFeed/utils/perp';
 import {
   SocialLeaderboard,
   type SocialLeaderboardSource,
@@ -27,12 +25,10 @@ import {
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
 } from '../../Perps.testIds';
-import PerpsSocialTrending from '../PerpsSocialFeedSection/PerpsSocialTrending';
 
-const TABS = ['overview', 'feed', 'top_traders'] as const;
-const FEED_POST_COUNT = 5;
-const TOP_TRADERS_LIMIT = 10;
+const TABS = ['overview', 'top_traders', 'feed'] as const;
 const SOURCE = PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN;
+const FEED_CHAINS = [HYPERLIQUID_CAIP2_CHAIN_ID];
 
 interface PerpsMarketSocialTabsProps {
   /** Raw market symbol (`BTC`, `xyz:NVDA`); the social perp feed keys on it exactly. */
@@ -48,13 +44,20 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
   onOverviewLayout,
   onOverviewVisibilityChange,
 }) => {
-  const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
+  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
   const [activeIndex, setActiveIndex] = useState(0);
   const leaderboardSource = useMemo<SocialLeaderboardSource>(
     () => ({ kind: 'perp', symbol }),
     [symbol],
   );
+  const feedAssetIds = useMemo(() => {
+    const assetId = toFeedAssetId({
+      chain: HYPERLIQUID_CHAIN_NAME,
+      tokenAddress: symbol,
+    });
+    return assetId ? [assetId] : null;
+  }, [symbol]);
 
   const tabs = useMemo<TabItem[]>(
     () =>
@@ -88,13 +91,6 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
 
   const activeTab = TABS[activeIndex];
 
-  const handleOpenSocial = useCallback(() => {
-    pushSocialLeaderboard(navigation.navigate, {
-      source: SOURCE,
-      initialTab: activeTab === 'top_traders' ? 'leaderboard' : 'trending',
-    });
-  }, [activeTab, navigation]);
-
   return (
     <>
       <SectionDivider />
@@ -109,19 +105,6 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
           {overview}
         </Box>
       ) : null}
-      {activeTab === 'feed' ? (
-        <Box
-          twClassName="pt-6"
-          testID={PerpsMarketDetailsViewSelectorsIDs.FEED_TAB_CONTENT}
-        >
-          <PerpsSocialTrending
-            symbol={symbol}
-            postCount={FEED_POST_COUNT}
-            source={SOURCE}
-            onSeeMorePress={handleOpenSocial}
-          />
-        </Box>
-      ) : null}
       {activeTab === 'top_traders' ? (
         <Box
           twClassName="pt-6"
@@ -130,19 +113,25 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
           <SocialLeaderboard
             source={leaderboardSource}
             location="perps_market_details"
-            limit={TOP_TRADERS_LIMIT}
           />
-          <Box twClassName="px-4 pt-3">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              isFullWidth
-              onPress={handleOpenSocial}
-              testID={PerpsMarketDetailsViewSelectorsIDs.TOP_TRADERS_SEE_MORE}
-            >
-              {strings('perps.home.see_more')}
-            </Button>
-          </Box>
+        </Box>
+      ) : null}
+      {activeTab === 'feed' ? (
+        <Box
+          twClassName="pt-6"
+          testID={PerpsMarketDetailsViewSelectorsIDs.FEED_TAB_CONTENT}
+        >
+          {feedAssetIds ? (
+            <SocialFeed
+              scope="all"
+              chains={FEED_CHAINS}
+              assetIds={feedAssetIds}
+              location="perps_market_details"
+              analyticsSource={SOURCE}
+              onAuthorPress={onAuthorPress}
+              onPositionPress={onPositionPress}
+            />
+          ) : null}
         </Box>
       ) : null}
     </>
