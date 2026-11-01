@@ -34,7 +34,11 @@ const kyc = Engine.context.KycController as unknown as {
   readSessionStatus: jest.Mock;
   startSession: jest.Mock;
   fetchVendorDisclaimers: jest.Mock;
+  clearState: jest.Mock;
 };
+
+// The shared Engine mock has no `clearState`. The 404 resume path calls it.
+kyc.clearState = jest.fn();
 
 const hydrate = jest.mocked(
   Engine.context.RampsController.hydrateVbaOnboarding,

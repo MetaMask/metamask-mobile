@@ -1,6 +1,7 @@
 import '../mocks';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Pressable, Text } from 'react-native';
+import { useStore } from 'react-redux';
 import {
   useNavigation,
   type NavigationProp,
@@ -313,18 +314,31 @@ export const renderVbaEmailSessionCreation = (
   return result;
 };
 
+/**
+ * Binds `ReduxService.store` during render, before the loading screen's effect
+ * reads it. `renderScreenWithRoutes` has already flushed effects by the time
+ * it returns, so binding afterwards is too late.
+ */
+const VbaOnboardingLoadingScreen = () => {
+  const store = useStore();
+  const isBound = useRef(false);
+  if (!isBound.current) {
+    bindVbaReduxServiceStore(store as unknown as ReduxStore);
+    isBound.current = true;
+  }
+
+  return <VbaOnboardingNavigator />;
+};
+
 /** Cold entry: the real onboarding navigator opens on the loading screen. */
-export const renderVbaOnboardingLoading = (options: RenderVbaOptions = {}) => {
-  const result = renderScreenWithRoutes(
-    VbaOnboardingNavigator as unknown as React.ComponentType,
+export const renderVbaOnboardingLoading = (options: RenderVbaOptions = {}) =>
+  renderScreenWithRoutes(
+    VbaOnboardingLoadingScreen,
     { name: Routes.RAMP.VBA_ONBOARDING },
     [{ name: Routes.HOME_TABS }, { name: Routes.RAMP.VBA_DETAILS }],
     { state: buildVbaState(options) },
     { screen: VbaOnboardingRoutes.LOADING },
   );
-  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
-  return result;
-};
 
 export const renderVbaEmailVerification = (options: RenderVbaOptions = {}) => {
   const result = renderScreenWithRoutes(
