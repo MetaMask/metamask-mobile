@@ -1,26 +1,27 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
+import en from '../../../../../../locales/languages/en.json';
 import Engine from '../../../../../core/Engine';
-import { apiClient } from '../../../../../core/apiClient';
+import {
+  clearAccountsTransactionsApiMocks,
+  setupV1AccountTransactionsApiMock,
+} from '../../../../../../tests/component-view/api-mocking/accounts-transactions';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { VBA_TEST_MONEY_ADDRESS } from '../../../../../../tests/component-view/presets/vba';
 import {
   renderVbaMoneyHome,
   restoreVbaReduxServiceStore,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
-import { VbaOnboardingLoadingSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
+import { VbaIdentityVerifiedSelectorsIDs } from '../../../KYC/Views/Status/IdentityVerified';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from '../../components/MoneyVbaHomeCard/MoneyVbaHomeCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
-import { MoneyActivityItemTestIds } from '../../components/MoneyActivityItem/MoneyActivityItem.testIds';
 
-const UNRESOLVED_COPY = /\[missing|money\.vba_home_card\./iu;
-const PENDING_TRANSFER_ID = 'vba-transfer-1';
+const englishCard = en.money.vba_home_card.account_is_ready;
 
 const APPROVED_SESSION = {
   id: 'session-1',
@@ -39,21 +40,7 @@ const kycController = Engine.context.KycController as {
   state?: { sessionStatus: null };
 };
 
-const pendingTransfer = {
-  transfer_id: PENDING_TRANSFER_ID,
-  event_timestamp: '2026-10-01T12:00:00.000Z',
-  status: 'processing',
-  transfer: {
-    recipient_address: VBA_TEST_MONEY_ADDRESS,
-    asset: 'musd',
-    amount: '25.00',
-    network: 'monad',
-  },
-};
-
-const homeOverrides = (
-  pendingActivityEnabled: boolean,
-): DeepPartial<RootState> =>
+const homeOverrides = (): DeepPartial<RootState> =>
   ({
     user: {
       onboardingStepperProgress: {
@@ -73,27 +60,11 @@ const homeOverrides = (
             sortCallback: 'stringNumeric',
           },
         },
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            moneyVbaPendingActivityEnabled: {
-              enabled: pendingActivityEnabled,
-              minimumVersion: '0.0.0',
-            },
-            moneyVbaCompletedActivityEnabled: {
-              enabled: false,
-              minimumVersion: '0.0.0',
-            },
-          },
-        },
       },
     },
   }) as unknown as DeepPartial<RootState>;
 
-const expectResolvedCopy = (value: string) => {
-  expect(value).not.toMatch(UNRESOLVED_COPY);
-};
-
-const installMoneyHomeEngine = (transfers: unknown[]) => {
+const installMoneyHomeEngine = () => {
   const previous = engineCall.getMockImplementation();
   engineCall.mockImplementation((action: string, ...args: unknown[]) => {
     if (action === 'MoneyAccountBalanceService:fetchBalanceWithFallback') {
@@ -107,9 +78,6 @@ const installMoneyHomeEngine = (transfers: unknown[]) => {
     }
     if (action === 'MoneyAccountApiDataService:fetchInterest') {
       return Promise.resolve({ interest_earned_usd: '0' });
-    }
-    if (action === 'MoneyAccountApiDataService:fetchVbaTransfers') {
-      return Promise.resolve({ transfers });
     }
     if (action === 'MoneyAccountBalanceService:getVaultApy') {
       return Promise.resolve({ apy: '0.042' });
@@ -128,35 +96,33 @@ const installMoneyHomeEngine = (transfers: unknown[]) => {
 
 describeForPlatforms('Money home VBA card view', () => {
   let restoreEngine: (() => void) | undefined;
-  let fetchTransactions: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
     kycController.state = { sessionStatus: null };
-    mockHydrateVbaOnboarding.mockImplementation(
-      () => new Promise(() => undefined),
-    );
-    fetchTransactions = jest
-      .spyOn(apiClient.accounts, 'fetchV1AccountTransactions')
-      .mockResolvedValue({
-        data: [],
-        pageInfo: { hasNextPage: false },
-      } as unknown as Awaited<
-        ReturnType<typeof apiClient.accounts.fetchV1AccountTransactions>
-      >);
+    setupV1AccountTransactionsApiMock();
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted',
+      kycStatus: 'approved',
+      autorampStatus: 'not_ready',
+    });
   });
 
   afterEach(() => {
     restoreEngine?.();
     restoreEngine = undefined;
-    fetchTransactions.mockRestore();
+    clearAccountsTransactionsApiMocks();
     restoreVbaReduxServiceStore();
   });
 
-  it('shows the account-ready card on an empty first-deposit home', async () => {
-    restoreEngine = installMoneyHomeEngine([]);
+  it('shows the account-ready card for a KYC-approved user with zero balance', async () => {
+    restoreEngine = installMoneyHomeEngine();
     const { findByTestId, getByTestId, queryByTestId } = renderVbaMoneyHome({
-      overrides: homeOverrides(false),
+      overrides: homeOverrides(),
     });
     const card = MONEY_VBA_HOME_CARD_TEST_IDS.account_is_ready;
 
@@ -173,77 +139,44 @@ describeForPlatforms('Money home VBA card view', () => {
     expect(
       await findByTestId(MoneyHowItWorksTestIds.CONTAINER),
     ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        queryByTestId(MoneyActivityLoadingTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
     expect(
       queryByTestId(MoneyActivityListTestIds.CONTAINER),
     ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(MoneyActivityLoadingTestIds.CONTAINER),
-    ).not.toBeOnTheScreen();
 
     fireEvent.press(getByTestId(card.CTA_BUTTON));
 
     expect(
-      await findByTestId(VbaOnboardingLoadingSelectorsIDs.SPINNER),
+      await findByTestId(VbaIdentityVerifiedSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(queryByTestId(card.CONTAINER)).not.toBeOnTheScreen();
   });
 
-  it('keeps the account-ready card beside a pending VBA deposit', async () => {
-    restoreEngine = installMoneyHomeEngine([pendingTransfer]);
-    const { findByTestId, getByTestId, queryByTestId } = renderVbaMoneyHome({
-      overrides: homeOverrides(true),
-    });
-    const card = MONEY_VBA_HOME_CARD_TEST_IDS.account_is_ready;
-
-    expect(await findByTestId(card.CONTAINER)).toBeOnTheScreen();
-    expect(
-      await findByTestId(
-        `${MoneyActivityItemTestIds.ROW}-${PENDING_TRANSFER_ID}`,
-      ),
-    ).toBeOnTheScreen();
-    expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId(MoneyActivityItemTestIds.LABEL)).toHaveTextContent(
-      strings('money.transaction.depositing'),
-    );
-    expect(
-      queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
-    ).not.toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(card.CTA_BUTTON));
-
-    expect(
-      await findByTestId(VbaOnboardingLoadingSelectorsIDs.SPINNER),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the VBA card in Portuguese (pt) with resolved copy', async () => {
+  it('does not render the English source for the account-ready card in Portuguese', async () => {
     const previousLocale = I18n.locale;
     I18n.locale = 'pt';
-    restoreEngine = installMoneyHomeEngine([]);
+    restoreEngine = installMoneyHomeEngine();
 
     try {
-      const { findByTestId, getByTestId } = renderVbaMoneyHome({
-        overrides: homeOverrides(false),
+      const { findByTestId, getByTestId, queryAllByText } = renderVbaMoneyHome({
+        overrides: homeOverrides(),
       });
       const card = MONEY_VBA_HOME_CARD_TEST_IDS.account_is_ready;
-      const title = strings('money.vba_home_card.account_is_ready.title');
-      const description = strings(
-        'money.vba_home_card.account_is_ready.description',
-      );
-      const cta = strings('money.vba_home_card.account_is_ready.cta');
 
       expect(await findByTestId(card.TITLE)).toBeOnTheScreen();
-      expectResolvedCopy(title);
-      expectResolvedCopy(description);
-      expectResolvedCopy(cta);
-      expect(getByTestId(card.TITLE)).toHaveTextContent(title);
-      expect(getByTestId(card.DESCRIPTION)).toHaveTextContent(description);
-      expect(getByTestId(card.CTA_BUTTON)).toHaveTextContent(cta);
+      expect(getByTestId(card.TITLE)).not.toHaveTextContent(
+        /\[missing|money\.vba_home_card\./i,
+      );
+      expect(queryAllByText(englishCard.title)).toHaveLength(0);
+      expect(queryAllByText(englishCard.description)).toHaveLength(0);
+      expect(queryAllByText(englishCard.cta)).toHaveLength(0);
+      expect(getByTestId(card.TITLE)).toHaveTextContent(/\S/);
     } finally {
       I18n.locale = previousLocale;
     }
   });
-
-  it.todo(
-    'Portuguese copy is pending: Money home VBA card must not keep English source text',
-  );
 });

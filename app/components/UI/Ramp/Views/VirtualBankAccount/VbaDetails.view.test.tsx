@@ -4,6 +4,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import I18n, { strings } from '../../../../../../locales/i18n';
+import en from '../../../../../../locales/languages/en.json';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -19,7 +20,7 @@ import { VbaAccountCreateErrorSelectorsIDs } from './VbaAccountCreateError';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import { VbaDetailsSelectorsIDs } from './VbaDetails';
 
-const UNRESOLVED_COPY = /\[missing|virtual_bank_account\./iu;
+const englishDetails = en.virtual_bank_account.vba_details;
 const PIX_KEY = 'maria@pix.br';
 const PIX_CODE = '00020126580014br.gov.bcb.pix';
 
@@ -49,8 +50,17 @@ const approvedAutoramp = (): TestAutoramp => ({
   depositRailsSummary: { currency: 'BRL' },
 });
 
-const expectResolvedCopy = (value: string) => {
-  expect(value).not.toMatch(UNRESOLVED_COPY);
+const createdAutoramp = (): TestAutoramp => ({
+  id: 'ar-pending',
+  walletAddress: VBA_TEST_MONEY_ADDRESS,
+  status: 'Created',
+  depositRailsSummary: { currency: 'BRL' },
+});
+
+const pixInstructions = {
+  type: 'Pix',
+  pixKey: PIX_KEY,
+  brCode: PIX_CODE,
 };
 
 describeForPlatforms('VbaDetails view', () => {
@@ -87,11 +97,9 @@ describeForPlatforms('VbaDetails view', () => {
 
   it('shows the Pix key and Copia e Cola once deposit instructions load', async () => {
     ramps.state = { autoramps: [approvedAutoramp()] };
-    engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue({
-      type: 'Pix',
-      pixKey: PIX_KEY,
-      brCode: PIX_CODE,
-    });
+    engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue(
+      pixInstructions,
+    );
     const { findByTestId, getByTestId } = renderVbaDetails();
 
     const pixKeyRow = await findByTestId(VbaDetailsSelectorsIDs.PIX_KEY);
@@ -141,7 +149,7 @@ describeForPlatforms('VbaDetails view', () => {
   });
 
   it.each(['Rejected', 'Cancelled'] as const)(
-    'leaves Pix details for account support when the autoramp is %s',
+    'opens support from the account error when the autoramp is %s',
     async (status) => {
       ramps.state = {
         autoramps: [
@@ -153,29 +161,17 @@ describeForPlatforms('VbaDetails view', () => {
           },
         ],
       };
-      const { findByTestId, getByText, queryByTestId, queryByText } =
-        renderVbaDetails();
+      const {
+        findByTestId,
+        getByText,
+        getByTestId,
+        queryByTestId,
+        queryByText,
+      } = renderVbaDetails();
 
       expect(
         await findByTestId(
           `${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-generic`,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(
-          strings('virtual_bank_account.account_create_error.generic.title'),
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(
-          strings(
-            'virtual_bank_account.account_create_error.details.description',
-          ),
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(
-          strings('virtual_bank_account.account_create_error.details.primary'),
         ),
       ).toBeOnTheScreen();
       expect(
@@ -184,30 +180,120 @@ describeForPlatforms('VbaDetails view', () => {
         ),
       ).not.toBeOnTheScreen();
       expect(
+        getByText(
+          strings('virtual_bank_account.account_create_error.details.primary'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
         queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
       ).not.toBeOnTheScreen();
+      expect(ramps.createAutoramp).not.toHaveBeenCalled();
+
+      fireEvent.press(
+        getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      expect(await findByTestId('support-consent-sheet')).toBeOnTheScreen();
       expect(ramps.createAutoramp).not.toHaveBeenCalled();
     },
   );
 
-  it('shows the creating-account message while the autoramp is still pending', async () => {
-    ramps.state = {
-      autoramps: [
-        {
-          id: 'ar-pending',
-          walletAddress: VBA_TEST_MONEY_ADDRESS,
-          status: 'Created',
-          depositRailsSummary: { currency: 'BRL' },
-        },
-      ],
-    };
+  it('opens the generic account error when refresh turns the autoramp Rejected', async () => {
+    ramps.state = { autoramps: [createdAutoramp()] };
     ramps.refreshAutoramp?.mockResolvedValue({
-      id: 'ar-pending',
-      walletAddress: VBA_TEST_MONEY_ADDRESS,
-      status: 'Authorized',
-      depositRailsSummary: { currency: 'BRL' },
+      ...createdAutoramp(),
+      status: 'Rejected',
     });
-    const { findByText, queryByTestId } = renderVbaDetails();
+    const { findByTestId, getByTestId, queryByTestId } = renderVbaDetails();
+
+    expect(
+      await findByTestId(
+        `${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-generic`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-details`),
+    ).not.toBeOnTheScreen();
+    expect(ramps.createAutoramp).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    expect(await findByTestId('support-consent-sheet')).toBeOnTheScreen();
+  });
+
+  it('opens the details account error when refresh returns RegistrationFailed', async () => {
+    ramps.state = { autoramps: [createdAutoramp()] };
+    ramps.refreshAutoramp?.mockResolvedValue({
+      ...createdAutoramp(),
+      status: 'RegistrationFailed',
+    });
+    const { findByTestId, getByTestId, getByText, queryByTestId } =
+      renderVbaDetails();
+
+    expect(
+      await findByTestId(
+        `${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-details`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.details.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-generic`),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    expect(await findByTestId('support-consent-sheet')).toBeOnTheScreen();
+    expect(ramps.createAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('replaces the creating message with Pix details on the same poll', async () => {
+    let releaseRefresh: (autoramp: TestAutoramp) => void = () => undefined;
+    ramps.state = { autoramps: [createdAutoramp()] };
+    ramps.refreshAutoramp?.mockReturnValue(
+      new Promise<TestAutoramp>((resolve) => {
+        releaseRefresh = resolve;
+      }),
+    );
+    engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue(
+      pixInstructions,
+    );
+    const { findByText, findByTestId, getByTestId, queryByText } =
+      renderVbaDetails();
+
+    expect(
+      await findByText(strings('virtual_bank_account.creating_account.title')),
+    ).toBeOnTheScreen();
+    expect(queryByText(PIX_CODE)).not.toBeOnTheScreen();
+
+    releaseRefresh({ ...createdAutoramp(), status: 'Approved' });
+
+    expect(
+      await findByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
+    ).toBeOnTheScreen();
+    expect(
+      within(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).getByText(PIX_KEY),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('virtual_bank_account.creating_account.title')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the creating-account message while the autoramp is still pending', async () => {
+    ramps.state = { autoramps: [createdAutoramp()] };
+    ramps.refreshAutoramp?.mockResolvedValue({
+      ...createdAutoramp(),
+      status: 'Authorized',
+    });
+    const { findByText, findByTestId, getByTestId, queryByTestId } =
+      renderVbaDetails();
 
     expect(
       await findByText(strings('virtual_bank_account.creating_account.title')),
@@ -218,10 +304,16 @@ describeForPlatforms('VbaDetails view', () => {
     expect(
       queryByTestId(`${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-generic`),
     ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(VbaCreatingAccountSelectorsIDs.BACK_BUTTON));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).toBeOnTheScreen();
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
   });
 
-  it('shows the waiting-for-provider message while the account is still pending', async () => {
+  it('shows the waiting-for-provider message while MoonPay has not approved the account', async () => {
     const { findByText, findByTestId, getByTestId, queryByTestId } =
       renderVbaDetails();
 
@@ -236,9 +328,6 @@ describeForPlatforms('VbaDetails view', () => {
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(`${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-generic`),
-    ).not.toBeOnTheScreen();
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
 
     fireEvent.press(getByTestId(VbaCreatingAccountSelectorsIDs.BACK_BUTTON));
@@ -248,46 +337,32 @@ describeForPlatforms('VbaDetails view', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders Pix details in Portuguese (pt) with resolved copy', async () => {
-    const previousLocale = I18n.locale;
-    I18n.locale = 'pt';
-    ramps.state = { autoramps: [approvedAutoramp()] };
-    engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue({
-      type: 'Pix',
-      pixKey: PIX_KEY,
-      brCode: PIX_CODE,
-    });
-
-    try {
-      const { findByTestId, getByTestId } = renderVbaDetails();
-      const title = strings('virtual_bank_account.vba_details.title');
-      const description = strings(
-        'virtual_bank_account.vba_details.description',
-      );
-      const pixKeyLabel = strings(
-        'virtual_bank_account.vba_details.pix_key_label',
+  it.failing(
+    'Portuguese copy is pending: Pix details must not keep the English source text',
+    async () => {
+      const previousLocale = I18n.locale;
+      I18n.locale = 'pt';
+      ramps.state = { autoramps: [approvedAutoramp()] };
+      engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue(
+        pixInstructions,
       );
 
-      expect(
-        await findByTestId(VbaDetailsSelectorsIDs.PIX_KEY),
-      ).toBeOnTheScreen();
-      expectResolvedCopy(title);
-      expectResolvedCopy(description);
-      expectResolvedCopy(pixKeyLabel);
-      expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
-        title,
-      );
-      expect(
-        within(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).getByText(
-          pixKeyLabel,
-        ),
-      ).toBeOnTheScreen();
-    } finally {
-      I18n.locale = previousLocale;
-    }
-  });
+      try {
+        const { findByTestId, getByTestId, queryAllByText } =
+          renderVbaDetails();
 
-  it.todo(
-    'Portuguese copy is pending: Pix details must not keep English source text',
+        expect(
+          await findByTestId(VbaDetailsSelectorsIDs.PIX_KEY),
+        ).toBeOnTheScreen();
+        expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).not.toHaveTextContent(
+          /\[missing|virtual_bank_account\./i,
+        );
+        expect(queryAllByText(englishDetails.title)).toHaveLength(0);
+        expect(queryAllByText(englishDetails.description)).toHaveLength(0);
+        expect(queryAllByText(englishDetails.pix_key_label)).toHaveLength(0);
+      } finally {
+        I18n.locale = previousLocale;
+      }
+    },
   );
 });

@@ -20,7 +20,7 @@ import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
 import { VbaKycRejectedAdapter } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
-import { renderScreenWithRoutes } from '../render';
+import { createRouteParamsProbe, renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
 
 export const VbaRendererTestIds = {
@@ -151,7 +151,12 @@ export const renderVbaKycRejected = (options: RenderVbaOptions = {}) => {
     VbaKycRejectedAdapter as unknown as React.ComponentType,
     { name: VbaOnboardingRoutes.KYC_REJECTED },
     [
-      { name: VbaOnboardingRoutes.IDENTITY_VERIFICATION },
+      {
+        name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+        Component: createRouteParamsProbe(
+          VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+        ),
+      },
       { name: VbaOnboardingRoutes.ERROR },
       {
         name: Routes.MODAL.ROOT_MODAL_FLOW,
@@ -175,6 +180,10 @@ export const renderVbaDetails = (options: RenderVbaOptions = {}) => {
           VbaOnboardingNavigator as unknown as React.ComponentType<object>,
       },
       { name: Routes.HOME_TABS },
+      {
+        name: Routes.MODAL.ROOT_MODAL_FLOW,
+        Component: VbaSupportConsentModal,
+      },
     ],
     { state: buildVbaState(options) },
   );

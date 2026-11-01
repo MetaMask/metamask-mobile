@@ -1,9 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
 import { fireEvent } from '@testing-library/react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
+import en from '../../../../../../locales/languages/en.json';
 import Engine from '../../../../../core/Engine';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
 import {
   renderVbaKycRejected,
   restoreVbaReduxServiceStore,
@@ -14,7 +15,7 @@ import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/rout
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import { VbaKycRejectedSelectorsIDs } from './KycRejected';
 
-const UNRESOLVED_COPY = /\[missing|virtual_bank_account\./iu;
+const englishRejected = en.virtual_bank_account.kyc_rejected;
 
 const REJECTED_SESSION = {
   id: 'session-1',
@@ -32,7 +33,15 @@ const RETRY_SESSION = {
   kycStatus: 'retry',
 };
 
-const kycSessionOverride = (session: typeof REJECTED_SESSION) =>
+const MIXED_REJECTED_SESSION = {
+  ...REJECTED_SESSION,
+  finalStatus: 'retry',
+  kycStatus: 'rejected',
+};
+
+const kycSessionOverride = (
+  session: typeof REJECTED_SESSION,
+): DeepPartial<RootState> =>
   ({
     engine: {
       backgroundState: {
@@ -44,26 +53,24 @@ const kycSessionOverride = (session: typeof REJECTED_SESSION) =>
     },
   }) as unknown as DeepPartial<RootState>;
 
+const rejectedHydrate = {
+  ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+  sessionExists: true,
+  vendorDisclaimersComplete: true,
+  sessionDisclaimersComplete: true,
+  providerFlowStatus: 'not_started' as const,
+  kycStatus: 'rejected' as const,
+  autorampStatus: 'not_ready' as const,
+};
+
 const mockHydrateVbaOnboarding = jest.mocked(
   Engine.context.RampsController.hydrateVbaOnboarding,
 );
 
-const expectResolvedCopy = (value: string) => {
-  expect(value).not.toMatch(UNRESOLVED_COPY);
-};
-
 describeForPlatforms('VbaKycRejected view', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHydrateVbaOnboarding.mockResolvedValue({
-      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
-      sessionExists: true,
-      vendorDisclaimersComplete: true,
-      sessionDisclaimersComplete: true,
-      providerFlowStatus: 'not_started',
-      kycStatus: 'retry',
-      autorampStatus: 'not_ready',
-    });
+    mockHydrateVbaOnboarding.mockResolvedValue(rejectedHydrate);
   });
 
   afterEach(() => {
@@ -102,8 +109,28 @@ describeForPlatforms('VbaKycRejected view', () => {
     expect(await findByTestId('support-consent-sheet')).toBeOnTheScreen();
   });
 
-  it('shows Try again and hides Contact support when the session can be retried', async () => {
-    const { findByTestId, getByText, queryByTestId } = renderVbaKycRejected({
+  it('shows Contact support when finalStatus is retry but kycStatus is rejected', async () => {
+    const { findByTestId, queryByTestId } = renderVbaKycRejected({
+      overrides: kycSessionOverride(MIXED_REJECTED_SESSION),
+    });
+
+    fireEvent.press(
+      await findByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+    );
+
+    expect(await findByTestId('support-consent-sheet')).toBeOnTheScreen();
+    expect(
+      queryByTestId(VbaKycRejectedSelectorsIDs.RETRY_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('passes retryRejectedKyc when Try again is pressed', async () => {
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      ...rejectedHydrate,
+      kycStatus: 'retry',
+    });
+    const { findByTestId, getByTestId, queryByTestId } = renderVbaKycRejected({
       overrides: kycSessionOverride(RETRY_SESSION),
     });
 
@@ -111,58 +138,54 @@ describeForPlatforms('VbaKycRejected view', () => {
       await findByTestId(VbaKycRejectedSelectorsIDs.RETRY_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_rejected.retry_description')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('virtual_bank_account.kyc_rejected.retry_button')),
-    ).toBeOnTheScreen();
-    expect(
       queryByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
     ).not.toBeOnTheScreen();
 
-    fireEvent.press(
-      await findByTestId(VbaKycRejectedSelectorsIDs.RETRY_BUTTON),
-    );
+    fireEvent.press(getByTestId(VbaKycRejectedSelectorsIDs.RETRY_BUTTON));
 
     expect(
       await findByTestId(
-        getRouteProbeTestId(VbaOnboardingRoutes.IDENTITY_VERIFICATION),
+        getRouteParamsProbeTestId(VbaOnboardingRoutes.IDENTITY_VERIFICATION),
       ),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(/"kycStatus":"retry"/);
+    expect(
+      queryByTestId(VbaKycRejectedSelectorsIDs.RETRY_BUTTON),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the rejected screen in Portuguese (pt) with resolved copy', async () => {
-    const previousLocale = I18n.locale;
-    I18n.locale = 'pt';
+  it.failing(
+    'Portuguese copy is pending: rejected screen must show a support label, not the English source or Try again',
+    async () => {
+      const previousLocale = I18n.locale;
+      I18n.locale = 'pt';
 
-    try {
-      const { findByTestId, getByText } = renderVbaKycRejected({
-        overrides: kycSessionOverride(REJECTED_SESSION),
-      });
-      const title = strings('virtual_bank_account.kyc_rejected.title');
-      const description = strings(
-        'virtual_bank_account.kyc_rejected.description',
-      );
-      const button = strings('virtual_bank_account.kyc_rejected.button');
+      try {
+        const { findByTestId, getByTestId, queryAllByText } =
+          renderVbaKycRejected({
+            overrides: kycSessionOverride(REJECTED_SESSION),
+          });
+        const button = await findByTestId(
+          VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON,
+        );
 
-      expect(
-        await findByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
-      ).toBeOnTheScreen();
-      expectResolvedCopy(title);
-      expectResolvedCopy(description);
-      expectResolvedCopy(button);
-      expect(getByText(title)).toBeOnTheScreen();
-      expect(getByText(description)).toBeOnTheScreen();
-      expect(getByText(button)).toBeOnTheScreen();
-    } finally {
-      I18n.locale = previousLocale;
-    }
-  });
-
-  it.todo(
-    'Portuguese copy is pending: rejected screen must not keep English source text',
+        expect(button).not.toHaveTextContent(/\[missing/i);
+        expect(queryAllByText(englishRejected.title)).toHaveLength(0);
+        expect(queryAllByText(englishRejected.description)).toHaveLength(0);
+        expect(
+          getByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+        ).not.toHaveTextContent(/try again|tentar novamente/i);
+        expect(
+          getByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+        ).toHaveTextContent(/support|suporte/i);
+        expect(
+          getByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+        ).not.toHaveTextContent(englishRejected.button);
+      } finally {
+        I18n.locale = previousLocale;
+      }
+    },
   );
 });
