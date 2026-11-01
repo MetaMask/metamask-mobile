@@ -141,7 +141,7 @@ describeForPlatforms('Money home VBA card view', () => {
       .mockResolvedValue({
         data: [],
         pageInfo: { hasNextPage: false },
-      } as Awaited<
+      } as unknown as Awaited<
         ReturnType<typeof apiClient.accounts.fetchV1AccountTransactions>
       >);
   });
