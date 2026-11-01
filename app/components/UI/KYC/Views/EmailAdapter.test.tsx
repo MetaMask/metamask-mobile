@@ -1,5 +1,7 @@
 import React from 'react';
+import { HttpError } from '@metamask/controller-utils';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { strings } from '../../../../../locales/i18n';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Engine from '../../../../core/Engine';
@@ -275,6 +277,30 @@ describe('VbaEmailAdapter', () => {
     expect(
       screen.queryByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
     ).toBeNull();
+  });
+
+  it('shows the generic message when session lookup fails with an HTTP error', async () => {
+    const rawUrl = 'https://kyc.example/sessions/latest/status/iron';
+    const rawStatus = "failed with status '500'";
+    mockKycController.getSessionStatusForVendor.mockRejectedValue(
+      new HttpError(500, `Fetching '${rawUrl}' ${rawStatus}`),
+    );
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toHaveTextContent(strings('virtual_bank_account.kyc_email.http_error'));
+    });
+    expect(
+      screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+    ).not.toHaveTextContent(rawUrl, { exact: false });
+    expect(
+      screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+    ).not.toHaveTextContent(rawStatus, { exact: false });
+    expect(mockKycController.startSession).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('shows the generic error when session lookup rejects with a non-Error', async () => {
