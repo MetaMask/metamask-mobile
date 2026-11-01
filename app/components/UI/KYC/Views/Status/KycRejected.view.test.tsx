@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { fireEvent } from '@testing-library/react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import en from '../../../../../../locales/languages/en.json';
+import pt from '../../../../../../locales/languages/pt.json';
 import Engine from '../../../../../core/Engine';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
@@ -15,7 +16,39 @@ import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/rout
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import { VbaKycRejectedSelectorsIDs } from './KycRejected';
 
-const englishRejected = en.virtual_bank_account.kyc_rejected;
+const TRY_AGAIN_LABELS = [
+  en.virtual_bank_account.kyc_rejected.retry_button,
+  'Tentar novamente',
+] as const;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const untranslatedLeafKeys = (
+  english: unknown,
+  portuguese: unknown,
+  path: string,
+): string[] => {
+  if (typeof english === 'string') {
+    if (typeof portuguese !== 'string') {
+      return [`${path} (missing)`];
+    }
+    if (portuguese === english) {
+      return [`${path} (identical to en)`];
+    }
+    return [];
+  }
+  if (!isRecord(english)) {
+    return [];
+  }
+  return Object.entries(english).flatMap(([key, child]) =>
+    untranslatedLeafKeys(
+      child,
+      isRecord(portuguese) ? portuguese[key] : undefined,
+      `${path}.${key}`,
+    ),
+  );
+};
 
 const REJECTED_SESSION = {
   id: 'session-1',
@@ -156,33 +189,56 @@ describeForPlatforms('VbaKycRejected view', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('renders the rejected screen in Portuguese without raw keys', async () => {
+    const previousLocale = I18n.locale;
+    I18n.locale = 'pt';
+
+    try {
+      const { findByTestId, getByTestId } = renderVbaKycRejected({
+        overrides: kycSessionOverride(REJECTED_SESSION),
+      });
+
+      expect(
+        await findByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(VbaKycRejectedSelectorsIDs.CONTAINER),
+      ).not.toHaveTextContent(/\[missing|virtual_bank_account\./i);
+    } finally {
+      I18n.locale = previousLocale;
+    }
+  });
+
   it.failing(
-    'Portuguese copy is pending: rejected screen must show a support label, not the English source or Try again',
+    'Portuguese copy is pending: kyc_rejected keys must not be missing or identical to English',
+    () => {
+      const flagged = untranslatedLeafKeys(
+        en.virtual_bank_account.kyc_rejected,
+        pt.virtual_bank_account.kyc_rejected,
+        'virtual_bank_account.kyc_rejected',
+      );
+
+      expect(flagged).toEqual([]);
+    },
+  );
+
+  it.failing(
+    'Portuguese copy is pending: rejected button must not use the Try again label',
     async () => {
       const previousLocale = I18n.locale;
       I18n.locale = 'pt';
 
       try {
-        const { findByTestId, getByTestId, queryAllByText } =
-          renderVbaKycRejected({
-            overrides: kycSessionOverride(REJECTED_SESSION),
-          });
-        const button = await findByTestId(
-          VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON,
-        );
+        const { findByTestId, queryByText } = renderVbaKycRejected({
+          overrides: kycSessionOverride(REJECTED_SESSION),
+        });
 
-        expect(button).not.toHaveTextContent(/\[missing/i);
-        expect(queryAllByText(englishRejected.title)).toHaveLength(0);
-        expect(queryAllByText(englishRejected.description)).toHaveLength(0);
         expect(
-          getByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
-        ).not.toHaveTextContent(/try again|tentar novamente/i);
-        expect(
-          getByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
-        ).toHaveTextContent(/support|suporte/i);
-        expect(
-          getByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
-        ).not.toHaveTextContent(englishRejected.button);
+          await findByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+        ).toBeOnTheScreen();
+        for (const label of TRY_AGAIN_LABELS) {
+          expect(queryByText(label)).not.toBeOnTheScreen();
+        }
       } finally {
         I18n.locale = previousLocale;
       }

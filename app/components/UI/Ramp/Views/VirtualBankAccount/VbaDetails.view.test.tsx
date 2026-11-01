@@ -5,6 +5,7 @@ import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import en from '../../../../../../locales/languages/en.json';
+import pt from '../../../../../../locales/languages/pt.json';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -20,7 +21,6 @@ import { VbaAccountCreateErrorSelectorsIDs } from './VbaAccountCreateError';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import { VbaDetailsSelectorsIDs } from './VbaDetails';
 
-const englishDetails = en.virtual_bank_account.vba_details;
 const PIX_KEY = 'maria@pix.br';
 const PIX_CODE = '00020126580014br.gov.bcb.pix';
 
@@ -56,6 +56,54 @@ const createdAutoramp = (): TestAutoramp => ({
   status: 'Created',
   depositRailsSummary: { currency: 'BRL' },
 });
+
+const VBA_DETAILS_KEYS = [
+  'title',
+  'description',
+  'helper_text',
+  'copia_cola_label',
+  'pix_key_label',
+  'bank_transfer_title',
+  'bank_transfer_description',
+  'account_holder_label',
+  'routing_number_label',
+  'account_number_label',
+  'bank_name_label',
+  'copy_label',
+  'copied_label',
+  'button',
+  'loading_details',
+  'load_error',
+] as const;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const untranslatedLeafKeys = (
+  english: unknown,
+  portuguese: unknown,
+  path: string,
+): string[] => {
+  if (typeof english === 'string') {
+    if (typeof portuguese !== 'string') {
+      return [`${path} (missing)`];
+    }
+    if (portuguese === english) {
+      return [`${path} (identical to en)`];
+    }
+    return [];
+  }
+  if (!isRecord(english)) {
+    return [];
+  }
+  return Object.entries(english).flatMap(([key, child]) =>
+    untranslatedLeafKeys(
+      child,
+      isRecord(portuguese) ? portuguese[key] : undefined,
+      `${path}.${key}`,
+    ),
+  );
+};
 
 const pixInstructions = {
   type: 'Pix',
@@ -337,32 +385,45 @@ describeForPlatforms('VbaDetails view', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders Pix details in Portuguese without raw keys', async () => {
+    const previousLocale = I18n.locale;
+    I18n.locale = 'pt';
+    ramps.state = { autoramps: [approvedAutoramp()] };
+    engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue(
+      pixInstructions,
+    );
+
+    try {
+      const { findByTestId, getByTestId } = renderVbaDetails();
+
+      expect(
+        await findByTestId(VbaDetailsSelectorsIDs.PIX_KEY),
+      ).toBeOnTheScreen();
+      expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).not.toHaveTextContent(
+        /\[missing|virtual_bank_account\./i,
+      );
+      expect(
+        getByTestId(VbaDetailsSelectorsIDs.CONTAINER),
+      ).not.toHaveTextContent(/\[missing|virtual_bank_account\./i);
+    } finally {
+      I18n.locale = previousLocale;
+    }
+  });
+
   it.failing(
-    'Portuguese copy is pending: Pix details must not keep the English source text',
-    async () => {
-      const previousLocale = I18n.locale;
-      I18n.locale = 'pt';
-      ramps.state = { autoramps: [approvedAutoramp()] };
-      engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue(
-        pixInstructions,
+    'Portuguese copy is pending: Pix detail keys must not be missing or identical to English',
+    () => {
+      const englishDetails = en.virtual_bank_account.vba_details;
+      const portugueseDetails = pt.virtual_bank_account.vba_details;
+      const flagged = VBA_DETAILS_KEYS.flatMap((key) =>
+        untranslatedLeafKeys(
+          englishDetails[key],
+          portugueseDetails[key],
+          `virtual_bank_account.vba_details.${key}`,
+        ),
       );
 
-      try {
-        const { findByTestId, getByTestId, queryAllByText } =
-          renderVbaDetails();
-
-        expect(
-          await findByTestId(VbaDetailsSelectorsIDs.PIX_KEY),
-        ).toBeOnTheScreen();
-        expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).not.toHaveTextContent(
-          /\[missing|virtual_bank_account\./i,
-        );
-        expect(queryAllByText(englishDetails.title)).toHaveLength(0);
-        expect(queryAllByText(englishDetails.description)).toHaveLength(0);
-        expect(queryAllByText(englishDetails.pix_key_label)).toHaveLength(0);
-      } finally {
-        I18n.locale = previousLocale;
-      }
+      expect(flagged).toEqual([]);
     },
   );
 });
