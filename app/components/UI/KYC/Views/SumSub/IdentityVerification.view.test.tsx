@@ -30,7 +30,10 @@ import { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
 // Hydrate, the funnel, and a stack reset run between each status and screen.
 const FLOW_TIMEOUT_MS = 5000;
 
-type HydratedSnapshot = Omit<VbaOnboardingSnapshot, 'vendorTermsAcceptedLocally'>;
+type HydratedSnapshot = Omit<
+  VbaOnboardingSnapshot,
+  'vendorTermsAcceptedLocally'
+>;
 type View = ReturnType<typeof renderVbaIdentityVerification>;
 
 const engineWithState = Engine as unknown as {
@@ -344,23 +347,26 @@ describeForPlatforms('VBA identity verification responses', () => {
     // The controller swallows a failed poll (HTTP error or timeout) and keeps
     // the stored status, so nothing is written.
     ['an HTTP error or times out', null],
-  ])('stays on pending when the status poll returns %s', async (_label, polled) => {
-    const view = renderSubmittedVerification();
-    await findPending(view);
+  ])(
+    'stays on pending when the status poll returns %s',
+    async (_label, polled) => {
+      const view = renderSubmittedVerification();
+      await findPending(view);
 
-    if (polled) {
-      pollReturns(polled);
-    }
+      if (polled) {
+        pollReturns(polled);
+      }
 
-    expect(
-      await view.findByText(
-        strings('virtual_bank_account.kyc_taking_longer.title'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      engineContext.RampsController.hydrateVbaOnboarding,
-    ).toHaveBeenCalledTimes(1);
-  });
+      expect(
+        await view.findByText(
+          strings('virtual_bank_account.kyc_taking_longer.title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        engineContext.RampsController.hydrateVbaOnboarding,
+      ).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it.each<[string, () => void]>([
     [
