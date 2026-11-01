@@ -20,6 +20,12 @@ import {
 } from '../../../../../../tests/component-view/api-mocking/accounts-transactions';
 import { VbaDetailsSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
 import { clearCachedDepositInstructions } from '../../../Ramp/Views/VirtualBankAccount/vbaDepositInstructionsCache';
+import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
+import {
+  EMPTY_VBA_ONBOARDING_SNAPSHOT,
+  type VbaOnboardingSnapshot,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
+import { VbaIdentityVerifiedSelectorsIDs } from '../../../KYC/Views/Status/IdentityVerified';
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyAddMoneySheetTestIds } from '../../components/MoneyAddMoneySheet/MoneyAddMoneySheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,20 +33,43 @@ import { strings } from '../../../../../../locales/i18n';
 const USD_AUTORAMP_ID = 'ar-usd';
 const US_BANK = {
   type: 'UsBank' as const,
+  rail: 'ACH' as const,
   accountHolder: 'Jane Doe',
   routingNumber: '021000021',
   accountNumber: '123456789',
   bankName: 'Lead Bank',
 };
 
-const usdAutoramp = {
+interface TestAutoramp {
+  id: string;
+  walletAddress: string;
+  status: string;
+  depositRailsSummary?: { currency?: string; ready: boolean };
+}
+
+const usdAutoramp: TestAutoramp = {
   id: USD_AUTORAMP_ID,
   walletAddress: VBA_TEST_MONEY_ADDRESS,
   status: 'Approved',
-  depositRailsSummary: { currency: 'USD' },
+  depositRailsSummary: { currency: 'USD', ready: true },
 };
 
-const usdRegionOverrides = (location: 'US' | 'US-CA') =>
+const approvedSnapshot = (
+  autorampStatus: VbaOnboardingSnapshot['autorampStatus'],
+) => ({
+  ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+  sessionExists: true,
+  vendorDisclaimersComplete: true,
+  sessionDisclaimersComplete: true,
+  providerFlowStatus: 'submitted' as const,
+  kycStatus: 'approved' as const,
+  autorampStatus,
+});
+
+const usdRegionOverrides = (
+  location: 'US' | 'US-CA',
+  autoramps: TestAutoramp[] = [usdAutoramp],
+) =>
   ({
     user: {
       onboardingStepperProgress: {
@@ -79,15 +108,16 @@ const usdRegionOverrides = (location: 'US' | 'US-CA') =>
           },
         },
         RampsController: {
-          autoramps: [usdAutoramp],
+          autoramps,
         },
       },
     },
   }) as unknown as DeepPartial<RootState>;
 
 const ramps = Engine.context.RampsController as unknown as {
-  state?: { autoramps: (typeof usdAutoramp)[] };
+  state?: { autoramps: TestAutoramp[] };
   hydrateVbaOnboarding: jest.Mock;
+  createAutoramp?: jest.Mock;
 };
 const engineContext = Engine.context as unknown as {
   NeoBankService?: { getDepositInstructions: jest.Mock };
@@ -139,19 +169,13 @@ describeForPlatforms('US VBA entry points', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetMusdAutorampSetupGuard();
     clearCachedDepositInstructions();
     setupV1AccountTransactionsApiMock();
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     kycController.state = { sessionStatus: null };
     ramps.state = { autoramps: [usdAutoramp] };
-    ramps.hydrateVbaOnboarding.mockResolvedValue({
-      sessionExists: true,
-      vendorDisclaimersComplete: true,
-      sessionDisclaimersComplete: true,
-      providerFlowStatus: 'submitted',
-      kycStatus: 'approved',
-      autorampStatus: 'ready',
-    });
+    ramps.hydrateVbaOnboarding.mockResolvedValue(approvedSnapshot('ready'));
     engineContext.NeoBankService = {
       getDepositInstructions: jest.fn().mockResolvedValue(US_BANK),
     };
@@ -162,7 +186,9 @@ describeForPlatforms('US VBA entry points', () => {
     restoreEngine?.();
     restoreEngine = undefined;
     restoreVbaReduxServiceStore();
+    resetMusdAutorampSetupGuard();
     clearCachedDepositInstructions();
+    delete ramps.createAutoramp;
     clearAccountsTransactionsApiMocks();
     netInfoMock.__resetMockNetInfo();
     delete engineContext.NeoBankService;
@@ -225,6 +251,53 @@ describeForPlatforms('US VBA entry points', () => {
         US_BANK.bankName,
       ),
     ).toBeOnTheScreen();
+    expect(
+      engineContext.NeoBankService?.getDepositInstructions,
+    ).toHaveBeenCalledWith(USD_AUTORAMP_ID);
+  });
+
+  it('creates a USD account from Add money for a US state geolocation with no account yet', async () => {
+    ramps.state = { autoramps: [] };
+    ramps.hydrateVbaOnboarding.mockResolvedValue(
+      approvedSnapshot('needs_source_currency'),
+    );
+    ramps.createAutoramp = jest.fn(
+      async (request: { recipient_account: { address: string } }) => {
+        const created: TestAutoramp = {
+          id: USD_AUTORAMP_ID,
+          walletAddress: request.recipient_account.address,
+          status: 'Approved',
+          depositRailsSummary: { currency: 'USD', ready: true },
+        };
+        ramps.state = { autoramps: [created] };
+        return created;
+      },
+    );
+    const { findByTestId, getByTestId } = renderVbaMoneyEntry({
+      location: 'US-CA',
+      overrides: usdRegionOverrides('US-CA', []),
+    });
+
+    fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+    fireEvent.press(
+      await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    );
+    fireEvent.press(
+      await findByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await findByTestId(VbaDetailsSelectorsIDs.ROUTING_NUMBER),
+    ).toBeOnTheScreen();
+    expect(ramps.createAutoramp).toHaveBeenCalledTimes(1);
+    expect(ramps.createAutoramp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+      }),
+    );
+    expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+      strings('virtual_bank_account.vba_details.bank_transfer_title'),
+    );
     expect(
       engineContext.NeoBankService?.getDepositInstructions,
     ).toHaveBeenCalledWith(USD_AUTORAMP_ID);

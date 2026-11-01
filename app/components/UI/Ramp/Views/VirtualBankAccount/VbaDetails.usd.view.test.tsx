@@ -17,6 +17,9 @@ import {
   restoreVbaReduxServiceStore,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { clearCachedDepositInstructions } from './vbaDepositInstructionsCache';
+import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
+import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from './vbaOnboardingSnapshot';
+import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import { VbaDetailsSelectorsIDs } from './VbaDetails';
 
 const USD_AUTORAMP_ID = 'ar-usd';
@@ -29,35 +32,45 @@ const US_BANK = {
   bankName: 'Lead Bank',
 };
 
-const usdAutoramp = {
+interface TestAutoramp {
+  id: string;
+  walletAddress: string;
+  status: string;
+  depositRailsSummary?: { currency?: string; ready: boolean };
+}
+
+const usdAutoramp: TestAutoramp = {
   id: USD_AUTORAMP_ID,
   walletAddress: VBA_TEST_MONEY_ADDRESS,
   status: 'Approved',
-  depositRailsSummary: { currency: 'USD' },
+  depositRailsSummary: { currency: 'USD', ready: true },
 };
 
-const usdRegionOverrides = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            enabled: true,
-            minimumVersion: '0.0.0',
-            regions: ['US'],
-            regionCurrencies: { US: 'USD' },
+const usdRegionOverrides = (autoramps: TestAutoramp[] = [usdAutoramp]) =>
+  ({
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+              enabled: true,
+              minimumVersion: '0.0.0',
+              regions: ['US'],
+              regionCurrencies: { US: 'USD' },
+            },
           },
         },
-      },
-      RampsController: {
-        autoramps: [usdAutoramp],
+        RampsController: {
+          autoramps,
+        },
       },
     },
-  },
-} as unknown as DeepPartial<RootState>;
+  }) as unknown as DeepPartial<RootState>;
 
 const ramps = Engine.context.RampsController as unknown as {
-  state?: { autoramps: (typeof usdAutoramp)[] };
+  state?: { autoramps: TestAutoramp[] };
+  hydrateVbaOnboarding: jest.Mock;
+  createAutoramp?: jest.Mock;
 };
 const engineContext = Engine.context as unknown as {
   NeoBankService?: { getDepositInstructions: jest.Mock };
@@ -94,6 +107,7 @@ const detailRows = [
 describeForPlatforms('VbaDetails USD bank details view', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetMusdAutorampSetupGuard();
     clearCachedDepositInstructions();
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     ramps.state = { autoramps: [usdAutoramp] };
@@ -104,7 +118,9 @@ describeForPlatforms('VbaDetails USD bank details view', () => {
 
   afterEach(() => {
     restoreVbaReduxServiceStore();
+    resetMusdAutorampSetupGuard();
     clearCachedDepositInstructions();
+    delete ramps.createAutoramp;
     netInfoMock.__resetMockNetInfo();
     delete engineContext.NeoBankService;
     ramps.state = { autoramps: [] };
@@ -113,7 +129,7 @@ describeForPlatforms('VbaDetails USD bank details view', () => {
   it('shows the USD bank rows and copies each value', async () => {
     const { findByTestId, getByTestId } = renderVbaDetails({
       location: 'US',
-      overrides: usdRegionOverrides,
+      overrides: usdRegionOverrides(),
     });
 
     expect(
@@ -145,11 +161,10 @@ describeForPlatforms('VbaDetails USD bank details view', () => {
     engineContext.NeoBankService?.getDepositInstructions.mockRejectedValue(
       new Error('usd details failed'),
     );
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderVbaDetails({
-        location: 'US',
-        overrides: usdRegionOverrides,
-      });
+    const { findByTestId, getByTestId, queryByTestId } = renderVbaDetails({
+      location: 'US',
+      overrides: usdRegionOverrides(),
+    });
 
     expect(
       await findByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR),
@@ -175,5 +190,39 @@ describeForPlatforms('VbaDetails USD bank details view', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
+  });
+
+  it('waits for the provider instead of creating a USD account before activation', async () => {
+    ramps.state = { autoramps: [] };
+    ramps.createAutoramp = jest.fn();
+    ramps.hydrateVbaOnboarding.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted',
+      kycStatus: 'approved',
+      autorampStatus: 'not_ready',
+    });
+    const { findByText, getByTestId, queryByTestId } = renderVbaDetails({
+      location: 'US',
+      overrides: usdRegionOverrides([]),
+    });
+
+    expect(
+      await findByText(
+        strings('virtual_bank_account.creating_account.awaiting_provider'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaCreatingAccountSelectorsIDs.SPINNER),
+    ).toBeOnTheScreen();
+    expect(ramps.hydrateVbaOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({ refreshKyc: false, refreshAutoramps: true }),
+    );
+    expect(ramps.createAutoramp).not.toHaveBeenCalled();
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
+    ).not.toBeOnTheScreen();
   });
 });
