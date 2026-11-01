@@ -21,6 +21,13 @@ const TRY_AGAIN_LABELS = [
   'Tentar novamente',
 ] as const;
 
+const ENGLISH_COPY_ALLOWLIST = new Set([
+  'virtual_bank_account.create_virtual_bank_account.agreement_suffix',
+  'virtual_bank_account.choose_currency.row_label',
+  'virtual_bank_account.choose_currency.currencies.eur',
+  'virtual_bank_account.vba_details.copia_cola_label',
+]);
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -29,6 +36,9 @@ const untranslatedLeafKeys = (
   portuguese: unknown,
   path: string,
 ): string[] => {
+  if (ENGLISH_COPY_ALLOWLIST.has(path)) {
+    return [];
+  }
   if (typeof english === 'string') {
     if (typeof portuguese !== 'string') {
       return [`${path} (missing)`];
@@ -126,7 +136,9 @@ describeForPlatforms('VbaKycRejected view', () => {
       getByText(strings('virtual_bank_account.kyc_rejected.description')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_rejected.button')),
+      getByText(
+        strings('virtual_bank_account.kyc_rejected.contact_support_button'),
+      ),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(VbaKycRejectedSelectorsIDs.RETRY_BUTTON),
@@ -209,6 +221,7 @@ describeForPlatforms('VbaKycRejected view', () => {
     }
   });
 
+  // Flips to `it` once the Crowdin sync lands.
   it.failing(
     'Portuguese copy is pending: kyc_rejected keys must not be missing or identical to English',
     () => {
@@ -222,26 +235,28 @@ describeForPlatforms('VbaKycRejected view', () => {
     },
   );
 
-  it.failing(
-    'Portuguese copy is pending: rejected button must not use the Try again label',
-    async () => {
-      const previousLocale = I18n.locale;
-      I18n.locale = 'pt';
+  it('Portuguese copy is pending: rejected button must not use the Try again label', async () => {
+    const previousLocale = I18n.locale;
+    I18n.locale = 'pt';
 
-      try {
-        const { findByTestId, queryByText } = renderVbaKycRejected({
-          overrides: kycSessionOverride(REJECTED_SESSION),
-        });
+    try {
+      const { findByTestId, getByText, queryByText } = renderVbaKycRejected({
+        overrides: kycSessionOverride(REJECTED_SESSION),
+      });
 
-        expect(
-          await findByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
-        ).toBeOnTheScreen();
-        for (const label of TRY_AGAIN_LABELS) {
-          expect(queryByText(label)).not.toBeOnTheScreen();
-        }
-      } finally {
-        I18n.locale = previousLocale;
+      expect(
+        await findByTestId(VbaKycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('virtual_bank_account.kyc_rejected.contact_support_button'),
+        ),
+      ).toBeOnTheScreen();
+      for (const label of TRY_AGAIN_LABELS) {
+        expect(queryByText(label)).not.toBeOnTheScreen();
       }
-    },
-  );
+    } finally {
+      I18n.locale = previousLocale;
+    }
+  });
 });

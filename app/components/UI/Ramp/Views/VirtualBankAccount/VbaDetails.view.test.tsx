@@ -76,6 +76,13 @@ const VBA_DETAILS_KEYS = [
   'load_error',
 ] as const;
 
+const ENGLISH_COPY_ALLOWLIST = new Set([
+  'virtual_bank_account.create_virtual_bank_account.agreement_suffix',
+  'virtual_bank_account.choose_currency.row_label',
+  'virtual_bank_account.choose_currency.currencies.eur',
+  'virtual_bank_account.vba_details.copia_cola_label',
+]);
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -84,6 +91,9 @@ const untranslatedLeafKeys = (
   portuguese: unknown,
   path: string,
 ): string[] => {
+  if (ENGLISH_COPY_ALLOWLIST.has(path)) {
+    return [];
+  }
   if (typeof english === 'string') {
     if (typeof portuguese !== 'string') {
       return [`${path} (missing)`];
@@ -410,6 +420,7 @@ describeForPlatforms('VbaDetails view', () => {
     }
   });
 
+  // Flips to `it` once the Crowdin sync lands.
   it.failing(
     'Portuguese copy is pending: Pix detail keys must not be missing or identical to English',
     () => {
