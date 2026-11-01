@@ -890,7 +890,10 @@ const MyProfileView: React.FC = () => {
           />
         ) : null}
         {isUncountedSheetOpen ? (
-          <UncountedPositionsSheet onClose={handleCloseUncountedSheet} />
+          <UncountedPositionsSheet
+            isOwner={isOwner}
+            onClose={handleCloseUncountedSheet}
+          />
         ) : null}
       </SafeAreaView>
     </SocialFeedSurfaceProvider>

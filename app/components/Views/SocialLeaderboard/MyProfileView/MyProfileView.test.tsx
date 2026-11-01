@@ -1553,6 +1553,11 @@ describe('MyProfileView', () => {
     expect(
       screen.getByText("Why some positions aren't counted"),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'This trader got the token from an allocation before it was public.',
+      ),
+    ).toBeOnTheScreen();
 
     fireEvent.press(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_DISMISS),
@@ -1613,5 +1618,23 @@ describe('MyProfileView', () => {
       source: 'profile_position',
       isClosed: false,
     });
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
+    );
+
+    expect(
+      screen.getByText(
+        'You got the token from an allocation before it was public.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("You deployed the token's contract."),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        'This trader got the token from an allocation before it was public.',
+      ),
+    ).toBeNull();
   });
 });

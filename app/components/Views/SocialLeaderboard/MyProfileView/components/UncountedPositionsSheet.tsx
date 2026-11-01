@@ -16,6 +16,8 @@ import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 
 export interface UncountedPositionsSheetProps {
   onClose: () => void;
+  /** Owner copy says "You…". Other viewers keep "This trader…". */
+  isOwner?: boolean;
 }
 
 interface ExplanationProps {
@@ -48,7 +50,14 @@ const Explanation: React.FC<ExplanationProps> = ({ label, body }) => (
  */
 const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
   onClose,
+  isOwner = false,
 }) => {
+  const insiderBodyKey = isOwner
+    ? 'social_leaderboard.my_profile.not_counted_sheet_insider_body_owner'
+    : 'social_leaderboard.my_profile.not_counted_sheet_insider_body';
+  const developerBodyKey = isOwner
+    ? 'social_leaderboard.my_profile.not_counted_sheet_developer_body_owner'
+    : 'social_leaderboard.my_profile.not_counted_sheet_developer_body';
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const handleDismiss = useCallback(() => {
@@ -74,17 +83,13 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
           label={strings(
             'social_leaderboard.my_profile.not_counted_sheet_insider_label',
           )}
-          body={strings(
-            'social_leaderboard.my_profile.not_counted_sheet_insider_body',
-          )}
+          body={strings(insiderBodyKey)}
         />
         <Explanation
           label={strings(
             'social_leaderboard.my_profile.not_counted_sheet_developer_label',
           )}
-          body={strings(
-            'social_leaderboard.my_profile.not_counted_sheet_developer_body',
-          )}
+          body={strings(developerBodyKey)}
         />
         <Explanation
           label={strings(

@@ -38,7 +38,7 @@ describe('UncountedPositionsSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('explains insider, contract-creator, and unsupported-token exclusions', () => {
+  it('explains exclusions to another trader', () => {
     renderWithProvider(<UncountedPositionsSheet onClose={onClose} />);
 
     expect(
@@ -60,6 +60,45 @@ describe('UncountedPositionsSheet', () => {
         "We can't track P&L for unsupported tokens like deposits in lending pools.",
       ),
     ).toBeOnTheScreen();
+    expect(screen.getByText('Got it')).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        'You got the token from an allocation before it was public.',
+      ),
+    ).toBeNull();
+  });
+
+  it('explains insider and contract-creator exclusions to the owner', () => {
+    renderWithProvider(<UncountedPositionsSheet isOwner onClose={onClose} />);
+
+    expect(
+      screen.getByText("Why some positions aren't counted"),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Insider')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'You got the token from an allocation before it was public.',
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Contract creator')).toBeOnTheScreen();
+    expect(
+      screen.getByText("You deployed the token's contract."),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Unsupported token')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Got it')).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        'This trader got the token from an allocation before it was public.',
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByText("This trader deployed the token's contract."),
+    ).toBeNull();
   });
 
   it('closes when Got it is pressed', () => {
