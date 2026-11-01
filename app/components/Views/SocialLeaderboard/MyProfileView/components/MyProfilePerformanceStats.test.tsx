@@ -83,6 +83,39 @@ describe('MyProfilePerformanceStats', () => {
     ).toBeNull();
   });
 
+  it('hides the uncounted note when the P&L cell is absent', () => {
+    renderWithProvider(
+      <MyProfilePerformanceStats
+        cells={[allCells[1], allCells[2]]}
+        uncountedCount={2}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
+    ).toBeNull();
+    expect(screen.queryByText('2 positions not counted in P&L')).toBeNull();
+  });
+
+  it('renders the uncounted note when the P&L cell is present', () => {
+    renderWithProvider(
+      <MyProfilePerformanceStats cells={[allCells[0]]} uncountedCount={2} />,
+    );
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('2 positions not counted in P&L'),
+    ).toBeOnTheScreen();
+  });
+
   it('renders a tappable uncounted note under the performance title', () => {
     const onUncountedPress = jest.fn();
 

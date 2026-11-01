@@ -65,7 +65,8 @@ interface MyProfilePerformanceStatsProps {
   cells: PerformanceCell[];
   /**
    * Flagged positions the profile list is showing. The note stays hidden at 0
-   * and sits under the Performance title. The P&L cell label stays "P&L".
+   * and when the P&L cell is absent. It sits under the Performance title.
+   * The P&L cell label stays "P&L".
    */
   uncountedCount?: number;
   /** Scrolls the profile to the pinned uncounted section. */
@@ -83,12 +84,13 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
     return null;
   }
 
+  const hasPnlCell = cells.some((cell) => cell.id === 'pnl');
   const uncountedNoteKey =
     uncountedCount === 1
       ? 'social_leaderboard.my_profile.not_counted_note_one'
       : 'social_leaderboard.my_profile.not_counted_note_other';
   const uncountedNote =
-    uncountedCount > 0
+    hasPnlCell && uncountedCount > 0
       ? strings(uncountedNoteKey, { count: uncountedCount })
       : null;
 
