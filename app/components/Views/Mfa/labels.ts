@@ -81,6 +81,38 @@ export const getSpecificErrorMessage = (
   return key ? strings(key) : undefined;
 };
 
+/**
+ * Errors whose failure screen has its own title and description, rather than
+ * "Something went wrong" and the error's message.
+ */
+const FAILURE_KEYS: Partial<
+  Record<MfaFlowErrorCode, { title: string; description: string }>
+> = {
+  multi_primary_srp: {
+    title: 'mfa.failure.support_title',
+    description: 'mfa.failure.support_description',
+  },
+};
+
+/**
+ * The failure screen's copy for an error.
+ *
+ * @param code - The error's code.
+ * @returns The title, and a description when there is more to say.
+ */
+export const getFailureCopy = (
+  code: MfaFlowErrorCode,
+): { title: string; description?: string } => {
+  const keys = FAILURE_KEYS[code];
+  return keys
+    ? { title: strings(keys.title), description: strings(keys.description) }
+    : {
+        title: strings('mfa.failure.title'),
+        // The title already says something went wrong; only a specific reason adds to it.
+        description: getSpecificErrorMessage(code),
+      };
+};
+
 export const getErrorMessage = (
   code: MfaFlowErrorCode,
   method?: MfaMethod,
