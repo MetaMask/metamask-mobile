@@ -88,9 +88,8 @@ export type UncountedNoteTab = 'open' | 'closed';
  * The note uses flagged rows that the positions list would show: the active
  * Open or Closed tab, after the asset filter. On Posts, where that list is
  * hidden, Open wins when it has flagged rows and Closed is the fallback.
- * The owner's profile does not show the flagged state, so the count stays 0.
+ * The owner and other viewers use the same count.
  *
- * @param params.showFlaggedState - True on another trader's profile.
  * @param params.activeTab - Profile content tab, including Posts.
  * @param params.filter - All / Tokens / Perps filter shared by both lists.
  * @param params.openPositions - Open positions in list order.
@@ -98,16 +97,11 @@ export type UncountedNoteTab = 'open' | 'closed';
  * @returns The tab to reveal and how many flagged rows it would show.
  */
 export const resolveUncountedNoteTarget = (params: {
-  showFlaggedState: boolean;
   activeTab: UncountedNoteTab | 'posts';
   filter: ProfileAssetFilter;
   openPositions: Position[];
   closedPositions: Position[];
 }): { tab: UncountedNoteTab; count: number } => {
-  if (!params.showFlaggedState) {
-    return { tab: 'open', count: 0 };
-  }
-
   const openCount = listUncountedPositions(
     params.openPositions,
     params.filter,

@@ -120,28 +120,25 @@ describe('resolveUncountedNoteTarget', () => {
     perpPositionType: 'long',
   });
 
-  it('returns no note on the owner profile', () => {
+  it('counts the owner profile the same way as another trader', () => {
     const result = resolveUncountedNoteTarget({
-      showFlaggedState: false,
       activeTab: 'open',
       filter: 'all',
       openPositions: [flaggedOpen],
       closedPositions: [flaggedClosed],
     });
 
-    expect(result).toEqual({ tab: 'open', count: 0 });
+    expect(result).toEqual({ tab: 'open', count: 1 });
   });
 
   it('counts only the active tab after the asset filter', () => {
     const openResult = resolveUncountedNoteTarget({
-      showFlaggedState: true,
       activeTab: 'open',
       filter: 'tokens',
       openPositions: [flaggedOpen, flaggedPerp],
       closedPositions: [flaggedClosed],
     });
     const closedResult = resolveUncountedNoteTarget({
-      showFlaggedState: true,
       activeTab: 'closed',
       filter: 'all',
       openPositions: [flaggedOpen],
@@ -154,14 +151,12 @@ describe('resolveUncountedNoteTarget', () => {
 
   it('uses Open from Posts when Open has flagged rows, otherwise Closed', () => {
     const openFirst = resolveUncountedNoteTarget({
-      showFlaggedState: true,
       activeTab: 'posts',
       filter: 'all',
       openPositions: [flaggedOpen],
       closedPositions: [flaggedClosed],
     });
     const closedFallback = resolveUncountedNoteTarget({
-      showFlaggedState: true,
       activeTab: 'posts',
       filter: 'all',
       openPositions: [],

@@ -1513,7 +1513,7 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('hides the uncounted note on the owner profile', () => {
+  it('shows the uncounted note and section on the owner profile', () => {
     const flagged: Position = {
       positionId: 'nigel',
       tokenSymbol: 'Nigel',
@@ -1552,11 +1552,11 @@ describe('MyProfileView', () => {
     });
 
     renderWithProvider(<MyProfileView />);
+
+    expect(screen.getByText('1 position not counted in P&L')).toBeOnTheScreen();
+
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
 
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
-    ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();

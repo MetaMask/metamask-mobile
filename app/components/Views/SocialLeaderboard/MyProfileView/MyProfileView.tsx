@@ -256,13 +256,12 @@ const MyProfileView: React.FC = () => {
   const uncountedTarget = useMemo(
     () =>
       resolveUncountedNoteTarget({
-        showFlaggedState: !isOwner,
         activeTab,
         filter: assetFilter,
         openPositions,
         closedPositions,
       }),
-    [activeTab, assetFilter, closedPositions, isOwner, openPositions],
+    [activeTab, assetFilter, closedPositions, openPositions],
   );
   const scrollToUncountedSection = useCallback(() => {
     const scrollView = scrollRef.current;
