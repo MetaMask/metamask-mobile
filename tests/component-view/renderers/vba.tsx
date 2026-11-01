@@ -1,5 +1,5 @@
 import '../mocks';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, Text } from 'react-native';
 import {
   useNavigation,
@@ -12,8 +12,13 @@ import type { RootState } from '../../../app/reducers';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import ReduxService, { type ReduxStore } from '../../../app/core/redux';
 import Routes from '../../../app/constants/navigation/Routes';
+import VbaEmailAdapter from '../../../app/components/UI/KYC/Views/EmailAdapter';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
+import MoneyActivityView from '../../../app/components/UI/Money/Views/MoneyActivityView/MoneyActivityView';
+import { MoneyApiActivityDetailsView } from '../../../app/components/UI/Money/Views/MoneyApiActivityDetailsView/MoneyApiActivityDetailsView';
 import MoneyHomeView from '../../../app/components/UI/Money/Views/MoneyHomeView/MoneyHomeView';
+import MfaFlowHost from '../../../app/components/Views/Mfa/MfaFlowHost/MfaFlowHost';
+import { useActiveMfaFlow } from '../../../app/util/identity/mfa/engine/useActiveMfaFlow';
 import SupportConsentSheet from '../../../app/components/UI/SupportConsentSheet';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
@@ -204,6 +209,61 @@ export const renderVbaMoneyHome = (options: RenderVbaOptions = {}) => {
       {
         name: Routes.RAMP.VBA_DETAILS,
         Component: VbaDetails as unknown as React.ComponentType,
+      },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+const VbaEmailVerificationHost = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const active = useActiveMfaFlow();
+  const hasScreen = active !== undefined && active.state.step.name !== 'idle';
+
+  useEffect(() => {
+    if (!hasScreen) {
+      return;
+    }
+    const isOpen = navigation
+      .getState()
+      ?.routes.some((route) => route.name === Routes.MFA.FLOW);
+    if (!isOpen) {
+      navigation.navigate(Routes.MFA.FLOW);
+    }
+  }, [hasScreen, navigation]);
+
+  return <VbaEmailAdapter />;
+};
+
+export const renderVbaMoneyActivityHistory = (
+  options: RenderVbaOptions = {},
+) => {
+  const result = renderScreenWithRoutes(
+    MoneyActivityView as unknown as React.ComponentType,
+    { name: Routes.MONEY.ACTIVITY },
+    [
+      {
+        name: Routes.MONEY.CARD_TRANSACTION_DETAILS,
+        Component:
+          MoneyApiActivityDetailsView as unknown as React.ComponentType,
+      },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+export const renderVbaEmailVerification = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    VbaEmailVerificationHost,
+    { name: VbaOnboardingRoutes.EMAIL },
+    [
+      {
+        name: Routes.MFA.FLOW,
+        Component: MfaFlowHost as unknown as React.ComponentType,
       },
     ],
     { state: buildVbaState(options) },
