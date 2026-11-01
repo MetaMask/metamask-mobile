@@ -45,7 +45,10 @@ export interface UseMoneyActivityItemsResult {
   hasMore: boolean;
   /** True while a follow-up page is being fetched (footer spinner). */
   isLoadingMore: boolean;
-  /** True when the Accounts-API fetch failed — terminal until `refetch`. */
+  /**
+   * True when the Accounts-API fetch or the VBA transfer fetch failed —
+   * terminal until `refetch`.
+   */
   error: boolean;
   /** Refetch the Accounts-API activity (all fetched pages, sequentially). */
   refetch: () => void;
@@ -248,6 +251,7 @@ export function useMoneyActivityItems({
   const {
     data: vbaTransfersResponse,
     isLoading: isVbaTransfersLoading,
+    isError: isVbaTransfersError,
     refetch: refetchVbaTransfers,
   } = useMoneyVbaTransfers();
   const mappedVbaTransfers = useMemo(
@@ -412,7 +416,7 @@ export function useMoneyActivityItems({
     loadMore,
     hasMore,
     isLoadingMore,
-    error,
+    error: error || isVbaTransfersError,
     refetch,
     isSettling,
     moneyAddress,
