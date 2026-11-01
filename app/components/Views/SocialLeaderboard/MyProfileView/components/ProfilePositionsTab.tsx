@@ -77,19 +77,18 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   const { colors } = useTheme();
   const tw = useTailwind();
   const { tokens, perps, uncounted } = useMemo(() => {
-    // Only other traders (`showFlaggedState`) move flagged rows into the
-    // pinned section. The rows themselves stay full color.
-    // This list is already one Open or Closed tab, so the pin is per tab.
-    const split = showFlaggedState
-      ? partitionUncountedPositions(positions)
-      : { counted: positions, uncounted: [] as Position[] };
+    // Every viewer, including the owner, pins flagged rows after Tokens and
+    // Perpetuals. `showFlaggedState` only blocks presses on other traders'
+    // flagged rows. Rows stay full color. This list is already one Open or
+    // Closed tab, so the pin is per tab.
+    const split = partitionUncountedPositions(positions);
     const sections = getFilteredPositionSections(split.counted, filter);
 
     return {
       ...sections,
       uncounted: filterPositionsByAsset(split.uncounted, filter),
     };
-  }, [filter, positions, showFlaggedState]);
+  }, [filter, positions]);
   const showSectionHeaders = filter === 'all';
   const isEmpty =
     tokens.length === 0 && perps.length === 0 && uncounted.length === 0;
