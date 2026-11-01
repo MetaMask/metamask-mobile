@@ -1788,4 +1788,67 @@ describe('MyProfileView', () => {
       measureLayout.mockRestore();
     }
   });
+
+  it('ignores a pending uncounted scroll after the asset filter changes', () => {
+    const moodeng: Position = {
+      positionId: 'moodeng',
+      tokenSymbol: 'Moodeng',
+      tokenName: 'Moodeng',
+      tokenAddress: '0xmoodeng',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['developer'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+    };
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        ...foreignTraderProfile,
+        stats: { ...foreignTraderProfile.stats, pnl30d: 80 },
+      },
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [moodeng],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 480, width: 320, height: 80 } },
+      },
+    );
+
+    expect(mockScrollTo).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+    ).toBeOnTheScreen();
+  });
 });

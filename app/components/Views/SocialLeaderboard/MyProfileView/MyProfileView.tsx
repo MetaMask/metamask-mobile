@@ -204,16 +204,22 @@ const MyProfileView: React.FC = () => {
     ],
     [],
   );
-  const handleProfileTabPress = useCallback((index: number) => {
-    const nextTab = PROFILE_CONTENT_TABS[index];
-    if (nextTab) {
+  const pendingUncountedScrollRef = useRef(false);
+  const handleProfileTabPress = useCallback(
+    (index: number) => {
+      const nextTab = PROFILE_CONTENT_TABS[index];
+      if (!nextTab || nextTab === activeTab) {
+        return;
+      }
+      // A later layout must not scroll for a note press the user has left.
+      pendingUncountedScrollRef.current = false;
       setActiveTab(nextTab);
-    }
-  }, []);
+    },
+    [activeTab],
+  );
   const scrollRef = useRef<Animated.ScrollView>(null);
   const uncountedSectionRef = useRef<View>(null);
   const uncountedHeaderRef = useRef<View>(null);
-  const pendingUncountedScrollRef = useRef(false);
   useFocusEffect(
     useCallback(() => {
       // Every new post lands here, pinned at the top of the Posts tab.
@@ -492,6 +498,8 @@ const MyProfileView: React.FC = () => {
       if (nextFilter === assetFilter) {
         return;
       }
+      // A later layout must not scroll for a note press the user has left.
+      pendingUncountedScrollRef.current = false;
       trackInteraction(Interaction.FILTER_APPLIED, {
         filter_name: Filter.PROFILE_ASSET_TYPE,
         previous_filter_value: assetFilter,
