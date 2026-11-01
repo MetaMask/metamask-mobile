@@ -6,15 +6,19 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import ReduxService, { type ReduxStore } from '../../../app/core/redux';
 import Routes from '../../../app/constants/navigation/Routes';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
+import MoneyHomeView from '../../../app/components/UI/Money/Views/MoneyHomeView/MoneyHomeView';
+import SupportConsentSheet from '../../../app/components/UI/SupportConsentSheet';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
+import { VbaKycRejectedAdapter } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
 import { renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
@@ -75,6 +79,17 @@ const VbaTermsCaller = () => {
   );
 };
 
+const SupportModalStack = createNativeStackNavigator();
+
+const VbaSupportConsentModal = () => (
+  <SupportModalStack.Navigator screenOptions={{ headerShown: false }}>
+    <SupportModalStack.Screen
+      name={Routes.MODAL.SUPPORT_CONSENT_SHEET}
+      component={SupportConsentSheet}
+    />
+  </SupportModalStack.Navigator>
+);
+
 const VbaMoneyCaller = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -124,6 +139,63 @@ export const renderVbaVendorTermsWithCaller = (
       },
       { name: VbaOnboardingRoutes.EMAIL },
       { name: VbaOnboardingRoutes.ERROR },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+export const renderVbaKycRejected = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    VbaKycRejectedAdapter as unknown as React.ComponentType,
+    { name: VbaOnboardingRoutes.KYC_REJECTED },
+    [
+      { name: VbaOnboardingRoutes.IDENTITY_VERIFICATION },
+      { name: VbaOnboardingRoutes.ERROR },
+      {
+        name: Routes.MODAL.ROOT_MODAL_FLOW,
+        Component: VbaSupportConsentModal,
+      },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+export const renderVbaDetails = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    VbaDetails as unknown as React.ComponentType,
+    { name: Routes.RAMP.VBA_DETAILS },
+    [
+      {
+        name: Routes.RAMP.VBA_ONBOARDING,
+        Component:
+          VbaOnboardingNavigator as unknown as React.ComponentType<object>,
+      },
+      { name: Routes.HOME_TABS },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+export const renderVbaMoneyHome = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    MoneyHomeView as unknown as React.ComponentType,
+    { name: Routes.MONEY.HOME },
+    [
+      {
+        name: Routes.RAMP.VBA_ONBOARDING,
+        Component:
+          VbaOnboardingNavigator as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.RAMP.VBA_DETAILS,
+        Component: VbaDetails as unknown as React.ComponentType,
+      },
     ],
     { state: buildVbaState(options) },
   );
