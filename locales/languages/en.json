@@ -1209,6 +1209,7 @@
       "details_title": "Review your details",
       "details_description": "Make sure your information matches your documents",
       "button": "Contact support",
+      "contact_support_button": "Contact support",
       "retry_button": "Try again"
     },
     "account_provisioning_error": {
