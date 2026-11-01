@@ -1,6 +1,7 @@
 import '../../../../../tests/component-view/mocks';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { MfaError } from '@metamask/profile-sync-controller/sdk';
+import { HttpError } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
@@ -10,6 +11,7 @@ import {
 } from '../../../../../tests/component-view/renderers/vba';
 import { getActiveMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { MfaFlowSelectorsIDs } from '../../../Views/Mfa/Mfa.testIds';
+import { VbaEmailAdapterSelectorsIDs } from './EmailAdapter';
 
 const EMAIL = 'ada@example.com';
 const MASKED_EMAIL = 'a•••@example.com';
@@ -41,12 +43,24 @@ const auth = Engine.context.AuthenticationController as unknown as {
 
 const kyc = Engine.context.KycController as unknown as {
   getSessionStatusForVendor: jest.Mock;
+  startSession: jest.Mock;
 };
+const hydrate = jest.mocked(
+  Engine.context.RampsController.hydrateVbaOnboarding,
+);
+
+// `KycService` HttpError message for a failed `GET /sessions/latest/status/iron`.
+const kycHttpError = (status: number) =>
+  new HttpError(
+    status,
+    `Fetching 'https://kyc.example/sessions/latest/status/iron' failed with status '${status}'`,
+  );
 
 describeForPlatforms('VBA email verification view', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     kyc.getSessionStatusForVendor = jest.fn().mockResolvedValue(null);
+    kyc.startSession = jest.fn().mockResolvedValue(undefined);
     auth.refreshEnrolledCredentials = jest.fn().mockResolvedValue([]);
     auth.beginCredentialEnrollment = jest
       .fn()
@@ -154,4 +168,68 @@ describeForPlatforms('VBA email verification view', () => {
       }),
     );
   });
+
+  it('resumes an existing session without asking for an email code', async () => {
+    kyc.getSessionStatusForVendor.mockResolvedValue({
+      id: 'session-1',
+      externalUserId: 'user-1',
+      vendor: 'sumsub',
+      vendorStatus: 'pending',
+      finalStatus: 'pending',
+      kycStatus: 'pending',
+    });
+    const { findByTestId, queryByTestId } = renderVbaEmailVerification();
+
+    expect(
+      await findByTestId(VbaEmailAdapterSelectorsIDs.SPINNER),
+    ).toBeOnTheScreen();
+    await waitFor(() => expect(hydrate).toHaveBeenCalled());
+
+    expect(kyc.startSession).toHaveBeenCalledWith({ vendor: 'iron' });
+    expect(
+      queryByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each<[string, () => void]>([
+    [
+      'the session lookup fails',
+      () => kyc.getSessionStatusForVendor.mockRejectedValue(kycHttpError(500)),
+    ],
+    [
+      'starting the session fails',
+      () => {
+        kyc.getSessionStatusForVendor.mockResolvedValue({ id: 'session-1' });
+        kyc.startSession.mockRejectedValue(kycHttpError(500));
+      },
+    ],
+  ])('shows the email error and retries when %s', async (_label, fail) => {
+    fail();
+    const { findByText, getByTestId } = renderVbaEmailVerification();
+
+    expect(
+      await findByText(strings('virtual_bank_account.kyc_email.error_title')),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(VbaEmailAdapterSelectorsIDs.RETRY_BUTTON));
+
+    expect(
+      await findByText(strings('virtual_bank_account.kyc_email.error_title')),
+    ).toBeOnTheScreen();
+    expect(kyc.getSessionStatusForVendor).toHaveBeenCalledTimes(2);
+  });
+
+  // Bug: the email error screen shows the raw KYC API error, including the URL.
+  it.failing(
+    'shows friendly copy instead of the raw HTTP error when the session lookup fails',
+    async () => {
+      kyc.getSessionStatusForVendor.mockRejectedValue(kycHttpError(500));
+      const { findByTestId } = renderVbaEmailVerification();
+
+      expect(
+        await findByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toHaveTextContent(
+        strings('virtual_bank_account.kyc_email.error_description'),
+      );
+    },
+  );
 });
