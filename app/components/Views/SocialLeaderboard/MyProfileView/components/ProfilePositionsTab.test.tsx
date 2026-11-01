@@ -253,7 +253,10 @@ describe('ProfilePositionsTab', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
     expect(
-      screen.getByRole('button', {
+      screen.getByRole('header', { name: 'Not counted in P&L' }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole('header', {
         name: 'Not counted in P&L, 2 positions. Learn why',
       }),
     ).toBeOnTheScreen();
@@ -412,7 +415,7 @@ describe('ProfilePositionsTab', () => {
     );
 
     expect(
-      screen.getByRole('button', {
+      screen.getByRole('header', {
         name: 'Not counted in P&L, 1 position. Learn why',
       }),
     ).toBeOnTheScreen();
