@@ -153,6 +153,10 @@ export async function processUnifiedOrder(
       message: 'FiatOrders::UnifiedProcessor error while processing order',
       orderId: order.id,
     });
-    return order;
+    return {
+      ...order,
+      lastTimeFetched: now,
+      errorCount: Math.min((order.errorCount || 0) + 1, MAX_ERROR_COUNT),
+    };
   }
 }

@@ -294,7 +294,7 @@ describe('processUnifiedOrder', () => {
   });
 
   describe('error handling', () => {
-    it('returns original order unchanged and logs error when API returns null', async () => {
+    it('increments errorCount and logs when the API returns null', async () => {
       const Logger = jest.requireMock<{ error: jest.Mock }>(
         '../../../../util/Logger',
       );
@@ -302,11 +302,15 @@ describe('processUnifiedOrder', () => {
 
       const result = await processUnifiedOrder(mockOrder);
 
-      expect(result).toBe(mockOrder);
+      expect(result).toEqual({
+        ...mockOrder,
+        errorCount: 1,
+        lastTimeFetched: now,
+      });
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('returns original order unchanged and logs error when API throws', async () => {
+    it('increments errorCount and logs when the API throws', async () => {
       const Logger = jest.requireMock<{ error: jest.Mock }>(
         '../../../../util/Logger',
       );
@@ -314,11 +318,15 @@ describe('processUnifiedOrder', () => {
 
       const result = await processUnifiedOrder(mockOrder);
 
-      expect(result).toBe(mockOrder);
+      expect(result).toEqual({
+        ...mockOrder,
+        errorCount: 1,
+        lastTimeFetched: now,
+      });
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('returns original order and logs error when provider/order code cannot be extracted', async () => {
+    it('increments errorCount and logs when the provider or order code is missing', async () => {
       const Logger = jest.requireMock<{ error: jest.Mock }>(
         '../../../../util/Logger',
       );
@@ -332,7 +340,11 @@ describe('processUnifiedOrder', () => {
 
       const result = await processUnifiedOrder(badOrder);
 
-      expect(result).toBe(badOrder);
+      expect(result).toEqual({
+        ...badOrder,
+        errorCount: 1,
+        lastTimeFetched: now,
+      });
       expect(Logger.error).toHaveBeenCalled();
     });
   });
@@ -491,6 +503,43 @@ describe('processUnifiedOrder', () => {
       // forced skips the UNKNOWN early-return, so the order is transformed and errorCount resets
       expect(result.errorCount).toBe(0);
       expect(result.state).toBe(FIAT_ORDER_STATES.PENDING);
+    });
+  });
+
+  describe('fetch error backoff', () => {
+    it('increments errorCount and sets lastTimeFetched when the order fetch fails', async () => {
+      mockGetOrder.mockRejectedValue(new Error('provider removed'));
+
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        errorCount: 0,
+        lastTimeFetched: 0,
+      });
+
+      expect(result.errorCount).toBe(1);
+      expect(result.lastTimeFetched).toBe(now);
+    });
+
+    it('stops errorCount at MAX_ERROR_COUNT after repeated fetch errors', async () => {
+      mockGetOrder.mockRejectedValue(new Error('provider removed'));
+      let order: FiatOrder = {
+        ...mockOrder,
+        errorCount: 0,
+        lastTimeFetched: 0,
+      };
+
+      for (let attempt = 0; attempt < MAX_ERROR_COUNT + 1; attempt++) {
+        const nextNow =
+          (order.lastTimeFetched ?? 0) +
+          Math.pow(POLLING_FREQUENCY_IN_SECONDS, (order.errorCount ?? 0) + 1) *
+            1000 +
+          1;
+        jest.spyOn(Date, 'now').mockReturnValue(nextNow);
+
+        order = await processUnifiedOrder(order);
+      }
+
+      expect(order.errorCount).toBe(MAX_ERROR_COUNT);
     });
   });
 });

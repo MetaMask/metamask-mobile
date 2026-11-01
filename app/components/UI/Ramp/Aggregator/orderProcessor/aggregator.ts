@@ -143,6 +143,10 @@ export async function processAggregatorOrder(
       state: order.state,
       network: order.network,
     });
-    return order as FiatOrder;
+    return {
+      ...order,
+      lastTimeFetched: now,
+      errorCount: Math.min((order.errorCount || 0) + 1, MAX_ERROR_COUNT),
+    } as FiatOrder;
   }
 }
