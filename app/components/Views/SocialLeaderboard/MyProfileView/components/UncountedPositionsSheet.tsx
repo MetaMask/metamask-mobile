@@ -42,7 +42,9 @@ const Explanation: React.FC<ExplanationProps> = ({ label, body }) => (
  * Explains why some positions sit outside P&L.
  *
  * The unsupported-token item is explanation copy only. This sheet does not
- * read position flags, and it does not change which rows are counted.
+ * read position flags. Which rows are counted comes from server flags via
+ * `partitionUncountedPositions`. The unsupported-token label mapping arrives
+ * separately.
  */
 const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
   onClose,
