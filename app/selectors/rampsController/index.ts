@@ -9,6 +9,7 @@ import {
   type ResourceState,
   type TransakState,
   type RampsOrder,
+  type AutorampAccount,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 import { areAddressesEqual } from '../../util/address';
@@ -170,4 +171,14 @@ export const selectSelectedVbaWalletAddress = createSelector(
     }
     return toChecksumHexAddress(address);
   },
+);
+
+/**
+ * Autoramp cursors from RampsController state. Empty when the controller has
+ * not hydrated yet, so callers can render or skip without a null check.
+ */
+export const selectRampsAutoramps = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): AutorampAccount[] =>
+    rampsControllerState?.autoramps ?? [],
 );

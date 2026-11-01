@@ -470,6 +470,10 @@ jest.mock(
   }),
 );
 
+jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
+  useVbaTransactionRefresh: jest.fn(),
+}));
+
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility',

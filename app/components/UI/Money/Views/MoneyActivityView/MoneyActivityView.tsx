@@ -36,6 +36,7 @@ import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFla
 import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
@@ -159,6 +160,10 @@ const MoneyActivityView = () => {
     });
 
   useMountEffect(trackScreenViewed);
+
+  // Same one-shot autoramp transaction read as Money Home. The controller
+  // dedupes, so opening this screen after Home fires no duplicate events.
+  useVbaTransactionRefresh();
 
   const {
     buckets,

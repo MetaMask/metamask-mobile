@@ -64,6 +64,7 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
   deriveMoneyMetaMaskCardMode,
@@ -200,6 +201,10 @@ const MoneyHomeView = () => {
   // refresh is the one-shot KYC session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
+  // One-shot autoramp transaction read per focus and app resume. The
+  // controller owns the last-seen-status record, so repeated reads do not
+  // emit duplicate Money VBA Transaction Updated events.
+  useVbaTransactionRefresh();
   // The Details button is live for every VBA-eligible user (flag + IP region,
   // the same eligibility gate the home cards use). Like the cards, it opens the
   // loading screen immediately; that screen hydrates and forwards to the PIX

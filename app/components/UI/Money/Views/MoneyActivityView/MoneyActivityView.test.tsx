@@ -128,6 +128,10 @@ jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
+  useVbaTransactionRefresh: jest.fn(),
+}));
+
 jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: jest.fn(),
 }));
