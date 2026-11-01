@@ -16,7 +16,6 @@ import {
 
 const ACCOUNTS_API_ORIGIN = 'https://accounts.api.cx.metamask.io';
 const TRANSACTIONS_PATH = '/v4/multiaccount/transactions';
-const V1_ACCOUNT_TRANSACTIONS_PATH = /\/v1\/accounts\/[^/]+\/transactions$/;
 
 export interface MockAccountsApiTransaction {
   hash: string;
@@ -53,27 +52,6 @@ export function setupAccountsTransactionsApiMock(
       pageInfo: {
         ...defaultPageInfo,
         count: transactions.length,
-      },
-    });
-}
-
-/**
- * Empty page for Money home's v1 account-transactions read
- * (`apiClient.accounts.fetchV1AccountTransactions`).
- */
-export function setupV1AccountTransactionsApiMock(): void {
-  clearAllNockMocks();
-  disableNetConnect();
-
-  nock(ACCOUNTS_API_ORIGIN)
-    .persist()
-    .get(V1_ACCOUNT_TRANSACTIONS_PATH)
-    .query(true)
-    .reply(200, {
-      data: [],
-      pageInfo: {
-        count: 0,
-        hasNextPage: false,
       },
     });
 }

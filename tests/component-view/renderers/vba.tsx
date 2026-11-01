@@ -12,8 +12,6 @@ import type { AppNavigationProp } from '../../../app/core/NavigationService/type
 import ReduxService, { type ReduxStore } from '../../../app/core/redux';
 import Routes from '../../../app/constants/navigation/Routes';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
-import MoneyActivityView from '../../../app/components/UI/Money/Views/MoneyActivityView/MoneyActivityView';
-import { MoneyApiActivityDetailsView } from '../../../app/components/UI/Money/Views/MoneyApiActivityDetailsView/MoneyApiActivityDetailsView';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
@@ -126,25 +124,6 @@ export const renderVbaVendorTermsWithCaller = (
       },
       { name: VbaOnboardingRoutes.EMAIL },
       { name: VbaOnboardingRoutes.ERROR },
-    ],
-    { state: buildVbaState(options) },
-  );
-  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
-  return result;
-};
-
-export const renderVbaMoneyActivityHistory = (
-  options: RenderVbaOptions = {},
-) => {
-  const result = renderScreenWithRoutes(
-    MoneyActivityView as unknown as React.ComponentType,
-    { name: Routes.MONEY.ACTIVITY },
-    [
-      {
-        name: Routes.MONEY.CARD_TRANSACTION_DETAILS,
-        Component:
-          MoneyApiActivityDetailsView as unknown as React.ComponentType,
-      },
     ],
     { state: buildVbaState(options) },
   );
