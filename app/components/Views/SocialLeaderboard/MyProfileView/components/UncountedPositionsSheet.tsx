@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
+  ButtonSize,
   FontWeight,
   Text,
   TextColor,
@@ -40,26 +41,23 @@ const Explanation: React.FC<ExplanationProps> = ({ label, body }) => (
 /**
  * Explains why some positions sit outside P&L.
  *
- * The unsupported-token item is explanation copy only. It is not a position
- * flag, and it does not change which rows are counted.
+ * The unsupported-token item is explanation copy only. This sheet does not
+ * read position flags. Which rows are counted comes from server flags via
+ * `partitionUncountedPositions`. The unsupported-token label mapping arrives
+ * separately.
  */
 const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
   onClose,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  useEffect(() => {
-    sheetRef.current?.onOpenBottomSheet();
-  }, []);
-
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
-  };
+  }, []);
 
   return (
     <BottomSheet
       ref={sheetRef}
-      isInteractable
       onClose={onClose}
       testID={MyProfileViewSelectorsIDs.UNCOUNTED_SHEET}
     >
@@ -99,6 +97,7 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
+          size: ButtonSize.Lg,
           children: strings(
             'social_leaderboard.my_profile.not_counted_sheet_dismiss',
           ),

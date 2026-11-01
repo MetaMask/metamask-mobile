@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, type View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DottedUnderline from '../../../../UI/DottedUnderline';
@@ -33,7 +33,6 @@ import {
   getProfilePositionsEmptyMessageKey,
   type ProfileAssetFilter,
 } from '../utils/splitPositionsByType';
-import UncountedPositionsSheet from './UncountedPositionsSheet';
 
 const POSITION_SKELETON_KEYS = ['s1', 's2', 's3', 's4'] as const;
 
@@ -56,6 +55,8 @@ export interface ProfilePositionsTabProps {
   uncountedHeaderRef?: React.Ref<View>;
   /** Called whenever the pinned section lays out. */
   onUncountedSectionLayout?: () => void;
+  /** Opens the uncounted-positions explainer. */
+  onUncountedHeaderPress?: () => void;
 }
 
 const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
@@ -71,10 +72,10 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   uncountedSectionRef,
   uncountedHeaderRef,
   onUncountedSectionLayout,
+  onUncountedHeaderPress,
 }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
-  const [isUncountedSheetOpen, setIsUncountedSheetOpen] = useState(false);
   const { tokens, perps, uncounted } = useMemo(() => {
     // Only other traders (`showFlaggedState`) move flagged rows into the
     // pinned section. The rows themselves stay full color.
@@ -102,13 +103,6 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
       : 'social_leaderboard.my_profile.not_counted_section_a11y_other',
     { count: uncounted.length },
   );
-  const handleOpenUncountedSheet = useCallback(() => {
-    setIsUncountedSheetOpen(true);
-  }, []);
-  const handleCloseUncountedSheet = useCallback(() => {
-    setIsUncountedSheetOpen(false);
-  }, []);
-
   const renderRows = (sectionPositions: Position[]) =>
     sectionPositions.map((position) => (
       <PositionRow
@@ -239,9 +233,9 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
             >
               <TouchableOpacity
                 ref={uncountedHeaderRef}
-                accessibilityRole="button"
+                accessibilityRole="header"
                 accessibilityLabel={uncountedAccessibilityLabel}
-                onPress={handleOpenUncountedSheet}
+                onPress={onUncountedHeaderPress}
                 style={tw.style(
                   'min-h-11 self-start items-center justify-center px-4 py-2',
                 )}
@@ -269,9 +263,6 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           ) : null}
         </>
       )}
-      {isUncountedSheetOpen ? (
-        <UncountedPositionsSheet onClose={handleCloseUncountedSheet} />
-      ) : null}
     </Box>
   );
 };

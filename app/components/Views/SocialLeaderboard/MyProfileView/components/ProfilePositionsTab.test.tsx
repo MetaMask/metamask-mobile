@@ -6,33 +6,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfilePositionsTab from './ProfilePositionsTab';
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      props: {
-        children?: React.ReactNode;
-        testID?: string;
-        onClose?: () => void;
-      },
-      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: () => undefined,
-        onCloseBottomSheet: () => props.onClose?.(),
-      }));
-      return ReactActual.createElement(
-        View,
-        { testID: props.testID },
-        props.children,
-      );
-    },
-  );
-  return { ...actual, BottomSheet: MockBottomSheet };
-});
-
 jest.mock('../../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
     position.perpPositionType != null || position.chain === 'hyperliquid',
@@ -253,7 +226,10 @@ describe('ProfilePositionsTab', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
     expect(
-      screen.getByRole('button', {
+      screen.getByRole('header', { name: 'Not counted in P&L' }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole('header', {
         name: 'Not counted in P&L, 2 positions. Learn why',
       }),
     ).toBeOnTheScreen();
@@ -412,13 +388,15 @@ describe('ProfilePositionsTab', () => {
     );
 
     expect(
-      screen.getByRole('button', {
+      screen.getByRole('header', {
         name: 'Not counted in P&L, 1 position. Learn why',
       }),
     ).toBeOnTheScreen();
   });
 
-  it('opens and closes the uncounted-positions sheet from the section header', () => {
+  it('reports a press on the uncounted section header', () => {
+    const onUncountedHeaderPress = jest.fn();
+
     renderWithProvider(
       <ProfilePositionsTab
         positions={[{ ...openSpot, flags: ['insider'] }]}
@@ -430,6 +408,7 @@ describe('ProfilePositionsTab', () => {
         onPositionPress={onPositionPress}
         onRetry={onRetry}
         showFlaggedState
+        onUncountedHeaderPress={onUncountedHeaderPress}
       />,
     );
 
@@ -437,17 +416,7 @@ describe('ProfilePositionsTab', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
     );
 
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText("Why some positions aren't counted"),
-    ).toBeOnTheScreen();
-
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_DISMISS),
-    );
-
+    expect(onUncountedHeaderPress).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
     ).toBeNull();
