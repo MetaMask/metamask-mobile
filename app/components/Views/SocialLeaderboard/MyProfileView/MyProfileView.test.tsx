@@ -130,8 +130,30 @@ jest.mock('@metamask/design-system-react-native', () => {
       endAccessory,
     );
 
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: () => undefined,
+        onCloseBottomSheet: () => props.onClose?.(),
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID },
+        props.children,
+      );
+    },
+  );
+
   return {
     ...actual,
+    BottomSheet: MockBottomSheet,
     HeaderStandardAnimated: MockHeaderStandardAnimated,
     useHeaderStandardAnimated: () => ({
       scrollY: { value: 0 },
@@ -1480,5 +1502,64 @@ describe('MyProfileView', () => {
       source: 'profile_position',
       isClosed: false,
     });
+  });
+
+  it('opens and closes the uncounted-positions sheet over the profile', () => {
+    const flagged: Position = {
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '0xnigel',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+    };
+    mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [flagged],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
+    );
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("Why some positions aren't counted"),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_DISMISS),
+    );
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeNull();
   });
 });
