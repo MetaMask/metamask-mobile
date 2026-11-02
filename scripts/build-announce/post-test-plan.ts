@@ -2,12 +2,12 @@
 
 import { Octokit } from '@octokit/rest';
 import {
+  applyTestPlanSection,
   removePendingTestPlanSection,
   selectRcCommentForTestPlan,
   type RcCommentSelection,
 } from './test-plan-comment';
 import {
-  applyTestPlanSection,
   buildTestPlanFailureSection,
   buildTestPlanSection,
 } from './test-plan-section';
