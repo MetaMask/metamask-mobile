@@ -374,19 +374,8 @@ jobs:
     name: Performance Test Android TestMu HyperExecute (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [prepare, check-testmu-credentials, trigger-android-dual-versions]
-    if: >-
-      always() && !cancelled() &&
-      needs.prepare.outputs.run_tests == 'true' &&
-      needs.check-testmu-credentials.result == 'success' &&
-      needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
-      (
-        needs.trigger-android-dual-versions.result == 'skipped' ||
-        needs.trigger-android-dual-versions.result == 'success'
-      ) &&
-      (
-        inputs.testmu_app_url_android_imported_wallet != '' ||
-        needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != ''
-      )
+    # Off on the launch-in-test check branch: the check runs one onboarding test only.
+    if: false
     with:
       platform: android
       build_type: imported-wallet
@@ -524,7 +513,8 @@ jobs:
         run-android-imported-wallet-tests-testmu,
         aggregate-results,
       ]
-    if: always() && needs.aggregate-results.result != 'skipped'
+    # Off on the launch-in-test check branch: this job posts to Slack.
+    if: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v6

@@ -241,6 +241,8 @@ jobs:
             echo "HE_REGION=$HE_REGION_INPUT"
             echo "COLLECT_HERMES_CPUPROFILES=$COLLECT_HERMES_INPUT"
             echo "TESTMU_NETWORK_LOGS=$COLLECT_NETWORK_LOGS_INPUT"
+            # Launch-in-test check branch only: install without launching, launch inside the timer.
+            echo "TESTMU_LAUNCH_IN_TEST=true"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests via HyperExecute
