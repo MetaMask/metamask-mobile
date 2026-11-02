@@ -1,4 +1,9 @@
-export { createGamePresentation, getEventGame } from './createGamePresentation';
+export {
+  createGamePresentation,
+  GAME_TEAM_ORDER,
+  getEventGame,
+  getTeamAbbreviation,
+} from './createGamePresentation';
 export {
   findGameSelectionQuote,
   type GameSelectionQuote,
@@ -15,3 +20,4 @@ export type {
   GameStatusLine,
   GameTeamPresentation,
 } from './createGamePresentation';
+export { useGameTeamColors } from './useGameTeamColors';

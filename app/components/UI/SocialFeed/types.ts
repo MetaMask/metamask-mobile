@@ -172,9 +172,9 @@ export interface SocialV1FeedPost {
   authorImageUrl?: string | null;
   timestampMs: number;
   /**
-   * Swap-comment id for the Call this post reacts to. Absent on pending
-   * composer posts and on live rows with no authorComment. The heart still
-   * renders; picks stay session-local until a Call id exists.
+   * Swap-comment id for the Call this post reacts to. Absent on live rows
+   * with no authorComment. The shell hides reaction controls without it.
+   * Pending composer posts already have one from the create response.
    */
   commentId?: string;
   /**
