@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   BottomSheet,
@@ -18,6 +18,12 @@ const VENUE_LABEL_KEYS: Record<PredictConfiguredVenue, string> = {
   kalshi: 'predict_next.venue_selector.venues.kalshi',
 };
 
+/**
+ * How long to wait for iOS to report the modal dismissed before applying the
+ * selection anyway, so a missed `onDismiss` never swallows a choice.
+ */
+export const VENUE_SELECTOR_DISMISS_FALLBACK_MS = 1_000;
+
 const styles = StyleSheet.create({
   gestureRoot: {
     flex: 1,
@@ -33,8 +39,9 @@ export interface VenueSelectorSheetProps {
   venues: readonly PredictConfiguredVenue[];
   /** Marked as selected; `undefined` while the Active Venue is resolving. */
   activeVenue: PredictConfiguredVenue | undefined;
-  /** Runs once the sheet has closed. */
+  /** Runs once the sheet's modal has been dismissed. */
   onSelect: (venue: PredictConfiguredVenue) => void;
+  /** Runs once the sheet's modal has been dismissed, with or without a choice. */
   onClose: () => void;
 }
 
@@ -46,36 +53,74 @@ export const VenueSelectorSheet = ({
   onClose,
 }: VenueSelectorSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const [isModalVisible, setIsModalVisible] = useState(true);
+  const pendingVenueRef = useRef<PredictConfiguredVenue | undefined>(undefined);
+  const isFinishedRef = useRef(false);
+  const onSelectRef = useRef(onSelect);
+  const onCloseRef = useRef(onClose);
+  onSelectRef.current = onSelect;
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     sheetRef.current?.onOpenBottomSheet();
   }, []);
 
+  /**
+   * Hands the choice over only once the modal is gone. A choice remounts the
+   * screen that presents the modal; doing that while iOS is still dismissing
+   * it froze the app (PRED-1401 QA, Kalshi → Polymarket).
+   */
+  const finish = useCallback(() => {
+    if (isFinishedRef.current) {
+      return;
+    }
+    isFinishedRef.current = true;
+    const venue = pendingVenueRef.current;
+    onCloseRef.current();
+    if (venue) {
+      onSelectRef.current(venue);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isModalVisible) {
+      return undefined;
+    }
+    // Android has no `onDismiss`: hiding is complete once this commit lands.
+    if (Platform.OS !== 'ios') {
+      finish();
+      return undefined;
+    }
+    const fallback = setTimeout(finish, VENUE_SELECTOR_DISMISS_FALLBACK_MS);
+    return () => clearTimeout(fallback);
+  }, [finish, isModalVisible]);
+
+  const hideModal = useCallback(() => setIsModalVisible(false), []);
+
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleSelect = useCallback(
-    (venue: PredictConfiguredVenue) => {
-      sheetRef.current?.onCloseBottomSheet(() => onSelect(venue));
-    },
-    [onSelect],
-  );
+  const handleSelect = useCallback((venue: PredictConfiguredVenue) => {
+    pendingVenueRef.current = venue;
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   return (
     <View pointerEvents="box-none" style={styles.modalHost}>
       <Modal
-        visible
+        visible={isModalVisible}
         transparent
         animationType="none"
         statusBarTranslucent
         onRequestClose={handleClose}
+        onDismiss={finish}
       >
         <ModalSafeAreaProvider>
           <GestureHandlerRootView style={styles.gestureRoot}>
             <BottomSheet
               ref={sheetRef}
-              onClose={onClose}
+              onClose={hideModal}
               testID={PredictVenueSelectorTestIds.SHEET}
             >
               <BottomSheetHeader
