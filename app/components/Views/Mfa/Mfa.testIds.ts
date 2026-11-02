@@ -5,6 +5,7 @@ export const MfaFlowSelectorsIDs = {
   PRIMARY_BUTTON: 'mfa-flow-primary-button',
   SECONDARY_BUTTON: 'mfa-flow-secondary-button',
   ERROR: 'mfa-flow-error',
+  ERROR_LINK: 'mfa-flow-error-link',
   EMAIL_INPUT: 'mfa-flow-email-input',
   CODE_INPUT: 'mfa-flow-code-input',
   CODE_TAP_AREA: 'mfa-flow-code-tap-area',

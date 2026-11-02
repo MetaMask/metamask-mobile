@@ -72,10 +72,6 @@ describe('Remote Feature Flags Helper', () => {
         expect(flagByName(flagName)).toEqual(disabledVersionGate);
       }
 
-      expect(flagByName('stellarAccounts')).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.1',
-      });
       expect(flagByName('nativeTabBarEnabled')).toBe(true);
       expect(flagByName('predictHomeRedesign')).toEqual({
         enabled: true,

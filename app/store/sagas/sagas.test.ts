@@ -39,6 +39,7 @@ import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
+import { hydrateSocialTermsAcceptance } from '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
   getUtmAttributesFromDeeplinkUrl: jest.fn(),
   persistUtmAttributes: jest.fn(),
@@ -69,6 +70,13 @@ jest.mock('../../core/NavigationService', () => ({
 jest.mock('../../core/EngineService', () => ({
   start: jest.fn(),
 }));
+
+jest.mock(
+  '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({
+    hydrateSocialTermsAcceptance: jest.fn(() => Promise.resolve()),
+  }),
+);
 
 jest.mock('../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
@@ -328,6 +336,7 @@ describe('startAppServices', () => {
     // Verify startup services are started without locked keychain-dependent work.
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
+    expect(hydrateSocialTermsAcceptance).toHaveBeenCalled();
     expect(WC2Manager.init).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
   });

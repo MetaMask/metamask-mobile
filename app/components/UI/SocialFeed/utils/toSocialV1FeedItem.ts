@@ -91,6 +91,13 @@ export const deriveExitPrice = (core: Position): number | null => {
       latest = trade;
     }
   }
+  const lastExit = exitFills.reduce(
+    (latest, trade) =>
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
+    exitFills[0],
+  );
 
   return toUnitPrice(latest);
 };
@@ -123,7 +130,7 @@ export const deriveMarketCapPerPrice = (core: Position): number | null => {
   return null;
 };
 
-const toMarketCapLabel = (
+export const toMarketCapLabel = (
   marketCapPerPrice: number | null,
   price: number | null,
 ): string | undefined =>
@@ -238,9 +245,8 @@ export function toSocialV1FeedItem(
   };
 
   const authorComment = readAuthorComment(core);
-  const { text: commentText } = splitKlipyGifFromCommentText(
-    authorComment?.text ?? '',
-  );
+  const { text: commentText, gifUrl: commentGifUrl } =
+    splitKlipyGifFromCommentText(authorComment?.text ?? '');
   const comment = commentText || undefined;
 
   // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
@@ -264,6 +270,7 @@ export function toSocialV1FeedItem(
       avatar: item.tokenAvatar,
     },
     comment,
+    ...(commentGifUrl ? { commentGifUrl } : {}),
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
     // Abbreviated: the open card puts this under the percent in a column capped

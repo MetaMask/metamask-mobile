@@ -3,20 +3,22 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import useRefreshMusdFiatRate from './useRefreshMusdFiatRate';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../Earn/constants/musd';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
-const mockGetAssets = jest.fn().mockResolvedValue(undefined);
+const mockSyncAssetsPrices = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       AssetsController: {
-        getAssets: (...args: unknown[]) => mockGetAssets(...args),
+        syncAssetsPrices: (...args: unknown[]) => mockSyncAssetsPrices(...args),
       },
     },
   },
@@ -49,28 +51,24 @@ function setupSelectors({
 describe('useRefreshMusdFiatRate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetAssets.mockResolvedValue(undefined);
+    mockSyncAssetsPrices.mockResolvedValue(undefined);
     setupSelectors();
   });
 
-  it('calls AssetsController.getAssets with Monad chain, price data type, and forceUpdate for the mUSD asset', async () => {
+  it('calls AssetsController.syncAssetsPrices with the Monad mUSD asset', async () => {
     const { result } = renderHook(() => useRefreshMusdFiatRate());
 
     await act(async () => {
       await result.current();
     });
 
-    expect(mockGetAssets).toHaveBeenCalledTimes(1);
-    expect(mockGetAssets).toHaveBeenCalledWith(
-      [MOCK_EVM_ACCOUNT],
-      expect.objectContaining({
-        dataTypes: ['price'],
-        forceUpdate: true,
-      }),
-    );
+    expect(mockSyncAssetsPrices).toHaveBeenCalledTimes(1);
+    expect(mockSyncAssetsPrices).toHaveBeenCalledWith([
+      MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD],
+    ]);
   });
 
-  it('does not call AssetsController.getAssets when no selected EVM account exists', async () => {
+  it('does not call AssetsController.syncAssetsPrices when no selected EVM account exists', async () => {
     setupSelectors({ selectedEvmAccount: null });
 
     const { result } = renderHook(() => useRefreshMusdFiatRate());
@@ -79,13 +77,13 @@ describe('useRefreshMusdFiatRate', () => {
       await result.current();
     });
 
-    expect(mockGetAssets).not.toHaveBeenCalled();
+    expect(mockSyncAssetsPrices).not.toHaveBeenCalled();
   });
 
   describe('module-level promise dedupe', () => {
     it('returns the same in-flight promise for concurrent callers and calls the controller only once', async () => {
       let resolveRefresh!: () => void;
-      mockGetAssets.mockReturnValue(
+      mockSyncAssetsPrices.mockReturnValue(
         new Promise<void>((resolve) => {
           resolveRefresh = resolve;
         }),
@@ -100,7 +98,7 @@ describe('useRefreshMusdFiatRate', () => {
 
       expect(promise1).toBe(promise2);
       expect(promise1).toBe(promise3);
-      expect(mockGetAssets).toHaveBeenCalledTimes(1);
+      expect(mockSyncAssetsPrices).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         resolveRefresh();
@@ -120,7 +118,7 @@ describe('useRefreshMusdFiatRate', () => {
         await refresh();
       });
 
-      expect(mockGetAssets).toHaveBeenCalledTimes(2);
+      expect(mockSyncAssetsPrices).toHaveBeenCalledTimes(2);
     });
 
     it('clears the in-flight promise after it settles so later calls do not return the old promise', async () => {
@@ -144,7 +142,7 @@ describe('useRefreshMusdFiatRate', () => {
 
   describe('error handling', () => {
     it('logs and swallows AssetsController errors instead of throwing', async () => {
-      mockGetAssets.mockRejectedValue(new Error('network error'));
+      mockSyncAssetsPrices.mockRejectedValue(new Error('network error'));
 
       const { result } = renderHook(() => useRefreshMusdFiatRate());
 
@@ -156,7 +154,7 @@ describe('useRefreshMusdFiatRate', () => {
     });
 
     it('clears the in-flight promise even when the controller call fails', async () => {
-      mockGetAssets.mockRejectedValue(new Error('network error'));
+      mockSyncAssetsPrices.mockRejectedValue(new Error('network error'));
 
       const { result } = renderHook(() => useRefreshMusdFiatRate());
       const refresh = result.current;
@@ -165,13 +163,13 @@ describe('useRefreshMusdFiatRate', () => {
         await refresh();
       });
 
-      mockGetAssets.mockResolvedValue(undefined);
+      mockSyncAssetsPrices.mockResolvedValue(undefined);
 
       await act(async () => {
         await refresh();
       });
 
-      expect(mockGetAssets).toHaveBeenCalledTimes(2);
+      expect(mockSyncAssetsPrices).toHaveBeenCalledTimes(2);
     });
   });
 });

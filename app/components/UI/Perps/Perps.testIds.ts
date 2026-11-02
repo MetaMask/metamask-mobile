@@ -72,6 +72,7 @@ export const PerpsPositionCardSelectorsIDs = {
   CARD: 'PerpsPositionCard',
   HEADER: 'position-card-header',
   SHARE_BUTTON: 'position-card-share',
+  POST_TO_FEED_BUTTON: 'position-card-post-to-feed',
   PNL_CARD: 'position-card-pnl',
   PNL_VALUE: 'position-card-pnl-value',
   RETURN_CARD: 'position-card-return',
@@ -326,7 +327,6 @@ export const PerpsHomeViewSelectorsIDs = {
   SOCIAL_FEED_TRENDING_PILL: 'perps-home-social-feed-trending',
   SOCIAL_FEED_TOP_TRADERS_PILL: 'perps-home-social-feed-top-traders',
   SOCIAL_FEED_SEE_MORE: 'perps-home-social-feed-see-more',
-  SOCIAL_FEED_TRENDING_SEE_MORE: 'perps-social-feed-trending-see-more',
   RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
   RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
   RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
@@ -498,7 +498,6 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   SOCIAL_TABS: 'perps-market-details-social-tabs',
   FEED_TAB_CONTENT: 'perps-market-details-feed-tab-content',
   TOP_TRADERS_TAB_CONTENT: 'perps-market-details-top-traders-tab-content',
-  TOP_TRADERS_SEE_MORE: 'perps-market-details-top-traders-see-more',
   ABOUT_SECTION: 'perps-market-details-about-section',
   ABOUT_DESCRIPTION: 'perps-market-details-about-description',
   ABOUT_READ_MORE: 'perps-market-details-about-read-more',
@@ -1124,6 +1123,10 @@ export const PerpsTradeSheetSelectorsIDs = {
 
 export const PerpsFeeDiscountLabelSelectorsIDs = {
   LABEL: 'perps-fee-discount-label',
+} as const;
+
+export const PerpsFeesTooltipSelectorsIDs = {
+  PROMOTIONAL_BANNER_SEAL: 'perps-fees-tooltip-promotional-banner-seal',
 } as const;
 
 // ========================================

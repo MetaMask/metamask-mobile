@@ -573,6 +573,8 @@ const Routes = {
     ADDRESS_LIST: 'MultichainAddressList',
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
+    /** Block explorer pushed on AppFlow, above the address list. */
+    EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
@@ -603,8 +605,12 @@ const Routes = {
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
+    APPLE_PAY_SPLASH: 'CardApplePaySplash',
+    APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    MFA_METHOD: 'CardMfaMethod',
+    MFA_CODE: 'CardMfaCode',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
@@ -653,6 +659,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      APPLE_PAY_USAGE: 'CardApplePayUsageSheet',
       SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },
