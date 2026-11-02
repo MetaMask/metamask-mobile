@@ -12,12 +12,8 @@ export interface GameHistoryMarkets {
 export function resolveGameHistoryMarkets(
   event: PredictEvent,
 ): GameHistoryMarkets | undefined {
-  const ungroupedEvent = {
-    ...event,
-    markets: event.markets.filter((market) => market.group === undefined),
-  };
-  const home = findGameSelectionQuote(ungroupedEvent, 'home');
-  const away = findGameSelectionQuote(ungroupedEvent, 'away');
+  const home = findGameSelectionQuote(event, 'home');
+  const away = findGameSelectionQuote(event, 'away');
 
   return home === undefined || away === undefined ? undefined : { home, away };
 }

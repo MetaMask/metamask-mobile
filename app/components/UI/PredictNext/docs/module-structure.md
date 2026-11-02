@@ -21,6 +21,8 @@ PredictNext/
     index.ts                   # Venue picker for the Predict home headers (PRED-1401)
     PredictVenueSelectorButton.tsx
     internal/                  # Picker sheet and the preference-writing hook
+  analytics/
+    index.ts                   # Analytics vocabulary, re-exported unchanged from legacy
   activity/
     index.ts                   # Activity projections for the shared Activity list and details
     usePredictActivityItems.ts # Activity as shared ActivityListItems
@@ -64,13 +66,23 @@ PredictNext/
   navigation/
     root/                      # Predict root router (legacy or PredictNext stack)
 
+  auth/                        # Internal P-256, A2T, and bundled profile primitives
+    p256DeviceKey.ts           # Profile-bound P-256 implementation
+    p256DeviceKeyStorage.ts    # Versioned SecureKeychain persistence
+    a2tSession.ts
+    a2tIssuerUrl.ts
+    venueAuthProfiles.ts
+    PredictDeviceAuthBootstrap.tsx
+
   capabilities/
     index.ts                   # Venue descriptors, capability hooks and selectors
     surfaceFeedKeys.ts         # The surface section/tab to Feed key table
+
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
   queries/                     # Query descriptors and cache policy
-  services/                    # Product services
+  services/                    # Product and Engine-owned capability services
+    PredictDeviceAuthService.ts
   adapters/                    # Venue capability implementations
   config/
   selectors/

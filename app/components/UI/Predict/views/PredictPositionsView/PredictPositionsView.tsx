@@ -17,14 +17,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
   FontWeight,
-  HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictPositionsHistoryList from '../../components/PredictPositionsHistoryList';
@@ -99,6 +100,7 @@ const PredictPositionsView = () => {
   const tw = useTailwind();
   const portfolio = usePredictPortfolio();
   const privacyMode = useSelector(selectPrivacyMode);
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const predictPortfolioEnabled = useSelector(
     selectPredictPortfolioEnabledFlag,
   );
@@ -214,7 +216,9 @@ const PredictPositionsView = () => {
     >
       <Box twClassName="flex-1">
         <Box testID={PredictPositionsViewSelectorsIDs.HEADER}>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isBrandRefresh}
+            isFloating={false}
             title={strings('predict.tabs.positions')}
             onBack={handleBackPress}
             backButtonProps={{

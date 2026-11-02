@@ -21,7 +21,6 @@ import {
   BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   IconName,
   Text,
   TextColor,
@@ -85,6 +84,9 @@ import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import {
   TabItem,
   TabsBar,
@@ -577,6 +579,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   const predictPortfolioEnabled = useSelector(
     selectPredictPortfolioEnabledFlag,
   );
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -698,7 +701,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             backgroundColor: colors.background.default,
           })}
         >
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isBrandRefresh}
+            isFloating={false}
             includesTopInset
             onBack={handleBackPress}
             backButtonProps={{
@@ -710,13 +715,25 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
                 alignItems={BoxAlignItems.Center}
                 gap={2}
               >
-                <PredictVenueSelectorButton variant="standard" />
-                <ButtonIcon
-                  size={ButtonIconSize.Md}
-                  iconName={IconName.Search}
-                  onPress={handleShowSearch}
-                  testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
+                <PredictVenueSelectorButton
+                  variant={isBrandRefresh ? 'glass' : 'standard'}
                 />
+                {isBrandRefresh ? (
+                  <ButtonIconGlass
+                    isCapsule
+                    size={ButtonIconSize.Md}
+                    iconName={IconName.Search}
+                    onPress={handleShowSearch}
+                    testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
+                  />
+                ) : (
+                  <ButtonIcon
+                    size={ButtonIconSize.Md}
+                    iconName={IconName.Search}
+                    onPress={handleShowSearch}
+                    testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
+                  />
+                )}
               </Box>
             }
           />

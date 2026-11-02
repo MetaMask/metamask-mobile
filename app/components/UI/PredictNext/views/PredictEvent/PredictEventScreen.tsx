@@ -20,7 +20,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { findWinnerMarketQuotes, getEventGame } from '../../events/game';
+import {
+  findWinnerMarketQuotes,
+  getEventGame,
+  getGameMoneylineMarkets,
+} from '../../events/game';
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
 import { getOutcomeName } from '../../utils/entryCopy';
@@ -128,8 +132,6 @@ const EventScreenLayout = ({
   );
 };
 
-const isUngroupedMarket = (market: PredictMarket) => market.group === undefined;
-
 const EventLoadedHeader = ({
   event,
   winnerQuotes,
@@ -144,7 +146,7 @@ const EventLoadedHeader = ({
   onSelectMarket: (marketId: string) => void;
 }) => {
   const game = getEventGame(event);
-  const chartMarkets = event.markets.filter(isUngroupedMarket);
+  const chartMarkets = getGameMoneylineMarkets(event);
   const selectedChartMarket = chartMarkets.find(
     (market) => market.id === selectedMarketId,
   );
@@ -324,11 +326,10 @@ export const PredictEventScreen = () => {
       marketProjection[0]?.type === 'group'
         ? marketProjection[0].markets[0]
         : marketProjection[0]?.market;
+    const moneylineMarkets = getGameMoneylineMarkets(event);
     const historyMarket =
-      event.markets.find(
-        (market) => market.id === selectedMarketId && isUngroupedMarket(market),
-      ) ??
-      event.markets.find(isUngroupedMarket) ??
+      moneylineMarkets.find((market) => market.id === selectedMarketId) ??
+      moneylineMarkets[0] ??
       firstProjectedMarket ??
       event.markets[0];
     const rulesMarket =
