@@ -328,7 +328,6 @@ export class Engine {
         GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
         GeolocationController: geolocationControllerInit,
-        // After GeolocationController: it reads that controller's fetch.
         PredictVenueController: predictVenueControllerInit,
         TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
