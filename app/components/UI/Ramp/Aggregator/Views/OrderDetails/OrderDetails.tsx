@@ -188,7 +188,8 @@ const OrderDetails = () => {
     }
     hasAttemptedInitialCreatedRefreshRef.current = true;
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
-      handleOnRefresh();
+      // eslint-disable-next-line no-void -- handleOnRefresh logs its own errors.
+      void handleOnRefresh();
     }
   }, [order?.state, handleOnRefresh]);
 
@@ -203,7 +204,8 @@ const OrderDetails = () => {
 
   useInterval(
     () => {
-      handleOnRefresh({ fromInterval: true });
+      // eslint-disable-next-line no-void -- handleOnRefresh logs its own errors.
+      void handleOnRefresh({ fromInterval: true });
     },
     {
       delay:
