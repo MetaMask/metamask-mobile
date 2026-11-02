@@ -118,6 +118,12 @@ import {
   selectPredictAvailability,
   usePredictActivityItems,
 } from '../../UI/PredictNext';
+import { useFilledLimitOrders } from './hooks/useFilledLimitOrders';
+import {
+  FilledLimitOrdersList,
+  type FilledLimitOrderListItem,
+} from './FilledLimitOrdersList';
+import type { LimitOrder } from '../../UI/Bridge/api/limitOrders/getLimitOrders/types';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import {
   ActivityTypeFilter,
@@ -129,6 +135,7 @@ import ActivityListDateHeader from '../../UI/ActivityListItemRow/ActivityListDat
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
+const NO_LIMIT_ORDERS: LimitOrder[] = [];
 
 type ActivityFlashListProps = FlashListProps<GroupedActivityListItem> & {
   ref?: React.Ref<FlashListRef<GroupedActivityListItem>>;
@@ -311,6 +318,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       );
       return solanaAccount?.address ?? '';
     }, [selectedAccountGroupInternalAccounts]);
+
+    const isLimitOrdersFilter = typeFilter === ActivityTypeFilter.LimitOrders;
+    const filledLimitOrders = useFilledLimitOrders({
+      walletAddress: selectedAccountGroupEvmAddress,
+      chainId: networkFilter?.[0],
+      enabled: isLimitOrdersFilter,
+    });
 
     // All configured networks (not "enabled"): the Activity feed shows every
     // network the account has, decoupled from NetworkEnablementController so a
@@ -770,14 +784,27 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const perpsRefetch = perps.refetch;
     const predictRefetch = predictSource.refetch;
+    const limitOrdersRefetch = filledLimitOrders.refetch;
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
       try {
-        await Promise.all([refetch(), perpsRefetch?.(), predictRefetch?.()]);
+        await Promise.all([
+          refetch(),
+          perpsRefetch?.(),
+          predictRefetch?.(),
+          // `refetch` ignores `enabled`, so only refresh while the filter shows it.
+          isLimitOrdersFilter ? limitOrdersRefetch() : undefined,
+        ]);
       } finally {
         setRefreshing(false);
       }
-    }, [refetch, perpsRefetch, predictRefetch]);
+    }, [
+      refetch,
+      perpsRefetch,
+      predictRefetch,
+      isLimitOrdersFilter,
+      limitOrdersRefetch,
+    ]);
 
     const handleActivityItemPress = useCallback(
       async (item: ActivityListItem) => {
@@ -941,6 +968,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return isPerpsLoading;
         case ActivityTypeFilter.Predictions:
           return isPredictLoading;
+        case ActivityTypeFilter.LimitOrders:
+          return filledLimitOrders.isLoading;
         // No filter / "All" depends on every source; the remaining filters
         // (Transactions, Buy/Sell, Money, …) are EVM-backed.
         case undefined:
@@ -953,7 +982,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const isDomainFilter =
       typeFilter === ActivityTypeFilter.Perps ||
-      typeFilter === ActivityTypeFilter.Predictions;
+      typeFilter === ActivityTypeFilter.Predictions ||
+      isLimitOrdersFilter;
 
     const { handleScroll } = useTransactionAutoScroll(data, listRef, {
       enabled: !isDomainFilter && !isRelevantActivityLoading,
@@ -961,11 +991,19 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         item.hash ?? `${item.chainId}-${item.timestamp}-${item.type}`,
     });
 
+    const limitOrdersListRef =
+      useRef<FlashListRef<FilledLimitOrderListItem>>(null);
+
     useImperativeHandle(
       ref,
       () => ({
-        scrollToTop: () =>
-          listRef.current?.scrollToOffset({ offset: 0, animated: true }),
+        scrollToTop: () => {
+          listRef.current?.scrollToOffset({ offset: 0, animated: true });
+          limitOrdersListRef.current?.scrollToOffset({
+            offset: 0,
+            animated: true,
+          });
+        },
       }),
       [],
     );
@@ -981,6 +1019,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      limitOrdersListRef.current?.scrollToOffset({
+        offset: 0,
+        animated: false,
+      });
 
       if (scrollY) {
         scrollY.value = 0;
@@ -1011,6 +1053,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         <ActivityEmptyState
           typeFilter={typeFilter ?? ActivityTypeFilter.All}
           perpsSubFilterActive={perpsSubFilterActive}
+          networkFilter={networkFilter}
         />
       </View>
     );
@@ -1042,10 +1085,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       }
     })();
 
+    const limitOrders = isRelevantActivityLoading
+      ? NO_LIMIT_ORDERS
+      : filledLimitOrders.orders;
+
     useActivityScreenViewed({
       enabled: trackScreenViewed,
       isSettled: !isRelevantActivityLoading && haveRelevantSourcesReported,
-      isEmpty: !shouldShowTransactionList,
+      isEmpty: isLimitOrdersFilter
+        ? limitOrders.length === 0
+        : !shouldShowTransactionList,
       pendingCount: pendingActivityCount,
       typeFilter,
       networkFilter,
@@ -1093,45 +1142,80 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     return (
       <PriceChartProvider>
         <View style={styles.container}>
-          <PriceChartContext.Consumer>
-            {({ isChartBeingTouched }) => (
-              <AnimatedFlashList
-                key={`${typeFilter ?? 'all'}|${
-                  networkFilter?.join(',') ?? 'all'
-                }`}
-                ref={listRef}
-                data={items}
-                testID={ActivityListSelectorsIDs.CONTAINER}
-                renderItem={renderItem}
-                keyExtractor={generateGroupedKey}
-                ListHeaderComponent={header}
-                ListEmptyComponent={
-                  isRelevantActivityLoading
-                    ? renderInitialLoading
-                    : renderEmptyList
-                }
-                ListFooterComponent={footerComponent}
-                maintainVisibleContentPosition={{
-                  autoscrollToTopThreshold: 100,
-                }}
-                style={baseStyles.flexGrow}
-                contentContainerStyle={listContentStyle}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                    colors={[colors.primary.default]}
-                    tintColor={colors.icon.default}
-                  />
-                }
-                onScroll={scrollHandler}
-                onViewableItemsChanged={onViewableItemsChanged}
-                viewabilityConfig={visibilityConfig}
-                scrollEventThrottle={16}
-                scrollEnabled={!isChartBeingTouched}
-              />
-            )}
-          </PriceChartContext.Consumer>
+          {isLimitOrdersFilter ? (
+            <FilledLimitOrdersList
+              ref={limitOrdersListRef}
+              orders={limitOrders}
+              ListHeaderComponent={header}
+              ListEmptyComponent={
+                isRelevantActivityLoading
+                  ? renderInitialLoading
+                  : renderEmptyList
+              }
+              ListFooterComponent={
+                filledLimitOrders.isFetchingNextPage ? (
+                  <View
+                    style={tw.style('items-center justify-center py-4')}
+                    testID={ActivityListSelectorsIDs.LOAD_MORE_INDICATOR}
+                  >
+                    <ActivityIndicator />
+                  </View>
+                ) : null
+              }
+              onEndReached={filledLimitOrders.fetchNextPage}
+              style={baseStyles.flexGrow}
+              contentContainerStyle={listContentStyle}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[colors.primary.default]}
+                  tintColor={colors.icon.default}
+                />
+              }
+              onScroll={scrollHandler}
+            />
+          ) : (
+            <PriceChartContext.Consumer>
+              {({ isChartBeingTouched }) => (
+                <AnimatedFlashList
+                  key={`${typeFilter ?? 'all'}|${
+                    networkFilter?.join(',') ?? 'all'
+                  }`}
+                  ref={listRef}
+                  data={items}
+                  testID={ActivityListSelectorsIDs.CONTAINER}
+                  renderItem={renderItem}
+                  keyExtractor={generateGroupedKey}
+                  ListHeaderComponent={header}
+                  ListEmptyComponent={
+                    isRelevantActivityLoading
+                      ? renderInitialLoading
+                      : renderEmptyList
+                  }
+                  ListFooterComponent={footerComponent}
+                  maintainVisibleContentPosition={{
+                    autoscrollToTopThreshold: 100,
+                  }}
+                  style={baseStyles.flexGrow}
+                  contentContainerStyle={listContentStyle}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                      colors={[colors.primary.default]}
+                      tintColor={colors.icon.default}
+                    />
+                  }
+                  onScroll={scrollHandler}
+                  onViewableItemsChanged={onViewableItemsChanged}
+                  viewabilityConfig={visibilityConfig}
+                  scrollEventThrottle={16}
+                  scrollEnabled={!isChartBeingTouched}
+                />
+              )}
+            </PriceChartContext.Consumer>
+          )}
           {/* Speed up / Cancel modals */}
           <CancelSpeedupModal
             isVisible={speedUpIsOpen || cancelIsOpen}

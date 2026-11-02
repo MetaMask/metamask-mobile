@@ -11,8 +11,6 @@ export enum TokenDetailsSource {
   MobileTokenList = 'mobile-token-list',
   /** Token list in full page view */
   MobileTokenListPage = 'mobile-token-list-page',
-  /** Homepage section entry point */
-  HomeSection = 'home_section',
   /** Trending tokens section (e.g. Explore tab) */
   Trending = 'trending',
   /** Explore Now tab — crypto movers pills */

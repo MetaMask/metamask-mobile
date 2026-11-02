@@ -1,7 +1,7 @@
 import React from 'react';
 import CustomNotificationsRow from '../CustomNotificationsRow/index';
 import { render, screen } from '@testing-library/react-native';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 describe('CustomNotificationsRow', () => {
   it('should render correctly', () => {
