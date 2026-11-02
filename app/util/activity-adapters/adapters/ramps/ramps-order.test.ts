@@ -1,6 +1,6 @@
 import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
 import { mapRampsOrder } from './ramps-order';
-import { rampsOrderToFiatOrder } from '../../../components/UI/Ramp/orderProcessor/unifiedOrderProcessor';
+import { rampsOrderToFiatOrder } from '../../../../components/UI/Ramp/orderProcessor/unifiedOrderProcessor';
 import { mapRampOrder } from './ramp-order';
 
 const baseOrder: RampsOrder = {

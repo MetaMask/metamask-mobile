@@ -7,7 +7,7 @@ import {
   RampDetailsAmountsSection,
   RampDetailsHeroView,
   RampDetailsMetadataSection,
-} from '../RampDetailsShared';
+} from './RampDetailsShared';
 import {
   formatRampActivityDate,
   formatRampActivityFiatAmount,
@@ -20,7 +20,7 @@ import {
   getRampActivityTransactionHash,
   isRampSellOrder,
   mapRampActivityStatus,
-} from '../rampDetailsUtils';
+} from './rampDetailsUtils';
 
 /** Legacy FiatOrder ActivityDetails template — extract of prior RampDetails. */
 export function RampFiatOrderDetails({

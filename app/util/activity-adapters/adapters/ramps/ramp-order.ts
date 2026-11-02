@@ -5,8 +5,8 @@
  */
 import type { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { FiatOrder } from '../../../reducers/fiatOrders/types';
-import type { ActivityListItem } from '../types';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import type { ActivityListItem } from '../../types';
 import {
   caipChainIdFromAssetId,
   getRampOrderTransactionHash,
