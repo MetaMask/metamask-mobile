@@ -1,3 +1,4 @@
+import type { ModerationStatusResponse } from '@metamask/social-controllers';
 import Engine from '../../../core/Engine';
 
 /**
@@ -21,21 +22,6 @@ export const MODERATION_STATUS_QUERY_KEY = [
   'moderation',
   'status',
 ] as const;
-
-/** Whether the moderation team banned the viewer, from `GET /v1/moderation/status`. */
-export interface SocialModerationStatus {
-  banned: boolean;
-  /** Unix epoch seconds. */
-  bannedAt: number | null;
-  /** The reason the moderation team gave the viewer, if any. Safe to show. */
-  reason: string | null;
-}
-
-interface ModerationStatusMessenger {
-  call: (
-    action: 'SocialService:fetchModerationStatus',
-  ) => Promise<SocialModerationStatus>;
-}
 
 /** A runaway cursor must not page forever; 250 per page × 20 is plenty. */
 const MAX_PAGES = 20;
@@ -80,14 +66,9 @@ export const fetchBlockedCommentIds = async (): Promise<string[]> => {
   return items.filter((item) => item.type === 'comment').map((item) => item.id);
 };
 
-/**
- * The viewer's ban status. Call as a member expression so the messenger keeps
- * its `this` binding.
- */
-export const fetchModerationStatus = (): Promise<SocialModerationStatus> =>
-  (Engine.controllerMessenger as unknown as ModerationStatusMessenger).call(
-    'SocialService:fetchModerationStatus',
-  );
+/** Whether the moderation team banned the viewer, and the reason to show. */
+export const fetchModerationStatus = (): Promise<ModerationStatusResponse> =>
+  Engine.controllerMessenger.call('SocialService:fetchModerationStatus');
 
 /**
  * Refetches the viewer's ban status, after the social API refused one of their
