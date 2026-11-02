@@ -8,8 +8,8 @@ import { VBA_KYC_VENDOR } from './constants';
 // Bounds the KYC controller wait so a hung request can't leave the CTA disabled forever.
 export const VBA_VENDOR_DISCLAIMERS_TIMEOUT_MS = 10_000;
 
-// Vendor terms change rarely. Keeping them fresh for a few minutes lets the
-// screen before vendor terms load them, so the screen opens with them ready.
+// Vendor terms change rarely. Keeping them fresh for a few minutes lets
+// onboarding warm this cache before the vendor terms screen mounts.
 const VBA_VENDOR_DISCLAIMERS_STALE_TIME_MS = 5 * 60 * 1000;
 
 export const VBA_VENDOR_DISCLAIMERS_ERRORS = {
@@ -94,9 +94,8 @@ export const vbaVendorDisclaimersQueryOptions = {
 } as const;
 
 /**
- * Starts loading the vendor disclaimers into the shared query cache, so the
- * vendor terms screen can show them as soon as it opens. Never rejects; a
- * failure is left in the cache and the screen shows its retry.
+ * Starts loading the vendor disclaimers into the shared query cache. Never
+ * rejects; a failure is left in the cache and the screen loads or retries.
  *
  * @param queryClient - The app query client. Defaults to the shared one.
  * @returns A promise that settles when the load finishes.

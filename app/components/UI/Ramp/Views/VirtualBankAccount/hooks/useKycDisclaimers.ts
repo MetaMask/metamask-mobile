@@ -23,9 +23,9 @@ interface UseKycDisclaimersResult {
  * and stores the accepted document ids locally per wallet.
  *
  * The load goes through the shared query cache
- * ({@link vbaVendorDisclaimersQueryOptions}). The VBA loading screen starts
- * it before vendor terms opens, so this usually returns cached disclaimers
- * on the first render. Opened any other way, it loads here as before.
+ * ({@link vbaVendorDisclaimersQueryOptions}). Onboarding starts that same
+ * query before this screen opens. A finished prefetch is reused; otherwise
+ * this hook loads the catalog itself, including while a prefetch is in flight.
  *
  * The email step records the locally accepted ids against the customer after
  * creating the Iron session. This lets product show vendor terms before email

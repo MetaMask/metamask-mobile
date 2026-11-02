@@ -864,33 +864,36 @@ describe('resolveVbaOnboarding', () => {
     expect(calls).toEqual(['prefetch', 'hydrate']);
   });
 
-  it('waits for vendor disclaimers before resolving to vendor terms', async () => {
-    let finishPrefetch: () => void = () => undefined;
+  it('does not wait for vendor disclaimers before resolving to vendor terms', async () => {
     mockPrefetchVbaVendorDisclaimers.mockReturnValue(
-      new Promise<void>((resolve) => {
-        finishPrefetch = resolve;
-      }),
+      new Promise<void>(() => undefined),
     );
-    let settled = false;
 
-    const resolving = resolveVbaOnboarding('money-add-money-bank-account').then(
-      (resolved) => {
-        settled = true;
-        return resolved;
-      },
-    );
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(mockHydrate).toHaveBeenCalled();
-    expect(settled).toBe(false);
-
-    finishPrefetch();
-
-    await expect(resolving).resolves.toEqual(
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
       expect.objectContaining({
         status: 'ready',
         destinationId: 'vendorTerms',
       }),
     );
+    expect(mockPrefetchVbaVendorDisclaimers).toHaveBeenCalledTimes(1);
+  });
+
+  it('still resolves when the vendor disclaimer prefetch fails', async () => {
+    mockPrefetchVbaVendorDisclaimers.mockRejectedValue(
+      new Error('catalog failed'),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'vendorTerms',
+      }),
+    );
+    expect(Logger.error).not.toHaveBeenCalled();
   });
 
   it('does not wait for vendor disclaimers when terms are already accepted', async () => {
