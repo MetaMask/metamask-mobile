@@ -24,8 +24,9 @@ import { tradeTimestampToMs } from './tradeTimestamp';
  *
  * Holds use the same boundaries and up to two units. The second unit is the
  * leftover hours under 60 days, leftover days from 60 days to a year, and
- * leftover months after that. Under a day a hold is one unit, so `8h 13m`
- * reads `8h`. Under a minute rounds up to `1m`.
+ * leftover months after that. Twelve months roll into the next year, so a
+ * hold never reads `12mo` (`725d` is `2y`, not `1y 12mo`). Under a day a hold
+ * is one unit, so `8h 13m` reads `8h`. Under a minute rounds up to `1m`.
  *
  * Seconds are part of the unit set for an explicit second count (the
  * onboarding live-activity sample). Feed ages do not tick every second, so
@@ -41,6 +42,7 @@ const YEAR_START_DAYS = 365;
 const DAYS_PER_WEEK = 7;
 const DAYS_PER_MONTH = 30;
 const DAYS_PER_YEAR = 365;
+const MONTHS_PER_YEAR = 12;
 
 /** Same glyph `formatters.ts` uses when a number is missing. */
 const EMPTY_DURATION = '\u2014';
@@ -85,6 +87,23 @@ const joinUnits = (primary: string, secondary: string | null): string => {
 };
 
 /**
+ * Years plus leftover 30-day months. A remainder of 12 months is another
+ * year (`725d` → `2y`), not `1y 12mo`.
+ */
+const formatYearHold = (totalDays: number): string => {
+  let years = Math.floor(totalDays / DAYS_PER_YEAR);
+  let months = Math.floor((totalDays % DAYS_PER_YEAR) / DAYS_PER_MONTH);
+  if (months >= MONTHS_PER_YEAR) {
+    years += Math.floor(months / MONTHS_PER_YEAR);
+    months %= MONTHS_PER_YEAR;
+  }
+  return joinUnits(
+    formatSocialUnit('years', years),
+    months > 0 ? formatSocialUnit('months', months) : null,
+  );
+};
+
+/**
  * Elapsed hold (`33d 6h`, `8h`, `45m`). Non-positive and non-finite spans
  * render an em dash.
  *
@@ -105,16 +124,14 @@ export function formatSocialElapsed(durationMs: number): string {
   const totalDays = Math.floor(durationMs / DAY);
 
   if (totalDays >= YEAR_START_DAYS) {
-    const years = Math.floor(totalDays / DAYS_PER_YEAR);
-    const months = Math.floor((totalDays % DAYS_PER_YEAR) / DAYS_PER_MONTH);
-    return joinUnits(
-      formatSocialUnit('years', years),
-      months > 0 ? formatSocialUnit('months', months) : null,
-    );
+    return formatYearHold(totalDays);
   }
 
   if (totalDays >= MONTH_START_DAYS) {
     const months = Math.floor(totalDays / DAYS_PER_MONTH);
+    if (months >= MONTHS_PER_YEAR) {
+      return formatYearHold(totalDays);
+    }
     const days = totalDays % DAYS_PER_MONTH;
     return joinUnits(
       formatSocialUnit('months', months),

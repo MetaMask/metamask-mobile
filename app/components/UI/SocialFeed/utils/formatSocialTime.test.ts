@@ -72,6 +72,14 @@ describe('formatSocialElapsed', () => {
     expect(formatSocialElapsed(365 * DAY)).toBe('1y');
     expect(formatSocialElapsed(400 * DAY)).toBe('1y 1mo');
   });
+
+  it('rolls twelve months into the next year instead of showing 12mo', () => {
+    expect(formatSocialElapsed(364 * DAY)).toBe('1y');
+    expect(formatSocialElapsed(365 * DAY)).toBe('1y');
+    expect(formatSocialElapsed(725 * DAY)).toBe('2y');
+    expect(formatSocialElapsed(729 * DAY)).toBe('2y');
+    expect(formatSocialElapsed(730 * DAY)).toBe('2y');
+  });
 });
 
 describe('formatSocialSecondsAgo', () => {
