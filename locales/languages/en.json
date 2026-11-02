@@ -2364,6 +2364,7 @@
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
+      "fees_taker_maker": "Taker {{taker}}% / Maker {{maker}}%",
       "estimated_points": "Est. points",
       "market": "Market",
       "limit": "Limit",
