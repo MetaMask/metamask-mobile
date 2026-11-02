@@ -24,40 +24,27 @@ const IDOS_PRIVACY_POLICY_URL = 'https://www.idos.network/legal/privacy-policy';
 const IDOS_TRANSPARENCY_URL =
   'https://www.idos.network/legal/transparency-document';
 
+const toCatalogDocument = ([key, url]: [string, string]) => ({
+  key,
+  url,
+  version: '1',
+  title: key,
+});
+
 const sessionCatalog = {
-  idOS: [
-    {
-      key: 'end_user_agreement',
-      version: '1',
-      title: 'End User Agreement',
-      url: IDOS_TERMS_URL,
-    },
-    {
-      key: 'privacy_policy',
-      version: '1',
-      title: 'Privacy Policy',
-      url: IDOS_PRIVACY_POLICY_URL,
-    },
-    {
-      key: 'privacy_notice',
-      version: '1',
-      title: 'Privacy Notice',
-      url: 'https://www.idos.network/legal/privacy-notice',
-    },
-    {
-      key: 'transparency_document',
-      version: '1',
-      title: 'Transparency Document',
-      url: IDOS_TRANSPARENCY_URL,
-    },
-  ],
+  idOS: (
+    [
+      ['end_user_agreement', IDOS_TERMS_URL],
+      ['privacy_policy', IDOS_PRIVACY_POLICY_URL],
+      ['privacy_notice', 'https://www.idos.network/legal/privacy-notice'],
+      ['transparency_document', IDOS_TRANSPARENCY_URL],
+    ] as [string, string][]
+  ).map(toCatalogDocument),
   kycProvider: [
-    {
-      key: 'notice_of_personal_data_processing',
-      version: '1',
-      title: 'Notice of Personal Data Processing',
-      url: SUMSUB_PERSONAL_DATA_PROCESSING_URL,
-    },
+    toCatalogDocument([
+      'notice_of_personal_data_processing',
+      SUMSUB_PERSONAL_DATA_PROCESSING_URL,
+    ]),
   ],
 };
 

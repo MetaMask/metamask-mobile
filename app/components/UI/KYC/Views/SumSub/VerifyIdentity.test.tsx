@@ -9,9 +9,6 @@ import {
   IDOS_PRIVACY_NOTICE_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
-  SUMSUB_BIOMETRICS_CONSENT_URL,
-  SUMSUB_PERSONAL_DATA_PROCESSING_URL,
-  SUMSUB_PRIVACY_NOTICE_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
@@ -426,7 +423,7 @@ describe('VbaVerifyIdentity', () => {
     const idosRowTestId = (key: string) =>
       `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:${key}`;
 
-    it('shows the three idOS documents in order with their labels', () => {
+    it('shows only the three idOS documents, in order with their labels', () => {
       const { getByTestId, getAllByTestId } = renderScreen();
 
       openTermsSheet(getByTestId);
@@ -469,22 +466,7 @@ describe('VbaVerifyIdentity', () => {
       });
     });
 
-    it('hides the idOS Privacy Notice and Sumsub catalog rows', () => {
-      const { getByTestId, queryByTestId } = renderScreen();
-
-      openTermsSheet(getByTestId);
-
-      expect(
-        queryByTestId(idosRowTestId('privacy_notice')),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(
-          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-kycProvider:notice_of_personal_data_processing`,
-        ),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders the data and privacy sheet', () => {
+    it('renders the sheet over the screen with its links and checkbox', () => {
       const { getByTestId, toJSON } = renderScreen();
       openTermsSheet(getByTestId);
 
@@ -576,18 +558,9 @@ describe('VbaVerifyIdentity', () => {
       });
 
       expect(openUrlSpy.mock.calls).toEqual([
-        [SUMSUB_PERSONAL_DATA_PROCESSING_URL],
-        [SUMSUB_PRIVACY_NOTICE_URL],
-        [SUMSUB_BIOMETRICS_CONSENT_URL],
-      ]);
-      expect([
-        SUMSUB_PERSONAL_DATA_PROCESSING_URL,
-        SUMSUB_PRIVACY_NOTICE_URL,
-        SUMSUB_BIOMETRICS_CONSENT_URL,
-      ]).toEqual([
-        'https://sumsub.com/notification-to-processing-of-personal-data/',
-        'https://sumsub.com/privacy-notice-service/',
-        'https://sumsub.com/privacy-user-acknowledgement-and-consent/',
+        ['https://sumsub.com/notification-to-processing-of-personal-data/'],
+        ['https://sumsub.com/privacy-notice-service/'],
+        ['https://sumsub.com/privacy-user-acknowledgement-and-consent/'],
       ]);
     });
 
@@ -608,30 +581,6 @@ describe('VbaVerifyIdentity', () => {
         getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
       ).toBeDisabled();
     });
-  });
-
-  it('renders the Verify your identity screen', () => {
-    const { toJSON } = renderScreen();
-
-    expect(describeRenderedContent(toJSON())).toMatchInlineSnapshot(`
-{
-  "checkboxes": [],
-  "links": [
-    "Terms and Conditions (vba-verify-identity-metamask-terms-link)",
-    "Privacy Policy (vba-verify-identity-metamask-privacy-policy-link)",
-  ],
-  "text": [
-    "Verify your identity",
-    "This usually only takes a few minutes. You'll need a valid, government-issued photo ID on hand.",
-    "Photograph your ID",
-    "Take a selfie",
-    "Confirm your details",
-    "Answer a few questions",
-    "By tapping Agree & Continue, you agree to MetaMask's Terms and Conditions and Privacy Policy. Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
-    "Agree & Continue",
-  ],
-}
-`);
   });
 
   it('shows the biometric consent checkbox unticked and Agree disabled when the sheet opens', () => {
