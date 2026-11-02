@@ -321,6 +321,25 @@ describe('Money Account feature flag selectors', () => {
       ]);
     });
 
+    it('puts BRL before USD even when both open markets list the same country', () => {
+      const sharedCountry = 'BR';
+      const result = selectNeobankMarkets.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: {
+          ...brlFlagOn,
+          regions: [sharedCountry],
+        },
+        [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
+          ...usdFlagOn,
+          regions: [sharedCountry],
+        },
+      });
+
+      expect(result).toEqual([
+        { currency: 'BRL', regions: [sharedCountry] },
+        { currency: 'USD', regions: [sharedCountry] },
+      ]);
+    });
+
     it.each([
       ['missing', undefined],
       ['disabled', { ...brlFlagOn, enabled: false }],

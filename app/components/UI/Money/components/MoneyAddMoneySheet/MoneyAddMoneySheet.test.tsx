@@ -302,6 +302,55 @@ describe('MoneyAddMoneySheet', () => {
     expect(getAllByText('Coming soon')).toHaveLength(1);
   });
 
+  it('hides the Bank account row for a brand new user in the transition state: the global switch is on but no per-currency market is open yet, and there is no existing autoramp', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      chooseCurrency: false,
+      regionOverride: undefined,
+    });
+    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
+    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
+
+    const { queryByTestId, queryByText, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    // Nothing is open to sign up for yet, so this matches the flag-off case:
+    // the row is hidden outright, not shown as a disabled "Coming soon" row.
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeNull();
+    expect(queryByText('Bank transfer')).toBeNull();
+    expect(queryByText('New')).toBeNull();
+    expect(getAllByText('Coming soon')).toHaveLength(1);
+  });
+
+  it('enables the Bank account row in the transition state for a user with an existing usable autoramp, even though no per-currency market is open yet', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      chooseCurrency: false,
+      regionOverride: undefined,
+    });
+    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
+    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue({
+      id: 'ar-1',
+    });
+
+    const { getByTestId, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    // An existing account must keep working through the transition
+    // regardless of the per-currency flags being open.
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeEnabled();
+    // Only External address is coming soon.
+    expect(getAllByText('Coming soon')).toHaveLength(1);
+  });
+
   it('hides the Bank account row when the flag is on and geolocation is unknown', () => {
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
       UNKNOWN_LOCATION,
