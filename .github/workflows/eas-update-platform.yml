@@ -139,7 +139,6 @@ jobs:
       - name: Set secrets from builds.yml mapping
         env:
           CONFIG_SECRETS: ${{ inputs.secrets_json }}
-          # builds.yml picks each build's secrets by name, so the script gets the whole context and keeps only the mapped ones.
           ALL_SECRETS: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
         run: node scripts/set-secrets-from-config.js
 

@@ -772,7 +772,6 @@ jobs:
         env:
           WITH_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           WITHOUT_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
-          # builds.yml picks each build's secrets by name, so the script gets the whole context and keeps only the mapped ones.
           ALL_SECRETS: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
           CI: 'true'
           GITHUB_CI: 'true'

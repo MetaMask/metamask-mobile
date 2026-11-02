@@ -499,7 +499,6 @@ jobs:
       - name: Validate secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
-          # builds.yml picks each build's secrets by name, so the script gets the whole context and keeps only the mapped ones.
           SECRETS_JSON: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
         run: node scripts/validate-secrets-from-config.js
 
@@ -520,7 +519,6 @@ jobs:
       - name: Set secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
-          # builds.yml picks each build's secrets by name, so the script gets the whole context and keeps only the mapped ones.
           ALL_SECRETS: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
         run: node scripts/set-secrets-from-config.js
 
