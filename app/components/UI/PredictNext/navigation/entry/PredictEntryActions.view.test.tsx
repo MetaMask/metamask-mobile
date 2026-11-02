@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   createRouteParamsProbe,
   getRouteParamsProbeTestId,
@@ -14,6 +15,7 @@ import {
   makePredictNextEvent,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { PredictConfig } from '../../config/predictConfig';
 import type { PredictEntityId } from '../../types';
 import PredictRoot from '../root/PredictRoot';
@@ -29,6 +31,8 @@ import type { PredictIntent } from './intents';
 import { usePredictEntryActions } from './usePredictEntryActions';
 
 const ENTRY_ROUTE = 'PredictEntryProbe';
+/** A caller not yet on intents, navigating to a legacy child route. */
+const LEGACY_ROUTE_CALLER = 'legacy-route-caller';
 
 const LEGACY_LANE: PredictConfig = {
   enabled: false,
@@ -73,8 +77,18 @@ const canOpenTestId = (name: IntentName) => `can-open-${name}`;
 /** A screen outside Predict that opens every intent through entry actions. */
 const EntryProbe = () => {
   const { openPredict, canOpenPredict } = usePredictEntryActions();
+  const navigation = useNavigation<AppNavigationProp>();
   return (
     <>
+      <Pressable
+        testID={LEGACY_ROUTE_CALLER}
+        onPress={() =>
+          navigation.navigate(Routes.PREDICT.ROOT, {
+            screen: Routes.PREDICT.MARKET_DETAILS,
+            params: { marketId: 'market-1', providerId: 'polymarket' },
+          })
+        }
+      />
       {(Object.keys(INTENTS) as IntentName[]).map((name) => (
         <Pressable
           key={name}
@@ -91,9 +105,7 @@ const EntryProbe = () => {
 };
 
 const stateFor = (predictConfig: PredictConfig) =>
-  initialStatePredictNext()
-    .withRemoteFeatureFlags({ predictConfig })
-    .build();
+  initialStatePredictNext().withRemoteFeatureFlags({ predictConfig }).build();
 
 /** The entry probe with the Predict root and modal routes registered. */
 const renderWithRouteProbes = (predictConfig: PredictConfig) =>
@@ -274,6 +286,17 @@ describe('Predict entry actions', () => {
         await view.findByTestId(PredictEventScreenTestIds.TITLE),
       ).toHaveTextContent(KALSHI_EVENT.title);
       expect(view.queryByTestId(PredictHomeTestIds.HOME)).toBeNull();
+    });
+
+    it('serves the Active Venue to a legacy child route, opening PredictNext Home', async () => {
+      configurePredictNextFeeds();
+      const view = renderWithPredictRoot();
+
+      fireEvent.press(view.getByTestId(LEGACY_ROUTE_CALLER));
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.HOME),
+      ).toBeOnTheScreen();
     });
 
     it('opens the PredictNext Portfolio', async () => {
