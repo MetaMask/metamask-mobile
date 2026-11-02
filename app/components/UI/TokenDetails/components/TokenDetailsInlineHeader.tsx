@@ -25,6 +25,7 @@ import {
   FontWeight,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import HeaderSubpageGlass from '../../../../component-library/components-temp/HeaderSubpageGlass';
@@ -86,6 +87,7 @@ export const TokenDetailsInlineHeader = ({
   /** The page's scroll offset, which fades the glass backdrop in. */
   scrollY?: SharedValue<number>;
 }) => {
+  const tw = useTailwind();
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData, tdpVersion);
@@ -213,7 +215,7 @@ export const TokenDetailsInlineHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        twClassName="w-full min-w-0 gap-1"
         testID="token-details-subtitle"
       >
         {showTickerBelowName ? (
@@ -221,17 +223,26 @@ export const TokenDetailsInlineHeader = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            twClassName="shrink min-w-0"
             testID="token-details-ticker"
           >
             {tokenTicker}
           </Text>
         ) : null}
         {contractAddress ? (
-          <>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="shrink-0 gap-1"
+            testID="token-details-address"
+          >
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
+              numberOfLines={1}
             >
               {formatAddress(contractAddress, 'short')}
             </Text>
@@ -246,7 +257,7 @@ export const TokenDetailsInlineHeader = ({
               testID="copy-contract-address-button"
               accessibilityLabel={strings('token.contract_address')}
             />
-          </>
+          </Box>
         ) : null}
       </Box>
     );
@@ -258,21 +269,39 @@ export const TokenDetailsInlineHeader = ({
   ]);
 
   const headerDescription = useMemo(() => {
-    const content = description ?? inlineDescription;
-    if (!content) {
+    if (description) {
+      return (
+        <Animated.View
+          key="live-price"
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
+        >
+          {description}
+        </Animated.View>
+      );
+    }
+
+    // Empty anchor so the description row stays mounted. The ticker line is the
+    // end accessory, which is the slot that actually has the header width.
+    return inlineDescription ? <Box /> : undefined;
+  }, [description, inlineDescription]);
+
+  const subtitleAccessory = useMemo(() => {
+    if (description || !inlineDescription) {
       return undefined;
     }
 
     return (
       <Animated.View
-        key={description ? 'live-price' : 'contract-address'}
+        key="contract-address"
         entering={FadeIn.duration(AnimationDuration.Fast)}
         exiting={FadeOut.duration(AnimationDuration.Fast)}
+        style={tw.style('min-w-0 flex-1 -ml-1')}
       >
-        {content}
+        {inlineDescription}
       </Animated.View>
     );
-  }, [description, inlineDescription]);
+  }, [description, inlineDescription, tw]);
 
   return (
     <HeaderSubpageGlass
@@ -305,6 +334,7 @@ export const TokenDetailsInlineHeader = ({
       title={tokenName}
       titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
       description={headerDescription}
+      descriptionEndAccessory={subtitleAccessory}
     />
   );
 };

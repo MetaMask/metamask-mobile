@@ -322,8 +322,9 @@ describe('TokenDetailsInlineHeader', () => {
 
       const subtitle = within(getByTestId('token-details-subtitle'));
       expect(subtitle.getByText('DOGE')).toBeOnTheScreen();
-      const nameColor = StyleSheet.flatten(getByText('Dogecoin').props.style)
-        ?.color;
+      const nameColor = StyleSheet.flatten(
+        getByText('Dogecoin').props.style,
+      )?.color;
       const tickerColor = StyleSheet.flatten(
         subtitle.getByTestId('token-details-ticker').props.style,
       )?.color;
@@ -337,6 +338,55 @@ describe('TokenDetailsInlineHeader', () => {
         subtitle.getByTestId('copy-contract-address-button'),
       ).toBeOnTheScreen();
       expect(subtitle.queryByText('Dogecoin')).toBeNull();
+    });
+
+    it('ellipsizes a long ticker and keeps the contract address on the same line', () => {
+      const longTicker = 'SUPERCALIFRAGILISTIC';
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: 'Long Symbol Token',
+          ticker: longTicker,
+          symbol: longTicker,
+        },
+      });
+
+      const subtitle = within(getByTestId('token-details-subtitle'));
+      const ticker = subtitle.getByTestId('token-details-ticker');
+      const addressGroup = subtitle.getByTestId('token-details-address');
+
+      expect(ticker.props.children).toBe(longTicker);
+      expect(ticker.props.numberOfLines).toBe(1);
+      expect(ticker.props.ellipsizeMode).toBe('tail');
+      expect(StyleSheet.flatten(ticker.props.style)?.flexShrink).toBe(1);
+      expect(StyleSheet.flatten(addressGroup.props.style)?.flexShrink).toBe(0);
+      expect(subtitle.getByText('0x00000...short')).toBeOnTheScreen();
+      expect(
+        subtitle.getByTestId('copy-contract-address-button'),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps a long native ticker on one line when there is no contract address', () => {
+      const longTicker = 'SUPERCALIFRAGILISTIC';
+      const { getByTestId, queryByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: true,
+          isNative: true,
+          name: 'Long Native Token',
+          ticker: longTicker,
+          symbol: longTicker,
+        },
+      });
+
+      const ticker = getByTestId('token-details-ticker');
+
+      expect(ticker.props.numberOfLines).toBe(1);
+      expect(ticker.props.children).toBe(longTicker);
+      expect(queryByTestId('token-details-address')).toBeNull();
+      expect(queryByTestId('copy-contract-address-button')).toBeNull();
     });
 
     it('renders the ticker under the name when there is no contract address', () => {
