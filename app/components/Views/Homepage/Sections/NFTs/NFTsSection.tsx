@@ -14,9 +14,9 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   Box,
   BoxFlexDirection,
-  SectionDivider,
   SectionHeader,
 } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../shared/homeSectionGap/HomepageSectionDivider';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
@@ -181,7 +181,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box paddingBottom={3}>
-          <SectionDivider />
+          <HomepageSectionDivider />
           <SectionHeader
             title={title}
             isInteractive={hasNfts}

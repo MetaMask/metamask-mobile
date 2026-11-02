@@ -8,11 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../shared/homeSectionGap/HomepageSectionDivider';
 import { useSelector } from 'react-redux';
 import { useIsFocused } from '@react-navigation/native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -498,7 +495,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return (
         <View ref={sectionViewRef} onLayout={handleSectionLayout}>
           <Box paddingBottom={3}>
-            <SectionDivider />
+            <HomepageSectionDivider />
             <SectionHeader
               title={title}
               isInteractive
@@ -525,7 +522,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const sectionContent = (
       <>
-        <SectionDivider />
+        <HomepageSectionDivider />
         <SectionHeader
           title={title}
           isInteractive

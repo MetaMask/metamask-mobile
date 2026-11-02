@@ -8,9 +8,9 @@ import {
   IconName,
   ListItem,
   ListItemVariant,
-  SectionDivider,
   SectionHeader,
 } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../shared/homeSectionGap/HomepageSectionDivider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -83,7 +83,7 @@ const MoreSection = () => {
 
   return (
     <View testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}>
-      <SectionDivider />
+      <HomepageSectionDivider />
       <SectionHeader title={strings('homepage.sections.more.title')} />
       <ListItem
         isInteractive

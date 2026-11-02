@@ -11,11 +11,8 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import {
-  SectionDivider,
-  Box,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
+import HomepageSectionDivider from '../../../shared/homeSectionGap/HomepageSectionDivider';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
@@ -223,7 +220,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <SectionDivider />
+        <HomepageSectionDivider />
         <SectionHeader
           title={title}
           isInteractive
