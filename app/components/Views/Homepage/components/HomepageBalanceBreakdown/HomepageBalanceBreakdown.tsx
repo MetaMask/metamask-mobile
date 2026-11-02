@@ -39,7 +39,10 @@ const HomepageBalanceBreakdown = ({
     const slice = slices[key];
     const hasBalance = slice.status === 'ready' && slice.valueFiat !== 0;
 
-    return slice.isVisible && (key === 'money' || hasBalance);
+    return (
+      slice.isVisible &&
+      (key === 'money' || hasBalance || slice.status === 'error')
+    );
   });
 
   return (

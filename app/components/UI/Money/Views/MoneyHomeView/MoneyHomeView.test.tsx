@@ -86,8 +86,7 @@ import {
   useVbaHomeCardRefresh,
   type VbaHomeCard,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
@@ -372,6 +371,16 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+const mockSelectUsableVbaAutoramp = jest.fn(
+  (): { id: string } | undefined => undefined,
+);
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.createMockFromModule<
+    typeof import('../../../../../selectors/rampsController')
+  >('../../../../../selectors/rampsController'),
+  selectUsableVbaAutoramp: () => mockSelectUsableVbaAutoramp(),
+}));
+
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
   useMoneyAccountCardLinkage: jest.fn(() => ({
@@ -451,14 +460,14 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    openAsOnlyOnboardingRoute: jest.fn(),
+    openVbaEntry: jest.fn(),
   }),
 );
 jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
   startVbaCufJourney: jest.fn(),
 }));
 
-const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
+const mockOpenVbaEntry = jest.mocked(openVbaEntry);
 const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
@@ -825,7 +834,8 @@ describe('MoneyHomeView', () => {
     // Default to no VBA card so variant tests cannot leak into others.
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
-    mockOpenAsOnlyOnboardingRoute.mockClear();
+    mockSelectUsableVbaAutoramp.mockReturnValue(undefined);
+    mockOpenVbaEntry.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
       hasMoneyAccount: true,
@@ -1105,6 +1115,20 @@ describe('MoneyHomeView', () => {
       ).toBeNull();
     });
 
+    it('renders the Details button for a usable autoramp even when not VBA eligible', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockSelectUsableVbaAutoramp.mockReturnValue({ id: 'ar-1' });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
     it('tracks and routes straight to the loading screen on press', () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1122,9 +1146,8 @@ describe('MoneyHomeView', () => {
         button_position: 4,
         button_row_button_count: 4,
       });
-      expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+      expect(mockOpenVbaEntry).toHaveBeenCalledWith(
         expect.objectContaining({ goBack: mockGoBack }),
-        VbaOnboardingRoutes.LOADING,
         { source: 'vba-action-row-details' },
       );
       expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
@@ -1141,7 +1164,7 @@ describe('MoneyHomeView', () => {
       fireEvent.press(details);
       fireEvent.press(details);
 
-      expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledTimes(1);
+      expect(mockOpenVbaEntry).toHaveBeenCalledTimes(1);
       expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
     });
 

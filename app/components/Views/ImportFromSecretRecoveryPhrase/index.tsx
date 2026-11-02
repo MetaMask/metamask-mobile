@@ -6,14 +6,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import {
-  Alert,
-  Animated,
-  Dimensions,
-  Keyboard,
-  Platform,
-  TextInput,
-} from 'react-native';
+import { Alert, Animated, Dimensions, Keyboard, TextInput } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -809,43 +802,20 @@ const ImportFromSecretRecoveryPhrase = () => {
                   testID: ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
                 }}
                 bottomAccessory={
-                  isAddDeviceSyncEnabled ? (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="gap-1"
+                  >
                     <Text
                       variant={TextVariant.BodyMd}
                       color={TextColor.TextAlternative}
                     >
                       {strings(
                         'import_from_seed.enter_your_secret_recovery_phrase',
-                      )}{' '}
-                      {strings('import_from_seed.or')}{' '}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.PrimaryDefault}
-                        accessibilityRole="link"
-                        onPress={onImportFromExtensionPress}
-                        testID={
-                          ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
-                        }
-                      >
-                        {strings(
-                          'import_from_seed.import_wallet_from_extension',
-                        )}
-                      </Text>
+                      )}
                     </Text>
-                  ) : (
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      twClassName="gap-1"
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'import_from_seed.enter_your_secret_recovery_phrase',
-                        )}
-                      </Text>
+                    {!isAddDeviceSyncEnabled && (
                       <ButtonIcon
                         iconName={IconName.Info}
                         iconProps={{
@@ -856,8 +826,8 @@ const ImportFromSecretRecoveryPhrase = () => {
                           ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
                         }
                       />
-                    </Box>
-                  )
+                    )}
+                  </Box>
                 }
               />
               <SrpInputGrid
@@ -990,39 +960,34 @@ const ImportFromSecretRecoveryPhrase = () => {
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
-      {currentStep === 1 && (
-        <SafeAreaView
-          edges={['bottom']}
-          style={tw.style(
-            'w-full py-4',
-            Platform.OS === 'android' ? 'mb-6' : 'mb-4',
-          )}
-        >
-          <FooterGlass
-            primaryButtonProps={{
-              children: strings('import_from_seed.import_create_password_cta'),
-              onPress: onPressCreatePassword,
-              isLoading: loading,
-              isDisabled: isContinueButtonDisabled,
-              testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-              size: ButtonSize.Lg,
-            }}
-          />
-        </SafeAreaView>
-      )}
-      {currentStep === 0 && (
-        <SafeAreaView edges={['bottom']} style={tw.style('py-4 bg-default')}>
-          <FooterGlass
-            primaryButtonProps={{
-              children: strings('import_from_seed.continue'),
-              onPress: handleContinueImportFlow,
-              isDisabled: isSRPContinueButtonDisabled,
-              testID: ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
-              size: ButtonSize.Lg,
-            }}
-          />
-        </SafeAreaView>
-      )}
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={tw.style('w-full bg-default')}
+      >
+        <FooterGlass
+          twClassName="py-2"
+          primaryButtonProps={
+            currentStep === 1
+              ? {
+                  children: strings(
+                    'import_from_seed.import_create_password_cta',
+                  ),
+                  onPress: onPressCreatePassword,
+                  isLoading: loading,
+                  isDisabled: isContinueButtonDisabled,
+                  testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+                  size: ButtonSize.Lg,
+                }
+              : {
+                  children: strings('import_from_seed.continue'),
+                  onPress: handleContinueImportFlow,
+                  isDisabled: isSRPContinueButtonDisabled,
+                  testID: ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
+                  size: ButtonSize.Lg,
+                }
+          }
+        />
+      </SafeAreaView>
       {currentStep === 0 && isKeyboardVisible && (
         <KeyboardStickyView
           offset={{ closed: 0, opened: 0 }}

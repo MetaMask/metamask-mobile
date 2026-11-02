@@ -7,6 +7,8 @@ import {
   beginPostTradeShareSession,
   clearPostTradeShareSession,
   getPostTradeShareSession,
+  registerPostTradeShareReopenOwner,
+  type PostTradeShareVariant,
 } from './postTradeShareSession';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 
@@ -33,8 +35,16 @@ const target: QuickBuyTarget = {
 };
 
 describe('PostTradeShareBottomSheet', () => {
+  const unregisterOwners: (() => void)[] = [];
+  const registerOwner = (owner: string) => {
+    const unregister = registerPostTradeShareReopenOwner(owner);
+    unregisterOwners.push(unregister);
+    return unregister;
+  };
+
   afterEach(() => {
     act(() => {
+      unregisterOwners.splice(0).forEach((unregister) => unregister());
       clearPostTradeShareSession();
     });
     jest.clearAllMocks();
@@ -248,34 +258,103 @@ describe('PostTradeShareBottomSheet', () => {
     });
   });
 
-  it('renders a failure state with a retry action', () => {
-    beginPostTradeShareSession({
-      target,
-      tradeMode: 'buy',
-      status: 'failed',
-      owner: 'social-v1-feed',
-      preview: {
-        tokenSymbol: 'PUMP',
-        tokenAddress: '0xpump',
-        chain: 'base',
-        side: 'buy',
-      },
+  describe('failed swap', () => {
+    const beginFailedSwap = ({
+      variant,
+    }: { variant?: PostTradeShareVariant } = {}) =>
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'buy',
+        status: 'failed',
+        variant,
+        owner: 'social-v1-feed',
+        preview: {
+          tokenSymbol: 'PUMP',
+          tokenAddress: '0xpump',
+          chain: 'base',
+          side: 'buy',
+        },
+      });
+
+    it('renders a failure state with a retry action when the owner can reopen', () => {
+      registerOwner('social-v1-feed');
+      beginFailedSwap();
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+      ).toHaveTextContent('social_leaderboard.post_trade_share.failed');
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      ).toHaveTextContent('social_leaderboard.post_trade_share.try_again');
+
+      fireEvent.press(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(getPostTradeShareSession()?.reopenRequested).toBe(true);
     });
 
-    renderWithProvider(<PostTradeShareBottomSheet />);
+    it('hides the post and earn card', () => {
+      beginFailedSwap();
 
-    expect(
-      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
-    ).toHaveTextContent('social_leaderboard.post_trade_share.failed');
-    expect(
-      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
-    ).toHaveTextContent('social_leaderboard.post_trade_share.try_again');
+      renderWithProvider(<PostTradeShareBottomSheet />);
 
-    fireEvent.press(
-      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
-    );
+      expect(
+        screen.queryByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PostTradeShareBottomSheetSelectorsIDs.VIEW_ACTIVITY_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
 
-    expect(getPostTradeShareSession()?.reopenRequested).toBe(true);
+    it('hides the create profile card', () => {
+      beginFailedSwap({ variant: 'create_profile' });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      expect(
+        screen.queryByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD),
+      ).toBeNull();
+    });
+
+    it('closes instead of retrying when the owner screen is not mounted', () => {
+      beginFailedSwap();
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      ).toHaveTextContent('social_leaderboard.post_trade_share.close');
+
+      fireEvent.press(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(getPostTradeShareSession()).toBeNull();
+    });
+
+    it('switches Try again to Close when the owner screen unmounts', () => {
+      const unregister = registerOwner('social-v1-feed');
+      beginFailedSwap();
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      ).toHaveTextContent('social_leaderboard.post_trade_share.try_again');
+
+      act(() => {
+        unregister();
+      });
+
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      ).toHaveTextContent('social_leaderboard.post_trade_share.close');
+    });
   });
 
   it('closes a failed swap with no owner screen to retry from', () => {
@@ -389,6 +468,9 @@ describe('PostTradeShareBottomSheet', () => {
     expect(
       screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
     ).toHaveTextContent('social_leaderboard.post_trade_share.order_failed');
+    expect(
+      screen.queryByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD),
+    ).toBeNull();
     expect(
       screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
     ).toHaveTextContent('social_leaderboard.post_trade_share.close');

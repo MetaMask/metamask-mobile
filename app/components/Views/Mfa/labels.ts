@@ -23,7 +23,6 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   rate_limited: 'mfa.errors.cooldown',
   max_passkeys_reached: 'mfa.errors.limit_reached',
   max_identifiers_reached: 'mfa.errors.limit_reached',
-  multi_primary_srp: 'mfa.errors.multi_primary_srp',
   authentication_required: 'mfa.errors.signed_out',
   passkey_unsupported: 'mfa.errors.unsupported',
   flow_in_progress: 'mfa.errors.flow_in_progress',
@@ -34,6 +33,19 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
  * Wording for authenticator app codes, which the app shows rather than an
  * email: a new code is in the app, not requested.
  */
+const ERROR_LINKS: Partial<Record<MfaFlowErrorCode, string>> = {
+  email_claimed: 'https://support.metamask.io/configure/wallet/email-in-use',
+};
+
+/**
+ * The help article for an error, if it has one.
+ *
+ * @param code - The error code.
+ * @returns The article URL.
+ */
+export const getErrorLink = (code: MfaFlowErrorCode): string | undefined =>
+  ERROR_LINKS[code];
+
 const TOTP_ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   invalid_code: 'mfa.errors.invalid_totp_code',
   flow_expired: 'mfa.errors.totp_expired',
@@ -67,6 +79,38 @@ export const getSpecificErrorMessage = (
   const key =
     (method === 'totp' ? TOTP_ERROR_KEYS[code] : undefined) ?? ERROR_KEYS[code];
   return key ? strings(key) : undefined;
+};
+
+/**
+ * Errors whose failure screen has its own title and description, rather than
+ * "Something went wrong" and the error's message.
+ */
+const FAILURE_KEYS: Partial<
+  Record<MfaFlowErrorCode, { title: string; description: string }>
+> = {
+  multi_primary_srp: {
+    title: 'mfa.failure.support_title',
+    description: 'mfa.failure.support_description',
+  },
+};
+
+/**
+ * The failure screen's copy for an error.
+ *
+ * @param code - The error's code.
+ * @returns The title, and a description when there is more to say.
+ */
+export const getFailureCopy = (
+  code: MfaFlowErrorCode,
+): { title: string; description?: string } => {
+  const keys = FAILURE_KEYS[code];
+  return keys
+    ? { title: strings(keys.title), description: strings(keys.description) }
+    : {
+        title: strings('mfa.failure.title'),
+        // The title already says something went wrong; only a specific reason adds to it.
+        description: getSpecificErrorMessage(code),
+      };
 };
 
 export const getErrorMessage = (

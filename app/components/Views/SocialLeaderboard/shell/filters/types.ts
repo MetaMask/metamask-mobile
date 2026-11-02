@@ -21,6 +21,12 @@ export type SocialTraderCohort =
 export type SocialFilterVerification = 'all' | 'verified' | 'unverified';
 
 /**
+ * Open versus closed positions. `all` leaves both in the feed. Composer
+ * `spotShare` cards match neither Open nor Closed.
+ */
+export type SocialFilterPositionStatus = 'all' | 'open' | 'closed';
+
+/**
  * Trailing window for the unified Filters sheet. The V0 sheet only offered
  * `7d` / `30d`; TSA-1115 adds `1h` / `24h` to match the new designs.
  */
@@ -57,6 +63,11 @@ export interface SocialShellFilters {
   type: SocialFilterType;
   traderCohort: SocialTraderCohort;
   verification: SocialFilterVerification;
+  /**
+   * Trending-only. Other tabs keep the default and the sheet does not show
+   * the section, so a leftover value must not light their filter icon.
+   */
+  positionStatus: SocialFilterPositionStatus;
   timeframe: SocialFilterTimeframe;
   network: SocialFilterNetwork;
   marketCap: SocialRangeFilter;

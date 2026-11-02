@@ -5,6 +5,7 @@
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:existingUser": "true",
     "@MetaMask:predictGTMModalShown": "true",
+    "@MetaMask:socialTermsAccepted": "v1",
     "@MetaMask:solanaFeatureModalShownV2": "true"
   },
   "state": {
@@ -66,6 +67,7 @@
       "whitelist": []
     },
     "card": {
+      "applePaySplashSeen": false,
       "cardArrivalAnimationSeen": false,
       "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
@@ -709,6 +711,11 @@
               "enabled": true,
               "featureVersion": null,
               "minimumVersion": null
+            },
+            "stellarAccounts": {
+              "enabled": true,
+              "featureVersion": null,
+              "minimumVersion": "0.0.0"
             }
           }
         },
@@ -908,7 +915,6 @@
       "moneyAccountSweepstakesStats": {},
       "moneyAccountSweepstakesVolumeStats": {},
       "onboardingActiveStep": "INTRO",
-      "onboardingReferralCode": null,
       "ondoCampaignActivity": {},
       "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},

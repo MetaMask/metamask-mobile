@@ -361,6 +361,11 @@ jest.mock('../../hooks', () => {
     usePerpsMarketData: jest.fn(),
     usePerpsLiquidationPrice: jest.fn(),
     usePerpsQuotedFeeReservation: jest.fn(),
+    usePerpsFeeDisplayAbTest: jest.fn(() => ({
+      feeDisplayMode: 'dollar',
+      variantName: 'control',
+      isActive: false,
+    })),
     usePerpsOrderFees: jest.fn(() => ({
       totalFee: 45,
       undiscountedTotalFee: 45,
@@ -5586,6 +5591,8 @@ describe('PerpsOrderView', () => {
       // Fees should still be displayed but without discount
     });
   });
+
+  // Control/treatment fee-row behavior is covered in PerpsOrderView.view.test.tsx.
 
   describe('Points section with rewards', () => {
     it('displays points row and handles tooltip when rewards should show', async () => {

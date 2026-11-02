@@ -356,20 +356,16 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        // `.rejects.toMatchObject(...)` attaches its handler to the service
-        // promise synchronously, so the pending rejection below is never
-        // unobserved while the timer still has to advance to produce it.
-        // eslint-disable-next-line jest/valid-expect -- awaited below via `pending`, not here
-        const pending = expect(
-          service.validateReferralCode('ABC123'),
-        ).rejects.toMatchObject({
+        const pending = service
+          .validateReferralCode('ABC123')
+          .catch((error: unknown) => error);
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
           message: 'Validate referral code failed: 503',
         });
-        await jest.advanceTimersByTimeAsync(3000);
-
-        await pending;
         expect(mockFetch).toHaveBeenCalledTimes(2);
         expect(getBearerToken).not.toHaveBeenCalled();
       } finally {
@@ -424,18 +420,16 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        // `.rejects.toMatchObject(...)` attaches its handler to the service
-        // promise synchronously, so the pending rejection below is never
-        // unobserved while the timer still has to advance to produce it.
-        // eslint-disable-next-line jest/valid-expect -- awaited below via `pending`, not here
-        const pending = expect(service.getReferralMe()).rejects.toMatchObject({
+        const pending = service
+          .getReferralMe()
+          .catch((error: unknown) => error);
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
           message: 'Get referral me failed: 503',
         });
-        await jest.advanceTimersByTimeAsync(3000);
-
-        await pending;
         expect(mockFetch).toHaveBeenCalledTimes(2);
       } finally {
         jest.useRealTimers();
@@ -1072,20 +1066,16 @@ describe('RewardsMoneyDataService', () => {
       });
       jest.useFakeTimers();
       try {
-        // `.rejects.toMatchObject(...)` attaches its handler to the service
-        // promise synchronously, so the pending rejection below is never
-        // unobserved while the timer still has to advance to produce it.
-        // eslint-disable-next-line jest/valid-expect -- awaited below via `busyQuotePending`, not here
-        const busyQuotePending = expect(
-          service.getRebateQuote({ product: 'perps' }),
-        ).rejects.toMatchObject({
+        const busyQuotePending = service
+          .getRebateQuote({ product: 'perps' })
+          .catch((error: unknown) => error);
+        await jest.advanceTimersByTimeAsync(3000);
+        await expect(busyQuotePending).resolves.toMatchObject({
           status: 503,
           failure: 'UNAVAILABLE',
           detail: 'Server busy, retry shortly',
           retryAfterSeconds: 2,
         });
-        await jest.advanceTimersByTimeAsync(3000);
-        await busyQuotePending;
       } finally {
         jest.useRealTimers();
       }

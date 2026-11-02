@@ -154,6 +154,8 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
       <HeaderStandard
         includesTopInset
         title={aboutTitle}
+        // Android wraps "MetaMask" to a clipped second line without this
+        titleProps={{ numberOfLines: 1 }}
         onBack={() => navigation.goBack()}
         backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
       />
