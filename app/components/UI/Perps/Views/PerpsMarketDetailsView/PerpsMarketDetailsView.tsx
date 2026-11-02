@@ -102,6 +102,7 @@ import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
 import PerpsHomeSection from '../../components/PerpsHomeSection/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsMarketSocialTabs from '../../components/PerpsMarketSocialTabs';
+import PerpsPostToFeedButton from '../../components/PerpsPostToFeedButton';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
@@ -330,7 +331,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<AppNavigationProp>();
-  const { sharePosition } = usePerpsSharePosition();
+  const { sharePosition, findSocialPosition } = usePerpsSharePosition();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const {
@@ -372,9 +373,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         : PROVIDER_CONFIG.DefaultProvider;
     const preferredProvider =
       routeMarket?.providerId ?? defaultCandidateProvider;
+    // Case-insensitive: deeplinks can carry a differently cased symbol
+    // (e.g. 'KPEPE' for 'kPEPE') when the canonical lookup was unavailable.
+    const routeSymbol = routeMarket?.symbol?.toLowerCase();
     const fullMarket = markets.find(
       (candidate) =>
-        candidate.symbol === routeMarket?.symbol &&
+        candidate.symbol.toLowerCase() === routeSymbol &&
         (candidate.providerId ?? defaultCandidateProvider) ===
           preferredProvider,
     );
@@ -1758,6 +1762,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     ],
   );
 
+  const existingSocialPosition = useMemo(
+    () => (existingPosition ? findSocialPosition(existingPosition) : undefined),
+    [existingPosition, findSocialPosition],
+  );
+
   const preMarketInsightsSections = useMemo(
     () => [
       {
@@ -1770,6 +1779,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             szDecimals={marketData?.szDecimals}
             onAutoClosePress={handleAutoClosePress}
             onMarginPress={handleMarginPress}
+            postToFeedButton={
+              existingSocialPosition ? (
+                <PerpsPostToFeedButton
+                  position={existingPosition}
+                  socialPosition={existingSocialPosition}
+                />
+              ) : undefined
+            }
             onSharePress={handleSharePress}
             variant={isPerpsSocialEnabled ? 'tabs' : 'default'}
           />
@@ -1811,6 +1828,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       currentPrice,
       marketData?.szDecimals,
       handleAutoClosePress,
+      existingSocialPosition,
       handleMarginPress,
       handleSharePress,
       isPerpsSocialEnabled,

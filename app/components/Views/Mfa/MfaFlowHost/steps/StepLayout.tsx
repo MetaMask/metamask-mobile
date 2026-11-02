@@ -2,15 +2,16 @@ import React, { type ReactNode } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
 } from 'react-native';
 import {
   Box,
-  FontWeight,
   HelpText,
   HelpTextSeverity,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -25,7 +26,8 @@ import type {
   MfaReason,
 } from '../../../../../util/identity/mfa/engine/types';
 import shieldImage from '../../../../../images/mfa-shield.png';
-import { getErrorMessage } from '../../labels';
+import { strings } from '../../../../../../locales/i18n';
+import { getErrorLink, getErrorMessage } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 
 /**
@@ -67,15 +69,30 @@ export const StepError = ({
 }: {
   code: MfaFlowErrorCode;
   method?: MfaMethod;
-}) => (
-  <HelpText
-    severity={HelpTextSeverity.Danger}
-    fontWeight={FontWeight.Medium}
-    testID={MfaFlowSelectorsIDs.ERROR}
-  >
-    {getErrorMessage(code, method)}
-  </HelpText>
-);
+}) => {
+  const link = getErrorLink(code);
+  return (
+    <HelpText
+      severity={HelpTextSeverity.Danger}
+      accessibilityRole="alert"
+      testID={MfaFlowSelectorsIDs.ERROR}
+    >
+      {getErrorMessage(code, method)}
+      {link ? (
+        <>
+          {' '}
+          <TextButton
+            variant={TextVariant.BodySm}
+            onPress={() => Linking.openURL(link)}
+            testID={MfaFlowSelectorsIDs.ERROR_LINK}
+          >
+            {strings('mfa.errors.learn_more')}
+          </TextButton>
+        </>
+      ) : null}
+    </HelpText>
+  );
+};
 
 /**
  * The step's title and description, centred under an image (the intro and

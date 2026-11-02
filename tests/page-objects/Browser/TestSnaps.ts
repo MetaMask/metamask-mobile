@@ -571,6 +571,35 @@ class TestSnaps {
     }
   }
 
+  /**
+   * Opens the Dialog Snap custom sheet. Retries the WebView button when the
+   * first CDP/native tap is swallowed (Custom Dialog never appears).
+   */
+  async openCustomDialog(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        if (
+          await Utilities.isElementVisible(
+            Matchers.getElementByText(/^Custom Dialog$/i),
+            1_000,
+          )
+        ) {
+          return;
+        }
+        await this.tapButton('sendCustomButton');
+        await Assertions.expectTextDisplayed('Custom Dialog', {
+          timeout: 5_000,
+          description: 'Custom Dialog heading',
+        });
+      },
+      {
+        timeout: 30_000,
+        interval: 1_000,
+        description: 'open Custom Dialog from test-snaps',
+      },
+    );
+  }
+
   async fillCustomDialogInput(text: string) {
     const input = resolve({
       androidAppiumTestID: SnapUIInputSelectorIDs.customDialogInput,
@@ -584,14 +613,10 @@ class TestSnaps {
       hideKeyboard: !PlatformDetector.isIOSAppium(),
     });
     if (PlatformDetector.isIOSAppium()) {
-      // Heading often reports displayed=false while the keyboard is up — same
-      // Snap UI visible=false path as OK / Confirm (snapUiTapOptions).
-      await Gestures.tap(
-        Matchers.getElementByText(/^Custom Dialog$/i),
-        this.snapUiTapOptions({
-          elemDescription: 'Custom Dialog heading — dismiss keyboard',
-        }),
-      );
+      // Do not tap the Custom Dialog heading to dismiss — under the keyboard it
+      // often is missing / displayed=false (#37999 residual). Use the same
+      // header-region coordinate dismiss as other Snap UI inputs.
+      await this.dismissSnapUiKeyboard();
     }
   }
 

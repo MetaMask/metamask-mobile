@@ -3,6 +3,7 @@ import type {
   AppNavigationProp,
   SocialV1ProfileViewParams,
 } from '../../../../core/NavigationService/types';
+import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
 
 export type NavigateToSocialV1ProfileParams = SocialV1ProfileViewParams & {
   viewerProfileId?: string;
@@ -23,6 +24,9 @@ export const navigateToSocialV1Profile = (
   navigation: Pick<AppNavigationProp, 'navigate'>,
   params?: NavigateToSocialV1ProfileParams,
 ): void => {
+  if (!ensureSocialTermsAccepted(navigation.navigate)) {
+    return;
+  }
   const isSelf =
     !params?.traderId ||
     params.traderId === params.viewerProfileId ||

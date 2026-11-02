@@ -4,7 +4,14 @@ import type {
   SocialFeedRealtimeScope,
 } from '@metamask/social-controllers';
 import isEqual from 'lodash/isEqual';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Engine from '../../../../core/Engine';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
@@ -463,12 +470,17 @@ export const useSocialFeedRealtime = (
       );
       pending.delete(feedItemId);
     });
-    publish();
 
     if (revealRequested) {
-      setRevealRequested(false);
+      // Both updates share the transition: clearing the request before the
+      // view lands would count the revealed posts behind the pill again.
+      startTransition(() => {
+        publish();
+        setRevealRequested(false);
+      });
       return undefined;
     }
+    publish();
     if (drainable.length <= batch.length) {
       return undefined;
     }

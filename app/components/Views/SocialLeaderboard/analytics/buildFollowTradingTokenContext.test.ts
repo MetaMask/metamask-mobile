@@ -5,6 +5,7 @@ import {
 } from './buildFollowTradingTokenContext';
 import { SocialLeaderboardEventProperties } from './socialLeaderboardEvents';
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   toAssetId: (address: string, chainId: string) =>
     `${chainId}/erc20:${address}`,

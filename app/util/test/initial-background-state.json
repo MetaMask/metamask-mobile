@@ -937,6 +937,11 @@
     "claimById": {},
     "rewardsMoneyEnvUrl": null
   },
+  "PredictVenueController": {
+    "venueSelectionPreference": null,
+    "lastActiveVenue": null,
+    "sessionDefault": null
+  },
   "PredictController": {
     "eligibility": {
       "status": "checking",
@@ -965,8 +970,8 @@
   },
   "AiDigestController": {},
   "RampsController": {
-    "autorampTransactionRecords": {},
     "autoramps": [],
+    "autorampTransactionRecords": {},
     "moneyAccountWalletRegistrations": [],
     "vbaAutorampListFetchedAt": null,
     "vbaCustomerAbilities": null,

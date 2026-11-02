@@ -5,6 +5,7 @@ import type { QuickBuyTradeMode } from '../../../UI/QuickBuy/types';
 import {
   consumePostTradeShareReopen,
   getPostTradeShareSession,
+  registerPostTradeShareReopenOwner,
   subscribePostTradeShareSession,
   type PostTradeShareOwnerId,
 } from './postTradeShareSession';
@@ -27,6 +28,7 @@ export const usePostTradeShareReopen = (
     if (!owner) {
       return undefined;
     }
+    const unregister = registerPostTradeShareReopenOwner(owner);
     const unsubscribe = subscribePostTradeShareSession(() => {
       const session = getPostTradeShareSession();
       if (
@@ -41,6 +43,9 @@ export const usePostTradeShareReopen = (
         onReopen(reopened.target, reopened.copyTradeOrigin, reopened.tradeMode);
       }
     });
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      unregister();
+    };
   }, [onReopen, owner]);
 };

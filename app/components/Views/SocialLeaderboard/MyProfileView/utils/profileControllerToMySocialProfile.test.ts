@@ -99,7 +99,6 @@ describe('withLocalAvatarPreset', () => {
     profileId: 'profile-123',
     displayName: 'Wen Cat',
     handle: 'wen-cat',
-    shareUrl: 'https://metamask.io/wen-cat',
     imageUrl: null,
     avatarPresetId: null,
     avatarBackgroundId: null,
