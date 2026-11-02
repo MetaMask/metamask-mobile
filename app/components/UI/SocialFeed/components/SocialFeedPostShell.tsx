@@ -28,7 +28,11 @@ import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
-import ReactionChip, { REACTION_PILL_TW_CLASS } from './ReactionChip';
+import ReactionChip, {
+  REACTION_PILL_TW_CLASS,
+  type EmojiWindowFrame,
+} from './ReactionChip';
+import ReactionEmojiBurst from './ReactionEmojiBurst';
 import SocialFeedPostTranslation from './SocialFeedPostTranslation';
 import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
@@ -74,6 +78,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const reactionAnchorRef = useRef<View>(null);
+  const postRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
@@ -104,6 +109,39 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
+  const [burst, setBurst] = useState<{
+    key: number;
+    emotion: string;
+    x?: number;
+    y?: number;
+  } | null>(null);
+  const burstSerial = useRef(0);
+  const clearBurst = useCallback((finishedKey: number) => {
+    setBurst((current) => {
+      if (!current || current.key !== finishedKey) {
+        return current;
+      }
+      return null;
+    });
+  }, []);
+  const celebrateReaction = useCallback((emotion: string) => {
+    burstSerial.current += 1;
+    setBurst({ key: burstSerial.current, emotion });
+  }, []);
+  const placeBurst = useCallback((nonce: number, frame: EmojiWindowFrame) => {
+    postRef.current?.measureInWindow((postX, postY) => {
+      setBurst((current) => {
+        if (!current || current.key !== nonce) {
+          return current;
+        }
+        return {
+          ...current,
+          x: frame.x - postX + frame.width / 2,
+          y: frame.y - postY + frame.height / 2,
+        };
+      });
+    });
+  }, []);
   const { reactions, userReaction, isPending, pickEmotion } =
     useFeedPostReaction(
       post.commentId,
@@ -146,6 +184,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         : undefined;
 
   const chips = visibleReactions(reactions);
+  const canReact = Boolean(post.commentId);
+  const showFooter = canReact || post.copyCount !== undefined;
 
   const openPicker = useCallback(() => {
     if (
@@ -180,10 +220,14 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         return;
       }
 
+      if (userReaction !== emotion) {
+        celebrateReaction(emotion);
+      }
       notifyReaction?.(userReaction === emotion ? 'removed' : 'added', emotion);
       pickEmotion(emotion).catch(() => undefined);
     },
     [
+      celebrateReaction,
       ensureSocialProfileOnboarding,
       ensureSocialTermsForInteraction,
       isPending,
@@ -227,7 +271,12 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   return (
     <Box
-      twClassName={post.isPending ? 'py-2 opacity-60' : 'py-2'}
+      ref={postRef}
+      twClassName={
+        post.isPending
+          ? 'overflow-visible py-2 opacity-60'
+          : 'overflow-visible py-2'
+      }
       testID={`${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.id}`}
     >
       <SocialTraderIdentityRow
@@ -285,83 +334,107 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             </Box>
           ) : null}
 
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            gap={3}
-          >
+          {showFooter ? (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={2}
-              twClassName="flex-1 min-w-0 flex-wrap"
+              justifyContent={
+                canReact ? BoxJustifyContent.Between : BoxJustifyContent.End
+              }
+              gap={3}
             >
-              {chips.map((reaction) => (
-                <ReactionChip
-                  key={reaction.emotion}
-                  emotion={reaction.emotion}
-                  count={reaction.count}
-                  isSelected={reaction.emotion === userReaction}
-                  onPress={() => toggleEmotion(reaction.emotion)}
-                  testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
-                />
-              ))}
-              <View ref={reactionAnchorRef} collapsable={false}>
-                <ButtonBase
-                  size={ButtonBaseSize.Sm}
-                  twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.feed.add_reaction',
-                  )}
-                  onPress={openPicker}
-                  testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+              {canReact ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={2}
+                  twClassName="flex-1 min-w-0 flex-wrap"
                 >
-                  <EmojiAddIcon
-                    width={16}
-                    height={16}
-                    color={colors.icon.alternative}
-                    name="emoji-add"
-                  />
-                </ButtonBase>
-              </View>
-            </Box>
+                  {chips.map((reaction) => (
+                    <ReactionChip
+                      key={reaction.emotion}
+                      emotion={reaction.emotion}
+                      count={reaction.count}
+                      isSelected={reaction.emotion === userReaction}
+                      onPress={() => toggleEmotion(reaction.emotion)}
+                      burstNonce={
+                        burst?.emotion === reaction.emotion
+                          ? burst.key
+                          : undefined
+                      }
+                      onBurstAnchor={placeBurst}
+                      testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
+                    />
+                  ))}
+                  <View ref={reactionAnchorRef} collapsable={false}>
+                    <ButtonBase
+                      size={ButtonBaseSize.Sm}
+                      twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
+                      accessibilityLabel={strings(
+                        'social_leaderboard.feed.add_reaction',
+                      )}
+                      onPress={openPicker}
+                      testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+                    >
+                      <EmojiAddIcon
+                        width={16}
+                        height={16}
+                        color={colors.icon.alternative}
+                        name="emoji-add"
+                      />
+                    </ButtonBase>
+                  </View>
+                </Box>
+              ) : null}
 
-            {/* Inert on purpose: the count is context for the reactions next to it,
-            not a way into a list of who copied. Absent on social-api builds
-            that predate it, where it would otherwise read as a false zero. */}
-            {post.copyCount !== undefined ? (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-                testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
-              >
-                <Icon
-                  name={IconName.SwapHorizontal}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
+              {/* Inert on purpose: the count is context, not a way into a list
+              of who copied. Absent on social-api builds that predate it, where
+              it would otherwise read as a false zero. */}
+              {post.copyCount !== undefined ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
                 >
-                  {post.copyCount}
-                </Text>
-              </Box>
-            ) : null}
-          </Box>
+                  <Icon
+                    name={IconName.SwapHorizontal}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {post.copyCount}
+                  </Text>
+                </Box>
+              ) : null}
+            </Box>
+          ) : null}
         </Box>
       </SocialTraderIdentityRow>
 
-      <ReactionPickerBalloon
-        visible={pickerVisible}
-        anchor={pickerAnchor}
-        onClose={closePicker}
-        onPick={handlePick}
-      />
+      {canReact ? (
+        <ReactionPickerBalloon
+          visible={pickerVisible}
+          anchor={pickerAnchor}
+          onClose={closePicker}
+          onPick={handlePick}
+        />
+      ) : null}
       {optionsSheet}
       {geoBlockSheet}
+      {burst?.x != null && burst.y != null ? (
+        <ReactionEmojiBurst
+          key={burst.key}
+          burstKey={burst.key}
+          emotion={burst.emotion}
+          originX={burst.x}
+          originY={burst.y}
+          onFinished={clearBurst}
+        />
+      ) : null}
     </Box>
   );
 };

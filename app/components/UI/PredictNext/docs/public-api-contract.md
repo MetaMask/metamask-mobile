@@ -67,7 +67,8 @@ Public inputs are intents, consumer-owned types, and callbacks with Venue-neutra
 2. Do not change the legacy controller, providers, confirmations, pay-with integration, transaction-pay callbacks, or Engine wiring before PRED-1356.
 3. Do not add Kalshi branches to legacy code.
 4. Migrate one surface per PR, cheapest first: availability and analytics constants, entry points, narrow projections, then Predict-owned Homepage, Trending, and autocomplete components.
-5. Fence the boundary with `import-x/no-restricted-paths` no later than the end of PRED-1340 (PRED-1394). Code outside Predict and PredictNext may import neither legacy `UI/Predict/` nor PredictNext internals. It may import only the PredictNext entry point. The named composition wiring stays on a small allowlist until PRED-1356 removes the legacy parts.
+5. The boundary is fenced with `import-x/no-restricted-paths` (PRED-1399, `scripts/eslint-predict-boundary-zones.js`). Code outside Predict and PredictNext may import neither legacy `UI/Predict/` nor PredictNext internals. It may import only the PredictNext entry point. The named composition wiring stays on a permanent allowlist, `predictCompositionFiles`, until PRED-1356 removes the legacy parts. Every other existing importer is on the burn-down list, `predictImportBurndownFiles`.
+6. **Each migration PR deletes the files it migrates from `predictImportBurndownFiles`.** The list only shrinks. `scripts/eslint-predict-boundary-zones.test.ts` fails if an entry is added, and also if a listed file no longer imports Predict internals, so a finished migration cannot leave its files exempt.
 
 ## Homepage Predictions section
 

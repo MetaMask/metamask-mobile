@@ -7,6 +7,7 @@ import type {
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
+import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -85,6 +86,10 @@ export const useLaunchSumSub = (
   attemptRef.current = attempt;
 
   const retry = useCallback(() => {
+    trackKycVerificationUpdated({
+      status: 'retry_started',
+      retrySource: 'sumsub_error',
+    });
     setHasError(false);
     setIsLaunching(true);
     setAttempt((count) => count + 1);
@@ -109,6 +114,7 @@ export const useLaunchSumSub = (
           return;
         }
 
+        trackKycVerificationUpdated({ status: 'started' });
         const outcome = await KycController.launchProviderFlow({});
         if (cancelled) {
           return;

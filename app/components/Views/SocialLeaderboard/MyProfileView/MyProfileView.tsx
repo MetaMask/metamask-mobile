@@ -776,6 +776,7 @@ const MyProfileView: React.FC = () => {
                     onFilterChange={handleAssetFilterChange}
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
+                    showFlaggedState={!isOwner}
                   />
                 ) : showInitialPostSkeletons ? (
                   <ProfilePostsLoadingState />
