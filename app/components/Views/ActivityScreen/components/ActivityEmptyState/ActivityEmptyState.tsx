@@ -2,6 +2,8 @@ import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
+import type { CaipChainId } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
 import {
   Theme,
   useTheme as useDesignSystemTheme,
@@ -26,11 +28,15 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { BridgeTabKey } from '../../../../UI/Bridge/Views/BridgeView/BridgeView.constants';
+import { getDefaultTokenPairForChains } from '../../../../UI/Bridge/utils/tokenUtils';
 
 export interface ActivityEmptyStateProps {
   /** Currently selected type filter — drives copy + CTA. */
   typeFilter: ActivityTypeFilter;
   perpsSubFilterActive?: boolean;
+  /** Currently selected network filter; `null`/empty means all networks. */
+  networkFilter?: CaipChainId[] | null;
 }
 
 /**
@@ -41,6 +47,7 @@ export interface ActivityEmptyStateProps {
 const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   typeFilter,
   perpsSubFilterActive = false,
+  networkFilter,
 }) => {
   const designSystemTheme = useDesignSystemTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -67,6 +74,20 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       case ActivityEmptyStateAction.Swap:
         goToSwaps();
         return;
+      case ActivityEmptyStateAction.SwapLimitOrder: {
+        const defaultPair = getDefaultTokenPairForChains([
+          networkFilter?.[0] ?? EthScope.Mainnet,
+        ]);
+        goToSwaps(
+          defaultPair?.sourceToken,
+          defaultPair?.destToken,
+          undefined,
+          undefined,
+          undefined,
+          BridgeTabKey.Limit,
+        );
+        return;
+      }
       case ActivityEmptyStateAction.AddFunds:
         goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });
         return;
@@ -87,7 +108,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       default:
         return;
     }
-  }, [emptyState.action, navigation, goToBuy, goToSwaps]);
+  }, [emptyState.action, navigation, goToBuy, goToSwaps, networkFilter]);
 
   return (
     <Box

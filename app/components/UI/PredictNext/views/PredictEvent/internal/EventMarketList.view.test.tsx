@@ -1374,7 +1374,7 @@ describe('EventMarketList', () => {
       expect(
         within(
           view.getByTestId(EventMarketListTestIds.MARKETS_TAB),
-        ).getAllByText(strings('predict_next.event.outcome'))[0],
+        ).getAllByText(strings('predict_next.event.outcomes'))[0],
       ).toBeOnTheScreen();
       expect(onOrder).toHaveBeenCalledWith(
         event.markets[0],

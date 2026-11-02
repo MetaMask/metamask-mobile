@@ -13,6 +13,7 @@ import {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -49,6 +50,7 @@ import {
   type ActivityScreenParams,
 } from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../selectors/bridge/featureFlags';
 import {
   navigateWithDetails,
   useParams,
@@ -102,7 +104,14 @@ const ActivityScreen = () => {
     () => initialPerpsFilterParam ?? PerpsActivityFilter.Trades,
   );
 
-  const networkOptions = useNetworkFilterOptions();
+  const limitOrderChainIds = useSelector(
+    selectBridgeLimitOrderFeatureFlags,
+  )?.enabledChainIds;
+  const networkFilterChainIds =
+    typeFilter === ActivityTypeFilter.LimitOrders
+      ? limitOrderChainIds
+      : undefined;
+  const networkOptions = useNetworkFilterOptions(networkFilterChainIds);
   const trackFilterClicked = useTrackFilterClicked();
 
   // TODO(activity-redesign): restore with the search input.
@@ -110,12 +119,22 @@ const ActivityScreen = () => {
   //   setSearchQuery('');
   // }, []);
 
-  const handleSelectTypeFilter = useCallback((filter: ActivityTypeFilter) => {
-    setTypeFilter(filter);
-    if (filter !== ActivityTypeFilter.Perps) {
-      setPerpsFilter(PerpsActivityFilter.Trades);
-    }
-  }, []);
+  const handleSelectTypeFilter = useCallback(
+    (filter: ActivityTypeFilter) => {
+      setTypeFilter(filter);
+      if (filter !== ActivityTypeFilter.Perps) {
+        setPerpsFilter(PerpsActivityFilter.Trades);
+      }
+      if (filter === ActivityTypeFilter.LimitOrders && limitOrderChainIds) {
+        setNetworkFilter((current) =>
+          current?.every((chainId) => limitOrderChainIds.includes(chainId))
+            ? current
+            : null,
+        );
+      }
+    },
+    [limitOrderChainIds],
+  );
 
   useEffect(() => {
     if (
@@ -211,9 +230,10 @@ const ActivityScreen = () => {
       createActivityNetworkFilterNavDetails({
         selectedNetwork: networkFilter,
         onNetworkSelect: handleSelectNetwork,
+        enabledChainIds: networkFilterChainIds,
       }),
     );
-  }, [navigation, networkFilter, handleSelectNetwork]);
+  }, [navigation, networkFilter, handleSelectNetwork, networkFilterChainIds]);
 
   const handleOpenPerpsSheet = useCallback(() => {
     navigateWithDetails(
