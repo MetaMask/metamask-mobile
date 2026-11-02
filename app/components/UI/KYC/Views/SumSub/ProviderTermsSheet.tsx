@@ -22,6 +22,9 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   IDOS_PRIVACY_NOTICE_URL,
   KYC_SESSION_DISCLAIMER_DISPLAY,
+  SUMSUB_BIOMETRICS_CONSENT_URL,
+  SUMSUB_PERSONAL_DATA_PROCESSING_URL,
+  SUMSUB_PRIVACY_NOTICE_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
@@ -36,16 +39,19 @@ interface TermsLink {
   title: string;
   url: string;
   testID: string;
+  prefix?: string;
 }
 
 const toTermsLink = (
   disclaimer: KycCatalogDisclaimerLink,
   title: string,
+  prefix?: string,
 ): TermsLink => ({
   id: disclaimer.id,
   title,
   url: disclaimer.url,
   testID: `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+  prefix,
 });
 
 /**
@@ -60,7 +66,15 @@ const getDisplayedLinks = (
     const disclaimer = disclaimers.find(
       (item) => item.id === `${entry.group}:${entry.key}`,
     );
-    return disclaimer ? [toTermsLink(disclaimer, strings(entry.titleKey))] : [];
+    return disclaimer
+      ? [
+          toTermsLink(
+            disclaimer,
+            strings(entry.titleKey),
+            entry.prefixKey && strings(entry.prefixKey),
+          ),
+        ]
+      : [];
   });
 
   return displayed.length
@@ -70,8 +84,47 @@ const getDisplayedLinks = (
       );
 };
 
+const InlineLink = ({
+  url,
+  testID,
+  children,
+}: {
+  url: string;
+  testID: string;
+  children: string;
+}) => {
+  const openLink = useCallback(() => openExternalUrl(url), [url]);
+
+  return (
+    <TextButton
+      variant={TextVariant.BodyMd}
+      onPress={openLink}
+      accessibilityRole="link"
+      accessibilityHint={strings(
+        'virtual_bank_account.verify_identity.opens_in_browser_hint',
+      )}
+      testID={testID}
+    >
+      {children}
+    </TextButton>
+  );
+};
+
 const TermsLinkRow = ({ link }: { link: TermsLink }) => {
   const openLink = useCallback(() => openExternalUrl(link.url), [link.url]);
+
+  if (link.prefix) {
+    return (
+      <Box twClassName="px-4 py-3">
+        <Text variant={TextVariant.BodyMd}>
+          {link.prefix}
+          <InlineLink url={link.url} testID={link.testID}>
+            {link.title}
+          </InlineLink>
+        </Text>
+      </Box>
+    );
+  }
 
   return (
     <ListItem
@@ -155,6 +208,50 @@ const VbaProviderTermsSheet = ({
           {links.map((link) => (
             <TermsLinkRow key={link.id} link={link} />
           ))}
+        </Box>
+        <Box
+          twClassName="px-4"
+          testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_ACKNOWLEDGEMENT}
+        >
+          <Text variant={TextVariant.BodyMd}>
+            {strings(
+              'virtual_bank_account.verify_identity.sumsub_acknowledgement_start',
+            )}
+            <InlineLink
+              url={SUMSUB_PERSONAL_DATA_PROCESSING_URL}
+              testID={
+                VbaVerifyIdentitySelectorsIDs.SUMSUB_PERSONAL_DATA_PROCESSING_LINK
+              }
+            >
+              {strings(
+                'virtual_bank_account.verify_identity.sumsub_acknowledgement_data_processing_link',
+              )}
+            </InlineLink>
+            {strings(
+              'virtual_bank_account.verify_identity.sumsub_acknowledgement_us_residents',
+            )}
+            <InlineLink
+              url={SUMSUB_PRIVACY_NOTICE_URL}
+              testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK}
+            >
+              {strings(
+                'virtual_bank_account.verify_identity.sumsub_acknowledgement_privacy_notice_link',
+              )}
+            </InlineLink>
+            {strings(
+              'virtual_bank_account.verify_identity.sumsub_acknowledgement_biometric_consent',
+            )}
+            <InlineLink
+              url={SUMSUB_BIOMETRICS_CONSENT_URL}
+              testID={
+                VbaVerifyIdentitySelectorsIDs.SUMSUB_BIOMETRICS_CONSENT_LINK
+              }
+            >
+              {strings(
+                'virtual_bank_account.verify_identity.sumsub_acknowledgement_biometrics_consent_link',
+              )}
+            </InlineLink>
+          </Text>
         </Box>
         <Box twClassName="px-4">
           <Checkbox
