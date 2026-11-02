@@ -37,6 +37,7 @@ import MoneyAccountSweepstakesCampaignDetailsView from './Views/MoneyAccountSwee
 import MoneyAccountSweepstakesCampaignWinningView from './Views/MoneyAccountSweepstakesCampaignWinningView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectSettingsReferralAvailable } from '../../../reducers/rewardsMoney/selectors';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import {
   useNavigation,
@@ -64,6 +65,9 @@ const Stack = createNativeStackNavigator<RewardsStackParamList>();
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
 
@@ -77,12 +81,16 @@ const RewardsNavigator: React.FC = () => {
   const focusedMoneyScreen = isRewardsMoneyFlowScreen(focusedScreen)
     ? focusedScreen
     : undefined;
-  // Points screens are omitted without a subscription. A money ledger screen
-  // stays: it reads the profile, and the stack still has a registered route.
-  // Any other focused route is dismissed so an opt-out cannot leave a points
-  // screen registered in navigation state.
+  // Points screens are omitted without a subscription. A money ledger stays.
+  // Settings stays only while the referral section has a cached payload to
+  // show. Any other focused route is dismissed so an opt-out cannot leave a
+  // points screen registered in navigation state.
+  const unsubscribedScreenAllowed =
+    focusedMoneyScreen !== undefined &&
+    (focusedMoneyScreen !== Routes.REWARDS_SETTINGS_VIEW ||
+      settingsReferralAvailable);
   const closeFlow =
-    !isVersionBlocked && !subscriptionId && focusedMoneyScreen === undefined;
+    !isVersionBlocked && !subscriptionId && !unsubscribedScreenAllowed;
 
   useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
@@ -171,7 +179,7 @@ const RewardsNavigator: React.FC = () => {
   // subscription disappears while a points screen is still mounted (account
   // switch or opt-out), dropping every screen would throw, and leaving those
   // routes registered would keep a blank flow. Dismiss it. A money ledger
-  // screen does not use the subscription, so it stays mounted instead.
+  // stays. Settings stays only while the referral section has a payload.
   useEffect(() => {
     if (!closeFlow) {
       return;
@@ -207,6 +215,10 @@ const RewardsNavigator: React.FC = () => {
         initialRouteName={focusedMoneyScreen}
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen
+          name={Routes.REWARDS_SETTINGS_VIEW}
+          component={RewardsSettingsView}
+        />
         <Stack.Screen
           name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
           component={RewardsTradingCommissionsView}

@@ -2,6 +2,8 @@ import {
   CardFeatureFlag,
   SupportedChain,
   SupportedToken,
+  DEFAULT_APPLE_PAY_LEARN_MORE_URL,
+  selectApplePayLearnMoreUrl,
   selectCardFeatureFlag,
   selectMetalCardCheckoutFeatureFlag,
   selectGalileoAppleWalletProvisioningEnabled,
@@ -11,6 +13,7 @@ import {
   selectCardForgotPasswordFeatureEnabled,
   selectImmersveOnboardingEnabled,
   selectCardTransactionHistoryEnabled,
+  selectCardImmersveMfaEnabled,
   selectCardIntercomSupportEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
@@ -1014,6 +1017,70 @@ describe('selectCardTransactionHistoryEnabled', () => {
   });
 });
 
+describe('selectCardImmersveMfaEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags,
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    }) as Parameters<typeof selectCardImmersveMfaEnabled>[0];
+
+  beforeEach(() => {
+    delete process.env.MM_CARD_IMMERSVE_MFA_ENABLED;
+  });
+
+  it('returns true when the flag is enabled and the version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    expect(
+      selectCardImmersveMfaEnabled(
+        stateWithFlags({
+          cardImmersveMfa: { enabled: true, minimumVersion: '7.0.0' },
+        }),
+      ),
+    ).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when the flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    expect(
+      selectCardImmersveMfaEnabled(
+        stateWithFlags({
+          cardImmersveMfa: { enabled: false, minimumVersion: '7.0.0' },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when the flag is absent and env is unset', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    expect(selectCardImmersveMfaEnabled(mockedEmptyFlagsState)).toBe(false);
+  });
+
+  it('falls back to env when the remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_IMMERSVE_MFA_ENABLED = 'true';
+
+    expect(selectCardImmersveMfaEnabled.resultFunc({})).toBe(true);
+  });
+});
+
 describe('selectCardIntercomSupportEnabled', () => {
   const mockedValidatedVersionGatedFeatureFlag =
     validatedVersionGatedFeatureFlag as jest.MockedFunction<
@@ -1183,5 +1250,59 @@ describe('selectPushProvisioningEnabled', () => {
     expect(
       selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet'),
     ).toBe(false);
+  });
+});
+
+describe('selectApplePayLearnMoreUrl', () => {
+  it('returns the built-in URL when cardFeature does not set one', () => {
+    expect(selectApplePayLearnMoreUrl(mockedEmptyFlagsState)).toBe(
+      DEFAULT_APPLE_PAY_LEARN_MORE_URL,
+    );
+  });
+
+  it('returns the cardFeature constant when it is set', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {
+                constants: {
+                  applePayLearnMoreUrl: 'https://example.com/apple-pay',
+                },
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    expect(selectApplePayLearnMoreUrl(state as never)).toBe(
+      'https://example.com/apple-pay',
+    );
+  });
+
+  it('returns the built-in URL when the constant is blank', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              cardFeature: {
+                constants: {
+                  applePayLearnMoreUrl: '   ',
+                },
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    expect(selectApplePayLearnMoreUrl(state as never)).toBe(
+      DEFAULT_APPLE_PAY_LEARN_MORE_URL,
+    );
   });
 });

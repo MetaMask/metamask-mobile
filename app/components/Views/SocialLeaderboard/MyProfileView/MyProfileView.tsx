@@ -23,12 +23,19 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
+  CommonActions,
   useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -86,6 +93,7 @@ import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
 import type { ProfileAssetFilter } from './utils/splitPositionsByType';
+import { dropProfileDrawerFromStack } from './utils/dropProfileDrawerFromStack';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 /** Same 12px slop the home header uses so each icon stays a comfortable tap. */
@@ -111,6 +119,19 @@ const MyProfileView: React.FC = () => {
   const traderName = route.params?.traderName;
   const traderAddress = route.params?.traderAddress;
   const traderAvatarUri = route.params?.traderAvatarUri;
+
+  // The Profile drawer opens this screen with `navigate`, so the drawer stays
+  // beneath it and every back affordance (header, iOS swipe, Android hardware
+  // back) would reveal it again. Drop the drawer from the stack so back returns
+  // to the tab it was opened from. A no-op when opened from Social.
+  useEffect(() => {
+    const nextState = dropProfileDrawerFromStack(navigation.getState());
+    if (!nextState) {
+      return;
+    }
+    navigation.dispatch(CommonActions.reset(nextState));
+  }, [navigation]);
+
   const tw = useTailwind();
   const { colors } = useTheme();
   const { profile: myProfile, isLoading, error, refresh } = useMyProfile();
@@ -133,7 +154,9 @@ const MyProfileView: React.FC = () => {
     isFollowing,
     toggleFollow,
   } = liveProfile;
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+  });
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
@@ -774,6 +797,7 @@ const MyProfileView: React.FC = () => {
                     onFilterChange={handleAssetFilterChange}
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
+                    showFlaggedState={!isOwner}
                   />
                 ) : showInitialPostSkeletons ? (
                   <ProfilePostsLoadingState />
@@ -819,7 +843,9 @@ const MyProfileView: React.FC = () => {
                     <SocialV1FeedPostList
                       posts={posts}
                       dividerKeyPrefix="my-profile"
-                      renderPost={(post) => <SocialFeedPostShell post={post} />}
+                      renderPost={(post) => (
+                        <SocialFeedPostShell post={post} requireSocialTerms />
+                      )}
                     />
                   </Box>
                 )}

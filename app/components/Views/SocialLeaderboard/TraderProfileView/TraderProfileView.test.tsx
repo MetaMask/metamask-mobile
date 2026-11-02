@@ -27,6 +27,7 @@ const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockPlayErrorNotification = jest.fn().mockResolvedValue(undefined);
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playImpact: (...args: unknown[]) => mockPlayImpact(...args),
@@ -783,6 +784,23 @@ describe('TraderProfileView', () => {
 
     expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
     expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+  });
+
+  it('does not navigate when a flagged position is pressed', () => {
+    const flaggedPosition = {
+      ...fixtureOpenPositions[0],
+      flags: ['insider'],
+    };
+    mockPositionsResult.openPositions = [flaggedPosition];
+
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to the trader position view when a position is pressed', () => {
