@@ -9,7 +9,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -24,6 +23,8 @@ import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlag
 import VbaIllustration, {
   VbaIllustrationSource,
 } from '../../components/Illustration';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaIdentityVerifiedSelectorsIDs = {
   CONTAINER: 'vba-identity-verified-container',
@@ -38,6 +39,7 @@ export const VbaIdentityVerifiedSelectorsIDs = {
  * Back goes to Money home.
  */
 const VbaIdentityVerified = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
@@ -64,7 +66,9 @@ const VbaIdentityVerified = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: VbaIdentityVerifiedSelectorsIDs.BACK_BUTTON,
