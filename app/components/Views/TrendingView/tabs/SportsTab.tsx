@@ -23,7 +23,10 @@ import {
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import { useTheme } from '../../../../util/theme';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../../UI/PredictNext';
 import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
@@ -41,7 +44,6 @@ import {
   trackExploreInteracted,
   type ExploreSectionName,
 } from '../search/analytics';
-import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 const SPORT_KEY_TO_SECTION: Record<string, ExploreSectionName> = {
   soccer: 'predictions_football',
@@ -126,7 +128,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const tw = useTailwind();
   const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   const { colors } = useTheme();
 
   const sportsPredictions = usePredictionsFeed({
