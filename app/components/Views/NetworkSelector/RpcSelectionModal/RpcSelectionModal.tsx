@@ -6,7 +6,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text from '../../../../component-library/components/Texts/Text/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
@@ -15,7 +15,6 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import Networks, { getNetworkImageSource } from '../../../../util/networks';
 import { strings } from '../../../../../locales/i18n';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -158,7 +157,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       shouldNavigateBack={false}
     >
       <BottomSheetHeader style={styles.baseHeader}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('app_settings.select_rpc_url')}{' '}
         </Text>
         <Cell
@@ -173,7 +172,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
           }}
           style={styles.cellBorder}
         >
-          <Text style={styles.alternativeText} variant={TextVariant.BodyMD}>
+          <Text style={styles.alternativeText} variant={TextVariant.BodyMd}>
             {showMultiRpcSelectModal.networkName}
           </Text>
         </Cell>

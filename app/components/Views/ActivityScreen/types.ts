@@ -119,6 +119,7 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'predictionsAddFunds',
     'predictionsWithdrawFunds',
     'predictionClaimWinnings',
+    'predictionSettled',
     'predictionCashedOut',
     'predictionPlaced',
   ]),

@@ -169,6 +169,13 @@ export interface SocialV1FeedPost {
    * renders; picks stay session-local until a Call id exists.
    */
   commentId?: string;
+  /**
+   * Language the Call was written in. `null` when the API has not detected
+   * one. Absent on older payloads. The translate control hides only for `en`.
+   */
+  sourceLanguage?: string | null;
+  /** Translations already returned with the Call, keyed by language code. */
+  translations?: Record<string, string>;
   reactions: { emotion: string; count: number }[];
   /** Session/API viewer emotion when known. */
   userReaction?: string | null;

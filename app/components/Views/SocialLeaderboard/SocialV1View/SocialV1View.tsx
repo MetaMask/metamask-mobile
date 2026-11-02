@@ -285,6 +285,9 @@ const SocialV1ViewContent: React.FC = () => {
   const handleOpenLiveFilters = useCallback(() => {
     openSheet('live');
   }, [openSheet]);
+  const handleOpenTrendingFilters = useCallback(() => {
+    openSheet('trending');
+  }, [openSheet]);
   const handleOpenFollowingFilters = useCallback(() => {
     openSheet('following');
   }, [openSheet]);
@@ -812,6 +815,10 @@ const SocialV1ViewContent: React.FC = () => {
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
                           onCopyTrade={handleCopyTrade}
+                          onOpenFilters={handleOpenTrendingFilters}
+                          isFilterActive={hasActiveFilters('trending')}
+                          onClearFilters={() => clearAppliedFilters('trending')}
+                          appliedFilters={applied.trending}
                           testID={testIds.container}
                           scrollTestID={testIds.scroll}
                         />

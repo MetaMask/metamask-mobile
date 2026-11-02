@@ -1,5 +1,7 @@
 import type { FeeCalculationResult } from '@metamask/perps-controller';
 import {
+  formatCombinedFeePercentage,
+  formatOriginalCombinedFeePercentage,
   getPresentedOriginalMetamaskFeeRate,
   getPerpsFeeDiscount,
   getPerpsFeeDiscountPercentage,
@@ -137,5 +139,76 @@ describe('getPerpsFeeDiscountPercentage', () => {
     const percentage = getPerpsFeeDiscountPercentage(0.001, 0.000999999);
 
     expect(percentage).toBeUndefined();
+  });
+});
+
+describe('formatCombinedFeePercentage', () => {
+  it('formats a positive combined rate to 3 decimals', () => {
+    expect(formatCombinedFeePercentage(0.00043, 0.0002)).toBe('0.063');
+  });
+
+  it('includes a confirmed zero rate in the total', () => {
+    expect(formatCombinedFeePercentage(0, 0.0002)).toBe('0.020');
+    expect(formatCombinedFeePercentage(0.00043, 0)).toBe('0.043');
+  });
+
+  it('returns undefined when the protocol rate is missing', () => {
+    expect(formatCombinedFeePercentage(undefined, 0.0002)).toBeUndefined();
+  });
+
+  it('returns undefined when the MetaMask rate is missing', () => {
+    expect(formatCombinedFeePercentage(0.00043, undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when the confirmed rates sum to zero', () => {
+    expect(formatCombinedFeePercentage(0, 0)).toBeUndefined();
+  });
+
+  it.each([
+    [Number.NaN, 0],
+    [Number.POSITIVE_INFINITY, 0],
+    [0, Number.NEGATIVE_INFINITY],
+  ])(
+    'returns undefined when the combined rate is not finite',
+    (protocolFeeRate, metamaskFeeRate) => {
+      const result = formatCombinedFeePercentage(
+        protocolFeeRate,
+        metamaskFeeRate,
+      );
+
+      expect(result).toBeUndefined();
+    },
+  );
+
+  it('returns undefined when the combined rate is negative', () => {
+    const result = formatCombinedFeePercentage(-0.00043, 0.0002);
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('formatOriginalCombinedFeePercentage', () => {
+  it('returns the pre-discount combined rate when it is higher', () => {
+    expect(formatOriginalCombinedFeePercentage(0.00043, 0.0002, 0.001)).toBe(
+      '0.143',
+    );
+  });
+
+  it('omits the original rate when it matches the discounted rate', () => {
+    expect(
+      formatOriginalCombinedFeePercentage(0.00045, 0, undefined),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the protocol rate is missing', () => {
+    expect(
+      formatOriginalCombinedFeePercentage(undefined, 0.0002, 0.001),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the MetaMask rate is missing', () => {
+    expect(
+      formatOriginalCombinedFeePercentage(0.00043, undefined, 0.001),
+    ).toBeUndefined();
   });
 });

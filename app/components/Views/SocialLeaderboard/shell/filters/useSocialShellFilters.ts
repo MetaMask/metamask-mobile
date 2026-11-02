@@ -30,6 +30,11 @@ const tabFiltersEqual = (
   if ((tab !== 'leaderboard' && a.type !== b.type) || cohortA !== cohortB) {
     return false;
   }
+  // Positions is a Trending section. Other tabs keep the default and must
+  // not light their icon if a leftover value is still on the model.
+  if (tab === 'trending' && a.positionStatus !== b.positionStatus) {
+    return false;
+  }
   if (tab === 'leaderboard') {
     return a.timeframe === b.timeframe;
   }

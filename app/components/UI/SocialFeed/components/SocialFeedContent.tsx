@@ -31,8 +31,6 @@ const styles = StyleSheet.create({
   },
 });
 
-const noop = () => undefined;
-
 /**
  * Asks for the next page once the footer is inside the host scroll.
  *
@@ -159,7 +157,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     >
       <Box twClassName="gap-4" testID={testID}>
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
-        {renderHeader?.({ pendingNewCount: 0, onRevealPending: noop })}
+        {renderHeader?.()}
         <SocialFeedPlaceholder state={state} emptyState={emptyState} />
         {posts.length > 0 ? (
           <SocialV1FeedPostList

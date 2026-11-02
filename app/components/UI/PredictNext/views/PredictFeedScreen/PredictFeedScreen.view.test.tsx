@@ -10,7 +10,6 @@ import {
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
-  KALSHI_VENUE_ID,
   type PredictDecimal,
   type PredictEntityId,
   type PredictEvent,
@@ -19,6 +18,7 @@ import {
   type PredictOutcome,
   type PredictTimestamp,
 } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import {
   NCAA_FEED_SCREEN_ID,
   NFL_FEED_SCREEN_ID,

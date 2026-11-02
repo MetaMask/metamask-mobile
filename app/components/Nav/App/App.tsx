@@ -146,7 +146,6 @@ import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
-import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -543,10 +542,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory as ScreenComponent}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -1278,6 +1273,17 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
+        options={{
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          contentStyle: { backgroundColor: colors.background.default },
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW}
+        component={SimpleWebview}
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',

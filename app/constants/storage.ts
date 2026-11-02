@@ -11,7 +11,6 @@ export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 // Legacy MetaMetrics and new AnalyticsController related keys
 export const PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME = `${prefix}previousAuthTypeBeforeRememberMe`;
 
-export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
 export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
 /**
@@ -43,15 +42,9 @@ export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 export const ANALYTICS_ID = `${prefix}AnalyticsId`;
 
-export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
-
-export const PUSH_NOTIFICATIONS_PROMPT_COUNT = `${prefix}pushNotificationsPromptCount`;
-export const PUSH_NOTIFICATIONS_PROMPT_TIME = `${prefix}pushNotificationsPromptTime`;
 export const BRAZE_PUSH_REGISTRATION_STATE = `${prefix}brazePushRegistrationState`;
 
 export const LANGUAGE = `${prefix}language`;
-
-export const ENCRYPTION_LIB = `${prefix}encryptionLib`;
 
 export const SEED_PHRASE_HINTS = 'seedphraseHints';
 
@@ -60,7 +53,6 @@ export const TRUE = 'true';
 export const AGREED = 'agreed';
 export const DENIED = 'denied';
 export const EXPLORED = 'explored';
-export const ORIGINAL = 'original';
 
 export const DEBUG = `[${mm} DEBUG]:`;
 
@@ -73,17 +65,7 @@ export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 
 export const REVIEW_SHOWN_TIME = 'reviewShownTime';
 
-export const themeAppearanceLight = 'light';
-
 export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;
-
-export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;
-
-export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
-
-export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;
-
-export const STELLAR_DISCOVERY_PENDING = `${prefix}stellarDiscoveryPending`;
 
 export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
@@ -105,8 +87,6 @@ export const PERPS_ORDER_BOOK_SIZE_ON_CLICK = `${prefix}perpsOrderBookSizeOnClic
 export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
 
 export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBannerDismissed`;
-
-export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
 export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
 

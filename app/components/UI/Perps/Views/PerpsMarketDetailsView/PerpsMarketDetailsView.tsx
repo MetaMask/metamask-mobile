@@ -372,9 +372,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         : PROVIDER_CONFIG.DefaultProvider;
     const preferredProvider =
       routeMarket?.providerId ?? defaultCandidateProvider;
+    // Case-insensitive: deeplinks can carry a differently cased symbol
+    // (e.g. 'KPEPE' for 'kPEPE') when the canonical lookup was unavailable.
+    const routeSymbol = routeMarket?.symbol?.toLowerCase();
     const fullMarket = markets.find(
       (candidate) =>
-        candidate.symbol === routeMarket?.symbol &&
+        candidate.symbol.toLowerCase() === routeSymbol &&
         (candidate.providerId ?? defaultCandidateProvider) ===
           preferredProvider,
     );

@@ -270,6 +270,11 @@ export function isSpendingCapUnlimited(
     return false;
   }
 
+  // A null scale from the Accounts API would read as 0 and flag raw base units of 18-decimal tokens as unlimited.
+  if (!Number.isInteger(decimals)) {
+    return false;
+  }
+
   const tokenAmount = calcTokenAmount(value, decimals);
   return (
     !tokenAmount.isNaN() && tokenAmount.gte(TOKEN_VALUE_UNLIMITED_THRESHOLD)

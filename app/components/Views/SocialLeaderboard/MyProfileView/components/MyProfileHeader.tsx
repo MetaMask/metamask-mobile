@@ -57,7 +57,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   const thesis = profile.bio?.trim() || '';
 
   return (
-    <Box paddingHorizontal={4} paddingBottom={4}>
+    <Box paddingHorizontal={4} paddingTop={3} paddingBottom={4}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -71,7 +71,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             diameter={56}
             onPress={onEditAvatar}
             avatarTestID={MyProfileViewSelectorsIDs.AVATAR}
-            editTestID={MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON}
+            showEditIcon={false}
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.avatar_accessibility_label',
             )}

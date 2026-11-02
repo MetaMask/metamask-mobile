@@ -10,6 +10,8 @@ import { PredictPortfolioScreen } from '../../../app/components/UI/PredictNext/v
 import { PredictSearchScreen } from '../../../app/components/UI/PredictNext/views/PredictSearch/PredictSearchScreen';
 import { PredictNextRoutes } from '../../../app/components/UI/PredictNext/navigation/routes';
 import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictOrderFlow';
+import { NextVenueProvider } from '../../../app/components/UI/PredictNext/implementation';
+import type { PredictVenueId } from '../../../app/components/UI/PredictNext/types';
 import type {
   PredictNextEventParams,
   PredictNextFeedParams,
@@ -32,7 +34,19 @@ const EventScreen = withOrderFlow(
 const FeedScreen = withOrderFlow(
   PredictFeedScreen as unknown as React.ComponentType<object>,
 );
-const HomeScreen = withOrderFlow(PredictHome as unknown as React.ComponentType);
+/** The Venue a Kalshi-only rollout resolves, which the fixtures describe. */
+const DEFAULT_VENUE_ID = 'kalshi' as PredictVenueId;
+
+/** Mirrors production wiring: the implementation switch provides the
+ * resolved Active Venue to the stack's entry screen. */
+const homeScreenFor = (venueId: PredictVenueId) =>
+  withOrderFlow(() => (
+    <NextVenueProvider venueId={venueId}>
+      <PredictHome />
+    </NextVenueProvider>
+  ));
+
+const HomeScreen = homeScreenFor(DEFAULT_VENUE_ID);
 const PortfolioScreen = withOrderFlow(
   PredictPortfolioScreen as unknown as React.ComponentType<object>,
 );
@@ -47,9 +61,12 @@ export const renderPredictOrderFlow = (Component: React.ComponentType) =>
     { state: initialStatePredictNext().build() },
   );
 
-export const renderPredictNext = (privacyMode = false) =>
+export const renderPredictNext = (
+  privacyMode = false,
+  { venueId = DEFAULT_VENUE_ID }: { venueId?: PredictVenueId } = {},
+) =>
   renderScreenWithRoutes(
-    HomeScreen,
+    venueId === DEFAULT_VENUE_ID ? HomeScreen : homeScreenFor(venueId),
     { name: PredictNextRoutes.HOME },
     [
       { name: PredictNextRoutes.FEED, Component: FeedScreen },

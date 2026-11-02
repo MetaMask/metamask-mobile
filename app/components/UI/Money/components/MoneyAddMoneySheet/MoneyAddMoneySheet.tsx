@@ -37,8 +37,7 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
@@ -171,10 +170,10 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
-    // Open the loading screen first. Hydrate runs there, then replaces this
-    // route with the first incomplete module.
+    // An approved account opens its details directly. Otherwise the loading
+    // screen hydrates and replaces itself with the first incomplete module.
     sheetRef.current?.onCloseBottomSheet(() => {
-      openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING);
+      openVbaEntry(navigation);
     });
   }, [navigation, trackSurfaceClicked]);
 

@@ -1,4 +1,4 @@
-import { Box, TextColor } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
   useEffect,
@@ -13,24 +13,31 @@ import {
   type SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
 import SocialFeed, {
-  type SocialFeedHeaderProps,
   type SocialFeedInlineRow,
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
 import type { SocialFeedQuery } from '../../../UI/SocialFeed/data/socialFeedSource';
-import type { SocialFeedPageHandle } from '../../../UI/SocialFeed/types';
+import type {
+  SocialFeedPageHandle,
+  SocialV1FeedPost,
+} from '../../../UI/SocialFeed/types';
 import {
   SocialEvent,
   type SocialEventSource,
   useSocialInteraction,
 } from '../analytics';
 import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
-import PendingPostsButton from '../LiveView/components/PendingPostsButton';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import type { SocialV1HotToken } from '../SocialV1View/feed/types';
+import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
+import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
+import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
+import { filterSocialV1FeedPosts } from '../shell/filters/filterSocialV1FeedPosts';
+import TrendingFilterRail from '../shell/filters/TrendingFilterRail';
+import type { SocialShellFilters } from '../shell/filters/types';
 import { useTrendingHotTokens } from './hooks/useTrendingHotTokens';
 
 const { Interaction, Screen, Tab } = SocialEvent;
@@ -69,6 +76,11 @@ export interface TrendingViewProps {
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onCopyTrade?: SocialFeedProps['onCopyTrade'];
+  onOpenFilters?: () => void;
+  isFilterActive?: boolean;
+  /** Clears the applied Trending filters. */
+  onClearFilters?: () => void;
+  appliedFilters?: SocialShellFilters;
   testID?: string;
   scrollTestID?: string;
 }
@@ -76,8 +88,8 @@ export interface TrendingViewProps {
 /**
  * Social V1 Trending: the trending feed, streamed while the tab is open, under
  * a hot-token rail. A chip narrows the feed to that asset on the server, which
- * pauses the stream; Popular traders sits after the third post while no chip
- * is selected.
+ * pauses the stream; Custom filters narrow it further on the client. Popular
+ * traders sits after the third post while no chip is selected.
  */
 const TrendingView: React.FC<TrendingViewProps> = ({
   isActive = true,
@@ -86,6 +98,10 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   onScroll,
   pageRef,
   onCopyTrade,
+  onOpenFilters,
+  isFilterActive = false,
+  onClearFilters,
+  appliedFilters = DEFAULT_FILTERS,
   testID,
   scrollTestID,
 }) => {
@@ -124,6 +140,20 @@ const TrendingView: React.FC<TrendingViewProps> = ({
     feedPageRef.current?.scrollToOffset(0, true);
   }, []);
 
+  const filterPost = useCallback(
+    (post: SocialV1FeedPost) =>
+      filterSocialV1FeedPosts([post], appliedFilters).length > 0,
+    [appliedFilters],
+  );
+  const previousFiltersRef = useRef(appliedFilters);
+  useEffect(() => {
+    if (previousFiltersRef.current === appliedFilters) {
+      return;
+    }
+    previousFiltersRef.current = appliedFilters;
+    feedPageRef.current?.scrollToOffset(0, false);
+  }, [appliedFilters]);
+
   const trackInteraction = useSocialInteraction(
     Screen.TRENDING,
     { tab_name: Tab.TRENDING, source },
@@ -142,40 +172,49 @@ const TrendingView: React.FC<TrendingViewProps> = ({
   );
 
   const { tokens, isLoading: isRailLoading } = hotTokens;
-  const showsRail =
-    isRailLoading || tokens.length > 0 || selectedToken !== null;
   const renderHeader = useCallback(
-    ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
-      // The rail cancels 16px of the space under it, which leaves 8px above
-      // the first post's own 8px. Without a rail, the posts start 16px down.
-      <Box twClassName={showsRail ? 'pt-4 pb-6' : 'pt-4'}>
-        {pendingNewCount > 0 ? (
-          <Box twClassName="flex-row px-4 pb-2">
-            <PendingPostsButton
-              pendingNewCount={pendingNewCount}
-              onPress={onRevealPending}
-              textColor={TextColor.SuccessDefault}
-            />
-          </Box>
-        ) : null}
-        <HotTokensCarousel
-          tokens={tokens}
-          isLoading={isRailLoading}
-          selectedTokenId={selectedTokenId}
-          onTokenPress={handleTokenPress}
-          isActive={isActive}
-        />
+    () => (
+      // The filter rail cancels 16px of the space under it, which leaves 8px
+      // above the first post's own 8px.
+      <Box twClassName="pt-4 pb-6">
+        <TrendingFilterRail
+          onOpenFilters={onOpenFilters}
+          isFilterActive={isFilterActive}
+          testID={SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON}
+        >
+          <HotTokensCarousel
+            tokens={tokens}
+            isLoading={isRailLoading}
+            selectedTokenId={selectedTokenId}
+            onTokenPress={handleTokenPress}
+            isActive={isActive}
+          />
+        </TrendingFilterRail>
       </Box>
     ),
     [
       handleTokenPress,
       isActive,
+      isFilterActive,
       isRailLoading,
+      onOpenFilters,
       selectedTokenId,
-      showsRail,
       tokens,
     ],
   );
+
+  const emptyState = useMemo(() => {
+    if (isFilterActive) {
+      return (
+        <Box twClassName="-mt-4">
+          <SocialFilterEmptyState
+            onClear={onClearFilters ?? (() => undefined)}
+          />
+        </Box>
+      );
+    }
+    return selectedToken ? undefined : TRENDING_EMPTY_STATE;
+  }, [isFilterActive, onClearFilters, selectedToken]);
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -190,8 +229,9 @@ const TrendingView: React.FC<TrendingViewProps> = ({
           scrollMode="virtualized"
           realtime={isActive}
           renderHeader={renderHeader}
+          filterPost={filterPost}
           inlineRows={selectedToken ? undefined : TRENDING_INLINE_ROWS}
-          emptyState={selectedToken ? undefined : TRENDING_EMPTY_STATE}
+          emptyState={emptyState}
           onRefresh={handleRefresh}
           performance={feedPerformance}
           onScroll={onScroll}

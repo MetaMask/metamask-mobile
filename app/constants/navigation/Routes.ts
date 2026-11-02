@@ -573,6 +573,8 @@ const Routes = {
     ADDRESS_LIST: 'MultichainAddressList',
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
+    /** Block explorer pushed on AppFlow, above the address list. */
+    EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',

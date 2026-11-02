@@ -180,8 +180,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  aiSocialCommentTranslationEnabled: {
-    name: 'aiSocialCommentTranslationEnabled',
+  aiSocialCommentTranslation: {
+    name: 'aiSocialCommentTranslation',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
@@ -4656,6 +4656,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       '0x531': true,
       '0x8f': true,
       '0x38': false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  mfaUiKit: {
+    name: 'mfaUiKit',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },

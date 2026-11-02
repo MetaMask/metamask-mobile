@@ -241,6 +241,20 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.realtime.pendingNewCount).toBe(0);
   });
 
+  it('reveals posts held at the top past one drain batch and keeps the count at zero', async () => {
+    const { result } = renderRealtime({ holdNewPosts: true });
+    emitMany(5);
+    const heldCount = result.current?.realtime.pendingNewCount;
+
+    act(() => {
+      result.current?.realtime.revealPending();
+    });
+
+    expect(heldCount).toBe(5);
+    expect(result.current?.posts).toHaveLength(5);
+    expect(result.current?.realtime.pendingNewCount).toBe(0);
+  });
+
   it('holds new posts at the top when asked to, but applies updates', () => {
     const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
     const { result } = renderRealtime({ rows, holdNewPosts: true });
