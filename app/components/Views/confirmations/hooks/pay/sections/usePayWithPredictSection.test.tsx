@@ -18,8 +18,18 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
+// This test stubs every selector with one value; Predict serves the legacy
+// lane, as it does wherever this pay-with section exists.
+jest.mock(
+  '../../../../../UI/PredictNext/implementation/usePredictImplementation',
+  () => {
+    const legacyLane = { status: 'ready', implementation: 'legacy' };
+    return { usePredictImplementation: () => legacyLane };
+  },
+);
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: { balance?: string }) => {
     const translations: Record<string, string> = {

@@ -13,6 +13,7 @@ import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pa
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
 import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -377,6 +378,41 @@ describe('MoneyTransferSheet', () => {
     expect(
       queryByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
     ).toBeNull();
+  });
+
+  it('hides the "Predictions account" option while the Active Venue has no Predict funding', () => {
+    const kalshiOnly = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            ...backgroundState.RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
+              predictConfig: {
+                enabled: true,
+                venues: {
+                  polymarket: { enabled: false },
+                  kalshi: { enabled: true },
+                },
+                venueSelection: { enabled: false },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />, {
+      state: kalshiOnly,
+    });
+
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeNull();
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+    ).not.toBeNull();
   });
 
   it('disables the "Predictions account" option when flag is disabled', () => {
