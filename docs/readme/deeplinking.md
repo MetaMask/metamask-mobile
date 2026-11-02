@@ -347,8 +347,9 @@ opens its own destination; the code never changes routing.
   pre-prompt follow each other, never overlapping:
   1. While `handleDeeplinkSaga` parses a link carrying `ref`, it sets
      `rewardsMoney.isReferralLinkPending` (session only). The flag covers the
-     wait for `MainNavigator`, the interstitial, and the navigation to the
-     destination, and is cleared however the parse ends.
+     wait for `MainNavigator` and the interstitial: it is cleared once the
+     deeplink pipeline calls `onHandled`, right after the interstitial is
+     answered, or when the parse rejects the link, fails, or is cancelled.
   2. Once the flag is off, `PendingMoneyReferralInvite` reads referral me and
      opens the Money invite sheet (`RewardsMoneyInviteSheet`) over the
      destination, prefilled with the code. Users who are already a referrer

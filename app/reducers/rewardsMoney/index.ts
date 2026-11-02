@@ -66,8 +66,8 @@ export interface RewardsMoneyState {
   answeredReferralCode: string | null;
   /**
    * True while a deeplink carrying `ref` is still being handled (waiting for
-   * the navigator, the interstitial, or its destination). The invite sheet
-   * and the push pre-prompt both wait for it. Dropped on rehydrate.
+   * the navigator or the interstitial). The invite sheet and the push
+   * pre-prompt both wait for it. Dropped on rehydrate.
    */
   isReferralLinkPending: boolean;
 }

@@ -1,4 +1,4 @@
-import type { Task } from 'redux-saga';
+import { runSaga, type Task } from 'redux-saga';
 import { call, cancel, delay, fork, take } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import { UserActionType, checkForDeeplink } from '../../actions/user';
@@ -1175,6 +1175,37 @@ describe('parseDeeplink', () => {
       appStartType: 'cold',
     });
   });
+
+  it('forwards onHandled to parse', async () => {
+    const onHandled = jest.fn();
+
+    await expectSaga(
+      parseDeeplink,
+      TEST_URL,
+      TEST_ORIGIN,
+      undefined,
+      onHandled,
+    ).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+      onHandled,
+    });
+  });
+
+  it('returns false when parse throws', async () => {
+    jest
+      .mocked(SharedDeeplinkManager.parse)
+      .mockRejectedValueOnce(new Error('boom'));
+
+    const { returnValue } = await expectSaga(
+      parseDeeplink,
+      TEST_URL,
+      TEST_ORIGIN,
+    ).run();
+
+    expect(returnValue).toBe(false);
+  });
 });
 
 describe('parseDeeplinkAfterNavReady', () => {
@@ -1262,9 +1293,79 @@ describe('parseReferralDeeplink', () => {
     __resetReferralLinkParseForTesting();
   });
 
-  it('releases the pending mark once the parse ends', async () => {
+  it('keeps the pending mark until an accepted link is handled', async () => {
+    const acceptedNotYetHandled = function* (): Generator {
+      yield delay(0);
+      return true;
+    };
+    const dispatched: unknown[] = [];
+
+    const task = runSaga(
+      { dispatch: (action) => dispatched.push(action), getState: () => ({}) },
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      acceptedNotYetHandled,
+      TEST_URL,
+      TEST_ORIGIN,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const isWaiting = task.isRunning();
+    const dispatchedBeforeCancel = [...dispatched];
+    task.cancel();
+
+    expect(isWaiting).toBe(true);
+    expect(dispatchedBeforeCancel).not.toContainEqual(
+      setReferralLinkPending(false),
+    );
+  });
+
+  it('releases the pending mark once an accepted link is handled', async () => {
+    const acceptedThenHandled = function* (
+      _deeplink: string,
+      _origin: string,
+      _appStartType?: 'cold' | 'warm',
+      onHandled?: () => void,
+    ): Generator {
+      yield delay(0);
+      onHandled?.();
+      return true;
+    };
+
+    await expectSaga(
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      acceptedThenHandled,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .put(setReferralLinkPending(false))
+      .run();
+  });
+
+  it('passes the handled signal through the real parse to the deeplink manager', async () => {
+    __setMainNavigatorReadyForTesting(true);
+    jest
+      .mocked(SharedDeeplinkManager.parse)
+      .mockImplementationOnce(async (_url, { onHandled }) => {
+        onHandled?.();
+        return true;
+      });
+
+    await expectSaga(
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      parseDeeplinkAfterNavReady,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .put(setReferralLinkPending(false))
+      .run();
+  });
+
+  it('releases the pending mark once a parse that rejects the link ends', async () => {
     const parse = function* (): Generator {
       yield delay(0);
+      return false;
     };
 
     await expectSaga(

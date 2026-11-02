@@ -113,14 +113,22 @@ export function* parseDeeplink(
   deeplink: string,
   origin: string,
   appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
 ) {
   try {
-    yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
-      origin,
-      ...(appStartType === undefined ? {} : { appStartType }),
-    });
+    const accepted: boolean = yield call(
+      [SharedDeeplinkManager, SharedDeeplinkManager.parse],
+      deeplink,
+      {
+        origin,
+        ...(appStartType === undefined ? {} : { appStartType }),
+        ...(onHandled ? { onHandled } : {}),
+      },
+    );
+    return accepted;
   } catch (error) {
     Logger.error(error as Error, 'parseDeeplink: failed to parse deeplink');
+    return false;
   }
 }
 
@@ -159,6 +167,7 @@ export function* parseDeeplinkAfterNavReady(
   deeplink: string,
   origin: string,
   appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
 ) {
   if (!hasMainNavigatorMounted) {
     const { timedOut } = yield race({
@@ -175,7 +184,14 @@ export function* parseDeeplinkAfterNavReady(
     }
   }
 
-  yield call(parseDeeplink, deeplink, origin, appStartType);
+  const accepted: boolean = yield call(
+    parseDeeplink,
+    deeplink,
+    origin,
+    appStartType,
+    onHandled,
+  );
+  return accepted;
 }
 
 /**
@@ -190,19 +206,28 @@ export function* parseDeeplinkAfterOnboarding(
   deeplink: string,
   origin: string,
   appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
 ) {
   if (!hasMainNavigatorMounted) {
     yield take(NavigationActionType.MAIN_NAVIGATOR_READY);
     hasMainNavigatorMounted = true;
   }
 
-  yield call(parseDeeplink, deeplink, origin, appStartType);
+  const accepted: boolean = yield call(
+    parseDeeplink,
+    deeplink,
+    origin,
+    appStartType,
+    onHandled,
+  );
+  return accepted;
 }
 
 type DeeplinkParser = (
   deeplink: string,
   origin: string,
   appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
 ) => Generator;
 
 /**
@@ -210,6 +235,10 @@ type DeeplinkParser = (
  * `isReferralLinkPending`, which the caller set before forking. The invite
  * sheet and the push pre-prompt wait on it, so it is released however the
  * parse ends, including on cancellation.
+ *
+ * A parse that accepts the link returns before the interstitial is answered,
+ * and the code is only captured on Continue. The release therefore waits for
+ * `onHandled`, which the deeplink pipeline calls once that answer is known.
  */
 export function* parseReferralDeeplink(
   parseId: number,
@@ -218,8 +247,21 @@ export function* parseReferralDeeplink(
   origin: string,
   appStartType?: 'cold' | 'warm',
 ) {
+  let markHandled: () => void = () => undefined;
+  const handled = new Promise<void>((resolve) => {
+    markHandled = resolve;
+  });
   try {
-    yield call(parse, deeplink, origin, appStartType);
+    const accepted: boolean = yield call(
+      parse,
+      deeplink,
+      origin,
+      appStartType,
+      markHandled,
+    );
+    if (accepted) {
+      yield call(() => handled);
+    }
   } finally {
     if (parseId === referralLinkParseId) {
       yield put(setReferralLinkPending(false));
