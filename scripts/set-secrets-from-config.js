@@ -3,19 +3,31 @@
  * Maps GitHub Secrets to environment variables based on builds.yml config.
  * Runs at workflow runtime (during the "Set secrets" step).
  *
- * Reads CONFIG_SECRETS (the build's secrets map from builds.yml) and looks up
- * each GitHub secret by name in process.env, then injects each mapped secret
+ * Reads CONFIG_SECRETS (the build's secrets map from builds.yml) and ALL_SECRETS
+ * (the full secrets context via toJSON(secrets)) and injects each mapped secret
  * value into GITHUB_ENV so subsequent steps (e.g. build.sh) see them.
  *
- * The calling step must pass every secret name referenced in builds.yml as an
- * env var of the same name (`NAME: ${{ secrets.NAME }}`).
+ * Using toJSON(secrets) means the workflow no longer needs an explicit per-secret
+ * list — adding a secret to builds.yml and the GitHub Environment is sufficient.
  *
  * CONFIG_SECRETS format: { "ENV_VAR_NAME": "GITHUB_SECRET_NAME", ... }
  */
 
 const fs = require('fs');
 
+// No fallback: an unresolved toJSON(secrets) expands to an empty string, and
+// defaulting it to {} would skip every secret while still exiting 0 — producing
+// a signed binary with no Infura ID, Sentry DSN, or RPC failover URLs.
+if (!process.env.ALL_SECRETS) {
+  // GitHub Actions annotation so the error surfaces on the run summary.
+  console.error(
+    '::error title=Secret injection failed::ALL_SECRETS is not defined. Expected toJSON(secrets).',
+  );
+  process.exit(1);
+}
+
 const secretsMapping = JSON.parse(process.env.CONFIG_SECRETS || '{}');
+const allSecrets = JSON.parse(process.env.ALL_SECRETS);
 const githubEnvPath = process.env.GITHUB_ENV;
 
 function appendToGithubEnv(name, value) {
@@ -35,26 +47,12 @@ function appendToGithubEnv(name, value) {
   }
 }
 
-const entries = Object.entries(secretsMapping);
-let found = 0;
-
-entries.forEach(([envVar, secretName]) => {
-  const value = process.env[secretName];
+Object.entries(secretsMapping).forEach(([envVar, secretName]) => {
+  const value = allSecrets[secretName];
   if (value) {
     appendToGithubEnv(envVar, value);
-    found += 1;
     console.log(`✓ ${envVar}`);
   } else {
     console.warn(`⚠ ${secretName} not found (for ${envVar})`);
   }
 });
-
-// None resolving means the step did not receive any secrets, which would
-// produce a signed binary with no Infura ID, Sentry DSN, or RPC failover URLs.
-if (entries.length > 0 && found === 0) {
-  // GitHub Actions annotation so the error surfaces on the run summary.
-  console.error(
-    '::error title=Secret injection failed::No mapped secret was found in the step environment.',
-  );
-  process.exit(1);
-}

@@ -6,8 +6,9 @@
  * before "Set secrets" to fail fast and prevent a malformed value from being
  * written to GITHUB_ENV and baked into the build.
  *
- * Secrets are resolved by name from process.env, so the calling step must pass
- * each GitHub secret referenced in builds.yml as an env var of the same name.
+ * Secrets are resolved from SECRETS_JSON when present (e.g. GitHub's
+ * toJSON(secrets) blob) and fall back to individual process.env lookups so
+ * the script works on any CI without extra wiring.
  *
  * Reads CONFIG_SECRETS (same format as set-secrets-from-config.js):
  *   { "ENV_VAR_NAME": "SECRET_NAME", ... }
@@ -22,10 +23,14 @@
 const { checkValue } = require('./lib/validate-value');
 
 const secretsMapping = JSON.parse(process.env.CONFIG_SECRETS || '{}');
+const secretsSource = process.env.SECRETS_JSON
+  ? JSON.parse(process.env.SECRETS_JSON)
+  : process.env;
+
 const offenders = [];
 
 for (const [envVar, secretName] of Object.entries(secretsMapping)) {
-  const issues = checkValue(secretName, process.env[secretName]);
+  const issues = checkValue(secretName, secretsSource[secretName]);
   if (issues.length > 0) {
     offenders.push({ envVar, secretName, issues });
   }

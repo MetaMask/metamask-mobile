@@ -772,57 +772,8 @@ jobs:
         env:
           WITH_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           WITHOUT_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
-          # Every GitHub secret name referenced in builds.yml.
-          ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
-          ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
-          ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
-          E2E_BYOA_AUTH_SECRET: ${{ secrets.E2E_BYOA_AUTH_SECRET }}
-          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
-          FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
-          FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
-          FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
-          FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
-          FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
-          FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
-          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
-          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
-          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-          IN_BUILD_SRP: ${{ secrets.IN_BUILD_SRP }}
-          IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
-          IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
-          MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
-          MM_BRANCH_KEY_TEST: ${{ secrets.MM_BRANCH_KEY_TEST }}
-          MM_BRAZE_API_KEY_ANDROID: ${{ secrets.MM_BRAZE_API_KEY_ANDROID }}
-          MM_BRAZE_API_KEY_IOS: ${{ secrets.MM_BRAZE_API_KEY_IOS }}
-          MM_BRAZE_SDK_ENDPOINT: ${{ secrets.MM_BRAZE_SDK_ENDPOINT }}
-          MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
-          MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
-          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-          MM_KLIPY_API_KEY: ${{ secrets.MM_KLIPY_API_KEY }}
-          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-          MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
-          QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
-          QUICKNODE_ARC_URL: ${{ secrets.QUICKNODE_ARC_URL }}
-          QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
-          QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
-          QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
-          QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
-          QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
-          QUICKNODE_MEGAETH_URL: ${{ secrets.QUICKNODE_MEGAETH_URL }}
-          QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
-          QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
-          QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
-          QUICKNODE_ROBINHOOD_URL: ${{ secrets.QUICKNODE_ROBINHOOD_URL }}
-          QUICKNODE_ZKSYNC_URL: ${{ secrets.QUICKNODE_ZKSYNC_URL }}
-          SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
-          SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
-          SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
-          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
-          WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+          # builds.yml picks each build's secrets by name, so the script gets the whole context and keeps only the mapped ones.
+          ALL_SECRETS: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
           CI: 'true'
           GITHUB_CI: 'true'
           PLATFORM: android
@@ -830,6 +781,11 @@ jobs:
           METRO_MAX_WORKERS: '6'
         run: |
           set -euo pipefail
+
+          # Only the exporter below may see the full secrets JSON; metro and its
+          # dependencies inherit this shell's environment.
+          secrets_json="$ALL_SECRETS"
+          unset ALL_SECRETS
 
           # Apply builds.yml env + secrets into THIS shell so metro (child of yarn
           # build:repack) inherits them. set-secrets-from-config only writes GITHUB_ENV
@@ -845,21 +801,10 @@ jobs:
           const yaml = requireFromCwd('js-yaml');
           const fs = require('fs');
           const buildName = process.argv[2];
-          const builds = yaml.load(fs.readFileSync('builds.yml', 'utf8')).builds;
-          const build = builds[buildName];
+          const build = yaml.load(fs.readFileSync('builds.yml', 'utf8')).builds[buildName];
           const mapping = (build && build.secrets) || {};
-          const all = process.env;
+          const all = JSON.parse(process.env.ALL_SECRETS || '{}');
           const shellQuote = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'";
-          // Secrets arrive under their own names, so drop any this build does not map
-          // before metro inherits the shell.
-          const secretNames = new Set(
-            Object.values(builds).flatMap((b) => Object.values(b.secrets || {})),
-          );
-          for (const name of secretNames) {
-            if (!(name in mapping)) {
-              process.stdout.write('unset ' + name + '\n');
-            }
-          }
           for (const [envVar, secretName] of Object.entries(mapping)) {
             if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVar)) {
               console.error('Skipping invalid env var name: ' + envVar);
@@ -877,7 +822,7 @@ jobs:
           export_build_env() {
             local build_name="$1"
             eval "$(node scripts/apply-build-config.js "$build_name" --export)"
-            eval "$(node /tmp/export-profile-secrets.js "$build_name")"
+            eval "$(ALL_SECRETS="$secrets_json" node /tmp/export-profile-secrets.js "$build_name")"
           }
 
           # Expo export:embed forces resetCache=false when CI=true (see
@@ -937,15 +882,13 @@ jobs:
             echo "✅ Repacked $label → $REPACK_FINAL_APK ($(du -h "$REPACK_FINAL_APK" | cut -f1))"
           }
 
-          # Each profile runs in a subshell because export_build_env unsets the
-          # secrets it does not map, and the other profile may still need them.
           # with-SRP first (ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD inlined into JS via metro)
-          ( repack_profile "$WITH_SRP_BUILD_NAME" artifacts/with-srp artifacts/with-srp-repacked with-srp )
+          repack_profile "$WITH_SRP_BUILD_NAME" artifacts/with-srp artifacts/with-srp-repacked with-srp
 
           # without-SRP: drop with-SRP bake-ins so they are not left in process.env,
           # then wipe Metro cache so CI cannot reuse the with-SRP transforms.
           unset_srp_bake_ins
-          ( repack_profile "$WITHOUT_SRP_BUILD_NAME" artifacts/without-srp artifacts/without-srp-repacked without-srp )
+          repack_profile "$WITHOUT_SRP_BUILD_NAME" artifacts/without-srp artifacts/without-srp-repacked without-srp
 
           # Replace staged dirs so the upload step always reads artifacts/{with,without}-srp
           rm -rf artifacts/with-srp artifacts/without-srp
