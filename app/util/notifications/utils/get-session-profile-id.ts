@@ -27,7 +27,9 @@ export async function getCanonicalSessionProfileId(): Promise<
     const { AuthenticationController } = Engine.context;
     const sessionProfile = await AuthenticationController.getSessionProfile();
     return (
-      sessionProfile?.canonicalProfileId || sessionProfile?.profileId || undefined
+      sessionProfile?.canonicalProfileId ||
+      sessionProfile?.profileId ||
+      undefined
     );
   } catch {
     return undefined;
