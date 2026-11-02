@@ -65,6 +65,11 @@ const mockUsePerpsLiquidationPrice = jest.fn((_params: unknown) => ({
   isCalculating: false,
 }));
 let mockTotalFee = 5;
+// Only populated by the fee display format A/B test
+// treatment tests below; `undefined` matches the real hook's control-mode
+// (includeFeeRateBreakdown: false) result.
+let mockTakerFeeRate: number | undefined;
+let mockMakerFeeRate: number | undefined;
 const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   totalFee: mockTotalFee,
   undiscountedTotalFee: 6,
@@ -75,6 +80,8 @@ const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   originalMetamaskFeeRate: 0.01,
   feeDiscountPercentage: 10,
   estimatedPoints: 100,
+  takerFeeRate: mockTakerFeeRate,
+  makerFeeRate: mockMakerFeeRate,
 }));
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
@@ -439,6 +446,15 @@ jest.mock('../../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   }),
 }));
 
+let mockFeeDisplayMode: 'dollar' | 'percentage' = 'dollar';
+jest.mock('../../../../hooks/usePerpsFeeDisplayAbTest', () => ({
+  usePerpsFeeDisplayAbTest: () => ({
+    feeDisplayMode: mockFeeDisplayMode,
+    variantName: mockFeeDisplayMode === 'percentage' ? 'treatment' : 'control',
+    isActive: mockFeeDisplayMode === 'percentage',
+  }),
+}));
+
 let mockMarginModeLock: {
   status: 'locked' | 'unlocked' | 'unavailable';
   providerId: 'hyperliquid';
@@ -699,6 +715,9 @@ describe('usePerpsProOrderForm', () => {
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
     mockTotalFee = 5;
+    mockTakerFeeRate = undefined;
+    mockMakerFeeRate = undefined;
+    mockFeeDisplayMode = 'dollar';
     mockSizeDecimals = 3;
     mockSelectedAddress = '0xaccount-a';
     mockPerpsAccountAddress = undefined;
@@ -891,6 +910,73 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.feeDiscountPercentage).toBe(10);
       expect(result.current.feeMetamaskFeeRate).toBe(0.01);
       expect(result.current.feeProtocolFeeRate).toBe(0.02);
+    });
+
+    it('keeps the summary in dollar mode with no taker/maker rates for control', () => {
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: false }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
+    });
+
+    it('requests the breakdown and surfaces both rates on the summary for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockTakerFeeRate = 0.00143;
+      mockMakerFeeRate = 0.00114;
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: true }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('percentage');
+      expect(result.current.summary.takerFeeRate).toBe(0.00143);
+      expect(result.current.summary.makerFeeRate).toBe(0.00114);
+    });
+
+    it('hides taker/maker rates on the summary while the amount is invalid, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockTakerFeeRate = 0.00143;
+      mockMakerFeeRate = 0.00114;
+      mockOrderForm.amount = '0';
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
+    });
+
+    it('keeps a reduce-only close in dollar mode and does not request the breakdown, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockContextValue.pendingReduceOnly = true;
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: false }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+    });
+
+    it('keeps a TWAP order in dollar mode and does not request the breakdown, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockOrderForm.type = 'twap';
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          includeFeeRateBreakdown: false,
+        }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
     });
 
     it('routes Scale fees and validation through the concrete provider', () => {
