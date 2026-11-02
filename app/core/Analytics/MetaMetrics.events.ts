@@ -833,6 +833,14 @@ enum EVENT_NAME {
   KYC_VERIFICATION_UPDATED = 'KYC Verification Updated',
   KYC_STATUS_UPDATED = 'KYC Status Updated',
 
+  // Money VBA and KYC onboarding
+  MONEY_VBA_VENDOR_TERMS_UPDATED = 'Money VBA Vendor Terms Updated',
+  MONEY_VBA_AUTORAMP_CREATE_UPDATED = 'Money VBA Autoramp Create Updated',
+  MONEY_VBA_ERROR_VIEWED = 'Money VBA Error Viewed',
+  MONEY_VBA_DETAILS_VIEWED = 'Money VBA Details Viewed',
+  KYC_IDENTITY_TERMS_UPDATED = 'KYC Identity Terms Updated',
+  KYC_RESULT_VIEWED = 'KYC Result Viewed',
+
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 
@@ -2248,6 +2256,20 @@ const events = {
   // KYC (virtual bank account onboarding)
   KYC_VERIFICATION_UPDATED: generateOpt(EVENT_NAME.KYC_VERIFICATION_UPDATED),
   KYC_STATUS_UPDATED: generateOpt(EVENT_NAME.KYC_STATUS_UPDATED),
+
+  // Money VBA and KYC onboarding
+  MONEY_VBA_VENDOR_TERMS_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_VENDOR_TERMS_UPDATED,
+  ),
+  MONEY_VBA_AUTORAMP_CREATE_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_AUTORAMP_CREATE_UPDATED,
+  ),
+  MONEY_VBA_ERROR_VIEWED: generateOpt(EVENT_NAME.MONEY_VBA_ERROR_VIEWED),
+  MONEY_VBA_DETAILS_VIEWED: generateOpt(EVENT_NAME.MONEY_VBA_DETAILS_VIEWED),
+  KYC_IDENTITY_TERMS_UPDATED: generateOpt(
+    EVENT_NAME.KYC_IDENTITY_TERMS_UPDATED,
+  ),
+  KYC_RESULT_VIEWED: generateOpt(EVENT_NAME.KYC_RESULT_VIEWED),
 
   // Social Leaderboard (follow trading)
   SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED: generateOpt(
