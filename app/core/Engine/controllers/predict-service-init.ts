@@ -1,5 +1,8 @@
 import packageJSON from '../../../../package.json';
-import { KalshiRemoteAdapter } from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
+import {
+  KalshiRemoteAdapter,
+  KALSHI_VENUE_ID,
+} from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../components/UI/PredictNext/adapters/remote/PredictApiReadClient';
 import { PredictLiveDataClient } from '../../../components/UI/PredictNext/adapters/remote/PredictLiveDataClient';
 import {
@@ -18,7 +21,6 @@ import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
-import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/types';
 import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-live-data-service-messenger';
 import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
 import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';

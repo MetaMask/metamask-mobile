@@ -3,6 +3,18 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import type { QuickBuyTradeMode } from './types';
+import type { PostTradeShareSheetCountKey } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import type { SocialPostTradePreview } from '../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+
+/** Post-trade prompt picked at submit for a swap that is not a copy-trade. */
+export type TrackedQuickBuyPostTradePrompt =
+  | { kind: 'share_sheet'; countKey: PostTradeShareSheetCountKey }
+  | { kind: 'claim_sheet' }
+  | {
+      kind: 'post_to_feed_toast';
+      tradeInFlightChain: string;
+      preview: SocialPostTradePreview;
+    };
 
 export interface TrackedQuickBuyTrade {
   tradeMode: QuickBuyTradeMode;
@@ -35,6 +47,7 @@ export interface TrackedQuickBuyTrade {
   postTradeShare?: boolean;
   /** Identifies the share session created for this trade. */
   postTradeShareSessionId?: string;
+  postTradePrompt?: TrackedQuickBuyPostTradePrompt;
 }
 
 /**

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Linking } from 'react-native';
 import {
   useNavigation,
@@ -19,6 +19,14 @@ import {
   useOpenVbaOnboarding,
 } from '../hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from '../routes';
+import { useScreenPerformance } from '../../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from '../vbaScreenPerformance';
+import { endVbaCufJourney } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 /**
  * Wires the account-creation error screens into onboarding.
@@ -29,6 +37,18 @@ const VbaAccountCreateErrorAdapter = () => {
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
   const { variant, failure, sourceCurrency, retryable } = route.params;
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId:
+      variant === 'details'
+        ? VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR
+        : VBA_SCREEN_ID.ACCOUNT_CREATE_GENERIC_ERROR,
+    contentReady: true,
+    contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+  });
+  useEffect(() => {
+    endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
+  }, []);
   const primaryActionType = retryable
     ? 'retry'
     : getAccountCreateErrorPrimaryAction(failure);

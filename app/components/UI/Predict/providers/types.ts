@@ -155,6 +155,16 @@ export interface ClaimOrderResponse {
     };
     type?: TransactionType;
   }[];
+  /**
+   * The positions the transactions redeem. Fewer than requested when the
+   * provider skipped some (Protocol V2 positions while the kill switch is on).
+   */
+  positions?: PredictPosition[];
+  /**
+   * The Gamma market version of each requested position, keyed by outcome id.
+   * A missing entry means a CTF position.
+   */
+  marketVersions?: Record<string, string | undefined>;
 }
 
 export interface SignWithdrawParams {
@@ -167,6 +177,25 @@ export interface SignWithdrawResponse {
   amount: number;
   walletType: AccountState['walletType'];
 }
+
+export interface GetWithdrawSimulationParams {
+  amountRaw: bigint;
+  signer: Signer;
+}
+
+/**
+ * The withdraw call the owner sends, for gas fee token quotes before signing.
+ * `undefined` means the withdraw needs no gas from the owner (for example, a
+ * relayer pays).
+ */
+export type GetWithdrawSimulationResponse =
+  | {
+      chainId: Hex;
+      from: Hex;
+      to: Hex;
+      data: Hex;
+    }
+  | undefined;
 
 export interface PredictProvider {
   readonly providerId: string;
@@ -234,6 +263,9 @@ export interface PredictProvider {
     params: PrepareWithdrawParams,
   ): Promise<PrepareWithdrawResponse>;
   signWithdraw?(params: SignWithdrawParams): Promise<SignWithdrawResponse>;
+  getWithdrawSimulation?(
+    params: GetWithdrawSimulationParams,
+  ): Promise<GetWithdrawSimulationResponse>;
 
   getBalance(params: GetBalanceParams): Promise<number>;
 

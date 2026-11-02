@@ -8,13 +8,34 @@ import {
 } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { useLogSocialQueryError } from '../../../../util/social/socialServiceTelemetry';
+import { FEED_CAIP2_CHAINS } from './feed-constants';
 import { FEED_PAGE_LIMIT, buildSocialFeedQueryKey } from './socialFeedQueries';
 import { mockFeedResponse, mockSpotFeedItem } from '../mocks/coreFeed.mock';
-import { toSocialFeedRequest, type SocialFeedSource } from './socialFeedSource';
+import {
+  toSocialFeedRequest,
+  type SocialFeedQuery,
+  type SocialFeedSource,
+} from './socialFeedSource';
 import { useSocialFeed } from './useSocialFeed';
+import {
+  useSocialFeedRealtime,
+  type UseSocialFeedRealtimeResult,
+} from './useSocialFeedRealtime';
+import { createSocialFeedEntrances } from './socialFeedEntrances';
+import type { SocialV1FeedPost } from '../types';
+import { mapFeedItem } from '../utils/mapFeedItem';
+import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 import { measureSocialDataFetch } from '../../../../util/social/socialPerformance';
 
 const mockCall = jest.fn();
+
+jest.mock('./useSocialFeedRealtime', () => {
+  const actual = jest.requireActual('./useSocialFeedRealtime');
+  return {
+    ...actual,
+    useSocialFeedRealtime: jest.fn(actual.useSocialFeedRealtime),
+  };
+});
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -49,6 +70,7 @@ jest.mock('../../../../util/social/socialPerformance', () => ({
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseLogSocialQueryError = jest.mocked(useLogSocialQueryError);
+const mockUseSocialFeedRealtime = jest.mocked(useSocialFeedRealtime);
 const mockMeasureSocialDataFetch = jest.mocked(measureSocialDataFetch);
 
 const createWrapper = (staleTime = 0) => {
@@ -75,6 +97,9 @@ describe('useSocialFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(true);
+    mockUseSocialFeedRealtime.mockImplementation(
+      jest.requireActual('./useSocialFeedRealtime').useSocialFeedRealtime,
+    );
   });
 
   it('stays idle for a null source', () => {
@@ -221,11 +246,143 @@ describe('useSocialFeed', () => {
     expect(client.getQueryCache().getAll()).toHaveLength(1);
   });
 
+  describe('query', () => {
+    const trendingQuery: SocialFeedQuery = { scope: 'trending' };
+    const assetIds = [
+      'eip155:999/perp:BTC',
+      'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+    ] as const;
+
+    it('sends assetIds with the chains on the global feed', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      renderHook(() => useSocialFeed({ ...trendingQuery, assetIds }), {
+        wrapper: createWrapper().wrapper,
+      });
+
+      await waitFor(() =>
+        expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
+          scope: 'trending',
+          chains: [...FEED_CAIP2_CHAINS],
+          assetIds: [...assetIds],
+          limit: FEED_PAGE_LIMIT,
+        }),
+      );
+    });
+
+    it('sends the trader and commented-only options', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      renderHook(
+        () =>
+          useSocialFeed({
+            scope: 'all',
+            profileId: 'profile-1',
+            commentedOnly: true,
+          }),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      await waitFor(() =>
+        expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
+          scope: 'all',
+          chains: [...FEED_CAIP2_CHAINS],
+          profileId: 'profile-1',
+          commentedOnly: true,
+          limit: FEED_PAGE_LIMIT,
+        }),
+      );
+    });
+
+    it('keys the cache on assetIds', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+      const { client, wrapper } = createWrapper();
+      const filteredQuery: SocialFeedQuery = { ...trendingQuery, assetIds };
+
+      renderHook(
+        () => ({
+          all: useSocialFeed(trendingQuery),
+          filtered: useSocialFeed(filteredQuery),
+        }),
+        { wrapper },
+      );
+
+      await waitFor(() => expect(mockCall).toHaveBeenCalledTimes(2));
+      const filteredRequest = toSocialFeedRequest(filteredQuery);
+      if (!filteredRequest) {
+        throw new Error('Expected a request for the global feed');
+      }
+      expect(
+        client.getQueryCache().find({
+          queryKey: buildSocialFeedQueryKey(filteredRequest, FEED_PAGE_LIMIT),
+          exact: true,
+        }),
+      ).toBeDefined();
+      expect(client.getQueryCache().getAll()).toHaveLength(2);
+    });
+
+    it('omits an empty assetIds filter and shares the unfiltered entry', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+      const { client, wrapper } = createWrapper();
+
+      renderHook(() => useSocialFeed({ ...trendingQuery, assetIds: [] }), {
+        wrapper,
+      });
+
+      await waitFor(() =>
+        expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
+          scope: 'trending',
+          chains: [...FEED_CAIP2_CHAINS],
+          limit: FEED_PAGE_LIMIT,
+        }),
+      );
+      expect(client.getQueryCache().getAll()[0]?.queryHash).toBe(
+        hashKey(
+          buildSocialFeedQueryKey(
+            {
+              action: 'SocialService:fetchFeed',
+              options: { scope: 'trending', chains: FEED_CAIP2_CHAINS },
+            },
+            FEED_PAGE_LIMIT,
+          ),
+        ),
+      );
+    });
+
+    it('turns realtime off while filtering by asset', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      renderHook(
+        () => useSocialFeed({ scope: 'all', assetIds }, { realtime: true }),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      await waitFor(() => expect(mockCall).toHaveBeenCalled());
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({ realtimeScope: null }),
+      );
+    });
+
+    it('keeps the pages fresh for the staleTime it is given', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+      const { client, wrapper } = createWrapper();
+
+      renderHook(() => useSocialFeed(trendingQuery, { staleTime: Infinity }), {
+        wrapper,
+      });
+      await waitFor(() => expect(mockCall).toHaveBeenCalled());
+
+      const observer = client.getQueryCache().getAll()[0]?.observers[0];
+      expect(observer?.options.staleTime).toBe(Infinity);
+    });
+  });
+
   it('sorts the global feed newest first', async () => {
     mockCall.mockResolvedValue(mockFeedResponse([olderItem, newerItem]));
 
     const { result } = renderHook(
-      () => useSocialFeed({ kind: 'all', audience: 'all' }),
+      () => useSocialFeed({ scope: 'leaderboard' }),
       { wrapper: createWrapper().wrapper },
     );
 
@@ -402,13 +559,166 @@ describe('useSocialFeed', () => {
     expect(mockCall).not.toHaveBeenCalled();
   });
 
+  it('applies filterPost to the posts but not the rows', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([olderItem, newerItem]));
+    const filterPost = (post: SocialV1FeedPost) =>
+      post.position?.positionId === 'older';
+
+    const { result } = renderHook(
+      () => useSocialFeed(perpSource, { filterPost }),
+      { wrapper: createWrapper().wrapper },
+    );
+
+    await waitFor(() => expect(result.current.rows).toHaveLength(2));
+    expect(
+      result.current.posts.map((post) => post.position?.positionId),
+    ).toEqual(['older']);
+  });
+
+  describe('realtime', () => {
+    const trendingSource: SocialFeedSource = {
+      scope: 'trending',
+    };
+
+    it('keeps realtime off and omits its state by default', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      const { result } = renderHook(() => useSocialFeed(trendingSource), {
+        wrapper: createWrapper().wrapper,
+      });
+
+      await waitFor(() => expect(mockCall).toHaveBeenCalled());
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({ realtimeScope: null }),
+      );
+      expect(result.current).not.toHaveProperty('realtime');
+    });
+
+    it('ignores realtime for a source without a socket channel', () => {
+      renderHook(() => useSocialFeed(perpSource, { realtime: true }), {
+        wrapper: createWrapper().wrapper,
+      });
+
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({ realtimeScope: null }),
+      );
+    });
+
+    it('streams the source scope with the hold options', () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
+      mockUseSelector.mockReturnValue(false);
+      const filterPost = jest.fn(() => true);
+
+      renderHook(
+        () =>
+          useSocialFeed(trendingSource, {
+            realtime: true,
+            paused: true,
+            nearTop: false,
+            holdNewPosts: true,
+            filterPost,
+          }),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.objectContaining({ rows: [], dataUpdatedAt: undefined }),
+        {
+          realtimeScope: 'trending',
+          active: false,
+          paused: true,
+          nearTop: false,
+          holdNewPosts: true,
+          filterPost,
+        },
+      );
+    });
+
+    it('returns the realtime posts and state while streaming', () => {
+      const liveCore = mockSpotFeedItem({ positionId: 'live-post' });
+      const liveItem = mapFeedItem(liveCore);
+      if (!liveItem) {
+        throw new Error('Expected the feed item to map');
+      }
+      const [livePost] = toSocialFeedPosts(
+        [{ core: liveCore, item: liveItem }],
+        0,
+      );
+      const live: UseSocialFeedRealtimeResult = {
+        posts: [livePost],
+        realtime: {
+          pendingNewCount: 3,
+          revealPending: jest.fn(),
+          entrances: createSocialFeedEntrances(),
+        },
+      };
+      mockUseSocialFeedRealtime.mockReturnValue(live);
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      const { result } = renderHook(
+        () => useSocialFeed(trendingSource, { realtime: true }),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      expect(result.current.posts).toEqual([livePost]);
+      expect(result.current.realtime).toBe(live.realtime);
+    });
+
+    it('never marks the pages stale while streaming', async () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+      const { client, wrapper } = createWrapper();
+
+      renderHook(() => useSocialFeed(trendingSource, { realtime: true }), {
+        wrapper,
+      });
+      await waitFor(() => expect(mockCall).toHaveBeenCalled());
+
+      const observer = client.getQueryCache().getAll()[0]?.observers[0];
+      expect(observer?.options.staleTime).toBe(Infinity);
+    });
+
+    it('keeps every loaded page while streaming', async () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
+      const oldestItem = mockSpotFeedItem({
+        positionId: 'oldest',
+        timestamp: 1_699_999_000,
+      });
+      mockCall.mockImplementation(
+        (_action: string, options: { olderThan?: string }) => {
+          if (options.olderThan === 'cursor-2') {
+            return Promise.resolve(mockFeedResponse([oldestItem]));
+          }
+          if (options.olderThan === 'cursor-1') {
+            return Promise.resolve(mockFeedResponse([olderItem], 'cursor-2'));
+          }
+          return Promise.resolve(mockFeedResponse([newerItem], 'cursor-1'));
+        },
+      );
+      const { result } = renderHook(
+        () => useSocialFeed(trendingSource, { realtime: true }),
+        { wrapper: createWrapper().wrapper },
+      );
+      await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+      act(() => result.current.loadMore());
+      await waitFor(() => expect(result.current.posts).toHaveLength(2));
+      act(() => result.current.loadMore());
+
+      await waitFor(() => expect(result.current.posts).toHaveLength(3));
+      expect(result.current.hasNextPage).toBe(false);
+    });
+  });
+
   it('measures the first Social V1 initial-page request as cold', async () => {
     mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
 
     const { result } = renderHook(
       () =>
         useSocialFeed(
-          { kind: 'all', audience: 'all' },
+          { scope: 'trending' },
           { performance: { tab: 'trending' } },
         ),
       { wrapper: createWrapper().wrapper },
@@ -427,7 +737,7 @@ describe('useSocialFeed', () => {
   });
 
   it('measures a stale cached Social V1 request as warm', async () => {
-    const source: SocialFeedSource = { kind: 'all', audience: 'following' };
+    const source: SocialFeedSource = { scope: 'following' };
     const request = toSocialFeedRequest(source);
     if (!request) {
       throw new Error('following source did not resolve to a feed request');
@@ -455,7 +765,7 @@ describe('useSocialFeed', () => {
   });
 
   it('emits no data-fetch trace when a fresh cache satisfies the tab', async () => {
-    const source: SocialFeedSource = { kind: 'all', audience: 'following' };
+    const source: SocialFeedSource = { scope: 'following' };
     const request = toSocialFeedRequest(source);
     if (!request) {
       throw new Error('following source did not resolve to a feed request');

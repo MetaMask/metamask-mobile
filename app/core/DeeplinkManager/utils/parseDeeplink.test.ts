@@ -246,6 +246,30 @@ describe('parseDeeplink', () => {
     });
   });
 
+  it('maps the custom Money deposit scheme to the universal-link handler', async () => {
+    const url = 'metamask://money-account-deposit';
+    const expectedMappedUrl = 'https://link.metamask.io/money-account-deposit';
+    const { urlObj } = extractURLParams(expectedMappedUrl);
+
+    await parseDeeplink({
+      deeplinkManager: instance,
+      url,
+      origin: 'testOrigin',
+      browserCallBack: mockBrowserCallBack,
+      onHandled: mockOnHandled,
+    });
+
+    expect(mockHandleUniversalLinks).toHaveBeenCalledWith({
+      instance,
+      handled: expect.any(Function),
+      urlObj,
+      browserCallBack: mockBrowserCallBack,
+      url: expectedMappedUrl,
+      source: 'testOrigin',
+      mode: 'execute',
+    });
+  });
+
   it('returns a dapp startup intent for DAPP protocol in resolve mode', async () => {
     const url = 'dapp://example.com';
     const intent: DeeplinkIntent = {

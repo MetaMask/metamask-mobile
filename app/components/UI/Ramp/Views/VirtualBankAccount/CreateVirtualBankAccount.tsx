@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -33,6 +33,29 @@ import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount
 import { MOONPAY_PRIVACY_POLICY_URL } from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
+} from './vbaScreenPerformance';
+
+const VENDOR_TERMS_SCREEN_NAME = 'vba_vendor_terms';
+
+const trackVendorTerms = (
+  status: 'viewed' | 'accepted' | 'failed',
+  failureReason?: string,
+) =>
+  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_VENDOR_TERMS_UPDATED, () => ({
+    ...buildVbaBaseProperties({
+      screenName: VENDOR_TERMS_SCREEN_NAME,
+      failureReason,
+    }),
+    status,
+  }));
 
 const FeatureRow = ({
   icon,
@@ -67,20 +90,48 @@ const CreateVirtualBankAccount = ({
     disclaimers,
     isLoading,
     isAccepting,
-    error,
+    error: disclaimersError,
     acceptDisclaimers,
     retry,
   } = useKycDisclaimers();
   const { apyPercent } = useMoneyVaultApy();
   const { arrivalTimeframe } = useVbaArrivalTime();
 
+  let vendorTermsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (disclaimersError) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+    contentReady: !isLoading,
+    contentState: vendorTermsContentState,
+  });
+
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
     !isLoading &&
     !isAccepting &&
     !isAdvancing &&
-    !error &&
+    !disclaimersError &&
     Boolean(disclaimers?.length);
+
+  useEffect(() => {
+    trackVendorTerms('viewed');
+  }, []);
+
+  // Only the load and empty-catalog failures leave the screen without usable
+  // terms. A save failure keeps them on screen and is reported from the
+  // handler as terms_submission_failed.
+  useEffect(() => {
+    if (disclaimersError && !disclaimers?.length) {
+      trackVendorTerms('failed', 'terms_unavailable');
+    }
+  }, [disclaimersError, disclaimers]);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -95,8 +146,12 @@ const CreateVirtualBankAccount = ({
       // Persist vendor terms locally. Email creates the vendor session and
       // records these accepted ids before continuing.
       if (await acceptDisclaimers()) {
+        trackVendorTerms('accepted');
         await onSuccess();
         didAdvance = true;
+      } else {
+        // The terms loaded but the accepted ids could not be stored.
+        trackVendorTerms('failed', 'terms_submission_failed');
       }
     } catch (error) {
       Logger.error(error as Error, {
@@ -195,7 +250,7 @@ const CreateVirtualBankAccount = ({
       </ScrollView>
 
       <Box twClassName="gap-4 px-4 pt-4 pb-2">
-        {error ? (
+        {disclaimersError ? (
           <Box
             alignItems={BoxAlignItems.Center}
             testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR}

@@ -8,10 +8,12 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { mockHotToken } from '../mocks/socialV1HotTokens.mock';
 import type { SocialV1HotToken } from '../types';
-import HotTokensCarousel from './HotTokensCarousel';
+import HotTokensCarouselView, {
+  type HotTokensCarouselProps,
+} from './HotTokensCarousel';
 import {
   getSocialV1HotTokenCloseTestId,
   getSocialV1HotTokenChipTestId,
@@ -19,13 +21,41 @@ import {
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 
-jest.mock('../hooks/useSocialV1HotTokens');
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => null),
+}));
 
-const mockUseSocialV1HotTokens = jest.mocked(useSocialV1HotTokens);
+const mockSetFrameCallbackActive = jest.fn();
 
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual('react-native-reanimated');
+  return new Proxy(actual, {
+    get(target, prop, receiver) {
+      if (prop === 'useFrameCallback') {
+        return () => ({
+          setActive: mockSetFrameCallbackActive,
+          isActive: false,
+          callbackId: 1,
+        });
+      }
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+});
+
+const mockGetHardwareTier = jest.mocked(getHardwareTier);
+
+let arranged: Pick<HotTokensCarouselProps, 'tokens' | 'isLoading'> = {};
+
+/** Sets the ranked chips the rail receives on its next render. */
 const arrange = (tokens: SocialV1HotToken[], isLoading = false) => {
-  mockUseSocialV1HotTokens.mockReturnValue({ tokens, isLoading, error: null });
+  arranged = { tokens, isLoading };
 };
+
+/** The rail with the arranged chips; the test supplies the other props. */
+const HotTokensCarousel = (props: HotTokensCarouselProps) => (
+  <HotTokensCarouselView {...arranged} {...props} />
+);
 
 const NVIDIA = mockHotToken({
   id: 'hot-nvda',
@@ -42,6 +72,7 @@ const railChipTestIds = () =>
 describe('HotTokensCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetHardwareTier.mockReturnValue(null);
   });
 
   it('renders a chip per hot token', () => {
@@ -79,7 +110,7 @@ describe('HotTokensCarousel', () => {
 
     expect(
       screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
-    ).toHaveStyle({ marginBottom: -16 });
+    ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-1`),
     ).not.toBeOnTheScreen();
@@ -115,8 +146,9 @@ describe('HotTokensCarousel', () => {
   it('keeps a selected contract chip on the rail after it leaves the ranking', () => {
     const token = mockHotToken({
       id: 'hot-pump',
-      chain: 'solana',
-      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+      assetIds: [
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+      ],
     });
     arrange([token]);
     const { rerender } = renderWithProvider(
@@ -240,5 +272,67 @@ describe('HotTokensCarousel', () => {
     expect(
       screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda-loop')),
     ).toBeOnTheScreen();
+  });
+
+  it('runs the marquee while its page is active', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel />);
+
+    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(true);
+  });
+
+  it('stops the marquee while its page is off screen', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel isActive={false} />);
+
+    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(false);
+    expect(mockSetFrameCallbackActive).not.toHaveBeenCalledWith(true);
+  });
+
+  it('resumes the marquee when its page becomes active again', () => {
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel isActive={false} />,
+    );
+
+    rerender(<HotTokensCarousel isActive />);
+
+    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(true);
+  });
+
+  describe('on low-end hardware', () => {
+    beforeEach(() => {
+      mockGetHardwareTier.mockReturnValue('LOW');
+    });
+
+    it('keeps the rail still while its page is active', () => {
+      arrange([mockHotToken(), NVIDIA]);
+
+      renderWithProvider(<HotTokensCarousel />);
+
+      expect(mockSetFrameCallbackActive).not.toHaveBeenCalledWith(true);
+    });
+
+    it('still lets the chips be scrubbed past the viewport', () => {
+      arrange([mockHotToken(), NVIDIA]);
+
+      renderWithProvider(<HotTokensCarousel />);
+      fireEvent(
+        screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
+        'layout',
+        { nativeEvent: { layout: { width: 200, height: 40 } } },
+      );
+      fireEvent(
+        screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID),
+        'layout',
+        { nativeEvent: { layout: { width: 800, height: 40 } } },
+      );
+
+      expect(
+        screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc-loop')),
+      ).toBeOnTheScreen();
+    });
   });
 });

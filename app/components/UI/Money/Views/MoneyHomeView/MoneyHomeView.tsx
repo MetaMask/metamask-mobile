@@ -48,8 +48,10 @@ import {
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -193,22 +195,6 @@ const MoneyHomeView = () => {
     }, [trackScreenViewed]),
   );
 
-  const handlePullRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        refetchBalance(),
-        refetchInterest(),
-        refreshMusdFiatRate(),
-        Engine.context.CardController.fetchCardHomeData({ force: true }),
-      ]);
-    } catch (error) {
-      Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
-    } finally {
-      setRefreshing(false);
-    }
-  }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
-
   const { hasMoneyAccount } = useMoneyAccountInfo();
 
   // At most one VBA identity-status card; `none` renders nothing. The focus
@@ -216,12 +202,13 @@ const MoneyHomeView = () => {
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
   // The Details button is live for every VBA-eligible user (flag + IP region,
-  // the same eligibility gate the home cards use). Like the cards, it opens the
-  // loading screen immediately; that screen hydrates and forwards to the PIX
-  // details screen for a complete account, or the first incomplete module.
+  // the same eligibility gate the home cards use) and for an existing account.
+  // An approved account opens its details directly; otherwise the loading
+  // screen hydrates and forwards to the first incomplete module.
   const { isEligible: isVbaEligible } = useVbaEligibility();
+  const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
   const hasPendingDetailsOpenRef = useRef(false);
-  const showVbaDetailsButton = isVbaEligible;
+  const showVbaDetailsButton = isVbaEligible || Boolean(usableVbaAutoramp);
   const actionButtonRowCount = showVbaDetailsButton
     ? ACTION_BUTTON_ROW_BASE_COUNT + 1
     : ACTION_BUTTON_ROW_BASE_COUNT;
@@ -242,6 +229,7 @@ const MoneyHomeView = () => {
     // vanish mid-fill nor outlive a fill that stopped (budget spent, error).
     isSettling: isActivitySettling,
     error: activityError,
+    refetch: refetchActivity,
     moneyAddress,
     cardEnrichmentByHash,
   } = useMoneyActivityItems({
@@ -251,6 +239,24 @@ const MoneyHomeView = () => {
     },
   });
   const activityItems = buckets[MoneyActivityFilter.All];
+
+  const handlePullRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchBalance(),
+        refetchInterest(),
+        refreshMusdFiatRate(),
+        Promise.resolve(refetchActivity()),
+        Engine.context.CardController.fetchCardHomeData({ force: true }),
+      ]);
+    } catch (error) {
+      Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchBalance, refetchInterest, refreshMusdFiatRate, refetchActivity]);
+
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
@@ -573,6 +579,7 @@ const MoneyHomeView = () => {
     if (hasPendingDetailsOpenRef.current) {
       return;
     }
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.MONEY_ACTION_ROW);
     hasPendingDetailsOpenRef.current = true;
     // Self-clears so the button recovers if no navigator presents the route.
     setTimeout(() => {
@@ -588,10 +595,10 @@ const MoneyHomeView = () => {
       button_row_button_count: actionButtonRowCount,
     });
 
-    // Route immediately: the loading screen hydrates and replaces itself with
-    // the next destination, so Details never shows an in-place busy state
-    // while status resolves.
-    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, {
+    // Route immediately: an approved account opens its details directly.
+    // Otherwise the loading screen hydrates and replaces itself with the next
+    // destination, so Details never shows an in-place busy state.
+    openVbaEntry(navigation, {
       source: 'vba-action-row-details',
     });
   }, [navigation, trackButtonClicked, actionButtonRowCount]);

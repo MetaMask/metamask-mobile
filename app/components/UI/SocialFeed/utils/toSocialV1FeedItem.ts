@@ -82,10 +82,12 @@ export const deriveExitPrice = (core: Position): number | null => {
     return null;
   }
 
-  const lastExit = exitFills.reduce((latest, trade) =>
-    tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
-      ? trade
-      : latest,
+  const lastExit = exitFills.reduce(
+    (latest, trade) =>
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
+    exitFills[0],
   );
 
   return toUnitPrice(lastExit);
@@ -119,7 +121,7 @@ export const deriveMarketCapPerPrice = (core: Position): number | null => {
   return null;
 };
 
-const toMarketCapLabel = (
+export const toMarketCapLabel = (
   marketCapPerPrice: number | null,
   price: number | null,
 ): string | undefined =>
@@ -205,7 +207,7 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
   // No lifecycle action on older payloads: fall back to the latest fill's own
   // direction rather than defaulting to 'buy' and mislabelling a sale.
   const trades = core.trades ?? [];
-  const lastTrade = trades[trades.length - 1];
+  const lastTrade = trades.at(-1);
   return lastTrade?.direction === 'sell' ? 'sell' : 'buy';
 };
 
@@ -234,9 +236,8 @@ export function toSocialV1FeedItem(
   };
 
   const authorComment = readAuthorComment(core);
-  const { text: commentText } = splitKlipyGifFromCommentText(
-    authorComment?.text ?? '',
-  );
+  const { text: commentText, gifUrl: commentGifUrl } =
+    splitKlipyGifFromCommentText(authorComment?.text ?? '');
   const comment = commentText || undefined;
 
   // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
@@ -260,6 +261,7 @@ export function toSocialV1FeedItem(
       avatar: item.tokenAvatar,
     },
     comment,
+    ...(commentGifUrl ? { commentGifUrl } : {}),
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
     // Abbreviated: the open card puts this under the percent in a column capped

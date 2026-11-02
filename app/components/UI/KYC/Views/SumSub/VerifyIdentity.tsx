@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -35,6 +35,22 @@ import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { buildKycBaseProperties } from '../../utils/kycBaseProperties';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  KYC_SCREEN_CONTENT_STATE,
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+  type KycScreenContentState,
+} from '../../kycScreenPerformance';
+
+const trackIdentityTerms = (status: 'viewed' | 'accepted' | 'failed') =>
+  trackVbaEvent(MetaMetricsEvents.KYC_IDENTITY_TERMS_UPDATED, () => ({
+    ...buildKycBaseProperties(),
+    status,
+  }));
 
 const VERIFICATION_STEPS = [
   {
@@ -74,6 +90,21 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
 
+  let identityTermsContentState: KycScreenContentState =
+    KYC_SCREEN_CONTENT_STATE.EMPTY;
+  if (error) {
+    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: KYC_SCREEN_PERFORMANCE_CONFIG,
+    screenId: KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+    contentReady: !isLoading,
+    contentState: identityTermsContentState,
+  });
+
   // The sheet can't open without the idOS / SumSub terms to review.
   const canContinue = !isLoading && !error && Boolean(disclaimers?.length);
 
@@ -83,6 +114,22 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
       params: { screen: Routes.MONEY.HOME },
     });
   }, [navigation]);
+
+  useEffect(() => {
+    trackIdentityTerms('viewed');
+  }, []);
+
+  // Fires when the session terms fail to load, not on each render.
+  useEffect(() => {
+    if (error) {
+      trackIdentityTerms('failed');
+    }
+  }, [error]);
+
+  const handleAgree = useCallback(async () => {
+    trackIdentityTerms('accepted');
+    await onSuccess();
+  }, [onSuccess]);
 
   const openTermsSheet = useCallback(() => setIsTermsSheetOpen(true), []);
   const closeTermsSheet = useCallback(() => setIsTermsSheetOpen(false), []);
@@ -202,7 +249,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
       {isTermsSheetOpen && disclaimers ? (
         <VbaProviderTermsSheet
           disclaimers={disclaimers}
-          onAgree={onSuccess}
+          onAgree={handleAgree}
           onClose={closeTermsSheet}
         />
       ) : null}

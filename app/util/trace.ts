@@ -76,6 +76,12 @@ export enum TraceName {
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RampScreenLoad = 'Ramp Screen Load',
+  VbaScreenLoad = 'VBA Screen Load',
+  KycScreenLoad = 'KYC Screen Load',
+  VbaToPixInstructions = 'VBA To Pix Instructions',
+  VbaHydrate = 'VBA Hydrate',
+  VbaAutorampSetup = 'VBA Autoramp Setup',
+  VbaPixFetch = 'VBA Pix Fetch',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -290,6 +296,7 @@ export enum TraceName {
   PredictNextGetBalance = 'PredictNext Get Balance',
   PredictNextGetPositions = 'PredictNext Get Positions',
   PredictNextGetActivity = 'PredictNext Get Activity',
+  PredictNextGetPortfolioSummary = 'PredictNext Get Portfolio Summary',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
@@ -415,6 +422,8 @@ export enum TraceOperation {
   SocialPerformance = 'social.performance',
   SocialDataFetch = 'social.data_fetch',
   RampOperation = 'ramp.operation',
+  VbaOperation = 'vba.operation',
+  KycOperation = 'kyc.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */

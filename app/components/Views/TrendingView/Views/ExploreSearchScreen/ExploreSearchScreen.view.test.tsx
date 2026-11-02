@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
+  BROWSER_HOME_PROBE_BACK_BUTTON,
   HeaderNavBarVariant,
   renderExploreSearchScreenWithBackStack,
   renderExploreSearchScreenWithRoutes,
@@ -672,6 +673,58 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
           }),
         }),
       );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('starts a new search session and re-reports the query after returning from browser tabs', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+    const sessionIdsFor = (interactionType: string) =>
+      trackEventSpy.mock.calls
+        .filter(
+          ([event]) => event.properties?.interaction_type === interactionType,
+        )
+        .map(([event]) => event.properties?.search_session_id);
+
+    try {
+      const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes(
+        {
+          headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
+          initialParams: { entryPoint: 'deeplink' },
+          overrides: {
+            browser: {
+              tabs: [{ id: 1, url: 'https://app.uniswap.org' }],
+            },
+          },
+        },
+      );
+
+      await waitForExploreSearchTransitionSettled(findByTestId);
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      await waitFor(() => {
+        expect(sessionIdsFor('searched')).toHaveLength(1);
+      });
+
+      await actButtonPress(
+        await findByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
+      );
+      await actButtonPress(await findByTestId(BROWSER_HOME_PROBE_BACK_BUTTON));
+
+      await waitFor(() => {
+        expect(sessionIdsFor('searched')).toHaveLength(2);
+      });
+      const [openedSessionId] = sessionIdsFor('opened');
+      const [firstSearchSessionId, returnSearchSessionId] =
+        sessionIdsFor('searched');
+      expect(openedSessionId).toEqual(expect.any(String));
+      expect(firstSearchSessionId).toBe(openedSessionId);
+      expect(sessionIdsFor('abandoned')).toEqual([openedSessionId]);
+      expect(returnSearchSessionId).toEqual(expect.any(String));
+      expect(returnSearchSessionId).not.toBe(openedSessionId);
     } finally {
       trackEventSpy.mockRestore();
     }

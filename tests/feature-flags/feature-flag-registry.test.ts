@@ -172,9 +172,29 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers pending VBA activity as in-production and default-off', () => {
+      expect(getRegistryEntry('moneyVbaPendingActivityEnabled')).toMatchObject({
+        name: 'moneyVbaPendingActivityEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: false,
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('keeps the Money hub default-off', () => {
       expect(
         getRegistryEntry('earnMoneyHubEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('keeps the Money deposit Braze campaign default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyDepositBrazeCampaignEnabled')
+          ?.productionDefault,
       ).toEqual({
         enabled: false,
         minimumVersion: '0.0.0',
@@ -219,7 +239,6 @@ describe('Feature Flag Registry', () => {
         'earnMoneyBalanceAnimationEnabled',
         'earnMoneyCardFlipAnimationEnabled',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
-        'musd1313AbtestEarnSectionOnHomepage',
       ];
 
       for (const flagName of addedFlagNames) {
@@ -236,9 +255,8 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('pins Earn homepage and token-details A/B flags to control', () => {
+    it('pins Earn token-details A/B flags to control', () => {
       const abTestFlags = [
-        'musd1313AbtestEarnSectionOnHomepage',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
       ];
 
@@ -389,6 +407,15 @@ describe('Feature Flag Registry', () => {
       ).toEqual({
         enabled: true,
         minimumVersion: '8.5.0',
+      });
+    });
+
+    it('keeps Social AI comment translation off until the flag is enabled', () => {
+      expect(
+        getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '8.19.0',
       });
     });
 

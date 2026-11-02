@@ -7,12 +7,7 @@ import BenefitsPreview from '../../Benefits/BenefitsPreview';
 import RefererHeroCard from '../RefererHeroCard';
 import RefereeHeroCard from '../RefereeHeroCard';
 import RewardsOptInSection from '../RewardsOptInSection';
-
-export const WAYS_TO_EARN_TAB_TEST_IDS = {
-  CONTAINER: 'rewards-money-ways-to-earn-tab',
-  CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
-  BENEFITS_SECTION: 'rewards-money-dashboard-benefits-section',
-} as const;
+import { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab.testIds';
 
 export interface WaysToEarnTabProps {
   profileId: string;

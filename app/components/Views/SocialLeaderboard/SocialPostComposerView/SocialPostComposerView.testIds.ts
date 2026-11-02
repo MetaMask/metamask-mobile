@@ -5,6 +5,8 @@ export const SocialPostComposerViewSelectorsIDs = {
   CHARACTER_COUNT: 'social-post-composer-character-count',
   POST_BUTTON: 'social-post-composer-post',
   INPUT: 'social-post-composer-input',
+  SCROLL: 'social-post-composer-scroll',
+  DISMISS_KEYBOARD_SURFACE: 'social-post-composer-dismiss-keyboard-surface',
   POSITION_CHIP: 'social-post-composer-position-chip',
   GIF_CHIP: 'social-post-composer-gif-chip',
   REMOVE_POSITION: 'social-post-composer-remove-position',

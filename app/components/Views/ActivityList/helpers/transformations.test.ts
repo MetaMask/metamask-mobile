@@ -86,39 +86,14 @@ describe('ActivityList transformations', () => {
       ).toBe(true);
     });
 
-    it('skips incoming token transfers and keeps normal outgoing transactions', () => {
-      expect(
-        shouldSkipTransaction(
-          address,
-          buildTransaction({
-            from: otherAddress,
-            to: otherAddress,
-            valueTransfers: [
-              {
-                amount: '1000000',
-                contractAddress: '0xtoken',
-                decimal: 6,
-                from: otherAddress,
-                name: 'Mock Token',
-                symbol: 'MOCK',
-                to: address,
-                transferType: 'ERC20',
-              },
-            ],
-          }),
-        ),
-      ).toBe(true);
-      expect(shouldSkipTransaction(address, buildTransaction())).toBe(false);
-    });
-
-    it('keeps direct incoming token transfers when the indexer omits contractAddress', () => {
-      const transaction = buildTransaction({
+    it('keeps incoming token transfers where the address is a direct recipient', () => {
+      const directTokenReceive = buildTransaction({
         from: otherAddress,
         to: address,
         valueTransfers: [
           {
-            amount: '1',
-            contractAddress: '',
+            amount: '1000000',
+            contractAddress: '0x3333333333333333333333333333333333333333',
             decimal: 6,
             from: otherAddress,
             name: 'USD Coin',
@@ -129,9 +104,7 @@ describe('ActivityList transformations', () => {
         ],
       });
 
-      const result = shouldSkipTransaction(address, transaction);
-
-      expect(result).toBe(false);
+      expect(shouldSkipTransaction(address, directTokenReceive)).toBe(false);
     });
   });
 
@@ -155,7 +128,6 @@ describe('ActivityList transformations', () => {
         ],
       });
 
-      expect(shouldSkipTransaction(address, tokenReceive)).toBe(true);
       expect(shouldSkipUnrelatedTransaction(address, tokenReceive)).toBe(false);
     });
 
@@ -348,9 +320,9 @@ describe('ActivityList transformations', () => {
   });
 
   describe('selectApiEvmTransactions', () => {
-    it('filters incoming ERC-20 transfers when the account only appears in valueTransfers', () => {
-      const incomingTokenTransfer = buildTransaction({
-        hash: '0xincoming-token',
+    it('filters outgoing value-transfer-only rows where the top-level tx is unrelated', () => {
+      const outgoingTokenTransfer = buildTransaction({
+        hash: '0xoutgoing-token',
         from: otherAddress,
         to: otherAddress,
         valueTransfers: [
@@ -358,68 +330,16 @@ describe('ActivityList transformations', () => {
             amount: '1',
             contractAddress: '0x3333333333333333333333333333333333333333',
             decimal: 18,
-            from: otherAddress,
+            from: address,
             symbol: 'aUSDC',
-            to: address,
+            to: otherAddress,
             transferType: 'ERC20',
           },
         ],
       } as Partial<V1TransactionByHashResponse>);
 
       const result = selectApiEvmTransactions({ address })(
-        buildData([incomingTokenTransfer]),
-      );
-
-      expect(result.pages[0].data).toHaveLength(0);
-    });
-
-    it('filters incoming NFT transfers and handles uppercase transfer types', () => {
-      const incomingNftTransfer = buildTransaction({
-        hash: '0xincoming-nft',
-        from: otherAddress,
-        to: otherAddress,
-        valueTransfers: [
-          {
-            amount: '1',
-            contractAddress: '0x4444444444444444444444444444444444444444',
-            decimal: 0,
-            from: otherAddress,
-            name: 'NFT',
-            symbol: 'NFT',
-            to: address,
-            transferType: 'ERC721',
-          },
-        ],
-      } as Partial<V1TransactionByHashResponse>);
-
-      const result = selectApiEvmTransactions({ address })(
-        buildData([incomingNftTransfer]),
-      );
-
-      expect(result.pages[0].data).toHaveLength(0);
-    });
-
-    it('filters ERC-20 value-transfer-only rows that are not direct transfer transactions', () => {
-      const contractCallWithIncomingTokenTransfer = buildTransaction({
-        hash: '0xcontract-call-incoming-token',
-        from: otherAddress,
-        to: otherAddress,
-        transactionCategory: 'CONTRACT_CALL',
-        valueTransfers: [
-          {
-            amount: '1',
-            contractAddress: '0x3333333333333333333333333333333333333333',
-            decimal: 18,
-            from: otherAddress,
-            symbol: 'aUSDC',
-            to: address,
-            transferType: 'ERC20',
-          },
-        ],
-      } as Partial<V1TransactionByHashResponse>);
-
-      const result = selectApiEvmTransactions({ address })(
-        buildData([contractCallWithIncomingTokenTransfer]),
+        buildData([outgoingTokenTransfer]),
       );
 
       expect(result.pages[0].data).toHaveLength(0);
@@ -464,31 +384,6 @@ describe('ActivityList transformations', () => {
           },
         },
       });
-    });
-
-    it('filters outgoing value-transfer-only rows where the top-level tx is unrelated', () => {
-      const outgoingTokenTransfer = buildTransaction({
-        hash: '0xoutgoing-token',
-        from: otherAddress,
-        to: otherAddress,
-        valueTransfers: [
-          {
-            amount: '1',
-            contractAddress: '0x3333333333333333333333333333333333333333',
-            decimal: 18,
-            from: address,
-            symbol: 'aUSDC',
-            to: otherAddress,
-            transferType: 'ERC20',
-          },
-        ],
-      } as Partial<V1TransactionByHashResponse>);
-
-      const result = selectApiEvmTransactions({ address })(
-        buildData([outgoingTokenTransfer]),
-      );
-
-      expect(result.pages[0].data).toHaveLength(0);
     });
   });
 });

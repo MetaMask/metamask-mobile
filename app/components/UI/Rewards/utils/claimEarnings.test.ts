@@ -381,12 +381,26 @@ describe('claimToastKey', () => {
     ).toBe('claimFailureRetryToast');
   });
 
+  it('uses the retry sentence when the Money Account check does not answer', () => {
+    expect(
+      claimToastKey([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'MONEY_ACCOUNT_CHECK_UNAVAILABLE',
+        },
+      ]),
+    ).toBe('claimFailureRetryToast');
+  });
+
   it.each([
     ['NO_ELIGIBLE_BALANCE', 'claimFailureNoEligibleBalanceToast'],
     ['EARNING_ADDRESS_UNSCREENABLE', 'claimFailureUnavailableToast'],
     ['UNSUPPORTED_EARNING_ADDRESS', 'claimFailureUnavailableToast'],
     ['EARNING_ADDRESS_MISSING', 'claimFailureContactSupportToast'],
     ['TAX_DETERMINATION_REQUIRED', 'claimFailureUnavailableToast'],
+    ['PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT', 'claimFailureUnavailableToast'],
   ] as const)(
     'uses the %s sentence when the claim pays nothing',
     (reason, toast) => {
@@ -1043,7 +1057,8 @@ describe('submitClaimVoucher', () => {
   });
 
   it('submits the voucher, approve, and deposit as one sponsored batch', async () => {
-    await submitLive();
+    const onBatchSubmitted = jest.fn();
+    await submitLive({ onBatchSubmitted });
 
     expect(mockBuildDepositBatch).toHaveBeenCalledWith({
       amount: BigInt(voucher.value),
@@ -1070,6 +1085,7 @@ describe('submitClaimVoucher', () => {
       skipInitialGasEstimate: true,
     });
     expect(request.batchId).toMatch(/^0x[0-9a-f]{32}$/u);
+    expect(onBatchSubmitted).toHaveBeenCalledWith(request.batchId);
     expect(request.transactions).toEqual([
       {
         params: {
@@ -1312,7 +1328,9 @@ describe('claim metrics', () => {
     ['ADDRESS_SCREENING_UNAVAILABLE', 'retry'],
     ['PAIRING_PENDING', 'retry'],
     ['PROOF_UNAVAILABLE', 'retry'],
+    ['MONEY_ACCOUNT_CHECK_UNAVAILABLE', 'retry'],
     ['VOIDED', 'other'],
+    ['PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT', 'other'],
     ['UNKNOWN', 'other'],
   ])('maps %s to %s', (reason, failureReason) => {
     expect(claimFailureReason(reason)).toBe(failureReason);

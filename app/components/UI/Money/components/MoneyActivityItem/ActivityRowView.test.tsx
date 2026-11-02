@@ -58,6 +58,28 @@ describe('ActivityRowView', () => {
     expect(onPress).toHaveBeenCalledWith('vba-deposit-1');
   });
 
+  it('renders a dimmed pending amount with a pending status label', () => {
+    const pendingDisplay: MoneyTransactionDisplayInfo = {
+      ...display,
+      primaryAmount: '+1,000.00 mUSD',
+      fiatAmount: '',
+      status: 'pending',
+      pendingStatusLabel: 'Pending',
+      isPrimaryAmountPending: true,
+    };
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityRowView id="vba-deposit-pending" display={pendingDisplay} />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('+1,000.00 mUSD');
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PENDING_STATUS),
+    ).toHaveTextContent('Pending');
+    expect(queryByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toBeNull();
+  });
+
   it('masks both completed deposit amounts when privacy mode is enabled', () => {
     const { getByTestId } = renderWithProvider(
       <ActivityRowView id="vba-deposit-2" display={display} privacyMode />,

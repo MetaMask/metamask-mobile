@@ -61,8 +61,9 @@ interface ContractCheck {
   /** Where a payload mentioning none of the above lands. */
   otherwise: SecurityCheckOutcome;
   /**
-   * `verdict` rows carry a pass/fail glyph in green or red. `neutral` rows
-   * carry none and stay on the default text colour.
+   * `verdict` rows colour the value green on pass and red on fail, with a
+   * fail glyph only. `neutral` rows carry none and stay on the default text
+   * colour.
    *
    * `is_mintable` is the one neutral row, because it is the one check named as
    * a question rather than as the desirable state. Its pass means the mint
@@ -161,12 +162,15 @@ interface AdditionalCheck {
   /** Every featureId the sheet lists on this row. */
   featureIds: readonly string[];
   /**
-   * Fixed per row, never read from `feature.type`. The API's type does not
+   * Fixed per row and never read from `feature.type`, except the sheet's three
+   * "Mixed — default to highest severity (feature.type)" rows, which carry
+   * `'mixed'` and are resolved at render from the types of the ids that
+   * actually matched (see `resolveAdditionalChecks`). The API's type does not
    * encode polarity consistently and the same id arrives typed differently on
-   * different chains, so a row's colour would otherwise shift with whichever
+   * different chains, so a fixed row's colour must not shift with whichever
    * sibling ids happened to come back.
    */
-  severity: RiskSeverity;
+  severity: RiskSeverity | 'mixed';
 }
 
 /**
@@ -196,11 +200,10 @@ const ADDITIONAL_CHECKS: readonly AdditionalCheck[] = [
       'DYNAMIC_ANALYSIS',
     ],
     /**
-     * The sheet says "Mixed — default to highest severity (feature.type)"
-     * rather than naming one, read here as the highest a row can take so the
-     * severity stays hardcoded like every other row.
+     * The sheet says "Mixed — default to highest severity (feature.type)":
+     * resolved at render from the matched ids' types, not hardcoded.
      */
-    severity: 'malicious',
+    severity: 'mixed',
   },
   {
     id: 'impersonation_risk',
@@ -211,11 +214,11 @@ const ADDITIONAL_CHECKS: readonly AdditionalCheck[] = [
       'IMPERSONATOR_MEDIUM_CONFIDENCE',
     ],
     /**
-     * "Mixed" in the sheet, as above. Note the prototype draws this row amber
-     * where malicious draws it red, so this is the one row where the
-     * hardcoded severity and the design disagree.
+     * "Mixed" in the sheet, as above. Resolving from `feature.type` also fixes
+     * the prototype's amber draw for low/medium-confidence impersonators,
+     * which the old hardcoded `malicious` rendered red.
      */
-    severity: 'malicious',
+    severity: 'mixed',
   },
   {
     id: 'rug_pull',
@@ -274,7 +277,7 @@ const ADDITIONAL_CHECKS: readonly AdditionalCheck[] = [
     id: 'suspicious_airdrop',
     featureIds: ['AIRDROP_PATTERN', 'SPAM_TEXT', 'METADATA'],
     /** "Mixed" in the sheet, as above. */
-    severity: 'malicious',
+    severity: 'mixed',
   },
   {
     id: 'liquidity_withdrawal_risk',
@@ -386,13 +389,28 @@ export const resolveSecurityChecks = (
 };
 
 /**
+ * Highest severity among the features that matched a "Mixed" row.
+ *
+ * The sheet's three Mixed rows read "default to highest severity
+ * (feature.type)": malicious when one matched id is typed `Malicious`,
+ * otherwise warning. Warning and Spam both read warning, and Benign/Info never
+ * reach here — `resolveAdditionalChecks` has already filtered to risk types.
+ */
+const highestSeverity = (
+  matched: readonly TokenSecurityFeature[],
+): RiskSeverity =>
+  matched.some((feature) => feature.type === 'Malicious')
+    ? 'malicious'
+    : 'warning';
+
+/**
  * What Blockaid found that the five contract checks do not already show.
  *
  * Four steps, in order.
  *
- * First, keep only features typed `Warning`, `Spam` or `Malicious`. This is
- * the only thing `feature.type` decides for a table row — whether it was
- * detected at all, never what colour it is.
+ * First, keep only features typed `Warning`, `Spam` or `Malicious`. For most
+ * rows this is the only thing `feature.type` decides — whether the row was
+ * detected at all, not its colour; the three "Mixed" rows are the exception.
  *
  * Second, drop anything a contract check reads, so the same fact is not stated
  * in two sections and counted twice.
@@ -404,9 +422,9 @@ export const resolveSecurityChecks = (
  * Last, anything the table does not name becomes one "Risk detected" row per
  * id.
  *
- * That last step is the only place Blockaid's own English reaches a screen,
- * and the only place a row's severity comes from `feature.type`. Both are the
- * sheet's instruction: its default case reads "Dynamic: use Blockaid's
+ * That last step is the only place Blockaid's own English reaches a screen.
+ * It, and the three "Mixed" rows, are where a row's severity comes from
+ * `feature.type`: the sheet's default case reads "Dynamic: use Blockaid's
  * description" and "default to highest severity, warning and malicious only",
  * and the mention of warning is what makes a per-feature type the right read.
  */
@@ -427,13 +445,25 @@ export const resolveAdditionalChecks = (
 
   const grouped: SecurityRisk[] = ADDITIONAL_CHECKS.filter((check) =>
     check.featureIds.some((id) => detectedIds.has(id)),
-  ).map((check) => ({
-    id: check.id,
-    severity: check.severity,
-    title: strings(`${RISK_COPY_PREFIX}.${check.id}.title`),
-    description: strings(`${RISK_COPY_PREFIX}.${check.id}.description`),
-    featureIds: check.featureIds.filter((id) => detectedIds.has(id)),
-  }));
+  ).map((check) => {
+    const matchedIds = check.featureIds.filter((id) => detectedIds.has(id));
+    return {
+      id: check.id,
+      // The sheet's three "Mixed" rows take the highest type of the ids that
+      // actually matched; every other row keeps its fixed severity.
+      severity:
+        check.severity === 'mixed'
+          ? highestSeverity(
+              detected.filter((feature) =>
+                matchedIds.includes(feature.featureId),
+              ),
+            )
+          : check.severity,
+      title: strings(`${RISK_COPY_PREFIX}.${check.id}.title`),
+      description: strings(`${RISK_COPY_PREFIX}.${check.id}.description`),
+      featureIds: matchedIds,
+    };
+  });
 
   const ungrouped: SecurityRisk[] = detected
     .filter((feature) => !GROUPED_FEATURE_IDS.has(feature.featureId))
@@ -468,60 +498,38 @@ const VERDICT_BY_RESULT_TYPE: Readonly<Record<string, SecurityVerdict>> = {
 };
 
 /**
- * How bad the token is.
+ * How bad the token is, from Blockaid's own verdict word.
  *
- * Reads the features' own types alongside the rows, because the two answer
- * different questions. A row is something we chose to show; a type is what
- * Blockaid said. A detected `HONEYPOT` produces no row — it is de-duplicated
- * out, since the Contract section already shows it — but it is still the worst
- * thing about the token.
+ * `resultType` is authoritative: `Verified`/`Benign` give the green
+ * `screened`, `Warning`/`Spam` the amber `medium_risk`, `Malicious` the red
+ * `high_risk`. A word we do not recognise — or a missing one — gives
+ * `unscreened` rather than overclaiming a clean screen.
  *
- * The two branches are not exclusive. A token with a detected `HONEYPOT` and
- * one warning row has to read high risk rather than "1 flag", so malicious is
- * checked across both sources before warning is checked across either.
- *
- * Reading types off features that are *present* is also what keeps the
- * `renounced` check's fail-closed default harmless: a token that says nothing
- * about ownership fails that row, but silence carries no type, so it cannot
- * promote the verdict.
- *
- * `resultType` is only the fallback, reached when nothing malicious and
- * nothing warning was found — which is exactly the case it is good at.
- * `Verified` and `Benign` give the green `screened`, while a word we do not
- * recognise gives `unscreened` rather than overclaiming a clean screen.
- *
- * There is no `pending` case: `useSecurityFacts` short-circuits on both
- * loading and error before `deriveSecurityFacts` is ever reached.
+ * The pill reads only this. The Additional-checks rows shown below come from
+ * `resolveAdditionalChecks` independently, so a token can read `screened`
+ * while still listing individual signals (e.g. a `Benign` token that carries
+ * `UNSTABLE_TOKEN_PRICE`). There is no `pending` case: `useSecurityFacts`
+ * short-circuits on both loading and error before `deriveSecurityFacts` is
+ * ever reached.
  */
 export const resolveVerdict = (
   securityData: TokenSecurityData,
-  risks: readonly SecurityRisk[],
-): SecurityVerdict => {
-  const features = securityData.features ?? [];
-
-  if (
-    risks.some((risk) => risk.severity === 'malicious') ||
-    features.some((feature) => feature.type === 'Malicious')
-  ) {
-    return 'high_risk';
-  }
-
-  // Any row at all means warning or worse, since those are the only two
-  // severities a row can carry and malicious was handled above.
-  if (
-    risks.length > 0 ||
-    features.some(
-      (feature) => feature.type === 'Warning' || feature.type === 'Spam',
-    )
-  ) {
-    return 'medium_risk';
-  }
-
-  return VERDICT_BY_RESULT_TYPE[securityData.resultType] ?? 'unscreened';
-};
+): SecurityVerdict =>
+  VERDICT_BY_RESULT_TYPE[securityData.resultType] ?? 'unscreened';
 
 /**
- * Sum of the top ten holders' share, capped because the API can overshoot.
+ * Sum of the top ten WALLET holders' share, capped because the API can
+ * overshoot.
+ *
+ * Only `label === 'wallet'` holders count: AMM pools (`market`), Solana
+ * routers (`program`), `locker` and `contract` entries are excluded, because
+ * counting them inflates concentration toward ~100% for pooled tokens (a
+ * single AMM pool can hold 99%+). Blockaid confirmed this is the intended
+ * reading, and the API returns the label lowercase.
+ *
+ * Caveat: the top-10 cap is applied after filtering, so if fewer than 10
+ * wallets survive the filter the capped list cannot reconstruct the true
+ * top-10 wallet share and may slightly undercount. That is acceptable.
  *
  * Exported because `useTokenStats` formats the same figure for the Top 10 row
  * while the holders bar needs it raw to size itself. One function so the
@@ -530,14 +538,15 @@ export const resolveVerdict = (
 export const sumTopTenPercentage = (
   financialStats: TokenSecurityFinancialStats | null | undefined,
 ): number | null => {
-  const holders = financialStats?.topHolders;
-  if (!holders?.length) {
+  const walletHolders = financialStats?.topHolders?.filter(
+    (holder) => holder.label === 'wallet',
+  );
+  if (!walletHolders?.length) {
     return null;
   }
-  const total = holders.reduce(
-    (sum, holder) => sum + (holder.holdingPercentage ?? 0),
-    0,
-  );
+  const total = walletHolders
+    .slice(0, 10)
+    .reduce((sum, holder) => sum + (holder.holdingPercentage ?? 0), 0);
   return Math.min(total, 100);
 };
 
@@ -581,7 +590,7 @@ export const deriveSecurityFacts = (
   const risks = resolveAdditionalChecks(features);
 
   return {
-    verdict: resolveVerdict(securityData, risks),
+    verdict: resolveVerdict(securityData),
     risks,
     checks: resolveSecurityChecks(features),
     topTenPercentage: sumTopTenPercentage(securityData.financialStats),

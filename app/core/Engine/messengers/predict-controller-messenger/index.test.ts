@@ -40,4 +40,21 @@ describe('PredictController Messenger', () => {
       }),
     );
   });
+
+  it('delegates gas fee token quotes to the scoped messenger', () => {
+    const rootMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getPredictControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'TransactionController:getGasFeeTokens',
+        ]),
+      }),
+    );
+  });
 });

@@ -612,7 +612,15 @@ jest.mock('@react-native-cookies/cookies', () => ({
 jest.mock('@metamask/react-native-webview', () => {
   const React = require('react');
   const { View } = require('react-native');
-  return { WebView: (props) => <View {...props} /> };
+  const WebView = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      postMessage: jest.fn(),
+      injectJavaScript: jest.fn(),
+      reload: jest.fn(),
+    }));
+    return <View {...props} />;
+  });
+  return { WebView };
 });
 
 // Mock @metamask/react-native-search-api

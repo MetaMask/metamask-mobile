@@ -478,6 +478,7 @@ describe('TrendingView', () => {
       interaction_type: 'opened',
       search_query: '',
       entry_point: 'explore',
+      search_session_id: expect.any(String),
     });
   });
 

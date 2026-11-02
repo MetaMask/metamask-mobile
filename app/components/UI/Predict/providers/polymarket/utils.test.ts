@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -3199,7 +3198,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
         marketId: 'market-1',
@@ -3227,7 +3225,7 @@ describe('polymarket utils', () => {
     });
   });
 
-  it('zeros both fee snapshots when a membership market tag is on the waive list', async () => {
+  it('returns zero fees when market fees are waived', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: jest.fn().mockResolvedValue({
@@ -3256,17 +3254,13 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
       marketId: 'market-1',
       userBetAmount: 10,
     });
 
-    expect(result).toEqual({
-      fees: waivedFees,
-      originalFees: waivedFees,
-    });
+    expect(result).toEqual({ fees: waivedFees });
   });
 
   it('uses configured service fees when no membership policy is available', async () => {
@@ -3340,7 +3334,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });
@@ -3504,7 +3497,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
       });
@@ -3830,6 +3822,44 @@ describe('polymarket utils', () => {
     );
   });
 
+  it.each([
+    { size: 4, expectedWorstFillPrice: 0.49 },
+    { size: 10, expectedWorstFillPrice: 0.45 },
+    { size: 12, expectedWorstFillPrice: 0.4 },
+  ])(
+    'reports $expectedWorstFillPrice as the worst fill price when selling $size shares',
+    async ({ size, expectedWorstFillPrice }) => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            bids: [
+              { price: '0.40', size: '100' },
+              { price: '0.45', size: '5' },
+              { price: '0.49', size: '5' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      const preview = await previewOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        side: Side.SELL,
+        size,
+      });
+
+      expect(preview.sharePrice).toBe(0.49);
+      expect(preview.worstFillPrice).toBe(expectedWorstFillPrice);
+    },
+  );
+
   it('returns original fees for a membership sell preview', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -3868,7 +3898,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });
@@ -3955,75 +3984,135 @@ describe('polymarket utils', () => {
     ]);
   });
 
-  it('drops an event when every market version is v2', () => {
-    const event: PolymarketApiEvent = {
-      id: 'v2-event',
-      slug: 'v2-event',
-      title: 'V2 Event',
-      description: 'V2 event description',
+  describe('Protocol V2 markets', () => {
+    const createCtfMarket = (): PolymarketApiMarket => ({
+      conditionId: 'ctf-condition',
+      question: 'CTF question',
+      description: 'CTF market',
+      icon: '',
+      image: '',
+      groupItemTitle: 'Yes',
+      status: 'open',
+      volumeNum: 10,
+      liquidity: 10,
+      negRisk: false,
+      clobTokenIds: '["yes","no"]',
+      outcomes: '["Yes","No"]',
+      outcomePrices: '["0.6","0.4"]',
+      closed: false,
+      active: true,
+      resolvedBy: '',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: '',
+      version: 'v1',
+    });
+    const createV2Market = (): PolymarketApiMarket => ({
+      ...createCtfMarket(),
+      conditionId: 'v2-condition',
+      question: 'V2 question',
+      clobTokenIds: '',
+      positionIds: ['v2-yes', 'v2-no'],
+      version: 'v2',
+    });
+    const createEvent = (
+      id: string,
+      markets: PolymarketApiMarket[],
+    ): PolymarketApiEvent => ({
+      id,
+      slug: id,
+      title: id,
+      description: `${id} description`,
       icon: '',
       closed: false,
       series: [],
-      markets: [
-        {
-          conditionId: 'v2-condition',
-          version: 'v2',
-        } as PolymarketApiEvent['markets'][number],
-      ],
-      tags: [],
-      liquidity: 0,
-      volume: 0,
-    };
-
-    expect(parsePolymarketEvents([event], 'trending')).toEqual([]);
-  });
-
-  it('keeps CTF markets when an event also contains a v2 market', () => {
-    const event: PolymarketApiEvent = {
-      id: 'mixed-event',
-      slug: 'mixed-event',
-      title: 'Mixed Event',
-      description: 'Mixed event description',
-      icon: '',
-      closed: false,
-      series: [],
-      markets: [
-        {
-          conditionId: 'ctf-condition',
-          question: 'CTF question',
-          description: 'CTF market',
-          icon: '',
-          image: '',
-          groupItemTitle: 'Yes',
-          status: 'open',
-          volumeNum: 10,
-          liquidity: 10,
-          negRisk: false,
-          clobTokenIds: '["yes","no"]',
-          outcomes: '["Yes","No"]',
-          outcomePrices: '["0.6","0.4"]',
-          closed: false,
-          active: true,
-          resolvedBy: '',
-          orderPriceMinTickSize: 0.01,
-          umaResolutionStatus: '',
-          version: 'v1',
-        },
-        {
-          conditionId: 'v2-condition',
-          version: 'v2',
-        } as PolymarketApiEvent['markets'][number],
-      ],
+      markets,
       tags: [],
       liquidity: 10,
       volume: 10,
-    };
+    });
 
-    const [market] = parsePolymarketEvents([event], 'trending');
+    it('keeps an event when every market version is v2', () => {
+      const event = createEvent('v2-event', [createV2Market()]);
 
-    expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
-      'ctf-condition',
-    ]);
+      const [market] = parsePolymarketEvents([event], 'trending');
+
+      expect(market.id).toBe('v2-event');
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'v2-condition',
+      ]);
+    });
+
+    it('keeps CTF and v2 markets in a mixed event', () => {
+      const event = createEvent('mixed-event', [
+        createCtfMarket(),
+        createV2Market(),
+      ]);
+
+      const [market] = parsePolymarketEvents([event], 'trending');
+
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'ctf-condition',
+        'v2-condition',
+      ]);
+    });
+
+    it('drops an event when every market version is v2 and v2 markets are hidden', () => {
+      const event = createEvent('v2-event', [createV2Market()]);
+
+      expect(
+        parsePolymarketEvents([event], {
+          category: 'trending',
+          hideV2Markets: true,
+        }),
+      ).toEqual([]);
+    });
+
+    it('keeps only CTF markets in a mixed event when v2 markets are hidden', () => {
+      const event = createEvent('mixed-event', [
+        createCtfMarket(),
+        createV2Market(),
+      ]);
+
+      const [market] = parsePolymarketEvents([event], {
+        category: 'trending',
+        hideV2Markets: true,
+      });
+
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'ctf-condition',
+      ]);
+    });
+
+    it.each([false, true])(
+      'parses a CTF-only event the same way when hideV2Markets is %s',
+      (hideV2Markets) => {
+        const event = createEvent('ctf-event', [createCtfMarket()]);
+
+        expect(
+          parsePolymarketEvents([event], {
+            category: 'trending',
+            hideV2Markets,
+          }),
+        ).toEqual(parsePolymarketEvents([event], 'trending'));
+      },
+    );
+
+    it.each([false, true])(
+      'drops inactive markets when hideV2Markets is %s',
+      (hideV2Markets) => {
+        const event = createEvent('inactive-event', [
+          { ...createCtfMarket(), active: false },
+          { ...createV2Market(), active: false },
+        ]);
+
+        expect(
+          parsePolymarketEvents([event], {
+            category: 'trending',
+            hideV2Markets,
+          })[0]?.outcomes ?? [],
+        ).toEqual([]);
+      },
+    );
   });
 
   it('falls back to question when a spread market is missing group item title', () => {
@@ -4482,6 +4571,52 @@ describe('parsePolymarketMarket market version', () => {
       'ctf-yes',
       'ctf-no',
     ]);
+  });
+
+  it.each(['inactive', 'active', 'resolved'])(
+    'reads the Protocol V2 resolutionStatus "%s" on v2 markets',
+    (resolutionStatus) => {
+      const parsed = parsePolymarketMarket(
+        createVersionedMarket({
+          version: 'v2',
+          resolutionStatus,
+          umaResolutionStatus: 'proposed',
+        }),
+        event,
+      );
+
+      expect(parsed.resolutionStatus).toBe(resolutionStatus);
+    },
+  );
+
+  it('leaves resolutionStatus undefined when a v2 market has none', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        resolutionStatus: null,
+        umaResolutionStatus: 'resolved',
+      }),
+      event,
+    );
+
+    expect(parsed.resolutionStatus).toBeUndefined();
+  });
+
+  it.each([
+    ['v1', 'v1'],
+    ['missing', undefined],
+    ['unknown', 'v3'],
+  ])('reads umaResolutionStatus when the version is %s', (_label, version) => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version,
+        resolutionStatus: 'active',
+        umaResolutionStatus: 'resolved',
+      }),
+      event,
+    );
+
+    expect(parsed.resolutionStatus).toBe('resolved');
   });
 });
 

@@ -4,8 +4,11 @@ import {
   clearPostTradeShareSession,
   consumePostTradeShareReopen,
   getPostTradeShareSession,
+  hasPostTradeShareReopenOwner,
   patchPostTradeShareSession,
+  registerPostTradeShareReopenOwner,
   requestPostTradeShareReopen,
+  subscribePostTradeShareSession,
 } from './postTradeShareSession';
 
 const target: QuickBuyTarget = {
@@ -18,6 +21,49 @@ const target: QuickBuyTarget = {
 describe('postTradeShareSession', () => {
   afterEach(() => {
     clearPostTradeShareSession();
+  });
+
+  describe('variant', () => {
+    it('defaults to share', () => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'buy',
+        preview: {
+          tokenSymbol: 'PUMP',
+          tokenAddress: '0xpump',
+          chain: 'base',
+          side: 'buy',
+        },
+      });
+
+      expect(getPostTradeShareSession()?.variant).toBe('share');
+    });
+
+    it('keeps create_profile across patches', () => {
+      const sessionId = beginPostTradeShareSession({
+        variant: 'create_profile',
+        product: 'perps',
+        preview: {
+          product: 'perps',
+          tokenSymbol: 'ETH',
+          tradeSymbol: 'ETH',
+          tokenAddress: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      patchPostTradeShareSession(sessionId, {
+        status: 'complete',
+        orderId: '42',
+      });
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'complete',
+        }),
+      );
+    });
   });
 
   it('begins a pending session', () => {
@@ -211,5 +257,57 @@ describe('postTradeShareSession', () => {
     requestPostTradeShareReopen();
 
     expect(getPostTradeShareSession()).toBeNull();
+  });
+
+  describe('reopen owners', () => {
+    it('tracks an owner until it unregisters', () => {
+      const unregister = registerPostTradeShareReopenOwner('social-v1-feed');
+
+      expect(hasPostTradeShareReopenOwner('social-v1-feed')).toBe(true);
+
+      unregister();
+
+      expect(hasPostTradeShareReopenOwner('social-v1-feed')).toBe(false);
+    });
+
+    it('keeps an owner registered while another instance is mounted', () => {
+      const unregisterFirst =
+        registerPostTradeShareReopenOwner('position-details');
+      const unregisterSecond =
+        registerPostTradeShareReopenOwner('position-details');
+
+      unregisterFirst();
+
+      expect(hasPostTradeShareReopenOwner('position-details')).toBe(true);
+
+      unregisterSecond();
+
+      expect(hasPostTradeShareReopenOwner('position-details')).toBe(false);
+    });
+
+    it('ignores a repeated unregister call', () => {
+      const unregisterFirst =
+        registerPostTradeShareReopenOwner('trader-position');
+      const unregisterSecond =
+        registerPostTradeShareReopenOwner('trader-position');
+
+      unregisterFirst();
+      unregisterFirst();
+
+      expect(hasPostTradeShareReopenOwner('trader-position')).toBe(true);
+
+      unregisterSecond();
+    });
+
+    it('notifies subscribers on register and unregister', () => {
+      const listener = jest.fn();
+      const unsubscribe = subscribePostTradeShareSession(listener);
+
+      const unregister = registerPostTradeShareReopenOwner('social-v1-feed');
+      unregister();
+
+      expect(listener).toHaveBeenCalledTimes(2);
+      unsubscribe();
+    });
   });
 });

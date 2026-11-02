@@ -772,6 +772,224 @@ describe('resolveE2EPlatformRequirements', () => {
     });
   });
 
+  const addedSmokeSpec =
+    'tests/smoke-appium/seedless/google-login-change-password.spec.ts';
+
+  it('selects both platforms when a brand-new Appium smoke spec is added', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
+      },
+      labelOverrideInput: eligibleLabelInput,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+      useMainBuildsForTestOnlyPrs: false,
+      runSmartE2ESelection: true,
+      message: expect.stringContaining('brand-new Appium smoke spec'),
+    });
+    expect(result.message).not.toContain('iOS not requested');
+  });
+
+  it('keeps main-build reuse when the new spec is the only change', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        e2eTestFilesCount: 1,
+        e2eTestOrIgnorableCount: 1,
+        androidCount: 0,
+        androidOrIgnorableCount: 0,
+        changedSpecFiles: addedSmokeSpec,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
+      },
+      labelOverrideInput: {
+        ...eligibleLabelInput,
+        testOnlyChanges: true,
+      },
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+      useMainBuildsForTestOnlyPrs: true,
+    });
+  });
+
+  it('selects both platforms for a new spec on an otherwise iOS-only PR', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        androidCount: 0,
+        androidOrIgnorableCount: 0,
+        iosCount: 1,
+        iosOrIgnorableCount: 1,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
+      },
+      labelOverrideInput: eligibleLabelInput,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+      runSmartE2ESelection: true,
+    });
+  });
+
+  it('selects both platforms for a new spec on a release/* PR', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        prBaseRef: 'release/1.0.0',
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
+      },
+      labelOverrideInput: {
+        ...eligibleLabelInput,
+        prBaseRef: 'release/1.0.0',
+      },
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+    });
+  });
+
+  it('keeps iOS with a new spec when skip-smart-e2e-selection is applied', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
+      },
+      labelOverrideInput: eligibleLabelInput,
+      skipSmartSelection: true,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+    });
+  });
+
+  it('does not force iOS when existing specs are only modified', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        changedSpecFiles: addedSmokeSpec,
+        addedSmokeSpecFiles: `modified\t${addedSmokeSpec}`,
+      },
+      labelOverrideInput: eligibleLabelInput,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: false,
+    });
+  });
+
+  it('does not treat renamed, copied, or unclassified smoke specs as new files', () => {
+    const records = [
+      `renamed\t${addedSmokeSpec}\ttests/smoke-appium/wallet/old.spec.ts`,
+      `copied\t${addedSmokeSpec}\ttests/smoke-appium/wallet/old.spec.ts`,
+      `added\t${addedSmokeSpec}\ttests/smoke-appium/wallet/old.spec.ts`,
+      addedSmokeSpec,
+    ];
+
+    for (const addedSmokeSpecFiles of records) {
+      const result = resolveE2EPlatformRequirements({
+        pathFilterInput: {
+          ...androidOnlyPathFilters,
+          addedSmokeSpecFiles,
+        },
+        labelOverrideInput: eligibleLabelInput,
+      });
+
+      expect(result.ios).toBe(false);
+    }
+  });
+
+  it('ignores added paths that are not Appium smoke specs', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        addedSmokeSpecFiles: [
+          'added\tapp/components/Foo.tsx',
+          'added\ttests/smoke-appium/helpers/setup.ts',
+          'added\ttests/performance/wallet.spec.ts',
+          'added\ttests/smoke-appium/wallet/foo.spec.js',
+        ].join('\n'),
+      },
+      labelOverrideInput: eligibleLabelInput,
+    });
+
+    expect(result.ios).toBe(false);
+  });
+
+  it('does not force both platforms for a new spec on a fork, skip, stable, or ignorable PR', () => {
+    const addedInput = {
+      ...androidOnlyPathFilters,
+      addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
+    };
+
+    expect(
+      resolveE2EPlatformRequirements({
+        pathFilterInput: { ...addedInput, isFork: true },
+        labelOverrideInput: { ...eligibleLabelInput, isFork: true },
+      }),
+    ).toMatchObject({ android: false, ios: false, e2eNeeded: false });
+
+    expect(
+      resolveE2EPlatformRequirements({
+        pathFilterInput: { ...addedInput, shouldSkipE2E: true },
+        labelOverrideInput: { ...eligibleLabelInput, shouldSkipE2E: true },
+      }),
+    ).toMatchObject({ android: false, ios: false, e2eNeeded: false });
+
+    expect(
+      resolveE2EPlatformRequirements({
+        pathFilterInput: { ...addedInput, prBaseRef: 'stable' },
+        labelOverrideInput: { ...eligibleLabelInput, prBaseRef: 'stable' },
+      }),
+    ).toMatchObject({ android: false, ios: false, e2eNeeded: false });
+
+    expect(
+      resolveE2EPlatformRequirements({
+        pathFilterInput: {
+          ...addedInput,
+          androidCount: 0,
+          androidOrIgnorableCount: 0,
+          e2eIgnorableCount: 1,
+          e2eTestOrIgnorableCount: 1,
+        },
+        labelOverrideInput: { ...eligibleLabelInput, ignorableOnly: true },
+      }),
+    ).toMatchObject({ android: false, ios: false, e2eNeeded: false });
+  });
+
+  it('does not apply the new-spec rule on pushes', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        githubEventName: 'push',
+        githubRefName: 'main',
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
+      },
+      labelOverrideInput: {
+        ...eligibleLabelInput,
+        githubEventName: 'push',
+      },
+    });
+
+    expect(result.ios).toBe(false);
+  });
+
   it('does not revive E2E when skip-smart-e2e-selection is applied to an ignorable-only PR', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {

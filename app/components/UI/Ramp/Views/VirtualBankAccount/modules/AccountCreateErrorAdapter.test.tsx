@@ -5,6 +5,12 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import VbaAccountCreateError from '../VbaAccountCreateError';
 import type { VbaOnboardingParamList } from '../routes';
 import VbaAccountCreateErrorAdapter from './AccountCreateErrorAdapter';
+import { useScreenPerformance } from '../../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from '../vbaScreenPerformance';
 
 const mockNavigation = { navigate: jest.fn() };
 const mockOpenCompletedVbaAccount = jest.fn();
@@ -46,6 +52,9 @@ jest.mock('../VbaAccountCreateError', () => ({
   default: (props: React.ComponentProps<typeof VbaAccountCreateError>) =>
     mockVbaAccountCreateError(props),
 }));
+
+jest.mock('../../../../../../hooks/useScreenPerformance');
+const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 
 describe('VbaAccountCreateErrorAdapter', () => {
   beforeEach(() => {
@@ -123,6 +132,15 @@ describe('VbaAccountCreateErrorAdapter', () => {
     props.onPrimary();
 
     expect(props.variant).toBe(variant);
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId:
+        variant === 'details'
+          ? VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR
+          : VBA_SCREEN_ID.ACCOUNT_CREATE_GENERIC_ERROR,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
     expect(props.primaryActionType).toBe('contactSupport');
     expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
     expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
