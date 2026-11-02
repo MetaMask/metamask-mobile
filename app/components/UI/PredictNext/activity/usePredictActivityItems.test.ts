@@ -1,6 +1,7 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import type { ActivityListItem } from '../../../../util/activity-adapters';
 import type { PredictActivity } from '../../Predict/types';
 import { useActiveVenue } from '../implementation/activeVenue';
 import { expectInactiveHookHasNoSideEffects } from '../implementation/inactiveHook.testUtils';
@@ -61,12 +62,96 @@ const buyActivity: PredictActivity = {
   },
 };
 
+const context = {
+  eventId: 'KXNFLGAME-26OCT25KCBUF',
+  eventTitle: 'Kansas City at Buffalo',
+  marketQuestion: 'Kansas City to win?',
+  outcomeLabel: 'Kansas City',
+};
+
+const trade = (id: string, action: 'buy' | 'sell', timestamp: string) => ({
+  type: 'trade',
+  venueId: 'kalshi',
+  id,
+  marketId: 'KXNFLGAME-26OCT25KCBUF-KC',
+  side: 'yes',
+  action,
+  shares: '10',
+  price: '0.61',
+  amount: '5.93',
+  fee: '0.17',
+  ...(action === 'sell' ? { realizedPnl: '0.27' } : {}),
+  timestamp,
+  context,
+});
+
+const settlementEntry = {
+  type: 'settlement',
+  venueId: 'kalshi',
+  id: 'settlement-1',
+  marketId: 'KXNCAAFGAME-18OCT25UTAHBYU-UTAH',
+  side: 'no',
+  shares: '8',
+  result: 'yes',
+  proceeds: '0',
+  realizedPnl: '-3.36',
+  timestamp: '2026-10-19T04:12:00.000Z',
+};
+
+const firstPage = {
+  venueId: 'kalshi',
+  activity: [
+    trade('trade-buy', 'buy', '2026-10-22T18:04:11.532Z'),
+    trade('trade-sell', 'sell', '2026-10-21T18:04:11.532Z'),
+    settlementEntry,
+  ],
+  nextCursor: 'page-2',
+};
+
+/** Repeats the boundary entry, as a page boundary must never do. */
+const secondPage = {
+  venueId: 'kalshi',
+  activity: [
+    settlementEntry,
+    trade('trade-old', 'buy', '2026-10-18T16:30:02.118Z'),
+  ],
+};
+
+const polymarketDeposit = {
+  type: 'predictionsAddFunds',
+  chainId: 'eip155:137',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xdeposit',
+  data: {},
+} as ActivityListItem;
+
 const givenActiveVenue = (resolution: ActiveVenueResolution) =>
   jest.mocked(useActiveVenue).mockReturnValue(resolution);
 
+/** Serves `PredictPortfolioService:getActivity` the way the data service
+ * does: the query key's Venue and params, plus the page cursor. */
+const mockGetCanonicalActivity = jest.fn();
+
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: Infinity,
+        queryFn: ({ queryKey, pageParam }) => {
+          const [method, venueId, params] = queryKey as [
+            string,
+            string,
+            unknown,
+          ];
+          if (method !== 'PredictPortfolioService:getActivity') {
+            throw new Error(`Unexpected query ${method}`);
+          }
+          return mockGetCanonicalActivity(venueId, params, pageParam);
+        },
+      },
+    },
   });
 
   return ({ children }: { children: React.ReactNode }) =>
@@ -86,6 +171,10 @@ describe('usePredictActivityItems', () => {
   describe('while the next implementation is active', () => {
     beforeEach(() => {
       givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+      mockGetCanonicalActivity.mockImplementation(
+        (_venueId: string, _params: unknown, cursor?: string) =>
+          Promise.resolve(cursor === 'page-2' ? secondPage : firstPage),
+      );
     });
 
     it('never ensures Polygon or reads legacy Activity', async () => {
@@ -96,23 +185,166 @@ describe('usePredictActivityItems', () => {
       });
     });
 
-    it('returns no items, so no Polygon chain id or USDC quote asset', async () => {
+    it('maps Trades and Settlements to USD venue rows with no chain', async () => {
       const { result } = renderHook(
         () => usePredictActivityItems({ enabled: true }),
         { wrapper: createWrapper() },
       );
 
-      await expect(result.current.loadMore()).resolves.toBeUndefined();
-      await expect(result.current.refetch()).resolves.toBeUndefined();
-      expect(result.current).toEqual({
-        items: [],
+      await waitFor(() => expect(result.current.items).toHaveLength(3));
+      expect(mockGetCanonicalActivity).toHaveBeenCalledWith(
+        'kalshi',
+        { limit: 20 },
+        undefined,
+      );
+      expect(result.current.items.map(({ type }) => type)).toEqual([
+        'predictionPlaced',
+        'predictionCashedOut',
+        'predictionSettled',
+      ]);
+      for (const item of result.current.items) {
+        expect(item).toMatchObject({
+          chainId: 'kalshi:mainnet',
+          status: 'success',
+          data: { token: { symbol: 'USD' } },
+        });
+      }
+      expect(result.current.items.map(({ hash }) => hash)).toEqual([
+        'trade-buy',
+        'trade-sell',
+        'settlement-1',
+      ]);
+      expect(result.current).toMatchObject({
         isLoading: false,
         error: null,
-        refetch: expect.any(Function),
-        loadMore: expect.any(Function),
-        hasMore: false,
+        hasMore: true,
         isFetchingMore: false,
       });
+    });
+
+    it('loads the next page without repeating a row at the cursor boundary', async () => {
+      const { result } = renderHook(
+        () => usePredictActivityItems({ enabled: true }),
+        { wrapper: createWrapper() },
+      );
+      await waitFor(() => expect(result.current.hasMore).toBe(true));
+      const firstItems = result.current.items;
+
+      await act(() => result.current.loadMore());
+
+      await waitFor(() => expect(result.current.items).toHaveLength(4));
+      expect(mockGetCanonicalActivity).toHaveBeenLastCalledWith(
+        'kalshi',
+        { limit: 20 },
+        'page-2',
+      );
+      expect(result.current.items.map(({ hash }) => hash)).toEqual([
+        'trade-buy',
+        'trade-sell',
+        'settlement-1',
+        'trade-old',
+      ]);
+      expect(result.current.items.slice(0, 3)).toEqual(firstItems);
+      expect(result.current.hasMore).toBe(false);
+    });
+
+    it('reports its own error without items', async () => {
+      mockGetCanonicalActivity.mockRejectedValue(
+        new Error('venue_unavailable'),
+      );
+      const { result } = renderHook(
+        () => usePredictActivityItems({ enabled: true }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() =>
+        expect(result.current.error).toBe('venue_unavailable'),
+      );
+      expect(result.current.items).toEqual([]);
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('reads nothing and refetches nothing until the caller enables it', async () => {
+      const { result } = renderHook(
+        () => usePredictActivityItems({ enabled: false }),
+        { wrapper: createWrapper() },
+      );
+
+      await act(() => result.current.refetch());
+      await act(() => result.current.loadMore());
+      expect(mockGetCanonicalActivity).not.toHaveBeenCalled();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('treats Predictions rows on another chain as another Venue', () => {
+      const { result } = renderHook(
+        () => usePredictActivityItems({ enabled: true }),
+        { wrapper: createWrapper() },
+      );
+      const { isInactiveVenueItem } = result.current;
+
+      expect(isInactiveVenueItem(polymarketDeposit)).toBe(true);
+      expect(
+        isInactiveVenueItem({
+          ...polymarketDeposit,
+          type: 'predictionPlaced',
+        } as ActivityListItem),
+      ).toBe(true);
+      expect(
+        isInactiveVenueItem({
+          ...polymarketDeposit,
+          chainId: 'kalshi:mainnet',
+          type: 'predictionPlaced',
+        } as ActivityListItem),
+      ).toBe(false);
+      expect(
+        isInactiveVenueItem({
+          ...polymarketDeposit,
+          type: 'send',
+        } as ActivityListItem),
+      ).toBe(false);
+    });
+  });
+
+  describe('when the Active Venue changes', () => {
+    it('drops the old Venue rows and reads only the new one', async () => {
+      mockGetCanonicalActivity.mockResolvedValue({
+        ...firstPage,
+        nextCursor: undefined,
+      });
+      givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+      const { result, rerender } = renderHook(
+        () => usePredictActivityItems({ enabled: true }),
+        { wrapper: createWrapper() },
+      );
+      await waitFor(() =>
+        expect(result.current.items.map(({ hash }) => hash)).toEqual([
+          'predict-buy',
+        ]),
+      );
+      expect(mockGetCanonicalActivity).not.toHaveBeenCalled();
+
+      givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+      rerender(undefined);
+
+      expect(
+        result.current.items.some(({ chainId }) => chainId === 'eip155:137'),
+      ).toBe(false);
+      await waitFor(() => expect(result.current.items).toHaveLength(3));
+      expect(
+        result.current.items.every(
+          ({ chainId }) => chainId === 'kalshi:mainnet',
+        ),
+      ).toBe(true);
+      expect(result.current.isInactiveVenueItem(polymarketDeposit)).toBe(true);
+
+      givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+      rerender(undefined);
+
+      expect(result.current.items.map(({ hash }) => hash)).toEqual([
+        'predict-buy',
+      ]);
+      expect(result.current.isInactiveVenueItem(polymarketDeposit)).toBe(false);
     });
   });
 
@@ -121,7 +353,7 @@ describe('usePredictActivityItems', () => {
       givenActiveVenue({ status: 'ready', venue: 'polymarket' });
     });
 
-    it('passes legacy Activity through on Polygon in USDC', async () => {
+    it('passes legacy Activity through on Polygon in USDC, and reads no canonical Activity', async () => {
       const { result } = renderHook(
         () => usePredictActivityItems({ enabled: true }),
         { wrapper: createWrapper() },
@@ -129,6 +361,8 @@ describe('usePredictActivityItems', () => {
 
       await waitFor(() => expect(result.current.items).toHaveLength(1));
       expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
+      expect(mockGetCanonicalActivity).not.toHaveBeenCalled();
+      expect(result.current.isInactiveVenueItem(polymarketDeposit)).toBe(false);
       expect(result.current.items[0]).toEqual({
         type: 'predictionPlaced',
         chainId: 'eip155:137',
