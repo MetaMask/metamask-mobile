@@ -153,7 +153,7 @@ const EventMarketListContent = ({
             label: strings(
               getEventGame(event)
                 ? 'predict_next.event.game_lines'
-                : 'predict_next.event.outcome',
+                : 'predict_next.event.outcomes',
             ),
             content: null,
             testID: EventMarketListTestIds.MARKETS_TAB,

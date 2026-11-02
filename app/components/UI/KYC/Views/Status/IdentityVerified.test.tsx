@@ -5,6 +5,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaIdentityVerified, {
   VbaIdentityVerifiedSelectorsIDs,
 } from './IdentityVerified';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
+
+jest.mock('../../hooks/useTrackKycResultViewed');
 
 const renderScreen = () => {
   const onBack = jest.fn();
@@ -45,5 +48,11 @@ describe('VbaIdentityVerified', () => {
 
     expect(onBack).toHaveBeenCalledTimes(1);
     expect(onContinue).not.toHaveBeenCalled();
+  });
+
+  it('reports the approved result as viewed', () => {
+    renderScreen();
+
+    expect(useTrackKycResultViewed).toHaveBeenCalledWith('approved');
   });
 });
