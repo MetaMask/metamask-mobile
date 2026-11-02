@@ -24,6 +24,16 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+// Analytics loads `core/Engine/Engine` lazily on the first tracked event
+// (`trackKycVerificationUpdated` runs right before the SumSub launch). Point
+// that path at the Engine mock above; otherwise the first test synchronously
+// imports the real Engine graph, which takes longer than the 5 s test timeout
+// on a cold Jest cache.
+jest.mock('../../../../../core/Engine/Engine', () => ({
+  __esModule: true,
+  default: jest.requireMock('../../../../../core/Engine'),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: {
