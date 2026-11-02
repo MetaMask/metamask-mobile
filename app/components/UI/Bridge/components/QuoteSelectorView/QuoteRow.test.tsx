@@ -1,8 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
-import { QuoteRow, QuoteRowProps, QuoteRowView } from './QuoteRow';
+import {
+  QUOTE_ROW_SURFACE_TEST_ID,
+  QuoteRow,
+  QuoteRowProps,
+  QuoteRowView,
+} from './QuoteRow';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -285,41 +290,27 @@ describe('QuoteRow', () => {
   });
 
   describe('selected state', () => {
-    const findQuoteRowSurface = (root: {
-      findAllByType: (
-        type: typeof View,
-      ) => { props: { style?: StyleProp<ViewStyle> } }[];
-    }) =>
-      root.findAllByType(View).find((node) => {
-        const style = StyleSheet.flatten(node.props.style);
-        return (
-          style?.flexDirection === 'row' &&
-          style?.paddingLeft === 16 &&
-          style?.paddingTop === 12
-        );
-      });
-
     it('uses the muted background when selected', () => {
       // Act
-      const { UNSAFE_root } = render(<QuoteRow {...defaultProps} selected />);
+      const { getByTestId } = render(<QuoteRow {...defaultProps} selected />);
 
       // Assert
-      const surface = findQuoteRowSurface(UNSAFE_root);
-      expect(StyleSheet.flatten(surface?.props.style).backgroundColor).toBe(
+      const surface = getByTestId(QUOTE_ROW_SURFACE_TEST_ID);
+      expect(StyleSheet.flatten(surface.props.style).backgroundColor).toBe(
         lightTheme.colors.background.muted,
       );
     });
 
     it('omits a background when not selected', () => {
       // Act
-      const { UNSAFE_root } = render(
+      const { getByTestId } = render(
         <QuoteRow {...defaultProps} selected={false} />,
       );
 
       // Assert
-      const surface = findQuoteRowSurface(UNSAFE_root);
+      const surface = getByTestId(QUOTE_ROW_SURFACE_TEST_ID);
       expect(
-        StyleSheet.flatten(surface?.props.style).backgroundColor,
+        StyleSheet.flatten(surface.props.style).backgroundColor,
       ).toBeUndefined();
     });
   });

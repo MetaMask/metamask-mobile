@@ -21,6 +21,8 @@ import { selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import { limitToMaximumDecimalPlaces } from '../../../../../util/number';
 
+export const QUOTE_ROW_SURFACE_TEST_ID = 'quote-row-surface';
+
 export interface QuoteRowProps {
   provider: {
     name: string;
@@ -66,6 +68,7 @@ export const QuoteRowView = React.memo(
     return (
       <TouchableOpacity onPress={() => onPress(quoteRequestId)}>
         <Box
+          testID={QUOTE_ROW_SURFACE_TEST_ID}
           paddingVertical={3}
           paddingHorizontal={4}
           backgroundColor={
