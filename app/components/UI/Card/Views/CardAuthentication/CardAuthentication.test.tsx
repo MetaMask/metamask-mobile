@@ -810,11 +810,13 @@ describe('CardAuthentication', () => {
 
     it('does not show the code field when the email changes before the request finishes', async () => {
       mockPasswordlessFlag.enabled = true;
-      let finishRequest = () => undefined;
+      let finishRequest: () => void = () => undefined;
       mockRequestEmailCode.mockImplementation(
         () =>
           new Promise<void>((resolve) => {
-            finishRequest = resolve;
+            finishRequest = () => {
+              resolve();
+            };
           }),
       );
       setResolution({ kind: 'email', option: emailOption });
