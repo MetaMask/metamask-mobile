@@ -1,11 +1,11 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   CommonActions,
   useNavigation,
   type NavigationState,
   type PartialState,
 } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -30,6 +30,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsThemeImageComponent from '../components/ThemeImageComponent/RewardsThemeImageComponent';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import { clearPendingReferralCode } from '../../../../reducers/rewardsMoney';
 import { formatRewardsDateLabel } from '../utils/formatUtils';
 
 export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
@@ -286,6 +287,16 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
 
 const RewardsMoneyReferralAcceptedSplashView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
+
+  // The invite sheet leaves a deeplink's code pending through an accept, so
+  // the push pre-prompt only follows once this splash is gone.
+  useEffect(
+    () => () => {
+      dispatch(clearPendingReferralCode());
+    },
+    [dispatch],
+  );
 
   return (
     <ErrorBoundary

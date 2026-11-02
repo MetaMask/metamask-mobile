@@ -4,6 +4,7 @@ import type { RootState } from '../../../../../reducers';
 import { clearPendingReferralCode } from '../../../../../reducers/rewardsMoney';
 import {
   canAcceptMoneyReferralInvite,
+  selectIsReferralLinkPending,
   selectMoneyReferralAllowedForGeo,
   selectPendingMoneyReferralCode,
   selectReferralMeEntry,
@@ -16,6 +17,12 @@ import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { runAfterInteractions } from '../../utils/runAfterInteractions';
 
+/**
+ * How long the referral me read may take before the code is dropped. The push
+ * pre-prompt waits on the code, so a slow read must not hold it all session.
+ */
+export const MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS = 5000;
+
 interface PresenterProps {
   referralCode: string;
 }
@@ -24,8 +31,8 @@ interface PresenterProps {
  * Reads referral me fresh, then opens the invite sheet over whatever the
  * deeplink navigated to. The sheet reads the payload from the store, so it
  * opens with its copy instead of waiting on an empty one. A user who cannot
- * accept an invite, a confirmed excluded region, or a failed read drops the
- * code without a prompt.
+ * accept an invite, a confirmed excluded region, a failed read, or a read
+ * slower than the load budget drops the code without a prompt.
  */
 const PendingMoneyReferralInvitePresenter = ({
   referralCode,
@@ -37,18 +44,25 @@ const PendingMoneyReferralInvitePresenter = ({
 
   useEffect(() => {
     let cancelled = false;
+    let budgetTimer: ReturnType<typeof setTimeout> | undefined;
     const dropCode = () => {
       if (!cancelled) {
+        cancelled = true;
         dispatch(clearPendingReferralCode());
       }
     };
 
     const handle = runAfterInteractions(() => {
+      if (cancelled) {
+        return;
+      }
+      budgetTimer = setTimeout(dropCode, MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS);
       fetchReferralMe({ forceFresh: true })
         .then((result) => {
           if (cancelled) {
             return;
           }
+          clearTimeout(budgetTimer);
           // A newer link while the sheet is open is not a second prompt.
           if (
             NavigationService.getCurrentRoute()?.name ===
@@ -80,6 +94,7 @@ const PendingMoneyReferralInvitePresenter = ({
     return () => {
       cancelled = true;
       handle.cancel();
+      clearTimeout(budgetTimer);
     };
   }, [dispatch, fetchReferralMe, referralCode, store]);
 
@@ -88,14 +103,15 @@ const PendingMoneyReferralInvitePresenter = ({
 
 /**
  * Offers the referral code a deeplink left behind, once the wallet is unlocked
- * and onboarded. Mounted with the main navigator, so new users see the invite
- * right after onboarding and existing users see it over the link's
- * destination. Without basic functionality or the Rewards Money surface the
+ * and onboarded. Mounted with the main navigator, and held until the link is
+ * handled, so the invite opens over the link's destination rather than the
+ * interstitial. Without basic functionality or the Rewards Money surface the
  * invite cannot be validated, so the code is dropped.
  */
 const PendingMoneyReferralInvite = () => {
   const dispatch = useDispatch();
   const referralCode = useSelector(selectPendingMoneyReferralCode);
+  const isReferralLinkPending = useSelector(selectIsReferralLinkPending);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -112,7 +128,7 @@ const PendingMoneyReferralInvite = () => {
     }
   }, [canOfferInvite, dispatch, referralCode]);
 
-  if (!referralCode || !canOfferInvite) {
+  if (!referralCode || !canOfferInvite || isReferralLinkPending) {
     return null;
   }
 

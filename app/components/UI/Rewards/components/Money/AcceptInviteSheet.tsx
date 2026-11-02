@@ -132,10 +132,18 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const referralMe = referralMeEntry?.data;
 
   // A deeplink's code is answered once: whichever way this sheet closes, the
-  // code it was opened for must not prompt again.
+  // code it was opened for must not prompt again. After an accept, the
+  // accepted splash clears it instead, so the push pre-prompt waits for the
+  // splash too.
+  const hasAcceptedRef = useRef(false);
+  const handleAccepted = useCallback(() => {
+    hasAcceptedRef.current = true;
+  }, []);
   useEffect(
     () => () => {
-      dispatch(clearPendingReferralCode());
+      if (!hasAcceptedRef.current) {
+        dispatch(clearPendingReferralCode());
+      }
     },
     [dispatch],
   );
@@ -178,7 +186,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     refusalReason,
     acceptBlockedUntil,
     clearError,
-  } = useAcceptMoneyReferralCode();
+  } = useAcceptMoneyReferralCode({ onAccepted: handleAccepted });
 
   // Confirmed exclusion only — unknown geo fails open and stays on screen.
   // After Accept has started (or while it is loading), keep the sheet

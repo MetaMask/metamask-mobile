@@ -222,6 +222,11 @@ export function selectPendingMoneyReferralCode(
   return state.rewardsMoney?.pendingReferralCode ?? null;
 }
 
+/** Whether a deeplink carrying a referral code is still being handled. */
+export function selectIsReferralLinkPending(state: RootState): boolean {
+  return state.rewardsMoney?.isReferralLinkPending ?? false;
+}
+
 /** Session lock that keeps Claim disabled after the Earnings tab unmounts. */
 export function selectClaimLock(
   state: RootState,

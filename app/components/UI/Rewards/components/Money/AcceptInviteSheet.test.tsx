@@ -108,7 +108,8 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('../../hooks/useAcceptMoneyReferralCode', () => ({
-  useAcceptMoneyReferralCode: () => mockUseAcceptMoneyReferralCode(),
+  useAcceptMoneyReferralCode: (options?: { onAccepted?: () => void }) =>
+    mockUseAcceptMoneyReferralCode(options),
 }));
 
 jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
@@ -265,6 +266,23 @@ describe('AcceptInviteSheet', () => {
     unmount();
 
     expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+  });
+
+  it('leaves the deeplink referral code to the accepted splash after an accept', async () => {
+    const { store, unmount } = await renderSheet('KOL1');
+    act(() => {
+      store.dispatch(setPendingReferralCode('KOL1'));
+    });
+    const { onAccepted } =
+      mockUseAcceptMoneyReferralCode.mock.calls.at(-1)?.[0] ?? {};
+
+    act(() => {
+      onAccepted?.();
+    });
+    unmount();
+
+    expect(onAccepted).toEqual(expect.any(Function));
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
 
   it('keeps the deeplink referral code while the sheet is open', async () => {

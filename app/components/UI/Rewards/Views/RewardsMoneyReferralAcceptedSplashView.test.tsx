@@ -216,21 +216,41 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     jest.clearAllMocks();
   });
 
-  const renderSplash = (referralMe: ReferralMeDto = buildReferralMe()) => {
+  const renderSplash = (
+    referralMe: ReferralMeDto = buildReferralMe(),
+    pendingReferralCode: string | null = null,
+  ) => {
     const store = configureStore({
       engine: { backgroundState: sessionBackgroundState(PROFILE_ID) },
       rewardsMoney: {
         referralMe: {
           [PROFILE_ID]: { loading: false, error: false, data: referralMe },
         },
+        pendingReferralCode,
       },
     });
-    return render(
+    const view = render(
       <Provider store={store}>
         <RewardsMoneyReferralAcceptedSplashView />
       </Provider>,
     );
+    return { ...view, store };
   };
+
+  it('keeps the accepted deeplink referral code while the splash is shown', () => {
+    const { store } = renderSplash(buildReferralMe(), 'KOL1');
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
+  });
+
+  it('clears the accepted deeplink referral code once the splash closes', () => {
+    const { store, unmount } = renderSplash(buildReferralMe(), 'KOL1');
+
+    unmount();
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+    expect(store.getState().rewardsMoney.answeredReferralCode).toBe('KOL1');
+  });
 
   it('renders activation copy through the cashback window end', () => {
     const { getByTestId, getByText } = renderSplash();

@@ -59,6 +59,17 @@ export interface RewardsMoneyState {
    * that opened the link.
    */
   pendingReferralCode: string | null;
+  /**
+   * Last pending code that was cleared, so the same link parsed again later
+   * in the session cannot prompt twice. Dropped on rehydrate.
+   */
+  answeredReferralCode: string | null;
+  /**
+   * True while a deeplink carrying `ref` is still being handled (waiting for
+   * the navigator, the interstitial, or its destination). The invite sheet
+   * and the push pre-prompt both wait for it. Dropped on rehydrate.
+   */
+  isReferralLinkPending: boolean;
 }
 
 export type ClaimLockStatus = 'in_progress' | 'awaiting_fresh_summary';
@@ -79,6 +90,8 @@ export const initialState: RewardsMoneyState = {
   claimWaitingUntil: {},
   claimLocks: {},
   pendingReferralCode: null,
+  answeredReferralCode: null,
+  isReferralLinkPending: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -280,10 +293,19 @@ const rewardsMoneySlice = createSlice({
       state.claimLocks[action.payload.profileId] = action.payload.lock;
     },
     setPendingReferralCode: (state, action: PayloadAction<string>) => {
+      if (action.payload === state.answeredReferralCode) {
+        return;
+      }
       state.pendingReferralCode = action.payload;
     },
     clearPendingReferralCode: (state) => {
+      if (state.pendingReferralCode) {
+        state.answeredReferralCode = state.pendingReferralCode;
+      }
       state.pendingReferralCode = null;
+    },
+    setReferralLinkPending: (state, action: PayloadAction<boolean>) => {
+      state.isReferralLinkPending = action.payload;
     },
     resetRewardsMoneyState: () => initialState,
   },
@@ -310,6 +332,8 @@ const rewardsMoneySlice = createSlice({
           // Claim disabled after the process that owned the claim was gone.
           claimLocks: {},
           pendingReferralCode: null,
+          answeredReferralCode: null,
+          isReferralLinkPending: false,
         };
       },
     );
@@ -334,6 +358,7 @@ export const {
   setClaimLock,
   setPendingReferralCode,
   clearPendingReferralCode,
+  setReferralLinkPending,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 

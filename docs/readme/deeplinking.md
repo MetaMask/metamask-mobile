@@ -334,17 +334,32 @@ opens its own destination; the code never changes routing.
 - Non-alphanumeric characters are stripped and the code is uppercased. Codes
   outside 3–24 characters are discarded.
 - The code is kept for the current app session only, in
-  `rewardsMoney.pendingReferralCode`. A newer link replaces it.
-- New users keep the link pending through onboarding, so the code is read
-  when that link is processed after onboarding completes.
-- Once the wallet is unlocked, `PendingMoneyReferralInvite` reads referral me
-  and opens the Money invite sheet (`RewardsMoneyInviteSheet`) prefilled with
-  the code. Users who are already a referrer or referee, users in an excluded
-  region, and failed reads drop the code without a prompt. With basic
-  functionality or Rewards Money off, the code is dropped.
+  `rewardsMoney.pendingReferralCode`. A newer link replaces it. A code the
+  user already answered this session (`answeredReferralCode`) is not stored
+  again, so the same link does not prompt twice.
+- New users keep the link pending through onboarding. It is parsed once
+  onboarding hands over to `MainNavigator` (`parseDeeplinkAfterOnboarding`),
+  however long the remaining onboarding steps take (including an auto-lock in
+  between), so main-stack destinations such as Swap still open. SDK and
+  WalletConnect links are excluded: they only need an unlocked keychain and
+  keep the usual ready timeout.
+- The link's destination, the invite sheet, and the push notification
+  pre-prompt follow each other, never overlapping:
+  1. While `handleDeeplinkSaga` parses a link carrying `ref`, it sets
+     `rewardsMoney.isReferralLinkPending` (session only). The flag covers the
+     wait for `MainNavigator`, the interstitial, and the navigation to the
+     destination, and is cleared however the parse ends.
+  2. Once the flag is off, `PendingMoneyReferralInvite` reads referral me and
+     opens the Money invite sheet (`RewardsMoneyInviteSheet`) over the
+     destination, prefilled with the code. Users who are already a referrer
+     or referee, users in an excluded region, failed reads, and reads slower
+     than 5 seconds drop the code without a prompt. With basic functionality
+     or Rewards Money off, the code is dropped.
+  3. The push notification pre-prompt waits while the flag is on or a code is
+     pending. Closing the sheet without accepting clears the code; after an
+     accept, the accepted splash clears it when it closes.
 - No referral is created from the link. Only accepting the invite registers
-  the user as a referee. Closing the sheet in any way clears the code.
-- The push notification pre-prompt waits while a code is pending.
+  the user as a referee.
 - `DEEP_LINK_USED` reports the normalized code as `referral_code`.
 
 #### Private Link (Signed)

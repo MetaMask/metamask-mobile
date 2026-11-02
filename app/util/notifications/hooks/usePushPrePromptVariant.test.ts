@@ -15,6 +15,7 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import {
   clearPendingReferralCode,
   initialState as initialRewardsMoneyState,
+  setReferralLinkPending,
 } from '../../../reducers/rewardsMoney';
 import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
@@ -97,11 +98,13 @@ const renderUsePushPrePromptVariant = ({
   hasMarketingConsent = false,
   pendingSocialLoginMarketingConsentBackfill = null,
   pendingReferralCode = null,
+  isReferralLinkPending = false,
 }: {
   completedOnboarding?: boolean;
   hasMarketingConsent?: boolean;
   pendingSocialLoginMarketingConsentBackfill?: string | null;
   pendingReferralCode?: string | null;
+  isReferralLinkPending?: boolean;
 } = {}) =>
   renderHookWithProvider(() => usePushPrePromptVariant(), {
     state: {
@@ -115,6 +118,7 @@ const renderUsePushPrePromptVariant = ({
       rewardsMoney: {
         ...initialRewardsMoneyState,
         pendingReferralCode,
+        isReferralLinkPending,
       },
     },
   });
@@ -269,6 +273,44 @@ describe('usePushPrePromptVariant', () => {
 
     await act(async () => {
       store.dispatch(clearPendingReferralCode());
+    });
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+  });
+
+  it('does not return a prompt while a referral link is still being handled', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant({
+      isReferralLinkPending: true,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns the prompt once the referral link is handled without a code', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result, store } = renderUsePushPrePromptVariant({
+      isReferralLinkPending: true,
+    });
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+
+    await act(async () => {
+      store.dispatch(setReferralLinkPending(false));
     });
 
     await waitFor(() => {

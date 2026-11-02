@@ -20,6 +20,7 @@ import {
   selectEarningsSummaryEntry,
   selectInFlightClaims,
   selectMoneyDashboardPersona,
+  selectIsReferralLinkPending,
   selectMoneyReferralAllowedForGeo,
   selectPendingMoneyReferralCode,
   selectReferralFunnelEntry,
@@ -273,6 +274,26 @@ describe('rewardsMoney selectors', () => {
       } as RootState;
 
       expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(true);
+    });
+  });
+
+  describe('selectIsReferralLinkPending', () => {
+    it('returns false when no referral link is being handled', () => {
+      const state = buildState();
+
+      expect(selectIsReferralLinkPending(state)).toBe(false);
+    });
+
+    it('returns true while a referral link is being handled', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          isReferralLinkPending: true,
+        },
+      } as RootState;
+
+      expect(selectIsReferralLinkPending(state)).toBe(true);
     });
   });
 
