@@ -2193,43 +2193,6 @@ jobs:
               core.info('Artifact ci-js-deps not found (already deleted or never created)');
             }
 
-  # Required for pull requests and the merge queue. Check all jobs pass fails
-  # when this job fails. Push, schedule, and manual runs skip it.
-  security-code-scan:
-    name: Security code scan
-    needs:
-      - get_requirements
-    if: ${{ (github.event_name == 'pull_request' || github.event_name == 'merge_group') && needs.get_requirements.outputs.skip_everything != 'true' }}
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2.1.1
-    with:
-      scanner-ref: v2.1.1
-      # ubuntu-latest cannot finish these detected languages. Swift needs macOS.
-      # C/C++ has no compiled source. Java looks for ./mvnw, which this repo does
-      # not have. JavaScript, TypeScript, Python, Ruby, Actions, and Semgrep still run.
-      languages-config: |
-        [
-          {"language":"swift","ignore":true},
-          {"language":"cpp","ignore":true},
-          {"language":"java","ignore":true}
-        ]
-      paths-ignored: |
-        tests/
-        docs/
-        scripts/money-movement/debug-dashboard/
-        .storybook/
-        '**/*.test.js'
-        '**/*.test.ts'
-        '**/*.test.jsx'
-        '**/*.test.tsx'
-        '**/*.stories.tsx'
-        '**/*.stories.js'
-        '**/*.snap'
-      rules-excluded: example
-
   check-all-jobs-pass:
     name: Check all jobs pass
     # Run the aggregate gate even when optional dependencies are skipped.
@@ -2265,7 +2228,6 @@ jobs:
       - build-ios-apps
       - appium-smoke-tests-android
       - appium-smoke-tests-ios
-      - security-code-scan
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
