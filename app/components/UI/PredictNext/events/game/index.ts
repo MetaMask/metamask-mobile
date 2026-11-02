@@ -1,5 +1,6 @@
 export {
   createGamePresentation,
+  GAME_TEAM_ORDER,
   getEventGame,
   getTeamAbbreviation,
 } from './createGamePresentation';
