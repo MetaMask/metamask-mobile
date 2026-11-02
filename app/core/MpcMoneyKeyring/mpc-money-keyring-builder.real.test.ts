@@ -3,8 +3,6 @@ import { sha256 } from '@noble/hashes/sha2';
 import {
   buildRealMpcMoneyKeyringBuilder,
   MPC_MFA_WHITELIST_CONFIG,
-  MPC_TOKEN_SKEW_MS,
-  waitForTokenSkew,
   setMpcTwoFactorTokenProvider,
 } from './mpc-money-keyring-builder';
 
@@ -174,41 +172,5 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
       expect.not.stringMatching(/[-_]/u),
       'base64',
     );
-  });
-});
-
-describe('waitForTokenSkew', () => {
-  const tokenWithNbf = (nbf: number) =>
-    `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub: 'profile-1', nbf })}.sig`;
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it('waits until the skew allowance after nbf has passed', async () => {
-    jest.useFakeTimers({ now: 1_000_000_000 });
-    const token = tokenWithNbf(1_000_000);
-    let resolved = false;
-
-    const pending = waitForTokenSkew(token).then((value) => {
-      resolved = true;
-      return value;
-    });
-    await jest.advanceTimersByTimeAsync(MPC_TOKEN_SKEW_MS - 1);
-    expect(resolved).toBe(false);
-    await jest.advanceTimersByTimeAsync(1);
-
-    expect(await pending).toBe(token);
-  });
-
-  it('returns an old token straight away', async () => {
-    jest.useFakeTimers({ now: 1_000_000_000 });
-    const token = tokenWithNbf(1_000_000 - 60);
-
-    expect(await waitForTokenSkew(token)).toBe(token);
-  });
-
-  it('returns a token it cannot decode straight away', async () => {
-    expect(await waitForTokenSkew('not-a-jwt')).toBe('not-a-jwt');
   });
 });
