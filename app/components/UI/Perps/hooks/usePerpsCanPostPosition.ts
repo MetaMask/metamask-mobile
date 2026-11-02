@@ -8,8 +8,8 @@ import {
 } from '@metamask/perps-controller';
 import type { Position as SocialPosition } from '@metamask/social-controllers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Engine from '../../../../core/Engine';
 import { areAddressesEqual } from '../../../../util/address';
+import { getSocialProfileId } from '../../../../util/social/getSocialProfileId';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -136,14 +136,13 @@ export const usePerpsCanPostPosition = (): UsePerpsCanPostPositionResult => {
   const { data: lookedUpProfileId } = useQuery({
     queryKey: [...PERPS_SHARE_SOCIAL_PROFILE_QUERY_KEY, isSignedIn],
     queryFn: async () => {
-      const sessionProfile =
-        await Engine.context.AuthenticationController.getSessionProfile();
-      if (!sessionProfile?.profileId) {
+      const profileId = await getSocialProfileId();
+      if (!profileId) {
         return null;
       }
       try {
-        await fetchAndUpdateProfile(sessionProfile.profileId);
-        return sessionProfile.profileId;
+        await fetchAndUpdateProfile(profileId);
+        return profileId;
       } catch (error) {
         if (isProfileNotFoundError(error)) {
           return null;

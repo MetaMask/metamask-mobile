@@ -32,7 +32,7 @@ import type {
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
 import { formatAddress } from '../../../../util/address';
@@ -142,7 +142,7 @@ const FollowConnectionsView: React.FC = () => {
     ? traderFollowing.refresh
     : myFollowing.refresh;
   const { isFollowing, toggleFollow } = useFollowToggleMany();
-  const { profileId: viewerProfileId } = useSessionProfileId();
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const viewerAddress = useSelector(selectSelectedInternalAccountAddress);
   const [activeLoading, activeError, activeCount] =
     activeIndex === 1
