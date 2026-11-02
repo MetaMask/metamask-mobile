@@ -175,7 +175,7 @@ const MyProfileView: React.FC = () => {
     isActive: isOwner,
   });
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('open');
   const profileTabs = useMemo<TabItem[]>(
     () => [
       {

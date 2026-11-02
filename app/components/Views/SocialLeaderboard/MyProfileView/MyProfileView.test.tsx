@@ -685,6 +685,7 @@ describe('MyProfileView', () => {
     });
 
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
     fireEvent(
       screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL),
       'momentumScrollEnd',
@@ -713,6 +714,7 @@ describe('MyProfileView', () => {
     });
 
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING),
@@ -732,6 +734,7 @@ describe('MyProfileView', () => {
     });
 
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
@@ -744,6 +747,7 @@ describe('MyProfileView', () => {
 
   it('renders a centered Posts empty line without a create action', () => {
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
@@ -1144,7 +1148,7 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
     ).toBeOnTheScreen();
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
     expect(screen.queryByText('Your feed starts here')).toBeNull();
     expect(
       screen.queryByText('When they share a trade, it will show up here.'),
@@ -1265,12 +1269,9 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('defaults to Posts and shows Open and Closed tabs for the owner', () => {
+  it('defaults to Open and shows Closed and Posts tabs for the owner', () => {
     renderWithProvider(<MyProfileView />);
 
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
-    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
     ).toBeOnTheScreen();
@@ -1278,10 +1279,14 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toBeNull();
   });
 
