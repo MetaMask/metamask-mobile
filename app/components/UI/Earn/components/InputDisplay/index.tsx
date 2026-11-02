@@ -1,9 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  TextColor as DesignTextColor,
+  TextVariant as DesignTextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -23,11 +28,7 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import CurrencyToggle from '../CurrencySwitch';
 import FadeInView from '../FadeInView';
-
-export const INPUT_DISPLAY_TEST_IDS = {
-  LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON:
-    'LendingMaxSafeWithdrawalTooltipIcon',
-};
+import { INPUT_DISPLAY_TEST_IDS } from './InputDisplay.testIds';
 
 export interface InputDisplayProps {
   isOverMaximum: {
@@ -47,8 +48,6 @@ export interface InputDisplayProps {
   error?: string;
   onPressAmount?: () => void;
 }
-
-const { View: AnimatedView } = Animated;
 
 const createStyles = (
   colors: Colors,
@@ -79,15 +78,6 @@ const createStyles = (
           fontWeight: '500',
         }
       : {},
-    amountCursor: {
-      width: 1,
-      height: 32,
-      marginTop: 2,
-      marginLeft: 5,
-      marginRight: 5,
-      opacity: 1,
-      backgroundColor: colors.border.default,
-    },
     maxWithdrawalContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -144,30 +134,7 @@ const InputDisplay = ({
     isStablecoinLendingEnabled,
     shouldShowLendingMaxSafeWithdrawalMessage,
   });
-  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
-
   const ticker = asset.ticker ?? asset.symbol;
-
-  useEffect(() => {
-    const blinkAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(cursorOpacity, {
-          toValue: 0,
-          duration: 800,
-          easing: () => Easing.bounce(1),
-          useNativeDriver: true,
-        }),
-        Animated.timing(cursorOpacity, {
-          toValue: 1,
-          easing: () => Easing.bounce(1),
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    blinkAnimation.start();
-  }, [cursorOpacity]);
 
   const balanceInfo = useMemo(() => {
     if (error) return error;
@@ -236,29 +203,26 @@ const InputDisplay = ({
         </Text>
       </View>
       <View style={styles.amountRow}>
-        <Pressable onPress={onPressAmount}>
-          <View style={styles.amountRow}>
-            <Text
-              style={styles.amountText}
-              color={TextColor.Default}
-              variant={TextVariant.DisplayMD}
-            >
-              {isFiat ? amountFiatNumber : amountToken}
-            </Text>
-            {isStablecoinLendingEnabled ? (
-              <AnimatedView
-                style={[styles.amountCursor, { opacity: cursorOpacity }]}
-              />
-            ) : null}
-            <Text
-              style={styles.amountText}
-              color={TextColor.Muted}
-              variant={TextVariant.DisplayMD}
-            >
-              {isFiat ? currentCurrency.toUpperCase() : ticker}
-            </Text>
-          </View>
-        </Pressable>
+        <AnimatedAmountDisplay
+          accessibilityLabel={`${isFiat ? amountFiatNumber : amountToken} ${
+            isFiat ? currentCurrency.toUpperCase() : ticker
+          }`}
+          animated
+          color={DesignTextColor.TextDefault}
+          containerStyle={styles.amountRow}
+          cursor={
+            isStablecoinLendingEnabled
+              ? { animated: true, testID: INPUT_DISPLAY_TEST_IDS.AMOUNT_CURSOR }
+              : false
+          }
+          onPress={onPressAmount}
+          style={styles.amountText}
+          suffix={isFiat ? currentCurrency.toUpperCase() : ticker}
+          suffixColor={DesignTextColor.TextMuted}
+          suffixStyle={styles.amountText}
+          value={isFiat ? amountFiatNumber : amountToken}
+          variant={DesignTextVariant.DisplayMd}
+        />
       </View>
       <View>
         <CurrencyToggle

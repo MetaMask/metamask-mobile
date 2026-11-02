@@ -31,8 +31,6 @@ import {
 } from '../../../Transactions/AssetDetailsActivityListItem.utils';
 import { filterDuplicateOutgoingTransactions } from '../../../Transactions/utils';
 import ActivityHeader from '../../../../Views/Asset/ActivityHeader';
-import { useUnifiedTxActions } from '../../../../Views/ActivityList/useUnifiedTxActions';
-import { CancelSpeedupModal } from '../../../../Views/confirmations/components/modals/cancel-speedup-modal';
 import { useTokenTransactions } from '../../hooks/useTokenTransactions';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 
@@ -49,6 +47,7 @@ export const ACTIVITY_EXPAND_STEP_ROWS = 5;
 
 export interface ActivitySectionProps {
   token: TokenDetailsRouteParams;
+  showSectionRule?: boolean;
 }
 
 interface UseGroupedTokenActivityParams {
@@ -161,7 +160,10 @@ function useVisibleActivityRows(groupedItems: GroupedActivityListItem[]): {
   return { visibleItems, hasMore, handleShowMore };
 }
 
-const ActivitySection: React.FC<ActivitySectionProps> = ({ token }) => {
+const ActivitySection: React.FC<ActivitySectionProps> = ({
+  token,
+  showSectionRule = false,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const chainId = token.chainId as Hex | undefined;
   const assetSymbol = token.symbol ?? '';
@@ -173,18 +175,6 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({ token }) => {
     loading: isActivityLoading,
     isNonEvmAsset,
   } = useTokenTransactions(token);
-
-  const {
-    speedUpIsOpen,
-    cancelIsOpen,
-    confirmDisabled,
-    existingTx,
-    onSpeedUpAction,
-    onCancelAction,
-    onSpeedUpCancelCompleted,
-    speedUpTransaction,
-    cancelTransaction,
-  } = useUnifiedTxActions();
 
   const accountImportTime = useSelector(
     (state: RootState) =>
@@ -230,7 +220,12 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({ token }) => {
 
   return (
     <>
-      <Box testID={TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID}>
+      <Box
+        testID={TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID}
+        twClassName={
+          showSectionRule ? 'mt-6 border-t border-muted pt-6' : undefined
+        }
+      >
         <ActivityHeader
           asset={{
             ...token,
@@ -272,8 +267,6 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({ token }) => {
               networkConfigurations={networkConfigurationsByChainId}
               allTokens={allTokens}
               bridgeHistory={bridgeHistory}
-              onSpeedUpAction={onSpeedUpAction}
-              onCancelAction={onCancelAction}
             />
           );
         })}
@@ -290,17 +283,6 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({ token }) => {
           </Box>
         ) : null}
       </Box>
-
-      {existingTx ? (
-        <CancelSpeedupModal
-          isVisible={speedUpIsOpen || cancelIsOpen}
-          isCancel={cancelIsOpen}
-          tx={existingTx}
-          onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
-          onClose={onSpeedUpCancelCompleted}
-          confirmDisabled={confirmDisabled}
-        />
-      ) : null}
     </>
   );
 };

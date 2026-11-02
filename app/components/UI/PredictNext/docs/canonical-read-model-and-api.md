@@ -3,6 +3,7 @@
 - **Status:** Agreed working direction; implemented slices remain executable truth
 - **Scope:** Public, read-only Predict navigation and Event Screens
 - **Venues:** Kalshi first, with a future Polymarket backend mapping
+- **Related:** Account-scoped Position, Portfolio Summary, and Activity reads, and the Venue catalog, are specified in [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md).
 
 ## Recommendation
 
@@ -325,7 +326,7 @@ Use Kalshi's precise lifecycle vocabulary as the canonical Market lifecycle:
 | `amended`     | The determination changed after a dispute.            |
 | `finalized`   | Venue settlement is complete and the result is final. |
 
-Polymarket lifecycle fields are mapped conservatively. The backend must not invent `disputed` or `amended` without authoritative Venue evidence. Whether a Predict User must perform a Claim is account/portfolio state, not Market lifecycle.
+Polymarket lifecycle fields are mapped conservatively. The backend must not invent `disputed` or `amended` without authoritative Venue evidence. Whether a Predict User must perform a Claim is account/portfolio state, not Market lifecycle. See the Position `status` in [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md#position).
 
 Do not add a generic Event lifecycle by deriving it from child Markets. Sports Game state, Event display timing, and Market trading lifecycle are separate concepts.
 

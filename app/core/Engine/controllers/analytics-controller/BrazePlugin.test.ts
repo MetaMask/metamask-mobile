@@ -440,6 +440,40 @@ describe('BrazePlugin', () => {
       expect(mockBraze.setLanguage).not.toHaveBeenCalled();
     });
 
+    it('normalizes locale identifiers to the language subtag Braze expects', () => {
+      plugin.setBrazeProfileId('profile-123');
+
+      plugin.setLanguage('en_FR');
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('en');
+
+      plugin.setLanguage('en-FR');
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('en');
+
+      plugin.setLanguage('pt_BR');
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('pt');
+
+      plugin.setLanguage('zh-Hans-CN');
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('zh');
+    });
+
+    it('does not send unrecognizable locales to Braze', () => {
+      plugin.setBrazeProfileId('profile-123');
+
+      plugin.setLanguage('_FR');
+      plugin.setLanguage('123');
+
+      expect(mockBraze.setLanguage).not.toHaveBeenCalled();
+    });
+
+    it('sends the normalized language stored before the profileId is set', () => {
+      plugin.setLanguage('en_FR');
+      expect(mockBraze.setLanguage).not.toHaveBeenCalled();
+
+      plugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('en');
+    });
+
     it('does not resend language when setLanguage is called with the same locale', () => {
       plugin.setBrazeProfileId('profile-123');
       plugin.setLanguage('fr');

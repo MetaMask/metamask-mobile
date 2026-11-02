@@ -1,4 +1,5 @@
 import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
+import type { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
 import type { LimitOrderTriggerInput } from '../../utils/limitOrders/getLimitOrderTriggerParams';
@@ -29,6 +30,12 @@ export interface LimitOrderConfirmationModalParams {
    * Source amount being paid, including its symbol, e.g. "0.1 ETH".
    */
   payingAmount: string;
+  /**
+   * Destination amount the order would produce if it filled exactly at its
+   * limit price, including its symbol, e.g. "341.22 USDC". It is an estimate
+   * since the cost tolerance can reduce what is actually received.
+   */
+  estReceivingAmount: string;
   /**
    * Limit price the order triggers at, e.g. "$3,412.20".
    */
@@ -66,6 +73,11 @@ export interface LimitOrderConfirmationModalProps
    * edits made in the cost tolerance modal are reflected here.
    */
   costTolerance: string;
+  /**
+   * Which side of the trigger price fills the order, shown as a ≥ or ≤ sign
+   * before it. Read from the trigger input by the host screen.
+   */
+  triggerDirection: LimitOrderPriceComparisonDirection;
   /**
    * Comparison against the current market price.
    */

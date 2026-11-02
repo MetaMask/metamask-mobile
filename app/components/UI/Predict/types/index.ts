@@ -3,7 +3,10 @@
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
-import type { PredictPaymentMethodValue } from '../constants/eventNames';
+import type {
+  PredictOutcomeVersionValue,
+  PredictPaymentMethodValue,
+} from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -19,6 +22,22 @@ export enum ActiveOrderState {
   PLACING_ORDER = 'placing_order',
   SUCCESS = 'success',
 }
+
+/**
+ * Authoritative order state for the retry guard, supplied by each screen
+ * from its own order-state source. Anything other than 'unknown' is in
+ * flight or terminal and must never be retried as a fresh failure:
+ *
+ * - 'pending'  — a submission is in flight
+ * - 'filled'   — the order actually filled
+ * - 'canceled' — the user rejected/canceled the order
+ * - 'unknown'  — no authoritative signal (a not-filled failure is retryable)
+ */
+export type PredictRetryOrderState =
+  | 'unknown'
+  | 'pending'
+  | 'filled'
+  | 'canceled';
 
 /**
  * Which leg of a PWAT buy failed. Defaults to `'order'` when omitted so
@@ -41,13 +60,20 @@ export interface GetPositionsParams {
   marketId?: string;
   outcomeId?: string;
   limit?: number;
-  offset?: number;
 }
 
 export interface GetActivityParams {
   address?: string;
   limit?: number;
-  offset?: number;
+  /** Opaque Polymarket Data API v2 cursor from a previous page's `next_cursor`. */
+  cursor?: string;
+}
+
+/** One page of Predict activity, following the Polymarket Data API v2 envelope. */
+export interface PredictActivityPage {
+  activities: PredictActivity[];
+  /** Pass to the next `getActivity` call; absent or null when there are no more pages. */
+  nextCursor?: string;
 }
 
 export enum PredictMarketStatus {
@@ -358,6 +384,12 @@ export type PredictOutcome = {
   line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
+  /**
+   * Gamma market version for this outcome's market, as reported by Gamma.
+   * Informational only: order routing reads `OrderPreview.outcomeVersion`,
+   * which the provider resolves when it builds the preview.
+   */
+  version?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -462,10 +494,19 @@ export interface PredictPriceHistoryPoint {
 }
 
 export interface GetPriceHistoryParams {
+  /** Outcome token id. */
   marketId: string;
+  /**
+   * Bucket width in minutes. Omit it to let the server size the bucket to the
+   * window. An explicit width is served exactly, so a fine width over a window
+   * older than that grain's retention (about 7 days for 1-minute data) comes
+   * back empty.
+   */
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+  /** Window start, epoch seconds. Used with `endTs`; the window may span at most 15 days. */
   startTs?: number;
+  /** Window end, epoch seconds (exclusive). */
   endTs?: number;
 }
 
@@ -591,6 +632,11 @@ export interface PredictTradeAnalyticsProperties {
   portfolioModuleEnabled?: boolean;
   marketType?: string;
   outcome?: string;
+  /**
+   * `outcome_version` analytics value: `v1`, `v2`, or `mixed` (claims only).
+   * Normalized, unlike the raw Gamma version in `OrderPreview.outcomeVersion`.
+   */
+  outcomeVersion?: PredictOutcomeVersionValue;
   marketSlug?: string;
   gameId?: string;
   gameStartTime?: string;
@@ -622,8 +668,10 @@ export type Result<T = void> =
 
 export interface UnrealizedPnL {
   user: string;
-  cashUpnl: number;
-  percentUpnl: number;
+  /** Latest cumulative unrealized P&L from the Polymarket PnL series. Stays missing (not zero) when the series has no value. */
+  cashUpnl?: number;
+  /** Derived from open positions: (sum current value − sum entry cost) / sum entry cost. */
+  percentUpnl?: number;
 }
 
 export type PredictClaim = {
@@ -749,6 +797,10 @@ export interface PredictFees {
   permit2Enabled?: boolean;
 }
 
+export interface PredictFeePolicy {
+  builderCode: string;
+}
+
 /**
  * @example
  * side = BUY;
@@ -770,6 +822,11 @@ export interface OrderPreview {
   timestamp: number;
   side: Side;
   sharePrice: number;
+  /**
+   * Sell previews only: the lowest bid price used to fill the full size from
+   * the order book snapshot.
+   */
+  worstFillPrice?: number;
   maxAmountSpent: number;
   minAmountReceived: number;
   slippage: number;
@@ -778,11 +835,20 @@ export interface OrderPreview {
   negRisk: boolean;
   feeRateBps?: string;
   fees?: PredictFees;
+  /** Standard fees before applying the membership MetaMask fee waiver. */
+  originalFees?: PredictFees;
+  feePolicy?: PredictFeePolicy;
   rateLimited?: boolean;
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
   orderType?: PredictOrderType;
+  /**
+   * Gamma market version of the traded outcome's market, resolved when the
+   * provider builds the preview. Routes the order: "v2" uses the positions
+   * protocol; any other value uses the CTF path.
+   */
+  outcomeVersion?: string;
 }
 
 export type OrderResult = Result<{
@@ -846,6 +912,7 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
+  feePolicy?: PredictFeePolicy;
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
@@ -856,6 +923,7 @@ export interface PreviewMaxBuyOrderParams {
   outcomeId: string;
   outcomeTokenId: string;
   availableBalance: number;
+  feePolicy?: PredictFeePolicy;
 }
 
 export type PredictWalletType = 'safe' | 'deposit-wallet';

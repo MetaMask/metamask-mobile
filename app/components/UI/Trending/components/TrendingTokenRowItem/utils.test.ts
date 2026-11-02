@@ -3,6 +3,7 @@ import {
   caipChainIdToHex,
   formatCompactCurrency,
   formatMarketStats,
+  formatSearchStats,
   getCaipChainIdFromAssetId,
   getNetworkBadgeSource,
   getNetworkBadgeSrc,
@@ -461,6 +462,34 @@ describe('formatMarketStats', () => {
 
       expect(result).toBe('- cap • €1.0M vol');
     });
+  });
+});
+
+describe('formatSearchStats', () => {
+  it('formats the symbol and market cap', () => {
+    expect(formatSearchStats('USDC', 75641301011.76)).toBe('USDC · $76B cap');
+  });
+
+  it('omits the symbol when it is missing', () => {
+    expect(formatSearchStats(undefined, 75641301011.76)).toBe('$76B cap');
+  });
+
+  it('formats a zero market cap as a dash', () => {
+    const result = formatSearchStats('USDC', 0);
+
+    expect(result).toBe('USDC · - cap');
+  });
+
+  it('formats the market cap in the given currency', () => {
+    const result = formatSearchStats('USDC', 13000000000, 'EUR');
+
+    expect(result).toBe('USDC · €13B cap');
+  });
+
+  it('omits an empty symbol', () => {
+    const result = formatSearchStats('', 75641301011.76);
+
+    expect(result).toBe('$76B cap');
   });
 });
 

@@ -1,14 +1,21 @@
 import { createSelector } from 'reselect';
 import {
+  getIsAssetsLoadingForSelectedAccountGroup,
   getDefaultAssetsControllerState,
   type AssetsControllerState,
 } from '@metamask/assets-controller';
 import { RootState } from '../../reducers';
+import { selectAccountTreeControllerState } from '../multichainAccounts/accountTreeController';
 
 const defaultState = getDefaultAssetsControllerState();
 
 const getAssetsController = (state: RootState): AssetsControllerState =>
   state.engine?.backgroundState?.AssetsController ?? defaultState;
+
+export const selectIsAssetsLoadingForSelectedAccountGroup = createSelector(
+  [getAssetsController, selectAccountTreeControllerState],
+  getIsAssetsLoadingForSelectedAccountGroup,
+);
 
 export const getCustomAssets = createSelector(
   [getAssetsController],

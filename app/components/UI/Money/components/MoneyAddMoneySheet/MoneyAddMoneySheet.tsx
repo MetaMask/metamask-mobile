@@ -37,7 +37,10 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { getBankAccountEntryVisibility } from '../../utils/getBankAccountEntryVisibility';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -62,7 +65,6 @@ const log = createProjectLogger('money-add-money-sheet');
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
-  const openVbaOnboarding = useOpenVbaOnboarding();
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
   const { styles } = useStyles(styleSheet, {});
 
@@ -78,7 +80,11 @@ const MoneyAddMoneySheet: React.FC = () => {
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
   // Flag, min version, supported IP geolocation, and the dev bypass.
   const vbaEligibility = useVbaEligibility();
-  const bankAccountVisibility = getBankAccountEntryVisibility(vbaEligibility);
+  const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
+  const bankAccountVisibility = getBankAccountEntryVisibility({
+    ...vbaEligibility,
+    hasUsableAutoramp: Boolean(usableVbaAutoramp),
+  });
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();
@@ -162,18 +168,19 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleBankAccount = useCallback(() => {
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.ADD_MONEY_SHEET);
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
-    // Open the first incomplete VBA module (fresh users land on Terms 1;
-    // returning users resume from durable controller facts).
+    // An approved account opens its details directly. Otherwise the loading
+    // screen hydrates and replaces itself with the first incomplete module.
     sheetRef.current?.onCloseBottomSheet(() => {
-      openVbaOnboarding().catch(() => undefined);
+      openVbaEntry(navigation);
     });
-  }, [openVbaOnboarding, trackSurfaceClicked]);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
     trackSurfaceClicked({

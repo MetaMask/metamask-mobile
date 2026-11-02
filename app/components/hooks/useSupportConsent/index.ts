@@ -14,8 +14,8 @@ export type { OpenSupportUrl };
  * `Linking.openURL`, or an in-app browser), keeping each entry point's
  * existing opening mechanism intact.
  *
- * The consent choice is not persisted: the sheet is shown on every call,
- * matching the extension's behavior (see extension PR #44482).
+ * If the user saved their choice ("Save my preference"), the sheet is skipped
+ * and the saved choice is applied directly (see `navigateToSupportConsent`).
  *
  * `openSupportWithConsent` accepts an optional `onOpenSupport` callback fired
  * once the support URL has successfully opened (after confirm or reject;

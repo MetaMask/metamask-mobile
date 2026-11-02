@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   HeaderSubpage,
+  IconColor,
+  IconName,
   SegmentedControl,
 } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
@@ -14,6 +16,17 @@ import PerpsAdjustMarginBottomSheet from './PerpsAdjustMarginBottomSheet';
 const mockGoBack = jest.fn();
 const mockHandleAddMargin = jest.fn();
 const mockHandleRemoveMargin = jest.fn();
+const mockHandleAddFunds = jest.fn().mockResolvedValue(undefined);
+const mockUsePerpsHomeActions = jest.fn((_options?: unknown) => ({
+  handleAddFunds: mockHandleAddFunds,
+  isEligibilityModalVisible: false,
+  closeEligibilityModal: jest.fn(),
+  isEligible: true,
+  isProcessing: false,
+  error: null,
+  handleWithdraw: jest.fn(),
+  showEligibilityModal: jest.fn(),
+}));
 const mockUsePerpsAdjustMarginData = jest.fn();
 const mockTrack = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
@@ -39,6 +52,11 @@ let mockMarginAdjustmentOptions:
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack }),
+  useFocusEffect: () => undefined,
+}));
+
+jest.mock('../../hooks/usePerpsHomeActions', () => ({
+  usePerpsHomeActions: (options?: unknown) => mockUsePerpsHomeActions(options),
 }));
 
 jest.mock('../../hooks/usePerpsMarginAdjustment', () => ({
@@ -231,6 +249,41 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         inputAmount: number;
       }) => createMarginData(mode, inputAmount),
     );
+  });
+
+  it('opens the perp deposit flow from the available-to-add row', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    const depositIcon = screen.UNSAFE_getByProps({ name: IconName.AddCircle });
+    expect(depositIcon.props.name).toBe(IconName.AddCircle);
+    expect(depositIcon.props.color).toBe(IconColor.IconAlternative);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
+      ),
+    );
+
+    expect(mockHandleAddFunds).toHaveBeenCalledTimes(1);
+    expect(mockUsePerpsHomeActions).toHaveBeenCalledWith({
+      buttonLocation: 'add_margin',
+      openConfirmationInPlace: true,
+      onBeforeOpenConfirmation: expect.any(Function),
+    });
+  });
+
+  it('hides the deposit entry point while removing margin', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
+      ),
+    ).toBeNull();
   });
 
   it('renders add mode in the bottom sheet', () => {

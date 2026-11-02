@@ -1,6 +1,8 @@
 # PredictNext
 
-PredictNext is the new prediction-markets module for MetaMask Mobile. Its first production implementation is Kalshi. It is developed separately from the legacy `Predict/` implementation, which continues to serve Polymarket until a later, explicit migration.
+PredictNext is the new prediction-markets module for MetaMask Mobile. Its first production implementation is Kalshi. It is developed separately from the legacy `Predict/` implementation, which continues to serve Polymarket until its Venue adapter moves to the Predict API service under PRED-1356.
+
+Code outside Predict migrates to a thin PredictNext public API. During the dual-codebase period, that API passes Polymarket through to the unchanged legacy code. See [ADR-0002](./docs/adr/0002-permanent-public-api-private-legacy.md).
 
 ## Current direction
 
@@ -26,11 +28,12 @@ The first delivery track is defined by [PRED-1109](https://consensyssoftware.atl
 - Venue-qualified public reads and account-scoped workflows.
 - Kalshi-specific feature flags, kill switches, and rollout controls.
 - The minimum UI and services required by each Jira vertical slice.
+- A Venue-neutral public API for external callers, with a pass-through legacy Polymarket branch ([PRED-1374](./docs/public-api-contract.md)).
 
 ### Not in scope now
 
-- Rewriting or moving production Polymarket code.
-- A Polymarket adapter or compatibility layer.
+- Rewriting production Polymarket code. Moving legacy code behind a public API without behavior changes is allowed.
+- A client-side Polymarket adapter or conversion of legacy Polymarket data into canonical types. That mapping belongs to the Predict API service under PRED-1356.
 - Multi-Venue aggregation.
 - A generic remote-adapter framework before a second remote Venue proves the need.
 - Scaffolding every future service, hook, component tier, or optional capability.
@@ -80,6 +83,8 @@ These are boundaries, not a requirement to create every possible directory or mo
 - [`docs/canonical-read-model-and-api.md`](./docs/canonical-read-model-and-api.md) — agreed working direction for public read types, relationships, and REST routes.
 - [`docs/ui-components.md`](./docs/ui-components.md) — composition rules for complex PredictNext UI components.
 - [`docs/module-structure.md`](./docs/module-structure.md) — directory ownership, public module APIs, and internal boundaries.
+- [`docs/public-api-contract.md`](./docs/public-api-contract.md) — external consumer migration, the pass-through legacy branch, and PRED-1356 inputs.
+- [`docs/adr/0002-permanent-public-api-private-legacy.md`](./docs/adr/0002-permanent-public-api-private-legacy.md) — permanent public API with pass-through legacy Polymarket.
 - [`docs/venue-adapters.md`](./docs/venue-adapters.md) — capability adapter rules.
 - [`docs/remote-adapters.md`](./docs/remote-adapters.md) — remote trust and transport rules.
 - [`docs/live-data-subscriptions.md`](./docs/live-data-subscriptions.md) — viewport-driven live-data subscriptions, per-surface granularity, live-game gating, and cap degradation.

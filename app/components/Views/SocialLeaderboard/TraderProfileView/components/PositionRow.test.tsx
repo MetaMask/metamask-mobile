@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
@@ -213,6 +213,59 @@ describe('PositionRow', () => {
     expect(onPress).toHaveBeenCalledWith(basePosition);
   });
 
+  it('shows the insider label and ignores onPress when showFlaggedState is set', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(
+      <PositionRow position={position} onPress={onPress} showFlaggedState />,
+    );
+
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toHaveTextContent('Insider allocation - excluded');
+    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('uses muted color for flagged percent instead of PnL color', () => {
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(<PositionRow position={position} showFlaggedState />);
+
+    const percentColor = colorOf(screen.getByText('+182.00%'));
+    const labelColor = colorOf(
+      screen.getByText('Insider allocation - excluded'),
+    );
+
+    expect(percentColor).toBeDefined();
+    expect(percentColor).toBe(labelColor);
+  });
+
+  it('shows the generic excluded label for unrecognized flags when showFlaggedState is set', () => {
+    const position = { ...basePosition, flags: ['blocked'] };
+
+    renderWithProvider(<PositionRow position={position} showFlaggedState />);
+
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toHaveTextContent('Excluded from PnL');
+  });
+
+  it('keeps a flagged row pressable when showFlaggedState is omitted', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(<PositionRow position={position} onPress={onPress} />);
+
+    expect(screen.queryByTestId('position-row-flag-label-STARKBOT')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledWith(position);
+  });
+
   it('renders the row without a token image when the chain is not recognized', () => {
     const position = { ...basePosition, chain: 'unknown' };
 
@@ -275,6 +328,18 @@ describe('PositionRow', () => {
       renderWithProvider(<PositionRow position={position} />);
 
       expect(screen.getByText('—')).toBeOnTheScreen();
+    });
+
+    it('renders dash for PnL when boughtUsd or realizedPnl is null', () => {
+      const position = {
+        ...closedPosition,
+        boughtUsd: null,
+        realizedPnl: null,
+      };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders negative realized PnL percent with a minus sign', () => {

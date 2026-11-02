@@ -28,7 +28,10 @@ import { SNAPS_REGISTRY_MOCKS } from './snaps-registry.ts';
 import { CONTENTFUL_BANNERS_MOCKS } from './contentful-banners.ts';
 import { PERPS_HYPERLIQUID_MOCKS } from './perps-hyperliquid.ts';
 import { TRENDING_API_MOCKS } from '../trending-api-mocks.ts';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  TX_SENTINEL_NETWORK_MOCKS,
+} from '../tx-sentinel-networks-map.ts';
 import { DIGEST_API_MOCKS } from './digest-api.ts';
 import { PRICE_ALERTS_API_MOCKS } from './price-alerts.ts';
 import { MONEY_ACCOUNT_MOCKS } from './money-account.ts';
@@ -99,64 +102,7 @@ export const DEFAULT_MOCKS = {
       response: TX_SENTINEL_NETWORKS_MAP,
     },
     // TX Sentinel single network endpoint (for chainId-specific requests)
-    {
-      urlEndpoint:
-        'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/network',
-      responseCode: 200,
-      response: {
-        name: 'Mainnet',
-        group: 'ethereum',
-        chainID: 1,
-        nativeCurrency: {
-          name: 'ETH',
-          symbol: 'ETH',
-          decimals: 18,
-        },
-        network: 'ethereum-mainnet',
-        explorer: 'https://etherscan.io',
-        confirmations: true,
-        smartTransactions: true,
-        relayTransactions: true,
-        hidden: false,
-        sendBundle: true,
-      },
-    },
-    {
-      urlEndpoint:
-        'https://tx-sentinel-arbitrum-mainnet.api.cx.metamask.io/network',
-      responseCode: 200,
-      response: {
-        name: 'Arbitrum Mainnet',
-        group: 'arbitrum',
-        chainID: 42161,
-        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-        network: 'arbitrum-mainnet',
-        explorer: 'https://arbiscan.io/',
-        confirmations: true,
-        smartTransactions: true,
-        relayTransactions: true,
-        hidden: false,
-        sendBundle: false,
-      },
-    },
-    {
-      urlEndpoint:
-        'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io/network',
-      responseCode: 200,
-      response: {
-        name: 'Polygon Mainnet',
-        group: 'polygon',
-        chainID: 137,
-        nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
-        network: 'polygon-mainnet',
-        explorer: 'https://polygonscan.com/',
-        confirmations: true,
-        smartTransactions: false,
-        relayTransactions: false,
-        hidden: false,
-        sendBundle: false,
-      },
-    },
+    ...TX_SENTINEL_NETWORK_MOCKS,
   ],
   POST: [
     ...(authMocks.POST || []),

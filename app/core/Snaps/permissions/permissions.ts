@@ -1,10 +1,11 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Figure out which permissions should be disabled at this point
-export const ExcludedSnapPermissions = Object.freeze({
-  eth_accounts:
+export const ExcludedSnapPermissions = Object.freeze({});
+
+export const ExcludedSnapEndowments = Object.freeze({
+  'endowment:caip25':
     'eth_accounts is disabled. For more information please see https://github.com/MetaMask/snaps/issues/990.',
 });
-export const ExcludedSnapEndowments = Object.freeze({});
 
 export const EndowmentPermissions = Object.freeze({
   'endowment:network-access': 'endowment:network-access',

@@ -29,9 +29,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
+import SwapsRebateBanner from '../../../components/SwapsRebateBanner';
 
 interface Props {
   location: MetaMetricsSwapsEventSource;
@@ -86,6 +87,7 @@ export const BridgeMarketViewFooter = ({
       <Box style={footerContainerStyle}>
         <HardwareWalletSolanaSignUnsupportedBanner />
         <BlockaidErrorBanner />
+        <SwapsRebateBanner quote={activeQuote.quote} />
         <SwapsMarketOrderConfirmButton
           location={location}
           transactionActiveAbTests={transactionActiveAbTests}
@@ -100,7 +102,7 @@ export const BridgeMarketViewFooter = ({
           >
             {discountBadge ? (
               isRewardsTierBadge ? (
-                <RewardsVipBadge
+                <MembershipVipBadge
                   hasProEntitlement={
                     discountBadge.type === DiscountType.SUBSCRIPTION
                   }

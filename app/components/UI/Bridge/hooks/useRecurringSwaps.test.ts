@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from '@metamask/react-data-query';
+import { MOCK_RECURRING_OPEN_ORDER } from '../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../api/recurringSwaps.mock';
 import type { GetRecurringSwapsResponse } from '../api/recurringOrders.types';
 import { useRecurringSwaps } from './useRecurringSwaps';
@@ -8,7 +9,7 @@ jest.mock('@metamask/react-data-query', () => ({
 }));
 
 const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
-const ORDER_ID = MOCK_RECURRING_OPEN_ORDER_SWAPS[0].orderId;
+const ORDER_ID = MOCK_RECURRING_OPEN_ORDER.id;
 
 function createPage(
   swapIndex: number,

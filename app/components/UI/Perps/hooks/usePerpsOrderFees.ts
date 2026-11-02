@@ -1,3 +1,8 @@
+import {
+  getPresentedOriginalMetamaskFeeRate,
+  getPerpsFeeDiscount,
+  type PerpsFeeDiscountKind,
+} from '../utils/feeDiscount';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -12,12 +17,11 @@ import {
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
-  BASIS_POINTS_DIVISOR,
-  BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
   type OrderType,
+  type PerpsFeeSource,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -38,6 +42,8 @@ let pointsCalculationCache: {
 export interface OrderFeesResult {
   /** Total fee in USD (protocol + MetaMask) */
   totalFee: number;
+  /** Total fee rate as decimal (protocol + MetaMask) - undefined means unavailable/error state */
+  totalFeeRate: number | undefined;
   /**
    * Total fee in USD **before** the MetaMask VIP discount is applied.
    * Equals `totalFee` when no discount is in effect. Consumers use this to
@@ -60,10 +66,29 @@ export interface OrderFeesResult {
   originalMetamaskFeeRate?: number;
   /** Fee discount percentage applied (e.g., 30 for 30% off) */
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   /** Estimated points to be earned from this trade */
   estimatedPoints?: number;
   /** Bonus multiplier in basis points (100 = 1%) */
   bonusBips?: number;
+  /**
+   * Fee source whose rate the MetaMask fee was priced from: the winner of
+   * the unified fee resolution this quote was computed with. `subscription`
+   * should surface a member badge; `rewards` should surface a VIP badge.
+   * Undefined when the quote was not re-priced from a resolution.
+   */
+  feeSource?: PerpsFeeSource;
+  /**
+   * Taker-side combined fee rate (protocol + MetaMask) as a decimal (e.g.
+   * 0.00143 for 0.143%). Populated only when `includeFeeRateBreakdown` is
+   * set. `undefined` otherwise, while loading, or when the taker lookup failed.
+   */
+  takerFeeRate?: number;
+  /**
+   * Maker-side combined fee rate (protocol + MetaMask) as a decimal. Same
+   * population rule as `takerFeeRate`.
+   */
+  makerFeeRate?: number;
 }
 
 interface UsePerpsOrderFeesParams {
@@ -85,6 +110,14 @@ interface UsePerpsOrderFeesParams {
   currentAskPrice?: number;
   /** Real bid price from L2 order book */
   currentBidPrice?: number;
+  /**
+   * When true, also resolves `takerFeeRate` / `makerFeeRate` by requesting
+   * the opposite `isMaker` side from the provider in addition to this
+   * order's actual resolved side. Off by default so existing callers pay no
+   * extra request; the fee display format A/B test opts in
+   * only for the `percentage` variant. See `usePerpsFeeDisplayAbTest`.
+   */
+  includeFeeRateBreakdown?: boolean;
 }
 
 /**
@@ -113,6 +146,7 @@ export function usePerpsOrderFees({
   direction,
   currentAskPrice,
   currentBidPrice,
+  includeFeeRateBreakdown = false,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
@@ -246,10 +280,17 @@ export function usePerpsOrderFees({
   const [totalFeeRate, setTotalFeeRate] = useState<number | undefined>(
     undefined,
   );
+  const [takerFeeRate, setTakerFeeRate] = useState<number | undefined>(
+    undefined,
+  );
+  const [makerFeeRate, setMakerFeeRate] = useState<number | undefined>(
+    undefined,
+  );
   const [isLoadingFees, setIsLoadingFees] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // State for rewards data
+  const [feeSource, setFeeSource] = useState<PerpsFeeSource>();
   const [feeDiscountPercentage, setFeeDiscountPercentage] = useState<
     number | undefined
   >();
@@ -368,6 +409,9 @@ export function usePerpsOrderFees({
       discountPercentage?: number,
       points?: number,
       bonusBipsValue?: number,
+      source?: PerpsFeeSource,
+      takerRate?: number,
+      makerRate?: number,
     ) => {
       setProtocolFeeRate(protocolRate);
       setOriginalMetamaskFeeRate(originalMetamaskRate);
@@ -379,8 +423,11 @@ export function usePerpsOrderFees({
           : undefined,
       );
       setFeeDiscountPercentage(discountPercentage);
+      setFeeSource(source);
       setEstimatedPoints(points);
       setBonusBips(bonusBipsValue);
+      setTakerFeeRate(takerRate);
+      setMakerFeeRate(makerRate);
     },
     [],
   );
@@ -397,8 +444,11 @@ export function usePerpsOrderFees({
     setOriginalMetamaskFeeRate(0);
     setTotalFeeRate(0);
     setFeeDiscountPercentage(undefined);
+    setFeeSource(undefined);
     setEstimatedPoints(undefined);
     setBonusBips(undefined);
+    setTakerFeeRate(undefined);
+    setMakerFeeRate(undefined);
   }, []);
 
   // Main effect to orchestrate fee calculation
@@ -440,21 +490,60 @@ export function usePerpsOrderFees({
           return;
         }
 
-        // Step 3: calculateFees already prices the MetaMask fee from the
-        // controller's fee resolution (rewards/VIP or subscription), so its rate
-        // is what the order is charged. Derive the undiscounted rate and the
-        // discount from it instead of applying the rewards discount again.
+        // calculateFees returns the charged rate and its presentation fields as
+        // one resolved quote.
+        const source = coreFeesResult.feeSource;
         const resolvedMetamaskRate = coreFeesResult.metamaskFeeRate;
-        const undiscountedMetamaskRate =
-          coreFeesResult.chargesMetamaskBuilderFee
-            ? BUILDER_FEE_CONFIG.MaxFeeDecimal
-            : resolvedMetamaskRate;
-        const discountPercentage = coreFeesResult.chargesMetamaskBuilderFee
-          ? Math.round(
-              (1 - resolvedMetamaskRate / undiscountedMetamaskRate) *
-                BASIS_POINTS_DIVISOR,
-            ) / 100
-          : undefined;
+        const originalRate =
+          getPresentedOriginalMetamaskFeeRate(coreFeesResult);
+        const discountPercentage =
+          coreFeesResult.metamaskFeeDiscountBips !== undefined
+            ? coreFeesResult.metamaskFeeDiscountBips / 100
+            : undefined;
+
+        // Opposite side is always requested as `limit`. Market-like types and
+        // chase ignore `isMaker`, so resending them would repeat this side's rate.
+        let takerRate: number | undefined;
+        let makerRate: number | undefined;
+        if (includeFeeRateBreakdown) {
+          const thisSideRate =
+            coreFeesResult.protocolFeeRate + resolvedMetamaskRate;
+          try {
+            const otherSideResult = await calculateFees({
+              orderType: 'limit',
+              isMaker: !isMaker,
+              amount,
+              symbol,
+              ...(providerId !== undefined ? { providerId } : {}),
+            });
+
+            if (!isComponentMounted) return;
+
+            const otherSideRate =
+              otherSideResult.protocolFeeRate !== undefined &&
+              otherSideResult.metamaskFeeRate !== undefined
+                ? otherSideResult.protocolFeeRate +
+                  otherSideResult.metamaskFeeRate
+                : undefined;
+
+            takerRate = isMaker ? otherSideRate : thisSideRate;
+            makerRate = isMaker ? thisSideRate : otherSideRate;
+          } catch (breakdownError) {
+            // Keep the resolved side. Leave the other side undefined so a
+            // failed lookup cannot display one rate under the other label.
+            DevLogger.log(
+              'Fee Calculation: taker/maker breakdown failed, keeping only the resolved side',
+              {
+                error:
+                  breakdownError instanceof Error
+                    ? breakdownError.message
+                    : String(breakdownError),
+              },
+            );
+            takerRate = isMaker ? undefined : thisSideRate;
+            makerRate = isMaker ? thisSideRate : undefined;
+          }
+        }
 
         // Step 4: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
@@ -462,7 +551,11 @@ export function usePerpsOrderFees({
           const actualFeeUSD = Number.parseFloat(amount) * resolvedMetamaskRate;
           DevLogger.log('Rewards: Calculating points with resolved fee', {
             metamaskFeeRate: resolvedMetamaskRate,
+            feeSource: source,
+            metamaskFeeDiscountBips: coreFeesResult.metamaskFeeDiscountBips,
+            originalRate,
             discountPercentage,
+            adjustedRate: coreFeesResult.metamaskFeeRate,
             amount: Number.parseFloat(amount),
             actualFeeUSD,
           });
@@ -478,11 +571,14 @@ export function usePerpsOrderFees({
         // Step 5: Update all state with actual values (all rates are defined)
         updateFeeState(
           coreFeesResult.protocolFeeRate,
-          undiscountedMetamaskRate,
-          resolvedMetamaskRate,
+          originalRate,
+          coreFeesResult.metamaskFeeRate,
           discountPercentage,
           pointsResult.points,
           pointsResult.bonusBips,
+          source,
+          takerRate,
+          makerRate,
         );
       } catch (fetchError) {
         if (isComponentMounted) {
@@ -510,6 +606,7 @@ export function usePerpsOrderFees({
     isMaker,
     amount,
     symbol,
+    includeFeeRateBreakdown,
     calculateFees,
     handlePointsEstimation,
     updateFeeState,
@@ -536,6 +633,7 @@ export function usePerpsOrderFees({
 
     return {
       totalFee,
+      totalFeeRate,
       undiscountedTotalFee,
       protocolFee,
       metamaskFee,
@@ -546,8 +644,16 @@ export function usePerpsOrderFees({
       // Rewards data
       originalMetamaskFeeRate,
       feeDiscountPercentage,
+      feeSource,
+      feeDiscountKind: getPerpsFeeDiscount({
+        feeSource,
+        currentFeeRate: metamaskFeeRate,
+        originalFeeRate: originalMetamaskFeeRate,
+      }).kind,
       estimatedPoints,
       bonusBips,
+      takerFeeRate,
+      makerFeeRate,
     };
   }, [
     amount,
@@ -557,7 +663,10 @@ export function usePerpsOrderFees({
     isLoadingFees,
     error,
     originalMetamaskFeeRate,
+    takerFeeRate,
+    makerFeeRate,
     feeDiscountPercentage,
+    feeSource,
     estimatedPoints,
     bonusBips,
   ]);

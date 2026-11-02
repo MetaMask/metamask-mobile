@@ -1,6 +1,7 @@
 import {
   AccountTrackerControllerState,
   CurrencyRateState,
+  getNativeTokenAddress,
 } from '@metamask/assets-controllers';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -101,6 +102,10 @@ const MOCK_RATE = {
   totalVolume: 1,
 };
 const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const MOCK_CANONICAL_MAINNET_ETH_ASSET = {
+  ...MOCK_ETH_MAINNET_ASSET,
+  address: getNativeTokenAddress(CHAIN_IDS.MAINNET),
+};
 const createMainnetErc20AssetId = (address: string) =>
   `eip155:1/erc20:${toChecksumHexAddress(address)}`;
 const MOCK_EARN_ASSETS_CONTROLLER_STATE = {
@@ -975,6 +980,31 @@ describe('Earn Controller Selectors', () => {
   });
 
   describe('selectEarnTokenPair', () => {
+    it('returns Staked Ethereum for a canonical mainnet ETH asset', () => {
+      const result = earnSelectors.selectEarnTokenPair(
+        mockState as unknown as RootState,
+        MOCK_CANONICAL_MAINNET_ETH_ASSET,
+      );
+
+      expect(result.earnToken?.isETH).toBe(true);
+      expect(result.earnToken?.isStaked).toBe(false);
+      expect(result.outputToken?.isETH).toBe(true);
+      expect(result.outputToken?.isStaked).toBe(true);
+      expect(result.outputToken?.name).toBe('Staked Ethereum');
+    });
+
+    it('returns no output token when Earn asset state is incomplete', () => {
+      mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({});
+
+      const result = earnSelectors.selectEarnTokenPair(
+        { ...mockState } as unknown as RootState,
+        MOCK_CANONICAL_MAINNET_ETH_ASSET,
+      );
+
+      expect(result.earnToken).toBeUndefined();
+      expect(result.outputToken).toBeUndefined();
+    });
+
     it('returns undefined earn token and output token when no valid tokens are provided', () => {
       const result = earnSelectors.selectEarnTokenPair(
         mockState as unknown as RootState,

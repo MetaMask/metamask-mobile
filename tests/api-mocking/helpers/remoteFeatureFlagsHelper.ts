@@ -105,10 +105,6 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     enabled: false,
     minimumVersion: '0.0.0',
   },
-  stellarAccounts: {
-    enabled: false,
-    minimumVersion: '0.0.1',
-  },
   nativeTabBarEnabled: true,
   // predictHomeRedesign stays at the prod value. Predict smoke waits for
   // predict-home-container, which only mounts when the redesign is enabled.
@@ -125,6 +121,11 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   crossmintApplePayCheckout: {
     enabled: false,
     minimumVersion: '0.0.0',
+  },
+  // The 2026-10-13 prod sync turns DeFi V2 on. Keep the registry at the prod
+  // value and pin the pre-sync homepage/controller path for smoke tests.
+  defiControllerV2: {
+    enabled: false,
   },
 };
 

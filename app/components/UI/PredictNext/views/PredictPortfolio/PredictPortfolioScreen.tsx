@@ -13,7 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { TraceName } from '../../../../../util/trace';
 import { useActivity } from '../../hooks/useActivity';
-import { useBalance } from '../../hooks/useBalance';
+import { usePortfolioSummary } from '../../hooks/usePortfolioSummary';
 import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
@@ -28,6 +28,7 @@ import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
 import { PortfolioTabs } from './internal/PortfolioTabs';
+import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
 
 const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
@@ -40,7 +41,7 @@ export const PredictPortfolioScreen = () => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const venueId = route.params.venueId;
-  const balanceQuery = useBalance(venueId);
+  const summaryQuery = usePortfolioSummary(venueId);
   const [activeTab, setActiveTab] = useState<PredictPortfolioTab>(
     route.params.initialTab ?? 'positions',
   );
@@ -61,10 +62,10 @@ export const PredictPortfolioScreen = () => {
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextPortfolioView,
-    conditions: [!balanceQuery.isPending, !activeListQuery.isPending],
+    conditions: [!summaryQuery.isPending, !activeListQuery.isPending],
     debugContext: {
-      hasBalance: Boolean(balanceQuery.data),
-      error: balanceQuery.isError || activeListQuery.isError,
+      hasSummary: Boolean(summaryQuery.data),
+      error: summaryQuery.isError || activeListQuery.isError,
       tab: activeTab,
     },
   });
@@ -94,12 +95,13 @@ export const PredictPortfolioScreen = () => {
     (position: PredictPosition) => {
       openOrderFlow({
         action: 'sell',
+        eventId: position.context?.eventId,
         venueId,
         marketId: position.marketId,
         side: position.side,
-        outcomeLabel: position.context?.outcomeLabel ?? position.side,
-        eventTitle: position.context?.eventTitle ?? position.marketId,
-        eventImageUrl: position.context?.eventImageUrl,
+        outcomeLabel: getOutcomeName(position.side, position.context),
+        eventTitle: getEntryTitle(position.context),
+        eventImageUrl: position.context?.imageUrl,
         maxContracts: Math.floor(Number(position.shares)),
       });
     },
@@ -122,10 +124,10 @@ export const PredictPortfolioScreen = () => {
       </Box>
       <Box twClassName="flex-1 px-4">
         <PortfolioSummaryCard
-          balance={balanceQuery.data}
-          isLoading={balanceQuery.isPending}
+          summary={summaryQuery.data}
+          isLoading={summaryQuery.isPending}
           isPrivacyMode={Boolean(privacyMode)}
-          onRetry={() => balanceQuery.refetch()}
+          onRetry={() => summaryQuery.refetch()}
         />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">

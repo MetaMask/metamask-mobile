@@ -3,7 +3,13 @@ import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
-import { AnimationDuration } from '@metamask/design-tokens';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import { ThemeProvider, Theme } from '@metamask/design-system-twrnc-preset';
+import {
+  AnimationDuration,
+  brandColor,
+  darkTheme,
+} from '@metamask/design-tokens';
 import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
 import { SlideInUp } from 'react-native-reanimated';
 import bannersReducer from '../../../../../reducers/banners';
@@ -105,6 +111,47 @@ describe('PerpsOutreachBanner', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('uses the section background and default text', () => {
+    const { getByTestId, UNSAFE_getAllByType } = renderBanner();
+
+    const bannerStyle = flattenStyle(
+      getByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
+    );
+    const body = UNSAFE_getAllByType(Text).find(
+      (node) => node.props.children === BANNER.body,
+    );
+
+    expect(bannerStyle.backgroundColor).toBe(brandColor.grey050);
+    expect(bannerStyle.backgroundColor).not.toBe(brandColor.white);
+    expect(body?.props.color).toBe(TextColor.TextDefault);
+  });
+
+  it('uses the dark section background when the theme is dark', () => {
+    const store = createStore();
+    const { getByTestId, UNSAFE_getAllByType } = render(
+      <Provider store={store}>
+        <ThemeProvider theme={Theme.Dark}>
+          <PerpsOutreachBanner location="perps_home" />
+        </ThemeProvider>
+      </Provider>,
+    );
+
+    const bannerStyle = flattenStyle(
+      getByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
+    );
+    const body = UNSAFE_getAllByType(Text).find(
+      (node) => node.props.children === BANNER.body,
+    );
+
+    expect(bannerStyle.backgroundColor).toBe(
+      darkTheme.colors.background.section,
+    );
+    expect(bannerStyle.backgroundColor).not.toBe(
+      darkTheme.colors.background.default,
+    );
+    expect(body?.props.color).toBe(TextColor.TextDefault);
   });
 
   it('renders the server-provided campaign content', () => {

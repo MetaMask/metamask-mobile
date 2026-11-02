@@ -101,3 +101,108 @@ export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
       EVENT_NAME.PERPS_TRADE_TRANSACTION,
     ],
   };
+
+/**
+ * TAT-3793: Perps home Explore table.
+ *
+ * Control keeps the stacked Watchlist, Products, and category sections.
+ * Treatment replaces those six sections with one tabbed Explore table.
+ *
+ * Dark-launch the LaunchDarkly JSON flag at 100% control (control threshold
+ * `1`, treatment threshold `0`), then move to 50/50. Missing, invalid, or
+ * unresolved assignments fall back to `control` inside `useABTest`.
+ *
+ * Consume via `usePerpsHomeExploreAbTest()` — do not read the raw flag.
+ */
+export const PERPS_HOME_EXPLORE_AB_TEST_KEY =
+  'perpsTAT3793AbtestPerpsHomeExplore';
+
+export enum PerpsHomeExploreVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsHomeExploreVariantConfig {
+  showExploreTable: boolean;
+}
+
+export const PERPS_HOME_EXPLORE_VARIANTS: Record<
+  PerpsHomeExploreVariant,
+  PerpsHomeExploreVariantConfig
+> = {
+  [PerpsHomeExploreVariant.Control]: { showExploreTable: false },
+  [PerpsHomeExploreVariant.Treatment]: { showExploreTable: true },
+};
+
+export const PERPS_HOME_EXPLORE_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Home Explore Table',
+  variationNames: {
+    control: 'Stacked sections',
+    treatment: 'Explore table',
+  },
+} as const;
+
+export const PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_HOME_EXPLORE_AB_TEST_KEY,
+    validVariants: Object.values(PerpsHomeExploreVariant),
+    eventNames: [
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.PERPS_ERROR,
+    ],
+  };
+
+/**
+ * Perps Fee Display Format — $ vs. Taker/Maker %.
+ *
+ * Control keeps today's single blended dollar fee amount on the order
+ * entry/review fee row. Treatment replaces it with "Taker X.XXX% / Maker
+ * Y.YYY%", sourced from the user's actual applicable rate per side
+ * (`usePerpsOrderFees`'s `takerFeeRate` / `makerFeeRate` — protocol +
+ * MetaMask combined, reflecting VIP-tier discounts), not a static default.
+ *
+ * In scope: the fee row for `create_position` and `increase_exposure`, Lite
+ * (full page) and Pro mode. Position close, deposit/withdraw, TWAP, and the
+ * Pro scale-order ladder preview stay on the dollar amount.
+ *
+ * Consume via `usePerpsFeeDisplayAbTest()` — do not call `useABTest` with
+ * this flag directly.
+ */
+export const FEE_DISPLAY_AB_TEST_KEY = 'perpsTAT4046AbtestFeeDisplayFormat';
+
+export enum FeeDisplayVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface FeeDisplayVariantConfig {
+  feeDisplayMode: 'dollar' | 'percentage';
+}
+
+export const FEE_DISPLAY_VARIANTS: Record<
+  FeeDisplayVariant,
+  FeeDisplayVariantConfig
+> = {
+  [FeeDisplayVariant.Control]: { feeDisplayMode: 'dollar' },
+  [FeeDisplayVariant.Treatment]: { feeDisplayMode: 'percentage' },
+};
+
+export const FEE_DISPLAY_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Fee Display Format',
+  variationNames: {
+    control: 'Dollar fee amount',
+    treatment: 'Taker/Maker percentage rates',
+  },
+} as const;
+
+export const FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
+  flagKey: FEE_DISPLAY_AB_TEST_KEY,
+  validVariants: Object.values(FeeDisplayVariant),
+  eventNames: [
+    EVENT_NAME.PERPS_SCREEN_VIEWED,
+    EVENT_NAME.PERPS_TRADE_TRANSACTION,
+  ],
+};

@@ -1,18 +1,25 @@
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  Box,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+  ButtonsAlignment,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import type { PerpsFlipPositionConfirmSheetProps } from './PerpsFlipPositionConfirmSheet.types';
 import createStyles from './PerpsFlipPositionConfirmSheet.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -33,20 +40,12 @@ import {
 import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../../constants/slippageConfig';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
+import PerpsRebateBanner from '../PerpsRebateBanner';
 import PerpsValidationErrors from '../PerpsValidationErrors';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
-import {
-  Text,
-  TextColor,
-  TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-} from '@metamask/design-system-react-native';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
@@ -60,6 +59,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
+  const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { playImpact } = useHaptics();
@@ -106,7 +106,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       ? Number.parseFloat(topOfBook.bestBid)
       : undefined,
   });
-
   const hasValidAmount = parseFloat(usdAmount) > 0;
 
   // The flip is a market order filled up to the default slippage away from
@@ -197,42 +196,40 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     vipTier,
   ]);
 
-  const footerButtons = useMemo(
-    () => [
-      {
-        label: strings('perps.flip_position.cancel'),
-        onPress: handleCloseInternal,
-        variant: ButtonVariants.Secondary,
-        size: ButtonSize.Lg,
-        disabled: isFlipping,
-        testID: PerpsFlipPositionConfirmSheetSelectorsIDs.CANCEL_BUTTON,
-      },
-      {
-        label: isFlipping
-          ? strings('perps.flip_position.flipping')
-          : strings('perps.flip_position.flip'),
-        onPress: handleReverse,
-        variant: ButtonVariants.Primary,
-        size: ButtonSize.Lg,
-        isDisabled: isFlipping || !canFlip,
-        danger: true,
-        testID: PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
-      },
-    ],
-    [handleCloseInternal, handleReverse, isFlipping, canFlip],
+  const secondaryButtonProps = useMemo(
+    () => ({
+      children: strings('perps.flip_position.cancel'),
+      onPress: handleCloseInternal,
+      size: ButtonSize.Lg,
+      isDisabled: isFlipping,
+      testID: PerpsFlipPositionConfirmSheetSelectorsIDs.CANCEL_BUTTON,
+    }),
+    [handleCloseInternal, isFlipping],
+  );
+
+  const primaryButtonProps = useMemo(
+    () => ({
+      children: isFlipping
+        ? strings('perps.flip_position.flipping')
+        : strings('perps.flip_position.flip'),
+      onPress: handleReverse,
+      size: ButtonSize.Lg,
+      isDisabled: isFlipping || !canFlip,
+      isDanger: true,
+      testID: PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
+    }),
+    [handleReverse, isFlipping, canFlip],
   );
 
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack={!externalSheetRef}
+      goBack={externalSheetRef ? undefined : navigation.goBack}
       onClose={externalSheetRef ? onClose : undefined}
       testID={PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET}
     >
       <BottomSheetHeader onClose={handleCloseInternal}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('perps.flip_position.title')}
-        </Text>
+        {strings('perps.flip_position.title')}
       </BottomSheetHeader>
 
       <View style={styles.contentContainer}>
@@ -325,6 +322,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               </Text>
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                feeDiscountKind={feeResults.feeDiscountKind}
                 fee={
                   !hasValidAmount || feeResults.isLoadingMetamaskFee
                     ? undefined
@@ -375,9 +373,16 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         )}
       </View>
 
+      <PerpsRebateBanner
+        coin={position.symbol}
+        direction={oppositeDirection}
+        notionalUsd={usdAmount}
+        containerTwClassName="px-4 mb-3"
+      />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={footerButtons}
+        secondaryButtonProps={secondaryButtonProps}
+        primaryButtonProps={primaryButtonProps}
         style={styles.footerContainer}
       />
     </BottomSheet>

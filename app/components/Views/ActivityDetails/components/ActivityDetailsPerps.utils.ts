@@ -88,7 +88,7 @@ export function getPerpsPriceValue(
 
 export function shouldShowPerpsPnl(fill: PerpsTransaction['fill']): boolean {
   return Boolean(
-    fill?.pnl && (fill.action === 'Closed' || fill.action === 'Flipped'),
+    fill && (fill.action === 'Closed' || fill.action === 'Flipped'),
   );
 }
 

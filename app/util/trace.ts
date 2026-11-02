@@ -9,12 +9,17 @@ import {
   withIsolationScope,
   startNewTrace,
   SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
+import type {
+  SwapRelatedTraceName,
+  SwapTraceRequest,
+} from '@metamask/bridge-controller';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -71,6 +76,12 @@ export enum TraceName {
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RampScreenLoad = 'Ramp Screen Load',
+  VbaScreenLoad = 'VBA Screen Load',
+  KycScreenLoad = 'KYC Screen Load',
+  VbaToPixInstructions = 'VBA To Pix Instructions',
+  VbaHydrate = 'VBA Hydrate',
+  VbaAutorampSetup = 'VBA Autoramp Setup',
+  VbaPixFetch = 'VBA Pix Fetch',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -129,6 +140,11 @@ export enum TraceName {
   OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  BridgeTransactionApprovalCompleted = 'Bridge Transaction Approval Completed',
+  BridgeTransactionCompleted = 'Bridge Transaction Completed',
+  SwapOperationCompleted = 'Swap Operation Completed',
+  SwapTransactionApprovalCompleted = 'Swap Transaction Approval Completed',
+  SwapTransactionCompleted = 'Swap Transaction Completed',
   SwapQuoteFetch = 'Swap Quote Fetch',
   SwapTokenSearch = 'Swap Token Search',
   SwapPopularTokensFetch = 'Swap Popular Tokens Fetch',
@@ -280,6 +296,7 @@ export enum TraceName {
   PredictNextGetBalance = 'PredictNext Get Balance',
   PredictNextGetPositions = 'PredictNext Get Positions',
   PredictNextGetActivity = 'PredictNext Get Activity',
+  PredictNextGetPortfolioSummary = 'PredictNext Get Portfolio Summary',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
@@ -319,6 +336,9 @@ export enum TraceName {
   // Notifications & Braze Performance
   NotificationListTimeToContent = 'Notification List Time To Content',
   BrazeBannerTimeToContent = 'Braze Banner Time To Content',
+  // Social V1 Performance
+  SocialTabTimeToContent = 'Social Tab Time To Content',
+  SocialTabDataFetch = 'Social Tab Data Fetch',
 }
 
 export enum TraceOperation {
@@ -399,7 +419,11 @@ export enum TraceOperation {
   // Notifications & Braze Performance
   NotificationPerformance = 'notification.performance',
   BrazeBannerPerformance = 'braze_banner.performance',
+  SocialPerformance = 'social.performance',
+  SocialDataFetch = 'social.data_fetch',
   RampOperation = 'ramp.operation',
+  VbaOperation = 'vba.operation',
+  KycOperation = 'kyc.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
@@ -597,6 +621,11 @@ export interface EndTraceRequest {
   timestamp?: number;
 
   /**
+   * Final status to record on the span.
+   */
+  status?: 'ok' | 'error';
+
+  /**
    * Custom data to associate with the trace when ending it.
    * These will be set as attributes on the span.
    */
@@ -618,9 +647,26 @@ interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
   }[];
 }
 
-export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
+type GenericTraceName = TraceRequest['name'];
 
-export function trace(request: TraceRequest): TraceContext;
+/**
+ * Overloads the {@link TraceRequest} type for swap-related trace names.
+ * The {@link SwapTraceRequest} type defines required properties for swap-related traces
+ */
+type TraceRequestFor<TName extends GenericTraceName> = [TName] extends [
+  SwapRelatedTraceName<TraceName>,
+]
+  ? Omit<SwapTraceRequest<TName>, 'op'> & { op?: TraceOperation }
+  : Omit<TraceRequest, 'name'> & { name: TName };
+
+export function trace<ResultType, TName extends GenericTraceName>(
+  request: TraceRequestFor<TName>,
+  fn: TraceCallback<ResultType>,
+): ResultType;
+
+export function trace<TName extends GenericTraceName>(
+  request: TraceRequestFor<TName>,
+): TraceContext;
 
 /**
  * Create a Sentry transaction to analyse the duration of a code flow.
@@ -922,6 +968,12 @@ export function endTrace(request: EndTraceRequest): void {
     for (const [attrKey, attrValue] of Object.entries(request.data)) {
       span.setAttribute(attrKey, attrValue);
     }
+  }
+
+  if (request.status && pendingTrace.span) {
+    pendingTrace.span.setStatus({
+      code: request.status === 'ok' ? SPAN_STATUS_OK : SPAN_STATUS_ERROR,
+    });
   }
 
   let endTimeRequest = timestamp;

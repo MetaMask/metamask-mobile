@@ -48,12 +48,11 @@ import {
   getTimeframeFilterOptionTestId,
   getTypeFilterOptionTestId,
 } from '../components/Filters';
-import {
-  getLocalSocialProfileSnapshot,
-  restoreDefaultLocalSocialProfile,
-  saveLocalSocialProfile,
-} from '../MyProfileView/hooks/localSocialProfileStore';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../terms/socialTermsAcceptance';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -83,9 +82,45 @@ const triggerPullToRefresh = async () => {
   });
 };
 
+const renderTopTradersViewAsViewer = (viewer: {
+  profileId: string;
+  username: string;
+  address: string;
+}) =>
+  renderTopTradersViewWithProps({ useV1Filters: true }, [], {
+    overrides: {
+      engine: {
+        backgroundState: {
+          ProfileController: {
+            profile: {
+              profileId: viewer.profileId,
+              username: viewer.username,
+              displayName: viewer.username,
+              bio: '',
+              linkedAddresses: [`eip155:1:${viewer.address}`],
+              avatarUrl: '',
+              tradingPrivacy: 'public',
+              connectedToX: false,
+              createdAt: '',
+              updatedAt: '',
+            },
+          },
+        },
+      },
+    },
+  });
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
 
 describeForPlatforms('TopTradersView', () => {
   beforeEach(() => {
@@ -244,10 +279,10 @@ describeForPlatforms('TopTradersView', () => {
   });
 
   // -------------------------------------------------------------------------
-  // 6. Trading signals intercept navigates to setup sheet when channels are off
+  // 6. Follow runs, then the setup sheet opens when channels are off
   // -------------------------------------------------------------------------
 
-  it('navigates to the trading signals setup sheet when Follow is pressed with both notification channels disabled', async () => {
+  it('follows and then opens the trading signals setup sheet when both notification channels are disabled', async () => {
     // Reconfigure the mock before rendering so the component receives
     // channels-disabled prefs on its first AUS:getNotificationPreferences fetch.
     clearLeaderboardApiMock();
@@ -270,6 +305,12 @@ describeForPlatforms('TopTradersView', () => {
     // The trading signals setup sheet route should have been pushed.
     await screen.findByTestId(
       getRouteProbeTestId(Routes.SOCIAL.TRADING_SIGNALS_SETUP),
+    );
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+      'SocialController:followTrader',
+      {
+        targets: [mockLeaderboardTraders[0].profileId],
+      },
     );
   });
 
@@ -451,27 +492,12 @@ describeForPlatforms('TopTradersView', () => {
   describe('Social V1 chrome', () => {
     const [alpha, beta, gamma] = mockLeaderboardTraders;
 
-    beforeEach(() => {
-      restoreDefaultLocalSocialProfile();
-    });
-
-    afterEach(() => {
-      restoreDefaultLocalSocialProfile();
-    });
-
     it('pins the viewer above the list and drops their duplicate row when their profile is on the leaderboard', async () => {
-      const localProfile = getLocalSocialProfileSnapshot().profile;
-      if (!localProfile) {
-        throw new Error('Expected a default local social profile');
-      }
-      saveLocalSocialProfile({
-        ...localProfile,
+      renderTopTradersViewAsViewer({
         profileId: beta.profileId,
-        handle: beta.name,
-        displayName: beta.name,
-        linkedAccountAddress: beta.addresses[0],
+        username: beta.name,
+        address: beta.addresses[0],
       });
-      renderTopTradersViewWithProps({ useV1Filters: true });
 
       // The viewer card renders synthetically while the page loads, so wait
       // for the ranked list before asserting the matched row.
@@ -526,18 +552,11 @@ describeForPlatforms('TopTradersView', () => {
     });
 
     it('shows the viewer as an unranked card when their profile is not on the leaderboard', async () => {
-      const localProfile = getLocalSocialProfileSnapshot().profile;
-      if (!localProfile) {
-        throw new Error('Expected a default local social profile');
-      }
-      saveLocalSocialProfile({
-        ...localProfile,
+      renderTopTradersViewAsViewer({
         profileId: 'viewer-off-board',
-        handle: 'viewer.eth',
-        displayName: 'viewer.eth',
-        linkedAccountAddress: '0x00000000000000000000000000000000000000ff',
+        username: 'viewer.eth',
+        address: '0x00000000000000000000000000000000000000ff',
       });
-      renderTopTradersViewWithProps({ useV1Filters: true });
 
       expect(await screen.findByText(alpha.name)).toBeOnTheScreen();
       const viewerCard = screen.getByTestId(

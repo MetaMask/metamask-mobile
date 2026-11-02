@@ -14,7 +14,6 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import PreviousSeasonBalance from './PreviousSeasonBalance';
 import PreviousSeasonLevel from './PreviousSeasonLevel';
-import PreviousSeasonReferralDetails from './PreviousSeasonReferralDetails';
 import PreviousSeasonUnlockedRewards from './PreviousSeasonUnlockedRewards';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
@@ -63,8 +62,6 @@ const PreviousSeasonSummary = () => {
               <PreviousSeasonLevel />
             </Box>
           </Box>
-
-          <PreviousSeasonReferralDetails />
 
           <PreviousSeasonUnlockedRewards />
         </>

@@ -19,6 +19,7 @@ import {
   isCaipChainId,
   parseCaipAssetType,
 } from '@metamask/utils';
+import BigNumber from 'bignumber.js';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -34,7 +35,6 @@ import {
   hexToBigInt,
   weiToFiatNumber,
 } from '../../util/number/bigint';
-import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectAccountsByChainId } from '../accountTrackerController';
 import {
@@ -94,9 +94,37 @@ export interface TronSpecialAsset {
   balance: string;
   /** Fiat conversion in the user's selected currency, if a price is known */
   fiat: { balance: number; currency: string } | undefined;
+  /**
+   * True when the upstream API could not fetch this value and returned
+   * `null`. Unknown values must be surfaced as "unavailable" by the UI,
+   * never rendered as zero.
+   */
+  unknown?: boolean;
 }
 
+/**
+ * Fetch state of the Tron data backing the map. All fields (resources, staking,
+ * lifecycle) come from the same Account Activity API balance request, so a
+ * single status is enough: `'loading'` while no balance data has been fetched
+ * for the selected accounts yet (consumers must skip computations and render
+ * no values), `'ready'` once balance data exists — from that point each field
+ * is either readable or flagged as {@link TronSpecialAsset.unknown}.
+ */
+export const TronSpecialAssetsStatus = {
+  Loading: 'loading',
+  Ready: 'ready',
+} as const;
+
+export type TronSpecialAssetsStatus =
+  (typeof TronSpecialAssetsStatus)[keyof typeof TronSpecialAssetsStatus];
+
 export interface TronSpecialAssetsMap {
+  /**
+   * Whether the underlying balance request has been fetched. Derived from the
+   * presence of the TRX native balance entry (a fetched Tron account always
+   * has one), since `AssetsController` state carries no in-flight flag.
+   */
+  status: TronSpecialAssetsStatus;
   /** Current available energy */
   energy: TronSpecialAsset | undefined;
   /** Current available bandwidth */
@@ -121,7 +149,7 @@ export interface TronSpecialAssetsMap {
 
 type TronSpecialAssetKey = Exclude<
   keyof TronSpecialAssetsMap,
-  'totalStakedTrx'
+  'totalStakedTrx' | 'status'
 >;
 
 /**
@@ -170,6 +198,7 @@ const TRON_SPECIAL_ASSET_KEYS = {
  * Empty constant to avoid creating new objects on each call when no Tron networks are enabled.
  */
 const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
+  status: TronSpecialAssetsStatus.Ready,
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -718,6 +747,166 @@ function assetToToken(
 }
 
 /**
+ * Result of reading one raw Tron value from `AssetsController` state.
+ * `absent`: the field (or its section / balance entry) does not exist, so a
+ * legacy special-asset entry may stand and otherwise the entry stays unset.
+ * `unknown`: the field exists but could not be read (`null` upstream fetch
+ * failure, unexpected type, or a non-numeric string), so the UI must show
+ * an "unavailable" state instead of a zero.
+ * `value`: a readable base-unit raw amount string (e.g. SUN).
+ */
+type TronValue =
+  | { kind: 'absent' }
+  | { kind: 'unknown' }
+  | { kind: 'value'; amount: string };
+
+const isJsonRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * Single grammar for every raw Tron value read from `AssetsController` state.
+ * Only numeric strings count as values; `undefined` means the value is absent;
+ * everything else (`null`, unexpected types, non-numeric strings) means the
+ * upstream value could not be fetched and must never render as zero.
+ */
+const readTronValue = (raw: unknown): TronValue => {
+  if (raw === undefined) {
+    return { kind: 'absent' };
+  }
+  if (typeof raw !== 'string' || new BigNumber(raw).isNaN()) {
+    return { kind: 'unknown' };
+  }
+  return { kind: 'value', amount: raw };
+};
+
+/**
+ * Converts a raw Tron amount (e.g. SUN for TRX-denominated metadata fields)
+ * into its human-readable unit representation using the network decimals.
+ * Returns undefined when the network decimals are unknown. Inputs are
+ * {@link TronValue} `value` results, i.e. numeric strings.
+ */
+const convertRawTronAmountToUi = (
+  rawAmount: string,
+  chainId: string,
+): string | undefined => {
+  const decimals = MULTICHAIN_NETWORK_DECIMAL_PLACES[chainId as CaipChainId];
+  if (decimals === undefined) {
+    return undefined;
+  }
+  return new BigNumber(rawAmount).dividedBy(10 ** decimals).toString();
+};
+
+/**
+ * Merges Tron energy/bandwidth/staking metadata from the TRX native asset
+ * balance entry into the special assets map, per field. A readable metadata
+ * value always wins over the legacy special-asset entry. A `null` (or
+ * unreadable) metadata value falls back to the legacy special-asset entry when
+ * one exists; when it does not, the field is surfaced as an
+ * {@link TronSpecialAsset.unknown} entry so the UI can show an "unavailable"
+ * state instead of a wrong zero. An absent metadata section leaves the legacy
+ * entry untouched.
+ */
+const applyTronBalanceMetadata = (
+  specialAssetsMap: TronSpecialAssetsMap,
+  accountBalances: Record<string, { amount?: string; metadata?: unknown }>,
+  chainId: string,
+  assetsPrice: Record<string, { price?: number } | undefined>,
+  selectedCurrency: string,
+) => {
+  const nativeAssetId = `${chainId}/slip44:195`;
+  const balanceData = accountBalances[nativeAssetId];
+  if (!balanceData) {
+    return;
+  }
+  const metadata = balanceData.metadata;
+
+  const energySection = isJsonRecord(metadata) ? metadata.energy : undefined;
+  const bandwidthSection = isJsonRecord(metadata)
+    ? metadata.bandwidth
+    : undefined;
+  const stakingSection = isJsonRecord(metadata) ? metadata.staking : undefined;
+
+  const trxFiatPrice = assetsPrice[nativeAssetId]?.price;
+  const toFiat = (uiAmount: string) =>
+    trxFiatPrice === undefined
+      ? undefined
+      : {
+          balance: new BigNumber(uiAmount)
+            .multipliedBy(trxFiatPrice)
+            .toNumber(),
+          currency: selectedCurrency,
+        };
+
+  // Staking fields are TRX-denominated raw amounts (SUN) and need conversion
+  // to the human-readable unit. Resource fields are raw energy/bandwidth
+  // units and pass through untouched.
+  const toUiAmount = (raw: string) => convertRawTronAmountToUi(raw, chainId);
+
+  const setUnknown = (key: TronSpecialAssetKey) => {
+    if (!specialAssetsMap[key]) {
+      specialAssetsMap[key] = {
+        assetId: nativeAssetId,
+        balance: '0',
+        fiat: undefined,
+        unknown: true,
+      };
+    }
+  };
+
+  const setFromMetadata = (
+    key: TronSpecialAssetKey,
+    section: unknown,
+    field: string,
+    convertToUi: boolean,
+  ) => {
+    // A section that is not a record means the field was not sent: the legacy
+    // special-asset entry stands.
+    const read = isJsonRecord(section)
+      ? readTronValue(section[field])
+      : ({ kind: 'absent' } as TronValue);
+
+    if (read.kind === 'absent') {
+      return;
+    }
+
+    if (read.kind === 'unknown') {
+      // Metadata could not provide the value: fall back to the legacy entry
+      // when available, otherwise mark the field as unknown.
+      setUnknown(key);
+      return;
+    }
+
+    // Metadata value wins over the legacy entry.
+    const balance = convertToUi ? toUiAmount(read.amount) : read.amount;
+    if (balance === undefined) {
+      // Network decimals unknown: the value cannot be converted.
+      setUnknown(key);
+      return;
+    }
+    specialAssetsMap[key] = {
+      assetId: nativeAssetId,
+      balance,
+      fiat: convertToUi ? toFiat(balance) : undefined,
+    };
+  };
+
+  setFromMetadata('energy', energySection, 'available', false);
+  setFromMetadata('maxEnergy', energySection, 'limit', false);
+  setFromMetadata('bandwidth', bandwidthSection, 'available', false);
+  setFromMetadata('maxBandwidth', bandwidthSection, 'limit', false);
+  setFromMetadata('stakedTrxForEnergy', stakingSection, 'energy', true);
+  setFromMetadata('stakedTrxForBandwidth', stakingSection, 'bandwidth', true);
+  setFromMetadata('trxStakingRewards', stakingSection, 'rewards', true);
+  setFromMetadata('trxInLockPeriod', stakingSection, 'inLockPeriod', true);
+  setFromMetadata(
+    'trxReadyForWithdrawal',
+    stakingSection,
+    'readyForWithdrawal',
+    true,
+  );
+};
+
+/**
  * Selects Tron special assets for the currently selected account group.
  *
  * This includes:
@@ -725,12 +914,21 @@ function assetToToken(
  * - **Staking assets**: TRX staked for Energy/Bandwidth and a pre-computed `totalStakedTrx` sum.
  * - **Staking lifecycle assets**: TRX Ready for Withdrawal, Staking Rewards, and TRX In Lock Period.
  *
- * This reads Tron balances and prices **directly** from the unified
- * `AssetsController` state (`assetsBalance` + `assetsPrice`) for the accounts in
- * the selected account group. It does not go through the assets-controllers
- * selector or the `assets-migration` compatibility layer, nor the deprecated
- * `MultichainBalancesController` / `MultichainAssetsController` /
- * `MultichainAssetsRatesController` controllers.
+ * Two data sources are merged per field, mirroring the extension behavior:
+ * **Legacy special assets** (each resource/staking value is its own entry in
+ * `assetsBalance`, e.g. `tron:.../slip44:energy`) and **TRX balance metadata**
+ * (the Account Activity API reports the values as metadata nested inside the
+ * TRX native asset balance: `metadata.staking`, `metadata.bandwidth`,
+ * `metadata.energy`).
+ *
+ * Metadata values win; special-asset balances fill in any value the metadata
+ * does not provide. Values that arrive as `null` (upstream fetch failure) with
+ * no legacy fallback are surfaced as {@link TronSpecialAsset.unknown} entries
+ * so the UI can show an "unavailable" state instead of a wrong zero.
+ *
+ * The map also carries the fetch {@link TronSpecialAssetsStatus} of the shared
+ * balance request: `'loading'` until any account in the group has a TRX native
+ * balance entry, `'ready'` afterwards.
  *
  * Returns a structured {@link TronSpecialAssetsMap} with all assets pre-mapped by type
  * for efficient access, eliminating the need for consumers to iterate or search the array.
@@ -762,6 +960,7 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
       const enabledTronNetworksSet = new Set(enabledTronNetworks);
 
       const specialAssetsMap: TronSpecialAssetsMap = {
+        status: TronSpecialAssetsStatus.Loading,
         energy: undefined,
         bandwidth: undefined,
         maxEnergy: undefined,
@@ -780,25 +979,28 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
           continue;
         }
 
+        // Legacy source: each special asset is its own entry in assetsBalance.
         // Look up each known Tron special asset id directly rather than
         // scanning every balance the account holds.
         for (const [assetId, key] of Object.entries(TRON_SPECIAL_ASSET_KEYS)) {
-          const balanceData = accountBalances[assetId as CaipAssetType];
-          if (!balanceData) {
-            continue;
-          }
-
           const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
           if (!enabledTronNetworksSet.has(chainId)) {
             continue;
           }
 
-          const amount = balanceData.amount ?? '0';
+          const balanceData = accountBalances[assetId as CaipAssetType];
+          const read = readTronValue(balanceData?.amount);
+          if (read.kind !== 'value') {
+            // No legacy entry, or one without a readable amount: the metadata
+            // source (or an `unknown` entry) decides the field.
+            continue;
+          }
+
           const price = assetsPrice[assetId as CaipAssetType]?.price;
           const fiat =
             price !== undefined
               ? {
-                  balance: safeParseBigNumber(amount)
+                  balance: new BigNumber(read.amount)
                     .multipliedBy(price)
                     .toNumber(),
                   currency: selectedCurrency,
@@ -807,20 +1009,41 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
 
           specialAssetsMap[key] = {
             assetId,
-            balance: amount,
+            balance: read.amount,
             fiat,
           };
+        }
+
+        // Migration source: metadata nested in the TRX native asset balance,
+        // merged on top of the legacy entries per field (metadata wins).
+        for (const chainId of enabledTronNetworksSet) {
+          // A fetched Tron account always has a TRX native balance entry, so
+          // its presence marks the balance request as complete. Without it the
+          // map stays in the `loading` state.
+          if (accountBalances[`${chainId}/slip44:195` as CaipAssetType]) {
+            specialAssetsMap.status = TronSpecialAssetsStatus.Ready;
+          }
+
+          applyTronBalanceMetadata(
+            specialAssetsMap,
+            accountBalances,
+            chainId,
+            assetsPrice,
+            selectedCurrency,
+          );
         }
       }
 
       /**
-       * Compute total staked TRX using BigNumber to avoid floating-point precision errors
+       * Compute total staked TRX using BigNumber to avoid floating-point
+       * precision errors. Balances are grammar-guaranteed numeric strings
+       * (`'0'` for `unknown` entries, which consumers gate via `unknown`).
        */
-      const stakedTrxForEnergyBN = safeParseBigNumber(
-        specialAssetsMap.stakedTrxForEnergy?.balance,
+      const stakedTrxForEnergyBN = new BigNumber(
+        specialAssetsMap.stakedTrxForEnergy?.balance ?? 0,
       );
-      const stakedTrxForBandwidthBN = safeParseBigNumber(
-        specialAssetsMap.stakedTrxForBandwidth?.balance,
+      const stakedTrxForBandwidthBN = new BigNumber(
+        specialAssetsMap.stakedTrxForBandwidth?.balance ?? 0,
       );
       const totalStakedTrxBN = stakedTrxForEnergyBN.plus(
         stakedTrxForBandwidthBN,

@@ -7,16 +7,30 @@ import {
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import {
+  Text as DSText,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 import {
   PerpsAmountDisplaySelectorsIDs,
+  PerpsFeeDiscountLabelSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
 
+jest.mock('../../../../../util/haptics');
+
 const mockNavigateTo = jest.fn();
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }
   | undefined;
@@ -69,7 +83,7 @@ jest.mock('../LivePriceDisplay/LivePriceHeader', () => ({
   },
 }));
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
@@ -467,7 +481,7 @@ describe('PerpsTradeScreen errors', () => {
     );
     expect(mockPerpsTokenLogoProps).toEqual({
       symbol: 'kPEPE',
-      size: 32,
+      size: 40,
     });
   });
 
@@ -517,9 +531,100 @@ describe('PerpsTradeScreen errors', () => {
   });
 
   it('shows the VIP badge beside the fee for discounted users', () => {
-    render(<PerpsTradeScreen {...defaultProps} feeDiscountPercentage={15} />);
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        feeDiscountPercentage={15}
+        feeDiscountKind="vip"
+      />,
+    );
 
     expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
+  });
+
+  it('shows a struck-through promo fee under the order button', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        feePercentage="0.063"
+        originalFeePercentage="0.143"
+        feeDiscountPercentage={80}
+        feeDiscountKind="promotional"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent('Includes 0.143% 0.063% fee after promo');
+    expect(
+      within(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+      ).queryByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Includes 0.063% fee after promo, was 0.143%'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL).props
+        .accessibilityLabel,
+    ).toBeUndefined();
+    expect(
+      screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
+  });
+
+  it('keeps the bridge fee on a promo caption', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        originalFeePercentage="0.200"
+        feeDiscountPercentage={80}
+        feeDiscountKind="promotional"
+        bridgeFee="$0.15"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent(
+      'Includes 0.200% 0.143% fee after promo + $0.15 bridge fee',
+    );
+    expect(
+      screen.getByLabelText(
+        'Includes 0.143% fee after promo, was 0.200%, plus $0.15 bridge fee',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the trade fee without a bridge fee', () => {
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent('Includes 0.143% fee');
+    expect(screen.queryByText(/bridge fee/)).not.toBeOnTheScreen();
+  });
+
+  it('appends the bridge fee to the trade fee', () => {
+    render(<PerpsTradeScreen {...defaultProps} bridgeFee="$0.15" />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent('Includes 0.143% fee + $0.15 bridge fee');
+  });
+
+  it('shows the fee skeleton instead of a partial fee line while fees are loading', () => {
+    render(
+      <PerpsTradeScreen {...defaultProps} isFeeLoading bridgeFee="$0.15" />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the limit price row for a limit order', () => {
@@ -542,6 +647,32 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(screen.getByText('Set price')).toBeOnTheScreen();
     expect(screen.queryByText('$0.00')).not.toBeOnTheScreen();
+  });
+
+  it('colors Set price as an error when the limit price is unset', () => {
+    render(<PerpsTradeScreen {...defaultProps} orderType="limit" />);
+
+    const setPriceText = screen
+      .UNSAFE_getAllByType(DSText)
+      .find((text) => text.props.children === 'Set price');
+
+    expect(setPriceText?.props.color).toBe(TextColor.ErrorDefault);
+  });
+
+  it('colors the limit price as default once a price is entered', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice="98.50"
+      />,
+    );
+
+    const priceText = screen
+      .UNSAFE_getAllByType(DSText)
+      .find((text) => text.props.children === '$98.5');
+
+    expect(priceText?.props.color).toBe(TextColor.TextDefault);
   });
 
   it('shows a limit-price crossing warning', () => {

@@ -37,6 +37,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../components/SwapsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest
     .fn()
@@ -80,18 +85,15 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
-    };
-  },
-);
+jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
 
 jest.mock(
   '../../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',

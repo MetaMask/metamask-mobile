@@ -10,10 +10,13 @@ import {
   clearRewardsCaches,
 } from './usePerpsOrderFees';
 import {
+  BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
   type FeeCalculationParams,
   type FeeCalculationResult,
+  type PerpsFeeSource,
 } from '@metamask/perps-controller';
+import { applyFeeResolution } from '@metamask/perps-controller/utils/subscriptionFeeWaiver';
 
 jest.mock('./usePerpsTrading');
 
@@ -92,6 +95,36 @@ describe('usePerpsOrderFees', () => {
     Promise<FeeCalculationResult>,
     [FeeCalculationParams]
   >();
+
+  it('uses the resolved Core fee once and preserves grant attribution', async () => {
+    mockCalculateFees.mockResolvedValue({
+      feeRate: 0.0007,
+      feeAmount: 0.7,
+      protocolFeeRate: 0.00045,
+      protocolFeeAmount: 0.45,
+      metamaskFeeRate: 0.00025,
+      metamaskFeeAmount: 0.25,
+      feeSource: 'grant',
+      metamaskFeeDiscountBips: 7500,
+      undiscountedMetamaskFeeRate: 0.001,
+    });
+    const { result } = renderHook(() =>
+      usePerpsOrderFees({ orderType: 'market', amount: '1000', symbol: 'BTC' }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.isLoadingMetamaskFee).toBe(false),
+    );
+    expect(result.current.metamaskFee).toBe(0.25);
+    expect(result.current.totalFee).toBeCloseTo(0.7);
+    expect(result.current.undiscountedTotalFee).toBeCloseTo(1.45);
+    expect(result.current.feeDiscountPercentage).toBe(75);
+    expect(result.current.feeSource).toBe('grant');
+    expect(result.current.feeDiscountKind).toBe('promotional');
+    expect(
+      mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+    ).not.toHaveBeenCalled();
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -612,6 +645,9 @@ describe('usePerpsOrderFees', () => {
         protocolFeeRate: 0.00045,
         metamaskFeeRate: 0.0008,
         chargesMetamaskBuilderFee: true,
+        feeSource: 'rewards',
+        metamaskFeeDiscountBips: 2000,
+        undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
       });
 
       const { result } = renderOrderFees();
@@ -669,6 +705,9 @@ describe('usePerpsOrderFees', () => {
           protocolFeeRate: 0.00045,
           metamaskFeeRate,
           chargesMetamaskBuilderFee: true,
+          feeSource: 'subscription',
+          metamaskFeeDiscountBips: discount * 100,
+          undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         });
 
         const { result } = renderOrderFees();
@@ -679,6 +718,7 @@ describe('usePerpsOrderFees', () => {
         expect(result.current.metamaskFeeRate).toBe(metamaskFeeRate);
         expect(result.current.metamaskFee).toBeCloseTo(10000 * metamaskFeeRate);
         expect(result.current.feeDiscountPercentage).toBe(discount);
+        expect(result.current.feeDiscountKind).toBe('member');
         expect(result.current.originalMetamaskFeeRate).toBe(
           BUILDER_FEE_CONFIG.MaxFeeDecimal,
         );
@@ -691,6 +731,9 @@ describe('usePerpsOrderFees', () => {
         protocolFeeRate: 0.00045,
         metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         chargesMetamaskBuilderFee: true,
+        feeSource: 'default',
+        metamaskFeeDiscountBips: 0,
+        undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
       });
 
       const { result } = renderOrderFees();
@@ -722,6 +765,177 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.metamaskFeeRate).toBe(0);
       expect(result.current.originalMetamaskFeeRate).toBe(0);
       expect(result.current.feeDiscountPercentage).toBeUndefined();
+    });
+
+    it.each([
+      { label: 'an older controller', chargesMetamaskBuilderFee: undefined },
+      {
+        label: 'a quote no fee resolution priced',
+        chargesMetamaskBuilderFee: true,
+      },
+    ])(
+      'shows no discount when $label reports none',
+      async ({ chargesMetamaskBuilderFee }) => {
+        // A provider rate below the default builder fee, e.g. left behind by
+        // another submit's discount, with no discount fields alongside it
+        mockCalculateFees.mockResolvedValue({
+          feeRate: 0.00095,
+          protocolFeeRate: 0.00045,
+          metamaskFeeRate: 0.0005,
+          chargesMetamaskBuilderFee,
+        });
+
+        const { result } = renderOrderFees();
+        await waitFor(() => {
+          expect(result.current.isLoadingMetamaskFee).toBe(false);
+        });
+
+        expect(result.current.metamaskFeeRate).toBe(0.0005);
+        expect(result.current.metamaskFee).toBeCloseTo(5);
+        expect(result.current.feeDiscountPercentage).toBeUndefined();
+        expect(result.current.originalMetamaskFeeRate).toBe(0.0005);
+        expect(result.current.undiscountedTotalFee).toBe(
+          result.current.totalFee,
+        );
+      },
+    );
+
+    it('shows the applied discount when the venue floors the charged rate', async () => {
+      // 3333 bips off 10 bips is 6.667 bips, floored to the 6.6 bips the venue
+      // charges: the rates imply 34% while the resolver applied 33.33%
+      const fees = applyFeeResolution({
+        fees: {
+          protocolFeeRate: 0.00045,
+          metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+          chargesMetamaskBuilderFee: true,
+        },
+        resolution: {
+          source: 'subscription',
+          discountBips: 3333,
+          feeBips: 6.667,
+          subscription: { eligible: true, reason: 'eligible' },
+        },
+        amount: '10000',
+        chargesBuilderFee: true,
+      });
+      mockCalculateFees.mockResolvedValue(fees);
+
+      const { result } = renderOrderFees();
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.metamaskFeeRate).toBe(0.00066);
+      expect(result.current.feeDiscountPercentage).toBe(33.33);
+      expect(result.current.originalMetamaskFeeRate).toBe(
+        BUILDER_FEE_CONFIG.MaxFeeDecimal,
+      );
+      expect(result.current.undiscountedTotalFee).toBeCloseTo(14.5);
+      expect(result.current.totalFee).toBeCloseTo(11.1);
+    });
+
+    describe('discount reported by calculateFees', () => {
+      // The rate-based derivation the hook used before perps-controller 20
+      // reported the discount (TAT-4055), kept to prove the two agree.
+      const deriveDiscountFromRate = (fees: FeeCalculationResult) => {
+        const rate = fees.metamaskFeeRate ?? 0;
+        const undiscounted = fees.chargesMetamaskBuilderFee
+          ? BUILDER_FEE_CONFIG.MaxFeeDecimal
+          : rate;
+        return {
+          originalMetamaskFeeRate: undiscounted,
+          feeDiscountPercentage: fees.chargesMetamaskBuilderFee
+            ? Math.round((1 - rate / undiscounted) * BASIS_POINTS_DIVISOR) / 100
+            : undefined,
+        };
+      };
+
+      // A 10 bip Hyperliquid quote repriced by the controller's own resolver step
+      const quoteFrom = (
+        source: PerpsFeeSource,
+        discountBips: number | undefined,
+      ) =>
+        applyFeeResolution({
+          fees: {
+            protocolFeeRate: 0.00045,
+            metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+            chargesMetamaskBuilderFee: true,
+          },
+          resolution: {
+            source,
+            discountBips,
+            feeBips: 10 * (1 - (discountBips ?? 0) / BASIS_POINTS_DIVISOR),
+            subscription: {
+              eligible: source === 'subscription',
+              reason: source === 'subscription' ? 'eligible' : 'no-source',
+            },
+          },
+          amount: '10000',
+          chargesBuilderFee: true,
+        });
+
+      it.each([
+        { label: 'default', source: 'default', discountBips: undefined },
+        {
+          label: 'rewards with no discount',
+          source: 'rewards',
+          discountBips: 0,
+        },
+        { label: 'rewards partial', source: 'rewards', discountBips: 2000 },
+        { label: 'rewards full', source: 'rewards', discountBips: 10000 },
+        {
+          label: 'subscription partial',
+          source: 'subscription',
+          discountBips: 6000,
+        },
+        {
+          label: 'subscription full',
+          source: 'subscription',
+          discountBips: 10000,
+        },
+      ] as const)(
+        'matches the rate-derived fee preview for $label',
+        async ({ source, discountBips }) => {
+          const fees = quoteFrom(source, discountBips);
+          const derived = deriveDiscountFromRate(fees);
+          mockCalculateFees.mockResolvedValue(fees);
+
+          const { result } = renderOrderFees();
+          await waitFor(() => {
+            expect(result.current.isLoadingMetamaskFee).toBe(false);
+          });
+
+          expect(fees.feeSource).toBe(source);
+          expect(result.current.feeDiscountPercentage).toBe(
+            (fees.metamaskFeeDiscountBips ?? 0) / 100,
+          );
+          expect(result.current.feeDiscountPercentage).toBe(
+            derived.feeDiscountPercentage,
+          );
+          expect(result.current.originalMetamaskFeeRate).toBe(
+            fees.undiscountedMetamaskFeeRate,
+          );
+          expect(result.current.originalMetamaskFeeRate).toBe(
+            derived.originalMetamaskFeeRate,
+          );
+          expect(result.current.undiscountedTotalFee).toBeCloseTo(
+            10000 * (0.00045 + (fees.undiscountedMetamaskFeeRate ?? 0)),
+          );
+          expect(result.current.metamaskFeeRate).toBe(fees.metamaskFeeRate);
+          expect(result.current.totalFee).toBeCloseTo(fees.feeAmount ?? 0);
+          expect(
+            mockEngineContext.RewardsController.estimatePoints,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              activityContext: {
+                perpsContext: expect.objectContaining({
+                  usdFeeValue: (10000 * (fees.metamaskFeeRate ?? 0)).toString(),
+                }),
+              },
+            }),
+          );
+        },
+      );
     });
   });
 
@@ -2260,5 +2474,355 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       expect(result.current.estimatedPoints).toBeUndefined();
       expect(result.current.totalFee).toBe(90); // Base fees still calculated
     });
+  });
+});
+
+describe('usePerpsOrderFees - Fee Rate Breakdown', () => {
+  const mockCalculateFees = jest.fn<
+    Promise<FeeCalculationResult>,
+    [FeeCalculationParams]
+  >();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearRewardsCaches();
+    mockControllerMessenger.call.mockReset();
+    mockUseSelector.mockImplementation((selectorFn) => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                ENABLE_REWARDS: true,
+                vipProgramEnabled: { enabled: true, minimumVersion: '0.0.0' },
+              },
+              cacheTimestamp: 0,
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [TEST_CONSTANTS.MOCK_ACCOUNT_ID]: {
+                    address: TEST_CONSTANTS.MOCK_ADDRESS,
+                    id: TEST_CONSTANTS.MOCK_ACCOUNT_ID,
+                    metadata: { name: 'Test Account' },
+                  },
+                },
+                selectedAccount: TEST_CONSTANTS.MOCK_ACCOUNT_ID,
+              },
+            },
+            NetworkController: {
+              selectedNetworkClientId: 'arbitrum',
+              networkConfigurationsByChainId: {
+                '0xa4b1': { chainId: '0xa4b1' },
+              },
+            },
+          },
+        },
+      };
+      try {
+        return selectorFn(mockState);
+      } catch {
+        return undefined;
+      }
+    });
+    mockUsePerpsTrading.mockReturnValue({
+      calculateFees: mockCalculateFees,
+      placeOrder: jest.fn(),
+      cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
+      closePosition: jest.fn(),
+      getMarkets: jest.fn(),
+      getPositions: jest.fn(),
+      getAccountState: jest.fn(),
+      subscribeToPrices: jest.fn(),
+      subscribeToPositions: jest.fn(),
+      subscribeToOrderFills: jest.fn(),
+      depositWithConfirmation: jest.fn(),
+      depositWithOrder: jest.fn(),
+      clearDepositResult: jest.fn(),
+      withdraw: jest.fn(),
+      calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
+      calculateMaintenanceMargin: jest.fn(),
+      getMaxLeverage: jest.fn(),
+      updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
+      validateOrder: jest.fn(),
+      validateClosePosition: jest.fn(),
+      validateWithdrawal: jest.fn(),
+      getFunding: jest.fn(),
+      getOrders: jest.fn(),
+      getOrderFills: jest.fn(),
+    });
+  });
+
+  it('does not request the opposite side, and leaves taker/maker rates undefined, when includeFeeRateBreakdown is omitted', async () => {
+    mockCalculateFees.mockResolvedValue({
+      protocolFeeRate: 0.00045,
+      metamaskFeeRate: 0,
+    });
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'market',
+          amount: '100000',
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(mockCalculateFees).toHaveBeenCalledTimes(1);
+    expect(result.current.takerFeeRate).toBeUndefined();
+    expect(result.current.makerFeeRate).toBeUndefined();
+  });
+
+  it('resolves both taker and maker combined rates when includeFeeRateBreakdown is requested for a taker order', async () => {
+    mockCalculateFees
+      .mockResolvedValueOnce({
+        // This order's resolved (taker) side
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.0001,
+      })
+      .mockResolvedValueOnce({
+        // Opposite (maker) side
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0.0001,
+      });
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'limit',
+          amount: '100000',
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(mockCalculateFees).toHaveBeenCalledTimes(2);
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(1, {
+      orderType: 'limit',
+      isMaker: false,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(2, {
+      orderType: 'limit',
+      isMaker: true,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(result.current.takerFeeRate).toBeCloseTo(0.00055);
+    expect(result.current.makerFeeRate).toBeCloseTo(0.00025);
+    // The primary $ fee still reflects only this order's resolved (taker) side.
+    expect(result.current.totalFeeRate).toBeCloseTo(0.00055);
+  });
+
+  it('resolves both rates for a maker order, mapping this order to makerFeeRate', async () => {
+    mockCalculateFees
+      .mockResolvedValueOnce({
+        // This order's resolved (maker) side
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      })
+      .mockResolvedValueOnce({
+        // Opposite (taker) side
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      });
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'limit',
+          amount: '100000',
+          limitPrice: '49500',
+          direction: 'long',
+          currentAskPrice: 50001,
+          currentBidPrice: 49999,
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(1, {
+      orderType: 'limit',
+      isMaker: true,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(2, {
+      orderType: 'limit',
+      isMaker: false,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
+    expect(result.current.takerFeeRate).toBeCloseTo(0.00045);
+  });
+
+  it("requests the opposite side as a limit execution for a market order, not this order's own forced-taker type", async () => {
+    // HyperLiquid charges a market-executing order taker regardless of the
+    // `isMaker` flag it is sent. If the opposite-side request re-sent
+    // `orderType: 'market'` with `isMaker` flipped, the provider would
+    // return this same taker quote again and the maker rate below would be
+    // unreachable from a market order. Keying the two mocked responses on
+    // `isMaker` (not `orderType`) reproduces that real provider contract and
+    // proves the request actually asks for `orderType: 'limit'`.
+    mockCalculateFees.mockImplementation(
+      (params: FeeCalculationParams): Promise<FeeCalculationResult> =>
+        Promise.resolve(
+          params.isMaker
+            ? { protocolFeeRate: 0.00015, metamaskFeeRate: 0 } // maker
+            : { protocolFeeRate: 0.00045, metamaskFeeRate: 0 }, // taker
+        ) as Promise<FeeCalculationResult>,
+    );
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'market',
+          amount: '100000',
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(1, {
+      orderType: 'market',
+      isMaker: false,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(2, {
+      orderType: 'limit',
+      isMaker: true,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(result.current.takerFeeRate).toBeCloseTo(0.00045);
+    expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
+  });
+
+  it("requests the opposite side as a limit execution for a Chase order, not this order's own forced-maker type", async () => {
+    // The mirror image of the market-order contract test above: HyperLiquid
+    // charges `chase` maker regardless of `isMaker`, so the opposite-side
+    // request must ask for `orderType: 'limit'` to reach the taker rate.
+    mockCalculateFees.mockImplementation(
+      (params: FeeCalculationParams): Promise<FeeCalculationResult> =>
+        Promise.resolve(
+          params.isMaker
+            ? { protocolFeeRate: 0.00015, metamaskFeeRate: 0 } // maker
+            : { protocolFeeRate: 0.00045, metamaskFeeRate: 0 }, // taker
+        ) as Promise<FeeCalculationResult>,
+    );
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'chase',
+          amount: '100000',
+          direction: 'long',
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(1, {
+      orderType: 'chase',
+      isMaker: true,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(2, {
+      orderType: 'limit',
+      isMaker: false,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
+    expect(result.current.takerFeeRate).toBeCloseTo(0.00045);
+  });
+
+  it('keeps the resolved side and leaves the opposite side undefined — never fabricated — when the opposite-side request fails', async () => {
+    mockCalculateFees
+      .mockResolvedValueOnce({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      })
+      .mockRejectedValueOnce(new Error('Opposite-side quote failed'));
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'market',
+          amount: '100000',
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    // The primary $ fee is unaffected by the breakdown request failing.
+    expect(result.current.error).toBeNull();
+    expect(result.current.protocolFeeRate).toBe(0.00045);
+    // A market order resolves taker — that known, real quote is kept.
+    expect(result.current.takerFeeRate).toBeCloseTo(0.00045);
+    // The maker side was never actually resolved. Showing the taker rate
+    // under the "Maker" label here would present an invented number as a
+    // confirmed fee, so it stays undefined for the UI's placeholder instead.
+    expect(result.current.makerFeeRate).toBeUndefined();
+  });
+
+  it('keeps the resolved maker side and leaves taker undefined when the opposite-side request fails for a Chase order', async () => {
+    mockCalculateFees
+      .mockResolvedValueOnce({
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      })
+      .mockRejectedValueOnce(new Error('Opposite-side quote failed'));
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'chase',
+          amount: '100000',
+          direction: 'long',
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
+    expect(result.current.takerFeeRate).toBeUndefined();
   });
 });

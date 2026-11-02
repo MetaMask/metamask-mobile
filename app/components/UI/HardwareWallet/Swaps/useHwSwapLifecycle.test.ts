@@ -94,6 +94,7 @@ const getMockShowToast = () =>
 const strategy: FlowStrategy = {
   flow: Flow.Send,
   isSendFlow: true,
+  isSwap: false,
   walletAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
   trackerOptions: {
     flow: Flow.Send,

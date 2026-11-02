@@ -171,7 +171,6 @@ These burndown paths did not match any owner line in `.github/CODEOWNERS` at the
 - `app/components/UI/HardwareWallet/AccountDetails/index.tsx`
 - `app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx`
 - `app/components/UI/UrlAutocomplete/Result.tsx`
-- `app/components/Views/GasEducationCarousel/index.js`
 - `app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts`
 - `app/components/hooks/useAddressBalance/useAddressBalance.ts`
 - `app/components/hooks/useGetFormattedTokensPerChain.tsx`

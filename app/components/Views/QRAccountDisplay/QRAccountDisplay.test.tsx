@@ -142,7 +142,7 @@ describe('QRAccountDisplay', () => {
     // Assert
     expect(getByText('Solana Account')).toBeOnTheScreen();
     expect(queryByText(/^0x/)).not.toBeOnTheScreen();
-    expect(getByText(/7EcDhS/)).toBeOnTheScreen();
+    expect(getByText(/7EcDh/)).toBeOnTheScreen();
     expect(getByText(/CFLtV$/)).toBeOnTheScreen();
   });
 

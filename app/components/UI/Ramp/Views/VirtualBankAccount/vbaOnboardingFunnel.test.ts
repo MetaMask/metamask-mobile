@@ -120,6 +120,16 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       [
+        'needs wallet registration',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          kycStatus: 'approved',
+          autorampStatus: 'needs_wallet_registration',
+        }),
+      ],
+      [
         'account provisioning in progress',
         snapshot({
           sessionExists: true,
@@ -140,6 +150,17 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       ['kyc rejected', snapshot({ kycStatus: 'rejected' })],
+      ['kyc retry', snapshot({ kycStatus: 'retry' })],
+      [
+        'kyc retry after the provider flow was abandoned',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'abandoned',
+          kycStatus: 'retry',
+        }),
+      ],
     ];
 
     expect(
@@ -151,13 +172,16 @@ describe('getVbaDestinationForSnapshot', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-        "account provisioning failed": "accountProvisioningError",
-        "account provisioning in progress": "kycPending",
-        "account provisioning not ready": "kycPending",
+        "account provisioning failed": "identityVerified",
+        "account provisioning in progress": "identityVerified",
+        "account provisioning not ready": "identityVerified",
         "account ready": "complete",
         "email and vendor terms done": "identityVerification",
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
+        "kyc retry": "kycRejected",
+        "kyc retry after the provider flow was abandoned": "kycRejected",
+        "needs wallet registration": "identityVerified",
         "provider done": "identityVerification",
         "session exists without vendor disclaimers recorded": "identityVerification",
         "session pending before provider terms": "identityVerification",

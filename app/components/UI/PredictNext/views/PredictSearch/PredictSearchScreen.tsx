@@ -55,6 +55,7 @@ const SearchEventRow = React.memo(
         onOrder={(cardEvent, market, outcome) =>
           openOrderFlow({
             action: 'buy',
+            eventId: cardEvent.id,
             venueId: cardEvent.venueId,
             marketId: market.id,
             side: outcome.side,
@@ -217,6 +218,7 @@ export const PredictSearchScreen = () => {
           onChangeText: setQuery,
           onPressClearButton: () => setQuery(''),
           placeholder: strings('predict_next.search.placeholder'),
+          inputAccessibilityLabel: strings('predict_next.search.placeholder'),
           autoFocus: true,
           inputProps: {
             autoCorrect: false,

@@ -31,7 +31,7 @@ interface SocialLink {
 export interface SecuritySocialSectionProps {
   securityVerdict: SecurityVerdict;
   /** Only read when the verdict is `medium_risk`. */
-  securityFlagCount?: number;
+  securityRiskCount?: number;
   onSecurityPress?: () => void;
   /**
    * Official links from the token's security metadata. Every field is
@@ -69,7 +69,7 @@ const truncateAddress = (address: string) =>
  */
 export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
   securityVerdict,
-  securityFlagCount,
+  securityRiskCount,
   onSecurityPress,
   externalLinks,
   contractAddress,
@@ -127,7 +127,7 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
     >
       <SecurityPill
         verdict={securityVerdict}
-        flagCount={securityFlagCount}
+        riskCount={securityRiskCount}
         onPress={onSecurityPress}
       />
 

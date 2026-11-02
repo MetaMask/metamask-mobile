@@ -6,9 +6,6 @@
   "LoggingController": {
     "logs": {}
   },
-  "AccountTrackerController": {
-    "accountsByChainId": {}
-  },
   "AccountsController": {
     "internalAccounts": {
       "accounts": {},
@@ -52,16 +49,6 @@
     "allTokens": {},
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
-  },
-  "CurrencyRateController": {
-    "currentCurrency": "usd",
-    "currencyRates": {
-      "ETH": {
-        "conversionDate": 0,
-        "conversionRate": 0,
-        "usdConversionRate": null
-      }
-    }
   },
   "DelegationController": {},
   "NetworkController": {
@@ -363,12 +350,6 @@
     "tokenNetworkFilter": {},
     "privacyMode": false
   },
-  "TokenBalancesController": {
-    "tokenBalances": {}
-  },
-  "TokenRatesController": {
-    "marketData": {}
-  },
   "TokenSearchDiscoveryDataController": {
     "tokenDisplayData": []
   },
@@ -427,6 +408,20 @@
     "followingAddresses": [],
     "followingProfileIds": [],
     "leaderboardEntries": []
+  },
+  "ProfileController": {
+    "profile": {
+      "profileId": "",
+      "username": "",
+      "displayName": "",
+      "bio": "",
+      "linkedAddresses": [],
+      "avatarUrl": "",
+      "tradingPrivacy": "public",
+      "connectedToX": false,
+      "createdAt": "",
+      "updatedAt": ""
+    }
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -573,8 +568,7 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {},
-    "activeDappNetwork": null
+    "domains": {}
   },
   "SignatureController": {
     "signatureRequests": {},
@@ -632,6 +626,20 @@
     "reportedAccounts": [],
     "syncQueue": {}
   },
+  "ProfileController": {
+    "profile": {
+      "profileId": "",
+      "username": "",
+      "displayName": "",
+      "bio": "",
+      "linkedAddresses": [],
+      "avatarUrl": "",
+      "tradingPrivacy": "public",
+      "connectedToX": false,
+      "createdAt": "",
+      "updatedAt": ""
+    }
+  },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
@@ -639,9 +647,6 @@
     "isContactSyncingEnabled": true,
     "isContactSyncingInProgress": false,
     "isRampsSyncingEnabled": true
-  },
-  "MultichainBalancesController": {
-    "balances": {}
   },
   "MultichainNetworkController": {
     "isEvmSelected": true,
@@ -735,11 +740,6 @@
     "networkConnectionBannerStatus": "available",
     "networkConnectionBannerNetwork": null
   },
-  "MultichainAssetsController": {
-    "accountsAssets": {},
-    "assetsMetadata": {},
-    "allIgnoredAssets": {}
-  },
   "BridgeController": {
     "assetExchangeRates": {},
     "batchSellTrades": null,
@@ -781,6 +781,10 @@
     "lastUnauthenticatedReason": null,
     "redeemWithdrawal": null,
     "signInLink": null,
+    "cardLinks": null,
+    "cardLinksFetchedAt": null,
+    "cardLinksSeeded": false,
+    "cardLinkApiBlocked": false,
     "accountLookupCache": {}
   },
   "UiSlotsController": {
@@ -790,9 +794,11 @@
   },
   "ConfigRegistryController": {
     "configs": {
+      "eventsConfig": null,
       "networks": {}
     },
     "etag": null,
+    "eventsConfigEtag": null,
     "lastFetched": null,
     "version": null
   },
@@ -818,10 +824,6 @@
   },
   "ConnectivityController": {
     "connectivityStatus": "online"
-  },
-  "MultichainAssetsRatesController": {
-    "conversionRates": {},
-    "historicalPrices": {}
   },
   "CronjobController": {
     "events": {}
@@ -964,6 +966,9 @@
   "AiDigestController": {},
   "RampsController": {
     "autoramps": [],
+    "autorampTransactionRecords": {},
+    "moneyAccountWalletRegistrations": [],
+    "vbaAutorampListFetchedAt": null,
     "userRegion": null,
     "countries": {
       "data": [],
@@ -1025,7 +1030,8 @@
     "orders": []
   },
   "MoneyAccountController": {
-    "moneyAccounts": {}
+    "moneyAccounts": {},
+    "defaultMoneyAccountId": null
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}

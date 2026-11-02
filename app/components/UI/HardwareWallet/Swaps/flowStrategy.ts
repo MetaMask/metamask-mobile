@@ -7,6 +7,7 @@ import type {
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PostTradeBottomSheetParams } from '../../Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import type { BridgeToken } from '../../Bridge/types';
 
 /**
  * Signing-session origin. Bridge is the default; send activates only when
@@ -83,6 +84,12 @@ export interface FlowStrategy {
   displayedAmount?: string;
   /** Display symbol for step rows. Send: route-params displayContext; bridge: source selector. */
   displayedTokenSymbol?: string;
+  /** Bridge only: destination amount for same-chain swap step titles. */
+  displayedDestAmount?: string;
+  /** Bridge only: destination token symbol for same-chain swap step titles. */
+  displayedDestTokenSymbol?: string;
+  /** True when the bridge flow is a same-chain swap with dest data present; the final transaction step shows swap copy instead of send copy. Send flows are never swaps. */
+  isSwap: boolean;
   /** Send only: gas-fee token symbol for the FeeTransfer step (may differ from displayedTokenSymbol). */
   gasTokenSymbol?: string;
   /** Inputs for `useHwBatchSignTracker`. */
@@ -103,24 +110,46 @@ export interface FlowStrategy {
 }
 
 /**
+ * Same-chain swap detection: both chainIds must be defined and equal. Both
+ * tokens are `BridgeToken`, so `chainId` (Hex | CaipChainId) compares
+ * like-for-like.
+ */
+export const isSameChainSwap = (
+  sourceToken?: BridgeToken,
+  destToken?: BridgeToken,
+): boolean =>
+  sourceToken?.chainId !== undefined &&
+  sourceToken?.chainId === destToken?.chainId;
+
+/**
  * Resolves the bridge-vs-send fork into one strategy object.
  *
  * Bridge is the default and is byte-identical to pre-send behavior — send
  * activates only when `routeParams.flow === 'send'`. Centralizing the fork
  * here means the screen never needs `isSendFlow ?` branches inline.
  *
+ * Same-chain swap: dest data prefers the confirm-time-locked
+ * `postTradeModalParams` (extension lockedQuote parity) over the live slice
+ * selectors — `state.destAmount` is unreliable in production. Missing dest
+ * data falls back to send copy (extension parity).
  */
 export function resolveFlowStrategy(input: {
   routeParams?: HardwareWalletsSwapsRouteParams;
   bridgedWalletAddress?: string;
   sourceAmount?: string;
-  sourceToken?: { symbol?: string };
+  sourceToken?: BridgeToken;
+  /** Fallback dest amount for same-chain swap titles; locked `postTradeModalParams` wins. */
+  destAmount?: string;
+  /** Fallback dest token for same-chain swap titles; locked `postTradeModalParams` wins. */
+  destToken?: BridgeToken;
 }): FlowStrategy {
   const {
     routeParams = {},
     bridgedWalletAddress,
     sourceAmount,
     sourceToken,
+    destAmount,
+    destToken,
   } = input;
 
   if (routeParams.flow === Flow.Send) {
@@ -138,6 +167,8 @@ export function resolveFlowStrategy(input: {
     return {
       flow: Flow.Send,
       isSendFlow: true,
+      // Send flows are never swaps — even with dest data present, send copy wins.
+      isSwap: false,
       walletAddress: routeParams.preparedTxMeta?.txParams.from,
       displayedAmount: routeParams.displayContext?.amount,
       displayedTokenSymbol: routeParams.displayContext?.tokenSymbol,
@@ -160,12 +191,25 @@ export function resolveFlowStrategy(input: {
     };
   }
 
+  // Dest data prefers the confirm-time-locked postTradeModalParams (extension
+  // lockedQuote parity); the live slice selectors are fallback only, since
+  // state.destAmount is never populated in production.
+  const lockedDest = routeParams.submissionParams?.postTradeModalParams;
+  const effectiveDestAmount = lockedDest?.destAmount ?? destAmount;
+  const effectiveDestToken = lockedDest?.destToken ?? destToken;
+
+  // Same-chain swap: missing dest data degrades to send copy (extension parity).
+  const isSwap = isSameChainSwap(sourceToken, effectiveDestToken);
+
   return {
     flow: Flow.Bridge,
     isSendFlow: false,
     walletAddress: bridgedWalletAddress,
     displayedAmount: sourceAmount,
     displayedTokenSymbol: sourceToken?.symbol,
+    displayedDestAmount: effectiveDestAmount,
+    displayedDestTokenSymbol: effectiveDestToken?.symbol,
+    isSwap,
     gasTokenSymbol: undefined,
     trackerOptions: { flow: Flow.Bridge },
     submitOptions: { submissionParams: routeParams.submissionParams },

@@ -6,7 +6,6 @@ import {
 } from '@metamask/messenger';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
-import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import { RootMessenger } from '../../types';
 
@@ -37,6 +36,8 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
+  // core#10585: Snap keyring confirmations refresh balances when AccountActivity is down
+  'MultichainTransactionsController:transactionConfirmed',
   // Real-time post-tx balances (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',
@@ -90,7 +91,6 @@ export function getAssetsControllerMessenger(
 type AssetsControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | PreferencesControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction
   | AnalyticsControllerActions;
 
 export type AssetsControllerInitMessenger = Messenger<
@@ -121,7 +121,6 @@ export function getAssetsControllerInitMessenger(
     actions: [
       'AuthenticationController:getBearerToken',
       'PreferencesController:getState',
-      'RemoteFeatureFlagController:getState',
       'AnalyticsController:trackEvent',
     ],
     events: [],

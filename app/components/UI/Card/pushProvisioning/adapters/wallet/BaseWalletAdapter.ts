@@ -139,7 +139,10 @@ export abstract class BaseWalletAdapter {
     }
   }
 
-  async getEligibility(lastFourDigits?: string): Promise<WalletEligibility> {
+  async getEligibility(
+    lastFourDigits?: string,
+    _primaryAccountIdentifier?: string,
+  ): Promise<WalletEligibility> {
     const isAvailable = await this.checkAvailability();
 
     if (!isAvailable) {
@@ -200,8 +203,8 @@ export abstract class BaseWalletAdapter {
 
       case 'requires_activation':
         return {
-          canAddCard: true,
-          recommendedAction: 'add_card',
+          canAddCard: false,
+          recommendedAction: 'none',
         };
 
       case 'active':

@@ -37,10 +37,11 @@ describe('CandlePeriodSelector', () => {
       { state: { engine: { backgroundState: {} } } },
     );
 
-    expect(getByText('1min')).toBeOnTheScreen();
-    expect(getByText('3min')).toBeOnTheScreen();
-    expect(getByText('5min')).toBeOnTheScreen();
-    expect(getByText('15min')).toBeOnTheScreen();
+    expect(getByText('1m')).toBeOnTheScreen();
+    expect(getByText('5m')).toBeOnTheScreen();
+    expect(getByText('15m')).toBeOnTheScreen();
+    expect(getByText('1h')).toBeOnTheScreen();
+    expect(getByText('1d')).toBeOnTheScreen();
   });
 
   it('calls onPeriodChange when period button is pressed', () => {
@@ -53,9 +54,9 @@ describe('CandlePeriodSelector', () => {
       { state: { engine: { backgroundState: {} } } },
     );
 
-    fireEvent.press(getByText('3min'));
+    fireEvent.press(getByText('1h'));
 
-    expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.ThreeMinutes);
+    expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.OneHour);
   });
 
   it('calls onMorePress when more button is pressed', () => {
@@ -78,14 +79,14 @@ describe('CandlePeriodSelector', () => {
   it('displays selected period label in more button when non-default period is selected', () => {
     const { getByText } = renderWithProvider(
       <CandlePeriodSelector
-        selectedPeriod={CandlePeriod.OneHour}
+        selectedPeriod={CandlePeriod.ThreeMinutes}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
       />,
       { state: { engine: { backgroundState: {} } } },
     );
 
-    expect(getByText('1h')).toBeOnTheScreen();
+    expect(getByText('3m')).toBeOnTheScreen();
   });
 
   it('renders the configured visible periods', () => {
@@ -216,6 +217,29 @@ describe('CandlePeriodSelector', () => {
       expect(UNSAFE_getByType(SelectButton).props.twClassName).toBe(
         'shrink-0 h-8 rounded-lg px-1',
       );
+    });
+
+    it('scales period labels so the unit stays visible in the shared row', () => {
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <CandlePeriodSelector
+          selectedPeriod={CandlePeriod.OneMinute}
+          visiblePeriods={CUSTOM_CANDLE_PERIODS}
+          textVariant={TextVariant.BodySm}
+          fillWidth
+        />,
+        { state: { engine: { backgroundState: {} } } },
+      );
+
+      UNSAFE_getAllByType(FilterButton).forEach((periodButton) => {
+        expect(periodButton.props.textProps).toEqual(
+          expect.objectContaining({
+            variant: TextVariant.BodySm,
+            adjustsFontSizeToFit: true,
+            minimumFontScale: 0.7,
+            numberOfLines: 1,
+          }),
+        );
+      });
     });
 
     it('marks the selected period as selected for assistive technology', () => {

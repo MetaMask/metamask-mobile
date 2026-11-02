@@ -110,11 +110,15 @@ export const getBenefitsPriceLine = (
  *
  * @param planId - UI plan id (`annual` or `monthly`).
  * @param plusPricing - Mapped Money Account Plus pricing.
+ * @param isEligibleForTrial - Whether SubscriptionController reports the user
+ * can start a Money Account Plus trial. Pricing `trialPeriodDays` alone does
+ * not mean this user can claim the trial.
  * @returns Card copy, or undefined when that interval is not available.
  */
 export const getPlanSelectorCardCopy = (
   planId: PlanId,
   plusPricing: MoneyAccountPlusPricingView,
+  isEligibleForTrial = false,
 ): PlanSelectorCardCopy | undefined => {
   if (plusPricing.status !== PLUS_PRICING_STATUS.ready) {
     return undefined;
@@ -145,6 +149,7 @@ export const getPlanSelectorCardCopy = (
   }
 
   if (
+    isEligibleForTrial &&
     planPricing.trialPeriodDays !== undefined &&
     planPricing.trialPeriodDays > 0
   ) {

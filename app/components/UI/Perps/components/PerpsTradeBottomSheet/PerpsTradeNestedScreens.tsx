@@ -23,6 +23,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import PayWithSection from '../../../../Views/confirmations/components/UI/pay-with-section';
 import { useDismissOnPaymentChange } from '../../../../Views/confirmations/hooks/pay/useDismissOnPaymentChange';
 import { usePayWithSections } from '../../../../Views/confirmations/hooks/pay/usePayWithSections';
@@ -47,11 +48,22 @@ interface PerpsTradeLeverageScreenProps {
 
 export const PerpsTradeLeverageScreen: React.FC<
   PerpsTradeLeverageScreenProps
-> = (props) => {
+> = ({ onConfirm, ...props }) => {
   const { close, goBack } = usePerpsTradeSheet();
+  const { fireImpact } = useHaptics();
+
+  const handleConfirm = useCallback(
+    (leverage: number, inputMethod?: 'slider' | 'preset') => {
+      fireImpact(ImpactMoment.PrimaryCTA);
+      onConfirm(leverage, inputMethod);
+    },
+    [onConfirm, fireImpact],
+  );
+
   return (
     <PerpsLeverageBottomSheet
       {...props}
+      onConfirm={handleConfirm}
       isVisible
       presentation="screen"
       onBack={goBack}

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -12,6 +13,7 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
@@ -21,14 +23,15 @@ import Logger from '../../../util/Logger';
 import { ensureError } from '../../../util/errorUtils';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
-import Routes from '../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import {
   DEFAULT_PLAN,
   type PlanId,
 } from './screens/Benefits/Benefits.constants';
 import type { SelectedPlusPlan } from './screens/Benefits/utils/getSelectedPlusPlan';
+import { useProSubscriptionPaymentToasts } from './hooks/useProSubscriptionPaymentToasts';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
+import { openProHubFromSubscriptionModal } from './utils/openProHubFromSubscriptionModal';
 
 const ProSubscriptionScreen = {
   Benefits: 'benefits',
@@ -37,6 +40,12 @@ const ProSubscriptionScreen = {
 
 type ProSubscriptionScreen =
   (typeof ProSubscriptionScreen)[keyof typeof ProSubscriptionScreen];
+
+// iOS presents this route as a sheet that already starts below the status
+// bar. Android draws the modal edge to edge, so the close button needs the
+// top inset or it sits on the status icons.
+const SAFE_AREA_EDGES: Edge[] =
+  Platform.OS === 'android' ? ['top', 'bottom'] : ['bottom'];
 
 const ProSubscription = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -50,6 +59,7 @@ const ProSubscription = () => {
     >();
 
   const proAccess = useMoneyAccountPlusAccess();
+  const hasMembership = useHasProMembership();
   const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
     ProSubscriptionScreen.Benefits,
   );
@@ -59,25 +69,34 @@ const ProSubscription = () => {
   const [checkoutPlan, setCheckoutPlan] = useState<
     SelectedPlusPlan | undefined
   >();
+  const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
+  const { showProcessingToast } = useProSubscriptionPaymentToasts();
 
-  // Dismiss when the Pro flag is off, and send anyone already entitled to the
-  // hub so an existing subscriber never lands on the upsell.
+  // Dismiss when the Pro flag is off. A Plus status the hub can show already
+  // owns a membership, so send them to the hub instead of Benefits.
   useEffect(() => {
     if (proAccess === MoneyAccountPlusAccess.Disabled) {
       navigation.goBack();
       return;
     }
 
-    // On the success screen the user has just subscribed, so becoming a
-    // subscriber is expected — let them read the confirmation instead of
-    // yanking them to the hub.
+    // Checkout refreshes subscriptions before it resolves, so the user can
+    // become a member while Benefits is still mounted. Keep this screen up
+    // until Success is showing.
     if (
-      proAccess === MoneyAccountPlusAccess.Subscriber &&
-      currentScreen !== ProSubscriptionScreen.Success
+      hasMembership &&
+      currentScreen !== ProSubscriptionScreen.Success &&
+      !isCheckoutInProgress
     ) {
-      navigation.replace(Routes.PRO_HUB.ROOT);
+      navigation.dispatch(openProHubFromSubscriptionModal);
     }
-  }, [proAccess, currentScreen, navigation]);
+  }, [
+    proAccess,
+    hasMembership,
+    currentScreen,
+    isCheckoutInProgress,
+    navigation,
+  ]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -91,10 +110,23 @@ const ProSubscription = () => {
     [navigation],
   );
 
+  const handleCheckoutStart = useCallback(() => {
+    setIsCheckoutInProgress(true);
+  }, []);
+
+  const handleCheckoutError = useCallback(() => {
+    setIsCheckoutInProgress(false);
+  }, []);
+
   const handleSuccess = useCallback((plan: SelectedPlusPlan) => {
     setCheckoutPlan(plan);
     setCurrentScreen(ProSubscriptionScreen.Success);
   }, []);
+
+  const handleProcessing = useCallback(() => {
+    showProcessingToast();
+    navigation.dispatch(openProHubFromSubscriptionModal);
+  }, [navigation, showProcessingToast]);
 
   const handleSubscriptionOnSuccess = useCallback(async () => {
     // Card checkout completes outside the controller, so wait for canonical
@@ -111,7 +143,7 @@ const ProSubscription = () => {
       });
       return;
     }
-    navigation.replace(Routes.PRO_HUB.ROOT);
+    navigation.dispatch(openProHubFromSubscriptionModal);
   }, [navigation]);
 
   let screenContent: React.ReactNode = null;
@@ -119,6 +151,9 @@ const ProSubscription = () => {
     screenContent = (
       <Benefits
         onSuccess={handleSuccess}
+        onProcessing={handleProcessing}
+        onCheckoutStart={handleCheckoutStart}
+        onCheckoutError={handleCheckoutError}
         onPlanChange={handlePlanChange}
         initialPlan={selectedPlan}
       />
@@ -130,7 +165,7 @@ const ProSubscription = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+      edges={SAFE_AREA_EDGES}
     >
       {/* Shared close button — sits above both Benefits and Success screens */}
       <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">
@@ -142,8 +177,11 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {(proAccess === MoneyAccountPlusAccess.Eligible ||
-        currentScreen === ProSubscriptionScreen.Success) &&
+      {/* Membership statuses leave for the hub. Everyone else, including a
+          still-loading fetch, sees Benefits instead of a blank page. */}
+      {(currentScreen === ProSubscriptionScreen.Success ||
+        isCheckoutInProgress ||
+        (!hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)) &&
         screenContent}
     </SafeAreaView>
   );

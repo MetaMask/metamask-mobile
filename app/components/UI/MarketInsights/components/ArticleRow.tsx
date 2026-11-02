@@ -70,7 +70,7 @@ const ArticleRow: React.FC<ArticleRowProps> = ({
           </Text>
           <Box paddingTop={1}>
             <Icon
-              name={IconName.Export}
+              name={IconName.ArrowSquareOut}
               size={IconSize.Sm}
               color={IconColor.IconAlternative}
             />

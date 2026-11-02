@@ -4,12 +4,14 @@ import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
+  BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PerpsTraceNames,
   type PerpsAnalyticsEvent,
 } from '@metamask/perps-controller';
 import { setMeasurement as setSentryMeasurement } from '@sentry/react-native';
 import {
+  endTrace as endSharedTrace,
   setTraceMeasurement,
   trace as startTrace,
   TraceName,
@@ -70,6 +72,7 @@ jest.mock('../../../../util/trace', () => ({
   TraceName: {
     PerpsMarketDataPreload: 'Perps Market Data Preload',
     PerpsUserDataPreload: 'Perps User Data Preload',
+    PerpsPlaceOrder: 'Perps Place Order',
   },
 }));
 
@@ -104,6 +107,12 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RewardsController: {
       getPerpsDiscountForAccount: jest.fn().mockResolvedValue(5),
+      getPerpsTradingFeeGrant: jest.fn().mockResolvedValue({
+        providerId: 'hyperliquid',
+        isTestnet: false,
+        feeBips: 2.5,
+        expiresAt: 1_800_000_000_000,
+      }),
     },
   },
 }));
@@ -284,6 +293,29 @@ describe('createMobileInfrastructure', () => {
       );
       expect(setTraceMeasurement).not.toHaveBeenCalled();
     });
+
+    it('forwards the Core trade status to the shared trace', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.tracer.trace({
+        name: PerpsTraceNames.PlaceOrder,
+        id: 'trade-id',
+        op: 'perps.trade',
+      });
+      infra.tracer.endTrace({
+        name: PerpsTraceNames.PlaceOrder,
+        id: 'trade-id',
+        status: 'error',
+        data: { success: false },
+      });
+
+      expect(endSharedTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsPlaceOrder,
+        id: 'trade-id',
+        status: 'error',
+        data: { success: false },
+      });
+    });
   });
 
   describe('metrics', () => {
@@ -407,7 +439,7 @@ describe('createMobileInfrastructure', () => {
       expect(result).toBe(5);
     });
 
-    it('returns 0 discount when vipProgramEnabled is false', async () => {
+    it('leaves VIP eligibility to RewardsController', async () => {
       mockSelectVipProgramEnabled.mockReturnValue(false);
       const infra = createMobileInfrastructure();
       const caipAccountId =
@@ -420,8 +452,27 @@ describe('createMobileInfrastructure', () => {
 
       expect(
         Engine.context.RewardsController.getPerpsDiscountForAccount,
-      ).not.toHaveBeenCalled();
-      expect(result).toBe(0);
+      ).toHaveBeenCalledWith(caipAccountId, 10);
+      expect(result).toBe(5);
+    });
+
+    it('delegates a route-aware grant independently of VIP eligibility', async () => {
+      mockSelectVipProgramEnabled.mockReturnValue(false);
+      const infra = createMobileInfrastructure();
+      const scope = { providerId: 'hyperliquid', isTestnet: false };
+
+      const result = await infra.rewards.getPerpsTradingFeeGrant?.(scope);
+
+      expect(
+        Engine.context.RewardsController.getPerpsTradingFeeGrant,
+      ).toHaveBeenCalledWith(scope);
+      expect(result).toEqual(
+        expect.objectContaining({
+          providerId: 'hyperliquid',
+          isTestnet: false,
+          feeBips: 2.5,
+        }),
+      );
     });
   });
 
@@ -490,6 +541,7 @@ describe('createMobileClientConfig', () => {
     'MM_PERPS_LIGHTER_PROVIDER_ENABLED',
     'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
     'MM_PERPS_LIGHTER_API_KEY_INDEX',
+    'MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE',
   ] as const;
   const saved: Partial<Record<(typeof envVars)[number], string>> = {};
 
@@ -515,7 +567,7 @@ describe('createMobileClientConfig', () => {
     }
   });
 
-  it('returns default config with empty strings and arrays when no env vars are set', () => {
+  it('returns default config when no env vars are set', () => {
     // Arrange is provided by beforeEach.
 
     // Act
@@ -530,10 +582,11 @@ describe('createMobileClientConfig', () => {
       providerCredentials: {
         hyperliquid: {
           builderAddressTestnet: '',
-          builderAddressMainnet: '',
+          builderAddressMainnet: BUILDER_FEE_CONFIG.MainnetBuilder,
         },
         lighter: {
           enabled: false,
+          chaseTestnetProbe: false,
           accountIndexTestnet: undefined,
           apiKeyIndex: undefined,
         },
@@ -553,6 +606,35 @@ describe('createMobileClientConfig', () => {
       }),
     );
   });
+
+  it.each([false, true])(
+    'passes the explicit Chase probe only with Lighter enabled=%s',
+    (enabled) => {
+      mockIsLighterProviderEnabled.mockReturnValue(enabled);
+      process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE = 'true';
+
+      const config = createMobileClientConfig();
+
+      expect(config.providerCredentials?.lighter?.chaseTestnetProbe).toBe(
+        enabled,
+      );
+    },
+  );
+
+  it.each([undefined, 'false', 'TRUE', '1'])(
+    'keeps the Chase probe disabled for %s',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      if (value !== undefined)
+        process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE = value;
+
+      const config = createMobileClientConfig();
+
+      expect(config.providerCredentials?.lighter?.chaseTestnetProbe).toBe(
+        false,
+      );
+    },
+  );
 
   it('enables Lighter with its signer bridge through a production override', () => {
     mockIsLighterProviderEnabled.mockReturnValue(true);
@@ -610,6 +692,7 @@ describe('createMobileClientConfig', () => {
 
     expect(config.providerCredentials?.lighter).toEqual({
       enabled: false,
+      chaseTestnetProbe: false,
       accountIndexTestnet: undefined,
       apiKeyIndex: undefined,
     });
@@ -749,6 +832,10 @@ describe('createMobileInfrastructure - terminalApi', () => {
     }
   });
 
+  it('uses the schema-v4 global snapshot route required by Core', () => {
+    expect(TERMINAL_API_PATHS.GLOBAL_SNAPSHOT).toBe('/v4/perpetuals');
+  });
+
   it('includes the production market endpoint in one Terminal config', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
@@ -785,16 +872,16 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: true,
         environment: 'dev',
-        endpoint: '  http://127.0.0.1:9332/v2/perpetuals/global-snapshot  ',
+        endpoint: '  http://127.0.0.1:9332/v4/perpetuals  ',
         host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('http://127.0.0.1:9332/v2/perpetuals/global-snapshot');
+    ).toBe('http://127.0.0.1:9332/v4/perpetuals');
 
     expect(
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: true,
         environment: 'production',
-        endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        endpoint: 'http://127.0.0.1:9332/v4/perpetuals',
         host: TERMINAL_API_HOSTS.PRD,
       }),
     ).toBe(`${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
@@ -802,7 +889,7 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: false,
         environment: 'dev',
-        endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        endpoint: 'http://127.0.0.1:9332/v4/perpetuals',
         host: TERMINAL_API_HOSTS.DEV,
       }),
     ).toBe(`${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);

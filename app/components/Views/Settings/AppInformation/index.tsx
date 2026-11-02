@@ -68,24 +68,36 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
     };
   }, []);
 
-  const goTo = (url: string, title: string) => {
+  const goTo = (
+    url: string,
+    title: string,
+    options?: { hideShareButton?: boolean; useGlassHeader?: boolean },
+  ) => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url,
         title,
+        ...(options?.hideShareButton && { hideShareButton: true }),
+        ...(options?.useGlassHeader && { useGlassHeader: true }),
       },
     });
   };
 
   const onPrivacyPolicy = () => {
     const url = AppConstants.URLS.PRIVACY_POLICY;
-    goTo(url, strings('app_information.privacy_policy'));
+    goTo(url, strings('app_information.privacy_policy'), {
+      hideShareButton: true,
+      useGlassHeader: true,
+    });
   };
 
   const onTermsOfUse = () => {
     const url = AppConstants.URLS.TERMS_AND_CONDITIONS;
-    goTo(url, strings('app_information.terms_of_use'));
+    goTo(url, strings('app_information.terms_of_use'), {
+      hideShareButton: true,
+      useGlassHeader: true,
+    });
   };
 
   const onAttributions = () => {
@@ -142,6 +154,8 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
       <HeaderStandard
         includesTopInset
         title={aboutTitle}
+        // Android wraps "MetaMask" to a clipped second line without this
+        titleProps={{ numberOfLines: 1 }}
         onBack={() => navigation.goBack()}
         backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
       />

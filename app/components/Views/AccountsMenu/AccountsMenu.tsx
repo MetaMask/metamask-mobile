@@ -3,6 +3,7 @@ import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   HeaderStandard,
@@ -21,15 +22,16 @@ import MainActionButton from '../../../component-library/components-temp/MainAct
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
+import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { useQRScanner } from '../../hooks/useQRScanner';
-import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
+import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
@@ -46,11 +48,17 @@ import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigr
 import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
 import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
+import { useMetamaskOrangeEntry } from '../../../hooks/useMetamaskOrangeEntry';
 import {
   CardFlow,
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 } from '../../UI/Card/util/metrics';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
+import type { RootState } from '../../../reducers';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../util/address';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -62,6 +70,17 @@ const AccountsMenu = () => {
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
+  const isSwapsEnabled = useSelector((state: RootState) =>
+    selectIsSwapsEnabled(state),
+  );
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const isHardwareWallet = selectedAddress
+    ? Boolean(isHardwareAccount(selectedAddress))
+    : false;
+  const shouldRenderBatchSell =
+    useSelector(selectBatchSellEnabled) &&
+    AppConstants.SWAPS.ACTIVE &&
+    !isHardwareWallet;
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -74,6 +93,20 @@ const AccountsMenu = () => {
   const {
     state: { phase: ukMigrationPhase },
   } = useCardUkMigrationState();
+  const {
+    showOrangeEntry,
+    label: orangeLabel,
+    onPress: onPressOrange,
+  } = useMetamaskOrangeEntry();
+
+  const onPressBatchSell = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+      params: {
+        batchSellLocation: BatchSellMetricsLocation.Unknown,
+      },
+    });
+  }, [navigation]);
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -370,12 +403,22 @@ const AccountsMenu = () => {
         {/* Quick Actions Section */}
         <Box style={tw.style('px-4 py-3 flex-row gap-4 justify-between')}>
           <Box style={tw.style('mb-2 flex-1')}>
-            <MainActionButton
-              iconName={LocalIconName.AttachMoney}
-              label={strings('accounts_menu.buy')}
-              onPress={onPressDeposit}
-              testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
-            />
+            {shouldRenderBatchSell ? (
+              <MainActionButton
+                iconName={LocalIconName.BuySell}
+                label={strings('asset_overview.batch_sell')}
+                onPress={onPressBatchSell}
+                isDisabled={!isSwapsEnabled}
+                testID={AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON}
+              />
+            ) : (
+              <MainActionButton
+                iconName={LocalIconName.AttachMoney}
+                label={strings('accounts_menu.buy')}
+                onPress={onPressDeposit}
+                testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
+              />
+            )}
           </Box>
           <Box style={tw.style('mb-2 flex-1')}>
             <MainActionButton
@@ -399,6 +442,18 @@ const AccountsMenu = () => {
             testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
           />
         )}
+
+        {showOrangeEntry ? (
+          <ActionListItem
+            startAccessory={
+              <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
+            }
+            label={orangeLabel}
+            endAccessory={arrowRightIcon}
+            onPress={onPressOrange}
+            testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}
+          />
+        ) : null}
 
         {/* MetaMask Card Row */}
         <ActionListItem

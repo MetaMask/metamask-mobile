@@ -7,7 +7,6 @@ import {
   selectSourceToken,
   setDestToken,
   setSourceAmount,
-  setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { selectBridgeLimitOrderFeatureFlags } from '../../../../../selectors/bridge/featureFlags';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -39,10 +38,16 @@ jest.mock('../useBridgeSession', () => ({
   useBridgeSession: jest.fn(),
 }));
 
+jest.mock('../useLiveTokenFiatRate', () => ({
+  useLiveTokenFiatRate: jest.fn(),
+}));
+
 const mockSyncFiatAmountToTokenAmount = jest.fn();
 const mockResetToTokenMode = jest.fn();
+const mockUseSourceAmountInput = jest.fn();
 jest.mock('../useSourceAmountInput', () => ({
-  useSourceAmountInput: () => ({
+  useSourceAmountInput: (params: unknown) => ({
+    ...mockUseSourceAmountInput(params),
     amount: '',
     selection: undefined,
     handleFocus: jest.fn(),
@@ -70,6 +75,7 @@ jest.mock('../useSwitchTokens', () => ({
 
 import { useSelector } from 'react-redux';
 import { useBridgeSession } from '../useBridgeSession';
+import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
 const mockUseSelector = useSelector as jest.Mock;
@@ -134,73 +140,43 @@ describe('useLimitOrderSwapInputs', () => {
     mockHandleSwitchTokens.mockReturnValue(mockSwitchTokens);
   });
 
-  it('always resets source/dest to ETH/mUSD on mount when Ethereum is enabled', () => {
-    // Simulates a token selected on another tab (e.g. Market order) whose
-    // chain isn't part of this flow's allowed chains. The view mounting fresh
-    // (tab switch) is what triggers the reset.
-    const staleSourceToken = createMockToken({
-      chainId: '0xa4b1', // Arbitrum, not in ENABLED_CHAIN_IDS
-      symbol: 'ARB-TOKEN',
-    });
-    const staleDestToken = createMockToken({
-      chainId: '0xa4b1',
-      symbol: 'ARB-DEST',
+  it('preserves a same-chain token pair and source amount on mount', () => {
+    const sourceToken = getNativeSourceToken('eip155:1');
+    const destToken = createMockToken({
+      chainId: '0x1',
       address: '0xdest',
+      symbol: 'mUSD',
     });
 
-    renderLimitOrderSwapInputsHook(
+    const { result } = renderLimitOrderSwapInputsHook(
       {
-        sourceToken: staleSourceToken,
-        destToken: staleDestToken,
-        sourceAmount: undefined,
+        sourceToken,
+        destToken,
+        sourceAmount: '1',
       },
       ENABLED_CHAIN_IDS,
     );
 
-    const expectedDefaultSourceToken = getNativeSourceToken('eip155:1');
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(expectedDefaultSourceToken),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setDestToken(expect.objectContaining({ symbol: 'mUSD' })),
-    );
-  });
-
-  it('falls back to the first enabled chain default pair when Ethereum is not enabled', () => {
-    const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
-
-    renderLimitOrderSwapInputsHook(
-      {
-        sourceToken: staleSourceToken,
-        destToken: undefined,
-        sourceAmount: undefined,
-      },
-      ['eip155:56', 'eip155:8453'],
-    );
-
-    const expectedDefaultSourceToken = getNativeSourceToken('eip155:56');
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(expectedDefaultSourceToken),
+    expect(result.current.sourceToken).toEqual(sourceToken);
+    expect(result.current.destToken).toEqual(destToken);
+    expect(result.current.sourceAmount).toBe('1');
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setDestToken(expect.anything()),
     );
   });
 
-  it('resets to the default pair even when the current selection is already within the enabled chains', () => {
-    // Intentional: the reset always fires on mount (tab entry), so the
-    // picker starts from a predictable default every time rather than
-    // depending on whatever was left selected from a prior visit.
-    const validSourceToken = getNativeSourceToken('eip155:1');
+  it('converts fiat input at the live rate of the source token', () => {
+    const sourceToken = createMockToken({ chainId: '0x1' });
+    jest.mocked(useLiveTokenFiatRate).mockReturnValue(2460.27);
 
     renderLimitOrderSwapInputsHook(
-      {
-        sourceToken: validSourceToken,
-        destToken: undefined,
-        sourceAmount: undefined,
-      },
+      { sourceToken, destToken: undefined, sourceAmount: '0.02' },
       ENABLED_CHAIN_IDS,
     );
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(getNativeSourceToken('eip155:1')),
+    expect(useLiveTokenFiatRate).toHaveBeenCalledWith(sourceToken);
+    expect(mockUseSourceAmountInput).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceToken, tokenFiatRate: 2460.27 }),
     );
   });
 
@@ -426,7 +402,7 @@ describe('useLimitOrderSwapInputs', () => {
     });
   });
 
-  it('does not reset tokens when the limit order feature flag is missing', () => {
+  it('does not correct the destination when the feature flag is missing', () => {
     const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
 
     renderLimitOrderSwapInputsHook(
@@ -439,7 +415,7 @@ describe('useLimitOrderSwapInputs', () => {
     );
 
     expect(mockDispatch).not.toHaveBeenCalledWith(
-      setSourceToken(expect.anything()),
+      setDestToken(expect.anything()),
     );
   });
 
@@ -469,14 +445,7 @@ describe('useLimitOrderSwapInputs', () => {
       );
     });
 
-    it('never collapses source and dest to the same asset on mount from a cross-chain market pair', () => {
-      // Regression test: entering Limit from a Market order pair whose
-      // source token happens to equal the source chain's default dest token
-      // (mUSD) previously raced with the mount-reset effect. Both effects
-      // fire in the same pass; the correction effect used to read the
-      // pre-reset closure values and dispatch a *second*, stale setDestToken
-      // call after the reset's own dispatch, landing on the same native
-      // token the reset had just set as the source - i.e. source === dest.
+    it('uses the native token when the source matches the default destination', () => {
       const selectorState: SelectorState = {
         sourceToken: mUsdToken,
         destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
@@ -485,16 +454,7 @@ describe('useLimitOrderSwapInputs', () => {
 
       renderLimitOrderSwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
 
-      // The mount reset always re-anchors the source to native ETH...
       expect(mockDispatch).toHaveBeenCalledWith(
-        setSourceToken(getNativeSourceToken('eip155:1')),
-      );
-      // ...and the dest must land on that chain's default (mUSD), never on
-      // the same native ETH token the source was just reset to.
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setDestToken(expect.objectContaining({ symbol: 'mUSD' })),
-      );
-      expect(mockDispatch).not.toHaveBeenCalledWith(
         setDestToken(getNativeSourceToken('eip155:1')),
       );
     });
@@ -553,11 +513,7 @@ describe('useLimitOrderSwapInputs', () => {
     });
 
     it('falls back to native token when the new source token matches the source chain default dest token', () => {
-      // The mount-reset effect always re-anchors both tokens on the first
-      // render, so exercise the correction effect in isolation via a
-      // post-mount source change (mirroring the other tests here) rather
-      // than asserting on the mount render, where the reset effect's own
-      // dispatch would otherwise mask what this effect actually did.
+      // Exercise the correction after a user-driven source change.
       const selectorState: SelectorState = {
         sourceToken: getNativeSourceToken('eip155:1'),
         destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),

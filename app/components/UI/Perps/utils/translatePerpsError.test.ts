@@ -18,6 +18,7 @@ jest.mock('@metamask/perps-controller', () => {
       MARKETS_FAILED: 'MARKETS_FAILED',
       UNKNOWN_ERROR: 'UNKNOWN_ERROR',
       ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
+      ORDER_SCALE_PREVIEW_STALE: 'ORDER_SCALE_PREVIEW_STALE',
       IOC_CANCEL: 'IOC_CANCEL',
       CONNECTION_TIMEOUT: 'CONNECTION_TIMEOUT',
       WITHDRAW_INSUFFICIENT_BALANCE: 'WITHDRAW_INSUFFICIENT_BALANCE',
@@ -36,6 +37,7 @@ jest.mock('@metamask/perps-controller', () => {
       TPSL_UPDATE_FAILED: 'TPSL_UPDATE_FAILED',
       ORDER_REJECTED: 'ORDER_REJECTED',
       SLIPPAGE_EXCEEDED: 'SLIPPAGE_EXCEEDED',
+      PRICE_MOVED: 'PRICE_MOVED',
       RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
       SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
       NETWORK_ERROR: 'NETWORK_ERROR',
@@ -73,6 +75,14 @@ describe('translatePerpsError', () => {
   });
 
   describe('with error codes', () => {
+    it('translates a stale Scale preview refusal', () => {
+      const message = translatePerpsError(
+        PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE,
+      );
+
+      expect(message).toBe('perps.errors.orderValidation.scalePreviewStale');
+    });
+
     it('translates CLIENT_NOT_INITIALIZED error code', () => {
       const result = translatePerpsError(
         PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,
@@ -159,6 +169,40 @@ describe('translatePerpsError', () => {
 
       expect(result).toBe('perps.errors.unknownError');
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
+    });
+
+    it('formats structured PRICE_MOVED details for localized copy', () => {
+      const result = translatePerpsError({
+        error: 'Price moved too much',
+        errorCode: PERPS_ERROR_CODES.PRICE_MOVED,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.PRICE_MOVED,
+          priceDeltaBps: 336,
+          maxSlippageBps: 300,
+          expectedPrice: 788.71,
+          currentPrice: 815.22,
+        },
+      });
+
+      expect(result).toBe(
+        'perps.errors.priceMoved [priceDelta:3.36] [maxSlippage:3]',
+      );
+    });
+
+    it('formats IOC_CANCEL copy with the submitted slippage tolerance', () => {
+      const result = translatePerpsError({
+        error: PERPS_ERROR_CODES.IOC_CANCEL,
+        errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
+        maxSlippageBps: 500,
+      });
+
+      expect(result).toBe('perps.errors.iocCancel [maxSlippage:5]');
+    });
+
+    it('uses non-numeric IOC_CANCEL copy when tolerance is unavailable', () => {
+      const result = translatePerpsError(PERPS_ERROR_CODES.IOC_CANCEL);
+
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
   });
 
@@ -672,7 +716,7 @@ describe('handlePerpsError', () => {
         error: 'Insufficient liquidity for this trade',
       });
 
-      expect(result).toBe('perps.errors.insufficientLiquidity');
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
 
     it('translates transfer failed error pattern', () => {

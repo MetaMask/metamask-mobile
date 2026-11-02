@@ -96,6 +96,30 @@ describe('useHomepageReady', () => {
     });
   });
 
+  it('waits for network capability resolution before ending cached content', () => {
+    const { rerender } = renderHook(
+      ({ networkTierResolved }) =>
+        useHomepageReady({
+          contentReady: true,
+          contentState: 'filled',
+          hardwareTier: 'LOW',
+          networkTier: networkTierResolved ? 'WIFI' : null,
+          networkTierResolved,
+        }),
+      { initialProps: { networkTierResolved: false } },
+    );
+
+    expect(mockEndHomepageReadyTrace).not.toHaveBeenCalled();
+
+    rerender({ networkTierResolved: true });
+
+    expect(mockEndHomepageReadyTrace).toHaveBeenCalledWith({
+      contentState: 'filled',
+      hardwareTier: 'LOW',
+      networkTier: 'WIFI',
+    });
+  });
+
   it('starts a warm app-open trace when Home returns to foreground', () => {
     renderHook(() =>
       useHomepageReady({ contentReady: false, contentState: 'filled' }),

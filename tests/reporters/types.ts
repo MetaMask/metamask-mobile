@@ -51,6 +51,7 @@ export interface MetricsEntry {
   team?: TeamInfo;
   testFailed?: boolean;
   failureReason?: string | null;
+  failureMessage?: string | null;
   note?: string;
   thresholdMarginPercent?: number;
   timestamp?: string;
@@ -64,6 +65,17 @@ export interface MetricsEntry {
   profilingSummary?: ProfilingSummary | null;
   apiCalls?: NetworkLogEntry[] | null;
   apiCallsError?: string | null;
+  retryInfo?: RetryInfo;
+}
+
+/** Set when a test only passed after one or more failed attempts. */
+export interface RetryInfo {
+  /** Attempt number (1-based) that finally passed. */
+  attempts: number;
+  /** Why the first attempt failed, e.g. `session_creation_failed`. */
+  firstFailureReason: string | null;
+  firstFailureMessage?: string | null;
+  firstFailureDurationSec: number | null;
 }
 
 export interface SessionData {
@@ -126,6 +138,15 @@ export interface ProfilingSummary {
   diskIO?: { reads: number; writes: number; unit?: string };
   networkIO?: { upload: number; download: number; unit?: string };
   uiRendering?: { slowFrames: number; frozenFrames: number; anrs: number };
+  /** Average frames per second over the session (TestMu). */
+  fps?: { avg: number };
+  /** App launch times in milliseconds (TestMu). */
+  startup?: { cold?: number; hot?: number; unit?: string };
+  /** Battery drained by the session in mAh (TestMu, Android). */
+  batteryDrain?: { total: number; unit?: string };
+  /** Battery temperature in degrees Celsius (TestMu, Android). */
+  temperature?: { avg: number; max: number; unit?: string };
+  crashes?: number;
   error?: string;
   timestamp?: string;
 }
@@ -175,6 +196,8 @@ export interface FailedTestEntry {
   sessionId: string | null;
   qualityGates: QualityGatesResult | null;
   failureReason: string | null;
+  /** First line of the Playwright error, e.g. which element was not found. */
+  failureMessage?: string | null;
   qualityGatesViolations?: {
     stepName: string;
     actual: number;

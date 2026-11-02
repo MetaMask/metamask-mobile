@@ -29,6 +29,7 @@ jest.mock('../../sdk', () => ({
 // Mock push provisioning hook
 const mockInitiateProvisioning = jest.fn();
 const mockResetProvisioningStatus = jest.fn();
+const mockOpenInWallet = jest.fn(() => Promise.resolve());
 const mockUsePushProvisioning = jest.fn(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   (_options: unknown) => ({
@@ -42,6 +43,9 @@ const mockUsePushProvisioning = jest.fn(
     isLoading: false,
     canAddToWallet: false,
     isCardInWallet: false,
+    pendingVerificationDevices: [] as ('phone' | 'watch')[],
+    canOpenInWallet: false,
+    openInWallet: mockOpenInWallet,
   }),
 );
 
@@ -63,9 +67,15 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
@@ -94,6 +104,7 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
 import {
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
   selectCardIntercomSupportEnabled,
 } from '../../../../../selectors/featureFlagController/card';
@@ -142,6 +153,7 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       setOptions: mockSetNavigationOptions,
       dispatch: mockNavigationDispatch,
+      addListener: jest.fn(() => jest.fn()),
     }),
     useRoute: () => ({
       params: {},
@@ -414,6 +426,7 @@ const createDefaultMoneyAccountCardLinkageMock =
     moneyAccountCardToken: null,
     canLink: false,
     isMoneyAccountLinkingSupported: true,
+    isMoneyCardSectionAvailable: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -945,6 +958,8 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
+    if (selector === selectApplePayLearnMoreUrl)
+      return 'https://metamask.io/card';
     if (selector === selectCardIntercomSupportEnabled)
       return config.isCardIntercomSupportEnabled;
     if (selector === selectCardProviderUserId) return config.providerUserId;
@@ -2166,7 +2181,7 @@ describe('CardHome Component', () => {
     });
 
     it('hides the instructions while push eligibility is loading', () => {
-      mockUsePushProvisioning.mockReturnValueOnce({
+      mockUsePushProvisioning.mockReturnValue({
         initiateProvisioning: mockInitiateProvisioning,
         resetStatus: mockResetProvisioningStatus,
         status: 'idle' as const,
@@ -2177,6 +2192,9 @@ describe('CardHome Component', () => {
         isLoading: true,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2200,6 +2218,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: true,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2223,6 +2244,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: true,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2231,6 +2255,107 @@ describe('CardHome Component', () => {
         screen.queryByTestId(
           CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
         ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows a pending verification notice that names the devices', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone', 'watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_description', {
+            devices: strings('card.push_provisioning.device_list_and', {
+              first: strings('card.push_provisioning.device_iphone'),
+              second: strings('card.push_provisioning.device_apple_watch'),
+            }),
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the iPhone pass from the pending notice', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone'],
+        canOpenInWallet: true,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      fireEvent.press(
+        within(
+          screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+        ).getByTestId('confirm-button'),
+      );
+
+      expect(mockOpenInWallet).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the wallet link when only the Watch pass is pending', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+        ).queryByTestId('confirm-button'),
       ).not.toBeOnTheScreen();
     });
 
@@ -2246,6 +2371,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2253,6 +2381,221 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
       ).toBeOnTheScreen();
+    });
+
+    it('hides the instructions when the Immersve card is frozen', () => {
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Apple Pay learn more', () => {
+    const originalPlatform = Platform.OS;
+
+    beforeEach(() => {
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+      });
+      setupLoadCardDataMock({ isAuthenticated: true });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    });
+
+    it('opens the Apple Pay learn-more page from the Add to Apple Wallet section', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      );
+
+      expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/card');
+    });
+
+    it('hides learn more when the card is already on a device', () => {
+      mockUsePushProvisioning.mockReturnValue({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: [],
+        canOpenInWallet: true,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('hides learn more when the card cannot be added to Apple Wallet', () => {
+      mockUsePushProvisioning.mockReturnValue({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('hides learn more on Android even when the card can be added', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      mockUsePushProvisioning.mockReturnValue({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      ).toBeNull();
+    });
+  });
+
+  describe('How to use Apple Pay', () => {
+    const originalPlatform = Platform.OS;
+
+    const mockWalletState = ({
+      canAddToWallet,
+      isCardInWallet,
+    }: {
+      canAddToWallet: boolean;
+      isCardInWallet: boolean;
+    }) => {
+      mockUsePushProvisioning.mockReturnValue({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet,
+        isCardInWallet,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+    };
+
+    beforeEach(() => {
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+      });
+      setupLoadCardDataMock({ isAuthenticated: true });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    });
+
+    it('hides the row when the card is still missing from a device', () => {
+      mockWalletState({ canAddToWallet: true, isCardInWallet: true });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+      ).toBeNull();
+    });
+
+    it('opens the usage sheet when the card is on every device', () => {
+      mockWalletState({ canAddToWallet: false, isCardInWallet: true });
+
+      render();
+      mockNavigate.mockClear();
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.APPLE_PAY_USAGE,
+      });
+    });
+
+    it('hides the row when the card is on no devices', () => {
+      mockWalletState({ canAddToWallet: true, isCardInWallet: false });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+      ).toBeNull();
     });
   });
 
@@ -7233,6 +7576,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
       render();
       expect(screen.queryByTestId('add-to-wallet-button')).toBeNull();
@@ -7301,6 +7647,7 @@ describe('CardHome Component', () => {
         },
         canLink: true,
         isMoneyAccountLinkingSupported: true,
+        isMoneyCardSectionAvailable: true,
         status: 'idle' as const,
         isLinking: false,
         error: null,

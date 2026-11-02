@@ -15,6 +15,19 @@ import { merge } from 'lodash';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
+import {
+  Controller as AuthenticationController,
+  type AuthenticationControllerMessenger,
+  type AuthenticationControllerState,
+} from '@metamask/profile-sync-controller/auth';
+import { Platform } from '@metamask/profile-sync-controller/sdk';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import { analytics } from '../analytics/analytics';
 
 jest.mock('react-native-fs', () => ({
@@ -135,7 +148,7 @@ describe('logs :: generateStateLogs', () => {
           ...backgroundState,
           NftController: { nfts: [] },
           TokensController: { tokens: [] },
-          TokenDetectionController: { detectedTokens: [] },
+          AssetsController: { assetsBalance: {} },
           NftDetectionController: { detectedNfts: [] },
           PhishingController: { whitelist: [] },
           AssetsContractController: { assets: [] },
@@ -153,8 +166,8 @@ describe('logs :: generateStateLogs', () => {
 
     expect(logs.includes('NftController')).toBe(false);
     expect(logs.includes('TokensController')).toBe(false);
+    expect(logs.includes('AssetsController')).toBe(false);
     expect(logs.includes('AssetsContractController')).toBe(false);
-    expect(logs.includes('TokenDetectionController')).toBe(false);
     expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
     expect(logs.includes('DeFiPositionsController')).toBe(false);
@@ -836,6 +849,190 @@ describe('logs :: generateStateLogs', () => {
         parsedLogs.engine.backgroundState.SeedlessOnboardingController
           .nodeAuthTokens,
       ).toEqual([]);
+    });
+  });
+
+  describe('includeInStateLogs metadata', () => {
+    const stateLogsMetadata = (
+      includeInStateLogs: boolean | ((value: never) => unknown),
+    ) => ({
+      includeInStateLogs,
+      persist: true,
+      includeInDebugSnapshot: false,
+      usedInUi: true,
+    });
+
+    const setControllerMetadata = (
+      controllerName: 'QrSyncController' | 'CardController',
+      metadata: Record<string, ReturnType<typeof stateLogsMetadata>>,
+    ) => {
+      Reflect.set(Engine.context, controllerName, { metadata });
+    };
+
+    const generateParsedLogs = (controllerStates: Record<string, unknown>) =>
+      JSON.parse(
+        generateStateLogs({
+          engine: {
+            backgroundState: { ...backgroundState, ...controllerStates },
+          },
+        }),
+      ).engine.backgroundState;
+
+    afterEach(() => {
+      Reflect.deleteProperty(Engine.context, 'QrSyncController');
+      Reflect.deleteProperty(Engine.context, 'CardController');
+      Reflect.deleteProperty(Engine.context, 'AuthenticationController');
+    });
+
+    it('drops fields marked false and applies sanitizer functions', () => {
+      setControllerMetadata('QrSyncController', {
+        status: stateLogsMetadata(true),
+        otp: stateLogsMetadata(false),
+        session: stateLogsMetadata((session: { id: string }) => ({
+          hasSession: Boolean(session.id),
+        })),
+      });
+
+      const logs = generateParsedLogs({
+        QrSyncController: {
+          status: 'idle',
+          otp: 'sensitive-otp',
+          session: { id: 'sensitive-session-id' },
+        },
+      });
+
+      expect(logs.QrSyncController).toStrictEqual({
+        status: 'idle',
+        session: { hasSession: true },
+      });
+    });
+
+    it('keeps controller state unchanged when the controller has no metadata', () => {
+      const logs = generateParsedLogs({
+        QrSyncController: { otp: 'unchanged' },
+      });
+
+      expect(logs.QrSyncController).toStrictEqual({ otp: 'unchanged' });
+    });
+
+    it('keeps the CardController cardHomeData summary while dropping fields marked false', () => {
+      setControllerMetadata('CardController', {
+        isAuthenticated: stateLogsMetadata(true),
+        cardHomeData: stateLogsMetadata(false),
+        cardHomeDataAddress: stateLogsMetadata(false),
+        cardLinks: stateLogsMetadata(false),
+      });
+
+      const logs = generateParsedLogs({
+        CardController: {
+          isAuthenticated: true,
+          cardHomeData: {
+            card: { id: 'card-id' },
+            fundingAssets: [],
+            actions: [],
+            alerts: [],
+          },
+          cardHomeDataAddress: '0xabc',
+          cardLinks: [{ linkedAccountRef: '0xsecret' }],
+        },
+      });
+
+      expect(logs.CardController).toStrictEqual({
+        isAuthenticated: true,
+        cardHomeData: {
+          hasCard: true,
+          hasPrimaryFundingAsset: false,
+          fundingAssetCount: 0,
+          actionTypes: [],
+          alertTypes: [],
+        },
+        cardHomeDataAddress: true,
+      });
+    });
+
+    it('keeps AuthenticationController profile IDs and redacts tokens', () => {
+      const rootMessenger = new Messenger<
+        MockAnyNamespace,
+        MessengerActions<AuthenticationControllerMessenger>,
+        MessengerEvents<AuthenticationControllerMessenger>
+      >({ namespace: MOCK_ANY_NAMESPACE });
+      rootMessenger.registerActionHandler('KeyringController:getState', () => ({
+        isUnlocked: false,
+        keyrings: [],
+      }));
+      const messenger: AuthenticationControllerMessenger = new Messenger({
+        namespace: 'AuthenticationController',
+        parent: rootMessenger,
+      });
+      rootMessenger.delegate({
+        actions: ['KeyringController:getState'],
+        events: ['KeyringController:lock', 'KeyringController:unlock'],
+        messenger,
+      });
+      Engine.context.AuthenticationController = new AuthenticationController({
+        messenger,
+        metametrics: {
+          agent: Platform.MOBILE,
+          getMetaMetricsId: () => 'metametrics-id',
+        },
+      });
+      const authenticationControllerState: AuthenticationControllerState = {
+        isSignedIn: true,
+        needsProfilePairing: false,
+        needsSocialPairing: false,
+        srpSessionData: {
+          'entropy-source-id': {
+            token: {
+              accessToken: 'sensitive-access-token',
+              expiresIn: 3600,
+              obtainedAt: 1700000000000,
+            },
+            profile: {
+              identifierId: 'identifier-id',
+              profileId: 'profile-id',
+              canonicalProfileId: 'canonical-profile-id',
+              metaMetricsId: 'profile-metametrics-id',
+              pairedIdentifierIds: [
+                { id: 'paired-identifier-id', type: 'SRP' },
+              ],
+            },
+          },
+        },
+        enrolledCredentials: [
+          {
+            id: 'email_otp',
+            type: 'email_otp',
+            status: 'active',
+            enrolledAt: 1700000000000,
+            email: 'user@example.com',
+            verified: true,
+          },
+        ],
+      };
+
+      const logs = generateParsedLogs({
+        AuthenticationController: authenticationControllerState,
+      });
+
+      expect(logs.AuthenticationController).toStrictEqual({
+        isSignedIn: true,
+        needsProfilePairing: false,
+        needsSocialPairing: false,
+        srpSessionData: {
+          'entropy-source-id': {
+            token: { expiresIn: 3600, obtainedAt: 1700000000000 },
+            profile: {
+              identifierId: 'identifier-id',
+              profileId: 'profile-id',
+              canonicalProfileId: 'canonical-profile-id',
+              metaMetricsId: 'profile-metametrics-id',
+            },
+          },
+        },
+        enrolledCredentials: [
+          { type: 'email_otp', status: 'active', enrolledAt: 1700000000000 },
+        ],
+      });
     });
   });
 });

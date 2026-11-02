@@ -131,6 +131,47 @@ describe('MemberPricingOnTrades', () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
+  it('explains that pricing starts once a provisional membership is confirmed', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Pending,
+      items: [],
+      resetsOn: undefined,
+      retry: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(getByTestId(MemberPricingOnTradesTestIds.PENDING)).toHaveTextContent(
+      toRegex(strings('pro_hub.member_pricing.pending_confirmation')),
+    );
+    expect(getByTestId(MemberPricingOnTradesTestIds.TITLE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.RETRY_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('explains that member pricing is unavailable without offering retry', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Unavailable,
+      items: [],
+      resetsOn: undefined,
+      retry: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.UNAVAILABLE),
+    ).toHaveTextContent(toRegex(strings('pro_hub.member_pricing.unavailable')));
+    expect(getByTestId(MemberPricingOnTradesTestIds.TITLE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.RETRY_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('omits a product that was not mapped from benefits', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Incomplete,

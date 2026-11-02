@@ -36,12 +36,15 @@ interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
   isLoading?: boolean;
   iconSize?: number;
+  /** Render a stream error below the heading while retaining cached activity. */
+  errorContent?: React.ReactNode;
 }
 
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   transactions,
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  errorContent,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const isTestnet = usePerpsNetwork() === 'testnet';
@@ -105,9 +108,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           }
           value={fill?.amount}
           valueProps={{
-            color: fill?.isPositive
-              ? TextColor.SuccessDefault
-              : TextColor.ErrorDefault,
+            color:
+              fill?.isPositive === undefined
+                ? TextColor.TextDefault
+                : fill.isPositive
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault,
           }}
           onPress={() => handleTransactionPress(item)}
         />
@@ -120,12 +126,13 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     return (
       <Box>
         <SectionHeader title={activityTitle} />
+        {errorContent}
         <PerpsRowSkeleton count={3} />
       </Box>
     );
   }
 
-  if (transactions.length === 0) {
+  if (transactions.length === 0 && !errorContent) {
     return null;
   }
 
@@ -133,9 +140,10 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     <Box>
       <SectionHeader
         title={activityTitle}
-        isInteractive
+        isInteractive={transactions.length > 0}
         onPress={handleSeeAll}
       />
+      {errorContent}
       <FlatList
         testID={PerpsRecentActivityListSelectorsIDs.LIST}
         data={transactions}

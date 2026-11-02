@@ -49,6 +49,22 @@ export function convertUsdToFiat(
 }
 
 /**
+ * Formats a fiat amount with no forced plus sign. Used for position value.
+ */
+export function formatFiatAmount(
+  value: number,
+  currency: string,
+  locale: string = I18n.locale,
+): string {
+  return getIntlNumberFormatter(locale, {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+    currencyDisplay: 'narrowSymbol',
+    signDisplay: 'auto',
+  }).format(value);
+}
+
+/**
  * Formats a fiat amount with an explicit sign for non-zero PnL.
  */
 export function formatFiat(

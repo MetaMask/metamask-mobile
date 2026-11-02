@@ -467,6 +467,8 @@ describe('usePerpsToasts', () => {
           label: 'Network error',
           isBold: false,
         });
+        expect(config.linkButtonOptions).toBeUndefined();
+        expect(config.hasNoTimeout).toBe(false);
       });
 
       it('strips hip3 prefix from asset symbol in market order submitted', () => {
@@ -565,6 +567,20 @@ describe('usePerpsToasts', () => {
 
         expect(config.labelOptions).toContainEqual({
           label: 'Network error',
+          isBold: false,
+        });
+      });
+
+      it('retains a supplied definite refusal reason without changing default failure copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.creationFailed(
+            undefined,
+            'Review existing Scale orders before placing another',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Review existing Scale orders before placing another',
           isBold: false,
         });
       });

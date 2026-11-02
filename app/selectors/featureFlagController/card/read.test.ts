@@ -9,9 +9,11 @@ import {
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
+  readCardImmersveMfaEnabled,
   readCardProviderEnabled,
   readCardUkMigrationFlag,
   readCardUkMigrationSignInRoutingEnabled,
@@ -563,6 +565,55 @@ describe('card feature flag readers', () => {
     });
   });
 
+  describe('readCardLinkApiEnabled', () => {
+    const originalEnv = process.env.MM_CARD_LINK_API_ENABLED;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MM_CARD_LINK_API_ENABLED;
+      } else {
+        process.env.MM_CARD_LINK_API_ENABLED = originalEnv;
+      }
+    });
+
+    it('reads the version-gated cardLinkApi flag when present', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: true, minimumVersion: '0.0.0' },
+        }),
+      ).toBe(true);
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: false, minimumVersion: '0.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('is off when the app is below cardLinkApi.minimumVersion', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: true, minimumVersion: '99.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('ignores cardFeature.cardLinkApiEnabled', () => {
+      delete process.env.MM_CARD_LINK_API_ENABLED;
+      expect(
+        readCardLinkApiEnabled({ cardFeature: { cardLinkApiEnabled: true } }),
+      ).toBe(false);
+    });
+
+    it('falls back to MM_CARD_LINK_API_ENABLED when the remote flag is absent', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(readCardLinkApiEnabled({})).toBe(true);
+      delete process.env.MM_CARD_LINK_API_ENABLED;
+      expect(readCardLinkApiEnabled({})).toBe(false);
+    });
+  });
+
   describe('readCardUkMigrationSignInRoutingEnabled', () => {
     const originalEnv =
       process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
@@ -600,6 +651,61 @@ describe('card feature flag readers', () => {
       expect(readCardUkMigrationSignInRoutingEnabled({})).toBe(true);
       process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = 'false';
       expect(readCardUkMigrationSignInRoutingEnabled({})).toBe(false);
+    });
+  });
+
+  describe('readCardImmersveMfaEnabled', () => {
+    const originalEnv = process.env.MM_CARD_IMMERSVE_MFA_ENABLED;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MM_CARD_IMMERSVE_MFA_ENABLED;
+      } else {
+        process.env.MM_CARD_IMMERSVE_MFA_ENABLED = originalEnv;
+      }
+    });
+
+    it('returns true when the remote flag is enabled for this version', () => {
+      delete process.env.MM_CARD_IMMERSVE_MFA_ENABLED;
+      expect(
+        readCardImmersveMfaEnabled({
+          cardImmersveMfa: { enabled: true, minimumVersion: '0.0.0' },
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      process.env.MM_CARD_IMMERSVE_MFA_ENABLED = 'true';
+      expect(
+        readCardImmersveMfaEnabled({
+          cardImmersveMfa: { enabled: false, minimumVersion: '0.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false when the flag is missing or malformed', () => {
+      delete process.env.MM_CARD_IMMERSVE_MFA_ENABLED;
+      expect(readCardImmersveMfaEnabled({})).toBe(false);
+      expect(readCardImmersveMfaEnabled(undefined)).toBe(false);
+      expect(
+        readCardImmersveMfaEnabled({ cardImmersveMfa: { enabled: 'yes' } }),
+      ).toBe(false);
+    });
+
+    it('returns false when this version is below minimumVersion', () => {
+      delete process.env.MM_CARD_IMMERSVE_MFA_ENABLED;
+      expect(
+        readCardImmersveMfaEnabled({
+          cardImmersveMfa: { enabled: true, minimumVersion: '99.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('falls back to the env override only when the remote flag is absent', () => {
+      process.env.MM_CARD_IMMERSVE_MFA_ENABLED = 'true';
+      expect(readCardImmersveMfaEnabled({})).toBe(true);
+      process.env.MM_CARD_IMMERSVE_MFA_ENABLED = 'false';
+      expect(readCardImmersveMfaEnabled({})).toBe(false);
     });
   });
 

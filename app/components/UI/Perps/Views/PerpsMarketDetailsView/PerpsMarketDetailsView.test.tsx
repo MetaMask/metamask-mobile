@@ -17,7 +17,11 @@ import type { OhlcData } from '../../components/TradingViewChart';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
@@ -141,31 +145,38 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
       subscribeToSymbols: jest.fn(() => jest.fn()),
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     positions: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     fills: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     account: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       getMarkets: jest.fn(),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     focusedPrice: {
       subscribeToSymbol: jest.fn(() => jest.fn()),
@@ -450,6 +461,7 @@ const mockUsePerpsLiveFillsImpl = jest.fn<
   >,
   []
 >(() => ({
+  retry: jest.fn(),
   fills: [],
   isInitialLoading: false,
 }));
@@ -482,6 +494,20 @@ const mockUsePerpsMarketsImpl = jest.fn<
   refresh: jest.fn(),
   isRefreshing: false,
 }));
+
+jest.mock('../../hooks/usePerpsSharePosition', () => ({
+  usePerpsSharePosition: () => ({
+    sharePosition: jest.fn(),
+    findSocialPosition: () => undefined,
+  }),
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
 
 // Mock the direct import path for usePerpsMarkets
 jest.mock('../../hooks/usePerpsMarkets', () => ({
@@ -1073,6 +1099,7 @@ describe('PerpsMarketDetailsView', () => {
 
     // Reset order fills mock to default
     mockUsePerpsLiveFillsImpl.mockReturnValue({
+      retry: jest.fn(),
       fills: [],
       isInitialLoading: false,
     });
@@ -3169,6 +3196,9 @@ describe('PerpsMarketDetailsView', () => {
           source: 'perp_asset_screen',
         }),
       );
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('passes marketData defaults to order screen when available', async () => {
@@ -3358,6 +3388,9 @@ describe('PerpsMarketDetailsView', () => {
           source: 'perp_asset_screen',
         }),
       );
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when long button is pressed and user is not eligible', () => {
@@ -3510,6 +3543,9 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when modify button is pressed and user is not eligible', () => {
@@ -5600,6 +5636,50 @@ describe('PerpsMarketDetailsView', () => {
         expect(getByText('5x')).toBeOnTheScreen();
       });
       expect(queryByText('100')).toBeNull();
+    });
+
+    it('enriches a route symbol that differs from the market only in case', async () => {
+      const { usePerpsMarketData } = jest.requireMock('../../hooks');
+      mockRouteParams.market = {
+        symbol: 'KPEPE',
+        name: 'KPEPE',
+        price: '0',
+        change24h: '0',
+        change24hPercent: '0',
+        volume: '0',
+        maxLeverage: '100',
+      };
+      mockUsePerpsMarketsImpl.mockImplementation(() => ({
+        markets: [
+          {
+            symbol: 'kPEPE',
+            providerId: 'hyperliquid',
+            name: 'kPEPE',
+            price: '$0.01',
+            change24h: '+$0.00',
+            change24hPercent: '+1.00%',
+            volume: '$1M',
+            maxLeverage: '10x',
+            volumeNumber: 1_000_000,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      }));
+
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(getByText('10x')).toBeOnTheScreen();
+      });
+      expect(usePerpsMarketData).toHaveBeenLastCalledWith({ asset: 'kPEPE' });
     });
 
     it('passes enriched SPCX leverage defaults to order screen', async () => {

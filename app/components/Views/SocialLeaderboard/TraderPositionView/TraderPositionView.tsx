@@ -48,6 +48,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
+import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
   ToastContext,
@@ -142,6 +143,7 @@ const TraderPositionView = () => {
     originalEntryPoint: originalEntryPointParam,
     isClosed: isClosedParam,
     notificationSubtype,
+    isSocialV1,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
@@ -227,6 +229,13 @@ const TraderPositionView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleSharePosition = useCallback(() => {
+    if (!effectivePositionId) {
+      return;
+    }
+    shareSocialTraderPosition(effectivePositionId, traderId);
+  }, [effectivePositionId, traderId]);
 
   const handleTraderPress = useCallback(() => {
     if (isSocialV1Treatment()) {
@@ -857,6 +866,7 @@ const TraderPositionView = () => {
           originalEntryPoint={quickBuyOriginalEntryPoint}
           isTraderPositionClosed={isClosed}
           onBuyCtaClicked={handleBuyCtaClicked}
+          postTradeShare={isSocialV1 === true}
           buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
         />
       )}
@@ -886,7 +896,9 @@ const TraderPositionView = () => {
             traderAddress={traderAddress}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
+            onShare={effectivePositionId ? handleSharePosition : undefined}
             backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            shareButtonTestID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
             traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
           />
         ) : (
@@ -903,6 +915,7 @@ const TraderPositionView = () => {
             perpLeverage={displayPosition?.perpLeverage}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
+            onShare={effectivePositionId ? handleSharePosition : undefined}
           />
         )}
       </Box>

@@ -25,7 +25,6 @@ const profile = (
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
   linkedAccountAddress: '0xlinked',
   ...overrides,
 });
