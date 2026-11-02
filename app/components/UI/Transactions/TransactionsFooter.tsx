@@ -130,6 +130,9 @@ const TransactionsFooter = ({
             testID="transactions-footer-view-explorer"
             variant={ButtonVariant.Tertiary}
             accessibilityRole="link"
+            textClassName={(pressed) =>
+              pressed ? 'text-primary-default-pressed' : 'text-primary-default'
+            }
             style={styles.viewMoreButton}
             onPress={onViewBlockExplorer}
           >

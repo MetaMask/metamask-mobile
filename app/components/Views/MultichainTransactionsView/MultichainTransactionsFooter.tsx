@@ -74,6 +74,9 @@ const MultichainTransactionsFooter = ({
           <Button
             variant={ButtonVariant.Tertiary}
             accessibilityRole="link"
+            textClassName={(pressed) =>
+              pressed ? 'text-primary-default-pressed' : 'text-primary-default'
+            }
             style={styles.viewMoreButton}
             onPress={onViewMore}
           >
