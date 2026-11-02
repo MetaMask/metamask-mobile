@@ -379,6 +379,31 @@ describe('ensureMusdAutoramp', () => {
       expect(mockCreate).not.toHaveBeenCalled();
     });
 
+    it('tracks a blocked rail as a failed create', async () => {
+      mockRailReadiness.mockReturnValue('blocked');
+
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).rejects.toBeDefined();
+
+      expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({
+        category: 'Money VBA Autoramp Create Updated',
+      });
+      expect(buildProperties()).toMatchObject({
+        status: 'failed',
+        failure_reason: 'vba_create_failed',
+        currency_source: 'USD',
+      });
+    });
+
+    it('does not track while the rail is pending', async () => {
+      mockRailReadiness.mockReturnValue('pending');
+
+      await ensureMusdAutoramp('0xabc', 'USD');
+
+      expect(trackVbaEvent).not.toHaveBeenCalled();
+    });
+
     it('creates as before when the abilities refresh fails', async () => {
       mockRefreshCustomerAbilities.mockRejectedValue(new Error('404'));
 

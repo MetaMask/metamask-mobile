@@ -196,7 +196,8 @@ const createAutorampWhenRailActive = async (
     return 'awaiting_provider';
   }
   if (readiness === 'blocked') {
-    // The same error MoonPay's 422 produces, without sending the create.
+    // Reported and thrown like MoonPay's 422, without sending the create.
+    trackAutorampCreateFailed(sourceCurrency);
     throw new AccountCreateRegistrationError({ kind: 'http', status: 422 });
   }
   await createAutoramp(walletAddress, sourceCurrency);
