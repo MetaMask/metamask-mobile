@@ -139,7 +139,7 @@ function buildSlackMessage(options) {
           type: 'mrkdwn',
           text: isValidUrl(iosUrl)
             ? `*iOS Build:*\n<${iosUrl}|TestFlight>`
-            : '*iOS Build:*\n<https://testflight.apple.com/join|Check TestFlight>',
+            : '*iOS Build:*\n<https://testflight.apple.com/a|Check TestFlight>',
         },
       ],
     },

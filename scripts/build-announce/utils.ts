@@ -11,7 +11,7 @@ import { resolve, join } from 'path';
 import type { TestPlanResult } from './types';
 
 export const RC_BUILD_COMMENT_MARKER = '<!-- metamask-bot-rc-build-announce -->';
-export const TESTFLIGHT_URL = 'https://testflight.apple.com/join';
+export const TESTFLIGHT_URL = 'https://testflight.apple.com/a';
 
 /**
  * Checks if a URL value is valid (not empty, null, placeholder, and proper URL format).

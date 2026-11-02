@@ -195,7 +195,7 @@ describe('buildNightlySlackMessage', () => {
   it('links the iOS builds to TestFlight', () => {
     const payload = buildNightlySlackMessage(buildMetadata(), links);
 
-    expect(blocksText(payload)).toContain('https://testflight.apple.com/join|TestFlight');
+    expect(blocksText(payload)).toContain('https://testflight.apple.com/a|TestFlight');
     expect(blocksText(payload)).not.toContain('hBrjtFuA');
   });
 
