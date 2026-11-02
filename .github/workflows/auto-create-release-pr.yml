@@ -49,6 +49,7 @@ jobs:
     uses: ./.github/workflows/create-release-pr.yml
     secrets:
       google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
+      AI_ANALYZER_LITELLM_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
     with:
       semver-version: ${{ needs.extract.outputs.semver }}
       is-ota: ${{ needs.extract.outputs.is_ota == 'true' }}

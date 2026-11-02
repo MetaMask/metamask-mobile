@@ -1,6 +1,8 @@
 import { VbaIdentityVerificationRoutes, VbaOnboardingRoutes } from './routes';
 import { KYC_SCREEN_ID } from '../../../KYC/kycScreenPerformance';
 import { TraceName, TraceOperation } from '../../../../../util/trace';
+import { getVbaCufLifecycleContext } from './vbaCufLifecycle';
+import { VBA_CUF_TAG } from './vbaCufTags';
 
 export {
   SCREEN_CONTENT_STATE as VBA_SCREEN_CONTENT_STATE,
@@ -32,6 +34,9 @@ export const VBA_SCREEN_PERFORMANCE_CONFIG = {
   flow: 'vba',
   logMarker: '[VbaCUF]',
   screenIds: Object.values(VBA_SCREEN_ID),
+  getAdditionalTags: () => ({
+    [VBA_CUF_TAG.LIFECYCLE_CONTEXT]: getVbaCufLifecycleContext(),
+  }),
 };
 
 export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {

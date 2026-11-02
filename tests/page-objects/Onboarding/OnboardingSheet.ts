@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/OnboardingSheet/OnboardingSheet.testIds';
+import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/Onboarding/OnboardingSheet/OnboardingSheet.testIds';
 import type { AppiumElement } from '../../framework/AppiumElement';
 
 class OnboardingSheet {

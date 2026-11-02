@@ -30,10 +30,7 @@ import {
   formatMusdBaseUnits,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
-
-export const EARNINGS_HISTORY_TEST_IDS = {
-  ROW: 'earnings-history-row',
-} as const;
+import { EARNINGS_HISTORY_TEST_IDS } from './EarningsHistoryRows.testIds';
 
 function earningTitle(
   origin: EarningOriginType,

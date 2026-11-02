@@ -15,15 +15,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
 }));
 
-const mockSelectTransactionMetadataByHash = jest.fn<
-  unknown,
-  [unknown, string | undefined]
->(() => undefined);
-jest.mock('../../../../../selectors/transactionController', () => ({
-  selectTransactionMetadataByHash: (state: unknown, hash?: string) =>
-    mockSelectTransactionMetadataByHash(state, hash),
-}));
-
 const mockedSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
 );
@@ -86,6 +77,7 @@ const bankTransfer: AccountsApiActivity = {
   token,
   amount: '15009500',
   receivedFrom: '0x798eee806e806a0a26bc52526428dd3692217881' as Hex,
+  status: 'confirmed',
 };
 
 const enrichment: CardTransaction = {
@@ -120,7 +112,6 @@ describe('AccountsApiActivityItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectActivityDetailsFlag.mockReturnValue(true);
-    mockSelectTransactionMetadataByHash.mockReturnValue(undefined);
   });
 
   it('feeds a card spend (outgoing amount) into the row view', () => {
@@ -176,23 +167,7 @@ describe('AccountsApiActivityItem', () => {
     });
   });
 
-  it('opens MoneyTransactionDetails when bank_transfer matches a local deposit', () => {
-    mockSelectTransactionMetadataByHash.mockReturnValue({
-      id: 'local-deposit-1',
-      hash: bankTransfer.hash,
-      type: 'moneyAccountDeposit',
-    } as never);
-
-    render(<AccountsApiActivityItem activity={bankTransfer} />);
-
-    lastRowProps().onPress?.(bankTransfer.hash);
-
-    expect(mockNavigate).toHaveBeenCalledWith('MoneyTransactionDetails', {
-      transactionId: 'local-deposit-1',
-    });
-  });
-
-  it('opens MoneyCardTransactionDetails for bank_transfer without a local deposit', () => {
+  it('opens the custom details for a bank_transfer', () => {
     render(<AccountsApiActivityItem activity={bankTransfer} />);
 
     lastRowProps().onPress?.(bankTransfer.hash);

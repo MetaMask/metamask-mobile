@@ -13,7 +13,7 @@ import {
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import { navigateToSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { pushSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import {
   SocialLeaderboard,
   type SocialLeaderboardSource,
@@ -35,7 +35,7 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
   const [tab, setTab] = useState<SocialFeedTab>('trending');
 
   const handleOpenSocial = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate, {
+    pushSocialLeaderboard(navigation.navigate, {
       source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       initialTab: tab === 'top_traders' ? 'leaderboard' : 'trending',
     });

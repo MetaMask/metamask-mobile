@@ -1,7 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import Svg from 'react-native-svg';
+import { strings } from '../../../../../../locales/i18n';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 import PerpsFeesDisplay from './PerpsFeesDisplay';
+import { SEAL_PERCENT_ICON_SIZE } from './SealPercentIcon';
 
 jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const actual = jest.requireActual<
@@ -23,8 +28,8 @@ jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
 });
 
 describe('PerpsFeesDisplay', () => {
-  it('shows a promotional label and original fee without a VIP badge', () => {
-    const { getByText, getByTestId, queryByTestId } = render(
+  it('shows a promotional seal and original fee without a VIP badge', () => {
+    const { getByTestId, queryByTestId, queryByText } = render(
       <PerpsFeesDisplay
         fee={0}
         originalFee={10}
@@ -34,11 +39,75 @@ describe('PerpsFeesDisplay', () => {
       />,
     );
 
-    expect(getByText('Promotional discount')).toBeOnTheScreen();
-    expect(getByTestId('fee-original')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL).props
+        .accessibilityLabel,
+    ).toBe(strings('perps.tooltips.fees.promotional_discount'));
+    expect(queryByText('Promotional discount')).not.toBeOnTheScreen();
+    expect(getByTestId('fee-original').props.accessibilityLabel).toBe(
+      strings('perps.tooltips.fees.original_fee_value', {
+        fee: getByTestId('fee-original').props.children,
+      }),
+    );
     expect(
       queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('uses success color for a promotional fee beside its original fee', () => {
+    const { UNSAFE_getAllByType } = render(
+      <PerpsFeesDisplay
+        fee={8.5}
+        originalFee={10}
+        feeDiscountPercentage={15}
+        feeDiscountKind="promotional"
+        testID="fee"
+      />,
+    );
+
+    const discountedFee = UNSAFE_getAllByType(Text).find(
+      (node) => node.props.testID === 'fee',
+    );
+
+    expect(discountedFee?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('uses the fee-row-sized promotional seal', () => {
+    const { UNSAFE_getByType } = render(
+      <PerpsFeesDisplay
+        fee={8.5}
+        originalFee={10}
+        feeDiscountPercentage={15}
+        feeDiscountKind="promotional"
+      />,
+    );
+
+    expect(UNSAFE_getByType(Svg).props).toMatchObject({
+      width: SEAL_PERCENT_ICON_SIZE.feeRow,
+      height: SEAL_PERCENT_ICON_SIZE.feeRow,
+    });
+  });
+
+  it('keeps the placeholder in the configured row color', () => {
+    const { getByTestId, UNSAFE_getAllByType } = render(
+      <PerpsFeesDisplay
+        fee={undefined}
+        feeDiscountPercentage={15}
+        feeDiscountKind="promotional"
+        color={TextColor.TextDefault}
+        testID="fee"
+      />,
+    );
+
+    const placeholder = UNSAFE_getAllByType(Text).find(
+      (node) => node.props.testID === 'fee',
+    );
+
+    expect(getByTestId('fee')).toHaveTextContent('--');
+    expect(placeholder?.props.color).toBe(TextColor.TextDefault);
   });
 
   it('uses a generic label when attribution is unknown', () => {

@@ -4,6 +4,7 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { VBA_TEST_MONEY_ADDRESS } from '../../../../../../tests/component-view/presets/vba';
 import {
   renderVbaMoneyEntry,
   restoreVbaReduxServiceStore,
@@ -141,22 +142,14 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   });
 
   it('shows the generic setup error without loading when no wallet is selected', async () => {
+    // Clear HD keyrings so selectPrimaryMoneyAccount / selectSelectedVbaWalletAddress
+    // resolve to null (moneyAccounts alone is not enough after the Money-address fix).
     const { findByTestId } = renderVbaMoneyEntry({
       overrides: {
         engine: {
           backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  'entropy:wallet1': {
-                    groups: {
-                      'entropy:wallet1/0': {
-                        accounts: [],
-                      },
-                    },
-                  },
-                },
-              },
+            KeyringController: {
+              keyrings: [],
             },
           },
         },
@@ -203,7 +196,8 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
       autoramps: [
         {
           id: 'ar-1',
-          walletAddress: '0x0000000000000000000000000000000000000001',
+          // Must match selectSelectedVbaWalletAddress (Money account), not Account 1.
+          walletAddress: VBA_TEST_MONEY_ADDRESS,
           status: 'Approved',
         },
       ],

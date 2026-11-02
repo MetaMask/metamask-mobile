@@ -21,6 +21,7 @@ import type { MoneyDashboardPersona } from '../../../reducers/rewardsMoney/selec
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
+import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -119,6 +120,10 @@ jest.mock('../../UI/Rewards/hooks/useRewardsMoneyTabRouting', () => ({
 
 jest.mock('../../UI/Rewards/hooks/usePrefetchRewardsIdentity', () => ({
   usePrefetchRewardsIdentity: () => undefined,
+}));
+
+jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
+  useRewardsPendingDeeplink: jest.fn(),
 }));
 
 const mockSelectPerpsEnabledFlag = jest.fn();
@@ -291,6 +296,26 @@ describe('MainNavigator', () => {
       expect(result).not.toBeNull();
     });
 
+    it('hosts Quick Buy above the tab navigator', () => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
+
+      // When the tabs mount
+      const { UNSAFE_root } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+
+      // Then the Quick Buy host wraps the tab navigator
+      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
+      expect(
+        host.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        ),
+      ).toHaveLength(1);
+    });
+
     it('sets the wallet tab stack background to the theme background', () => {
       // Given HomeTabs is rendered
       const HomeTabs = getHomeTabsComponent();
@@ -427,6 +452,14 @@ describe('MainNavigator', () => {
 
     beforeEach(() => {
       mockIsNativeTabBar = true;
+    });
+
+    it('hosts Quick Buy above the native tab screens', () => {
+      const { UNSAFE_root } = renderHomeTabs();
+
+      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
+
+      expect(findNativeScreens(host).length).toBeGreaterThan(0);
     });
 
     it('renders native tab screens instead of the JS navigator', () => {
@@ -814,6 +847,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.EDIT_AVATAR,
         Routes.SOCIAL.PROFILE_ONBOARDING,
       ]);
       const v1Screen = (group?.children ?? []).find(
@@ -1879,6 +1913,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+    expect(screenNames).not.toContain(Routes.SOCIAL.EDIT_AVATAR);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });

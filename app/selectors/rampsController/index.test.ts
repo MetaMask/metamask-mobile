@@ -18,8 +18,10 @@ import {
   selectRampsControllerState,
   selectRampsOrders,
   selectRampsOrdersForSelectedAccountGroup,
+  selectSelectedVbaWalletAddress,
   selectTransak,
 } from './index';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const createDefaultResourceState = <TData, TSelected = null>(
   data: TData,
@@ -511,6 +513,25 @@ describe('RampsController Selectors', () => {
 
       const result = selectTransak(state);
       expect(result.isAuthenticated).toBe(true);
+    });
+  });
+
+  describe('selectSelectedVbaWalletAddress', () => {
+    it('returns the checksummed primary Money account address', () => {
+      const moneyAddress = '0xb1a6e05757757c333909af7243d408de5bf26f89';
+      expect(
+        selectSelectedVbaWalletAddress.resultFunc({
+          address: moneyAddress,
+        } as never),
+      ).toBe(toChecksumHexAddress(moneyAddress));
+    });
+
+    it('returns null when there is no primary Money account', () => {
+      expect(selectSelectedVbaWalletAddress.resultFunc(undefined)).toBeNull();
+    });
+
+    it('returns null when the Money account has no address', () => {
+      expect(selectSelectedVbaWalletAddress.resultFunc({} as never)).toBeNull();
     });
   });
 });

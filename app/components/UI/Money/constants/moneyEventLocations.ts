@@ -140,4 +140,7 @@ export enum COMPONENT_NAMES {
 
   // — EarnSectionListView —
   MONEY_ACCOUNT_ROW = 'money_account_row',
+
+  // - Homepage Balance Breakdown -
+  MONEY_ROW_BALANCE_BREAKDOWN = 'money_row_balance_breakdown',
 }

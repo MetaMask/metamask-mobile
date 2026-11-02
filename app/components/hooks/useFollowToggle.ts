@@ -14,6 +14,12 @@ import {
 } from '../Views/SocialLeaderboard/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { hasRealAvatar } from '../UI/SocialFeed/utils/avatarFallback';
+import {
+  clearOptimisticFollowerCounts,
+  commitOptimisticFollowerCount,
+  recordOptimisticFollowerCount,
+  rollbackOptimisticFollowerCount,
+} from './optimisticFollowerCount';
 
 /**
  * Analytics context attached to a follow/unfollow action so the
@@ -103,6 +109,7 @@ const getFollowToggleSessionKey = (
 
 const clearFollowToggleSharedState = (): void => {
   inflightIds.clear();
+  clearOptimisticFollowerCounts();
   if (Object.keys(optimisticFollowState).length === 0) {
     return;
   }
@@ -214,6 +221,10 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
       }
       inflightIds.add(addressOrId);
 
+      // Same turn as the button flip. The profile query still has the old
+      // followerCount until it refetches; the displayed count adds this delta
+      // and drops it once that refetch includes the change.
+      recordOptimisticFollowerCount(addressOrId, nextValue ? 1 : -1);
       updateOptimisticFollowState((prev) => ({
         ...prev,
         [addressOrId]: nextValue,
@@ -231,6 +242,10 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
           return;
         }
         await invalidateFollowingQuery();
+        if (requestEpoch !== followToggleSessionEpoch) {
+          return;
+        }
+        commitOptimisticFollowerCount(addressOrId);
         if (analyticsContext) {
           track(MetaMetricsEvents.SOCIAL_TRADER_FOLLOW_INTERACTION, {
             [SocialLeaderboardEventProperties.ACTION]: nextValue
@@ -249,6 +264,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         }
       } catch (err) {
         if (requestEpoch === followToggleSessionEpoch) {
+          rollbackOptimisticFollowerCount(addressOrId);
           updateOptimisticFollowState((prev) => {
             const next = { ...prev };
             delete next[addressOrId];

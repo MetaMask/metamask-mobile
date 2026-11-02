@@ -405,4 +405,77 @@ describe('useBalance', () => {
     expect(result.current.balance).toBe('1.5 SOL');
     expect(result.current.balanceBN).toBeNull();
   });
+
+  describe('when the selected account is a non-EVM sibling', () => {
+    const evmAccount =
+      MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+        MOCK_ACCOUNT_ID_1
+      ];
+
+    const stateWithSolanaSelected = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountsController: {
+            ...initialState.engine.backgroundState.AccountsController,
+            internalAccounts: {
+              selectedAccount: MOCK_SOLANA_ACCOUNT.id,
+              accounts: {
+                ...initialState.engine.backgroundState.AccountsController
+                  .internalAccounts.accounts,
+                [MOCK_SOLANA_ACCOUNT.id]: MOCK_SOLANA_ACCOUNT,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    function mockEvmAccountInGroup() {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue((scope) =>
+        scope.startsWith('eip155:') ? evmAccount : undefined,
+      );
+    }
+
+    it('returns the native balance held by the EVM account in the group', () => {
+      mockEvmAccountInGroup();
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useBalance({
+            address: NATIVE_ADDRESS,
+            decimals: 18,
+            chainId: '1',
+            assetId: 'slip44:60',
+          }),
+        { state: stateWithSolanaSelected },
+      );
+
+      expect(result.current.balance).toBe('12.345');
+      expect(result.current.balanceBN).toStrictEqual(
+        hexToBigInt(toHex('12345000000000000000')),
+      );
+    });
+
+    it('returns the ERC20 balance held by the EVM account in the group', () => {
+      mockEvmAccountInGroup();
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useBalance({
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            decimals: 6,
+            chainId: '1',
+            assetId: 'erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          }),
+        { state: stateWithSolanaSelected },
+      );
+
+      expect(result.current.balance).toBe('22');
+      expect(result.current.balanceBN).toStrictEqual(
+        hexToBigInt(toHex('22000000')),
+      );
+    });
+  });
 });

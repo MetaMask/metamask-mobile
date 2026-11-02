@@ -51,6 +51,7 @@ import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
+import { signOutCardAfterPasswordChange } from '../signOutCardAfterPasswordChange';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -77,6 +78,7 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import ReactQueryService from '../ReactQueryService';
 import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
@@ -85,6 +87,7 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
+import { clearSocialIdentityState } from '../../util/social/clearSocialIdentityState';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -396,7 +399,7 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<EntropySourceId> => {
     // Restore vault with user entered password
-    if (clearEngine) await Engine.resetState();
+    if (clearEngine) await this.resetEngineState();
 
     const { MultichainAccountService } = Engine.context;
 
@@ -470,7 +473,7 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
-    await Engine.resetState();
+    await this.resetEngineState();
 
     const { MultichainAccountService } = Engine.context;
 
@@ -480,6 +483,21 @@ class AuthenticationService {
     });
 
     password = this.wipeSensitiveData();
+  };
+
+  /**
+   * Resets Engine state for a new wallet and drops every cached read the app
+   * query client hydrated from the previous one. A wallet reset replaces the
+   * person within one process, so no cached read may answer for the previous
+   * Predict User. The Predict services purge their own cache inside the
+   * reset; this clears the shared client that mirrors them, and nothing else
+   * (lock, account switch, sign-out) clears it.
+   */
+  private resetEngineState = async (): Promise<void> => {
+    await Engine.resetState();
+    // After the reset, never before: the reset's own teardown publishes cache
+    // events, so clearing last leaves no copy for them to restore.
+    ReactQueryService.queryClient.clear();
   };
 
   /**
@@ -1705,6 +1723,9 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
+      // Card logout is a remote call with no timeout. It must not delay the
+      // unlock or sit between the password change and the key sync.
+      signOutCardAfterPasswordChange().catch(() => undefined);
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true, reset: false });
@@ -1989,8 +2010,13 @@ class AuthenticationService {
       // discarded immediately, which is pure request noise.
       setBrazeResetInProgress(true);
 
-      // Previous profile must be gone before the throwaway vault unlocks.
+      // Previous auth session and social profile must be gone before the
+      // throwaway vault unlocks. ProfileController persists the social
+      // username separately from AuthenticationController, and
+      // Engine.resetState does not clear it (that path also recreates the
+      // vault on password change for the same SRP).
       this.clearAuthSession();
+      await clearSocialIdentityState(Engine.context);
 
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
@@ -2028,9 +2054,13 @@ class AuthenticationService {
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
-        // Throwaway vault may have signed in while unlocked. Always wipe,
-        // including when a later step throws and resetWalletState swallows it.
+        // Throwaway vault may have signed in while unlocked and refetched the
+        // previous social profile into controller state or the query cache.
+        // Always wipe, including when a later step throws and resetWalletState
+        // swallows it.
         this.clearAuthSession();
+        await clearSocialIdentityState(Engine.context);
+        ReactQueryService.queryClient.clear();
         // The deferred `useAutoSignIn` effect has run by now (the app is
         // locked), so Braze identity sync can react to sign-in again.
         setBrazeResetInProgress(false);

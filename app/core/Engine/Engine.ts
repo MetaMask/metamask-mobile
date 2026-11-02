@@ -49,6 +49,7 @@ import {
 } from './utils/buildAssetsBalanceUpdateFromPush';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
+import { ensureError } from '../../util/errorUtils';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
@@ -1354,6 +1355,8 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      PredictOrderService,
+      PredictPortfolioService,
     } = this.context;
 
     // Remove all permissions.
@@ -1398,6 +1401,22 @@ export class Engine {
 
     // KYC:
     KycController.clearState();
+
+    // PredictNext account state. A wallet reset replaces the Predict User
+    // within one process, so the previous person's account reads and their
+    // Order observation must not outlive it. Commits are abandoned before the
+    // reads are dropped, so no receipt can refill the cache afterwards. The
+    // Venue-scoped market-data and live-data caches carry public data and stay.
+    try {
+      PredictOrderService.abandonCommits();
+      await PredictPortfolioService.clearAccountData();
+    } catch (error) {
+      // Housekeeping a replaced person must never break the reset itself.
+      Logger.error(
+        ensureError(error, 'Engine.resetState'),
+        'Engine: failed to clear cached PredictNext account data',
+      );
+    }
   };
 
   removeAllListeners() {

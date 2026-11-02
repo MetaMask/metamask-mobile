@@ -7,10 +7,8 @@ import type {
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { formatRewardsRelativeTime } from '../../utils/formatUtils';
-import {
-  EARNINGS_HISTORY_TEST_IDS,
-  EarningsHistoryRow,
-} from './EarningsHistoryRows';
+import { EarningsHistoryRow } from './EarningsHistoryRows';
+import { EARNINGS_HISTORY_TEST_IDS } from './EarningsHistoryRows.testIds';
 
 const LOCALIZED_TEXT = {
   historyReferrals: 'Referrals',

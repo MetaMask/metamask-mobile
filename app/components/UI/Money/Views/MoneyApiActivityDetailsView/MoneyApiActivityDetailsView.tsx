@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { Image, ScrollView } from 'react-native';
+import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -19,6 +20,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -46,6 +48,7 @@ import type {
   NeobankBankTransferActivity,
 } from '../../types/moneyActivity';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
+import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import {
   isNeobankCompletedStatus,
   isNeobankFailedStatus,
@@ -198,27 +201,37 @@ type BankTransferStepSeverity = 'success' | 'warning' | 'error';
 /**
  * VBA / allowlisted bank-transfer deposit timeline.
  *
- * - MoonPay pay-in still open → both steps pending
- * - MoonPay Completed, mUSD not on-chain yet → Bank transfer success,
- * Deposit to Money Account pending
- * - On-chain settlement (Accounts API) → both success
+ * - MoonPay pay-in still open → all steps pending
+ * - MoonPay Completed, mUSD not on-chain yet → bank transfer complete,
+ * conversion and Money Account deposit pending
+ * - Accounts API completed (confirmed settlement) → all steps complete
+ * - Failed → a single failed bank-transfer step
+ *
+ * Every step shows the explorer icon. The icon opens the same transaction when
+ * `onOpenExplorer` is available; otherwise it stays inert (no settlement hash).
  */
 function BankTransferActivitySteps({
   timestamp,
   onOpenExplorer,
   bankTransferSeverity = 'success',
+  convertedSeverity = 'success',
   moneyDepositSeverity = 'success',
+  failed = false,
 }: {
   readonly timestamp: number;
   readonly onOpenExplorer?: () => void;
   readonly bankTransferSeverity?: BankTransferStepSeverity;
+  readonly convertedSeverity?: BankTransferStepSeverity;
   readonly moneyDepositSeverity?: BankTransferStepSeverity;
+  readonly failed?: boolean;
 }) {
   const subtitle = formatStepSubtitle(timestamp);
-  const completedCount = [bankTransferSeverity, moneyDepositSeverity].filter(
+  const severities = failed
+    ? [bankTransferSeverity]
+    : [bankTransferSeverity, convertedSeverity, moneyDepositSeverity];
+  const completedCount = severities.filter(
     (severity) => severity === 'success',
   ).length;
-  const moneyDepositSettled = moneyDepositSeverity === 'success';
 
   return (
     <Box twClassName="gap-3" testID="money-bank-transfer-steps">
@@ -229,25 +242,43 @@ function BankTransferActivitySteps({
       </Text>
       <ProgressList showConnectors={false} variant="dot">
         <ProgressListItem
+          key="bank-transfer"
           title={strings('money.transaction.bank_transfer')}
           subtitle={subtitle}
           severity={bankTransferSeverity}
+          buttonIcon={ComponentIconName.ArrowSquareOut}
+          onButtonPress={onOpenExplorer}
         />
-        <ProgressListItem
-          title={strings('transaction_details.title.money_account_deposit')}
-          subtitle={subtitle}
-          severity={moneyDepositSeverity}
-          buttonIcon={
-            onOpenExplorer && moneyDepositSettled
-              ? ComponentIconName.Export
-              : undefined
-          }
-          onButtonPress={
-            onOpenExplorer && moneyDepositSettled ? onOpenExplorer : undefined
-          }
-        />
+        {failed ? null : (
+          <ProgressListItem
+            key="convert-to-musd"
+            title={strings('transaction_details.title.musd_conversion')}
+            subtitle={subtitle}
+            severity={convertedSeverity}
+            buttonIcon={ComponentIconName.ArrowSquareOut}
+            onButtonPress={onOpenExplorer}
+          />
+        )}
+        {failed ? null : (
+          <ProgressListItem
+            key="money-account-deposit"
+            title={strings('transaction_details.title.money_account_deposit')}
+            subtitle={subtitle}
+            severity={moneyDepositSeverity}
+            buttonIcon={ComponentIconName.ArrowSquareOut}
+            onButtonPress={onOpenExplorer}
+          />
+        )}
       </ProgressList>
     </Box>
+  );
+}
+
+function PaidByMetaMaskValue() {
+  return (
+    <Text color={TextColor.SuccessDefault}>
+      {strings('money.api_activity_details.paid_by_metamask')}
+    </Text>
   );
 }
 
@@ -469,6 +500,13 @@ function MoneyApiActivityDetailsContent({
     [activity.time],
   );
 
+  const isBankTransfer = activity.kind === 'bank_transfer';
+  const usdAmount = useMemo(
+    () => new BigNumber(activity.amount).shiftedBy(-activity.token.decimals),
+    [activity.amount, activity.token.decimals],
+  );
+  const formattedUsdAmount = moneyFormatUsd(usdAmount);
+
   return (
     <Box twClassName="flex-1 bg-background-default">
       <HeaderStandard
@@ -480,9 +518,11 @@ function MoneyApiActivityDetailsContent({
       <ScrollView>
         <Box twClassName="gap-3 px-4">
           <Box twClassName="gap-1">
-            <Text color={TextColor.TextAlternative}>
-              {strings(HERO_COPY_KEY[activity.kind])}
-            </Text>
+            {isBankTransfer ? null : (
+              <Text color={TextColor.TextAlternative}>
+                {strings(HERO_COPY_KEY[activity.kind])}
+              </Text>
+            )}
             <Box twClassName="flex-row items-center gap-3">
               <Image
                 source={MoneyIcon}
@@ -497,7 +537,9 @@ function MoneyApiActivityDetailsContent({
                     : TextColor.TextDefault
                 }
               >
-                {display.primaryAmount}
+                {isBankTransfer
+                  ? `+US${formattedUsdAmount}`
+                  : display.primaryAmount}
               </Text>
             </Box>
           </Box>
@@ -516,7 +558,7 @@ function MoneyApiActivityDetailsContent({
             <Text>{formattedDate}</Text>
           </TransactionDetailsRow>
 
-          {activity.kind === 'bank_transfer' ? (
+          {isBankTransfer ? (
             <TransactionDetailsRow
               label={strings('money.api_activity_details.paid_with')}
             >
@@ -524,7 +566,7 @@ function MoneyApiActivityDetailsContent({
             </TransactionDetailsRow>
           ) : null}
 
-          {networkName ? (
+          {!isBankTransfer && networkName ? (
             <TransactionDetailsRow
               label={strings('transaction_details.label.network')}
             >
@@ -539,19 +581,35 @@ function MoneyApiActivityDetailsContent({
             </TransactionDetailsRow>
           ) : null}
 
-          <TransactionDetailsRow
-            label={strings('money.api_activity_details.received_from')}
-          >
-            <Name
-              type={NameType.EthereumAddress}
-              value={activity.receivedFrom}
-              variation={activity.chainId}
-            />
-          </TransactionDetailsRow>
+          {isBankTransfer ? null : (
+            <TransactionDetailsRow
+              label={strings('money.api_activity_details.received_from')}
+            >
+              <Name
+                type={NameType.EthereumAddress}
+                value={activity.receivedFrom}
+                variation={activity.chainId}
+              />
+            </TransactionDetailsRow>
+          )}
 
-          {activity.kind === 'bank_transfer' ? (
+          {isBankTransfer ? (
             <>
               <TransactionDetailDivider />
+              <TransactionDetailsRow
+                label={strings('money.api_activity_details.transaction_fees')}
+              >
+                <PaidByMetaMaskValue />
+              </TransactionDetailsRow>
+              <TransactionDetailsRow
+                label={strings('money.api_activity_details.total')}
+              >
+                <Text>{formattedUsdAmount}</Text>
+              </TransactionDetailsRow>
+              <TransactionDetailDivider />
+              {/* Completed API bank transfers are confirmed settlements, so
+                  the off-chain transfer, conversion, and mUSD deposit are
+                  all done. */}
               <BankTransferActivitySteps
                 timestamp={activity.time}
                 onOpenExplorer={handleViewOnExplorer}
@@ -559,7 +617,7 @@ function MoneyApiActivityDetailsContent({
             </>
           ) : null}
 
-          {handleViewOnExplorer ? (
+          {!isBankTransfer && handleViewOnExplorer ? (
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
@@ -598,6 +656,10 @@ function NeobankBankTransferDetailsContent({
 
   const failed = isNeobankFailedStatus(activity.status);
   const payinCompleted = isNeobankCompletedStatus(activity.status);
+  const handleViewOnExplorer = useOpenTxOnExplorer(
+    CHAIN_IDS.MONAD,
+    activity.transactionHash,
+  );
 
   // Provider Completed confirms the bank pay-in only. Main's confirmed on-chain
   // TransactionMeta is displayed separately through the existing flow.
@@ -607,9 +669,6 @@ function NeobankBankTransferDetailsContent({
   } else if (payinCompleted) {
     bankTransferSeverity = 'success';
   }
-  const moneyDepositSeverity: BankTransferStepSeverity = failed
-    ? 'error'
-    : 'warning';
 
   // Overall status stays Pending until mUSD is on-chain (this view is replaced
   // by the Accounts API bank_transfer detail once that lands).
@@ -619,6 +678,17 @@ function NeobankBankTransferDetailsContent({
   const statusColor = failed
     ? TextColor.ErrorDefault
     : TextColor.WarningDefault;
+
+  const totalAmount = useMemo(() => {
+    if (failed) {
+      return moneyFormatUsd(new BigNumber(0));
+    }
+    const destination = new BigNumber(activity.destinationAmount ?? 'NaN');
+    if (!destination.isFinite() || !destination.isGreaterThan(0)) {
+      return undefined;
+    }
+    return moneyFormatUsd(destination);
+  }, [activity.destinationAmount, failed]);
 
   return (
     <Box twClassName="flex-1 bg-background-default">
@@ -631,19 +701,25 @@ function NeobankBankTransferDetailsContent({
       <ScrollView>
         <Box twClassName="gap-3 px-4">
           <Box twClassName="gap-1">
-            {/* No "You deposited" / amount until mUSD is on-chain — this
-                NeoBank detail is only for in-flight VBA deposits. */}
-            <Text color={TextColor.TextAlternative}>
-              {failed
-                ? strings('money.transaction.deposit_failed')
-                : strings('money.transaction.depositing')}
-            </Text>
+            {failed ? null : (
+              <Text color={TextColor.TextAlternative}>
+                {strings('money.transaction.depositing')}
+              </Text>
+            )}
             <Box twClassName="flex-row items-center gap-3">
               <Image
                 source={MoneyIcon}
                 style={tw.style('w-8 h-8 rounded-full')}
                 testID="money-account-hero-icon"
               />
+              {failed ? (
+                <Text
+                  variant={TextVariant.DisplayMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {`US${totalAmount}`}
+                </Text>
+              ) : null}
             </Box>
           </Box>
 
@@ -666,10 +742,24 @@ function NeobankBankTransferDetailsContent({
           </TransactionDetailsRow>
 
           <TransactionDetailDivider />
+          <TransactionDetailsRow
+            label={strings('money.api_activity_details.transaction_fees')}
+          >
+            <PaidByMetaMaskValue />
+          </TransactionDetailsRow>
+          <TransactionDetailsRow
+            label={strings('money.api_activity_details.total')}
+          >
+            <Text>{totalAmount}</Text>
+          </TransactionDetailsRow>
+          <TransactionDetailDivider />
           <BankTransferActivitySteps
             timestamp={activity.time}
+            onOpenExplorer={handleViewOnExplorer}
+            failed={failed}
             bankTransferSeverity={bankTransferSeverity}
-            moneyDepositSeverity={moneyDepositSeverity}
+            convertedSeverity="warning"
+            moneyDepositSeverity="warning"
           />
         </Box>
       </ScrollView>

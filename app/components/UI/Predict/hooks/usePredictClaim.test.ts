@@ -437,7 +437,10 @@ describe('usePredictClaim', () => {
       });
 
       expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'failed' }),
+        expect.objectContaining({
+          status: 'failed',
+          failureReason: 'market_unavailable',
+        }),
       );
       expect(mockLoggerError).toHaveBeenCalledWith(
         blockedError,

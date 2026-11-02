@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -3199,7 +3198,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
         marketId: 'market-1',
@@ -3227,7 +3225,7 @@ describe('polymarket utils', () => {
     });
   });
 
-  it('zeros both fee snapshots when a membership market tag is on the waive list', async () => {
+  it('returns zero fees when market fees are waived', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: jest.fn().mockResolvedValue({
@@ -3256,17 +3254,13 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
       marketId: 'market-1',
       userBetAmount: 10,
     });
 
-    expect(result).toEqual({
-      fees: waivedFees,
-      originalFees: waivedFees,
-    });
+    expect(result).toEqual({ fees: waivedFees });
   });
 
   it('uses configured service fees when no membership policy is available', async () => {
@@ -3340,7 +3334,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });
@@ -3504,7 +3497,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
       });
@@ -3830,6 +3822,44 @@ describe('polymarket utils', () => {
     );
   });
 
+  it.each([
+    { size: 4, expectedWorstFillPrice: 0.49 },
+    { size: 10, expectedWorstFillPrice: 0.45 },
+    { size: 12, expectedWorstFillPrice: 0.4 },
+  ])(
+    'reports $expectedWorstFillPrice as the worst fill price when selling $size shares',
+    async ({ size, expectedWorstFillPrice }) => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            bids: [
+              { price: '0.40', size: '100' },
+              { price: '0.45', size: '5' },
+              { price: '0.49', size: '5' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      const preview = await previewOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        side: Side.SELL,
+        size,
+      });
+
+      expect(preview.sharePrice).toBe(0.49);
+      expect(preview.worstFillPrice).toBe(expectedWorstFillPrice);
+    },
+  );
+
   it('returns original fees for a membership sell preview', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -3868,7 +3898,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });

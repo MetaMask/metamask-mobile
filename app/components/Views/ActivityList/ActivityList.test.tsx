@@ -11,7 +11,7 @@ import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
-import { usePredictActivityItems } from './hooks/usePredictActivityItems';
+import { usePredictActivityItems } from '../../UI/PredictNext';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
@@ -239,7 +239,6 @@ jest.mock('../../../util/analytics/externalLinkTracking', () => ({
 }));
 
 jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
-  const ReactActual = jest.requireActual('react');
   const PriceChartContext = {
     Consumer: ({
       children,
@@ -540,8 +539,13 @@ jest.mock('./hooks/usePerpsActivityItems', () => ({
   usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
 }));
 
-jest.mock('./hooks/usePredictActivityItems', () => ({
-  usePredictActivityItems: jest.fn(() => mockPredictSourceState),
+const mockIsInactivePredictVenueItem = jest.fn((_item: unknown) => false);
+
+jest.mock('../../UI/PredictNext', () => ({
+  usePredictActivityItems: jest.fn(() => ({
+    isInactiveVenueItem: mockIsInactivePredictVenueItem,
+    ...mockPredictSourceState,
+  })),
 }));
 
 const usePerpsActivityItemsMock = jest.mocked(usePerpsActivityItems);
@@ -1620,6 +1624,46 @@ describe('ActivityList', () => {
     expect(usePredictActivityItemsMock).toHaveBeenCalledWith({ enabled: true });
   });
 
+  it.each([
+    [ActivityTypeFilter.Predictions, false],
+    [ActivityTypeFilter.All, true],
+  ])('under %s, shows an inactive Venue row: %s', (typeFilter, isShown) => {
+    selectorValues.predictEnabled = true;
+    mockPredictSourceState = {
+      items: [
+        {
+          type: 'predictionPlaced',
+          chainId: 'kalshi:mainnet',
+          status: 'success',
+          timestamp: 7,
+          hash: 'active-venue-row',
+          data: { token: { symbol: 'USD' } },
+        },
+        {
+          type: 'predictionPlaced',
+          chainId: 'eip155:137',
+          status: 'success',
+          timestamp: 6,
+          hash: 'inactive-venue-row',
+          data: { token: { symbol: 'USDC' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+    mockIsInactivePredictVenueItem.mockImplementation(
+      (item) => (item as { hash?: string }).hash === 'inactive-venue-row',
+    );
+
+    render(<ActivityList typeFilter={typeFilter} />);
+
+    expect(screen.getByTestId('row-active-venue-row')).toBeOnTheScreen();
+    expect(Boolean(screen.queryByTestId('row-inactive-venue-row'))).toBe(
+      isShown,
+    );
+    mockIsInactivePredictVenueItem.mockImplementation(() => false);
+  });
+
   it('does not enable the predict query on the Transactions tab', () => {
     selectorValues.predictEnabled = true;
 
@@ -1683,7 +1727,6 @@ describe('ActivityList', () => {
 
   it('routes perps rows to ActivityDetails', () => {
     selectorValues.perpsEnabled = true;
-    const perpsTx = { id: 'fill-2', type: 'trade' };
     const perpsRedesignItem = {
       type: 'perpsOpenLong',
       chainId: 'eip155:42161',
@@ -1720,13 +1763,6 @@ describe('ActivityList', () => {
 
   it('routes predict rows to ActivityDetails', () => {
     selectorValues.predictEnabled = true;
-    const predictActivity = {
-      id: 'p1',
-      providerId: 'polymarket',
-      title: 'Will Spain win the 2026 FIFA World Cup?',
-      outcome: 'Yes',
-      entry: { type: 'buy', timestamp: 1_700_000_000, amount: 3, price: 0.42 },
-    };
     const predictListItem = {
       type: 'predictionPlaced',
       chainId: 'eip155:137',

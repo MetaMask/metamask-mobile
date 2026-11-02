@@ -10,6 +10,7 @@ import {
   makePredictNextSellReceipt,
   makePredictNextSpreadsEvent,
   makePredictNextTotalsEvent,
+  mockPredictNextMessenger,
   publishPredictNextGameLiveUpdate,
   publishPredictNextQuoteUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
@@ -187,7 +188,7 @@ const createHistory = (marketId: string, range = 'ALL', pointCount = 2) => ({
 });
 
 const resolveEvent = (event: PredictEvent = createEvent()) => {
-  messengerCall.mockImplementation(
+  mockPredictNextMessenger(
     (action: string, _venueId: string, id: string, range?: string) => {
       if (action === 'PredictMarketDataService:getEvent') {
         return Promise.resolve(event);
@@ -490,7 +491,7 @@ describe('PredictEventScreen', () => {
 
   it('retries Market history after an initial error', async () => {
     let historyAttempts = 0;
-    messengerCall.mockImplementation(
+    mockPredictNextMessenger(
       (action: string, _venueId: string, id: string, range?: string) => {
         if (action === 'PredictMarketDataService:getEvent') {
           return Promise.resolve(createEvent());
@@ -522,7 +523,7 @@ describe('PredictEventScreen', () => {
   });
 
   it('shows an empty state when Market history has fewer than two points', async () => {
-    messengerCall.mockImplementation(
+    mockPredictNextMessenger(
       (action: string, _venueId: string, id: string, range?: string) => {
         if (action === 'PredictMarketDataService:getEvent') {
           return Promise.resolve(createEvent());
@@ -549,7 +550,7 @@ describe('PredictEventScreen', () => {
   });
 
   it('reserves the chart height while Market history loads', async () => {
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictMarketDataService:getEvent') {
         return Promise.resolve(createEvent());
       }
@@ -579,7 +580,7 @@ describe('PredictEventScreen', () => {
     const historyCallsBeforeRefetch = messengerCall.mock.calls.filter(
       ([action]) => action === 'PredictMarketDataService:getMarketHistory',
     ).length;
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictMarketDataService:getMarketHistory') {
         return Promise.reject(new Error('Market history refetch failed'));
       }
@@ -735,7 +736,7 @@ describe('PredictEventScreen', () => {
 
   it('omits a Team chart line whose history has fewer than two points', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
-    messengerCall.mockImplementation(
+    mockPredictNextMessenger(
       (action: string, _venueId: string, id: string, range?: string) => {
         if (action === 'PredictMarketDataService:getEvent') {
           return Promise.resolve(event);
@@ -1556,13 +1557,15 @@ describe('PredictEventScreen', () => {
     );
 
     expect(view.getByTestId(PredictEventScreenTestIds.VIEW)).toBeOnTheScreen();
-    // Opening the Order Flow reads venue Balance and Venue Status (cached
-    // across the two opens); pressing Outcomes must not leave the Event Screen
-    // or request anything else from the services.
+    // Opening the Order Flow reads the Venue catalog (to admit the action),
+    // venue Balance, and Venue Status (cached across the two opens); pressing
+    // Outcomes must not leave the Event Screen or request anything else from
+    // the services.
     const newCalls = messengerCall.mock.calls.slice(serviceCallCount);
     expect(newCalls.length).toBeGreaterThan(0);
     for (const [action] of newCalls) {
       expect([
+        'PredictMarketDataService:getVenueCatalog',
         'PredictPortfolioService:getBalance',
         'PredictMarketDataService:getVenueStatus',
       ]).toContain(action);

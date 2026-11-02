@@ -26,7 +26,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => ({
-    referral: undefined,
     isFromDeeplink: false,
   }),
 }));
@@ -56,20 +55,6 @@ const mockUseOptin = {
 
 jest.mock('../../../hooks/useOptIn', () => ({
   useOptin: () => mockUseOptin,
-}));
-
-// Mock validate referral code hook
-const mockSetReferralCode = jest.fn();
-const mockUseValidateReferralCode = {
-  referralCode: '',
-  setReferralCode: mockSetReferralCode,
-  isValidating: false,
-  isValid: false,
-};
-
-jest.mock('../../../hooks/useValidateReferralCode', () => ({
-  REFERRAL_CODE_MIN_LENGTH: 3,
-  useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 
 import { useAnalytics } from '../../../../../../components/hooks/useAnalytics/useAnalytics';

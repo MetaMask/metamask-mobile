@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type TextStyle } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
 
 import ProfileDrawer from './ProfileDrawer';
@@ -7,12 +8,13 @@ import { ProfileDrawerSelectorsIDs } from './ProfileDrawer.testIds';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications/constants/config';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
 /* eslint-enable import-x/no-restricted-paths */
-import { useAccountName } from '../../../hooks/useAccountName';
-import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
+jest.mock('../../SocialLeaderboard/terms/socialTermsAcceptance');
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -22,17 +24,42 @@ import {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn(() => ({ name: 'test-event' })),
+}));
+const mockOpenSupportWithConsent = jest.fn();
+const mockGetBetaSupportUrl = jest.fn();
 
 jest.mock('../../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
+// Mocking the helper (rather than the inline `///: ONLY_INCLUDE_IF(beta)` fence)
+// lets Jest exercise both the beta and consent branches, since babel-jest
+// leaves the fence as a comment. Mirrors AccountsMenu.test.
+jest.mock('../../../../util/support/betaSupportUrl', () => ({
+  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
 
 const mockIsNotificationsFeatureEnabled = jest.mocked(
   isNotificationsFeatureEnabled,
 );
 const mockUseMyProfile = jest.mocked(useMyProfile);
-const mockUseAccountName = jest.mocked(useAccountName);
-const mockUseAccountGroupName = jest.mocked(useAccountGroupName);
 
 const profileResult = (
   profile: ReturnType<typeof useMyProfile>['profile'],
@@ -44,16 +71,12 @@ const profileResult = (
   refresh: jest.fn(),
 });
 
+const flattenStyle = (node: {
+  props: { style?: StyleProp<TextStyle> };
+}): TextStyle => StyleSheet.flatten(node.props.style);
+
 jest.mock('../../SocialLeaderboard/MyProfileView/hooks/useMyProfile', () => ({
   useMyProfile: jest.fn(),
-}));
-
-jest.mock('../../../hooks/useAccountName', () => ({
-  useAccountName: jest.fn(() => 'Account 1'),
-}));
-
-jest.mock('../../../hooks/multichainAccounts/useAccountGroupName', () => ({
-  useAccountGroupName: jest.fn(() => null),
 }));
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
@@ -115,8 +138,6 @@ describe('ProfileDrawer', () => {
     jest.clearAllMocks();
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockUseMyProfile.mockReturnValue(profileResult(null));
-    mockUseAccountName.mockReturnValue('Account 1');
-    mockUseAccountGroupName.mockReturnValue(null);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
@@ -210,7 +231,50 @@ describe('ProfileDrawer', () => {
     ).toBeNull();
   });
 
-  it('renders the handle, account name, and foxicon when a profile exists', () => {
+  it('sizes the loading placeholder like the create profile block so the menu rows do not shift', () => {
+    mockUseMyProfile.mockReturnValue(profileResult(null, true));
+    const loadingView = renderWithProvider(<ProfileDrawer />);
+    const loadingContainerStyle = flattenStyle(
+      loadingView.getByTestId(ProfileDrawerSelectorsIDs.PROFILE_LOADING),
+    );
+    // Skeleton hides its children from screen readers.
+    const loadingAvatarStyle = flattenStyle(
+      loadingView.getByTestId(
+        ProfileDrawerSelectorsIDs.PROFILE_LOADING_AVATAR,
+        { includeHiddenElements: true },
+      ),
+    );
+    const loadingHeadingStyle = flattenStyle(
+      loadingView.getByTestId(
+        ProfileDrawerSelectorsIDs.PROFILE_LOADING_HEADING,
+        { includeHiddenElements: true },
+      ),
+    );
+    loadingView.unmount();
+    mockUseMyProfile.mockReturnValue(profileResult(null));
+
+    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+    const createProfile = getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE);
+    expect(createProfile).toHaveStyle({
+      paddingTop: loadingContainerStyle.paddingTop,
+      paddingBottom: loadingContainerStyle.paddingBottom,
+    });
+    expect(
+      getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR),
+    ).toHaveStyle({
+      width: loadingAvatarStyle.width,
+      height: loadingAvatarStyle.height,
+    });
+    expect(
+      within(createProfile).getByText(strings('profile_drawer.create_profile')),
+    ).toHaveStyle({
+      fontSize: loadingHeadingStyle.fontSize,
+      lineHeight: loadingHeadingStyle.lineHeight,
+    });
+  });
+
+  it('renders the handle and foxicon when a profile exists', () => {
     mockUseMyProfile.mockReturnValue(
       profileResult({
         profileId: 'profile-1',
@@ -219,20 +283,17 @@ describe('ProfileDrawer', () => {
         imageUrl: null,
         avatarPresetId: 'astronaut',
         avatarBackgroundId: 'sky',
-        shareUrl: 'https://metamask.io/social/bonk-player',
       }),
     );
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
       <ProfileDrawer />,
     );
 
     expect(
       getByTestId(ProfileDrawerSelectorsIDs.PROFILE_HANDLE),
     ).toHaveTextContent('@bonk-player');
-    expect(
-      getByTestId(ProfileDrawerSelectorsIDs.PROFILE_ACCOUNT_NAME),
-    ).toHaveTextContent('Account 1');
+    expect(queryByText('Account 1')).toBeNull();
     expect(
       getByTestId(`${ProfileDrawerSelectorsIDs.PROFILE_AVATAR}-art`),
     ).toHaveProp('name', 'astro');
@@ -246,7 +307,6 @@ describe('ProfileDrawer', () => {
         displayName: 'Bonk Player',
         handle: 'bonk-player',
         imageUrl: 'foxicon://astronaut/sky',
-        shareUrl: 'https://metamask.io/social/bonk-player',
       }),
     );
 
@@ -279,14 +339,13 @@ describe('ProfileDrawer', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
   });
 
-  it('navigates to the settings list when the settings row is pressed', () => {
+  it('navigates to the accounts menu when the settings row is pressed', () => {
     const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
     fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.SETTINGS_ROW));
 
-    // SettingsFlow opens on the accounts menu, so the nested screen is named.
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.ROOT,
+      screen: Routes.ACCOUNTS_MENU_VIEW,
     });
   });
 
@@ -423,15 +482,105 @@ describe('ProfileDrawer', () => {
     expect(within(notificationsRow).queryByText('0')).toBeNull();
   });
 
-  it('leaves the not-yet-wired help and support row inert', () => {
-    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+  describe('Help and support row', () => {
+    beforeEach(() => {
+      mockGetBetaSupportUrl.mockReturnValue('');
+    });
 
-    fireEvent.press(
-      getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
-    );
+    // Mirrors the Accounts Menu support row so both surfaces behave the same.
+    it('opens the consent flow instead of navigating directly', () => {
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
+      fireEvent.press(
+        getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+      );
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+        expect.any(Function),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('defers NAVIGATION_TAPS_GET_HELP tracking until support opens', () => {
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(
+        getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+      );
+
+      // Pressing the row only opens the consent sheet; tracking waits until the
+      // user confirms/rejects and support actually opens.
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+      );
+
+      const onOpenSupport = mockOpenSupportWithConsent.mock.calls[0][2];
+      onOpenSupport();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('opens the enriched support URL in the simple webview once consented', () => {
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(
+        getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+      );
+
+      const open = mockOpenSupportWithConsent.mock.calls[0][0];
+      open('https://support.metamask.io/?customer_service_token=jwt-token');
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url: 'https://support.metamask.io/?customer_service_token=jwt-token',
+          title: strings('app_settings.contact_support'),
+        },
+      });
+    });
+
+    describe('on a beta build', () => {
+      beforeEach(() => {
+        mockGetBetaSupportUrl.mockReturnValue(
+          'https://intercom.help/internal-beta-testing/en/',
+        );
+      });
+
+      it('skips the consent sheet and opens the beta help center', () => {
+        const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+        fireEvent.press(
+          getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+        );
+
+        expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url: 'https://intercom.help/internal-beta-testing/en/',
+            title: strings('app_settings.contact_support'),
+          },
+        });
+      });
+
+      it('tracks NAVIGATION_TAPS_GET_HELP on press', () => {
+        const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+        fireEvent.press(
+          getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+        );
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+        );
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('MetaMask Orange row', () => {

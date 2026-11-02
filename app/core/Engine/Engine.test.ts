@@ -1414,6 +1414,75 @@ describe('Engine', () => {
       expect(tokensResetSpy).toHaveBeenCalled();
       expect(nftResetSpy).toHaveBeenCalled();
     });
+
+    it('abandons PredictNext order commits before awaiting the account-data purge', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const abandonSpy = jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      const clearSpy = jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      expect(abandonSpy).toHaveBeenCalledTimes(1);
+      expect(clearSpy).toHaveBeenCalledTimes(1);
+      // Abandoning first is what stops a receipt from refilling the cache the
+      // purge is about to drop.
+      expect(abandonSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        clearSpy.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('waits for the PredictNext account-data purge before resolving', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      let finishPurge: () => void = () => undefined;
+      jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockImplementation(
+          () =>
+            new Promise<void>((resolve) => {
+              finishPurge = resolve;
+            }),
+        );
+
+      let resetFinished = false;
+      const reset = engine.resetState().then(() => {
+        resetFinished = true;
+      });
+      for (let tick = 0; tick < 20; tick += 1) {
+        await Promise.resolve();
+      }
+
+      expect(resetFinished).toBe(false);
+
+      finishPurge();
+      await reset;
+
+      expect(resetFinished).toBe(true);
+    });
+
+    it('completes the reset when the PredictNext purge fails', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const loggerSpy = jest.spyOn(Logger, 'error');
+      jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockRejectedValue(new Error('purge failed'));
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'purge failed' }),
+        'Engine: failed to clear cached PredictNext account data',
+      );
+    });
   });
 
   describe('hasFunds', () => {

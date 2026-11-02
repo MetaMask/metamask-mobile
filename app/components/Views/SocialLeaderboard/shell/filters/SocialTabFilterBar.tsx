@@ -6,6 +6,7 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
@@ -16,6 +17,8 @@ export interface SocialTabFilterBarProps {
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
   filterTestID: string;
+  /** Test ID for the bar itself, separate from the filter button. */
+  testID?: string;
   /** Overrides the default `px-4 pt-1 pb-4` padding. */
   twClassName?: string;
 }
@@ -28,18 +31,22 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
   onOpenFilters,
   isFilterActive = false,
   filterTestID,
+  testID,
   twClassName = 'px-4 pt-1 pb-4',
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
+    testID={testID}
     twClassName={twClassName}
   >
     <Box twClassName="flex-1 min-w-0">{children}</Box>
     <ButtonIcon
       iconName={IconName.Filter}
-      size={ButtonIconSize.Md}
+      size={ButtonIconSize.Lg}
+      // Large buttons map to a 32px glyph. This control stays at 24px.
+      iconProps={{ size: IconSize.Lg }}
       onPress={
         onOpenFilters
           ? () => {
@@ -50,6 +57,7 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
       }
       testID={filterTestID}
       accessibilityLabel={strings('social_leaderboard.shell.filters.title')}
+      accessibilityState={{ selected: isFilterActive }}
       twClassName={
         isFilterActive
           ? 'rounded-full bg-primary-muted'

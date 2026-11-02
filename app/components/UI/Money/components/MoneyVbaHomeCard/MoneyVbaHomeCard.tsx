@@ -14,8 +14,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   MONEY_BUTTON_INTENTS,
@@ -95,6 +96,7 @@ const MoneyVbaHomeCard = ({
     if (hasPendingCtaOpenRef.current) {
       return;
     }
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
     hasPendingCtaOpenRef.current = true;
     // Self-clears so the CTA recovers if no navigator presents the route.
     setTimeout(() => {
@@ -109,7 +111,7 @@ const MoneyVbaHomeCard = ({
     // Route immediately: the loading screen hydrates and replaces itself with
     // the first incomplete module, so the CTA never shows an in-place busy
     // state while status resolves.
-    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, {
+    openVbaEntry(navigation, {
       source: config.source,
     });
   }, [config, navigation, trackButtonClicked]);

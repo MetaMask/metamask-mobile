@@ -40,6 +40,12 @@ export type AccountsApiActivity =
       /** VBA / Iron (or QA test-wallet) mUSD credit to the Money Account. */
       kind: 'bank_transfer';
       receivedFrom: Hex;
+      /**
+       * Money Account API transfer status. Only `confirmed` transfers with an
+       * on-chain hash become completed API activity; in-flight and errored
+       * transfers stay NeoBank rows.
+       */
+      status: 'confirmed';
     });
 
 /**

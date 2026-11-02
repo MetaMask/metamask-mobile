@@ -26,6 +26,7 @@ import { useLinkableSocialAccounts } from '../../hooks/useLinkableSocialAccounts
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
+import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
   try {
@@ -45,6 +46,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const { isControllerBacked, linkedAddresses, updateProfile } =
     useProfileController();
+  const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -71,6 +73,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
 
       try {
         await updateProfile({ linked_addresses: nextLinkedAddresses });
+        trackProfileEdited();
       } catch {
         setErrorMessage(
           strings('social_leaderboard.manage_profile.save_error'),
@@ -79,7 +82,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         setIsUpdating(false);
       }
     },
-    [isControllerBacked, updateProfile],
+    [isControllerBacked, trackProfileEdited, updateProfile],
   );
 
   return (

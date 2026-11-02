@@ -10,6 +10,7 @@ export {
   ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
   ManageProfileLinkedAccountView,
+  EditProfileAvatarView,
 } from './ManageProfileView';
 export { default as FeedView } from './FeedView';
 export { default as TraderProfileView } from './TraderProfileView';

@@ -169,6 +169,8 @@ jest.mock('../../store/storage-wrapper', () => ({
     delete storage[key];
     return Promise.resolve();
   }),
+  getAllKeys: jest.fn(() => Promise.resolve(Object.keys(storage))),
+  getItemSync: jest.fn((key) => storage[key] ?? null),
   clearAll: jest.fn(() => {
     Object.keys(storage).forEach((key) => delete storage[key]);
     return Promise.resolve();
@@ -239,6 +241,10 @@ jest.mock('../Engine', () => ({
       state: { vault: null },
     },
 
+    CardController: {
+      logout: jest.fn(),
+    },
+
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
       resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
@@ -250,6 +256,14 @@ jest.mock('../Engine', () => ({
 
     QrSyncController: {
       importRemainingSecrets: jest.fn(),
+    },
+
+    ProfileController: {
+      clearState: jest.fn(),
+    },
+
+    SocialController: {
+      update: jest.fn(),
     },
   },
 }));
@@ -394,6 +408,11 @@ jest.mock('../../util/mnemonic', () => ({
 jest.mock('../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
+}));
+
+jest.mock('../ReactQueryService', () => ({
+  __esModule: true,
+  default: { queryClient: { clear: jest.fn() } },
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -1610,6 +1629,83 @@ describe('Authentication', () => {
           mockAttemptMultichainAccountWalletDiscovery,
         ).toHaveBeenNthCalledWith(2, 'test-keyring-2');
       });
+    });
+  });
+
+  describe('wallet reset and the shared query cache', () => {
+    const engineMock = () => jest.requireMock('../Engine');
+    const clearQueryCache = () =>
+      (
+        jest.requireMock('../ReactQueryService') as {
+          default: { queryClient: { clear: jest.Mock } };
+        }
+      ).default.queryClient.clear;
+
+    beforeEach(() => {
+      const Engine = engineMock();
+      Engine.resetState = jest.fn().mockResolvedValue(undefined);
+      clearQueryCache().mockClear();
+    });
+
+    const mockReduxStore = () =>
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+    it('clears the app query client after resetting Engine state when creating a wallet', async () => {
+      mockReduxStore();
+
+      await Authentication.newWalletAndKeychain('password', {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      });
+
+      const Engine = engineMock();
+      expect(Engine.resetState).toHaveBeenCalledTimes(1);
+      expect(clearQueryCache()).toHaveBeenCalledTimes(1);
+      // After the reset: the reset's own Predict purge republishes the state
+      // it drops, and clearing last removes that copy too.
+      expect(Engine.resetState.mock.invocationCallOrder[0]).toBeLessThan(
+        clearQueryCache().mock.invocationCallOrder[0],
+      );
+    });
+
+    it('clears the app query client after resetting Engine state when restoring a wallet', async () => {
+      mockReduxStore();
+
+      await Authentication.newWalletAndRestore(
+        'password',
+        { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+        'test seed phrase',
+        true,
+      );
+
+      expect(engineMock().resetState).toHaveBeenCalledTimes(1);
+      expect(clearQueryCache()).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the app query cache when restoring a wallet keeps Engine state', async () => {
+      mockReduxStore();
+
+      await Authentication.newWalletAndRestore(
+        'password',
+        { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+        'test seed phrase',
+        false,
+      );
+
+      expect(engineMock().resetState).not.toHaveBeenCalled();
+      expect(clearQueryCache()).not.toHaveBeenCalled();
+    });
+
+    it('does not clear the app query cache when locking the app', async () => {
+      mockReduxStore();
+
+      await Authentication.lockApp({ navigateToLogin: false });
+
+      // Locking does not replace the person: their cached reads stay.
+      expect(engineMock().resetState).not.toHaveBeenCalled();
+      expect(clearQueryCache()).not.toHaveBeenCalled();
     });
   });
 
@@ -3161,6 +3257,122 @@ describe('Authentication', () => {
         globalPassword: mockGlobalPassword,
       });
       expect(Authentication.resetPassword).toHaveBeenCalled();
+      expect(Engine.context.CardController.logout).toHaveBeenCalledTimes(1);
+      expect(
+        (Engine.context.KeyringController.exportEncryptionKey as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(
+        (Engine.context.CardController.logout as jest.Mock).mock
+          .invocationCallOrder[0],
+      );
+    });
+
+    it('finishes the password change when the Card sign-out never resolves', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .submitGlobalPassword as jest.Mock
+      ).mockResolvedValueOnce({ password: mockCurrentDevicePassword });
+      (
+        Engine.context.SeedlessOnboardingController
+          .syncLatestGlobalPassword as jest.Mock
+      ).mockResolvedValueOnce(undefined);
+      (
+        Engine.context.SeedlessOnboardingController
+          .checkIsPasswordOutdated as jest.Mock
+      ).mockResolvedValueOnce(true);
+
+      Engine.context.KeyringController.submitEncryptionKey = jest.fn();
+      Engine.context.KeyringController.isUnlocked = jest.fn();
+      Engine.context.KeyringController.changePassword = jest.fn();
+      Engine.context.KeyringController.exportEncryptionKey = jest.fn();
+      Engine.context.CardController.logout = jest.fn(
+        () => new Promise(() => undefined),
+      );
+
+      Engine.context.KeyringController.verifyPassword = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('submit password failed'));
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          user: { existingUser: true },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+                passwordOutdatedCache: {
+                  isExpiredPwd: true,
+                  timestamp: Date.now(),
+                },
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
+
+      await expect(
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
+      ).resolves.toBeUndefined();
+
+      expect(Authentication.resetPassword).toHaveBeenCalled();
+      expect(Engine.context.CardController.logout).toHaveBeenCalledTimes(1);
+    });
+
+    it('still syncs the password when signing out of Card fails', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .submitGlobalPassword as jest.Mock
+      ).mockResolvedValueOnce({ password: mockCurrentDevicePassword });
+      (
+        Engine.context.SeedlessOnboardingController
+          .syncLatestGlobalPassword as jest.Mock
+      ).mockResolvedValueOnce(undefined);
+      (
+        Engine.context.SeedlessOnboardingController
+          .checkIsPasswordOutdated as jest.Mock
+      ).mockResolvedValueOnce(true);
+
+      Engine.context.KeyringController.submitEncryptionKey = jest.fn();
+      Engine.context.KeyringController.isUnlocked = jest.fn();
+      Engine.context.KeyringController.changePassword = jest.fn();
+      Engine.context.KeyringController.exportEncryptionKey = jest.fn();
+      Engine.context.CardController.logout = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('logout failed'));
+
+      Engine.context.KeyringController.verifyPassword = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('submit password failed'));
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          user: { existingUser: true },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+                passwordOutdatedCache: {
+                  isExpiredPwd: true,
+                  timestamp: Date.now(),
+                },
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
+
+      await expect(
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
+      ).resolves.toBeUndefined();
+
+      expect(
+        Engine.context.KeyringController.changePassword,
+      ).toHaveBeenCalledWith(mockGlobalPassword);
+      expect(Authentication.resetPassword).toHaveBeenCalled();
     });
 
     it('throw error if vault recreation fails', async () => {
@@ -3199,6 +3411,7 @@ describe('Authentication', () => {
       await expect(
         Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
       ).rejects.toThrow('change password failed');
+      expect(Engine.context.CardController.logout).not.toHaveBeenCalled();
     });
   });
 
@@ -4974,6 +5187,43 @@ describe('Authentication', () => {
 
     afterEach(() => {
       EngineClass.disableAutomaticVaultBackup = false;
+    });
+
+    it('clears the social profile before the throwaway vault and again after lock', async () => {
+      const clearProfileSpy = jest.spyOn(
+        Engine.context.ProfileController,
+        'clearState',
+      );
+      const replaceSocialStateSpy = jest.spyOn(
+        Engine.context.SocialController as unknown as {
+          update: jest.Mock;
+        },
+        'update',
+      );
+      const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
+      const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+      const queryClientClearSpy = (
+        jest.requireMock('../ReactQueryService') as {
+          default: { queryClient: { clear: jest.Mock } };
+        }
+      ).default.queryClient.clear;
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(clearProfileSpy).toHaveBeenCalledTimes(2);
+      expect(replaceSocialStateSpy).toHaveBeenCalledTimes(2);
+      expect(clearProfileSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletSpy.mock.invocationCallOrder[0],
+      );
+      expect(clearProfileSpy.mock.invocationCallOrder[1]).toBeGreaterThan(
+        lockAppSpy.mock.invocationCallOrder[0],
+      );
+      expect(queryClientClearSpy).toHaveBeenCalled();
+      expect(
+        queryClientClearSpy.mock.invocationCallOrder.at(-1),
+      ).toBeGreaterThan(lockAppSpy.mock.invocationCallOrder[0]);
     });
 
     it('clears auth state before the throwaway vault and again after lock', async () => {
