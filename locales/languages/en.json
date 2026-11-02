@@ -3438,6 +3438,14 @@
     "provider_selector": {
       "title": "Select Provider"
     },
+    "default_exchange": {
+      "title": "Default exchange",
+      "description": "Set a default exchange for all orders. You can change it anytime in settings.",
+      "max_leverage": "{{leverage}}x max",
+      "fees": "{{maker}} maker / {{taker}} taker",
+      "open_interest": "{{amount}} open interest",
+      "save": "Save"
+    },
     "market_type": {
       "filter_by": "Filter by"
     },

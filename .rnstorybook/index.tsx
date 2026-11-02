@@ -8,7 +8,8 @@ import 'expo-asset';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hideAsync } from 'expo-splash-screen';
-import { AppRegistry, LogBox } from 'react-native';
+import { AppRegistry, LogBox, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { LiteUI } from '@storybook/react-native-ui-lite';
 
@@ -17,7 +18,13 @@ import { view } from './storybook.requires';
 
 LogBox.ignoreAllLogs();
 
-const StorybookUIRoot = view.getStorybookUI({
+const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
+});
+
+const StorybookUI = view.getStorybookUI({
   shouldPersistSelection: true,
   storage: {
     getItem: AsyncStorage.getItem,
@@ -28,6 +35,14 @@ const StorybookUIRoot = view.getStorybookUI({
   // Storybook's Expo example.
   CustomUIComponent: LiteUI,
 });
+
+// The wallet root provides this. Storybook replaces that entry, and the
+// design-system bottom sheet throws without a gesture root above it.
+const StorybookUIRoot = () => (
+  <GestureHandlerRootView style={styles.gestureRoot}>
+    <StorybookUI />
+  </GestureHandlerRootView>
+);
 
 AppRegistry.registerComponent(name, () => StorybookUIRoot);
 
