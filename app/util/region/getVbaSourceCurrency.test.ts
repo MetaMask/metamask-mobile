@@ -1,9 +1,5 @@
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
-import {
-  getVbaMarketForCountry,
-  isVbaSourceCurrency,
-  type VbaMarket,
-} from './getVbaSourceCurrency';
+import { getVbaMarketForCountry, type VbaMarket } from './getVbaSourceCurrency';
 
 const brl: VbaMarket = { currency: 'BRL', regions: ['BR'] };
 const usd: VbaMarket = { currency: 'USD', regions: ['US'] };
@@ -23,15 +19,5 @@ describe('getVbaMarketForCountry', () => {
 
   it('returns undefined when no market is open', () => {
     expect(getVbaMarketForCountry([], 'BR')).toBeUndefined();
-  });
-});
-
-describe('isVbaSourceCurrency', () => {
-  it('accepts BRL and USD only', () => {
-    expect(isVbaSourceCurrency('BRL')).toBe(true);
-    expect(isVbaSourceCurrency('USD')).toBe(true);
-    expect(isVbaSourceCurrency('EUR')).toBe(false);
-    expect(isVbaSourceCurrency('brl')).toBe(false);
-    expect(isVbaSourceCurrency(undefined)).toBe(false);
   });
 });

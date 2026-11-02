@@ -52,12 +52,9 @@ const VbaChooseCurrency = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleSelect = useCallback(
-    (currency: VbaSourceCurrency) => () => {
-      openCompletedVbaAccount(navigation, currency);
-    },
-    [navigation],
-  );
+  const handleSelect = useCallback(() => {
+    openCompletedVbaAccount(navigation);
+  }, [navigation]);
 
   return (
     <SafeAreaView
@@ -98,7 +95,7 @@ const VbaChooseCurrency = () => {
             return (
               <Pressable
                 key={currency}
-                onPress={handleSelect(currency)}
+                onPress={handleSelect}
                 accessibilityRole="button"
                 accessibilityLabel={strings(
                   'virtual_bank_account.choose_currency.row_label',

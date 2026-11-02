@@ -34,15 +34,3 @@ export function getVbaMarketForCountry(
     isVbaRegionEnabled(trimmedLocation, market.regions),
   );
 }
-
-/**
- * Narrows an unknown value, such as a route param, to a supported fiat.
- *
- * @param value - Candidate fiat code.
- * @returns Whether the value is BRL or USD.
- */
-export function isVbaSourceCurrency(
-  value: unknown,
-): value is VbaSourceCurrency {
-  return VBA_SOURCE_CURRENCIES.includes(value as VbaSourceCurrency);
-}

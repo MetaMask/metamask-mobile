@@ -143,12 +143,9 @@ export const openAsOnlyOnboardingRoute = (
  * directly to the caller instead of revealing the onboarding loader.
  *
  * @param navigation - Navigation from any screen inside or beside onboarding.
- * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
- * IP country's currency.
  */
 export const openCompletedVbaAccount = (
   navigation: AppNavigationProp,
-  sourceCurrency?: VbaSourceCurrency,
 ): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
@@ -163,12 +160,7 @@ export const openCompletedVbaAccount = (
             getCallerRoute(
               state,
             ) as PartialState<NavigationState>['routes'][number],
-            sourceCurrency
-              ? {
-                  name: Routes.RAMP.VBA_DETAILS,
-                  params: { sourceCurrency },
-                }
-              : { name: Routes.RAMP.VBA_DETAILS },
+            { name: Routes.RAMP.VBA_DETAILS },
           ],
         }),
       );
