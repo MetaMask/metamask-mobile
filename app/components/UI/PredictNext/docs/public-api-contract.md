@@ -114,5 +114,5 @@ The per-field sources and risks for the canonical Position, Portfolio Summary, a
 ## Resolved questions
 
 - Launch scope: every surface that shows Polymarket today shows Kalshi at launch.
-- Homepage: plan for a Predict-owned `PredictHomeSection`. Confirm with `@MetaMask/mobile-core-ux` when PRED-1382 starts.
+- Homepage: Homepage renders the Predict-owned `PredictHomeSection` from the entry point (PRED-1382). The UI Slots widget registers through the entry point too. The UI Slots contract registry is composition wiring, because Engine init loads it and must not load the Predict UI.
 - Venue descriptors: under PRED-1376, the Polymarket descriptor comes from client configuration and implemented behavior during staged delivery. The backend descriptor covers Kalshi until PRED-1356. Its wire shape is the [Venue catalog](./canonical-portfolio-activity-catalog-contract.md#venue-catalog).

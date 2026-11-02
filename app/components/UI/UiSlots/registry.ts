@@ -3,7 +3,7 @@ import type {
   UiSlot,
   UiSlotWidget,
 } from '../../../core/Engine/controllers/ui-slots-controller/types';
-import { PredictDiscoveryListWidget } from '../Predict/uiSlots/widgets/PredictDiscoveryListWidget';
+import { PredictDiscoveryListWidget } from '../PredictNext';
 
 /**
  * Mobile-owned widget registrations. Feature modules own their widgets; the

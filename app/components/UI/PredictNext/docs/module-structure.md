@@ -27,6 +27,11 @@ PredictNext/
     internal/
       legacy/                  # Legacy list hook, mapper and details templates, moved as-is
       next/                    # Canonical Activity mapper, list hook, details lookup and templates
+  homeSection/
+    index.ts                   # Wallet Homepage Predictions section
+    PredictHomeSection.tsx     # Legacy section, moved as-is to Predict/homeSection; next renders nothing yet
+  uiSlots/
+    index.ts                   # UI Slots widget, passed through from legacy Predict/uiSlots
   events/
     cards/
       index.ts                 # Supported Event-card API
