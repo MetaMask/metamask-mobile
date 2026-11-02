@@ -45,6 +45,30 @@ export type TokenAmount = ClientUtilsTokenAmount & {
 };
 
 /**
+ * Returns whether an asset type represents an NFT standard supported by the
+ * activity UI.
+ *
+ * @param assetType - The asset type to inspect.
+ * @returns `true` for ERC-721 and ERC-1155 assets.
+ */
+export function isNftAssetType(
+  assetType: string | undefined,
+): assetType is 'erc721' | 'erc1155' {
+  const normalizedAssetType = assetType?.toLowerCase();
+  return normalizedAssetType === 'erc721' || normalizedAssetType === 'erc1155';
+}
+
+/**
+ * Returns whether a token amount represents an NFT.
+ *
+ * @param token - The token amount to inspect.
+ * @returns `true` when the token uses an NFT standard.
+ */
+export function isNftToken(token: TokenAmount | undefined): boolean {
+  return isNftAssetType(token?.assetType);
+}
+
+/**
  * Perps order-lifecycle kinds (market/limit/stop, long/short, open/close).
  * The single source the `ActivityKind` union, the Perps "Order" sub-filter, and
  * the icon/details dispatch all derive from, so a new kind is wired in once.

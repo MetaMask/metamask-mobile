@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { Pressable as NativePressable } from 'react-native';
 import {
   Box,
@@ -10,8 +10,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Image as ExpoImage } from 'expo-image';
 import { useTheme } from '../../../../../../util/theme';
 import type {
   PredictEvent,
@@ -19,6 +17,8 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../../types';
+import { useGameTeamColors } from '../../game';
+import { TeamLogo as SharedTeamLogo } from '../../shared/ui';
 import { EventCard } from './EventCard';
 import {
   createGameCardProjection,
@@ -60,7 +60,7 @@ const useTeam = (selection: GameSelection) => {
   return {
     ...value,
     ...value.projection.teams[selection],
-    fallbackColor: value.colors[selection],
+    teamColor: value.colors[selection],
   };
 };
 
@@ -79,26 +79,16 @@ const Provider = ({
   onPress,
   onOrder,
 }: ProviderProps) => {
-  const { colors } = useTheme();
+  const colors = useGameTeamColors(game);
   const value = useMemo<GameCardContextValue>(
     () => ({
       event,
       game,
       projection: createGameCardProjection(event, game),
       actions: { openEvent: onPress, order: onOrder },
-      colors: {
-        away: colors.info.default,
-        home: colors.success.default,
-      },
+      colors,
     }),
-    [
-      colors.info.default,
-      colors.success.default,
-      event,
-      game,
-      onOrder,
-      onPress,
-    ],
+    [colors, event, game, onOrder, onPress],
   );
 
   return (
@@ -116,40 +106,15 @@ const TeamLogo = ({
   size?: 'small' | 'large';
 }) => {
   const { event, team, abbreviation } = useTeam(selection);
-  const tw = useTailwind();
-  const [failed, setFailed] = useState(false);
-  const showImage = team.logoUrl && !failed;
-  const sizeClassName = size === 'large' ? 'h-12 w-12' : 'h-8 w-8';
 
   return (
-    <Box
-      twClassName={`${sizeClassName} items-center justify-center`}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    >
-      {showImage ? (
-        <ExpoImage
-          source={team.logoUrl}
-          style={tw.style(sizeClassName)}
-          contentFit="contain"
-          recyclingKey={team.logoUrl}
-          onError={() => setFailed(true)}
-          testID={`predict-next-game-logo-${event.id}-${selection}`}
-        />
-      ) : (
-        <Box
-          twClassName={`${sizeClassName} items-center justify-center rounded-full bg-muted`}
-        >
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            testID={`predict-next-game-logo-fallback-${event.id}-${selection}`}
-          >
-            {abbreviation}
-          </Text>
-        </Box>
-      )}
-    </Box>
+    <SharedTeamLogo
+      team={team}
+      abbreviation={abbreviation}
+      size={size}
+      testID={`predict-next-game-logo-${event.id}-${selection}`}
+      fallbackTestID={`predict-next-game-logo-fallback-${event.id}-${selection}`}
+    />
   );
 };
 
@@ -198,10 +163,10 @@ const CompactStatus = () => <StatusContent variant="compact" />;
 const FeaturedStatus = () => <StatusContent variant="featured" />;
 
 const CompactTeamRow = ({ selection }: { selection: GameSelection }) => {
-  const { event, game, team, percent, multiplier, fallbackColor } =
+  const { event, game, team, percent, multiplier, teamColor } =
     useTeam(selection);
   const score = game.score?.[selection];
-  const color = team.primaryColor ?? fallbackColor;
+  const color = teamColor;
 
   return (
     <Box
@@ -293,7 +258,7 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
 };
 
 const ProbabilityBar = () => {
-  const { event, game, projection, colors } = useGameCard();
+  const { event, projection, colors } = useGameCard();
   const awayWidth = projection.awayProbabilityPercent;
 
   if (awayWidth === undefined) {
@@ -309,14 +274,14 @@ const ProbabilityBar = () => {
         testID={`predict-next-game-bar-${event.id}-away`}
         style={{
           width: `${awayWidth}%`,
-          backgroundColor: game.awayTeam.primaryColor ?? colors.away,
+          backgroundColor: colors.away,
         }}
       />
       <Box
         testID={`predict-next-game-bar-${event.id}-home`}
         twClassName="flex-1"
         style={{
-          backgroundColor: game.homeTeam.primaryColor ?? colors.home,
+          backgroundColor: colors.home,
         }}
       />
     </Box>
@@ -333,7 +298,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
     formattedPrice,
     canOrder,
     actions,
-    fallbackColor,
+    teamColor,
   } = useTeam(selection);
 
   if (!quote) {
@@ -383,7 +348,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
       variant={ButtonVariant.Secondary}
       onPress={() => actions.order?.(event, quote.market, quote.outcome)}
       accessibilityLabel={`${team.name}, ${formattedPrice}, buy`}
-      style={{ backgroundColor: team.primaryColor ?? fallbackColor }}
+      style={{ backgroundColor: teamColor }}
       size={ButtonSize.Lg}
       twClassName="w-full px-3"
     >

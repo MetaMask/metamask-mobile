@@ -51,6 +51,10 @@ export function useLimitOrders({
     initialPageParam: undefined as string | undefined,
     enabled: isEnabled,
   });
+  const orders = useMemo(
+    () => query.data?.pages.flatMap((page) => page.orders) ?? [],
+    [query.data],
+  );
 
   useEffect(() => {
     if (!isEnabled || !refetchInterval) {
@@ -79,7 +83,7 @@ export function useLimitOrders({
   }
 
   return {
-    orders: query.data?.pages.flatMap((page) => page.orders) ?? [],
+    orders,
     // Each page reports the total as of when it was fetched, so the latest
     // page has the freshest one.
     total: query.data?.pages.at(-1)?.total,
