@@ -5,11 +5,10 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import {
-  selectRampsAutoramps,
   selectSelectedVbaWalletAddress,
+  selectUsableVbaAutoramp,
 } from '../../../../selectors/rampsController';
 import Logger from '../../../../util/Logger';
-import { findUsableAutorampForActivity } from './useNeobankAutorampActivity';
 
 type RefreshAutorampTransactions = (autorampId: string) => Promise<unknown>;
 
@@ -29,7 +28,9 @@ interface AutorampTransactionRefreshController {
  */
 export function useVbaTransactionRefresh(): void {
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const autoramps = useSelector(selectRampsAutoramps);
+  // Same autoramp the rest of the Money UI uses: an approved cursor wins over
+  // an earlier failed create, so the refresh watches the live deposit.
+  const autoramp = useSelector(selectUsableVbaAutoramp);
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
   const networkTierRef = useRef(networkTier);
@@ -48,7 +49,6 @@ export function useVbaTransactionRefresh(): void {
       return;
     }
 
-    const autoramp = findUsableAutorampForActivity(autoramps, [walletAddress]);
     if (!autoramp) {
       return;
     }
@@ -62,7 +62,7 @@ export function useVbaTransactionRefresh(): void {
         },
       });
     });
-  }, [autoramps, walletAddress]);
+  }, [autoramp, walletAddress]);
 
   useFocusEffect(
     useCallback(() => {

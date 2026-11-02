@@ -6,8 +6,9 @@ import { AutorampStatus } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import {
-  selectRampsAutoramps,
+  findUsableVbaAutoramp,
   selectSelectedVbaWalletAddress,
+  selectUsableVbaAutoramp,
 } from '../../../../selectors/rampsController';
 import Logger from '../../../../util/Logger';
 import { useVbaTransactionRefresh } from './useVbaTransactionRefresh';
@@ -69,8 +70,8 @@ function setupSelectors({
     if (selector === selectSelectedVbaWalletAddress) {
       return walletAddress;
     }
-    if (selector === selectRampsAutoramps) {
-      return autoramps;
+    if (selector === selectUsableVbaAutoramp) {
+      return findUsableVbaAutoramp(autoramps, walletAddress);
     }
     return undefined;
   });
@@ -115,6 +116,20 @@ describe('useVbaTransactionRefresh', () => {
     renderHook(() => useVbaTransactionRefresh());
 
     expect(mockRefreshAutorampTransactions).not.toHaveBeenCalled();
+  });
+
+  it('prefers an approved autoramp over an earlier failed create', () => {
+    setupSelectors({
+      autoramps: [
+        makeAutoramp({ id: 'ar-failed', status: 'RegistrationFailed' }),
+        makeAutoramp({ id: 'ar-approved', status: AutorampStatus.Approved }),
+      ],
+    });
+
+    renderHook(() => useVbaTransactionRefresh());
+
+    expect(mockRefreshAutorampTransactions).toHaveBeenCalledTimes(1);
+    expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-approved');
   });
 
   it('does not fall back to an unmatched autoramp', () => {

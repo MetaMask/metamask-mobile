@@ -18,7 +18,6 @@ import {
   selectRampsControllerState,
   selectRampsOrders,
   selectRampsOrdersForSelectedAccountGroup,
-  selectRampsAutoramps,
   selectSelectedVbaWalletAddress,
   selectUsableVbaAutoramp,
   selectTransak,
@@ -333,22 +332,6 @@ describe('RampsController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectRampsControllerState(state)).toBeUndefined();
-    });
-  });
-
-  describe('selectRampsAutoramps', () => {
-    it('returns autoramps from controller state', () => {
-      const state = createMockState({
-        autoramps: [{ id: 'ar-1' }],
-      } as never);
-
-      expect(selectRampsAutoramps(state)).toEqual([{ id: 'ar-1' }]);
-    });
-
-    it('returns an empty array when autoramps are missing', () => {
-      const state = createMockState({ autoramps: undefined } as never);
-
-      expect(selectRampsAutoramps(state)).toEqual([]);
     });
   });
 
