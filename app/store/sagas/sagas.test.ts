@@ -925,6 +925,32 @@ describe('handleDeeplinkSaga', () => {
             .silentRun();
         });
 
+        it('does not hold an SDK connection link opened before the wallet', async () => {
+          const connectLink =
+            'https://link.metamask.io/connect?channelId=test-channel-id';
+          AppStateEventProcessor.pendingDeeplink = connectLink;
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterNavReady)
+            .not.fork.fn(parseDeeplinkAfterOnboarding)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+        });
+
         it('keeps the ready timeout for a link opened once the wallet exists', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://link.metamask.io/swap?ref=WEYRTZ';
@@ -1246,13 +1272,16 @@ describe('parseDeeplinkAfterOnboarding', () => {
     }
   });
 
-  it('drops the link when the user logs out before MainNavigator mounts', async () => {
+  it('still parses once the post-unlock Home mounts after an auto-lock', async () => {
     await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
       .dispatch({ type: UserActionType.LOGOUT })
       .dispatch(mainNavigatorReady())
       .run();
 
-    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
   });
 });
 

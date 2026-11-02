@@ -174,7 +174,9 @@ export function* parseDeeplinkAfterNavReady(
  * Parses a link opened before the wallet existed once onboarding hands over
  * to `MainNavigator`. The remaining onboarding steps can take any amount of
  * time, and parsing before then drops main-stack targets such as Swap.
- * Logging out first drops the link.
+ *
+ * An auto-lock in the meantime keeps the wait going: the pending link is
+ * already cleared, so the post-unlock Home is what mounts `MainNavigator`.
  */
 export function* parseDeeplinkAfterOnboarding(
   deeplink: string,
@@ -182,13 +184,7 @@ export function* parseDeeplinkAfterOnboarding(
   appStartType?: 'cold' | 'warm',
 ) {
   if (!hasMainNavigatorMounted) {
-    const { loggedOut } = yield race({
-      ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
-      loggedOut: take(UserActionType.LOGOUT),
-    });
-    if (loggedOut) {
-      return;
-    }
+    yield take(NavigationActionType.MAIN_NAVIGATOR_READY);
     hasMainNavigatorMounted = true;
   }
 
@@ -369,12 +365,16 @@ export function* handleDeeplinkSaga() {
         yield call(waitForSDKServicesInitialization);
       }
 
-      const isOpenedBeforeWallet = deeplink === deeplinkOpenedBeforeWallet;
+      // SDK and WalletConnect requests only need an unlocked keychain, and a
+      // dapp waiting on one may give up before onboarding ends.
+      const shouldWaitForOnboarding =
+        deeplink === deeplinkOpenedBeforeWallet &&
+        !isSDKServiceDeeplink(deeplink);
       deeplinkOpenedBeforeWallet = null;
 
       // Fork so the loop keeps listening. Fallback captured here — inside parse, post-unlock nav has already cleared it.
       yield fork(
-        isOpenedBeforeWallet
+        shouldWaitForOnboarding
           ? parseDeeplinkAfterOnboarding
           : parseDeeplinkAfterNavReady,
         deeplink,
