@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
+import I18n from '../../../../../locales/i18n';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
 import { useLaunchSumSub } from './useLaunchSumSub';
 
@@ -52,6 +53,9 @@ describe('useLaunchSumSub analytics', () => {
     renderHook(() => useLaunchSumSub(onSubmitted, onAbandoned));
 
     await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+    expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+      locale: I18n.locale,
+    });
     expect(mockTrack).toHaveBeenCalledWith({ status: 'started' });
     expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
       mockKycController.launchProviderFlow.mock.invocationCallOrder[0],

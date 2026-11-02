@@ -9,6 +9,7 @@ import VbaIdentityVerificationModule, {
 import { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
 import { VbaIdentityVerificationRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import Engine from '../../../../../core/Engine';
+import I18n from '../../../../../../locales/i18n';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -125,7 +126,9 @@ describe('VbaIdentityVerificationModule', () => {
     );
 
     await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        locale: I18n.locale,
+      });
     });
     expect(queryByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
@@ -139,7 +142,9 @@ describe('VbaIdentityVerificationModule', () => {
     );
 
     await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        locale: I18n.locale,
+      });
     });
     expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });

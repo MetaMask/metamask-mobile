@@ -3,6 +3,7 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
 import Engine from '../../../../../core/Engine';
+import I18n from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 const mockOnSubmitted = jest.fn();
@@ -83,7 +84,9 @@ describe('VbaSumSubKyc', () => {
     renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
 
     await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        locale: I18n.locale,
+      });
     });
     expect(mockKycService.getGeoCountry).toHaveBeenCalled();
     expect(mockKycController.recordSessionDisclaimers).toHaveBeenCalledWith({
@@ -116,7 +119,9 @@ describe('VbaSumSubKyc', () => {
     );
 
     await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        locale: I18n.locale,
+      });
     });
     expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
