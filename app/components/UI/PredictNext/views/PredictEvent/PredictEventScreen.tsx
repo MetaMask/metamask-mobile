@@ -14,7 +14,6 @@ import {
   FilterButton,
   FilterButtonGroup,
   FilterButtonVariant,
-  HeaderStandard,
   IconName,
   Text,
   TextVariant,
@@ -43,6 +42,9 @@ import RulesBottomSheet from './internal/RulesBottomSheet';
 import { EventMarketList } from './internal/EventMarketList';
 import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 const styles = StyleSheet.create({
   marketFilter: {
@@ -70,37 +72,45 @@ const EventScreenChrome = ({
   onBack: () => void;
   title?: string;
   onRulesPress?: () => void;
-}) => (
-  <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
-    <HeaderStandard
-      includesTopInset
-      title={title}
-      titleProps={{
-        testID: PredictEventScreenTestIds.TITLE,
-        accessibilityRole: 'header',
-        numberOfLines: 1,
-      }}
-      onBack={onBack}
-      backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
-      endButtonIconProps={
-        onRulesPress
-          ? [
-              {
-                iconName: IconName.Question,
-                onPress: onRulesPress,
-                testID: PredictEventScreenTestIds.EVENT_RULES_BUTTON,
-                accessibilityLabel: strings(
-                  'predict.rules.event_accessibility_label',
-                ),
-                accessibilityRole: 'button',
-              },
-            ]
-          : undefined
-      }
-    />
-    {children}
-  </Box>
-);
+}) => {
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  return (
+    <Box
+      testID={PredictEventScreenTestIds.VIEW}
+      twClassName="flex-1 bg-default"
+    >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+        title={title}
+        titleProps={{
+          testID: PredictEventScreenTestIds.TITLE,
+          accessibilityRole: 'header',
+          numberOfLines: 1,
+        }}
+        onBack={onBack}
+        backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
+        endButtonIconProps={
+          onRulesPress
+            ? [
+                {
+                  iconName: IconName.Question,
+                  onPress: onRulesPress,
+                  testID: PredictEventScreenTestIds.EVENT_RULES_BUTTON,
+                  accessibilityLabel: strings(
+                    'predict.rules.event_accessibility_label',
+                  ),
+                  accessibilityRole: 'button',
+                },
+              ]
+            : undefined
+        }
+      />
+      {children}
+    </Box>
+  );
+};
 
 const EventScreenLayout = ({
   children,
