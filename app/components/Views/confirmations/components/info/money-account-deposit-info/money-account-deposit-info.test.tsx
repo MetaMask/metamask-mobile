@@ -40,7 +40,9 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_deposit_header': 'Add to MetaMask Money' })[key] ?? key,
+    ({ 'confirm.title.money_account_deposit_header': 'Add to MetaMask Money' })[
+      key
+    ] ?? key,
 }));
 
 jest.mock('../../../../../UI/Ramp/hooks/useEnsureCompatibleProvider', () => ({

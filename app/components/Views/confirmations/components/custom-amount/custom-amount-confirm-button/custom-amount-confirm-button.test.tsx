@@ -79,7 +79,9 @@ describe('CustomAmountConfirmButton', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useTransactionPayTokenMock.mockReturnValue({ payToken: undefined } as never);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as never);
 
     useRouteMock.mockReturnValue({
       key: 'mock-route',

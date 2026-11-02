@@ -1008,7 +1008,11 @@ describe('CustomAmountInfo', () => {
         getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
       expect(
-        getByText(strings('confirm.deposit_edit_amount_done')),
+        getByText(
+          strings('confirm.deposit_edit_amount_convert_token', {
+            symbol: 'TST',
+          }),
+        ),
       ).toBeOnTheScreen();
       expect(
         queryByText(strings('confirm.preparing_order')),
@@ -1089,7 +1093,11 @@ describe('CustomAmountInfo', () => {
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
       expect(
-        view.getByText(strings('confirm.deposit_edit_amount_done')),
+        view.getByText(
+          strings('confirm.deposit_edit_amount_convert_token', {
+            symbol: 'TST',
+          }),
+        ),
       ).toBeOnTheScreen();
       expect(
         view.queryByText(strings('confirm.preparing_order')),
@@ -2082,7 +2090,11 @@ describe('CustomAmountInfo', () => {
       );
       await act(async () => {
         fireEvent.press(
-          view.getByText(strings('confirm.deposit_edit_amount_done')),
+          view.getByText(
+            strings('confirm.deposit_edit_amount_convert_token', {
+              symbol: 'TST',
+            }),
+          ),
         );
       });
 
