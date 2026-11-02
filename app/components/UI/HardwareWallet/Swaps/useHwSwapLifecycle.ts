@@ -419,7 +419,7 @@ export function useHwSwapLifecycle({
 
   // ── Actions ──────────────────────────────────────────────────────
   const handleCancel = useCallback(() => {
-    cancelCurrentBatch();
+    void cancelCurrentBatch();
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
     navigateOnCancel();
