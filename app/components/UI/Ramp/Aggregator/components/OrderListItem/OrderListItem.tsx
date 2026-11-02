@@ -40,6 +40,13 @@ interface Props {
 }
 
 function getStatusColorAndText(order: FiatOrder): [TextColor, string] {
+  if (order.providerRemoved) {
+    return [
+      TextColor.Default,
+      strings('fiat_on_ramp_aggregator.order_details.provider_removed'),
+    ];
+  }
+
   let statusColor;
   switch (order.state) {
     case 'CANCELLED':

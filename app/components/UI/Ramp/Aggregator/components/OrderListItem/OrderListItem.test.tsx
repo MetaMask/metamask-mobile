@@ -9,6 +9,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
 import { DepositOrderType } from '../../../types/legacyDeposit';
+import { strings } from '../../../../../../../locales/i18n';
 
 const testOrders: DeepPartial<FiatOrder>[] = [
   {
@@ -233,6 +234,33 @@ const testOrders: DeepPartial<FiatOrder>[] = [
 ];
 
 describe('OrderListItem', () => {
+  it('shows order status unavailable instead of pending when the provider was removed', () => {
+    const pendingBuy = testOrders.find(
+      (order) =>
+        order.state === FIAT_ORDER_STATES.PENDING && order.orderType === 'BUY',
+    );
+
+    const { getByText, queryByText } = renderWithProvider(
+      <OrderListItem
+        order={
+          {
+            ...pendingBuy,
+            providerRemoved: true,
+          } as FiatOrder
+        }
+      />,
+    );
+
+    expect(
+      getByText(
+        strings('fiat_on_ramp_aggregator.order_details.provider_removed'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('fiat_on_ramp_aggregator.order_status_pending')),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders each order without crashing', () => {
     testOrders.forEach((order) => {
       const { unmount } = renderWithProvider(
