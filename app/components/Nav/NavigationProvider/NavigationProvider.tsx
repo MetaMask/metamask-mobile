@@ -22,6 +22,7 @@ import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
+import { setPerfSessionScreen } from '../../../core/Performance/perfSession';
 import {
   focusedRouteFromNavigationState,
   recordFocusedRoute,
@@ -84,6 +85,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     // onReady runs for the first commit. Recording that focused route gives
     // the next navigation a source screen when onStateChange follows.
     recordFocusedRoute(NavigationService.getCurrentRoute());
+    setPerfSessionScreen(NavigationService.getCurrentRoute()?.name);
     // Dispatch navigation ready action, used by sagas
     dispatch(onNavigationReady());
   };
@@ -103,6 +105,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     const focusedRoute = focusedRouteFromNavigationState(state);
     if (focusedRoute) {
       recordFocusedRoute(focusedRoute);
+      setPerfSessionScreen(focusedRoute.name);
     }
     handleDeeplinkNavigationStateChange({
       focusedRouteNames: collectFocusedRouteNames(state),

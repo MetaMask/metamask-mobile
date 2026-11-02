@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perf sessions · live</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1c1f23; --muted:#6a737d; --line:#e3e6ea; --bad:#c62828; --warn:#b26a00; --ok:#2e7d32; --accent:#f6851b; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --card:#161b22; --text:#e6edf3; --muted:#8b949e; --line:#30363d; --bad:#ff7b72; --warn:#e3b341; --ok:#56d364; } }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width:1200px; margin:0 auto; padding:20px 16px 40px; }
+  header { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:16px; }
+  h1 { font-size:20px; margin:0; } h2 { font-size:15px; margin:0 0 10px; }
+  .muted { color:var(--muted); } .bad { color:var(--bad); font-weight:600; } .warn { color:var(--warn); } .ok { color:var(--ok); }
+  .controls { margin-left:auto; display:flex; gap:10px; align-items:center; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:6px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--muted); font-weight:500; font-size:12px; }
+  td.num, th.num { text-align:right; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:var(--muted); }
+  .dot.on { background:var(--ok); }
+  .pill { font-size:11px; padding:1px 7px; border-radius:99px; border:1px solid var(--bad); color:var(--bad); margin-left:6px; }
+  ul { margin:0; padding-left:18px; } li { margin:3px 0; }
+  a { color:var(--accent); }
+  select { font:inherit; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Perf sessions · live</h1>
+    <span id="status" class="muted">loading…</span>
+    <div class="controls">
+      <label class="muted">Window
+        <select id="hours"><option value="1">1 h</option><option value="8">8 h</option><option value="24" selected>24 h</option><option value="168">7 days</option></select>
+      </label>
+      <a id="md" href="/report.md">report.md</a>
+      <a id="json" href="/api/report.json">report.json</a>
+    </div>
+  </header>
+
+  <section class="card"><h2>Shared hotspots</h2><div id="hotspots" class="muted">–</div></section>
+  <section class="card"><h2>Devices</h2><div class="scroll"><table id="devices"></table></div></section>
+  <section class="card"><h2>Screens, worst first</h2><div class="scroll"><table id="screens"></table></div>
+    <p class="muted">FPS as % of the device refresh rate, only while frames are drawn. Janky = frames over their deadline. Frozen = frames over 700 ms. Locked = thread ≥ 90% CPU.</p></section>
+  <section class="card"><h2>Recent freezes</h2><div id="freezes" class="muted">–</div></section>
+</main>
+<script>
+  const esc = (v) => String(v ?? '–').replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+  const pct = (x) => (x === null || x === undefined ? '–' : Math.round(x * 100) + '%');
+  const ago = (ms) => { const s = Math.round(ms / 1000); return s < 60 ? s + 's' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h'; };
+  const tone = (x, warn, bad) => (x === null || x === undefined ? '' : x >= bad ? 'bad' : x >= warn ? 'warn' : '');
+  const table = (el, head, rows) => {
+    el.innerHTML = '<tr>' + head.map(([h, cls]) => `<th class="${cls ?? ''}">${h}</th>`).join('') + '</tr>' +
+      (rows.length ? rows.join('') : `<tr><td colspan="${head.length}" class="muted">No data yet.</td></tr>`);
+  };
+  const hoursEl = document.getElementById('hours');
+
+  async function refresh() {
+    const hours = hoursEl.value;
+    document.getElementById('md').href = '/report.md?hours=' + hours;
+    document.getElementById('json').href = '/api/report.json?hours=' + hours;
+    let data;
+    try { data = await (await fetch('/api/summary?hours=' + hours)).json(); }
+    catch { document.getElementById('status').textContent = 'collector unreachable'; return; }
+    const online = data.devices.filter((d) => d.online).length;
+    document.getElementById('status').textContent = `${data.devices.length} devices · ${online} online · updated ${new Date(data.now).toLocaleTimeString()}`;
+
+    table(document.getElementById('devices'),
+      [['Device'], ['Tester'], ['App'], ['Now on'], ['FPS', 'num'], ['JS CPU', 'num'], ['RAM', 'num'], ['Launches', 'num'], ['Last seen', 'num'], ['Export']],
+      data.devices.sort((a, b) => b.lastSeen - a.lastSeen).map((d) => `<tr>
+        <td><span class="dot ${d.online ? 'on' : ''}"></span>${esc(d.model)} <span class="muted">${esc(d.id.slice(0, 6))}</span></td>
+        <td>${esc(d.name)}</td><td>${esc(d.appVersion)}</td>
+        <td>${d.online ? (d.inForeground ? esc(d.screen) : '<span class="muted">background</span>') : '<span class="muted">offline</span>'}</td>
+        <td class="num">${d.last?.fps == null ? '–' : esc(d.last.fps) + '/' + esc(d.refreshRate)}</td>
+        <td class="num ${tone(d.last?.js, 60, 90)}">${d.last ? Math.round(d.last.js) + '%' : '–'}</td>
+        <td class="num">${d.last ? esc(d.last.ram) + ' MB' : '–'}</td>
+        <td class="num">${esc(d.launches)}</td><td class="num">${ago(data.now - d.lastSeen)} ago</td>
+        <td><a href="/api/devices/${encodeURIComponent(d.id)}/flashlight.json?hours=${hours}" target="_blank">flashlight.json</a></td></tr>`));
+
+    const r = data.report;
+    const hot = r?.flows.filter((f) => f.sharedHotspot) ?? [];
+    document.getElementById('hotspots').innerHTML = hot.length
+      ? '<ul>' + hot.map((f) => `<li><span class="bad">${esc(f.flow)}</span>: ${f.testersAffected.length}/${f.testers} devices affected (${esc(f.devicesAffected.join(', '))}) · low FPS ${pct(f.lowFpsShare)} · janky frames ${pct(f.jankyFrameShare)} · JS locked ${pct(f.jsLockedShare)} · ${f.frozenFrames} frozen</li>`).join('') + '</ul>'
+      : 'None yet: a screen is listed here when it is slow for at least half of the devices that used it (2+ devices).';
+
+    table(document.getElementById('screens'),
+      [['Screen'], ['Devices', 'num'], ['Min', 'num'], ['Avg FPS', 'num'], ['P10 FPS', 'num'], ['Low-FPS time', 'num'], ['Janky frames', 'num'], ['Frozen', 'num'], ['JS locked', 'num'], ['Avg JS CPU', 'num'], ['Peak RAM', 'num']],
+      (r?.flows ?? []).map((f) => `<tr>
+        <td>${esc(f.flow)}${f.sharedHotspot ? '<span class="pill">shared</span>' : ''}</td>
+        <td class="num">${f.testers}</td><td class="num">${f.minutes}</td>
+        <td class="num">${f.avgFpsPct === null ? '–' : f.avgFpsPct + '%'}</td>
+        <td class="num">${f.p10FpsPct === null ? '–' : f.p10FpsPct + '%'}</td>
+        <td class="num ${tone(f.lowFpsShare, 0.1, 0.2)}">${pct(f.lowFpsShare)}</td>
+        <td class="num ${tone(f.jankyFrameShare, 0.1, 0.25)}">${pct(f.jankyFrameShare)}</td>
+        <td class="num ${tone(f.frozenFrames, 1, 5)}">${f.frozenFrames}</td>
+        <td class="num ${tone(f.jsLockedShare, 0.05, 0.1)}">${pct(f.jsLockedShare)}</td>
+        <td class="num">${f.avgJsCpu}%</td><td class="num">${f.peakRamMb} MB</td></tr>`));
+
+    const freezes = [...(r?.jankMarkers ?? [])].sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 15);
+    document.getElementById('freezes').innerHTML = freezes.length
+      ? '<ul>' + freezes.map((j) => `<li>${j.at ? new Date(j.at).toLocaleTimeString() : ''} · <b>${esc(j.flow)}</b> · ${esc(j.tester)} · ${esc(j.note)} · max JS CPU ${esc(j.maxJsCpu)}%</li>`).join('') + '</ul>'
+      : 'None.';
+  }
+  hoursEl.addEventListener('change', refresh);
+  refresh();
+  setInterval(refresh, 5000);
+</script>
+</body>
+</html>

@@ -348,6 +348,25 @@ builds:
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
     code_fencing: *code_fencing_main
+  # Release candidate for PM test sessions with the always-on perf sampler
+  # (android/.../nativeModules/PerfSession). Samples CPU per thread, FPS/jank and
+  # RAM tagged with the focused screen and POSTs them to MM_PERF_SESSION_URL.
+  # Both secrets live in the build-rc environment. Internal distribution only.
+  # See scripts/perf-sessions/README.md.
+  main-rc-perf:
+    script_name: main-rc
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+    secrets:
+      <<: *secrets
+      MM_PERF_SESSION_URL: 'MM_PERF_SESSION_URL'
+      MM_PERF_SESSION_TOKEN: 'MM_PERF_SESSION_TOKEN'
+    code_fencing: *code_fencing_main
+
   # Release candidate with pre-imported wallet (system tests / performance tests)
   # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
   # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.

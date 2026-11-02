@@ -377,6 +377,10 @@ android {
 		  // Gates the Hermes CPU profiling native module so it is compiled out of
 		  // every build except the BrowserStack performance APKs in builds.yml.
 		  it.buildConfigField 'boolean', 'IS_PERFORMANCE_TEST', "${System.getenv('IS_PERFORMANCE_TEST') == 'true'}"
+		  // Always-on perf sampler for PM test sessions; empty (disabled) except in
+		  // the main-rc-perf build in builds.yml. See scripts/perf-sessions/README.md.
+		  it.buildConfigField 'String', 'PERF_SESSION_URL', "\"${System.getenv('MM_PERF_SESSION_URL') ?: ''}\""
+		  it.buildConfigField 'String', 'PERF_SESSION_TOKEN', "\"${System.getenv('MM_PERF_SESSION_TOKEN') ?: ''}\""
     }
 
     buildFeatures {

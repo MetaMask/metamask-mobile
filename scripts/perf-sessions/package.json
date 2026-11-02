@@ -1,13 +1,15 @@
 {
   "name": "@metamask/perf-sessions-poc",
   "private": true,
-  "description": "POC: Flashlight listener for manual tester sessions on Android RC builds",
+  "description": "Always-on Android perf sampling for PM test sessions (main-rc-perf + collector), plus a Flashlight lab agent",
   "type": "module",
   "scripts": {
+    "collector": "node collector.mjs",
+    "simulate-devices": "node fixtures/simulate-devices.mjs",
     "record": "node agent.mjs",
     "aggregate": "node aggregate.mjs",
-    "demo": "node fixtures/generate-sample.mjs fixtures/demo && node aggregate.mjs fixtures/demo",
-    "report": "npx @perf-profiler/web-reporter report"
+    "report": "npx @perf-profiler/web-reporter report",
+    "demo": "node fixtures/generate-sample.mjs fixtures/demo && node aggregate.mjs fixtures/demo"
   },
   "dependencies": {
     "@perf-profiler/profiler": "0.10.11"

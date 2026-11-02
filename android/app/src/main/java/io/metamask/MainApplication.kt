@@ -26,6 +26,8 @@ import io.metamask.nativeModules.BrazePushPackage
 import io.metamask.nativeModules.NotificationPackage
 import io.metamask.nativeModules.PrivacyCoverPackage
 import io.metamask.nativeModules.HermesProfiler.HermesProfilerPackage
+import io.metamask.nativeModules.PerfSession.PerfSession
+import io.metamask.nativeModules.PerfSession.PerfSessionPackage
 import com.braze.Braze
 import com.braze.BrazeActivityLifecycleCallbackListener
 import com.braze.configuration.BrazeConfig
@@ -54,6 +56,9 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
                 if (BuildConfig.IS_PERFORMANCE_TEST) {
                     add(HermesProfilerPackage())
                 }
+                if (BuildConfig.PERF_SESSION_URL.isNotEmpty()) {
+                    add(PerfSessionPackage())
+                }
             },
         )
     }
@@ -69,6 +74,11 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Internal perf builds only: sample from process start so cold start is covered.
+        if (BuildConfig.PERF_SESSION_URL.isNotEmpty()) {
+            PerfSession.start(this, BuildConfig.PERF_SESSION_URL, BuildConfig.PERF_SESSION_TOKEN)
+        }
 
         // Fill the edge-to-edge host; HTML templates use --braze-safe-area-inset-* for content padding.
         Braze.configure(
