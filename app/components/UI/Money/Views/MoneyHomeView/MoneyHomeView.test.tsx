@@ -362,6 +362,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 
 jest.mock('../../selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => true),
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
