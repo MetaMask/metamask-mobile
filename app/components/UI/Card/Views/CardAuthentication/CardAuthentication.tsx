@@ -165,6 +165,7 @@ const CardAuthentication = () => {
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
   const walletSignInLock = useRef(false);
+  const emailCodeRequestId = useRef(0);
   const geoLocation = useSelector(selectGeolocationLocation);
   const isForgotPasswordEnabled = useSelector(
     selectCardForgotPasswordFeatureEnabled,
@@ -338,6 +339,10 @@ const CardAuthentication = () => {
 
   useEffect(() => {
     resetTransientAuthState();
+    emailCodeRequestId.current += 1;
+    setEmailCode('');
+    setEmailCodeSent(false);
+    setLatestEmailCodeSubmitted(null);
   }, [countryKey, resetTransientAuthState]);
 
   useResetOnResolvedKind(resolution?.kind, resetTransientAuthState);
@@ -365,6 +370,7 @@ const CardAuthentication = () => {
 
   const handleEmailChange = useCallback(
     (newEmail: string) => {
+      emailCodeRequestId.current += 1;
       setEmail(newEmail);
       setEmailCode('');
       setEmailCodeSent(false);
@@ -586,7 +592,7 @@ const CardAuthentication = () => {
       latestValueSubmitted !== confirmCode
     ) {
       setLatestValueSubmitted(confirmCode);
-      performEmailLogin(confirmCode);
+      void performEmailLogin(confirmCode);
     }
   }, [confirmCode, performEmailLogin, latestValueSubmitted, isOtpStep]);
 
@@ -771,12 +777,15 @@ const CardAuthentication = () => {
   }, [resetToLogin]);
 
   const handleRequestEmailCode = useCallback(async () => {
-    if (!countryKey || !emailOption || !email.trim() || loading) return;
+    const requestedEmail = email.trim();
+    if (!countryKey || !emailOption || !requestedEmail || loading) return;
+    const requestId = emailCodeRequestId.current;
     selectOption(emailOption, countryKey);
     clearAuthFailure();
     try {
       await initiate.mutateAsync(mapCountryToLocation(countryKey));
-      await requestEmailCode.mutateAsync(email.trim());
+      await requestEmailCode.mutateAsync(requestedEmail);
+      if (requestId !== emailCodeRequestId.current) return;
       setEmailCodeSent(true);
       setResendCooldown(60);
     } catch (err) {
@@ -817,11 +826,11 @@ const CardAuthentication = () => {
 
   const handlePrimary = useCallback(() => {
     if (view.mode === 'otp') {
-      performEmailLogin(confirmCode);
+      void performEmailLogin(confirmCode);
       return;
     }
     if (view.mode === 'wallet') {
-      handleWalletSignIn();
+      void handleWalletSignIn();
       return;
     }
     if (view.mode === 'email') {
@@ -829,7 +838,7 @@ const CardAuthentication = () => {
         void handleRequestEmailCode();
         return;
       }
-      performEmailLogin();
+      void performEmailLogin();
     }
   }, [
     view.mode,

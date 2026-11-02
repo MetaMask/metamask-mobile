@@ -808,6 +808,74 @@ describe('CardAuthentication', () => {
       });
     });
 
+    it('does not show the code field when the email changes before the request finishes', async () => {
+      mockPasswordlessFlag.enabled = true;
+      let finishRequest = () => undefined;
+      mockRequestEmailCode.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            finishRequest = resolve;
+          }),
+      );
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockRequestEmailCode).toHaveBeenCalledWith('user@example.com');
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'other@example.com',
+      );
+      await act(async () => {
+        finishRequest();
+      });
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeNull();
+      expect(screen.getByText('Email me a code')).toBeOnTheScreen();
+    });
+
+    it('clears a sent email code when the country changes', async () => {
+      mockPasswordlessFlag.enabled = true;
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+      act(() => {
+        mockOnRegionChange?.({ key: 'US', name: 'United States', code: 'US' });
+      });
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeNull();
+      expect(screen.getByText('Email me a code')).toBeOnTheScreen();
+    });
+
     it('keeps sign in enabled after a rejected email code', async () => {
       mockPasswordlessFlag.enabled = true;
       const invalidCredentials = new CardProviderError(

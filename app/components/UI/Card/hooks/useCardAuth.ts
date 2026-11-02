@@ -36,7 +36,9 @@ export const useCardAuth = () => {
       if (result.done || result.onboardingRequired) {
         setCurrentStep(LOGIN_STEP);
         if (result.done) {
-          queryClient.invalidateQueries({ queryKey: cardQueries.keys.all() });
+          void queryClient.invalidateQueries({
+            queryKey: cardQueries.keys.all(),
+          });
         }
       } else if (result.nextStep) {
         setCurrentStep(result.nextStep);
