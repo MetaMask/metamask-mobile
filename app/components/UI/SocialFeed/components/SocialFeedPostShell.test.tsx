@@ -411,12 +411,42 @@ describe('SocialFeedPostShell', () => {
     expect(screen.queryByText('0')).toBeNull();
   });
 
-  it('shows the add-reaction button when the post has no Call id', () => {
+  it('hides reaction controls on a trade-only card and keeps the copy count', () => {
+    renderShell(
+      basePost({
+        commentId: undefined,
+        reactions: [{ emotion: '🔥', count: 12 }],
+        copyCount: 3,
+      }),
+    );
+
+    expect(
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.COPIES}-post-1`),
+    ).toHaveTextContent('3');
+  });
+
+  it('omits the footer when a trade-only card has no copy count', () => {
     renderShell(basePost({ commentId: undefined, reactions: [] }));
 
     expect(
-      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.COPIES}-post-1`),
+    ).toBeNull();
   });
 
   it('keeps the add-reaction button next to existing chips', () => {
@@ -451,7 +481,11 @@ describe('SocialFeedPostShell', () => {
     });
 
     it('adds the reader to a chip when it is pressed', async () => {
-      renderShell(basePost({ commentId: undefined }));
+      jest.mocked(reactToComment).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 13 }],
+        userReaction: '🔥',
+      });
+      renderShell(basePost());
 
       fireEvent.press(screen.getByTestId(chipTestId));
 
@@ -473,9 +507,12 @@ describe('SocialFeedPostShell', () => {
     });
 
     it('removes the reader from their own chip when it is pressed', async () => {
+      jest.mocked(removeCommentReaction).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 1 }],
+        userReaction: null,
+      });
       renderShell(
         basePost({
-          commentId: undefined,
           reactions: [{ emotion: '🔥', count: 2 }],
           userReaction: '🔥',
         }),
