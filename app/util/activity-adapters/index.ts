@@ -16,6 +16,8 @@ export {
   KALSHI_VENUE_CHAIN_ID,
   PERPS_ORDER_KINDS,
   isPerpsOrderKind,
+  isNftAssetType,
+  isNftToken,
 } from './types';
 export { isNftTransferType, isSpendingCapUnlimited } from './adapters/helpers';
 export {
@@ -28,7 +30,6 @@ export {
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
 } from './adapters/staking-activity';
-export { mapPredictActivity } from './adapters/predict-activity';
 export {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,

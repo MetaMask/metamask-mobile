@@ -49,6 +49,7 @@ let mockLocation: string | undefined = 'BR';
 let mockRouteParams: { sourceCurrency?: string } | undefined;
 let mockChooseCurrency = false;
 let mockRegionOverride: string | undefined;
+let mockNeobankFlagOn = true;
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
@@ -74,22 +75,25 @@ jest.mock('../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/moneyAccount',
-  () => ({
-    ...jest.requireActual(
-      '../../../../../selectors/featureFlagController/moneyAccount',
-    ),
-    selectMoneyMovementNeobank: () => ({
-      isEnabled: true,
-      regions: ['BR', 'US'],
-      regionCurrencies: { BR: 'BRL', US: 'USD' },
-      defaultCurrency: undefined,
-      chooseCurrency: mockChooseCurrency,
-      regionOverride: mockRegionOverride,
-    }),
-  }),
-);
+jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/featureFlagController/moneyAccount',
+  );
+  return {
+    ...actual,
+    selectMoneyMovementNeobank: (state: unknown) =>
+      mockNeobankFlagOn
+        ? {
+            isEnabled: true,
+            regions: ['BR', 'US'],
+            regionCurrencies: { BR: 'BRL', US: 'USD' },
+            defaultCurrency: undefined,
+            chooseCurrency: mockChooseCurrency,
+            regionOverride: mockRegionOverride,
+          }
+        : actual.selectMoneyMovementNeobank(state),
+  };
+});
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
@@ -225,6 +229,7 @@ describe('VbaDetails', () => {
     mockRouteParams = undefined;
     mockChooseCurrency = false;
     mockRegionOverride = undefined;
+    mockNeobankFlagOn = true;
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
@@ -931,6 +936,20 @@ describe('VbaDetails', () => {
       expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     });
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('opens an existing approved account without creating one when moneyMovementNeobank is absent', async () => {
+    mockNeobankFlagOn = false;
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockRegisterWallet).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
   it('creates the autoramp for the flag region override ahead of the IP country', async () => {

@@ -19,14 +19,18 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
+  PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
   PredictMarket,
   PredictOutcome,
+  PredictPosition,
   PredictSignedAmount,
+  PredictSignedPercent,
   PredictTimestamp,
+  PredictVenueId,
 } from '../../../app/components/UI/PredictNext/types';
 
 interface GameEventOptions {
@@ -535,20 +539,21 @@ const lakersContext = {
 /** A valued open Position, valid against the C1 Positions contract. */
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
-) => ({
-  venueId: 'kalshi',
-  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
-  side: 'yes' as const,
-  status: 'open' as const,
-  shares: '75.00',
-  averagePrice: '0.55' as PredictDecimal,
-  costBasis: '41.25',
-  currentValue: '45.00',
-  unrealizedPnl: '3.75' as PredictSignedAmount,
-  unrealizedPnlPercent: '9.09',
-  context: lakersContext,
-  ...overrides,
-});
+): PredictPosition =>
+  ({
+    venueId: 'kalshi' as PredictVenueId,
+    marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+    side: 'yes' as const,
+    status: 'open' as const,
+    shares: '75.00' as PredictAmount,
+    averagePrice: '0.55' as PredictDecimal,
+    costBasis: '41.25' as PredictAmount,
+    currentValue: '45.00' as PredictAmount,
+    unrealizedPnl: '3.75' as PredictSignedAmount,
+    unrealizedPnlPercent: '9.09' as PredictSignedPercent,
+    context: lakersContext,
+    ...overrides,
+  }) as PredictPosition;
 
 /** A sell Trade, valid against the C1 Activity contract. */
 export const makePredictNextTrade = (

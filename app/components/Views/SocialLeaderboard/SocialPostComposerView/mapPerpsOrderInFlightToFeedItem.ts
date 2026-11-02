@@ -3,7 +3,7 @@ import type {
   SocialV1FeedItem,
 } from '../../../UI/SocialFeed/types';
 import { HYPERLIQUID_CHAIN_NAME } from '../../../UI/SocialFeed/utils/perp';
-import { COMPOSER_FEED_AUTHOR } from './mapPositionToFeedItem';
+import { COMPOSER_FEED_AUTHOR, commentGifField } from './mapPositionToFeedItem';
 import type { SocialPostPerpsPreview } from './SocialPostComposerView.types';
 
 /**
@@ -13,11 +13,17 @@ import type { SocialPostPerpsPreview } from './SocialPostComposerView.types';
 export const mapPerpsOrderInFlightToFeedItem = (
   preview: SocialPostPerpsPreview,
   comment: string,
-  options?: { author?: SocialV1FeedAuthor; timestamp?: number },
+  options?: {
+    author?: SocialV1FeedAuthor;
+    timestamp?: number;
+    /** KLIPY GIF attached to the caption, carried so a GIF-only post still reads as commented. */
+    commentGifUrl?: string;
+  },
 ): SocialV1FeedItem => {
   const author = options?.author ?? COMPOSER_FEED_AUTHOR;
   const timestamp = options?.timestamp ?? Date.now();
   const id = `composer-in-flight-perps-${preview.tradeSymbol}`;
+  const gif = commentGifField(options?.commentGifUrl);
 
   return {
     id,
@@ -25,6 +31,7 @@ export const mapPerpsOrderInFlightToFeedItem = (
     timestamp,
     variant: 'perpsOpen',
     comment,
+    ...gif,
     tradeSymbol: preview.tradeSymbol,
     direction: preview.direction,
     leverageLabel: preview.leverageLabel,

@@ -242,21 +242,20 @@ const SRPErrorScreen = ({
             </Text>
           </ScrollView>
         </Box>
-
-        <FooterGlass
-          twClassName="w-full px-0 pt-4 pb-6"
-          primaryButtonProps={{
-            children: strings('wallet_creation_error.send_error_report'),
-            size: ButtonSize.Lg,
-            onPress: handleSendErrorReport,
-          }}
-          secondaryButtonProps={{
-            children: strings('wallet_creation_error.try_again'),
-            size: ButtonSize.Lg,
-            onPress: handleTryAgain,
-          }}
-        />
       </ScrollView>
+      <FooterGlass
+        twClassName="py-2"
+        primaryButtonProps={{
+          children: strings('wallet_creation_error.send_error_report'),
+          size: ButtonSize.Lg,
+          onPress: handleSendErrorReport,
+        }}
+        secondaryButtonProps={{
+          children: strings('wallet_creation_error.try_again'),
+          size: ButtonSize.Lg,
+          onPress: handleTryAgain,
+        }}
+      />
     </SafeAreaView>
   );
 };
