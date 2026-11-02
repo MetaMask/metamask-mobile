@@ -220,7 +220,7 @@ export const TokenDetailsInlineHeader = ({
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
+            color={TextColor.TextDefault}
             testID="token-details-ticker"
           >
             {tokenTicker}

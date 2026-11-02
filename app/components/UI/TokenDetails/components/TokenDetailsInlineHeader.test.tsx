@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { render, fireEvent, within } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
@@ -322,6 +322,16 @@ describe('TokenDetailsInlineHeader', () => {
 
       const subtitle = within(getByTestId('token-details-subtitle'));
       expect(subtitle.getByText('DOGE')).toBeOnTheScreen();
+      const nameColor = StyleSheet.flatten(getByText('Dogecoin').props.style)
+        ?.color;
+      const tickerColor = StyleSheet.flatten(
+        subtitle.getByTestId('token-details-ticker').props.style,
+      )?.color;
+      const addressColor = StyleSheet.flatten(
+        subtitle.getByText('0x00000...short').props.style,
+      )?.color;
+      expect(tickerColor).toStrictEqual(nameColor);
+      expect(addressColor).not.toStrictEqual(tickerColor);
       expect(subtitle.getByText('0x00000...short')).toBeOnTheScreen();
       expect(
         subtitle.getByTestId('copy-contract-address-button'),
