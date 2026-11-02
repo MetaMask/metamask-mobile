@@ -29,7 +29,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import HeaderSubpageGlass from '../../../../component-library/components-temp/HeaderSubpageGlass';
-import { formatAddress } from '../../../../util/address';
+import { toFormattedAddress } from '../../../../util/address';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenDetails';
@@ -41,6 +41,12 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
+
+const formatCompactContractAddress = (address: string): string => {
+  const formatted = toFormattedAddress(address);
+  const tail = formatted.slice(-4);
+  return formatted.toLowerCase().startsWith('0x') ? `0x..${tail}` : `..${tail}`;
+};
 
 export const TokenDetailsInlineHeader = ({
   token,
@@ -244,7 +250,7 @@ export const TokenDetailsInlineHeader = ({
               color={TextColor.TextAlternative}
               numberOfLines={1}
             >
-              {formatAddress(contractAddress, 'short')}
+              {formatCompactContractAddress(contractAddress)}
             </Text>
             <ButtonIcon
               iconName={IconName.Copy}
@@ -281,8 +287,6 @@ export const TokenDetailsInlineHeader = ({
       );
     }
 
-    // Empty anchor so the description row stays mounted. The ticker line is the
-    // end accessory, which is the slot that actually has the header width.
     return inlineDescription ? <Box /> : undefined;
   }, [description, inlineDescription]);
 

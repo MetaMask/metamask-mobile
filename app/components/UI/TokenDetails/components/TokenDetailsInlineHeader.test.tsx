@@ -35,10 +35,6 @@ jest.mock('../../AssetOverview/utils/getTokenDetails', () => ({
     mockResolveTokenContractAddress(...args),
 }));
 
-jest.mock('../../../../util/address', () => ({
-  formatAddress: jest.fn((address: string) => `${address.slice(0, 7)}...short`),
-}));
-
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
     isStockToken: mockIsStockToken,
@@ -329,15 +325,42 @@ describe('TokenDetailsInlineHeader', () => {
         subtitle.getByTestId('token-details-ticker').props.style,
       )?.color;
       const addressColor = StyleSheet.flatten(
-        subtitle.getByText('0x00000...short').props.style,
+        subtitle.getByText('0x..0000').props.style,
       )?.color;
       expect(tickerColor).toStrictEqual(nameColor);
       expect(addressColor).not.toStrictEqual(tickerColor);
-      expect(subtitle.getByText('0x00000...short')).toBeOnTheScreen();
+      expect(subtitle.getByText('0x..0000')).toBeOnTheScreen();
       expect(
         subtitle.getByTestId('copy-contract-address-button'),
       ).toBeOnTheScreen();
       expect(subtitle.queryByText('Dogecoin')).toBeNull();
+    });
+
+    it('renders the contract address as 0x.. plus its last four characters', () => {
+      mockResolveTokenContractAddress.mockReturnValue(
+        '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+      );
+
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: '(PoS) Tether USD',
+          ticker: 'USDT',
+          symbol: 'USDT',
+        },
+      });
+
+      const subtitle = within(getByTestId('token-details-subtitle'));
+
+      expect(subtitle.getByTestId('token-details-ticker').props.children).toBe(
+        'USDT',
+      );
+      expect(subtitle.getByText('0x..86CA')).toBeOnTheScreen();
+      expect(
+        subtitle.getByTestId('copy-contract-address-button'),
+      ).toBeOnTheScreen();
     });
 
     it('ellipsizes a long ticker and keeps the contract address on the same line', () => {
@@ -362,7 +385,7 @@ describe('TokenDetailsInlineHeader', () => {
       expect(ticker.props.ellipsizeMode).toBe('tail');
       expect(StyleSheet.flatten(ticker.props.style)?.flexShrink).toBe(1);
       expect(StyleSheet.flatten(addressGroup.props.style)?.flexShrink).toBe(0);
-      expect(subtitle.getByText('0x00000...short')).toBeOnTheScreen();
+      expect(subtitle.getByText('0x..0000')).toBeOnTheScreen();
       expect(
         subtitle.getByTestId('copy-contract-address-button'),
       ).toBeOnTheScreen();
@@ -438,7 +461,7 @@ describe('TokenDetailsInlineHeader', () => {
       const { queryByTestId, queryByText } = renderHeader();
 
       expect(queryByTestId('copy-contract-address-button')).toBeNull();
-      expect(queryByText('0x00000...short')).toBeNull();
+      expect(queryByText('0x..0000')).toBeNull();
     });
 
     it('replaces the contract address when a description is provided', () => {
@@ -455,7 +478,7 @@ describe('TokenDetailsInlineHeader', () => {
       expect(getByText('$0.000012')).toBeOnTheScreen();
       expect(getByText('Ethereum')).toBeOnTheScreen();
       expect(queryByText('ETH')).toBeNull();
-      expect(queryByText('0x00000...short')).toBeNull();
+      expect(queryByText('0x..0000')).toBeNull();
       expect(queryByTestId('copy-contract-address-button')).toBeNull();
     });
 
@@ -468,7 +491,7 @@ describe('TokenDetailsInlineHeader', () => {
         },
       });
 
-      expect(getByText('0x00000...short')).toBeOnTheScreen();
+      expect(getByText('0x..0000')).toBeOnTheScreen();
     });
 
     it('renders copy button and calls onCopyAddress when pressed for non-native tokens', () => {
@@ -492,7 +515,7 @@ describe('TokenDetailsInlineHeader', () => {
       const { queryByTestId, queryByText } = renderHeader();
 
       expect(queryByTestId('copy-contract-address-button')).toBeNull();
-      expect(queryByText('0x00000...short')).toBeNull();
+      expect(queryByText('0x..0000')).toBeNull();
     });
 
     it('renders price alert button when onPriceAlertPress is provided', () => {
