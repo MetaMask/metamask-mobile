@@ -126,7 +126,6 @@ jobs:
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
       build_attribution: ${{ inputs.build_attribution }}
       runner_provider: ${{ inputs.runner_provider }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   upload-ios-testflight:
@@ -145,5 +144,4 @@ jobs:
       build_number: ${{ needs.build.outputs.ios_version_code }}
       distribute_external: ${{ inputs.distribute_external }}
       runner_provider: ${{ inputs.runner_provider }}
-    secrets:
-      AWS_ROLE_APPLE_TESTFLIGHT: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}
+    secrets: inherit # zizmor: ignore[secrets-inherit]

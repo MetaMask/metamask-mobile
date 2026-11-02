@@ -31,11 +31,6 @@ name: Dependency Audit Escalation
 
 on:
   workflow_call:
-    secrets:
-      AI_ANALYZER_LITELLM_KEY:
-        required: false
-      SLACK_BOT_TOKEN:
-        required: false
   workflow_dispatch:
 
 permissions:

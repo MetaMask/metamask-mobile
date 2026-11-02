@@ -50,7 +50,6 @@ jobs:
       platform: android
       source_branch: ${{ inputs.source_branch }}
       runner_provider: ${{ inputs.runner_provider }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   publish-apk:

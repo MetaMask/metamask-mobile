@@ -470,7 +470,6 @@ jobs:
       build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   push-update-android:
@@ -506,7 +505,6 @@ jobs:
       build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   fingerprint-mismatch:

@@ -41,11 +41,6 @@ on:
         required: false
         type: string
         default: 'rc'
-    secrets:
-      ANDROID_PUBLIC_BUCKET_URL:
-        required: false
-      SLACK_BOT_TOKEN:
-        required: false
 
 permissions:
   actions: read

@@ -42,7 +42,6 @@ jobs:
       distribute_external: true
       build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   ios-rc:
@@ -59,7 +58,6 @@ jobs:
       distribute_external: true
       build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   android-exp-generate:
@@ -81,7 +79,6 @@ jobs:
       build_number: ${{ needs.android-exp-generate.outputs.build-version }}
       build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   android-rc-generate:
@@ -104,7 +101,6 @@ jobs:
       build_number: ${{ needs.android-rc-generate.outputs.build-version }}
       build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   size-analysis-ios:

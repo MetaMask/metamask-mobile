@@ -93,9 +93,6 @@ on:
         required: false
         type: number
         default: 2
-    secrets:
-      MM_INFURA_PROJECT_ID:
-        required: false
 
 permissions:
   contents: read

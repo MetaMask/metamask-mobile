@@ -63,7 +63,6 @@ jobs:
       upload_to_sentry: true
       build_attribution: official
       runner_provider: ${{ inputs.runner_provider }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   upload-ios-testflight:
@@ -82,8 +81,7 @@ jobs:
       build_number: ${{ needs.build.outputs.ios_version_code }}
       distribute_external: true
       runner_provider: ${{ inputs.runner_provider }}
-    secrets:
-      AWS_ROLE_APPLE_TESTFLIGHT: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   slack-notification:
     name: Slack RC Notification
@@ -98,6 +96,4 @@ jobs:
       semver: ${{ needs.build.outputs.semantic_version }}
       ios_build_number: ${{ needs.build.outputs.ios_version_code }}
       android_build_number: ${{ needs.build.outputs.android_version_code }}
-    secrets:
-      ANDROID_PUBLIC_BUCKET_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+    secrets: inherit # zizmor: ignore[secrets-inherit]

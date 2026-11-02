@@ -84,7 +84,6 @@ jobs:
       # run-performance-tests keep their branch build name.
       testmu_project_name: MetaMask Mobile Scheduled Performance
       testmu_build_name: TestMu-Android-Performance-main-Scheduled
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   # Detect whether the current branch has app-affecting changes vs main.
@@ -163,7 +162,6 @@ jobs:
       reuse_main_builds: ${{ needs.detect-changes.outputs.reuse_main_builds == 'true' && inputs.build_variant == 'e2e' }}
       source_fingerprint: ${{ inputs.source_fingerprint }}
       collect_hermes_cpuprofiles: true
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   # Runs after a failed suite too, so a manual run can report that there is

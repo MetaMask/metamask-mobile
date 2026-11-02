@@ -39,9 +39,6 @@ on:
         required: false
         type: number
         default: 2
-    secrets:
-      MM_INFURA_PROJECT_ID:
-        required: false
   workflow_dispatch:
     inputs:
       build_type:
@@ -163,5 +160,4 @@ jobs:
       runner_provider: ${{ inputs.runner_provider || 'current' }}
       ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets:
-      MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+    secrets: inherit # zizmor: ignore[secrets-inherit]

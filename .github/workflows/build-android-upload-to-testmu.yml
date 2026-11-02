@@ -589,7 +589,6 @@ jobs:
       build_name: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   build-without-srp:
@@ -611,7 +610,6 @@ jobs:
       build_name: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
-    # Environment secrets only reach the called workflow through inherit.
     secrets: inherit # zizmor: ignore[secrets-inherit]
 
   upload-to-browserstack:

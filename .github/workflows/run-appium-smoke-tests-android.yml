@@ -44,9 +44,6 @@ on:
         required: false
         type: number
         default: 3
-    secrets:
-      MM_INFURA_PROJECT_ID:
-        required: false
   workflow_dispatch:
     inputs:
       build_type:
@@ -185,5 +182,4 @@ jobs:
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
       android-device-pool-size: ${{ inputs.android-device-pool-size }}
-    secrets:
-      MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+    secrets: inherit # zizmor: ignore[secrets-inherit]

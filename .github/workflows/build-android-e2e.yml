@@ -52,37 +52,6 @@ on:
         required: false
         default: false
         type: boolean
-    secrets:
-      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN:
-        required: false
-      FEATURES_ANNOUNCEMENTS_SPACE_ID:
-        required: false
-      GOOGLE_SERVICES_B64_ANDROID:
-        required: false
-      GOOGLE_SERVICES_B64_IOS:
-        required: false
-      MM_INFURA_PROJECT_ID:
-        required: false
-      MM_SENTRY_AUTH_TOKEN:
-        required: false
-      MM_SENTRY_DSN_TEST:
-        required: false
-      SEGMENT_DELETE_API_SOURCE_ID_FLASK:
-        required: false
-      SEGMENT_DELETE_API_SOURCE_ID_QA:
-        required: false
-      SEGMENT_PROXY_URL_FLASK:
-        required: false
-      SEGMENT_PROXY_URL_QA:
-        required: false
-      SEGMENT_REGULATIONS_ENDPOINT_FLASK:
-        required: false
-      SEGMENT_REGULATIONS_ENDPOINT_QA:
-        required: false
-      SEGMENT_WRITE_KEY_FLASK:
-        required: false
-      SEGMENT_WRITE_KEY_QA:
-        required: false
 
 jobs:
   build-android-apks:
