@@ -2,9 +2,9 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
-import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
+import { EventMarketListTestIds } from '../PredictEvent/internal/EventMarketList.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
@@ -684,7 +684,7 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(MarketFooterCardTestIds.ROOT),
+      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
     ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([

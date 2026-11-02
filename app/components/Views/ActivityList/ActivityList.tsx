@@ -251,6 +251,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const predictSource = usePredictActivityItems({
       enabled: shouldMountPredictSource,
     });
+    const isInactivePredictVenueItem = predictSource.isInactiveVenueItem;
     const localTransactions = useSelector(selectLocalTransactions);
     const localTransactionByLookupKey = useMemo(() => {
       const byKey = new Map<string, TransactionMeta>();
@@ -510,6 +511,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       if (subFilterKinds) {
         filtered = filtered.filter((item) => subFilterKinds.has(item.type));
       }
+      // Predictions shows only the Active Venue. Other filters keep every
+      // wallet transaction, including another Venue's funding.
+      if (isPredictEnabled && typeFilter === ActivityTypeFilter.Predictions) {
+        filtered = filtered.filter((item) => !isInactivePredictVenueItem(item));
+      }
       if (networkFilter && networkFilter.length > 0) {
         const allowedChains = new Set(
           networkFilter.map((caipChainId) => caipChainId.toLowerCase()),
@@ -529,6 +535,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       perps.items,
       isPredictEnabled,
       predictSource.items,
+      isInactivePredictVenueItem,
       rampActivityItems,
     ]);
     const groupedData = useMemo(() => groupActivityListItems(data), [data]);

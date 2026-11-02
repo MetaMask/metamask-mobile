@@ -18,6 +18,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  StackActions,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -935,8 +936,12 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
-    navigation.navigate(
-      draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
+    // Replace drops onboarding from the stack. navigate() would leave it under
+    // the feed, so a later back swipe could reopen it.
+    navigation.dispatch(
+      StackActions.replace(
+        draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
+      ),
     );
   }, [draft.path, navigation]);
 

@@ -7,6 +7,7 @@ import renderWithProvider, {
   type ProviderValues,
 } from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
+import ReduxService from '../../../../../core/redux';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,6 +20,7 @@ import {
   setCachedDepositInstructions,
 } from './vbaDepositInstructionsCache';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
+import { trackVbaEvent } from './vbaAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -43,16 +45,23 @@ const mockRefreshAutoramp = jest.fn();
 const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
+const mockRefreshCustomerAbilities = jest.fn();
 const mockNavigateToVbaOnboardingDestination = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
 let mockRouteParams: { sourceCurrency?: string } | undefined;
 let mockChooseCurrency = false;
 let mockRegionOverride: string | undefined;
+let mockNeobankFlagOn = true;
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
 let mockCanGoBack = true;
+
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
+}));
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -74,22 +83,25 @@ jest.mock('../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/moneyAccount',
-  () => ({
-    ...jest.requireActual(
-      '../../../../../selectors/featureFlagController/moneyAccount',
-    ),
-    selectMoneyMovementNeobank: () => ({
-      isEnabled: true,
-      regions: ['BR', 'US'],
-      regionCurrencies: { BR: 'BRL', US: 'USD' },
-      defaultCurrency: undefined,
-      chooseCurrency: mockChooseCurrency,
-      regionOverride: mockRegionOverride,
-    }),
-  }),
-);
+jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/featureFlagController/moneyAccount',
+  );
+  return {
+    ...actual,
+    selectMoneyMovementNeobank: (state: unknown) =>
+      mockNeobankFlagOn
+        ? {
+            isEnabled: true,
+            regions: ['BR', 'US'],
+            regionCurrencies: { BR: 'BRL', US: 'USD' },
+            defaultCurrency: undefined,
+            chooseCurrency: mockChooseCurrency,
+            regionOverride: mockRegionOverride,
+          }
+        : actual.selectMoneyMovementNeobank(state),
+  };
+});
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
@@ -153,6 +165,8 @@ jest.mock('../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
+      refreshCustomerAbilities: (...args: unknown[]) =>
+        mockRefreshCustomerAbilities(...args),
       refreshAutorampTransactions: (...args: unknown[]) =>
         mockRefreshAutorampTransactions(...args),
     },
@@ -219,12 +233,25 @@ describe('VbaDetails', () => {
     jest.clearAllMocks();
     mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
     resetMusdAutorampSetupGuard();
+    // Region on the analytics events is read from the app store. Without one,
+    // that read logs a missing-store error before it is swallowed.
+    ReduxService.store = {
+      getState: () => ({
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: mockLocation },
+          },
+        },
+      }),
+      dispatch: () => undefined,
+    } as never;
     clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
     mockRouteParams = undefined;
     mockChooseCurrency = false;
     mockRegionOverride = undefined;
+    mockNeobankFlagOn = true;
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
@@ -239,6 +266,15 @@ describe('VbaDetails', () => {
       id: 'ar-new',
       walletAddress: '0xabc',
       status: 'Created',
+    });
+    mockRefreshCustomerAbilities.mockResolvedValue({
+      fiat_deposit: {
+        brl: { pix: 'Active', pix_thirdparty: 'Active' },
+        usd: { ach: 'Active', ach_thirdparty: 'Active' },
+      },
+      fiat_payout: {},
+      currencies: [],
+      blocking_abilities: {},
     });
     setAutoramps([{ ...approvedAutoramp }]);
     restoreNeoBankService();
@@ -933,6 +969,20 @@ describe('VbaDetails', () => {
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
   });
 
+  it('opens an existing approved account without creating one when moneyMovementNeobank is absent', async () => {
+    mockNeobankFlagOn = false;
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockRegisterWallet).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
   it('creates the autoramp for the flag region override ahead of the IP country', async () => {
     setAutoramps([]);
     mockLocation = 'DE';
@@ -1378,6 +1428,41 @@ describe('VbaDetails', () => {
       enabled: true,
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
+  });
+
+  describe('analytics', () => {
+    const detailsViewedCalls = () =>
+      jest
+        .mocked(trackVbaEvent)
+        .mock.calls.filter(
+          ([event]) => event.category === 'Money VBA Details Viewed',
+        );
+
+    it('tracks Money VBA Details Viewed once for an approved account', async () => {
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+      });
+      expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+      expect(detailsViewedCalls()).toHaveLength(1);
+      expect(detailsViewedCalls()[0][1]()).toMatchObject({
+        screen_name: 'vba_details',
+      });
+    });
+
+    it('does not track Money VBA Details Viewed while the account is still being created', async () => {
+      setAutoramps([{ ...approvedAutoramp, status: 'Created' }]);
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(detailsViewedCalls()).toHaveLength(0);
     });
   });
 });

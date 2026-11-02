@@ -371,6 +371,16 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+const mockSelectUsableVbaAutoramp = jest.fn(
+  (): { id: string } | undefined => undefined,
+);
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.createMockFromModule<
+    typeof import('../../../../../selectors/rampsController')
+  >('../../../../../selectors/rampsController'),
+  selectUsableVbaAutoramp: () => mockSelectUsableVbaAutoramp(),
+}));
+
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
   useMoneyAccountCardLinkage: jest.fn(() => ({
@@ -824,6 +834,7 @@ describe('MoneyHomeView', () => {
     // Default to no VBA card so variant tests cannot leak into others.
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+    mockSelectUsableVbaAutoramp.mockReturnValue(undefined);
     mockOpenVbaEntry.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
@@ -1102,6 +1113,20 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
       ).toBeNull();
+    });
+
+    it('renders the Details button for a usable autoramp even when not VBA eligible', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockSelectUsableVbaAutoramp.mockReturnValue({ id: 'ar-1' });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('tracks and routes straight to the loading screen on press', () => {
