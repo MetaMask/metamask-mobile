@@ -306,7 +306,30 @@ describe('TokenDetailsInlineHeader', () => {
       expect(mockOnBackPress).toHaveBeenCalledTimes(1);
     });
 
-    it('renders the token name with the ticker below it', () => {
+    it('renders the token name with the ticker on the address row', () => {
+      const { getByText, getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: 'Dogecoin',
+          ticker: 'DOGE',
+          symbol: 'DOGE',
+        },
+      });
+
+      expect(getByText('Dogecoin')).toBeOnTheScreen();
+
+      const subtitle = within(getByTestId('token-details-subtitle'));
+      expect(subtitle.getByText('DOGE')).toBeOnTheScreen();
+      expect(subtitle.getByText('0x00000...short')).toBeOnTheScreen();
+      expect(
+        subtitle.getByTestId('copy-contract-address-button'),
+      ).toBeOnTheScreen();
+      expect(subtitle.queryByText('Dogecoin')).toBeNull();
+    });
+
+    it('renders the ticker under the name when there is no contract address', () => {
       const { getByText, toJSON } = renderHeader();
 
       expect(getByText('Ethereum')).toBeOnTheScreen();
@@ -370,6 +393,8 @@ describe('TokenDetailsInlineHeader', () => {
       });
 
       expect(getByText('$0.000012')).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(queryByText('ETH')).toBeNull();
       expect(queryByText('0x00000...short')).toBeNull();
       expect(queryByTestId('copy-contract-address-button')).toBeNull();
     });

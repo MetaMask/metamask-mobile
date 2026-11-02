@@ -198,8 +198,14 @@ export const TokenDetailsInlineHeader = ({
     );
   }, [starButton, onPriceAlertPress, onSharePress, isGlass]);
 
+  const tokenName = token.name?.trim() || token.ticker || token.symbol;
+  const tokenTicker = token.ticker || token.symbol;
+  const showTickerBelowName = Boolean(
+    tokenTicker && tokenName && tokenTicker !== tokenName,
+  );
+
   const inlineDescription = useMemo(() => {
-    if (!contractAddress) {
+    if (!showTickerBelowName && !contractAddress) {
       return undefined;
     }
 
@@ -208,25 +214,48 @@ export const TokenDetailsInlineHeader = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="gap-1"
+        testID="token-details-subtitle"
       >
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          {formatAddress(contractAddress, 'short')}
-        </Text>
-        <ButtonIcon
-          iconName={IconName.Copy}
-          size={ButtonIconSize.Xs}
-          onPress={handleCopyContractAddress}
-          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-          testID="copy-contract-address-button"
-          accessibilityLabel={strings('token.contract_address')}
-        />
+        {showTickerBelowName ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID="token-details-ticker"
+          >
+            {tokenTicker}
+          </Text>
+        ) : null}
+        {contractAddress ? (
+          <>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {formatAddress(contractAddress, 'short')}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Copy}
+              size={ButtonIconSize.Xs}
+              onPress={handleCopyContractAddress}
+              iconProps={{
+                color: IconColor.IconAlternative,
+                size: IconSize.Sm,
+              }}
+              testID="copy-contract-address-button"
+              accessibilityLabel={strings('token.contract_address')}
+            />
+          </>
+        ) : null}
       </Box>
     );
-  }, [contractAddress, handleCopyContractAddress]);
+  }, [
+    contractAddress,
+    handleCopyContractAddress,
+    showTickerBelowName,
+    tokenTicker,
+  ]);
 
   const headerDescription = useMemo(() => {
     const content = description ?? inlineDescription;
@@ -244,33 +273,6 @@ export const TokenDetailsInlineHeader = ({
       </Animated.View>
     );
   }, [description, inlineDescription]);
-
-  const tokenName = token.name?.trim() || token.ticker || token.symbol;
-  const tokenTicker = token.ticker || token.symbol;
-  const showTickerBelowName = Boolean(
-    tokenTicker && tokenName && tokenTicker !== tokenName,
-  );
-  const headerTitle = showTickerBelowName ? (
-    <Box flexDirection={BoxFlexDirection.Column}>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-      >
-        {tokenName}
-      </Text>
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-        testID="token-details-ticker"
-      >
-        {tokenTicker}
-      </Text>
-    </Box>
-  ) : (
-    tokenName
-  );
 
   return (
     <HeaderSubpageGlass
@@ -300,7 +302,7 @@ export const TokenDetailsInlineHeader = ({
           <AssetLogo asset={token} />
         </BadgeWrapper>
       }
-      title={headerTitle}
+      title={tokenName}
       titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
       description={headerDescription}
     />
