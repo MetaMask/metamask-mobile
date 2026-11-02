@@ -1,254 +1,45 @@
 # AGENTS.md
 
-This file provides guidance to AI coding agents (Claude, Cursor, Copilot, Windsurf, etc.) when working with code in this repository.
+MetaMask Mobile: React Native wallet for iOS and Android. TypeScript, Redux (redux-persist, reselect), React Navigation 7, MetaMask controllers.
 
-## Project Overview
+## Commands
 
-MetaMask Mobile is a React Native mobile wallet providing access to Ethereum blockchain networks. The app is available for both iOS and Android platforms.
-
-## Essential Commands
-
-### Setup & Installation
+Use yarn only, never npm or npx.
 
 ```bash
-# Expo development (recommended for JS-only development)
-yarn setup:expo         # Setup for Expo development
-yarn watch:clean        # Start Metro bundler
-
-# Native development (required for native code changes)
-yarn setup              # Full setup with native builds
-yarn watch:clean        # Start Metro bundler
-yarn start:ios          # Run iOS app
-yarn start:android      # Run Android app
+yarn jest <file> [-t "<pattern>"]   # tests for one file
+yarn lint:tsc                        # type check
+yarn lint | yarn lint:fix
+yarn format | yarn format:check
+yarn setup:expo                      # JS-only setup (`yarn setup` for native changes)
+yarn watch:clean                     # Metro
 ```
 
-### Testing
+Builds: `yarn build:{ios|android}:main:{dev|prod|e2e}`. E2E: `yarn appium-smoke:{ios|android}`. Build type: `METAMASK_BUILD_TYPE` = `main` | `flask`.
 
-```bash
-# Unit tests
-yarn test:unit                          # Run all unit tests
-yarn jest <filename>                    # Run specific test file
-yarn jest <filename> -t "<pattern>"     # Run specific test case
+## Where things live
 
-# E2E tests
-yarn appium-smoke:ios                    # Run Appium smoke on iOS
-yarn appium-smoke:android                # Run Appium smoke on Android
-yarn build:ios:main:e2e                  # Build iOS main-e2e app (Appium)
-yarn build:android:main:e2e              # Build Android main-e2e app (Appium)
-```
+- `app/core/Engine/`: creates and wires every controller (`controllers/`, `messengers/`). Start here for accounts, networks, transactions, assets.
+- `app/core/BackgroundBridge/`: dApp ↔ wallet bridge.
+- `app/core/NavigationService/`: navigation from outside React.
+- `app/store/`, `app/reducers/`, `app/actions/`, `app/selectors/`: Redux.
+- `app/component-library/`: in-repo components; `app/components/`: features.
+- `tests/`: E2E framework, fixtures, Appium smoke. Read `tests/AGENTS.md` before touching tests.
 
-### Code Quality
+## Rules
 
-```bash
-yarn lint              # Run ESLint
-yarn lint:fix          # Auto-fix ESLint issues
-yarn lint:tsc          # Run TypeScript type checking
-yarn format            # Format code with Prettier
-yarn format:check      # Check formatting
-```
+- New code is TypeScript with no `any`.
+- UI: `@metamask/design-system-react-native` first, `app/component-library` second, custom last. Style with `useTailwind()`, `Box`/`Text` and design tokens.
+- Every change ships with tests: AAA pattern, external dependencies mocked.
+- Version-gated remote flags use `validatedVersionGatedFeatureFlag` in a selector (`docs/readme/version-gated-feature-flags.md`).
+- Any screen you touch with animation, lists, polling, prefetch, realtime, heavy images or blur reads `getHardwareTier()` and `useNetworkTier()`, never treats `null` as LOW/offline, never folds the two tiers, and applies the UX matrix in `app/util/deviceCapability/README.md`.
+- Rive: Nitro-based `@rive-app/react-native`, see `app/animations/README.md`.
+- Never log secrets, keys or account data.
 
-### Build Commands
+## Guides
 
-```bash
-yarn build:android:main:dev             # Build Android dev
-yarn build:ios:main:dev                 # Build iOS dev
-yarn build:android:main:prod            # Build Android production
-yarn build:ios:main:prod                # Build iOS production
-```
+- Tests: `docs/testing/{unit-testing,component-view-tests,e2e-testing}.md`, `tests/docs/appium-smoke-testing.md`, `.github/guidelines/E2E_DECISION_TREE.md`
+- A/B tests: `docs/ab-testing.md` ("Agent Execution Standard (SSOT)"); check with `bash scripts/check-ab-testing-compliance.sh --staged`
+- Everything else: `docs/readme/` (architecture, environment, expo-environment, debugging, troubleshooting, storybook) and `docs/performance/`
 
-## Architecture
-
-### Core Components
-
-**Engine (`app/core/Engine/`)**: Central coordinator that manages all controllers. This is the heart of the application where blockchain interactions, wallet management, and state coordination happen. Controllers are based on MetaMask's controller architecture pattern.
-
-**Redux Store (`app/store/`)**: Application state management using Redux with Redux Saga for side effects. Persistence handled by redux-persist with filesystem storage.
-
-**Controllers**: MetaMask uses a controller-based architecture where each controller manages a specific domain:
-
-- `KeyringController`: Manages accounts and signing
-- `NetworkController`: Manages blockchain network connections
-- `TransactionController`: Handles transaction lifecycle
-- `AssetsController`: Manages tokens and NFTs
-- `PermissionController`: Manages dApp permissions
-- `AccountsController`: Manages user accounts
-- And 60+ other specialized controllers
-
-**BackgroundBridge (`app/core/BackgroundBridge/`)**: Communication layer between the app and dApps using a bridge pattern similar to browser extensions.
-
-### Directory Structure
-
-```
-app/
-├── actions/              # Redux action creators
-├── component-library/    # Design system components (use FIRST)
-├── components/           # Feature-specific components (use SECOND)
-├── constants/            # App-wide constants
-├── core/                 # Core services (Engine, Analytics, etc.)
-├── reducers/             # Redux reducers
-├── selectors/            # Redux selectors (use reselect)
-├── util/                 # Utility functions
-├── hooks/                # Custom React hooks
-└── styles/               # Global styles
-
-tests/smoke-appium        # Appium Smoke E2E tests
-tests/helpers             # Shared E2E helpers
-docs/                     # Documentation
-scripts/                  # Build and automation scripts
-```
-
-## Development Guidelines
-
-Before the first edit on any change, follow `mms-planning` and do what it decides.
-
-**Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set, whose base skills `yarn install` installs for you (Cursor / Codex / Claude harnesses); `yarn skills` adds every domain:
-
-| Guide                                                                                      | Scope                                                                        |
-| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                               |
-| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Appium smoke — Page Objects, gestures                                        |
-| [`tests/docs/appium-smoke-testing.md`](tests/docs/appium-smoke-testing.md)                 | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
-| [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
-| [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
-| [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md)               | Hardware + network tiers — apply the UX matrix when touching a screen        |
-
-General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set (see `.agents/skills/mms-*`). The base skills arrive with `yarn install`; `yarn skills` adds the rest.
-
-### Quick Reference
-
-- **TypeScript**: All new code MUST be TypeScript, NO `any` type
-- **Components**: Design system first → `component-library` second → custom last
-- **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
-- **Testing**: Mandatory for all code, AAA pattern, mock everything external
-- **Rive animations**: Use the Nitro-based `@rive-app/react-native` API and follow [`app/animations/README.md`](app/animations/README.md)
-- **Device capability**: Any screen you touch (new or existing) that uses animation, lists, polling, prefetch, realtime, heavy images, or blur must read `getHardwareTier()` + `useNetworkTier()`, never treat `null` as LOW/offline, never fold the two tiers, and apply the UX matrix in [`app/util/deviceCapability/README.md`](app/util/deviceCapability/README.md) — see [`.cursor/rules/device-capability.mdc`](.cursor/rules/device-capability.mdc)
-- **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
-- **Commands**: ONLY use yarn (never npm/npx)
-
-## Environment Setup
-
-See detailed setup documentation:
-
-- **Expo (recommended)**: [docs/readme/expo-environment.md](./docs/readme/expo-environment.md)
-- **Native development**: [docs/readme/environment.md](./docs/readme/environment.md)
-- **Infura & Firebase**: [README.md](./README.md#getting-started)
-
-**Required Tools**: Node.js ^24.22.1 • Yarn ^4.14.1 • Watchman
-
-### AI Tooling — Developer Usage Collection
-
-Tool/skill usage is automatically recorded to a local CSV log at `~/.tool-usage-collection/metamask-mobile-events.log` across three collection paths: Yarn scripts, Claude Code skills, and Cursor skills. This is developer-only, stored locally, and never sent anywhere.
-
-To opt out, set `TOOL_USAGE_COLLECTION_OPT_IN=false` in your shell profile. Collection is also automatically disabled in CI (`CI` env var set).
-
-| Path              | Mechanism                                                            | Tokens |
-| ----------------- | -------------------------------------------------------------------- | ------ |
-| `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`) → CSV log append           | 0      |
-| Claude Code skill | `PreToolUse` hook in `.claude/settings.json` → pure-shell dispatcher | 0      |
-| Cursor skill      | `preToolUse` hook in `.cursor/hooks.json` → pure-shell dispatcher    | 0      |
-
-Inspect your local activity:
-
-```bash
-tail -20 ~/.tool-usage-collection/metamask-mobile-events.log
-```
-
-See [`scripts/tooling/README.md`](./scripts/tooling/README.md) for full implementation details.
-
-## Key Patterns
-
-### State Management
-
-- Use Redux for global state
-- Use Redux Saga for side effects
-- Use reselect for selectors with memoization
-- Redux store is persisted to filesystem
-
-### Navigation
-
-- React Navigation v5
-- Stack and Bottom Tab navigators
-- Navigation service in `app/core/NavigationService/`
-
-### MetaMask Controllers
-
-- Controllers follow MetaMask's BaseController pattern
-- Events and state changes flow through messenger system
-- Engine coordinates all controller interactions
-- Controllers are composable via ComposableController
-
-## Build Types
-
-The app supports multiple build types:
-
-- `main`: Production MetaMask
-- `flask`: Development/experimental features
-
-Use environment variable `METAMASK_BUILD_TYPE` to switch.
-
-## Security
-
-- All sensitive data encrypted via SecureKeychain
-- Vault encryption for keyring storage
-- Hardware wallet support (Ledger, Keystone)
-- Never log sensitive information
-- Follow OWASP security guidelines
-
-## Development Workflow
-
-If the user asks to implement a ticket directly from Jira:
-
-1. Get the details directly from the link
-2. Start a simulator (ask which platform: iOS or Android)
-3. Run setup: `yarn setup` → `yarn watch:clean` → `yarn start:{ios|android}`
-4. Implement the ticket as prompted
-5. Use screenshots for feedback if needed
-
-## Documentation References
-
-| Documentation             | Path                                         |
-| ------------------------- | -------------------------------------------- |
-| Architecture              | `/docs/readme/architecture.md`               |
-| Animations                | `/docs/readme/animations.md`                 |
-| Environment Setup         | `/docs/readme/environment.md`                |
-| E2E Testing               | `/docs/readme/e2e-testing.md`                |
-| Debugging                 | `/docs/readme/debugging.md`                  |
-| Performance               | `/docs/performance/`                         |
-| Storybook                 | `/docs/readme/storybook.md`                  |
-| Troubleshooting           | `/docs/readme/troubleshooting.md`            |
-| MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
-| E2E CI Decision Tree      | `.github/guidelines/E2E_DECISION_TREE.md`    |
-
-## Test Guidelines
-
-Three test types coexist in this repo:
-
-- **Unit tests** (`*.test.tsx`)
-- **Component view tests** (`*.view.test.tsx`)
-- **E2E tests** (`tests/smoke-appium/`)
-
-For conventions and skill references for each type, read `tests/AGENTS.md`.
-
-## A/B Testing Agent Standard
-
-For A/B test implementation or review tasks, use the canonical standard:
-
-- `docs/ab-testing.md` (`Agent Execution Standard (SSOT)`)
-
-Codex skill entrypoint:
-
-- `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
-
-Harness entrypoints:
-
-- Claude: `.claude/commands/create-ab-test.md` (`/create-ab-test`)
-- Cursor: `.cursor/commands/create-ab-test.md` (`/create-ab-test`) shim to Claude command
-- Windsurf and other harnesses: start prompts with `Follow docs/ab-testing.md section "Agent Execution Standard (SSOT)".`
-
-Compliance check command:
-
-```bash
-bash scripts/check-ab-testing-compliance.sh --staged
-```
-
-If no files are staged, the checker automatically falls back to changed working-tree files.
+Optional `mms-*` agent skills may be installed in this checkout. Use them when they are present, but don't assume any particular one exists.
