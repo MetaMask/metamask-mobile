@@ -1,8 +1,9 @@
-// Node verifies the signature independently of @noble/curves.
+// Node verifies the signature independently of QuickCrypto.
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { createHash, createPublicKey, verify } from 'crypto';
 
 import { p256 } from '@noble/curves/nist';
+import QuickCrypto from 'react-native-quick-crypto';
 
 import SecureKeychain from '../../../../core/SecureKeychain';
 import Logger from '../../../../util/Logger';
@@ -15,6 +16,12 @@ import {
   type P256DevicePublicMaterial,
 } from './p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from './venueAuthProfiles';
+
+// The global stub returns fixed bytes. QuickCrypto's own Jest mock forwards
+// to node:crypto, so key generation, signing, and hashing are real here.
+jest.mock('react-native-quick-crypto', () =>
+  jest.requireActual('react-native-quick-crypto/jest'),
+);
 
 jest.mock('../../../../core/SecureKeychain', () => ({
   setSecureItem: jest.fn(),
@@ -71,6 +78,19 @@ const fromBase64Url = (value: string): Uint8Array => {
   return new Uint8Array(
     Buffer.from(padded.replace(/-/g, '+').replace(/_/g, '/'), 'base64'),
   );
+};
+
+const P256_ORDER = BigInt(
+  '0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551',
+);
+
+const sOf = (signature: Uint8Array): bigint =>
+  BigInt(`0x${Buffer.from(signature.subarray(32)).toString('hex')}`);
+
+const withS = (signature: Uint8Array, s: bigint): Uint8Array => {
+  const out = new Uint8Array(signature);
+  out.set(Buffer.from(s.toString(16).padStart(64, '0'), 'hex'), 32);
+  return out;
 };
 
 const publicKeyFromRaw = (raw: Uint8Array) =>
@@ -311,6 +331,10 @@ describe('p256DeviceKey', () => {
 
   it('deletes the encrypted key after an in-flight write and creates a new one later', async () => {
     let releaseWrite: (stored: boolean) => void = () => undefined;
+    let writeStarted: () => void = () => undefined;
+    const started = new Promise<void>((resolve) => {
+      writeStarted = resolve;
+    });
     (SecureKeychain.setSecureItem as jest.Mock).mockImplementation(
       (_key: string, value: string) =>
         new Promise<boolean>((resolve) => {
@@ -320,18 +344,12 @@ describe('p256DeviceKey', () => {
             }
             resolve(storedItem);
           };
+          writeStarted();
         }),
     );
 
     const pending = ensureKalshiDeviceKey(enabledConfig, true);
-    for (
-      let attempt = 0;
-      attempt < 20 &&
-      (SecureKeychain.setSecureItem as jest.Mock).mock.calls.length === 0;
-      attempt += 1
-    ) {
-      await Promise.resolve();
-    }
+    await started;
     expect(SecureKeychain.setSecureItem).toHaveBeenCalled();
 
     const deleted = deleteKalshiDeviceKey();
@@ -445,6 +463,105 @@ describe('p256DeviceKey', () => {
       ),
     ).toBe(false);
   });
+
+  it('returns 64-byte low-S signatures', async () => {
+    const material = requireDeviceMaterial(
+      await ensureKalshiDeviceKey(enabledConfig, true),
+    );
+
+    for (let index = 0; index < 32; index += 1) {
+      const message = Buffer.from(`low-s-${index}`, 'utf8');
+      const signature = await signWithKalshiDeviceKey(message);
+
+      expect(signature).toHaveLength(P256_DEVICE_SIGNATURE_LENGTH);
+      expect(sOf(signature) <= P256_ORDER / 2n).toBe(true);
+      expect(
+        verify(
+          'sha256',
+          message,
+          {
+            key: publicKeyFromRaw(material.publicRaw),
+            dsaEncoding: 'ieee-p1363',
+          },
+          signature,
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it('normalizes a high-S native signature to n - s', async () => {
+    const material = requireDeviceMaterial(
+      await ensureKalshiDeviceKey(enabledConfig, true),
+    );
+    const message = Buffer.from('high-s', 'utf8');
+    const lowS = await signWithKalshiDeviceKey(message);
+    const highS = withS(lowS, P256_ORDER - sOf(lowS));
+    const signSpy = jest
+      .spyOn(QuickCrypto.subtle, 'sign')
+      .mockResolvedValueOnce(highS.slice().buffer);
+
+    const signature = await signWithKalshiDeviceKey(message);
+
+    expect(sOf(highS) > P256_ORDER / 2n).toBe(true);
+    expect(signature).toEqual(lowS);
+    expect(
+      verify(
+        'sha256',
+        message,
+        {
+          key: publicKeyFromRaw(material.publicRaw),
+          dsaEncoding: 'ieee-p1363',
+        },
+        signature,
+      ),
+    ).toBe(true);
+    signSpy.mockRestore();
+  });
+
+  it('loads a stored raw private scalar and derives its public key', async () => {
+    const secretKey = new Uint8Array(32);
+    secretKey[31] = 7;
+    const saltRaw = new Uint8Array(16).fill(9);
+    saved = JSON.stringify({
+      v: 2,
+      keySlot: 'kalshi-v1',
+      secretKey: bytesToBase64Url(secretKey),
+      salt: bytesToBase64Url(saltRaw),
+    });
+
+    const material = requireDeviceMaterial(
+      await ensureKalshiDeviceKey(enabledConfig, true),
+    );
+
+    expect(material.publicRaw).toEqual(p256.getPublicKey(secretKey, false));
+    expect(material.saltRaw).toEqual(saltRaw);
+    expect(SecureKeychain.setSecureItem).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['zero', new Uint8Array(32)],
+    [
+      'the group order',
+      Uint8Array.from(Buffer.from(P256_ORDER.toString(16), 'hex')),
+    ],
+  ])(
+    'replaces a stored private scalar equal to %s',
+    async (_label, secretKey) => {
+      saved = JSON.stringify({
+        v: 2,
+        keySlot: 'kalshi-v1',
+        secretKey: bytesToBase64Url(secretKey),
+        salt: bytesToBase64Url(new Uint8Array(16)),
+      });
+
+      const material = requireDeviceMaterial(
+        await ensureKalshiDeviceKey(enabledConfig, true),
+      );
+
+      expect(material.publicRaw[0]).toBe(0x04);
+      expect(SecureKeychain.setSecureItem).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it('throws when asked to sign with no device key', async () => {
     await expect(signWithKalshiDeviceKey(Uint8Array.of(1))).rejects.toThrow(

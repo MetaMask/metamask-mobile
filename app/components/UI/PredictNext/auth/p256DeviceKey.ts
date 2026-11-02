@@ -1,13 +1,16 @@
-import { p256 } from '@noble/curves/nist';
-import { sha256 } from '@noble/hashes/sha2';
-import { clean, concatBytes, randomBytes } from '@noble/hashes/utils';
-
 import {
   deletePersistedP256DeviceKey,
   readPersistedP256DeviceKey,
   writePersistedP256DeviceKey,
   type StoredP256DeviceKey,
 } from './p256DeviceKeyStorage';
+import {
+  clean,
+  generateP256Key,
+  randomBytes,
+  sha256,
+  signP256,
+} from './p256QuickCrypto';
 import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
 /**
@@ -150,8 +153,8 @@ export class P256DeviceKeyUnavailableError extends Error {
 }
 
 /**
- * ECDSA P-256 over SHA-256 as raw r || s. `data` is the message, not a
- * precomputed digest. The promise lets a later Secure Enclave or Keystore
+ * ECDSA P-256 over SHA-256 as raw low-S r || s, signed natively by
+ * QuickCrypto. `data` is the message, not a precomputed digest. The promise lets a later Secure Enclave or Keystore
  * signer replace the body without changing callers.
  */
 async function signWithDeviceKey(
@@ -162,12 +165,7 @@ async function signWithDeviceKey(
     throw new P256DeviceKeyUnavailableError();
   }
 
-  return p256
-    .sign(data, stored.secretKey, {
-      prehash: true,
-      lowS: true,
-    })
-    .toBytes('compact');
+  return signP256(stored.privateKey, data);
 }
 
 /**
@@ -185,7 +183,7 @@ function deviceKeyCommitment(publicRaw: Uint8Array, salt: Uint8Array): string {
     throw new Error('expected a 16-byte device key salt');
   }
 
-  return bytesToBase64Url(sha256(concatBytes(publicRaw, salt)));
+  return bytesToBase64Url(sha256(publicRaw, salt));
 }
 
 async function loadOrCreate(
@@ -214,7 +212,9 @@ async function loadOrCreate(
   }
 
   const key =
-    persisted.status === 'present' ? persisted.key : createDeviceKey(profile);
+    persisted.status === 'present'
+      ? persisted.key
+      : await createDeviceKey(profile);
   try {
     if (persisted.status !== 'present') {
       await writePersistedP256DeviceKey(profile, key);
@@ -255,19 +255,15 @@ function forgetKey(key: StoredP256DeviceKey): void {
   clean(key.secretKey, key.publicRaw, key.saltRaw);
 }
 
-function createDeviceKey(profile: DeviceKeyProfile): StoredP256DeviceKey {
-  const { secretKey } = p256.keygen();
-  const publicRaw = p256.getPublicKey(secretKey, false);
-  const saltRaw = randomBytes(P256_DEVICE_SALT_LENGTH);
-  const key: StoredP256DeviceKey = {
+async function createDeviceKey(
+  profile: DeviceKeyProfile,
+): Promise<StoredP256DeviceKey> {
+  const key = await generateP256Key();
+  return {
+    ...key,
     keySlot: profile.keySlot,
-    secretKey: copyBytes(secretKey),
-    publicRaw: copyBytes(publicRaw),
-    saltRaw: copyBytes(saltRaw),
+    saltRaw: randomBytes(P256_DEVICE_SALT_LENGTH),
   };
-
-  clean(secretKey, publicRaw, saltRaw);
-  return key;
 }
 
 function toPublicMaterial(key: StoredP256DeviceKey): P256DevicePublicMaterial {
