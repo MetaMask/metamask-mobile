@@ -9,7 +9,12 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { clone } from 'lodash';
-import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  waitFor,
+  userEvent,
+} from '@testing-library/react-native';
 import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -28,6 +33,11 @@ import * as RemoveEvmTokenModule from './util/removeEvmToken';
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
 
 const mockRefreshTokensForGroup = jest.fn().mockResolvedValue(undefined);
+const mockUseTokenListFilteringEvent = jest.fn();
+jest.mock('./hooks/useTokenListFilteringEvent', () => ({
+  useTokenListFilteringEvent: () => mockUseTokenListFilteringEvent,
+}));
+
 jest.mock('./hooks/useRefreshTokens', () => ({
   useRefreshTokens: () => ({ refresh: mockRefreshTokensForGroup }),
 }));
@@ -358,6 +368,65 @@ describe('Tokens', () => {
       expect(
         queryByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
       ).not.toBeOnTheScreen();
+    });
+
+    describe('analytics', () => {
+      // Date.now is stubbed globally, so lodash debounce needs fake timers.
+      const settleDebounce = () =>
+        act(() => {
+          jest.advanceTimersByTime(250);
+        });
+
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('tracks one searched event once the query settles', () => {
+        const { getByTestId } = renderComponent(initialState, true);
+        const input = getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT);
+
+        fireEvent.changeText(input, 'z');
+        fireEvent.changeText(input, 'zz');
+        fireEvent.changeText(input, ' ZZ ');
+        settleDebounce();
+
+        expect(mockUseTokenListFilteringEvent).toHaveBeenCalledTimes(1);
+        expect(mockUseTokenListFilteringEvent).toHaveBeenCalledWith(
+          'searched',
+          {
+            searchQuery: 'zz',
+            extra: { query_length: 2, result_count: 0 },
+          },
+        );
+      });
+
+      it('does not track the same settled query twice', () => {
+        const { getByTestId } = renderComponent(initialState, true);
+        const input = getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT);
+
+        fireEvent.changeText(input, 'zz');
+        settleDebounce();
+        fireEvent.changeText(input, 'zz ');
+        settleDebounce();
+
+        expect(mockUseTokenListFilteringEvent).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not track an extra event when the search is cleared', () => {
+        const { getByTestId } = renderComponent(initialState, true);
+        const input = getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT);
+
+        fireEvent.changeText(input, 'zz');
+        settleDebounce();
+        fireEvent.changeText(input, '');
+        settleDebounce();
+
+        expect(mockUseTokenListFilteringEvent).toHaveBeenCalledTimes(1);
+      });
     });
   });
 

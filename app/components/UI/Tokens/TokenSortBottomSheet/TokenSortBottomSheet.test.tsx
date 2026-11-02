@@ -11,8 +11,10 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockGoBack = jest.fn();
+let mockRouteParams: { searchQuery?: string } | undefined;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
+  useRoute: () => ({ params: mockRouteParams }),
   useNavigation: () => ({
     goBack: mockGoBack,
     canGoBack: () => true,
@@ -26,6 +28,11 @@ jest.mock('../../../../core/Engine', () => ({
       setTokenSortConfig: jest.fn(),
     },
   },
+}));
+
+const mockTrackFiltering = jest.fn();
+jest.mock('../hooks/useTokenListFilteringEvent', () => ({
+  useTokenListFilteringEvent: () => mockTrackFiltering,
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -50,6 +57,7 @@ describe('TokenSortBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSortConfig();
+    mockRouteParams = { searchQuery: 'eth' };
   });
 
   it('renders the title, both options, Reset and Apply', () => {
@@ -161,6 +169,63 @@ describe('TokenSortBottomSheet', () => {
       expect(
         Engine.context.PreferencesController.setTokenSortConfig,
       ).toHaveBeenCalledWith(BALANCE_DESC);
+    });
+  });
+
+  describe('analytics', () => {
+    it('tracks sorted with the new sort and the search query when Apply changes the field', () => {
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+      expect(mockTrackFiltering).toHaveBeenCalledTimes(1);
+      expect(mockTrackFiltering).toHaveBeenCalledWith('sorted', {
+        searchQuery: 'eth',
+        sort: { key: 'name', order: 'asc' },
+      });
+    });
+
+    it('tracks a direction flip on the same field', () => {
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(
+        getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
+      );
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+      expect(mockTrackFiltering).toHaveBeenCalledWith('sorted', {
+        searchQuery: 'eth',
+        sort: { key: 'tokenFiatAmount', order: 'asc' },
+      });
+    });
+
+    it('does not track when Apply leaves the sort unchanged', () => {
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+      expect(mockTrackFiltering).not.toHaveBeenCalled();
+    });
+
+    it('does not track on Reset or Close', () => {
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_RESET));
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_CLOSE));
+
+      expect(mockTrackFiltering).not.toHaveBeenCalled();
+    });
+
+    it('does not track when not opened from the Tokens list', () => {
+      mockRouteParams = undefined;
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+      expect(mockTrackFiltering).not.toHaveBeenCalled();
     });
   });
 

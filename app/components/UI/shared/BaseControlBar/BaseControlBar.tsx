@@ -67,6 +67,12 @@ export interface BaseControlBarProps {
    * Custom style to apply to the action bar wrapper
    */
   style?: ViewStyle;
+  /**
+   * Current search text. Only the Tokens list passes it (an empty string when
+   * not searching). It is forwarded to the network and sort sheets, which use
+   * it for analytics and skip them when it is undefined.
+   */
+  searchQuery?: string;
 }
 
 const BaseControlBar: React.FC<BaseControlBarProps> = ({
@@ -77,6 +83,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   additionalButtons,
   customWrapper = 'outer',
   style,
+  searchQuery,
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
   const tokenSortConfig = useSelector(selectTokenSortConfig);
@@ -132,12 +139,18 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
-    navigateWithDetails(navigation, createNetworkManagerNavDetails({}));
-  }, [navigation]);
+    navigateWithDetails(
+      navigation,
+      createNetworkManagerNavDetails({ searchQuery }),
+    );
+  }, [navigation, searchQuery]);
 
   const handleSortControls = useCallback(() => {
-    navigateWithDetails(navigation, createTokensBottomSheetNavDetails({}));
-  }, [navigation]);
+    navigateWithDetails(
+      navigation,
+      createTokensBottomSheetNavDetails({ searchQuery }),
+    );
+  }, [navigation, searchQuery]);
 
   // Use custom handlers if provided, otherwise use defaults
   const handleFilterControls = onFilterPress || defaultHandleFilterControls;

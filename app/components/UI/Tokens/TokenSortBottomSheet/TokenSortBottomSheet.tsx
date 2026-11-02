@@ -21,10 +21,14 @@ import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { createNavigationDetails } from '../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
 import { strings } from '../../../../../locales/i18n';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
+import { useTokenListFilteringEvent } from '../hooks/useTokenListFilteringEvent';
 import { DEFAULT_TOKEN_SORT_CONFIG, type SortOrder } from '../util/sortAssets';
 
 const SORT_OPTIONS = [
@@ -54,10 +58,16 @@ const SORT_OPTIONS = [
   },
 ] as const;
 
-export const createTokensBottomSheetNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.SHEET.TOKEN_SORT,
-);
+export interface TokenSortParams {
+  /** Set only when opened from the Tokens list; used for analytics. */
+  searchQuery?: string;
+}
+
+export const createTokensBottomSheetNavDetails =
+  createNavigationDetails<TokenSortParams>(
+    Routes.MODAL.ROOT_MODAL_FLOW,
+    Routes.SHEET.TOKEN_SORT,
+  );
 
 type SortOptionId = (typeof SORT_OPTIONS)[number]['id'];
 
@@ -73,6 +83,9 @@ export const getSortOption = (config: { key: string }) =>
 export const TokenSortBottomSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
+  // Only the Tokens list passes a search query, so it marks where we came from.
+  const { searchQuery } = useParams<TokenSortParams>();
+  const trackFiltering = useTokenListFilteringEvent();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const [draftOptionId, setDraftOptionId] = useState<SortOptionId>(
     getSortOption(tokenSortConfig).id,
@@ -115,13 +128,22 @@ export const TokenSortBottomSheet = () => {
   const handleApply = useCallback(() => {
     const option =
       draftOptionId === SORT_OPTIONS[0].id ? SORT_OPTIONS[0] : SORT_OPTIONS[1];
+    const hasChanged =
+      getSortOption(tokenSortConfig).id !== option.id ||
+      (tokenSortConfig.order === 'asc' ? 'asc' : 'dsc') !== draftOrder;
     Engine.context.PreferencesController.setTokenSortConfig({
       key: option.key,
       order: draftOrder,
       sortCallback: option.sortCallback,
     });
+    if (hasChanged && searchQuery !== undefined) {
+      trackFiltering('sorted', {
+        searchQuery,
+        sort: { key: option.key, order: draftOrder },
+      });
+    }
     sheetRef.current?.onCloseBottomSheet();
-  }, [draftOptionId, draftOrder]);
+  }, [draftOptionId, draftOrder, tokenSortConfig, searchQuery, trackFiltering]);
 
   return (
     <BottomSheet

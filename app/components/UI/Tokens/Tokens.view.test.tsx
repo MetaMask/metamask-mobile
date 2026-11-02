@@ -98,6 +98,21 @@ describeForPlatforms('Tokens — search', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the skeleton until the search debounce settles', async () => {
+    const { getByTestId, queryByTestId } = await renderSearchableList();
+
+    fireEvent.changeText(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      'usdc',
+    );
+
+    expect(getByTestId('token-list-skeleton')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(queryByTestId('token-list-skeleton')).not.toBeOnTheScreen();
+    });
+    expect(getByTestId(getAssetTestId('USDC'))).toBeOnTheScreen();
+  });
+
   it('filters tokens by symbol', async () => {
     const { getByTestId, queryByTestId } = await renderSearchableList();
 

@@ -36,12 +36,17 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { useRefreshTokens } from './hooks/useRefreshTokens';
+import { useTokenListFilteringEvent } from './hooks/useTokenListFilteringEvent';
 import { useFilteredTokenKeys } from './hooks/useFilteredTokenKeys';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { TokensEmptyState } from '../TokensEmptyState';
 import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
+
+// Same delay as the Explore search, so typing does not re-filter on every key.
+const SEARCH_DEBOUNCE_MS = 200;
 
 interface TokensProps {
   /**
@@ -184,9 +189,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     );
 
     const [searchQuery, setSearchQuery] = useState('');
+    const debouncedQuery = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS);
+    const isDebouncing = searchQuery.trim() !== debouncedQuery.trim();
     const searchedTokenKeys = useFilteredTokenKeys(
       tokenKeysForList,
-      searchQuery,
+      debouncedQuery,
     );
     const clearSearch = useCallback(() => setSearchQuery(''), []);
 
@@ -260,6 +267,30 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       }
     }, [refreshTokensForGroup]);
 
+    // One event per settled, non-empty query (never per keystroke).
+    const lastTrackedQueryRef = useRef('');
+    const trackFiltering = useTokenListFilteringEvent();
+    const resultCount = searchedTokenKeys.length;
+    useEffect(() => {
+      const query = debouncedQuery.trim().toLowerCase();
+      if (!isFullView || !hasInitialLoad || !query) {
+        lastTrackedQueryRef.current = '';
+        return;
+      }
+      if (query === lastTrackedQueryRef.current) return;
+      lastTrackedQueryRef.current = query;
+      trackFiltering('searched', {
+        searchQuery: query,
+        extra: { query_length: query.length, result_count: resultCount },
+      });
+    }, [
+      debouncedQuery,
+      isFullView,
+      hasInitialLoad,
+      resultCount,
+      trackFiltering,
+    ]);
+
     useImperativeHandle(ref, () => ({
       refresh: onRefresh,
     }));
@@ -280,7 +311,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     // Determine which content to render based on loading and token state
     const tokenContent = useMemo(() => {
-      if (!hasInitialLoad) {
+      if (!hasInitialLoad || isDebouncing) {
         if (hideLoadingSkeleton) {
           return null;
         }
@@ -341,6 +372,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       );
     }, [
       hasInitialLoad,
+      isDebouncing,
       hideLoadingSkeleton,
       isFullView,
       tokenKeysForList,
@@ -385,6 +417,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         {!showOnlyMusd && (
           <BaseControlBar
             networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            searchQuery={searchQuery}
             style={isFullView ? tw`px-4 pb-3 pt-2` : undefined}
           />
         )}

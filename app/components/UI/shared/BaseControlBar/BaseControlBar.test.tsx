@@ -435,6 +435,28 @@ describe('BaseControlBar', () => {
     });
   });
 
+  describe('search query for analytics', () => {
+    it('forwards the search query to both sheets', () => {
+      const { createTokensBottomSheetNavDetails } = jest.requireMock(
+        '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet',
+      );
+      const { createNetworkManagerNavDetails } = jest.requireMock(
+        '../../NetworkManager',
+      );
+      const { getByTestId } = renderComponent({ searchQuery: 'eth' });
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON));
+      fireEvent.press(getByTestId('test-network-filter'));
+
+      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({
+        searchQuery: 'eth',
+      });
+      expect(createNetworkManagerNavDetails).toHaveBeenCalledWith({
+        searchQuery: 'eth',
+      });
+    });
+  });
+
   describe('Filter button behavior', () => {
     it('navigates to NetworkManager when filter button is pressed', () => {
       const { getByTestId } = renderComponent();
