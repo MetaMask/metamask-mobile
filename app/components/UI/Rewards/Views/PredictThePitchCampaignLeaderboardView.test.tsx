@@ -19,6 +19,10 @@ const mockPredictStatsHeader = jest.fn();
 
 const CAMPAIGN_ID = 'predict-lb-campaign-1';
 
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
   useRoute: () => ({
