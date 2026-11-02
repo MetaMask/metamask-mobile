@@ -11734,9 +11734,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@28.0.0-preview-bc2a298b8":
-  version: 28.0.0-preview-bc2a298b8
-  resolution: "@metamask-previews/ramps-controller@npm:28.0.0-preview-bc2a298b8"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@28.1.0-preview-437c75983":
+  version: 28.1.0-preview-437c75983
+  resolution: "@metamask-previews/ramps-controller@npm:28.1.0-preview-437c75983"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
@@ -11748,7 +11748,7 @@ __metadata:
     "@metamask/utils": "npm:^12.0.1"
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/0c456637e8f59918cfe7adaba46b59d3fbd74a7aeab3707b4d72ae0b94154a09111d1e90ec8ec1428cf475ef3cda575a06411b5b662af0b23ed528001b85557c
+  checksum: 10/7dff600478f4812b243e2c696f8ecebf5734409ee1c581ed9005e584683cb3598b4f8d26c5cb909aeed80127ae047e6b5ba1b81d4a6ed8a5045e694dbd63971a
   languageName: node
   linkType: hard
 
