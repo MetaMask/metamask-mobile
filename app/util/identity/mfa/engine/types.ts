@@ -226,7 +226,16 @@ export type MfaFlowStep =
       email?: string;
       codeSent: boolean;
     }
-  | { name: 'passkey'; purpose: MfaPurpose }
+  | {
+      name: 'passkey';
+      purpose: MfaPurpose;
+      /**
+       * Other verification methods available, when the user chose passkey from
+       * a picker with multiple options. Shown after a failure so the user can
+       * try a different method instead of retrying the passkey.
+       */
+      otherOptions?: MfaMethod[];
+    }
   | { name: 'failure'; code: MfaFlowErrorCode; canRetry: boolean };
 
 export interface MfaFlowState {

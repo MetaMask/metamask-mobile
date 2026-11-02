@@ -932,6 +932,65 @@ describe('createMfaFlow', () => {
       expect(passkeyAdapter.get).toHaveBeenCalledTimes(2);
       await expect(flow.result).resolves.toBeDefined();
     });
+
+    it('shows other options when passkey verification fails after the user chose from a picker', async () => {
+      const fake = createFakeController([passkey, activeEmail]);
+      passkeyAdapter.get.mockRejectedValueOnce(
+        Object.assign(new Error('not found'), { mfaCode: 'invalid_assertion' }),
+      );
+      const { flow } = await startFlow(
+        {
+          kind: 'verifyOrEnroll',
+          methods: ['email_otp', 'passkey'],
+          verifyWith: ['passkey', 'email_otp'],
+        },
+        fake.controller,
+      );
+
+      // The flow shows a picker with both options.
+      expect(flow.getState().step).toMatchObject({
+        name: 'picker',
+        options: ['passkey', 'email_otp'],
+      });
+
+      // User chooses passkey but it fails.
+      await act(flow, { type: 'choose', method: 'passkey' });
+      expect(flow.getState()).toMatchObject({
+        step: { name: 'passkey', purpose: 'verify', otherOptions: ['email_otp'] },
+        error: 'invalid_assertion',
+      });
+
+      // User goes back to the picker to try email instead.
+      await act(flow, { type: 'back' });
+      expect(flow.getState().step).toMatchObject({
+        name: 'picker',
+        options: ['passkey', 'email_otp'],
+      });
+
+      // User chooses email.
+      await act(flow, { type: 'choose', method: 'email_otp' });
+      expect(flow.getState().step).toMatchObject({
+        name: 'otp',
+        purpose: 'verify',
+        method: 'email_otp',
+      });
+    });
+
+    it('does not show other options when passkey is the only verification method', async () => {
+      const fake = createFakeController([passkey]);
+      passkeyAdapter.get.mockRejectedValueOnce(
+        Object.assign(new Error('not found'), { mfaCode: 'invalid_assertion' }),
+      );
+      const { flow } = await startFlow(
+        { kind: 'verifyOrEnroll', methods: ['passkey'], verifyWith: 'passkey' },
+        fake.controller,
+      );
+
+      expect(flow.getState()).toMatchObject({
+        step: { name: 'passkey', purpose: 'verify', otherOptions: undefined },
+        error: 'invalid_assertion',
+      });
+    });
   });
 
   it('retries only what failed after a code was accepted', async () => {

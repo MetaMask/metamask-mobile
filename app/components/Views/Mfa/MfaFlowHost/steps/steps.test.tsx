@@ -737,6 +737,52 @@ describe('PasskeyStep', () => {
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'continue' });
   });
+
+  it('shows "Use another method" when other options are available', () => {
+    const onAction = jest.fn();
+    const { getByText, getByTestId } = render(
+      <PasskeyStep
+        {...buildState(
+          { name: 'passkey', purpose: 'verify', otherOptions: ['email_otp'] },
+          { error: 'invalid_assertion' },
+        )}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText('Use your passkey')).toBeOnTheScreen();
+    expect(
+      getByText("Your passkey couldn't be verified. Try again."),
+    ).toBeOnTheScreen();
+    expect(getByText('Use another method')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'back' });
+  });
+
+  it('does not show "Use another method" when no other options are available', () => {
+    const onAction = jest.fn();
+    const { getByText, queryByText, queryByTestId } = render(
+      <PasskeyStep
+        {...buildState(
+          { name: 'passkey', purpose: 'verify' },
+          { error: 'invalid_assertion' },
+        )}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText('Use your passkey')).toBeOnTheScreen();
+    expect(
+      getByText("Your passkey couldn't be verified. Try again."),
+    ).toBeOnTheScreen();
+    expect(queryByText('Use another method')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
 });
 
 describe('FailureStep', () => {

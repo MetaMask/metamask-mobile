@@ -63,11 +63,17 @@ const MfaFlowHost = () => {
   );
 
   // Android's back button goes back like the header's: a setup code returns
-  // to its setup; anywhere else, leaving the screen cancels the flow.
+  // to its setup; a passkey with other options returns to the picker;
+  // anywhere else, leaving the screen cancels the flow.
   const isSetupCode =
     state?.step.name === 'otp' && state.step.purpose === 'setup';
+  const isPasskeyWithOtherOptions =
+    state?.step.name === 'passkey' &&
+    state.step.otherOptions &&
+    state.step.otherOptions.length > 0;
+  const canGoBack = isSetupCode || isPasskeyWithOtherOptions;
   useEffect(() => {
-    if (!flow || !isSetupCode) {
+    if (!flow || !canGoBack) {
       return undefined;
     }
     const subscription = BackHandler.addEventListener(
@@ -78,7 +84,7 @@ const MfaFlowHost = () => {
       },
     );
     return () => subscription.remove();
-  }, [flow, isSetupCode]);
+  }, [flow, canGoBack]);
 
   useEffect(() => {
     if (isOnStack && !isRunning) {
@@ -96,10 +102,16 @@ const MfaFlowHost = () => {
 
   const { step } = state;
   const cancel = () => flow.dispatch({ type: 'cancel' });
-  // Enrollment codes have their setup screen behind them.
+  // Enrollment codes have their setup screen behind them; passkey verification
+  // with other options returns to the picker.
+  const shouldGoBack =
+    (step.name === 'otp' && step.purpose === 'setup') ||
+    (step.name === 'passkey' &&
+      step.otherOptions &&
+      step.otherOptions.length > 0);
   const goBack = () =>
     flow.dispatch({
-      type: step.name === 'otp' && step.purpose === 'setup' ? 'back' : 'cancel',
+      type: shouldGoBack ? 'back' : 'cancel',
     });
   const shared = {
     state,
