@@ -837,7 +837,9 @@ describe('BrowserTab', () => {
 
       const { onNavigationStateChange } = webView.props;
 
-      await act(async () => {
+      // The handler is synchronous. An async act waits for every pending
+      // promise in the tree, which times out under a loaded CI worker.
+      act(() => {
         onNavigationStateChange({
           url: emailVerifyUrl,
           title: 'Email verify',
@@ -877,14 +879,19 @@ describe('BrowserTab', () => {
       const { onNavigationStateChange } = webView.props;
 
       mockNavigation.setParams.mockClear();
+      // Ignore the in-page bridge injected by an earlier load. A loading
+      // back/forward must not inject the document-URL sync script.
+      mockInjectJavaScript.mockClear();
 
-      onNavigationStateChange({
-        url: 'https://example.com:83/page',
-        title: 'Example',
-        loading: true,
-        canGoBack: true,
-        canGoForward: false,
-        navigationType: 'backforward',
+      act(() => {
+        onNavigationStateChange({
+          url: 'https://example.com:83/page',
+          title: 'Example',
+          loading: true,
+          canGoBack: true,
+          canGoForward: false,
+          navigationType: 'backforward',
+        });
       });
 
       expect(mockNavigation.setParams).not.toHaveBeenCalled();

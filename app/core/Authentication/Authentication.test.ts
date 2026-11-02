@@ -169,6 +169,8 @@ jest.mock('../../store/storage-wrapper', () => ({
     delete storage[key];
     return Promise.resolve();
   }),
+  getAllKeys: jest.fn(() => Promise.resolve(Object.keys(storage))),
+  getItemSync: jest.fn((key) => storage[key] ?? null),
   clearAll: jest.fn(() => {
     Object.keys(storage).forEach((key) => delete storage[key]);
     return Promise.resolve();
@@ -254,6 +256,14 @@ jest.mock('../Engine', () => ({
 
     QrSyncController: {
       importRemainingSecrets: jest.fn(),
+    },
+
+    ProfileController: {
+      clearState: jest.fn(),
+    },
+
+    SocialController: {
+      update: jest.fn(),
     },
   },
 }));
@@ -5177,6 +5187,43 @@ describe('Authentication', () => {
 
     afterEach(() => {
       EngineClass.disableAutomaticVaultBackup = false;
+    });
+
+    it('clears the social profile before the throwaway vault and again after lock', async () => {
+      const clearProfileSpy = jest.spyOn(
+        Engine.context.ProfileController,
+        'clearState',
+      );
+      const replaceSocialStateSpy = jest.spyOn(
+        Engine.context.SocialController as unknown as {
+          update: jest.Mock;
+        },
+        'update',
+      );
+      const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
+      const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+      const queryClientClearSpy = (
+        jest.requireMock('../ReactQueryService') as {
+          default: { queryClient: { clear: jest.Mock } };
+        }
+      ).default.queryClient.clear;
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(clearProfileSpy).toHaveBeenCalledTimes(2);
+      expect(replaceSocialStateSpy).toHaveBeenCalledTimes(2);
+      expect(clearProfileSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletSpy.mock.invocationCallOrder[0],
+      );
+      expect(clearProfileSpy.mock.invocationCallOrder[1]).toBeGreaterThan(
+        lockAppSpy.mock.invocationCallOrder[0],
+      );
+      expect(queryClientClearSpy).toHaveBeenCalled();
+      expect(
+        queryClientClearSpy.mock.invocationCallOrder.at(-1),
+      ).toBeGreaterThan(lockAppSpy.mock.invocationCallOrder[0]);
     });
 
     it('clears auth state before the throwaway vault and again after lock', async () => {

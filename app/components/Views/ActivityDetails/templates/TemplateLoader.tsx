@@ -11,7 +11,7 @@ import { DepositDetails } from './DepositDetails';
 import { NftDetails } from './NftDetails';
 import { SmartAccountUpgradeDetails } from './SmartAccountUpgradeDetails';
 import { PerpsDetails } from './Perps/PerpsDetails';
-import { PredictDetails } from './PredictDetails/PredictDetails';
+import { PredictActivityDetails } from '../../../UI/PredictNext';
 import { RampDetails } from './Ramps/RampDetails';
 import { SendDetails } from './SendDetails';
 import { SwapDetails } from './SwapDetails';
@@ -76,7 +76,7 @@ export function TemplateLoader({
     case 'predictionSettled':
     case 'predictionCashedOut':
     case 'predictionPlaced':
-      return <PredictDetails item={item} />;
+      return <PredictActivityDetails item={item} />;
     case 'perpsAddFunds':
     case 'perpsWithdraw':
     case 'perpsOpenLong':

@@ -357,6 +357,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
         <SocialFeedPostShell
           post={post}
+          requireSocialTerms
           onCopyTrade={handleCopyTrade}
           onAuthorPress={handleAuthorPress}
           onPositionPress={post.position ? handlePositionPress : undefined}

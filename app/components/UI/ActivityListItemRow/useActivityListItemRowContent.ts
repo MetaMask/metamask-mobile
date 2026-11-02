@@ -1,5 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Formatters } from '@metamask/client-utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { KnownCaipNamespace, type Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -1094,16 +1095,22 @@ export function useActivityListItemRowContent(
 ): ActivityListItemRowContent {
   const networkChainId = chainId ?? item.chainId;
   const hexChainId = getHexChainId(networkChainId);
+  // Rows read their USD → display rate through the row chain's native
+  // currency. Venue Predict rows (e.g. `kalshi:mainnet`) have no chain, and
+  // the rate does not depend on one, so they read it through mainnet.
+  const rateHexChainId =
+    hexChainId ??
+    (isPredictTradeKind(item.type) ? (CHAIN_IDS.MAINNET as Hex) : undefined);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const formatters = useFormatters();
   const conversionRate = useSelector((state: RootState) =>
-    hexChainId
-      ? selectConversionRateByChainId(state, hexChainId, true)
+    rateHexChainId
+      ? selectConversionRateByChainId(state, rateHexChainId, true)
       : undefined,
   );
   const usdConversionRate = useSelector((state: RootState) =>
-    hexChainId
-      ? selectUSDConversionRateByChainId(state, hexChainId)
+    rateHexChainId
+      ? selectUSDConversionRateByChainId(state, rateHexChainId)
       : undefined,
   );
   const convertToFiat = useConvertToFiat(networkChainId);

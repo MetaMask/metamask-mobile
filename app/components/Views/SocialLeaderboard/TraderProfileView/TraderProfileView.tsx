@@ -95,6 +95,7 @@ import TraderStatsSheet from './components/TraderStatsSheet';
 import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
 import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
+import { getPositionFlagLabelKey } from './utils/positionFlags';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -643,9 +644,14 @@ const TraderProfileView = () => {
                       <PositionRow
                         key={getPositionListKey(position)}
                         position={position}
-                        onPress={handlePositionPress}
+                        onPress={
+                          getPositionFlagLabelKey(position)
+                            ? undefined
+                            : handlePositionPress
+                        }
                         isClosed={activeTab === 'closed'}
                         showTradeDate={currentSortKey === 'recent'}
+                        showFlaggedState
                       />
                     ))
                   )}

@@ -141,6 +141,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
         post={post}
+        requireSocialTerms
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={post.position ? onPositionPress : undefined}

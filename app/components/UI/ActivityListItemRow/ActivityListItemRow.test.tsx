@@ -2065,6 +2065,48 @@ describe('ActivityListItemRow — display currency conversion', () => {
     expect(primary).not.toContain('$');
   });
 
+  it('converts a Kalshi row, which has no chain, through mainnet rates', () => {
+    mockCurrency.mockReturnValue('eur');
+    mockConversionRate.mockReturnValue(2300);
+    mockUsdConversionRate.mockReturnValue(2500);
+    const placed = {
+      type: 'predictionPlaced',
+      chainId: KALSHI_VENUE_CHAIN_ID,
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: 'kalshi-trade-1',
+      data: {
+        token: {
+          amount: '10',
+          symbol: 'USD',
+          direction: 'out',
+          amountIsHumanReadable: true,
+        },
+        eventTitle: 'Kansas City at Buffalo',
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={placed} index={0} />,
+    );
+
+    expect(mockConversionRate).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+      true,
+    );
+    expect(mockUsdConversionRate).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+    );
+    const primary = getByTestId('activity-primary-amount-kalshi-trade-1').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    // 10 USD × (2300 / 2500) = 9.20 in the user's currency, not "-10 USD".
+    expect(primary).toContain('9.20');
+    expect(primary).not.toContain('USD');
+  });
+
   it('omits the domain fiat for a non-USD user when rates are unavailable', () => {
     // No rates to convert with: rather than mislabel a USD figure with another
     // currency's symbol, the domain fiat is dropped and the row falls back to
