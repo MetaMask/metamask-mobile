@@ -303,17 +303,16 @@ describe('getVbaHomeCard', () => {
     },
   );
 
-  it('renders account_is_ready when only kycStatus is approved (relay approval counts)', () => {
+  it('renders kyc_pending when only the relay kycStatus is approved', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
         finalStatus: 'pending',
         kycStatus: 'approved',
       }),
-      autoramps: [makeAutoramp()],
     });
 
-    expect(card).toEqual({ type: 'account_is_ready' });
+    expect(card).toEqual({ type: 'kyc_pending' });
   });
 
   it('renders the kyc_decision stub when finalStatus is rejected (decision rule 5)', () => {
@@ -584,6 +583,21 @@ describe('useVbaHomeCard', () => {
     const { result } = renderHook(() => useVbaHomeCard());
 
     expect(result.current).toEqual({ type: 'kyc_decision' });
+  });
+
+  it('shows the pending demo card over an existing usable autoramp', () => {
+    mockGetVbaKycStatusOverride.mockReturnValue('pending');
+    setupSelectors({
+      hasUsableAutoramp: true,
+      sessionStatus: makeSession({
+        finalStatus: 'approved',
+        kycStatus: 'approved',
+      }),
+    });
+
+    const { result } = renderHook(() => useVbaHomeCard());
+
+    expect(result.current).toEqual({ type: 'kyc_pending' });
   });
 
   it('treats local vendor terms as not accepted while loading, then flips once accepted', async () => {

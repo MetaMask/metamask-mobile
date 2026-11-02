@@ -50,5 +50,9 @@ export const applyVbaDevOverrides = (
     vendorDisclaimersComplete: true,
     sessionDisclaimersComplete: true,
     kycStatus,
+    providerFlowStatus:
+      kycStatus === 'pending' ? 'submitted' : snapshot.providerFlowStatus,
+    autorampStatus:
+      kycStatus === 'pending' ? 'not_ready' : snapshot.autorampStatus,
   };
 };

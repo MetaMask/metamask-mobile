@@ -961,6 +961,36 @@ describe('resolveVbaOnboarding', () => {
     );
   });
 
+  it('routes a completed account to pending when the pending dev override is set', async () => {
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('pending');
+    mockRampsState.autoramps = [
+      { id: 'ar-1', walletAddress: '0xabc', status: 'Approved' },
+    ];
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'abandoned',
+      kycStatus: 'approved',
+      autorampStatus: 'ready',
+    });
+
+    const resolved = await resolveVbaOnboarding('money-home-card');
+
+    expect(resolved).toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'kycPending',
+        snapshot: expect.objectContaining({
+          kycStatus: 'pending',
+          providerFlowStatus: 'submitted',
+          autorampStatus: 'not_ready',
+        }),
+      }),
+    );
+  });
+
   it('does not treat an autoramp on another address as an existing account', async () => {
     mockRampsState.autoramps = [
       { id: 'ar-1', walletAddress: '0xdef', status: 'Approved' },
