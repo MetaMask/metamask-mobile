@@ -57,6 +57,7 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
       }
       testID={filterTestID}
       accessibilityLabel={strings('social_leaderboard.shell.filters.title')}
+      accessibilityState={{ selected: isFilterActive }}
       twClassName={
         isFilterActive
           ? 'rounded-full bg-primary-muted'

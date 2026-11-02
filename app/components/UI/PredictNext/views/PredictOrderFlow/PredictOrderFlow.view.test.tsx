@@ -39,11 +39,8 @@ import {
   usePredictOrderFlow,
   type PredictOrderFlowIntent,
 } from './PredictOrderFlowProvider';
-import {
-  KALSHI_VENUE_ID,
-  type PredictDecimal,
-  type PredictEntityId,
-} from '../../types';
+import { type PredictDecimal, type PredictEntityId } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 
 // The provider resolves the Order workflow service from Engine.context, the
 // way the real Engine init composes it: the shared composer binds the

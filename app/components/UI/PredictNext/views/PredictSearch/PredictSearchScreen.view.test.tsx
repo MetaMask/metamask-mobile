@@ -10,7 +10,8 @@ import {
   mockPredictNextMessenger,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
+import { type PredictEvent } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictSearchScreenTestIds } from './PredictSearchScreen.testIds';

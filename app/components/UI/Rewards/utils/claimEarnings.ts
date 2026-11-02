@@ -39,6 +39,8 @@ const RETRY_REASONS = new Set([
   'PROOF_UNAVAILABLE',
   // The pod has no usable login keys. The token may be fine; ask again.
   'JWKS_UNAVAILABLE',
+  // CHOMP did not answer. The address may still be a Money Account; ask again.
+  'MONEY_ACCOUNT_CHECK_UNAVAILABLE',
   'SIGN_FAILED',
   'BATCH_NOT_SUBMITTED',
   'VOUCHER_EXPIRED',
@@ -339,7 +341,8 @@ function toastKeyForReason(
   if (
     reason === 'EARNING_ADDRESS_UNSCREENABLE' ||
     reason === 'UNSUPPORTED_EARNING_ADDRESS' ||
-    reason === 'TAX_DETERMINATION_REQUIRED'
+    reason === 'TAX_DETERMINATION_REQUIRED' ||
+    reason === 'PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT'
   ) {
     return 'claimFailureUnavailableToast';
   }

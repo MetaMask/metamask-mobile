@@ -4,7 +4,6 @@ import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import WarningIcon from 'react-native-vector-icons/FontAwesome';
 import { toHex } from '@metamask/controller-utils';
-import CustomText from '../../../../../Base/Text';
 import EmptyPopularList from '../emptyList';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
@@ -25,9 +24,14 @@ import { useSafeChains } from '../../../../../../components/hooks/useSafeChains'
 import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
-import Text, {
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { TextVariant as LegacyTextVariant } from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
   IconName,
@@ -39,7 +43,6 @@ import { isHardwareAccount } from '../../../../../../util/address';
 import TagColored, {
   TagColor,
 } from '../../../../../../component-library/components-temp/TagColored';
-import { Box } from '@metamask/design-system-react-native';
 import styleSheet from './CustomNetworkView.styles.ts';
 import { useStyles } from '../../../../../../component-library/hooks';
 
@@ -150,7 +153,8 @@ const CustomNetwork = ({
       {!!listHeader && filteredPopularList.length > 0 && (
         <Text
           style={customNetworkStyles.listHeader}
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
         >
           {listHeader}
         </Text>
@@ -188,9 +192,17 @@ const CustomNetwork = ({
             </View>
             <View style={customNetworkStyles.nameAndTagContainer}>
               <Box twClassName="flex-row gap-2">
-                <CustomText bold={!isNetworkUiRedesignEnabled()}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  fontWeight={
+                    isNetworkUiRedesignEnabled()
+                      ? FontWeight.Regular
+                      : FontWeight.Bold
+                  }
+                >
                   {networkConfiguration.nickname}
-                </CustomText>
+                </Text>
                 {!isHardwareWallet &&
                 isGasFeesSponsoredNetworkEnabled(
                   networkConfiguration.chainId,
@@ -199,7 +211,7 @@ const CustomNetwork = ({
                     color={TagColor.Success}
                     style={styles.noNetworkFeeContainer}
                     labelProps={{
-                      variant: TextVariant.BodySM,
+                      variant: LegacyTextVariant.BodySM,
                       style: {
                         textTransform: 'none',
                         textAlign: 'center',
@@ -230,10 +242,15 @@ const CustomNetwork = ({
 
             {displayContinue &&
             networkConfiguration.chainId === selectedChainId ? (
-              <CustomText link>{strings('networks.continue')}</CustomText>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.PrimaryDefault}
+              >
+                {strings('networks.continue')}
+              </Text>
             ) : (
               showActionLabels && (
-                <Text variant={TextVariant.BodyMD}>
+                <Text variant={TextVariant.BodyMd}>
                   {networkConfiguration.isAdded
                     ? strings('networks.switch')
                     : strings('networks.add')}

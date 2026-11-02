@@ -22,6 +22,8 @@ import {
 } from '../../../Views/SocialLeaderboard/analytics';
 import { useFollowWithNotificationSetup } from '../../../Views/SocialLeaderboard/hooks/useFollowWithNotificationSetup';
 import { navigateToSocialV1Profile } from '../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import SocialEmptyState from '../../../Views/SocialLeaderboard/shared/SocialEmptyState';
+import SocialFilterEmptyState from '../../../Views/SocialLeaderboard/shared/SocialFilterEmptyState';
 import { matchesShellTraderCohort } from '../../../Views/SocialLeaderboard/shell/filters/matchShellFilters';
 import {
   SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT,
@@ -69,6 +71,9 @@ const rowLayoutTransition = LinearTransition.duration(
 /** Extra placeholders past the fold so the shimmer continues while scrolling. */
 const SKELETON_OVERSCAN = 2;
 
+/** Stable empty chain list so an unready source does not change the hook deps. */
+const NO_LEADERBOARD_CHAINS: readonly string[] = [];
+
 /** Lets a host that owns the scroll view drive pull-to-refresh. */
 export interface SocialLeaderboardHandle {
   refresh: () => Promise<void>;
@@ -85,6 +90,12 @@ export interface SocialLeaderboardProps {
   limit?: number;
   /** Ranking options. The host renders any filter UI. */
   filters?: SocialLeaderboardFilters;
+  /** The host's filter sheet is applied and matched nothing. */
+  filteredEmpty?: boolean;
+  /** Clears the host's applied filters. */
+  onClearFilters?: () => void;
+  /** Pulls an empty result up to cancel the host filter bar's bottom padding. */
+  emptyClassName?: string;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
   onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
@@ -105,6 +116,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   title,
   limit = LEADERBOARD_FETCH_LIMIT,
   filters = DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
+  filteredEmpty = false,
+  onClearFilters,
+  emptyClassName,
   showViewerRow = false,
   onOutcomeChange,
   performance,
@@ -114,7 +128,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const { track } = useSocialLeaderboardAnalytics();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+  });
   const networkTier = useNetworkTier();
   // Low-RAM devices skip the reveal and the reorder slide.
   const canAnimate = getHardwareTier() !== 'LOW';
@@ -141,8 +157,6 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       : undefined,
   });
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
   const hydrateSnapshotRow = useCallback(
     (trader: TopTrader): RankedTrader => ({
       ...trader,
@@ -162,12 +176,30 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     hydrateRow: hydrateSnapshotRow,
   });
 
-  const { viewerRow, rowsWithoutViewer, viewerProfileId, viewerAddress } =
-    useLeaderboardViewerRow(
-      traders,
-      sort,
-      showViewerRow && resolution.status === 'ready',
-    );
+  const {
+    viewerRow,
+    rowsWithoutViewer,
+    viewerProfileId,
+    viewerAddress,
+    refreshViewerProfile,
+  } = useLeaderboardViewerRow(
+    traders,
+    sort,
+    showViewerRow && resolution.status === 'ready' && hasFetched,
+    {
+      timeframe,
+      chains:
+        resolution.status === 'ready'
+          ? resolution.chains
+          : NO_LEADERBOARD_CHAINS,
+    },
+  );
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([refresh(), refreshViewerProfile()]);
+  }, [refresh, refreshViewerProfile]);
+
+  useImperativeHandle(ref, () => ({ refresh: refreshAll }), [refreshAll]);
 
   const rows = useMemo(
     () =>
@@ -237,8 +269,8 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   }, [navigation, viewerAddress, viewerProfileId]);
 
   const handleRetry = useCallback(() => {
-    refresh().catch(() => undefined);
-  }, [refresh]);
+    refreshAll().catch(() => undefined);
+  }, [refreshAll]);
 
   const firstContentState =
     !isEnabled || resolution.status === 'hidden'
@@ -324,11 +356,19 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       );
     }
     if (hasFetched) {
-      return (
-        <SocialLeaderboardMessage
-          message={strings('social_leaderboard.profiles_to_follow.empty')}
-          testID={SocialLeaderboardSelectorsIDs.EMPTY}
-        />
+      const empty =
+        filteredEmpty && onClearFilters ? (
+          <SocialFilterEmptyState onClear={onClearFilters} />
+        ) : (
+          <SocialEmptyState
+            description={strings('social_leaderboard.profiles_to_follow.empty')}
+            testID={SocialLeaderboardSelectorsIDs.EMPTY}
+          />
+        );
+      return emptyClassName ? (
+        <Box twClassName={emptyClassName}>{empty}</Box>
+      ) : (
+        empty
       );
     }
     return null;
@@ -351,6 +391,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             highlighted
             hideRank={viewerRow.hideRank}
             showLeaderboardDetails
+            omitPercentage={viewerRow.omitPercentage}
             testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
           />
         ) : null}

@@ -36,6 +36,7 @@ import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import {
   selectCardBaanxPasswordlessLoginEnabled,
   selectCardForgotPasswordFeatureEnabled,
+  selectCardImmersveCountries,
 } from '../../../../../selectors/featureFlagController/card';
 import { CardMessageBoxType, type Region } from '../../types';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
@@ -58,6 +59,7 @@ import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMess
 import useRegions from '../../hooks/useRegions';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import { filterCardSignInRegions } from '../../util/signInRegions';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -170,11 +172,12 @@ const CardAuthentication = () => {
   const isPasswordlessLoginEnabled = useSelector(
     selectCardBaanxPasswordlessLoginEnabled,
   );
-  const {
-    allRegions,
-    getRegionByCode,
-    isLoading: isLoadingRegions,
-  } = useRegions();
+  const immersveCountries = useSelector(selectCardImmersveCountries);
+  const { allRegions, isLoading: isLoadingRegions } = useRegions();
+  const signInRegions = useMemo(
+    () => filterCardSignInRegions(allRegions, immersveCountries),
+    [allRegions, immersveCountries],
+  );
   const { state: ukMigrationState } = useCardUkMigrationState();
 
   const countryKey = selectedCountry?.key ?? null;
@@ -310,13 +313,13 @@ const CardAuthentication = () => {
   seenLinkedAddressRef.current = nextSeenLinkedAddress;
 
   useEffect(() => {
-    if (!allRegions.length || hasAutoSelectedCountry.current) {
+    if (!signInRegions.length || hasAutoSelectedCountry.current) {
       return;
     }
     if (geoLocation === 'UNKNOWN') {
       return;
     }
-    const matched = getRegionByCode(geoLocation);
+    const matched = signInRegions.find((region) => region.key === geoLocation);
     if (matched) {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(matched);
@@ -324,7 +327,7 @@ const CardAuthentication = () => {
         mapCountryToLocation(matched.key),
       );
     }
-  }, [allRegions.length, geoLocation, getRegionByCode]);
+  }, [signInRegions, geoLocation]);
 
   const resetTransientAuthState = useCallback(() => {
     setUkMode(null);
@@ -744,11 +747,11 @@ const CardAuthentication = () => {
     navigateWithDetails(
       navigation,
       createRegionSelectorModalNavigationDetails({
-        regions: allRegions,
+        regions: signInRegions,
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
-  }, [isLoadingRegions, navigation, allRegions, selectedCountry?.key]);
+  }, [isLoadingRegions, navigation, signInRegions, selectedCountry?.key]);
 
   const handleResendOtp = useCallback(() => {
     if (resendCooldown > 0 || otpLoading) return;

@@ -18,7 +18,6 @@ import {
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
-  RewardsDataServiceValidateReferralCodeAction,
   RewardsDataServiceValidateBonusCodeAction,
   RewardsDataServiceMobileJoinAction,
   RewardsDataServiceOptOutAction,
@@ -47,7 +46,6 @@ import {
   RewardsDataServiceGetDiscoverSeasonsAction,
   RewardsDataServiceGetSeasonMetadataAction,
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
-  RewardsDataServiceApplyReferralCodeAction,
   RewardsDataServiceApplyBonusCodeAction,
   RewardsDataServiceGetRewardsEnvUrlAction,
   RewardsDataServiceCanChangeRewardsEnvUrlAction,
@@ -113,7 +111,6 @@ type AllowedActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
@@ -124,7 +121,6 @@ type AllowedActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
-  | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -227,7 +223,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getReferralDetails',
       'RewardsDataService:mobileOptin',
       'RewardsDataService:logout',
-      'RewardsDataService:validateReferralCode',
       'RewardsDataService:validateBonusCode',
       'RewardsDataService:mobileJoin',
       'RewardsDataService:getOptInStatus',
@@ -238,7 +233,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDiscoverSeasons',
       'RewardsDataService:getSeasonMetadata',
       'RewardsDataService:getSeasonOneLineaRewardTokens',
-      'RewardsDataService:applyReferralCode',
       'RewardsDataService:applyBonusCode',
       'RewardsDataService:getSubscriptionAccounts',
       'RewardsDataService:getCampaigns',

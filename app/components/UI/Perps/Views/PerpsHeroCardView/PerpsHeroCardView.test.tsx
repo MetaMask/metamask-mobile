@@ -2,10 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { act } from '@testing-library/react-hooks';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import PerpsHeroCardView from './PerpsHeroCardView';
-import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
-import { selectPerpsRewardsReferralCodeEnabledFlag } from '../../selectors/featureFlags';
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
@@ -36,7 +33,6 @@ jest.mock('react-native-share', () => ({
   __esModule: true,
   default: { open: jest.fn() },
 }));
-jest.mock('react-redux');
 jest.mock('../../hooks', () => ({
   usePerpsToasts: jest.fn(() => ({
     showToast: mockShowToast,
@@ -58,25 +54,12 @@ jest.mock('../../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key, params) => {
-    if (key === 'perps.pnl_hero_card.share_message') {
-      return `Check out my ${params?.asset} trade! Code: ${params?.code} Link: ${params?.link}`;
-    }
-    return key;
-  }),
+  strings: jest.fn((key) => key),
 }));
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((value) => `$${value}`),
   parseCurrencyString: jest.fn((value) => value?.replace('$', '') || ''),
   PRICE_RANGES_MINIMAL_VIEW: [],
-}));
-jest.mock('../../../Rewards/utils', () => ({
-  buildReferralUrl: jest.fn(
-    (code) => `https://link.metamask.io/rewards?referral=${code}`,
-  ),
-}));
-jest.mock('../../../Rewards/hooks/useReferralDetails', () => ({
-  useReferralDetails: jest.fn(),
 }));
 jest.mock('../../../Rewards/hooks/useSeasonStatus', () => ({
   useSeasonStatus: jest.fn(),
@@ -92,10 +75,6 @@ jest.mock('../../../../../component-library/hooks', () => {
 });
 jest.mock('../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 jest.mock(
-  '../../../Rewards/components/RewardsReferralCodeTag',
-  () => 'RewardsReferralCodeTag',
-);
-jest.mock(
   '@tommasini/react-native-scrollable-tab-view',
   () => 'ScrollableTabView',
 );
@@ -106,7 +85,6 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 /**
  * Helper function to create mock route params with position data
@@ -129,16 +107,6 @@ const createMockRouteParams = (overrides = {}) => ({
 describe('PerpsHeroCardView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // By default, referral flag is disabled (feature gated off)
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectReferralCode) {
-        return 'TESTCODE123';
-      }
-      if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
-        return false;
-      }
-      return undefined;
-    });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -150,30 +118,7 @@ describe('PerpsHeroCardView', () => {
     jest.clearAllMocks();
   });
 
-  describe('rendering with referral code', () => {
-    beforeEach(() => {
-      // Enable the referral feature flag for these tests
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectReferralCode) {
-          return 'TESTCODE123';
-        }
-        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
-          return true;
-        }
-        return undefined;
-      });
-    });
-
-    it('displays referral code tag', () => {
-      const { getByTestId } = render(<PerpsHeroCardView />);
-
-      const referralCodeTag = getByTestId(
-        getPerpsHeroCardViewSelector.referralCodeTag(0),
-      );
-
-      expect(referralCodeTag).toBeOnTheScreen();
-    });
-
+  describe('rendering', () => {
     it('displays asset symbol from position', () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
@@ -203,75 +148,6 @@ describe('PerpsHeroCardView', () => {
     });
   });
 
-  describe('rendering without referral code', () => {
-    beforeEach(() => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectReferralCode) {
-          return null;
-        }
-        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
-          return true;
-        }
-        return undefined;
-      });
-    });
-
-    it('does not render referral code tag', () => {
-      const { queryByTestId } = render(<PerpsHeroCardView />);
-
-      const referralCodeTag = queryByTestId(
-        getPerpsHeroCardViewSelector.referralCodeTag(0),
-      );
-
-      expect(referralCodeTag).toBeNull();
-    });
-
-    it('renders asset symbol', () => {
-      const { getByTestId } = render(<PerpsHeroCardView />);
-
-      const assetSymbol = getByTestId(
-        getPerpsHeroCardViewSelector.assetSymbol(0),
-      );
-
-      expect(assetSymbol).toHaveTextContent('BTC');
-    });
-  });
-
-  describe('rendering with referral flag disabled', () => {
-    beforeEach(() => {
-      // Flag disabled even though code exists
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectReferralCode) {
-          return 'TESTCODE123';
-        }
-        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
-          return false;
-        }
-        return undefined;
-      });
-    });
-
-    it('does not render referral code tag when flag is disabled', () => {
-      const { queryByTestId } = render(<PerpsHeroCardView />);
-
-      const referralCodeTag = queryByTestId(
-        getPerpsHeroCardViewSelector.referralCodeTag(0),
-      );
-
-      expect(referralCodeTag).toBeNull();
-    });
-
-    it('renders asset symbol when flag is disabled', () => {
-      const { getByTestId } = render(<PerpsHeroCardView />);
-
-      const assetSymbol = getByTestId(
-        getPerpsHeroCardViewSelector.assetSymbol(0),
-      );
-
-      expect(assetSymbol).toHaveTextContent('BTC');
-    });
-  });
-
   describe('carousel functionality', () => {
     it('renders carousel container', () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
@@ -296,16 +172,6 @@ describe('PerpsHeroCardView', () => {
     beforeEach(() => {
       mockCaptureRef.mockResolvedValue('file://image.png');
       mockShareOpen.mockResolvedValue({ success: true, message: 'shared' });
-      // Enable referral flag for share tests
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectReferralCode) {
-          return 'TESTCODE123';
-        }
-        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
-          return true;
-        }
-        return undefined;
-      });
     });
 
     it('calls captureRef when share pressed', async () => {
@@ -322,7 +188,7 @@ describe('PerpsHeroCardView', () => {
       });
     });
 
-    it('calls Share.open with image URI and type', async () => {
+    it('calls Share.open with image URI, type, and share message', async () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
       await act(async () => {
@@ -336,6 +202,7 @@ describe('PerpsHeroCardView', () => {
           expect.objectContaining({
             url: 'file://image.png',
             type: 'image/png',
+            message: 'perps.pnl_hero_card.share_message_without_referral_code',
           }),
         );
       });

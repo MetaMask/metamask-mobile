@@ -23,7 +23,21 @@ export interface UseXAuth {
   isDisconnecting: boolean;
   /** True while the refresh flow is in flight. */
   isRefreshing: boolean;
-  error: XAuthError | undefined;
+  /**
+   * Failure recorded by the last `connect`, cleared when the next `connect`
+   * starts.
+   */
+  connectError: XAuthError | undefined;
+  /**
+   * Failure recorded by the last `disconnect`, cleared when the next
+   * `disconnect` starts.
+   */
+  disconnectError: XAuthError | undefined;
+  /**
+   * Failure recorded by the last `refresh`, cleared when the next `refresh`
+   * starts.
+   */
+  refreshError: XAuthError | undefined;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -47,15 +61,25 @@ export const useXAuth = (): UseXAuth => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<XAuthError | undefined>(undefined);
+  // One slice per action: a `refresh` failure must not be readable as a
+  // `disconnect` failure, because both run against the same X link.
+  const [connectError, setConnectError] = useState<XAuthError | undefined>(
+    undefined,
+  );
+  const [disconnectError, setDisconnectError] = useState<
+    XAuthError | undefined
+  >(undefined);
+  const [refreshError, setRefreshError] = useState<XAuthError | undefined>(
+    undefined,
+  );
 
   const connect = useCallback(async () => {
     setIsConnecting(true);
-    setError(undefined);
+    setConnectError(undefined);
     try {
       await connectX();
     } catch (error_) {
-      setError(toXAuthError(error_));
+      setConnectError(toXAuthError(error_));
     } finally {
       setIsConnecting(false);
     }
@@ -63,11 +87,11 @@ export const useXAuth = (): UseXAuth => {
 
   const disconnect = useCallback(async () => {
     setIsDisconnecting(true);
-    setError(undefined);
+    setDisconnectError(undefined);
     try {
       await disconnectXAccount();
     } catch (error_) {
-      setError(toXAuthError(error_));
+      setDisconnectError(toXAuthError(error_));
     } finally {
       setIsDisconnecting(false);
     }
@@ -75,11 +99,11 @@ export const useXAuth = (): UseXAuth => {
 
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
-    setError(undefined);
+    setRefreshError(undefined);
     try {
       await fetchAndUpdateXAccount();
     } catch (error_) {
-      setError(toXAuthError(error_));
+      setRefreshError(toXAuthError(error_));
     } finally {
       setIsRefreshing(false);
     }
@@ -91,7 +115,9 @@ export const useXAuth = (): UseXAuth => {
     isConnecting,
     isDisconnecting,
     isRefreshing,
-    error,
+    connectError,
+    disconnectError,
+    refreshError,
     connect,
     disconnect,
     refresh,
