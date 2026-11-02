@@ -185,7 +185,6 @@ import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/Mul
 import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
-import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
@@ -771,10 +770,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS}
       component={MultichainTransactionDetailsSheet}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.TRANSACTION_DETAILS}
-      component={TransactionDetailsSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.IMPORT_WALLET_TIP}

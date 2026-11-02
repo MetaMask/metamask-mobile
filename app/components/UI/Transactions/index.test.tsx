@@ -4,27 +4,15 @@ import type { StyleProp, ViewStyle } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { UnconnectedTransactions, mapStateToProps } from '.';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
-import Engine from '../../../core/Engine';
-import NotificationManager from '../../../core/NotificationManager';
-import Logger from '../../../util/Logger';
-import { isHardwareAccount } from '../../../util/address';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import {
   findBlockExplorerForNonEvmChainId,
-  findBlockExplorerForRpc,
   findBlockExplorerUrlForChain,
-  getBlockExplorerAddressUrl,
   getBlockExplorerName,
 } from '../../../util/networks';
-import { speedUpTransaction } from '../../../util/transaction-controller';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
-  selectNetworkClientId,
-  selectProviderConfig,
-  selectProviderType,
 } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
@@ -33,8 +21,6 @@ import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors
 
 const mockGroupActivityListItems = jest.fn();
 const mockMapTransactionToActivityItem = jest.fn();
-const mockCreateQRSigningTransactionModalNavDetails = jest.fn();
-const mockExecuteHardwareWalletOperation = jest.fn();
 
 type FlashListItem = Record<string, unknown>;
 
@@ -52,11 +38,6 @@ interface FlashListHarnessProps {
   renderItem: (args: { item: FlashListItem; index: number }) => React.ReactNode;
   contentContainerStyle?: StyleProp<ViewStyle>;
   testID?: string;
-}
-
-interface CancelSpeedupModalMockProps {
-  isVisible: boolean;
-  onConfirm: (transaction: Record<string, never>) => void;
 }
 
 jest.mock('@shopify/flash-list', () => {
@@ -116,60 +97,19 @@ jest.mock('@shopify/flash-list', () => {
   };
 });
 
-jest.mock('../TransactionElement', () => ({
-  __esModule: true,
-  default: 'TransactionElement',
-}));
 jest.mock('./AssetDetailsActivityListItem', () => ({
   __esModule: true,
   default: 'AssetDetailsActivityListItem',
 }));
-jest.mock(
-  '../../../components/Views/confirmations/components/modals/cancel-speedup-modal',
-  () => {
-    const { TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      CancelSpeedupModal: ({
-        isVisible,
-        onConfirm,
-      }: CancelSpeedupModalMockProps) =>
-        isVisible ? (
-          <TouchableOpacity
-            testID="cancel-speedup-modal-confirm"
-            onPress={() => onConfirm({})}
-          />
-        ) : null,
-    };
-  },
-);
 jest.mock('../../../core/Multichain/utils', () => ({
   isNonEvmChainId: jest.fn(),
 }));
 jest.mock('../../../util/networks', () => ({
   findBlockExplorerForNonEvmChainId: jest.fn(),
-  findBlockExplorerForRpc: jest.fn(),
   findBlockExplorerUrlForChain: jest.fn(),
-  getBlockExplorerAddressUrl: jest.fn(),
   getBlockExplorerName: jest.fn(),
   getHexEvmChainId: jest.fn((chainId: string) => chainId),
   isMainnetByChainId: jest.fn(),
-}));
-jest.mock('../../../util/address', () => ({ isHardwareAccount: jest.fn() }));
-jest.mock('../../../core/NotificationManager', () => ({
-  getTransactionToView: jest.fn(),
-  setTransactionToView: jest.fn(),
-}));
-jest.mock('../../../util/transaction-controller', () => ({
-  getPreviousGasFromController: jest.fn(),
-  speedUpTransaction: jest.fn(),
-}));
-jest.mock('../../../util/confirmation/gas', () => ({
-  getGasValuesForReplacement: jest.fn((gasValues) => gasValues),
-  getMediumGasPriceHex: jest.fn(() => '0x123'),
-  normalizeReplacementGasFeeParams: jest.fn((params) => params?.legacyGasFee),
-}));
-jest.mock('../../../util/transactions', () => ({
-  validateTransactionActionBalance: jest.fn(() => false),
 }));
 jest.mock('../../../util/activity-adapters', () => ({
   ...jest.requireActual('../../../util/activity-adapters'),
@@ -180,35 +120,6 @@ jest.mock('../../../util/activity-adapters', () => ({
 jest.mock('./AssetDetailsActivityListItem.utils', () => ({
   mapTransactionToActivityItem: (...args: unknown[]) =>
     mockMapTransactionToActivityItem(...args),
-}));
-jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
-  QRSignMode: { SpeedUp: 'speed-up', Cancel: 'cancel' },
-  createQRSigningTransactionModalNavDetails: (...args: unknown[]) =>
-    mockCreateQRSigningTransactionModalNavDetails(...args),
-}));
-jest.mock('../../../core/HardwareWallet', () => ({
-  useHardwareWallet: () => ({}),
-  executeHardwareWalletOperation: (...args: unknown[]) =>
-    mockExecuteHardwareWalletOperation(...args),
-}));
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    ApprovalController: {
-      acceptRequest: jest.fn(),
-      rejectRequest: jest.fn(),
-    },
-    TransactionController: {
-      cancelTransaction: jest.fn(),
-      stopTransaction: jest.fn(),
-      state: {
-        transactions: [],
-      },
-    },
-  },
-}));
-jest.mock('../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: { showToast: jest.fn() },
 }));
 jest.mock('../../../util/Logger', () => ({ error: jest.fn() }));
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -285,30 +196,14 @@ jest.mock('../../../component-library/hooks', () => {
     }),
   };
 });
-jest.mock('../../../actions/alert', () => ({ showAlert: jest.fn() }));
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
-jest.mock('../../../selectors/accountTrackerController', () => ({
-  selectAccounts: jest.fn(),
-}));
-jest.mock('../../../selectors/confirmTransaction', () => ({
-  selectGasFeeEstimates: jest.fn(),
-}));
-jest.mock('../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: jest.fn(),
-}));
-jest.mock('../../../selectors/gasFeeController', () => ({
-  selectGasFeeControllerEstimateType: jest.fn(),
-}));
 jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
-  selectNetworkClientId: jest.fn(),
   selectNetworkConfigurations: jest.fn(),
-  selectProviderConfig: jest.fn(),
-  selectProviderType: jest.fn(),
 }));
 jest.mock('../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(),
@@ -322,17 +217,6 @@ jest.mock(
     selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
   }),
 );
-jest.mock('../../../selectors/settings', () => ({
-  selectPrimaryCurrency: jest.fn(),
-}));
-jest.mock('../../../reducers/collectibles', () => ({
-  collectibleContractsSelector: jest.fn(),
-}));
-jest.mock('../QRHardware/withQRHardwareAwareness', () => ({
-  __esModule: true,
-  default: (Component: React.ComponentType) => Component,
-}));
-
 let mockNavigation: { navigate: jest.Mock; push: jest.Mock };
 
 const resetNavigationMocks = () => {
@@ -340,16 +224,11 @@ const resetNavigationMocks = () => {
 };
 
 const createDefaultTestProps = () => ({
-  accounts: { '0x123': { balance: '1000000000000000000' } },
   chainId: '0x1',
-  collectibleContracts: [],
   confirmedTransactions: [],
-  currentCurrency: 'USD',
-  gasFeeEstimates: { medium: { suggestedMaxFeePerGas: '20' } },
   loading: false,
   navigation: mockNavigation,
   networkConfigurations: {},
-  providerConfig: { type: 'mainnet' },
   selectedAddress: '0x123',
   submittedTransactions: [],
   transactions: [],
@@ -361,140 +240,42 @@ const renderTransactions = (props = {}) =>
 const asComponentType = (name: string) =>
   name as unknown as React.ComponentType;
 
-const getTransactionElement = (
-  rendered: ReturnType<typeof renderTransactions>,
-) => rendered.UNSAFE_getByType(asComponentType('TransactionElement'));
-
-const invokeTransactionAction = (
-  rendered: ReturnType<typeof renderTransactions>,
-  action: 'cancel' | 'cancelUnsignedQR' | 'press' | 'signQR' | 'speedUp',
-  transaction: { id: string; time: number },
-  enabled = true,
-) => {
-  const props = getTransactionElement(rendered).props;
-  if (action === 'press') {
-    props.onPressItem(transaction.id, props.i);
-  } else if (action === 'speedUp') {
-    props.onSpeedUpAction(enabled, transaction);
-  } else if (action === 'cancel') {
-    props.onCancelAction(enabled, transaction);
-  } else if (action === 'cancelUnsignedQR') {
-    props.cancelUnsignedQRTransaction(transaction);
-  } else {
-    props.signQRTransaction(transaction);
-  }
-};
-
 describe('UnconnectedTransactions', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
     jest.clearAllMocks();
     resetNavigationMocks();
-    (isHardwareAccount as jest.Mock).mockReturnValue(false);
     (isNonEvmChainId as jest.Mock).mockReturnValue(false);
-    (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
-      null,
-    );
-    (getBlockExplorerAddressUrl as jest.Mock).mockReturnValue({
-      title: 'Etherscan',
-      url: 'https://etherscan.io/address/0x123',
-    });
     (getBlockExplorerName as jest.Mock).mockReturnValue('Etherscan');
-    mockCreateQRSigningTransactionModalNavDetails.mockReturnValue([
-      'QRSigningTransactionModal',
-      { transactionId: 'transaction-id' },
-    ]);
+    mockMapTransactionToActivityItem.mockImplementation(({ transaction }) => ({
+      type: 'activity',
+      id: transaction.id,
+    }));
     mockGroupActivityListItems.mockImplementation((items) => items);
   });
 
-  afterEach(() => {
-    jest.clearAllTimers();
-    jest.useRealTimers();
-  });
-
   describe('list lifecycle', () => {
-    it('passes the list ref to the parent after initialization', () => {
-      const onRefSet = jest.fn();
-
-      renderTransactions({ onRefSet });
-
-      expect(onRefSet).toHaveBeenCalledWith(
-        expect.objectContaining({ current: expect.anything() }),
-      );
-    });
-
     it('omits the empty-state footer when requested', () => {
       renderTransactions({ hideEmptyState: true });
 
       expect(screen.getByTestId('transactions-container')).toBeOnTheScreen();
     });
 
-    it('expands the transaction selected by a notification', () => {
-      const transaction = { id: 'notification-transaction', time: 2 };
-      (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
-        transaction.id,
-      );
-
-      const rendered = renderTransactions({ transactions: [transaction] });
-      act(() => {
-        jest.advanceTimersByTime(1100);
-      });
-
-      expect(NotificationManager.getTransactionToView).toHaveBeenCalledTimes(1);
-      expect(getTransactionElement(rendered).props.tx).toEqual(transaction);
-    });
-
-    it('requeues the notification transaction id if unmounted before it opens', () => {
-      // getTransactionToView() destructively pops the id. If we unmount
-      // before the 1s delay elapses (e.g. a fast remount), it must be
-      // pushed back so a later mount can still act on it.
-      const transaction = { id: 'notification-transaction', time: 2 };
-      (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
-        transaction.id,
-      );
-
-      const rendered = renderTransactions({ transactions: [transaction] });
-      act(() => {
-        jest.advanceTimersByTime(500);
-      });
-      rendered.unmount();
-
-      expect(NotificationManager.setTransactionToView).toHaveBeenCalledWith(
-        transaction.id,
-      );
-    });
-
-    it('does not requeue the notification transaction id once it has opened', () => {
-      const transaction = { id: 'notification-transaction', time: 2 };
-      (NotificationManager.getTransactionToView as jest.Mock).mockReturnValue(
-        transaction.id,
-      );
-
-      const rendered = renderTransactions({ transactions: [transaction] });
-      act(() => {
-        jest.advanceTimersByTime(1100);
-      });
-      rendered.unmount();
-
-      expect(NotificationManager.setTransactionToView).not.toHaveBeenCalled();
-    });
-
-    it('sorts submitted transactions without mutating the input', () => {
+    it('lists submitted transactions newest first without mutating the input', () => {
       const submittedTransactions = [
         { id: 'older', time: 1 },
         { id: 'newer', time: 2 },
       ];
 
-      const rendered = renderTransactions({ submittedTransactions });
+      renderTransactions({ submittedTransactions });
 
       expect(submittedTransactions.map(({ id }) => id)).toEqual([
         'older',
         'newer',
       ]);
       expect(
-        rendered
-          .UNSAFE_getAllByType(asComponentType('TransactionElement'))
-          .map(({ props }) => props.tx.id),
+        mockMapTransactionToActivityItem.mock.calls.map(
+          ([{ transaction }]) => transaction.id,
+        ),
       ).toEqual(['newer', 'older']);
     });
 
@@ -510,65 +291,17 @@ describe('UnconnectedTransactions', () => {
 
       expect(onScrollThroughContent).toHaveBeenCalledWith(42);
     });
-
-    it('expands and collapses a transaction from its list callback', () => {
-      const transaction = { id: 'expandable', time: 1 };
-
-      const rendered = renderTransactions({
-        headerHeight: 1,
-        transactions: [transaction],
-      });
-
-      act(() => {
-        invokeTransactionAction(rendered, 'press', transaction);
-        jest.advanceTimersByTime(300);
-        invokeTransactionAction(rendered, 'press', transaction);
-      });
-
-      expect(getTransactionElement(rendered).props.tx).toEqual(transaction);
-    });
   });
 
   describe('block explorer', () => {
-    it('opens an EVM explorer from the footer', () => {
-      const close = jest.fn();
+    it('opens the asset chain explorer from the footer', () => {
       const transaction = { id: 'transaction', time: 1 };
-      (findBlockExplorerForRpc as jest.Mock).mockReturnValue(
-        'https://rpc.explorer',
-      );
-
-      renderTransactions({
-        close,
-        providerConfig: { type: 'rpc', rpcUrl: 'https://rpc.example' },
-        transactions: [transaction],
-      });
-      fireEvent.press(screen.getByTestId('transactions-footer-view-explorer'));
-
-      expect(getBlockExplorerAddressUrl).toHaveBeenCalledWith(
-        'rpc',
-        '0x123',
-        'https://rpc.explorer',
-      );
-      expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
-        params: {
-          title: 'Etherscan',
-          url: 'https://etherscan.io/address/0x123',
-        },
-        screen: 'SimpleWebview',
-      });
-      expect(close).toHaveBeenCalledTimes(1);
-    });
-
-    it('opens the asset chain explorer for asset details', () => {
-      const transaction = { id: 'transaction', time: 1 };
-      mockGroupActivityListItems.mockReturnValue([]);
       (findBlockExplorerUrlForChain as jest.Mock).mockReturnValue(
         'https://polygonscan.com',
       );
       (getBlockExplorerName as jest.Mock).mockReturnValue('Polygonscan');
 
       renderTransactions({
-        location: TransactionDetailLocation.AssetDetails,
         tokenChainId: '0x89',
         transactions: [transaction],
       });
@@ -583,57 +316,33 @@ describe('UnconnectedTransactions', () => {
       });
     });
 
-    it('logs missing explorer URLs instead of navigating', () => {
-      const transaction = { id: 'transaction', time: 1 };
-      (getBlockExplorerAddressUrl as jest.Mock).mockReturnValue({});
-      (findBlockExplorerForRpc as jest.Mock).mockReturnValue(
-        'https://rpc.explorer',
-      );
-
-      renderTransactions({
-        providerConfig: { type: 'rpc', rpcUrl: 'https://rpc.example' },
-        transactions: [transaction],
-      });
-      fireEvent.press(screen.getByTestId('transactions-footer-view-explorer'));
-
-      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
-        message: "can't get a block explorer link for network ",
-        type: 'rpc',
-      });
-      expect(mockNavigation.push).not.toHaveBeenCalled();
-    });
-
-    it('looks up RPC and non-EVM explorers when context changes', () => {
-      (findBlockExplorerForRpc as jest.Mock).mockReturnValue(
-        'https://rpc.explorer',
-      );
-      (isNonEvmChainId as jest.Mock)
-        .mockReturnValueOnce(false)
-        .mockReturnValue(true);
+    it('looks up the non-EVM explorer for a non-EVM token chain', () => {
+      (isNonEvmChainId as jest.Mock).mockReturnValue(true);
       (findBlockExplorerForNonEvmChainId as jest.Mock).mockReturnValue(
         'https://solscan.io',
       );
 
-      const { rerender } = render(
-        <UnconnectedTransactions
-          {...createDefaultTestProps()}
-          providerConfig={{ type: 'rpc', rpcUrl: 'https://rpc.example' }}
-        />,
-      );
-      rerender(
-        <UnconnectedTransactions
-          {...createDefaultTestProps()}
-          chainId="solana:mainnet"
-        />,
-      );
+      renderTransactions({ tokenChainId: 'solana:mainnet' });
 
-      expect(findBlockExplorerForRpc).toHaveBeenCalledWith(
-        'https://rpc.example',
-        {},
-      );
       expect(findBlockExplorerForNonEvmChainId).toHaveBeenCalledWith(
         'solana:mainnet',
       );
+      expect(findBlockExplorerUrlForChain).not.toHaveBeenCalled();
+    });
+
+    it('hides the explorer link when the asset chain has no explorer', () => {
+      const transaction = { id: 'transaction', time: 1 };
+      (findBlockExplorerUrlForChain as jest.Mock).mockReturnValue(undefined);
+
+      renderTransactions({
+        tokenChainId: '0x89',
+        transactions: [transaction],
+      });
+
+      expect(
+        screen.queryByTestId('transactions-footer-view-explorer'),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigation.push).not.toHaveBeenCalled();
     });
   });
 
@@ -652,10 +361,7 @@ describe('UnconnectedTransactions', () => {
         activityRow,
       ]);
 
-      const rendered = renderTransactions({
-        location: TransactionDetailLocation.AssetDetails,
-        transactions: [transaction],
-      });
+      const rendered = renderTransactions({ transactions: [transaction] });
 
       expect(mockMapTransactionToActivityItem).toHaveBeenCalledWith({
         assetSymbol: undefined,
@@ -673,223 +379,6 @@ describe('UnconnectedTransactions', () => {
       ).toEqual(transaction);
     });
   });
-
-  describe('replacement transactions', () => {
-    const transaction = {
-      id: 'replacement',
-      time: 1,
-      txParams: { gasPrice: '0x0' },
-    };
-
-    const openReplacementModal = (action: 'speedup' | 'cancel') => {
-      const rendered = renderTransactions({ transactions: [transaction] });
-      act(() => {
-        invokeTransactionAction(
-          rendered,
-          action === 'speedup' ? 'speedUp' : action,
-          transaction,
-        );
-      });
-      return rendered;
-    };
-
-    it('closes the replacement modal when speed-up is declined', () => {
-      const rendered = renderTransactions({ transactions: [transaction] });
-
-      act(() => {
-        invokeTransactionAction(rendered, 'speedUp', transaction, false);
-      });
-
-      expect(
-        screen.queryByTestId('cancel-speedup-modal-confirm'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('leaves the replacement modal closed without a transaction', () => {
-      const rendered = renderTransactions({ transactions: [transaction] });
-
-      act(() => {
-        getTransactionElement(rendered).props.onCancelAction(true);
-      });
-
-      expect(
-        screen.queryByTestId('cancel-speedup-modal-confirm'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('closes the replacement modal when cancellation is declined', () => {
-      const rendered = renderTransactions({ transactions: [transaction] });
-
-      act(() => {
-        invokeTransactionAction(rendered, 'cancel', transaction, false);
-      });
-
-      expect(
-        screen.queryByTestId('cancel-speedup-modal-confirm'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('submits a normal speed-up transaction', async () => {
-      openReplacementModal('speedup');
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
-      });
-
-      expect(speedUpTransaction).toHaveBeenCalledWith('replacement', {
-        gasPrice: '0x123',
-      });
-    });
-
-    it('submits a normal cancellation transaction', async () => {
-      openReplacementModal('cancel');
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
-      });
-
-      expect(
-        Engine.context.TransactionController.stopTransaction,
-      ).toHaveBeenCalledWith('replacement', { gasPrice: '0x123' });
-    });
-
-    it('opens QR signing for a replacement transaction', async () => {
-      (isHardwareAccount as jest.Mock).mockImplementation(
-        (_address, keyrings?: string[]) =>
-          keyrings?.includes(ExtendedKeyringTypes.qr) ?? false,
-      );
-      openReplacementModal('speedup');
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
-      });
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'QRSigningTransactionModal',
-        expect.objectContaining({ transactionId: 'transaction-id' }),
-      );
-    });
-
-    it('opens QR signing for a cancellation transaction', async () => {
-      (isHardwareAccount as jest.Mock).mockImplementation(
-        (_address, keyrings?: string[]) =>
-          keyrings?.includes(ExtendedKeyringTypes.qr) ?? false,
-      );
-      openReplacementModal('cancel');
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
-      });
-
-      expect(
-        mockCreateQRSigningTransactionModalNavDetails,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          signMode: 'cancel',
-          transactionId: 'replacement',
-        }),
-      );
-    });
-
-    it('signs a Ledger replacement through the hardware operation', async () => {
-      (isHardwareAccount as jest.Mock).mockImplementation(
-        (_address, keyrings?: string[]) =>
-          keyrings?.includes(ExtendedKeyringTypes.ledger) ?? false,
-      );
-      mockExecuteHardwareWalletOperation.mockImplementation(
-        async ({ execute }: { execute: () => Promise<void> }) => {
-          await execute();
-          return true;
-        },
-      );
-      openReplacementModal('speedup');
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
-      });
-
-      expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: '0x123',
-          operationType: 'transaction',
-        }),
-      );
-      expect(speedUpTransaction).toHaveBeenCalledWith('replacement', {
-        gasPrice: '0x123',
-      });
-    });
-
-    it('signs a Ledger cancellation through the hardware operation', async () => {
-      (isHardwareAccount as jest.Mock).mockImplementation(
-        (_address, keyrings?: string[]) =>
-          keyrings?.includes(ExtendedKeyringTypes.ledger) ?? false,
-      );
-      mockExecuteHardwareWalletOperation.mockImplementation(
-        async ({ execute }: { execute: () => Promise<void> }) => {
-          await execute();
-          return true;
-        },
-      );
-      openReplacementModal('cancel');
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
-      });
-
-      expect(
-        Engine.context.TransactionController.stopTransaction,
-      ).toHaveBeenCalledWith('replacement', { gasPrice: '0x123' });
-    });
-
-    it('reports failed speed-up submissions through the transaction toast', async () => {
-      const error = new Error('replacement failed');
-      (speedUpTransaction as jest.Mock).mockRejectedValue(error);
-      openReplacementModal('speedup');
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
-      });
-
-      expect(Logger.error).toHaveBeenCalledWith(error, {
-        message: 'speedUpTransaction failed ',
-        speedUpTxId: 'replacement',
-      });
-    });
-
-    it('reports failed cancellation submissions through the transaction toast', async () => {
-      const error = new Error('cancellation failed');
-      (
-        Engine.context.TransactionController.stopTransaction as jest.Mock
-      ).mockRejectedValue(error);
-      openReplacementModal('cancel');
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
-      });
-
-      expect(Logger.error).toHaveBeenCalledWith(error, {
-        cancelTxId: 'replacement',
-        message: 'cancelTransaction failed ',
-      });
-    });
-
-    it('cancels unsigned QR transactions and opens QR signing', async () => {
-      const rendered = renderTransactions({ transactions: [transaction] });
-
-      await act(async () => {
-        invokeTransactionAction(rendered, 'cancelUnsignedQR', transaction);
-        invokeTransactionAction(rendered, 'signQR', transaction);
-      });
-
-      expect(
-        Engine.context.ApprovalController.rejectRequest,
-      ).toHaveBeenCalledWith('replacement', expect.any(Object));
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'QRSigningTransactionModal',
-        expect.any(Object),
-      );
-    });
-  });
 });
 
 describe('mapStateToProps', () => {
@@ -898,108 +387,53 @@ describe('mapStateToProps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(selectChainId).mockReturnValue('0x1');
-    jest.mocked(selectProviderConfig).mockReturnValue({
-      type: 'mainnet',
-    } as ReturnType<typeof selectProviderConfig>);
-    jest.mocked(selectNetworkClientId).mockReturnValue('mainnet-client');
-    jest.mocked(selectProviderType).mockReturnValue('mainnet');
   });
 
-  describe('when used for Token Details (tokenChainId is provided)', () => {
-    const ownProps = { tokenChainId: '0x89' };
+  it('derives chainId from tokenChainId instead of the globally selected network', () => {
+    const result = mapStateToProps(mockState, { tokenChainId: '0x89' });
 
-    it('derives chainId from tokenChainId instead of the globally selected network', () => {
-      const result = mapStateToProps(mockState, ownProps);
-
-      expect(result.chainId).toBe('0x89');
-      expect(selectChainId).not.toHaveBeenCalled();
-    });
-
-    it('does not read the globally selected network client or type', () => {
-      const result = mapStateToProps(mockState, ownProps);
-
-      expect(result.networkClientId).toBeUndefined();
-      expect(result.networkType).toBeUndefined();
-      expect(selectNetworkClientId).not.toHaveBeenCalled();
-      expect(selectProviderType).not.toHaveBeenCalled();
-    });
-
-    it('returns a referentially stable providerConfig across separate calls', () => {
-      // Regression test: mapStateToProps runs on every store update, so a
-      // fresh `{}` literal here would break shallow-equality checks in
-      // `connect()` and force this component to re-render on every Redux
-      // dispatch, even when nothing relevant to it changed.
-      const first = mapStateToProps(mockState, ownProps);
-      const second = mapStateToProps(mockState, ownProps);
-
-      expect(first.providerConfig).toBe(second.providerConfig);
-      expect(selectProviderConfig).not.toHaveBeenCalled();
-    });
-
-    it('selects asset enrichment data once in the parent', () => {
-      const internalAccount = { metadata: { importTime: 123 } };
-      const groupAccount = { address: '0x123' };
-      const networkConfigurations = { '0x89': { nativeCurrency: 'POL' } };
-      const allTokens = { '0x89': { '0x123': [] } };
-      const bridgeHistory = { bridge: {} };
-      jest
-        .mocked(selectSelectedInternalAccount)
-        .mockReturnValue(internalAccount as never);
-      jest
-        .mocked(selectSelectedAccountGroupEvmInternalAccount)
-        .mockReturnValue(groupAccount as never);
-      jest
-        .mocked(selectEvmNetworkConfigurationsByChainId)
-        .mockReturnValue(networkConfigurations as never);
-      jest.mocked(selectAllTokens).mockReturnValue(allTokens as never);
-      jest
-        .mocked(selectBridgeHistoryForAccount)
-        .mockReturnValue(bridgeHistory as never);
-
-      const result = mapStateToProps(mockState, ownProps);
-
-      expect(result).toEqual(
-        expect.objectContaining({
-          accountImportTime: 123,
-          groupEvmAccountAddress: '0x123',
-          networkConfigurationsByChainId: networkConfigurations,
-          allTokens,
-          bridgeHistory,
-        }),
-      );
-    });
+    expect(result.chainId).toBe('0x89');
+    expect(selectChainId).not.toHaveBeenCalled();
   });
 
-  describe('when used for the Activity tab (no tokenChainId)', () => {
-    const ownProps = {};
+  it('falls back to the globally selected chain when no tokenChainId is given', () => {
+    const result = mapStateToProps(mockState, {});
 
-    it('derives chainId and providerConfig from the globally selected network', () => {
-      const result = mapStateToProps(mockState, ownProps);
+    expect(selectChainId).toHaveBeenCalledWith(mockState);
+    expect(result.chainId).toBe('0x1');
+  });
 
-      expect(selectChainId).toHaveBeenCalledWith(mockState);
-      expect(result.chainId).toBe('0x1');
-      expect(selectProviderConfig).toHaveBeenCalledWith(mockState);
-      expect(result.providerConfig).toEqual({ type: 'mainnet' });
-    });
+  it('selects asset enrichment data once in the parent', () => {
+    const internalAccount = { metadata: { importTime: 123 } };
+    const groupAccount = { address: '0x123' };
+    const networkConfigurations = { '0x89': { nativeCurrency: 'POL' } };
+    const allTokens = { '0x89': { '0x123': [] } };
+    const bridgeHistory = { bridge: {} };
+    jest
+      .mocked(selectSelectedInternalAccount)
+      .mockReturnValue(internalAccount as never);
+    jest
+      .mocked(selectSelectedAccountGroupEvmInternalAccount)
+      .mockReturnValue(groupAccount as never);
+    jest
+      .mocked(selectEvmNetworkConfigurationsByChainId)
+      .mockReturnValue(networkConfigurations as never);
+    jest.mocked(selectAllTokens).mockReturnValue(allTokens as never);
+    jest
+      .mocked(selectBridgeHistoryForAccount)
+      .mockReturnValue(bridgeHistory as never);
 
-    it('reads networkClientId and networkType from the globally selected network', () => {
-      const result = mapStateToProps(mockState, ownProps);
+    const result = mapStateToProps(mockState, { tokenChainId: '0x89' });
 
-      expect(result.networkClientId).toBe('mainnet-client');
-      expect(result.networkType).toBe('mainnet');
-    });
-
-    it('does not select asset enrichment data', () => {
-      mapStateToProps(mockState, ownProps);
-
-      expect(selectSelectedInternalAccount).not.toHaveBeenCalled();
-      expect(
-        selectSelectedAccountGroupEvmInternalAccount,
-      ).not.toHaveBeenCalled();
-      expect(selectEvmNetworkConfigurationsByChainId).not.toHaveBeenCalled();
-      expect(selectAllTokens).not.toHaveBeenCalled();
-      expect(selectBridgeHistoryForAccount).not.toHaveBeenCalled();
-    });
+    expect(result).toEqual(
+      expect.objectContaining({
+        accountImportTime: 123,
+        groupEvmAccountAddress: '0x123',
+        networkConfigurationsByChainId: networkConfigurations,
+        allTokens,
+        bridgeHistory,
+      }),
+    );
   });
 });
 
