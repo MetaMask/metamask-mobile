@@ -1,11 +1,24 @@
 import {
   PopularList,
+  CustomNetworkImgMapping,
   getNonEvmNetworkImageSourceByChainId,
   getFilteredPopularNetworks,
 } from './customNetworks';
 import { toHex } from '@metamask/controller-utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
+
+jest.mock('../../images/citizenchain.png', () => 'citizenchain-network-icon');
+
+describe('CustomNetworkImgMapping', () => {
+  it('uses the bundled CitizenChain image for chain 2027', () => {
+    const chainId = '0x7eb';
+
+    const image = CustomNetworkImgMapping[chainId];
+
+    expect(image).toBe('citizenchain-network-icon');
+  });
+});
 
 describe('popularNetwork', () => {
   it('should have correct chainIds for all popular network', () => {
