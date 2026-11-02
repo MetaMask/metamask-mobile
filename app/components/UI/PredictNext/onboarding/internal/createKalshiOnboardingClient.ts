@@ -1,7 +1,6 @@
 import Engine from '../../../../../core/Engine';
 import packageJSON from '../../../../../../package.json';
 import { KalshiOnboardingClient } from '../../adapters/remote/KalshiOnboardingClient';
-import { KALSHI_DEMO_AUTHORITY } from '../../auth/kalshiAuthority';
 
 export const createKalshiOnboardingClient = (): KalshiOnboardingClient =>
   new KalshiOnboardingClient({
@@ -9,11 +8,11 @@ export const createKalshiOnboardingClient = (): KalshiOnboardingClient =>
     clientVersion: packageJSON.version,
     getBearerToken: () =>
       Engine.context.AuthenticationController.getBearerToken(),
-    authority: KALSHI_DEMO_AUTHORITY,
-    signRequests: (requests) =>
+    signRequests: (intent, required) =>
       Engine.controllerMessenger.call(
-        'PredictDeviceAuthService:signOnboardingRequests',
-        requests,
+        'PredictDeviceAuthService:signVenueRequests',
+        intent,
+        required,
       ),
     invalidateSigningSession: () =>
       Engine.controllerMessenger.call('PredictDeviceAuthService:clear'),

@@ -5,24 +5,27 @@ import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { resolveA2tIssuerUrl } from '../auth/a2tIssuerUrl';
 import { A2tSession } from '../auth/a2tSession';
-import { KALSHI_DEMO_AUTHORITY } from '../auth/kalshiAuthority';
-import { buildDeviceAuthHeader } from '../auth/kalshiDeviceAuthEnvelope';
-import {
-  signVenueRequest,
-  type KalshiSigningContext,
-} from '../auth/kalshiRequestSigner';
 import {
   createP256DeviceKey,
   type P256DeviceKey,
   type P256DevicePublicMaterial,
 } from '../auth/p256DeviceKey';
-import { isKalshiOnboardingTemplateRequest } from '../auth/signing/kalshiOnboardingTemplates';
-import type { VenueRequest } from '../auth/signing/venueRequest';
+import { buildDeviceAuthEnvelope } from '../auth/signing/deviceAuthEnvelope';
 import {
-  KALSHI_AUTHENTICATION_PROFILE,
+  signDeviceRequest,
+  type DeviceSigningContext,
+} from '../auth/signing/deviceRequestSigner';
+import type { SignatureRequired } from '../auth/signing/venueRequest';
+import {
+  checkVenueSigningRequest,
+  VenueSigningPolicyError,
+  type VenueSigningIntent,
+} from '../auth/signing/venueSigningPolicy';
+import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
+import { resolveBundledSigningProfile } from '../auth/venueSigningProfiles';
 
 export const PREDICT_DEVICE_AUTH_SERVICE_NAME =
   'PredictDeviceAuthService' as const;
@@ -37,9 +40,18 @@ export interface PredictDeviceAuthServiceGetA2tAction {
   handler: () => Promise<string | undefined>;
 }
 
-export interface PredictDeviceAuthServiceSignOnboardingRequestsAction {
-  type: 'PredictDeviceAuthService:signOnboardingRequests';
-  handler: (requests: readonly VenueRequest[]) => Promise<string | undefined>;
+/** A device-auth header to attach to the predict-api retry. */
+export interface DeviceAuthHeader {
+  name: string;
+  value: string;
+}
+
+export interface PredictDeviceAuthServiceSignVenueRequestsAction {
+  type: 'PredictDeviceAuthService:signVenueRequests';
+  handler: (
+    intent: VenueSigningIntent,
+    required: SignatureRequired,
+  ) => Promise<DeviceAuthHeader | undefined>;
 }
 
 export interface PredictDeviceAuthServicePrefetchAction {
@@ -60,7 +72,7 @@ export interface PredictDeviceAuthServiceResetAction {
 export type PredictDeviceAuthServiceActions =
   | PredictDeviceAuthServiceEnsureDeviceKeyAction
   | PredictDeviceAuthServiceGetA2tAction
-  | PredictDeviceAuthServiceSignOnboardingRequestsAction
+  | PredictDeviceAuthServiceSignVenueRequestsAction
   | PredictDeviceAuthServicePrefetchAction
   | PredictDeviceAuthServiceClearAction
   | PredictDeviceAuthServiceResetAction;
@@ -126,8 +138,8 @@ export class PredictDeviceAuthService {
       this.getA2t.bind(this),
     );
     messenger.registerActionHandler(
-      'PredictDeviceAuthService:signOnboardingRequests',
-      this.signOnboardingRequests.bind(this),
+      'PredictDeviceAuthService:signVenueRequests',
+      this.signVenueRequests.bind(this),
     );
     messenger.registerActionHandler(
       'PredictDeviceAuthService:prefetch',
@@ -165,24 +177,30 @@ export class PredictDeviceAuthService {
   }
 
   /**
-   * Signs Kalshi onboarding requests and returns the `Kalshi-Device-Auth`
-   * header. The caller passes only request shapes; the service refuses any
-   * that are not onboarding templates, signs only with the Kalshi profile and
-   * the demo authority, and keeps the key and A2T inside this service.
-   * Returns undefined when signing is not available (disabled, locked,
-   * signed out, or no A2T).
+   * Checks a `428 venue_signature_required` against the bundled signing
+   * profile of the active authentication profile (ADR-0003 L1 and L2), then
+   * signs the accepted requests and returns the device-auth header. The
+   * authority, lifetime and covered components come from the profile, never
+   * from the 428. Throws `VenueSigningPolicyError` and signs nothing when the
+   * check fails. Returns undefined when signing is not available (disabled,
+   * locked, signed out, no signing profile, or no A2T).
    */
-  async signOnboardingRequests(
-    requests: readonly VenueRequest[],
-  ): Promise<string | undefined> {
-    if (!requests.every(isKalshiOnboardingTemplateRequest)) {
-      throw new Error('Predict device request is not an onboarding template');
-    }
+  async signVenueRequests(
+    intent: VenueSigningIntent,
+    required: SignatureRequired,
+  ): Promise<DeviceAuthHeader | undefined> {
     const enabled = this.#deps.isEnabled();
     const unlocked = this.#deps.isUnlocked();
     const binding = this.#resolveBinding();
-    if (binding?.profileId !== KALSHI_AUTHENTICATION_PROFILE.id) {
+    const profile = binding
+      ? resolveBundledSigningProfile(binding.profileId)
+      : undefined;
+    if (!binding || !profile) {
       return undefined;
+    }
+    const policy = checkVenueSigningRequest(profile, intent, required);
+    if (!policy.ok) {
+      throw new VenueSigningPolicyError(policy.rule);
     }
     const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
     if (this.#stoppedDuringKeyLoad(binding, key) || !key) {
@@ -196,22 +214,24 @@ export class PredictDeviceAuthService {
     if (!a2t) {
       return undefined;
     }
-    const context: KalshiSigningContext = {
-      authority: KALSHI_DEMO_AUTHORITY,
+    const context: DeviceSigningContext = {
       a2t,
       deviceKey: key.publicKey,
       salt: key.salt,
     };
     const signatures = await Promise.all(
-      requests.map((request) =>
-        signVenueRequest(request, context, {
+      policy.requests.map((request) =>
+        signDeviceRequest(profile, request, context, {
           sign: binding.deviceKey.sign,
           requestId: () => uuidv4(),
           now: this.#deps.now,
         }),
       ),
     );
-    return buildDeviceAuthHeader(context, signatures);
+    return {
+      name: profile.envelopeHeader,
+      value: buildDeviceAuthEnvelope(context, signatures),
+    };
   }
 
   async prefetch(includeA2t = true): Promise<void> {

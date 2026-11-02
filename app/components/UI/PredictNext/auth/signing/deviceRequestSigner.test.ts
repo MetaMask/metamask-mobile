@@ -1,15 +1,16 @@
 import { p256 } from '@noble/curves/nist';
 
-import fixture from '../contracts/v1/fixtures/kalshi-signing-v1.json';
+import fixture from '../../contracts/v1/fixtures/kalshi-signing-v1.json';
+import { KALSHI_DEMO_SIGNING_PROFILE } from '../venueSigningProfiles';
 import {
-  kalshiSigningBase,
-  signVenueRequest,
-  type KalshiSigningContext,
-} from './kalshiRequestSigner';
-import { linkRequest } from './signing/kalshiOnboardingTemplates';
-import type { VenueRequest } from './signing/venueRequest';
+  deviceSigningBase,
+  signDeviceRequest,
+  type DeviceSigningContext,
+} from './deviceRequestSigner';
+import type { VenueRequest } from './venueRequest';
 
 const { vector } = fixture;
+const KEY = 'a1b2c3d4-1111-4222-8333-444455556666';
 
 const fromBase64Url = (value: string): Uint8Array =>
   new Uint8Array(
@@ -24,16 +25,26 @@ const signatureBytes = (value: string): Uint8Array => {
   return new Uint8Array(Buffer.from(match[1], 'base64'));
 };
 
-const vectorContext: KalshiSigningContext = {
-  authority: vector.authority,
+const vectorContext: DeviceSigningContext = {
   a2t: vector.a2t,
   deviceKey: vector.deviceKey,
   salt: vector.salt,
 };
 
-describe('kalshiSigningBase', () => {
+const fixtureRequest = (name: string): VenueRequest => {
+  const entry = fixture.requests.find((row) => row.name === name);
+  if (!entry) {
+    throw new Error(`no fixture row ${name}`);
+  }
+  return entry.request as VenueRequest;
+};
+
+describe('deviceSigningBase', () => {
   it('matches the shared fixture vector byte for byte', () => {
-    const base = kalshiSigningBase({
+    expect(vector.authority).toBe(KALSHI_DEMO_SIGNING_PROFILE.authority);
+
+    const base = deviceSigningBase({
+      profile: KALSHI_DEMO_SIGNING_PROFILE,
       request: vector.request as VenueRequest,
       context: vectorContext,
       requestId: vector.signature.requestId,
@@ -55,7 +66,7 @@ describe('kalshiSigningBase', () => {
   });
 });
 
-describe('signVenueRequest', () => {
+describe('signDeviceRequest', () => {
   const secretKey = p256.utils.randomSecretKey();
   const publicKey = p256.getPublicKey(secretKey, false);
   const sign = jest.fn(async (message: Uint8Array) =>
@@ -63,36 +74,40 @@ describe('signVenueRequest', () => {
   );
   const deps = {
     sign,
-    requestId: () => 'a1b2c3d4-1111-4222-8333-444455556666',
+    requestId: () => KEY,
     now: () => 1_700_000_000,
   };
 
-  it('signs a mutation with the body digest and the idempotency key', async () => {
-    const request = linkRequest(
-      'User+Tag@Example.com',
-      'a1b2c3d4-1111-4222-8333-444455556666',
-    );
+  it('signs a mutation with the profile authority, body digest and idempotency key', async () => {
+    const request = fixtureRequest('link');
 
-    const signature = await signVenueRequest(request, vectorContext, deps);
+    const signature = await signDeviceRequest(
+      KALSHI_DEMO_SIGNING_PROFILE,
+      request,
+      vectorContext,
+      deps,
+    );
 
     expect(signature).toStrictEqual({
       method: 'POST',
       path: '/trade-api/v2/isv/users/link',
       query: '',
-      requestId: 'a1b2c3d4-1111-4222-8333-444455556666',
+      requestId: KEY,
       signatureInput:
         'kalshi=("@method" "@authority" "@path" "@query" "authorization" "kalshi-device-request-id" "kalshi-device-key" "kalshi-device-key-salt" "content-digest" "content-type" "idempotency-key");created=1700000000;expires=1700000060;nonce="a1b2c3d4-1111-4222-8333-444455556666";tag="kalshi-device-request-v1"',
       signature: expect.stringMatching(/^kalshi=:[A-Za-z0-9+/]+={0,2}:$/u),
       contentDigest: fixture.requests.find((entry) => entry.name === 'link')
         ?.digest,
-      idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+      idempotencyKey: KEY,
     });
-    const base = kalshiSigningBase({
+    const base = deviceSigningBase({
+      profile: KALSHI_DEMO_SIGNING_PROFILE,
       request,
       context: vectorContext,
       requestId: signature.requestId,
       signatureParams: signature.signatureInput.slice('kalshi='.length),
     });
+    expect(base).toContain('"@authority": demo-api.kalshi.co');
     expect(
       p256.verify(
         signatureBytes(signature.signature),
@@ -104,7 +119,8 @@ describe('signVenueRequest', () => {
   });
 
   it('leaves the body fields off a read', async () => {
-    const signature = await signVenueRequest(
+    const signature = await signDeviceRequest(
+      KALSHI_DEMO_SIGNING_PROFILE,
       vector.request as VenueRequest,
       vectorContext,
       deps,

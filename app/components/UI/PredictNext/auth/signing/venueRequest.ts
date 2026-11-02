@@ -11,43 +11,13 @@ import {
   type Infer,
 } from '@metamask/superstruct';
 
-/** Covered components of a signed read, in signature order. */
-export const READ_COMPONENTS = [
-  '@method',
-  '@authority',
-  '@path',
-  '@query',
-  'authorization',
-  'kalshi-device-request-id',
-  'kalshi-device-key',
-  'kalshi-device-key-salt',
-] as const;
-
-/** Covered components of a signed mutation: the read list, then the body. */
-export const MUTATION_COMPONENTS = [
-  ...READ_COMPONENTS,
-  'content-digest',
-  'content-type',
-  'idempotency-key',
-] as const;
-
-export const VENUE_REQUEST_REFS = [
-  'balance',
-  'enrollment_current',
-  'enrollment_intent',
-  'link',
-  'link_verify',
-  'wallet_register',
-] as const;
-
-export type VenueRequestRef = (typeof VENUE_REQUEST_REFS)[number];
-
 /**
- * One Kalshi call, built on the phone from its own inputs. `query` is the
- * raw query with no leading `?`. `body` is the exact POST bytes.
+ * One venue call as predict-api will send it, after the signing policy
+ * accepted it. `ref` names the profile operation. `query` is the raw query
+ * with no leading `?`. `body` is the exact POST bytes.
  */
 export interface VenueRequest {
-  ref: VenueRequestRef;
+  ref: string;
   method: 'GET' | 'POST';
   path: string;
   query: string;
@@ -91,13 +61,8 @@ export const parseSignatureRequired = (
   return { authority: value.authority, requests: value.requests };
 };
 
-/** `Content-Digest` of the exact body bytes, standard base64. */
-export const kalshiContentDigest = (body: string): string =>
+/** `Content-Digest` (RFC 9530) of the exact body bytes, standard base64. */
+export const contentDigest = (body: string): string =>
   `sha-256=:${Buffer.from(sha256(new TextEncoder().encode(body))).toString(
     'base64',
   )}:`;
-
-export const coveredComponents = (
-  request: Pick<VenueRequest, 'method'>,
-): readonly string[] =>
-  request.method === 'GET' ? READ_COMPONENTS : MUTATION_COMPONENTS;

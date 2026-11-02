@@ -44,9 +44,15 @@ describe('demoOnboardingConfig', () => {
     expect(kalshiDemoPayoutWallet('x', 'not-an-address')).toBeUndefined();
   });
 
-  it('defaults the network to polygon', () => {
-    expect(kalshiDemoPayoutNetwork('')).toBe('polygon');
-    expect(kalshiDemoPayoutNetwork('base')).toBe('base');
-    expect(kalshiDemoPayoutNetwork('ethereum')).toBe('polygon');
+  it('defaults to the given USDC on Base address, unchanged by checksumming', () => {
+    expect(kalshiDemoPayoutWallet(undefined, undefined)).toBe(
+      '0xcDe7CE585799F1FCA8a37C7599935ea275819B9c',
+    );
+  });
+
+  it('defaults the network to base', () => {
+    expect(kalshiDemoPayoutNetwork('')).toBe('base');
+    expect(kalshiDemoPayoutNetwork('polygon')).toBe('polygon');
+    expect(kalshiDemoPayoutNetwork('ethereum')).toBe('base');
   });
 });

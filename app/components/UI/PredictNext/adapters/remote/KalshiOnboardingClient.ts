@@ -1,23 +1,14 @@
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
-import { KALSHI_DEVICE_AUTH_HEADER } from '../../auth/kalshiDeviceAuthEnvelope';
-import {
-  checkOnboardingSigningRequest,
-  type OnboardingPolicyRule,
-} from '../../auth/signing/kalshiOnboardingPolicy';
-import {
-  balanceRequest,
-  enrollmentCurrentRequest,
-  enrollmentIntentRequest,
-  linkRequest,
-  linkVerifyRequest,
-  walletRegisterRequest,
-  type KalshiWalletNetwork,
-} from '../../auth/signing/kalshiOnboardingTemplates';
 import {
   parseSignatureRequired,
-  type VenueRequest,
+  type SignatureRequired,
 } from '../../auth/signing/venueRequest';
+import {
+  VenueSigningPolicyError,
+  type VenueSigningIntent,
+  type VenueSigningPolicyRule,
+} from '../../auth/signing/venueSigningPolicy';
 import {
   parseKalshiActivate,
   parseKalshiDemoKyc,
@@ -47,9 +38,9 @@ export class KalshiOnboardingHttpError extends Error {
 
 /** The phone refused to sign. Nothing was sent with a signature. */
 export class KalshiOnboardingPolicyError extends Error {
-  readonly rule: OnboardingPolicyRule | 'signing_unavailable';
+  readonly rule: VenueSigningPolicyRule | 'signing_unavailable';
 
-  constructor(rule: OnboardingPolicyRule | 'signing_unavailable') {
+  constructor(rule: VenueSigningPolicyRule | 'signing_unavailable') {
     super(`Kalshi onboarding request was not signed: ${rule}.`);
     this.name = 'KalshiOnboardingPolicyError';
     this.rule = rule;
@@ -61,16 +52,16 @@ export interface KalshiOnboardingClientOptions {
   clientVersion: string;
   fetch?: typeof fetch;
   getBearerToken: () => Promise<string | undefined>;
-  /** `@authority` this build signs. A 428 naming another one is refused. */
-  authority: string;
   /**
-   * Signs the phone-built requests in the Engine and returns the
-   * `Kalshi-Device-Auth` header, or undefined when signing is unavailable.
-   * The key and A2T never reach this client.
+   * Checks a 428 against the bundled signing profile in the Engine, signs
+   * what it accepts, and returns the device-auth header. Undefined when
+   * signing is unavailable. Throws `VenueSigningPolicyError` on a refusal.
+   * The key, the A2T and the profile never reach this client.
    */
   signRequests: (
-    requests: readonly VenueRequest[],
-  ) => Promise<string | undefined>;
+    intent: VenueSigningIntent,
+    required: SignatureRequired,
+  ) => Promise<{ name: string; value: string } | undefined>;
   /** Drops the cached A2T after `venue_auth_invalid`. */
   invalidateSigningSession: () => void;
 }
@@ -106,10 +97,11 @@ const toHttpError = (response: RawResponse): KalshiOnboardingHttpError =>
 
 /**
  * predict-api Kalshi onboarding routes. A device-signed route is called
- * first without `Kalshi-Device-Auth`. predict-api answers 428 with the exact
- * calls it plans to send. The phone accepts them only when they equal the
- * requests it built from its own inputs, signs its own copies, and retries
- * once. A second 428 is an error.
+ * first without a device signature. predict-api answers 428 with the exact
+ * venue calls it plans to send. This client knows none of their paths or
+ * bodies. It names the operations each route may need and the inputs the
+ * user gave, and the Engine signs only what its bundled signing profile
+ * accepts (ADR-0003). It then retries once. A second 428 is an error.
  */
 export class KalshiOnboardingClient {
   readonly #options: KalshiOnboardingClientOptions;
@@ -121,10 +113,9 @@ export class KalshiOnboardingClient {
   }
 
   async getStatus(): Promise<KalshiOnboardingStatus> {
-    const value = await this.#signedCall('GET', ['status'], undefined, [
-      balanceRequest(),
-      enrollmentCurrentRequest(),
-    ]);
+    const value = await this.#signedCall('GET', ['status'], undefined, {
+      operations: ['balance', 'enrollment_current'],
+    });
     const status = parseKalshiOnboardingStatus(value);
     Logger.log('PredictNext: Kalshi onboarding status', {
       state: status.state,
@@ -139,7 +130,7 @@ export class KalshiOnboardingClient {
       'POST',
       ['intents'],
       { idempotencyKey },
-      [enrollmentIntentRequest(idempotencyKey)],
+      { operations: ['enrollment_intent'], idempotencyKey },
     );
     const intent = parseKalshiEnrollmentIntent(value);
     Logger.log('PredictNext: Kalshi onboarding intent', {
@@ -151,9 +142,12 @@ export class KalshiOnboardingClient {
   }
 
   async submitEmail(email: string, idempotencyKey: string): Promise<void> {
-    await this.#signedCall('POST', ['link'], { email, idempotencyKey }, [
-      linkRequest(email, idempotencyKey),
-    ]);
+    await this.#signedCall(
+      'POST',
+      ['link'],
+      { email, idempotencyKey },
+      { operations: ['link'], inputs: { email }, idempotencyKey },
+    );
   }
 
   async verifyCode(code: string, idempotencyKey: string) {
@@ -161,7 +155,7 @@ export class KalshiOnboardingClient {
       'POST',
       ['link', 'verify'],
       { code, idempotencyKey },
-      [linkVerifyRequest(code, idempotencyKey)],
+      { operations: ['link_verify'], inputs: { code }, idempotencyKey },
     );
     return parseKalshiLinkVerify(value);
   }
@@ -178,14 +172,18 @@ export class KalshiOnboardingClient {
   /** `walletAddress` must be the address the user confirmed on screen. */
   async activate(
     walletAddress: string,
-    network: KalshiWalletNetwork,
+    network: string,
     idempotencyKey: string,
   ) {
     const value = await this.#signedCall(
       'POST',
       ['activate'],
       { walletAddress, network, idempotencyKey },
-      [walletRegisterRequest({ walletAddress, network, idempotencyKey })],
+      {
+        operations: ['wallet_register'],
+        inputs: { walletAddress, network },
+        idempotencyKey,
+      },
     );
     return parseKalshiActivate(value);
   }
@@ -194,7 +192,7 @@ export class KalshiOnboardingClient {
     method: 'GET' | 'POST',
     route: readonly string[],
     body: Record<string, string> | undefined,
-    expected: readonly VenueRequest[],
+    intent: VenueSigningIntent,
   ): Promise<unknown> {
     const unsigned = await this.#send(method, route, body);
     if (unsigned.status !== 428) {
@@ -205,18 +203,9 @@ export class KalshiOnboardingClient {
     if (!required) {
       throw toHttpError(unsigned);
     }
-    const policy = checkOnboardingSigningRequest(
-      required,
-      expected,
-      this.#options.authority,
-    );
-    if (!policy.ok) {
-      Logger.log('PredictNext: Kalshi onboarding policy refused', policy.rule);
-      throw new KalshiOnboardingPolicyError(policy.rule);
-    }
 
     const attempt = async (retried: boolean): Promise<unknown> => {
-      const header = await this.#deviceAuth(policy.requests);
+      const header = await this.#deviceAuth(intent, required);
       const signed = await this.#send(method, route, body, header);
       if (
         !retried &&
@@ -235,8 +224,20 @@ export class KalshiOnboardingClient {
     return attempt(false);
   }
 
-  async #deviceAuth(requests: readonly VenueRequest[]): Promise<string> {
-    const header = await this.#options.signRequests(requests);
+  async #deviceAuth(
+    intent: VenueSigningIntent,
+    required: SignatureRequired,
+  ): Promise<{ name: string; value: string }> {
+    let header: { name: string; value: string } | undefined;
+    try {
+      header = await this.#options.signRequests(intent, required);
+    } catch (error) {
+      if (error instanceof VenueSigningPolicyError) {
+        Logger.log('PredictNext: Kalshi onboarding policy refused', error.rule);
+        throw new KalshiOnboardingPolicyError(error.rule);
+      }
+      throw error;
+    }
     if (!header) {
       throw new KalshiOnboardingPolicyError('signing_unavailable');
     }
@@ -254,7 +255,7 @@ export class KalshiOnboardingClient {
     method: 'GET' | 'POST',
     route: readonly string[],
     body: Record<string, string> | undefined,
-    deviceAuth?: string,
+    deviceAuth?: { name: string; value: string },
   ): Promise<RawResponse> {
     const bearerToken = await this.#resolveBearerToken();
     const headers: Record<string, string> = {
@@ -267,7 +268,7 @@ export class KalshiOnboardingClient {
       headers['Content-Type'] = 'application/json';
     }
     if (deviceAuth) {
-      headers[KALSHI_DEVICE_AUTH_HEADER] = deviceAuth;
+      headers[deviceAuth.name] = deviceAuth.value;
     }
 
     const response = await this.#fetch(this.#url(route), {

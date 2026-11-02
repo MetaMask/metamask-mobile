@@ -47,6 +47,45 @@
       { "method": "POST", "path": "/trade-api/v2/isv/wallet/register" }
     ]
   },
+  "operations": {
+    "balance": {
+      "class": "read",
+      "method": "GET",
+      "path": "/trade-api/v2/portfolio/balance"
+    },
+    "enrollment_current": {
+      "class": "read",
+      "method": "GET",
+      "path": "/trade-api/v2/isv/enrollment/intents/current"
+    },
+    "enrollment_intent": {
+      "class": "mutation",
+      "method": "POST",
+      "path": "/trade-api/v2/isv/enrollment/intents",
+      "body": "empty"
+    },
+    "link": {
+      "class": "mutation",
+      "method": "POST",
+      "path": "/trade-api/v2/isv/users/link",
+      "body": [{ "field": "email", "input": "email" }]
+    },
+    "link_verify": {
+      "class": "mutation",
+      "method": "POST",
+      "path": "/trade-api/v2/isv/users/link/verify",
+      "body": [{ "field": "code", "input": "code" }]
+    },
+    "wallet_register": {
+      "class": "mutation",
+      "method": "POST",
+      "path": "/trade-api/v2/isv/wallet/register",
+      "body": [
+        { "field": "wallet_address", "input": "walletAddress" },
+        { "field": "network", "input": "network" }
+      ]
+    }
+  },
   "requests": [
     {
       "name": "balance",

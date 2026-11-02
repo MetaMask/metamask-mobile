@@ -8,9 +8,14 @@ Implementation status: the initial Engine capability is implemented for the
 bundled Kalshi P-256 profile and opaque A2T issuance. It keeps the current
 two-signature exchange (SRP challenge plus device proof), accepts the preferred
 `{ a2t, expiresIn }` response and temporary absolute-`exp` response without
-decoding token claims, and owns lock/profile/flag/reset invalidation. Generic
-request signing and remotely supplied signing profiles remain future work; the
-service intentionally exposes no arbitrary-byte signing action. The bundled
+decoding token claims, and owns lock/profile/flag/reset invalidation. Request
+signing is implemented for Kalshi demo onboarding: the bundled
+`KALSHI_DEMO_SIGNING_PROFILE` (`auth/venueSigningProfiles.ts`) pins the
+authority, signature settings and onboarding routes with their bound body
+fields, and `PredictDeviceAuthService:signVenueRequests` signs a predict-api
+`428` only after the L1 and L2 checks pass. Trading routes and signing
+profiles served by a separate backend remain future work; the service still
+exposes no arbitrary-byte signing action. The bundled
 profile now selects the allowlisted `device-p256-salt-v1` implementation and
 pins its stable key slot, proof prefix, and issuer paths. That implementation
 fixes the public-key encoding, signature encoding, 16-byte salt, and SHA-256

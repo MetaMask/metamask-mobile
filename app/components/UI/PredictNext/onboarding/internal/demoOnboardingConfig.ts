@@ -1,9 +1,8 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-import {
-  KALSHI_WALLET_NETWORKS,
-  type KalshiWalletNetwork,
-} from '../../auth/signing/kalshiOnboardingTemplates';
+/** Networks the demo activation offers. predict-api accepts the same list. */
+export const KALSHI_WALLET_NETWORKS = ['base', 'polygon'] as const;
+export type KalshiWalletNetwork = (typeof KALSHI_WALLET_NETWORKS)[number];
 
 const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/u;
 
@@ -18,11 +17,11 @@ export const isKalshiDemoOnboardingEnabled = (
 
 /**
  * Kalshi demo checks the payout wallet against Stripe's sandbox and rejects
- * real-looking addresses (`STRIPE_PAYOUT_METHOD_INVALID`). The one address
- * Stripe documents for crypto payouts, with the network its example uses.
+ * arbitrary addresses (`STRIPE_PAYOUT_METHOD_INVALID`). This is the USDC on
+ * Base address we were given for demo onboarding.
  */
-export const DEMO_PAYOUT_WALLET = '0x1234567890abcdef1234567890abcdef12345678';
-export const DEMO_PAYOUT_NETWORK: KalshiWalletNetwork = 'polygon';
+export const DEMO_PAYOUT_WALLET = '0xcDe7CE585799F1FCA8a37C7599935ea275819B9c';
+export const DEMO_PAYOUT_NETWORK: KalshiWalletNetwork = 'base';
 
 /** Set the wallet env to this to sign the selected account instead. */
 export const USE_SELECTED_ACCOUNT = 'account';

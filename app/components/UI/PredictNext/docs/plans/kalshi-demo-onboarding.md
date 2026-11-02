@@ -24,11 +24,11 @@ The user never chooses "existing" or "new" account. Kalshi decides after `link/v
 
 In order. Each is a separate PR.
 
-1. **Request signer and envelope** — signing plan §9 steps 1–2: `auth/kalshiRequestSigner.ts`, `auth/kalshiDeviceAuthEnvelope.ts`, `auth/kalshiAuthority.ts`, `auth/signing/venueRequest.ts`, and the shared fixture. Onboarding is the first consumer, so these land before trading needs them.
+1. **Signing profile, signer and envelope** (ADR-0003): `auth/venueSigningProfiles.ts`, `auth/signing/venueSigningPolicy.ts`, `auth/signing/deviceRequestSigner.ts`, `auth/signing/deviceAuthEnvelope.ts`, `auth/signing/venueRequest.ts`, and the shared fixture. Onboarding is the first consumer, so these land before trading needs them.
 2. **predict-api foundation PR and onboarding routes** (S§4, S§6).
 3. **This plan.**
 
-Already in place on `p-256-keys`: the profile-bound device key (`auth/p256DeviceKey.ts`) and the A2T session, both owned by the Engine `PredictDeviceAuthService`. The onboarding signs through `PredictDeviceAuthService:signOnboardingRequests`, which re-checks each request against `auth/signing/kalshiOnboardingTemplates.ts` before signing.
+Already in place on `p-256-keys`: the profile-bound device key (`auth/p256DeviceKey.ts`) and the A2T session, both owned by the Engine `PredictDeviceAuthService`. The onboarding signs through `PredictDeviceAuthService:signVenueRequests`, which checks each request against the bundled signing profile before signing.
 
 ## 3. State machine
 
@@ -79,7 +79,14 @@ Added to `contracts/v1/fixtures/kalshi-signing-v1.json` (shared with predict-api
 
 The phone sends the business fields first, with the MetaMask bearer and no `Kalshi-Device-Auth` header. predict-api answers `428 venue_signature_required` with `authority` and `requests`. Each request is the structured call it will relay (`ref`, method, path, query, and for a mutation the exact body, idempotency key, components, content digest, and content type).
 
-`auth/signing/kalshiOnboardingPolicy.ts` accepts that list only when every entry equals a request `kalshiOnboardingTemplates.ts` built from the phone's own inputs, and `authority` is `demo-api.kalshi.co`. The signer then builds the signing base from those phone-built requests. A mismatch signs nothing. The signed call is the same route, once. A second `428` is an error.
+The phone holds no Kalshi paths or bodies. The client names the operations each route may need and the inputs the user gave. `PredictDeviceAuthService:signVenueRequests` checks the 428 against `KALSHI_DEMO_SIGNING_PROFILE` (`auth/venueSigningProfiles.ts`) with `auth/signing/venueSigningPolicy.ts`:
+
+- L1: `authority` equals the profile's, each `ref` is an operation the call allows and the profile defines, and method, path, empty query and covered components match the profile.
+- L2: a mutation's body is canonical JSON (`JSON.stringify(JSON.parse(body)) === body`, so no whitespace or duplicate keys) with exactly the profile's fields, in any order, each equal to the user's input. An `empty` body is zero bytes. The idempotency key is the one the phone chose. The digest matches the body.
+
+The signer then signs predict-api's bytes, with the authority, lifetime, tag and components taken from the profile. A refusal throws `VenueSigningPolicyError` and signs nothing. The signed call is the same route, once. A second `428` is an error.
+
+Because the check binds fields rather than bytes, predict-api can reorder fields or change anything outside the profile without an app release. Renaming a bound field, moving a route or adding an input needs a profile change. The fixture's `operations` table is the profile, and both repos test against it.
 
 `/isv/users/link/challenge`, the KYC admin routes, deposits and withdrawals are **not** signable. The KYC routes are admin-key calls on the server and never need a device signature.
 
@@ -100,19 +107,19 @@ Signature lifetime 60 s, signed at send time.
 
 Follow `docs/module-structure.md`. A new feature owner, `onboarding/`, with a deliberately small public API.
 
-| File                                                                                         | Contents                                                                                                                                                 |
-| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auth/signing/kalshiOnboardingTemplates.ts`                                                  | Builders for the §4.1 refs. Body via `JSON.stringify` of an object literal in fixed key order. Tested against fixture golden bytes.                      |
-| `auth/signing/kalshiOnboardingPolicy.ts`                                                     | `checkOnboardingSigningRequest(required, expected, authority)`. Accepts a 428 only when each call equals one the phone built. Pure.                      |
-| `auth/kalshiRequestSigner.ts`, `auth/kalshiDeviceAuthEnvelope.ts`, `auth/kalshiAuthority.ts` | Signing base, envelope, and the demo `@authority` constant. Onboarding is their first caller.                                                            |
-| `contracts/v1/onboarding.ts`                                                                 | superstruct schemas: status `{ state, intentStatus?, expireTs? }` (unknown `state` → `unsupported`), intents, verify, demo-kyc and activate responses.   |
-| `adapters/remote/KalshiOnboardingClient.ts`                                                  | The six routes. Sends the business body, handles one 428, signs, retries. `demo-kyc` is bearer only.                                                     |
-| `onboarding/index.ts`                                                                        | Exports `KalshiDemoOnboardingGate` only.                                                                                                                 |
-| `onboarding/KalshiDemoOnboardingGate.tsx`                                                    | Renders children. When enabled (§7) and the A2T is ready, queries status once per mount of the Predict stack. Opens the modal when `state !== 'active'`. |
-| `onboarding/internal/useKalshiDemoOnboarding.ts`                                             | The §3 state machine (`useReducer`). Owns idempotency keys and the poll loop. Clears on unmount, wallet lock and A2T clear.                              |
-| `onboarding/internal/KalshiDemoOnboardingModal.tsx`                                          | The five steps in §1. Presentational.                                                                                                                    |
-| `queries/portfolioQueries.ts`                                                                | `portfolioQueryFamilies` already exports the prefixes. The gate invalidates balance, positions and activity after activation.                            |
-| `navigation/PredictNextStack.tsx`                                                            | Wrap the navigator in `<KalshiDemoOnboardingGate>` inside `PredictDeviceAuthBootstrap`.                                                                  |
+| File                                                                        | Contents                                                                                                                                                 |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth/venueSigningProfiles.ts`                                              | Bundled `KALSHI_DEMO_SIGNING_PROFILE`: authority, signature settings, envelope header, and the §4.1 operations with their bound fields.                  |
+| `auth/signing/venueSigningPolicy.ts`                                        | `checkVenueSigningRequest(profile, intent, required)`. L1 and L2 checks of a 428 against the profile. Pure.                                              |
+| `auth/signing/deviceRequestSigner.ts`, `auth/signing/deviceAuthEnvelope.ts` | Signing base and envelope, parameterized by the profile. Onboarding is their first caller.                                                               |
+| `contracts/v1/onboarding.ts`                                                | superstruct schemas: status `{ state, intentStatus?, expireTs? }` (unknown `state` → `unsupported`), intents, verify, demo-kyc and activate responses.   |
+| `adapters/remote/KalshiOnboardingClient.ts`                                 | The six routes. Sends the business body, handles one 428, signs, retries. `demo-kyc` is bearer only.                                                     |
+| `onboarding/index.ts`                                                       | Exports `KalshiDemoOnboardingGate` only.                                                                                                                 |
+| `onboarding/KalshiDemoOnboardingGate.tsx`                                   | Renders children. When enabled (§7) and the A2T is ready, queries status once per mount of the Predict stack. Opens the modal when `state !== 'active'`. |
+| `onboarding/internal/useKalshiDemoOnboarding.ts`                            | The §3 state machine (`useReducer`). Owns idempotency keys and the poll loop. Clears on unmount, wallet lock and A2T clear.                              |
+| `onboarding/internal/KalshiDemoOnboardingModal.tsx`                         | The five steps in §1. Presentational.                                                                                                                    |
+| `queries/portfolioQueries.ts`                                               | `portfolioQueryFamilies` already exports the prefixes. The gate invalidates balance, positions and activity after activation.                            |
+| `navigation/PredictNextStack.tsx`                                           | Wrap the navigator in `<KalshiDemoOnboardingGate>` inside `PredictDeviceAuthBootstrap`.                                                                  |
 
 Status is read by the state machine on mount, not by a React Query cache. The flow is in memory and ends when the sheet closes.
 
@@ -144,9 +151,9 @@ The gate renders the modal only when **all** hold:
 
 - `isKalshiDeviceKeyEnabled(config)`, signed in, wallet unlocked, A2T ready.
 - `MM_PREDICT_KALSHI_DEMO_ONBOARDING === "true"` (build env, read once). Not a remote flag: this flow must never reach production builds.
-- `kalshiAuthority` for the current build is `demo-api.kalshi.co`.
+- The active authentication profile has a bundled signing profile (`kalshi-demo-signing-v1`).
 
-**`@authority`.** The demo constant in `auth/kalshiAuthority.ts` is `demo-api.kalshi.co`. Confirmed, so the server plan's §10.1 probe is closed. It has to equal the server's `KALSHI_DEVICE_AUTHORITY`. Otherwise predict-api's own verification fails first, with `403 venue_auth_invalid`.
+**`@authority`.** The demo signing profile's `authority` is `demo-api.kalshi.co`. Confirmed, so the server plan's §10.1 probe is closed. It has to equal the server's `KALSHI_DEVICE_AUTHORITY`. Otherwise predict-api's own verification fails first, with `403 venue_auth_invalid`.
 
 **Payout wallet.** Kalshi validates the activation address with Stripe, its own payout provider. On demo, Stripe runs in sandbox mode and may reject real addresses (Kalshi spec A.7). We start with the user's own address and fall back to an override. The server plan's §10.2 lists the candidates to try.
 
@@ -157,7 +164,7 @@ Build env additions in `.js.env.example`:
 # export MM_PREDICT_KALSHI_DEMO_ONBOARDING="true"
 # Optional. Overrides the activation wallet if Kalshi demo rejects real addresses
 # with payout_method_invalid. See predict-api KALSHI_DEMO_ONBOARDING_PLAN.md §10.2.
-# export MM_PREDICT_KALSHI_DEMO_PAYOUT_WALLET="0x1234567890abcdef1234567890abcdef12345678"
+# export MM_PREDICT_KALSHI_DEMO_PAYOUT_WALLET="0xcDe7CE585799F1FCA8a37C7599935ea275819B9c"
 # export MM_PREDICT_KALSHI_DEMO_PAYOUT_NETWORK="base"
 ```
 
@@ -171,7 +178,7 @@ Build env additions in `.js.env.example`:
 
 ## 9. Tests
 
-- **Templates and policy:** fixture-driven golden bytes for every §4.1 row, plus one mutation per field (other email, other code, other wallet, extra key, reordered keys, whitespace). Assert `PredictDeviceAuthService:signOnboardingRequests` is never called on a policy failure.
+- **Templates and policy:** fixture-driven golden bytes for every §4.1 row, plus one mutation per field (other email, other code, other wallet, extra key, reordered keys, whitespace). Every predict-api golden request passes the profile with the matching inputs. The profile's operations equal the fixture's. Nothing is signed on a policy failure.
 - **State machine:** reducer table test for every server `state` and every §6 code. Idempotency key reused on retry of the same action and fresh on a new action. Restart from `cancelled` creates a new `key₁`.
 - **Gate (component-view, `tests/component-view/renderers/predictNext.ts`):** no modal when status is `active`. Modal on `none`. _Not now_ hides it until remount. No status request when the env flag is off or the wallet is locked.
 - **Adapter:** each call carries exactly the §4.2 signatures. A `428` on an onboarding route surfaces as an error without re-signing.

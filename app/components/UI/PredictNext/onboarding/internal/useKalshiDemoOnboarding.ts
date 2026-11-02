@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import Logger from '../../../../../util/Logger';
 import type { KalshiOnboardingClient } from '../../adapters/remote/KalshiOnboardingClient';
-import type { KalshiWalletNetwork } from '../../auth/signing/kalshiOnboardingTemplates';
+import type { KalshiWalletNetwork } from './demoOnboardingConfig';
 import type { KalshiOnboardingState } from '../../contracts/v1/onboarding';
 import {
   describeOnboardingFailure,
