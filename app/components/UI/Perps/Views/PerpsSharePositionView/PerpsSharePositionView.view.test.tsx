@@ -317,6 +317,10 @@ describe('PerpsSharePositionView', () => {
         PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
       ),
     );
+    fireEvent.changeText(
+      await screen.findByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'Long ETH into the weekend',
+    );
     fireEvent.press(
       await screen.findByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );

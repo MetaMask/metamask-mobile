@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import VbaIllustration, {
   VbaIllustrationSource,
 } from '../../components/Illustration';
@@ -35,6 +36,7 @@ const VbaIdentityVerified = ({
   onBack,
   onContinue,
 }: VbaIdentityVerifiedProps) => {
+  useTrackKycResultViewed('approved');
   const tw = useTailwind();
 
   return (

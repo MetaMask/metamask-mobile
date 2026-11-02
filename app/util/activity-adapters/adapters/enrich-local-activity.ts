@@ -1,4 +1,5 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
   TransactionStatus,
   TransactionType,
@@ -14,7 +15,11 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../components/UI/Earn/constants/musd';
-import type { ActivityListItem, TokenAmount } from '../types';
+import {
+  isNftAssetType,
+  type ActivityListItem,
+  type TokenAmount,
+} from '../types';
 import type { TransactionGroup } from './transaction-group';
 import {
   getKnownTokenMetadata,
@@ -34,6 +39,30 @@ const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodTransferFrom,
   TransactionType.tokenMethodSafeTransferFrom,
 ]);
+
+function getNftTokenId(
+  args: Record<string, unknown> | undefined,
+  assetType: string | undefined,
+): string | undefined {
+  if (!args || !isNftAssetType(assetType)) {
+    return undefined;
+  }
+
+  const tokenId =
+    assetType === 'erc721'
+      ? (args._tokenId ??
+        args.tokenId ??
+        args.id ??
+        args._id ??
+        args._value ??
+        args.value ??
+        args[2])
+      : (args._id ?? args.id ?? args.tokenId ?? args._tokenId ?? args[2]);
+
+  return tokenId === undefined || tokenId === null
+    ? undefined
+    : tokenId.toString();
+}
 
 const evmNativeDecimals = 18;
 const predictCollateralDecimals = 6;
@@ -556,11 +585,33 @@ function enrichTokenTransferActivity(
   }
 
   const transactionData = environment.parseStandardTokenTransactionData(data);
-  const recipient = transactionData?.args?._to ?? transactionData?.args?.to;
-  const parsedAmount =
-    transactionData?.args?._value ?? transactionData?.args?.value;
+  const args = transactionData?.args;
+  const recipient = args?._to ?? args?.to;
+  const isSafeTransfer = transactionData?.name === 'safeTransferFrom';
+  const isMetaMaskErc721Transfer =
+    type === TransactionType.tokenMethodTransferFrom &&
+    transactionGroup.initialTransaction.origin === ORIGIN_METAMASK;
+  const parsedAmount = args?._value ?? args?.value ?? args?.amount;
+  const assetType =
+    isSafeTransfer && parsedAmount !== undefined && parsedAmount !== null
+      ? 'erc1155'
+      : isSafeTransfer || isMetaMaskErc721Transfer
+        ? 'erc721'
+        : activity.data.token?.assetType;
+  const nftTokenId = getNftTokenId(args, assetType);
+  const nftAssetId =
+    isNftAssetType(assetType) &&
+    typeof txParams.to === 'string' &&
+    nftTokenId !== undefined
+      ? `${activity.chainId}/${assetType}:${txParams.to}/${nftTokenId}`
+      : undefined;
+  const assetId = isNftAssetType(assetType)
+    ? nftAssetId
+    : activity.data.token?.assetId;
   let amount: string | undefined;
-  if (
+  if (assetType === 'erc721') {
+    amount = '1';
+  } else if (
     transferInformation?.amount !== undefined &&
     transferInformation.amount !== null
   ) {
@@ -587,7 +638,9 @@ function enrichTokenTransferActivity(
     nextTo === activity.data.to &&
     amount === activity.data.token?.amount &&
     symbol === activity.data.token?.symbol &&
-    decimals === activity.data.token?.decimals
+    decimals === activity.data.token?.decimals &&
+    assetType === activity.data.token?.assetType &&
+    assetId === activity.data.token?.assetId
   ) {
     return activity;
   }
@@ -599,12 +652,11 @@ function enrichTokenTransferActivity(
       to: nextTo,
       token: {
         direction: activity.data.token?.direction ?? 'out',
-        ...(activity.data.token?.assetId
-          ? { assetId: activity.data.token.assetId }
-          : {}),
+        ...(assetId ? { assetId } : {}),
         ...(symbol ? { symbol } : {}),
         ...(decimals === undefined ? {} : { decimals }),
-        ...(amount ? { amount } : {}),
+        ...(amount !== undefined ? { amount } : {}),
+        ...(assetType ? { assetType } : {}),
       },
     },
   };
