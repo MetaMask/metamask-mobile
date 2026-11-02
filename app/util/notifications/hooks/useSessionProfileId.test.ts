@@ -1,14 +1,24 @@
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getSessionProfileId } from '../utils/get-session-profile-id';
-import { useSessionProfileId } from './useSessionProfileId';
+import {
+  getCanonicalSessionProfileId,
+  getSessionProfileId,
+} from '../utils/get-session-profile-id';
+import {
+  useCanonicalSessionProfileId,
+  useSessionProfileId,
+} from './useSessionProfileId';
 
 jest.mock('../utils/get-session-profile-id', () => ({
   getSessionProfileId: jest.fn(),
+  getCanonicalSessionProfileId: jest.fn(),
 }));
 
 const mockGetSessionProfileId = jest.mocked(getSessionProfileId);
+const mockGetCanonicalSessionProfileId = jest.mocked(
+  getCanonicalSessionProfileId,
+);
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -80,5 +90,26 @@ describe('useSessionProfileId', () => {
     expect(result.current.a.profileId).toBe('test-profile-id');
     expect(result.current.b.profileId).toBe('test-profile-id');
     expect(mockGetSessionProfileId).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('useCanonicalSessionProfileId', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('exposes the canonical profile id', async () => {
+    mockGetCanonicalSessionProfileId.mockResolvedValue('canonical-profile-id');
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(() => useCanonicalSessionProfileId(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.profileId).toBe('canonical-profile-id');
+    expect(mockGetCanonicalSessionProfileId).toHaveBeenCalledTimes(1);
   });
 });

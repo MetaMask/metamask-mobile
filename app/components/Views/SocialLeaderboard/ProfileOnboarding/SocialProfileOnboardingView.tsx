@@ -47,7 +47,7 @@ import {
   XAuthError,
   XAuthErrorType,
 } from '../../../../core/XAuthService';
-import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
+import { getCanonicalSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
@@ -780,7 +780,8 @@ const SocialProfileOnboardingView: React.FC = () => {
       (account) => account.id === current.linkedAccountId,
     );
     const profileId =
-      (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+      (await getCanonicalSessionProfileId()) ??
+      SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
     const params = buildCreateProfileParams(
       current,
       profileId,

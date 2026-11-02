@@ -1171,6 +1171,27 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
+  it('creates the profile with the canonical session id when it differs from the alias', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getSessionProfile)
+      .mockResolvedValue({
+        ...SIGNED_OUT_SESSION,
+        profileId: 'alias-profile',
+        canonicalProfileId: 'canonical-profile',
+      });
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+
+    await reachReadyStep();
+    await leaveReadyStep();
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).toBeOnTheScreen();
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ profile_id: 'canonical-profile' }),
+    );
+  });
+
   it('creates the profile with the signed-in session id', async () => {
     jest
       .mocked(Engine.context.AuthenticationController.getSessionProfile)
