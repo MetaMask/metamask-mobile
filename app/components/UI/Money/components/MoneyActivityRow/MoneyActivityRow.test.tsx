@@ -11,6 +11,7 @@ import MoneyActivityRow from './MoneyActivityRow';
 import {
   accountsApiItem,
   cardProviderItem,
+  microdepositItem,
   neobankItem,
   onchainItem,
   type AccountsApiActivity,
@@ -81,6 +82,24 @@ jest.mock('../NeobankActivityItem/NeobankActivityItem', () => {
       privacyMode?: boolean;
     }) => (
       <Text testID="neobank-row" accessibilityHint={String(privacyMode)}>
+        {activity.id}
+      </Text>
+    ),
+  };
+});
+
+jest.mock('../MicrodepositActivityItem/MicrodepositActivityItem', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      activity,
+      privacyMode,
+    }: {
+      activity: { id: string };
+      privacyMode?: boolean;
+    }) => (
+      <Text testID="microdeposit-row" accessibilityHint={String(privacyMode)}>
         {activity.id}
       </Text>
     ),
@@ -195,6 +214,25 @@ describe('MoneyActivityRow', () => {
     expect(getByTestId('neobank-row')).toHaveTextContent('neo-1');
     expect(queryByTestId('onchain-row')).toBeNull();
     expect(queryByTestId('api-row')).toBeNull();
+  });
+
+  it('renders the microdeposit row for a microdeposit item', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyActivityRow
+        item={microdepositItem({
+          id: 'micro-1',
+          amount: '0.34',
+          currencyCode: 'USD',
+          counterpartyName: 'CHASE',
+          time: 400,
+        })}
+        moneyAddress="0x1"
+      />,
+    );
+
+    expect(getByTestId('microdeposit-row')).toHaveTextContent('micro-1');
+    expect(queryByTestId('onchain-row')).toBeNull();
+    expect(queryByTestId('neobank-row')).toBeNull();
   });
 
   it('forwards privacyMode to the on-chain row', () => {

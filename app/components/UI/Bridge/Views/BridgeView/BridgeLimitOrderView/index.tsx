@@ -96,9 +96,15 @@ import {
 } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
-import { LimitOrderFeeTokenErrorBanner } from './LimitOrderFeeTokenErrorBanner';
+import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+
+const FEE_TOKEN_ERROR_BANNER_TEST_IDS = {
+  unsupportedPair: BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_UNSUPPORTED_BANNER,
+  unavailable: BridgeViewSelectorsIDs.LIMIT_FEE_TOKENS_UNAVAILABLE_BANNER,
+  retryButton: BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_RETRY_BUTTON,
+};
 
 const formatTokenAmountValue = (
   amount: string | undefined,
@@ -662,14 +668,25 @@ const BridgeLimitOrderViewContent = ({
                   <TokenWarningBanner />
                   <DestAssetRequireActivateBanner />
                   <MissingAssetsPriceDataBanner />
-                  <LimitOrderFeeTokenErrorBanner
+                  <SentinelFeeTokenErrorBanner
                     reason={feeTokenValidation.reason}
-                    supportedTokenSymbols={
-                      feeTokenValidation.reason === 'unsupported-pair'
-                        ? feeTokenValidation.supportedTokenSymbols
-                        : undefined
-                    }
+                    unsupportedPairMessage={strings(
+                      'bridge.limit.unsupported_fee_token_pair',
+                      {
+                        supportedTokens:
+                          feeTokenValidation.reason === 'unsupported-pair'
+                            ? feeTokenValidation.supportedTokenSymbols.join(
+                                ', ',
+                              )
+                            : '',
+                      },
+                    )}
+                    unavailableMessage={strings(
+                      'bridge.limit.fee_tokens_unavailable',
+                    )}
+                    retryLabel={strings('bridge.limit.try_again')}
                     onRetry={feeTokenValidation.retry}
+                    testIDs={FEE_TOKEN_ERROR_BANNER_TEST_IDS}
                   />
                 </SwapsBanners>
               </Box>

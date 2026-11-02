@@ -64,6 +64,10 @@ import {
 } from './predict-order-service-messenger';
 import { getPredictVenueControllerMessenger } from './predict-venue-controller-messenger';
 import {
+  getPredictDeviceAuthServiceInitMessenger,
+  getPredictDeviceAuthServiceMessenger,
+} from './predict-device-auth-service-messenger';
+import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
 } from './bridge-controller-messenger';
@@ -327,6 +331,10 @@ export const MESSENGER_FACTORIES = {
   PredictPortfolioService: {
     getMessenger: getPredictPortfolioServiceMessenger,
     getInitMessenger: getPredictPortfolioServiceInitMessenger,
+  },
+  PredictDeviceAuthService: {
+    getMessenger: getPredictDeviceAuthServiceMessenger,
+    getInitMessenger: getPredictDeviceAuthServiceInitMessenger,
   },
   PredictOrderService: {
     getMessenger: getPredictOrderServiceMessenger,
