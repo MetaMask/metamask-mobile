@@ -29,6 +29,25 @@ const resolveProviderId = (activeProvider: string | undefined): string =>
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
 
+/** Minimum leveraged USD value required for a Perps trade to be postable. */
+export const MIN_PERPS_POST_TRADE_SHARE_USD = 10;
+
+/** Returns whether the entered Perps amount reaches the sharing threshold. */
+export const isPerpsPostTradeShareEligible = ({
+  amountUsd,
+  leverage,
+}: {
+  amountUsd?: string;
+  leverage?: number;
+}): boolean => {
+  const amount = Number(amountUsd);
+  const leveragedAmount = amount * (leverage ?? 0);
+  return (
+    Number.isFinite(leveragedAmount) &&
+    leveragedAmount >= MIN_PERPS_POST_TRADE_SHARE_USD
+  );
+};
+
 export const canBeginPerpsPostTradeShare = ({
   copyTradeOrigin,
   orderType,
@@ -154,7 +173,8 @@ export const beginPerpsPostTradeShare = ({
       copyTradeOrigin,
       orderType,
       activeProvider,
-    })
+    }) ||
+    !isPerpsPostTradeShareEligible({ amountUsd, leverage })
   ) {
     return undefined;
   }
