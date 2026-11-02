@@ -96,6 +96,7 @@ const SETUP_END_REASON = {
   awaiting_provider: VBA_CUF_END_REASON.KYC_PENDING,
   terminal: VBA_CUF_END_REASON.KYC_REJECTED,
   failed: VBA_CUF_END_REASON.ERROR,
+  existing_on_other_wallet: VBA_CUF_END_REASON.ERROR,
 } as const satisfies Record<
   MusdAutorampSetupOutcome,
   VbaCufEndReason | undefined

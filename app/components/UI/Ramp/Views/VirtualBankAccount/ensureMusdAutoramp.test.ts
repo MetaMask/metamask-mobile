@@ -424,6 +424,11 @@ describe('ensureMusdAutoramp', () => {
     expect(mockHydrate).toHaveBeenCalledTimes(2);
     expect(Logger.error).not.toHaveBeenCalled();
     expectConflictTracked('ready');
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'autoramp-setup-id',
+      true,
+      undefined,
+    );
   });
 
   it('returns existing_on_other_wallet when a 400 conflict re-lists another wallet', async () => {
@@ -451,6 +456,11 @@ describe('ensureMusdAutoramp', () => {
     expect(logged).not.toContain(otherWallet);
     expect(logged).not.toContain('0xabc');
     expectConflictTracked('existing_on_other_wallet', otherWallet);
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'autoramp-setup-id',
+      false,
+      'error',
+    );
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
