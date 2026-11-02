@@ -55,6 +55,8 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
 import {
   getCachedDepositInstructions,
   setCachedDepositInstructions,
@@ -688,6 +690,22 @@ const VbaDetails = () => {
   ]);
 
   const isApproved = autorampStatus === 'Approved';
+  const detailsViewedRef = useRef(false);
+
+  // The account-ready screen shows once the autoramp is approved. A return to
+  // an existing account reports it too; the ref keeps polling re-renders quiet.
+  useEffect(() => {
+    if (!isApproved || detailsViewedRef.current) {
+      return;
+    }
+    detailsViewedRef.current = true;
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, () =>
+      buildVbaBaseProperties({
+        screenName: 'vba_details',
+        currencySource: sourceCurrency,
+      }),
+    );
+  }, [isApproved, sourceCurrency]);
 
   useEffect(() => {
     if (!loadError || !isApproved || instructions) {

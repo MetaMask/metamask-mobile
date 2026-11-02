@@ -102,6 +102,13 @@ const mockUseRoute = jest.fn<
   { params: { fromMigration?: boolean } | undefined },
   []
 >(() => ({ params: undefined }));
+// The PredictNext entry point's PredictRoot loads the whole Predict stack,
+// which this suite's navigation mocks cannot satisfy.
+jest.mock('../../../PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: () => mockUseRoute(),
