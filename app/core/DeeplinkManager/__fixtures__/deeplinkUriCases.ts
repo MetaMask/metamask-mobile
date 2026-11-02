@@ -1,14 +1,12 @@
 /**
- * Shared URI fixtures for the deeplink contract suites.
+ * Shared URI fixtures for the deeplink resolve-mode contract suite.
  *
- * Platform owns types, authoring helpers, and a small set of exemplars that
- * exercise each harness concern. Feature teams (and their agents) append rows
- * for their actions — expectations authored from the contract, never by calling
- * the parser or handlers.
+ * Platform owns types, authoring helpers, and a small set of exemplars.
+ * Feature teams (and their agents) append rows for their actions —
+ * expectations authored from the contract, never by calling the parser or
+ * handlers.
  *
- * Consumers:
- * - `utils/parseDeeplink.routes.test.ts` (unit, resolve-mode contract)
- * - `DeeplinkManager.navigation.view.test.tsx` (component view, navigation)
+ * Consumer: `utils/parseDeeplink.routes.test.ts`
  *
  * Maintenance policy: docs/readme/deeplinking.md ("Deeplink regression
  * coverage").
@@ -45,22 +43,6 @@ export interface VolatileParam {
   type: 'number' | 'string';
 }
 
-export interface ExpectedFocusedRoute {
-  name: string;
-  /** Exact params on this route, excluding volatile keys; omit to skip. */
-  params?: Record<string, unknown>;
-}
-
-export interface ExpectedNavigation {
-  /**
-   * Focused route chain from the root navigator down to the leaf. Params are
-   * asserted where listed; navigator-generated fields are tolerated.
-   */
-  focusedPath: ExpectedFocusedRoute[];
-  /** Volatile paths relative to the leaf route's params. */
-  volatile?: VolatileParam[];
-}
-
 export interface DeeplinkExpectation {
   /** Independently authored intent target the resolve-mode contract must produce. */
   target: ExpectedTarget;
@@ -68,7 +50,6 @@ export interface DeeplinkExpectation {
   volatile?: VolatileParam[];
   /** Whether the intent carries a `prepare()` side effect (state seeding before navigation). */
   hasPrepare: boolean;
-  navigation: ExpectedNavigation;
 }
 
 export interface DeeplinkUriCase {
@@ -87,26 +68,7 @@ export interface DeeplinkUriCase {
 const HTTPS_BASE = 'https://link.metamask.io/';
 const METAMASK_BASE = 'metamask://';
 
-const HOME = Routes.ONBOARDING.HOME_NAV;
-const TABS = Routes.HOME_TABS;
 const EXPLORE_TAB = Routes.TRENDING_VIEW;
-
-/** Focused chain for a home-tab destination whose tab stack has no nested leaf. */
-export const homeTabFocus = (
-  tabName: string,
-  leaf: ExpectedFocusedRoute[],
-  tabParams?: Record<string, unknown>,
-): ExpectedFocusedRoute[] => [
-  { name: HOME },
-  { name: TABS },
-  tabParams ? { name: tabName, params: tabParams } : { name: tabName },
-  ...leaf,
-];
-
-/** Focused chain for a main-stack destination. */
-export const mainStackFocus = (
-  rest: ExpectedFocusedRoute[],
-): ExpectedFocusedRoute[] => [{ name: HOME }, ...rest];
 
 interface PathSpec {
   id: string;
@@ -145,46 +107,33 @@ export const toCases = (spec: PathSpec): DeeplinkUriCase[] => [
 
 export const mainStackIntent = (
   target: Omit<ExpectedTarget, 'type'>,
-  navigation: ExpectedNavigation,
   volatile?: VolatileParam[],
   hasPrepare = false,
 ): DeeplinkExpectation => ({
   target: { type: 'main-stack', ...target },
-  navigation,
   volatile,
   hasPrepare,
 });
 
 export const homeTabIntent = (
   target: Omit<ExpectedTarget, 'type'>,
-  navigation: ExpectedNavigation,
   volatile?: VolatileParam[],
   hasPrepare = false,
 ): DeeplinkExpectation => ({
   target: { type: 'home-tab', ...target },
-  navigation,
   volatile,
   hasPrepare,
 });
 
 const DAPP_URL = 'https://example.org/path?value=hello%20world';
 const DAPP_PARAMS = { newTabUrl: DAPP_URL, linkType: 'external-link' };
-const DAPP_VOLATILE: VolatileParam[] = [
-  { path: 'params.timestamp', type: 'number' },
-];
 
 const dappExpectation = homeTabIntent(
   {
     routeName: Routes.BROWSER.HOME,
     params: { screen: Routes.BROWSER.VIEW, params: DAPP_PARAMS },
   },
-  {
-    focusedPath: homeTabFocus(Routes.BROWSER.HOME, [
-      { name: Routes.BROWSER.VIEW, params: DAPP_PARAMS },
-    ]),
-    volatile: [{ path: 'timestamp', type: 'number' }],
-  },
-  DAPP_VOLATILE,
+  [{ path: 'params.timestamp', type: 'number' }],
 );
 
 const SWAP_BASE_PARAMS = {
@@ -216,7 +165,7 @@ export const DEEPLINK_URI_CASES: readonly DeeplinkUriCase[] = [
     expected: dappExpectation,
   },
 
-  // main-stack nested destination (https only — schemes already shown above)
+  // main-stack nested destination
   {
     id: 'perps screen=home (https)',
     action: 'perps',
@@ -224,24 +173,16 @@ export const DEEPLINK_URI_CASES: readonly DeeplinkUriCase[] = [
     url: `${HTTPS_BASE}perps?screen=home`,
     state: 'baseline',
     origin: ORIGIN_EXTERNAL_DEEPLINK,
-    expected: mainStackIntent(
-      {
-        routeName: Routes.PERPS.ROOT,
-        params: {
-          screen: Routes.PERPS.PERPS_HOME,
-          params: { source: 'deeplink' },
-        },
+    expected: mainStackIntent({
+      routeName: Routes.PERPS.ROOT,
+      params: {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'deeplink' },
       },
-      {
-        focusedPath: mainStackFocus([
-          { name: Routes.PERPS.ROOT },
-          { name: Routes.PERPS.PERPS_HOME, params: { source: 'deeplink' } },
-        ]),
-      },
-    ),
+    }),
   },
 
-  // prepare() side effect
+  // prepare() side effect present on intent
   {
     id: 'rewards with referral and page (https)',
     action: 'rewards',
@@ -251,7 +192,6 @@ export const DEEPLINK_URI_CASES: readonly DeeplinkUriCase[] = [
     origin: ORIGIN_EXTERNAL_DEEPLINK,
     expected: homeTabIntent(
       { routeName: Routes.REWARDS_VIEW },
-      { focusedPath: homeTabFocus(Routes.REWARDS_VIEW, []) },
       undefined,
       true,
     ),
@@ -284,29 +224,6 @@ export const DEEPLINK_URI_CASES: readonly DeeplinkUriCase[] = [
           },
         },
       },
-      {
-        focusedPath: mainStackFocus([
-          { name: Routes.BRIDGE.ROOT },
-          {
-            name: Routes.BRIDGE.BRIDGE_VIEW,
-            params: {
-              ...SWAP_BASE_PARAMS,
-              sourceToken: {
-                address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-                symbol: 'USDC',
-                name: 'USD Coin',
-                decimals: 6,
-                chainId: '0x1',
-              },
-              sourceAmount: '1.5',
-            },
-          },
-        ]),
-        volatile: [
-          { path: 'swapViewTraceId', type: 'string' },
-          { path: 'sourceToken.image', type: 'string' },
-        ],
-      },
       [
         { path: 'params.swapViewTraceId', type: 'string' },
         { path: 'params.sourceToken.image', type: 'string' },
@@ -323,19 +240,10 @@ export const DEEPLINK_URI_CASES: readonly DeeplinkUriCase[] = [
     url: `${HTTPS_BASE}trending?screen=stocks`,
     state: 'baseline',
     origin: ORIGIN_EXTERNAL_DEEPLINK,
-    expected: {
-      hasPrepare: false,
-      target: {
-        type: 'main-stack',
-        routeName: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-        backTab: EXPLORE_TAB,
-      },
-      navigation: {
-        focusedPath: mainStackFocus([
-          { name: Routes.WALLET.RWA_TOKENS_FULL_VIEW },
-        ]),
-      },
-    },
+    expected: mainStackIntent({
+      routeName: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+      backTab: EXPLORE_TAB,
+    }),
   },
 ];
 

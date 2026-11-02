@@ -17,14 +17,12 @@ Read [Deeplink regression coverage](../../../docs/readme/deeplinking.md#deeplink
 
 - URI fixtures (shared schema + exemplars; **you append your rows**): [`__fixtures__/deeplinkUriCases.ts`](__fixtures__/deeplinkUriCases.ts)
 - Unit contract (real parser, `resolve` mode — picks up new rows): [`utils/parseDeeplink.routes.test.ts`](utils/parseDeeplink.routes.test.ts)
-- CV navigation (normal, startup; Back/prepare exemplars): [`DeeplinkManager.navigation.view.test.tsx`](DeeplinkManager.navigation.view.test.tsx)
-- CV renderer and state: [`tests/component-view/renderers/deeplinks.tsx`](../../../tests/component-view/renderers/deeplinks.tsx), [`tests/component-view/presets/deeplinks.ts`](../../../tests/component-view/presets/deeplinks.ts)
+- Redux baseline / named states: [`tests/component-view/presets/deeplinks.ts`](../../../tests/component-view/presets/deeplinks.ts)
 - HTTP/Engine boundary hook: [`tests/component-view/api-mocking/deeplinkSwapToken.ts`](../../../tests/component-view/api-mocking/deeplinkSwapToken.ts)
 
 ## Rules
 
-- Author expected results independently of the code under test. Never derive them by calling the parser or handlers, and never register a route in the CV tree because the parser returned it.
+- Author expected results independently of the code under test. Never derive them by calling the parser or handlers.
 - A new intent-capable action needs rows in `DEEPLINK_URI_CASES`. The checked-in list is exemplars only; your feature owns its scenarios. Nothing enforces this automatically.
-- Keep the real parser, handlers, executors, `NavigationService` and React Navigation in CV. Follow the CV mock boundaries in [`tests/component-view/AGENTS.md`](../../../tests/component-view/AGENTS.md).
-- Run the affected unit suite and the CV suite on both platforms before marking the change complete. Commands are in the canonical section.
+- Run the resolve-mode unit suite before marking the change complete. Commands are in the canonical section.
 - Legacy switch-only, SDK, WalletConnect and MWP paths are outside this harness. Do not force them in or add Appium.

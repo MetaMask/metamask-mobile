@@ -30,8 +30,9 @@ import parseDeeplink from './parseDeeplink';
  * independently of the implementation. The isolated parser suite in
  * `parseDeeplink.test.ts` is kept for dispatch-level behavior.
  *
- * Navigation and prepare effects are asserted in
- * `DeeplinkManager.navigation.view.test.tsx`.
+ * This suite asserts the resolve-mode intent contract only. Executor and
+ * NavigationService wiring stay in their existing unit suites
+ * (`executeDeeplinkIntent.test.ts`, `resetToHomeNav.test.ts`).
  */
 
 jest.mock('react-native-branch', () => ({

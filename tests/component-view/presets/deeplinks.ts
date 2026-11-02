@@ -6,12 +6,13 @@ import { initialStatePerps } from './perpsStatePreset';
 import { buildNotificationsState } from './notifications';
 
 /**
- * Baseline for deeplink contract/navigation suites: unlocked existing account,
- * supported mainnet network, returning Perps user with Pro mode off, Predict
- * home redesign off (flag absent), notifications enabled, and the Rewards-tab
- * layout (Social V1 control). Named variants live in `STATE_OVERRIDES` — feature
- * teams add a `DeeplinkFixtureState` + override when a case needs one. Other tab
- * layouts and feature configurations are not represented.
+ * Baseline Redux state for the deeplink resolve-mode contract suite: unlocked
+ * existing account, supported mainnet network, returning Perps user with Pro
+ * mode off, Predict home redesign off (flag absent), notifications enabled, and
+ * the Rewards-tab layout (Social V1 control). Named variants live in
+ * `STATE_OVERRIDES` — feature teams add a `DeeplinkFixtureState` + override when
+ * a case needs one. Other tab layouts and feature configurations are not
+ * represented.
  */
 const baselineBuilder = () =>
   initialStatePerps({ socialEnabled: false })

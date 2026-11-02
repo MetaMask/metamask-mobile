@@ -221,7 +221,7 @@ If the user asks to implement a ticket directly from Jira:
 
 ## Deeplinks
 
-Before changing deeplink behavior, including route constants, navigator registrations, or how a destination screen consumes deeplink params, read [`app/core/DeeplinkManager/AGENTS.md`](app/core/DeeplinkManager/AGENTS.md) and the [Deeplink regression coverage](docs/readme/deeplinking.md#deeplink-regression-coverage) section. It says when to update the real-URI unit and navigation component-view coverage.
+Before changing deeplink behavior, including route constants, navigator registrations, or how a destination screen consumes deeplink params, read [`app/core/DeeplinkManager/AGENTS.md`](app/core/DeeplinkManager/AGENTS.md) and the [Deeplink regression coverage](docs/readme/deeplinking.md#deeplink-regression-coverage) section. It says when to update the real-URI resolve-mode unit contract.
 
 ## Test Guidelines
 
