@@ -452,6 +452,22 @@ describe('RewardsController', () => {
         expect.any(Function),
       );
     });
+
+    it('subscribes to geolocation location changes', () => {
+      const geolocationSubscription = (
+        mockMessenger.subscribe.mock.calls as unknown as [
+          string,
+          () => void,
+          (state: { location: string }) => string,
+        ][]
+      ).find(
+        ([eventType]) => eventType === 'GeolocationController:stateChange',
+      );
+
+      const selected = geolocationSubscription?.[2]({ location: 'GB' });
+
+      expect(selected).toBe('GB');
+    });
   });
 
   describe('state management', () => {
@@ -11591,6 +11607,25 @@ describe('RewardsController', () => {
       expect(mockLogger.log).not.toHaveBeenCalledWith(
         'RewardsController: Fetching geo location for rewards metadata',
       );
+    });
+
+    it('fetches geo location again after the location changes', async () => {
+      // Arrange
+      const locationChangeSubscription = (
+        mockMessenger.subscribe.mock.calls as unknown as [string, () => void][]
+      ).find(
+        ([eventType]) => eventType === 'GeolocationController:stateChange',
+      )?.[1];
+      mockMessenger.call.mockResolvedValueOnce('US-NY');
+      await controller.getGeoRewardsMetadata();
+      mockMessenger.call.mockResolvedValueOnce('GB');
+
+      // Act
+      locationChangeSubscription?.();
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(result.geoLocation).toBe('GB');
     });
 
     it('successfully fetch geo location for allowed region', async () => {

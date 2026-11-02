@@ -25,6 +25,11 @@ import { isEmpty } from 'lodash';
 import { store } from '../../store';
 import Logger from '../../util/Logger';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
+import { registerGeolocationRefresh } from './controllers/geolocation-controller/geolocation-refresh';
+
+jest.mock('./controllers/geolocation-controller/geolocation-refresh', () => ({
+  registerGeolocationRefresh: jest.fn(),
+}));
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -478,6 +483,34 @@ describe('Engine', () => {
     publishStateChange('vault-a');
 
     expect(backupVault).toHaveBeenCalledTimes(2);
+  });
+
+  it('registers geolocation refresh and stops it when listeners are removed', () => {
+    const stopGeolocationRefresh = jest.fn();
+    jest
+      .mocked(registerGeolocationRefresh)
+      .mockReturnValueOnce(stopGeolocationRefresh);
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+
+    engine.removeAllListeners();
+
+    expect(registerGeolocationRefresh).toHaveBeenCalledWith(
+      engine.controllerMessenger,
+      { isEnabled: expect.any(Function) },
+    );
+    expect(stopGeolocationRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables geolocation refresh when basic functionality is off', () => {
+    Engine.init(TEST_ANALYTICS_ID, {});
+    const [, { isEnabled }] = jest
+      .mocked(registerGeolocationRefresh)
+      .mock.calls.at(-1) as Parameters<typeof registerGeolocationRefresh>;
+    jest.mocked(selectBasicFunctionalityEnabled).mockReturnValueOnce(false);
+
+    const result = isEnabled();
+
+    expect(result).toBe(false);
   });
 
   it('calling Engine.destroy deletes the old instance', async () => {

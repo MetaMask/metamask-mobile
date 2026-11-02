@@ -37,6 +37,7 @@ export enum FeatureFlagNames {
   complianceEnabled = 'complianceEnabled',
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
+  geolocationRefreshOnNetworkChange = 'geolocationRefreshOnNetworkChange',
   telegramLoginEnabled = 'telegram_login_enabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',

@@ -961,6 +961,14 @@ export class RewardsController extends BaseController<
     this.messenger.subscribe('AuthenticationController:stateChange', () => {
       this.#resetTradingFeeGrantCache();
     });
+
+    this.messenger.subscribe(
+      'GeolocationController:stateChange',
+      () => {
+        this.#geoLocation = null;
+      },
+      (geolocationState) => geolocationState.location,
+    );
   }
 
   #resetTradingFeeGrantCache(): void {
