@@ -34,6 +34,39 @@ export const resolveE2EFixtureBootstrapTimeoutMs = (): number => {
   return process.env.E2E_WAIT_TIMEOUT_MS ? 90_000 : 300_000;
 };
 
+/**
+ * TestMu performance: with `TESTMU_LAUNCH_IN_TEST=true`, session creation
+ * installs the app without launching it (`appium:autoLaunch: false`), and a
+ * launch-time spec launches it inside its timer. Off unless set.
+ */
+export const isTestMuLaunchInTestEnabled = (): boolean => {
+  // Read through an alias, as the TestMu provider does: the Jest Babel config
+  // inlines direct `process.env.X` reads at transform time.
+  const runtimeEnv = process.env;
+  return runtimeEnv.TESTMU_LAUNCH_IN_TEST === 'true';
+};
+
+/**
+ * Seconds to wait between install and the in-test launch, outside the timer.
+ * Read only when {@link isTestMuLaunchInTestEnabled}. Unset or empty is 0.
+ * Throws on a value that is not a non-negative number, so a typo cannot
+ * silently run without the wait.
+ */
+export const resolveTestMuPreLaunchSettleMs = (): number => {
+  const runtimeEnv = process.env;
+  const raw = runtimeEnv.TESTMU_PRE_LAUNCH_SETTLE_SECONDS?.trim();
+  if (!raw) {
+    return 0;
+  }
+  const seconds = Number(raw);
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    throw new Error(
+      `TESTMU_PRE_LAUNCH_SETTLE_SECONDS must be a non-negative number of seconds, got "${raw}"`,
+    );
+  }
+  return Math.round(seconds * 1000);
+};
+
 export const resolveConfiguredAndroidApkPath = (): string | undefined =>
   process.env.ANDROID_APK_PATH?.trim() ||
   process.env.PREBUILT_ANDROID_APK_PATH?.trim();

@@ -7,6 +7,7 @@ import {
   DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS,
   DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
   DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
+  isTestMuLaunchInTestEnabled,
 } from '../../../Constants';
 import { createLogger, LogLevel } from '../../../logger';
 import { resolveTestMuDeviceCapabilities } from './TestMuDeviceResolver.ts';
@@ -69,6 +70,15 @@ export class TestMuAIConfigBuilder {
     const appiumVersion =
       runtimeEnv.TESTMU_APPIUM_VERSION?.trim() || DEFAULT_TESTMU_APPIUM_VERSION;
 
+    // TESTMU_LAUNCH_IN_TEST=true: install without launching, so a launch-time
+    // spec can start its timer at the launch. Whether TestMu forwards
+    // appium:autoLaunch to the driver is not established, so it is set in both
+    // places this builder passes Appium capabilities.
+    const launchInTest = isTestMuLaunchInTestEnabled();
+    const launchInTestCapabilities = launchInTest
+      ? { 'appium:autoLaunch': false }
+      : {};
+
     logger.info(
       `TestMu AI WebDriver connectionRetryTimeout: ${connectionRetryTimeout}ms`,
     );
@@ -87,6 +97,11 @@ export class TestMuAIConfigBuilder {
           ? ' (exact match)'
           : ' (availability regex)'),
     );
+    if (launchInTest) {
+      logger.info(
+        'TestMu AI launch in test: appium:autoLaunch=false (TESTMU_LAUNCH_IN_TEST=true); the spec launches the app',
+      );
+    }
 
     const ltOptions = {
       w3c: true,
@@ -131,6 +146,7 @@ export class TestMuAIConfigBuilder {
       ...(testMuDevice.enableCameraImageInjection
         ? { enableImageInjection: true }
         : {}),
+      ...launchInTestCapabilities,
     };
 
     return {
@@ -155,6 +171,7 @@ export class TestMuAIConfigBuilder {
         'appium:autoGrantPermissions': true,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
+        ...launchInTestCapabilities,
         ...(testMuDevice.otherApps && testMuDevice.otherApps.length > 0
           ? { 'appium:otherApps': testMuDevice.otherApps as string[] }
           : {}),

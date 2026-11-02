@@ -22,3 +22,5 @@ The workflow reads `LT_USERNAME` and `LT_ACCESS_KEY` from GitHub Actions secrets
 Artifact names are prefixed with `testmu-he-`. The aggregator labels those devices `Google Pixel 8 Pro (TestMu HE)`.
 
 Network log capture stays off unless `TESTMU_NETWORK_LOGS=true`, so the timers measure the same class of session as before.
+
+`run-testmu-hyperexecute.sh` also forwards `TESTMU_LAUNCH_IN_TEST` (default `false`) and `TESTMU_PRE_LAUNCH_SETTLE_SECONDS` (default `0`) to the tasks. They are described under Environment Variables in `tests/performance/README.md`. No workflow input sets them, so they are off on every pull request, scheduled and manual run.

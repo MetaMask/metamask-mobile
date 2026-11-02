@@ -12,6 +12,9 @@
 #   HE_REGION               default us
 #   GREP_TAGS               optional playwright --grep
 #   HE_WORKDIR              default ./tmp/hyperexecute
+#   TESTMU_LAUNCH_IN_TEST   default false; true installs without launching
+#                           and launches inside the launch-time timer
+#   TESTMU_PRE_LAUNCH_SETTLE_SECONDS  default 0; wait before that launch
 #
 # Secrets are written to a job-secret file outside the repo and referenced from
 # the generated YAML as ${{.secrets.NAME}}. They are never embedded in the YAML.
@@ -190,6 +193,8 @@ env:
   HE_REGION: "$(yaml_escape "$HE_REGION")"
   COLLECT_HERMES_CPUPROFILES: "$(yaml_escape "${COLLECT_HERMES_CPUPROFILES:-false}")"
   TESTMU_NETWORK_LOGS: "$(yaml_escape "${TESTMU_NETWORK_LOGS:-false}")"
+  TESTMU_LAUNCH_IN_TEST: "$(yaml_escape "${TESTMU_LAUNCH_IN_TEST:-false}")"
+  TESTMU_PRE_LAUNCH_SETTLE_SECONDS: "$(yaml_escape "${TESTMU_PRE_LAUNCH_SETTLE_SECONDS:-0}")"
 
 mergeArtifacts: true
 uploadArtefacts:

@@ -595,6 +595,17 @@ TESTMU_ANDROID_APP_URL=lt://your-android-app-id
 TESTMU_ANDROID_ONBOARDING_PERF_APP_URL=lt://your-onboarding-android-app-id
 TESTMU_ANDROID_CLEAN_APP_URL=lt://your-clean-android-app-id
 TESTMU_ANDROID_SEEDLESS_PERF_APP_URL=lt://your-seedless-android-app-id
+
+# Launch inside the timer (optional, off unless "true").
+# Session creation installs the app without launching it (appium:autoLaunch=false),
+# and cold-start-to-onboarding.spec.ts starts its launch timer immediately before
+# launching the app. Before the timer it checks the app is installed and not
+# running, and fails the test otherwise. Other specs still expect a launched app,
+# so set this only for a run of that spec.
+# TESTMU_LAUNCH_IN_TEST=true
+# Seconds to wait after install and before that launch, outside the timer (default 0).
+# Read only when TESTMU_LAUNCH_IN_TEST=true.
+# TESTMU_PRE_LAUNCH_SETTLE_SECONDS=0
 ```
 
 ### Test Configuration

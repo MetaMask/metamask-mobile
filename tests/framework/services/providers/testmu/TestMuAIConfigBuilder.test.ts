@@ -26,6 +26,7 @@ const ENV_KEYS = [
   'TESTMU_DEVICE_EXACT',
   'TESTMU_PROJECT_NAME',
   'TESTMU_BUILD_NAME',
+  'TESTMU_LAUNCH_IN_TEST',
 ] as const;
 
 interface ProjectOverrides {
@@ -60,6 +61,15 @@ const buildConfig = (overrides?: ProjectOverrides) =>
 
 const ltOptions = (config: ReturnType<typeof buildConfig>) =>
   config.capabilities['LT:Options'] as Record<string, unknown>;
+
+const capabilities = (config: ReturnType<typeof buildConfig>) =>
+  config.capabilities as Record<string, unknown>;
+
+const IOS_DEVICE: ProjectOverrides = {
+  platform: Platform.IOS,
+  deviceName: 'iPhone 16 Pro Max',
+  osVersion: '18',
+};
 
 describe('TestMuAIConfigBuilder', () => {
   const originalEnv: Record<string, string | undefined> = {};
@@ -220,6 +230,70 @@ describe('TestMuAIConfigBuilder', () => {
 
       expect(options.appiumVersion).toBe('2.19.0');
     });
+  });
+
+  describe('launch in test', () => {
+    it.each([undefined, '', 'false', 'TRUE', '1'])(
+      'leaves appium:autoLaunch unset when TESTMU_LAUNCH_IN_TEST is %p',
+      (envValue) => {
+        if (envValue !== undefined) {
+          env.TESTMU_LAUNCH_IN_TEST = envValue;
+        }
+
+        const config = buildConfig();
+
+        expect(capabilities(config)).not.toHaveProperty('appium:autoLaunch');
+        expect(ltOptions(config)).not.toHaveProperty('appium:autoLaunch');
+      },
+    );
+
+    it.each([
+      ['Android', {}],
+      ['iOS', IOS_DEVICE],
+    ] as const)(
+      'installs without launching on %s when TESTMU_LAUNCH_IN_TEST is true',
+      (_platformLabel, overrides) => {
+        env.TESTMU_LAUNCH_IN_TEST = 'true';
+
+        const config = buildConfig(overrides);
+
+        expect(capabilities(config)).toMatchObject({
+          'appium:autoLaunch': false,
+          'appium:app': 'lt://APP101',
+          'appium:fullReset': true,
+        });
+        expect(ltOptions(config)['appium:autoLaunch']).toBe(false);
+      },
+    );
+
+    it.each([
+      ['Android', {}],
+      ['iOS', IOS_DEVICE],
+    ] as const)(
+      'adds only appium:autoLaunch on %s when TESTMU_LAUNCH_IN_TEST is true',
+      (_platformLabel, overrides) => {
+        const switchOff = buildConfig(overrides);
+        env.TESTMU_LAUNCH_IN_TEST = 'true';
+        const switchOn = buildConfig(overrides);
+
+        const {
+          'appium:autoLaunch': _topLevel,
+          'LT:Options': onLtOptions,
+          ...onRest
+        } = capabilities(switchOn);
+        const { 'appium:autoLaunch': _inLtOptions, ...onLtRest } =
+          onLtOptions as Record<string, unknown>;
+        const { 'LT:Options': offLtOptions, ...offRest } =
+          capabilities(switchOff);
+
+        expect(onRest).toStrictEqual(offRest);
+        expect(onLtRest).toStrictEqual(offLtOptions);
+        expect({ ...switchOn, capabilities: undefined }).toStrictEqual({
+          ...switchOff,
+          capabilities: undefined,
+        });
+      },
+    );
   });
 
   describe('connection retry timeout', () => {
