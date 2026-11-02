@@ -37,7 +37,10 @@ import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
@@ -54,10 +57,16 @@ import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/Rpc
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
-export const createNetworkManagerNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.SHEET.NETWORK_MANAGER,
-);
+export interface NetworkManagerParams {
+  /** Set only when opened from the Tokens list; used for analytics. */
+  searchQuery?: string;
+}
+
+export const createNetworkManagerNavDetails =
+  createNavigationDetails<NetworkManagerParams>(
+    Routes.MODAL.ROOT_MODAL_FLOW,
+    Routes.SHEET.NETWORK_MANAGER,
+  );
 
 const initialNetworkMenuModal: NetworkMenuModalState = {
   isVisible: false,
@@ -74,6 +83,7 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
 };
 
 const NetworkManager = () => {
+  const { searchQuery } = useParams<NetworkManagerParams>();
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
@@ -366,6 +376,7 @@ const NetworkManager = () => {
               openModal={openModal}
               dismissModal={dismissModal}
               openRpcModal={openRpcModal}
+              searchQuery={searchQuery}
             />
             <CustomNetworkSelector
               {...customTabProps}

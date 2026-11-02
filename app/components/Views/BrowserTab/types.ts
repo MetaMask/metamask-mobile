@@ -131,7 +131,8 @@ export type BrowserTabProps = SharedTabProps & {
   fromTrending?: boolean;
   /**
    * Whether browser was opened from the Explore search screen, which lives in
-   * the root stack — closing must pop back to it, not jump to the Explore tab.
+   * the root stack — closing must goBack() to Search, not jump to Explore/Home
+   * or leave the user on the portfolio WebView under the tabs overlay.
    */
   fromExploreSearch?: boolean;
   /**

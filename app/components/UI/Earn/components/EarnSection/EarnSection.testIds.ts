@@ -1,4 +1,5 @@
 export const EarnSectionTestIds = {
+  HEADER: 'earn-section-header',
   VIEW_MORE_CARD: 'earn-section-view-more-card',
   ASSET_CARD: (index: number) => `earn-section-asset-${index}-card`,
   MONEY_ACCOUNT_CARD: 'earn-section-money-account-card',
