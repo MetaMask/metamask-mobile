@@ -10,7 +10,10 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
-import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
+import {
+  findUsableVbaAutoramp,
+  selectSelectedVbaWalletAddress,
+} from '../../../../../../selectors/rampsController';
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -18,6 +21,7 @@ import {
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
+import { recordVbaOnboardingSnapshot } from '../vbaAnalytics';
 import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
@@ -390,10 +394,23 @@ export const resolveVbaOnboarding = async (
         accountSnapshot.vendorDisclaimersComplete ||
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
+    recordVbaOnboardingSnapshot(snapshot);
     endVbaCufChildTrace(hydrateTraceId, true);
+    const funnelDestination = getVbaDestinationForSnapshot(snapshot);
+    // An existing autoramp opens the account only when the funnel would send
+    // the user back to vendor terms or email, as it does with no KYC session.
+    const hasExistingAccount =
+      (funnelDestination === 'vendorTerms' || funnelDestination === 'email') &&
+      getVbaKycStatusOverride() === null &&
+      Boolean(
+        findUsableVbaAutoramp(
+          Engine.context.RampsController.state?.autoramps ?? [],
+          walletAddress,
+        ),
+      );
     return {
       status: 'ready',
-      destinationId: getVbaDestinationForSnapshot(snapshot),
+      destinationId: hasExistingAccount ? 'complete' : funnelDestination,
       snapshot,
     };
   } catch (error) {
