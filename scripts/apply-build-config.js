@@ -5,7 +5,7 @@
  *
  * Exports: env, code_fencing. Does NOT handle secrets
  * (those are injected by the "Set secrets" step via set-secrets-from-config.js,
- * which reads all secrets via toJSON(secrets) — no explicit per-secret list needed).
+ * which reads each GitHub secret by name from the step environment).
  *
  * Usage:
  *   node scripts/apply-build-config.js main-prod
