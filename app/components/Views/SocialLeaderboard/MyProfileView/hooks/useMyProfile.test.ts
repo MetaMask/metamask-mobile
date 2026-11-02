@@ -15,6 +15,7 @@ jest.mock(
   '../../../../../util/notifications/hooks/useSessionProfileId',
   () => ({
     useSessionProfileId: () => mockUseSessionProfileId(),
+    useCanonicalSessionProfileId: () => mockUseSessionProfileId(),
   }),
 );
 

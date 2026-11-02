@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { selectProfileControllerXProfile } from '../../../../../selectors/profileController';
-import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
+import { useCanonicalSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
 import { useProfileController } from '../../ManageProfileView/hooks/useProfileController';
 import {
   getLocalSocialProfileSnapshot,
@@ -74,7 +74,7 @@ export const useMyProfile = ({
   enabled = true,
 }: UseMyProfileOptions = {}): UseMyProfileResult => {
   const { profileId: sessionProfileId, isLoading: isSessionLoading } =
-    useSessionProfileId();
+    useCanonicalSessionProfileId();
   const {
     profile: controllerProfile,
     fetchAndUpdateProfile,

@@ -1,5 +1,5 @@
 import { createElement, type ReactNode } from 'react';
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { getVersion } from 'react-native-device-info';
@@ -12,6 +12,7 @@ import {
 } from '@metamask/perps-controller';
 import type { Position as SocialPosition } from '@metamask/social-controllers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import { PERPS_SOCIAL_ENABLED_FLAG_KEY } from '../selectors/featureFlags';
 import {
@@ -276,6 +277,30 @@ describe('usePerpsCanPostPosition', () => {
     const { result } = renderCanPost();
 
     expect(result.current.canPost(perpsPosition)).toBe(false);
+  });
+
+  it('fetches the social profile with the canonical session id', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getSessionProfile)
+      .mockResolvedValue({
+        profileId: 'alias-profile-id',
+        canonicalProfileId: 'canonical-profile-id',
+      } as Awaited<
+        ReturnType<
+          typeof Engine.context.AuthenticationController.getSessionProfile
+        >
+      >);
+    jest
+      .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+      .mockResolvedValue({ profileId: 'canonical-profile-id' } as never);
+
+    renderCanPost({ hasSocialProfile: false });
+
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.fetchAndUpdateProfile,
+      ).toHaveBeenCalledWith('canonical-profile-id');
+    });
   });
 
   it('cannot post until the loaded index contains a match', () => {
