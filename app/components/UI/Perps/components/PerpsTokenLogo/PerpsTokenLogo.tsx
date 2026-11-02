@@ -40,8 +40,10 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   recyclingKey,
 }) => {
   const { colors, themeAppearance } = useTheme();
-  // Subscribes every instance to the session cache so one miss updates them all.
-  useFailedPerpsIconUrlRevision();
+  // Pass this revision into the selector. React Compiler memoizes on the
+  // values it can see; discarding the snapshot and reading the module set
+  // would keep the previous URL after a miss.
+  const failedIconUrlRevision = useFailedPerpsIconUrlRevision();
 
   // Re-apply theme-aware background for tokens that need contrast in certain themes:
   // - Tokens with dark logos (e.g. ETH, XRP) need a white bg in dark mode
@@ -68,7 +70,10 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
     return getAssetIconUrls(symbol, K_PREFIX_ASSETS);
   }, [symbol]);
 
-  const imageUri = selectAvailablePerpsIconUrl(iconUrls);
+  const imageUri = useMemo(
+    () => selectAvailablePerpsIconUrl(iconUrls, failedIconUrlRevision),
+    [iconUrls, failedIconUrlRevision],
+  );
 
   const fallbackText = useMemo(() => {
     const displaySymbol = getPerpsDisplaySymbol(symbol || '');
