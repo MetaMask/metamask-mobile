@@ -152,7 +152,8 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   const isLongPress = useRef(false);
   const handleLongPress = () => {
     isLongPress.current = true;
-    paste();
+    // An unreadable clipboard leaves the boxes as they are.
+    paste().catch(() => undefined);
   };
   // Releasing a long press would otherwise clear the pasted digits from the
   // pressed box onward.
