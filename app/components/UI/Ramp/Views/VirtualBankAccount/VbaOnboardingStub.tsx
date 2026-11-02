@@ -7,7 +7,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -16,6 +15,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import VbaOnboardingError from '../../../KYC/components/OnboardingError';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export type VbaOnboardingStubVariant = 'account_provisioning_error' | 'error';
 
@@ -31,6 +33,7 @@ interface VbaOnboardingStubProps {
 }
 
 const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [isContinuing, setIsContinuing] = useState(false);
@@ -70,7 +73,9 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: VbaOnboardingStubSelectorsIDs.BACK_BUTTON,
