@@ -1,6 +1,6 @@
 import React from 'react';
 import { FlashList } from '@shopify/flash-list';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type GestureResponderEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
@@ -656,7 +656,7 @@ describe('MultichainTransactionsView', () => {
       '@metamask/design-system-react-native',
     ) as { Button: { lastProps: ButtonProps } };
 
-    MockButton.lastProps.onPress?.();
+    MockButton.lastProps.onPress?.({} as GestureResponderEvent);
 
     expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
       expect.any(Function),
