@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView } from 'react-native';
+import { AccessibilityInfo, AppState, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -84,8 +85,16 @@ import {
 } from './vbaCufTrace';
 import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 
-const DEFAULT_POLL_INTERVAL_MS = 10_000;
+export const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
+/**
+ * Deposit refreshes to run at the fast interval while an existing autoramp
+ * is still not Approved. 30 × 10s is about five minutes; on a low-RAM device
+ * or slow cellular connection the same count is about fifteen minutes.
+ */
+export const VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT = 30;
+/** Interval after {@link VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT} while approval is still pending. */
+export const VBA_DETAILS_APPROVAL_BACKOFF_POLL_INTERVAL_MS = 60_000;
 // Keep the Figma disclosure ready while Product finalizes the copy.
 const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
@@ -138,6 +147,16 @@ interface DepositRamps {
 
 const isTerminalStatus = (status: string): boolean =>
   status === 'Rejected' || status === 'Cancelled';
+
+/**
+ * An autoramp row exists, but MoonPay has not approved it and has not
+ * rejected or cancelled it (Authorized, Created, and the other in-between
+ * statuses). That wait uses the "waiting for MoonPay" copy.
+ */
+const isPendingProviderApproval = (
+  status: string | null | undefined,
+): boolean =>
+  status != null && status !== 'Approved' && !isTerminalStatus(status);
 
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
@@ -226,9 +245,13 @@ const buildDetailRows = (
  * wallet and creates the autoramp, in the fiat mapped from the effective
  * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
  * IP country).
- * Until the autoramp is Approved it shows the creating state. Polling stops
- * once deposit details load or the autoramp is Rejected or Cancelled; only
- * Retry creates a replacement. Pushed on the root stack
+ * Until the autoramp is Approved it shows the creating state. An existing
+ * autoramp that is not Approved, Rejected, or Cancelled shows the MoonPay
+ * approval wait. Polling starts at 10s (30s on a constrained device) and
+ * slows to 60s after 30 refreshes while that wait continues; focus and
+ * foreground resume the fast rate. Polling stops once deposit details load
+ * or the autoramp is Rejected or Cancelled; only Retry creates a
+ * replacement. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
  * onboarding. PIX or US bank details come from
  * `NeoBankService.getDepositInstructions`.
@@ -273,18 +296,27 @@ const VbaDetails = () => {
     );
   const [revalidateCount, setRevalidateCount] = useState(0);
   const [autorampId, setAutorampId] = useState<string | null>(null);
-  const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
+  const readCurrentAutorampStatus = (): string | null =>
     walletAddress
       ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
           ?.status ?? null)
-      : null,
+      : null;
+  const [autorampStatus, setAutorampStatusState] = useState<string | null>(
+    readCurrentAutorampStatus,
   );
+  const autorampStatusRef = useRef(autorampStatus);
+  const setAutorampStatus = useCallback((status: string | null) => {
+    autorampStatusRef.current = status;
+    setAutorampStatusState(status);
+  }, []);
   const [transactionStatus, setTransactionStatus] = useState<string | null>(
     null,
   );
   const [loadError, setLoadError] = useState(false);
-  const [awaitingProviderApproval, setAwaitingProviderApproval] =
-    useState(false);
+  const [awaitingProviderApproval, setAwaitingProviderApproval] = useState(() =>
+    isPendingProviderApproval(readCurrentAutorampStatus()),
+  );
+  const [approvalPollResetCount, setApprovalPollResetCount] = useState(0);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
@@ -420,7 +452,6 @@ const VbaDetails = () => {
       if (!stillCurrent()) {
         return;
       }
-      setAwaitingProviderApproval(false);
 
       let status = autoramp.status;
       if (status !== 'Approved' && ramps.refreshAutoramp) {
@@ -451,8 +482,13 @@ const VbaDetails = () => {
         return;
       }
       if (status !== 'Approved') {
+        // Authorized (and any other in-progress status) keeps waiting on
+        // MoonPay. The copy stays on the provider-approval line instead of
+        // "Creating your bank account", which only fits before a row exists.
+        setAwaitingProviderApproval(true);
         return;
       }
+      setAwaitingProviderApproval(false);
 
       const neoBank = (
         Engine.context as unknown as { NeoBankService?: DepositNeoBank }
@@ -552,6 +588,7 @@ const VbaDetails = () => {
       debugEnabled,
       finishPixFetchTrace,
       navigation,
+      setAutorampStatus,
       sourceCurrency,
       walletAddress,
     ],
@@ -571,15 +608,14 @@ const VbaDetails = () => {
     transactionsFetchedForRef.current = null;
     setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
     setLoadError(false);
-    setAwaitingProviderApproval(false);
+    const nextStatus = walletAddress
+      ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+          ?.status ?? null)
+      : null;
+    setAwaitingProviderApproval(isPendingProviderApproval(nextStatus));
     setAutorampId(null);
-    setAutorampStatus(
-      walletAddress
-        ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
-            ?.status ?? null)
-        : null,
-    );
-  }, [finishPixFetchTrace, sourceCurrency, walletAddress]);
+    setAutorampStatus(nextStatus);
+  }, [finishPixFetchTrace, setAutorampStatus, sourceCurrency, walletAddress]);
 
   // Opening from Money can skip the loading screen, so hydrate may land after
   // details are shown. When it changes the usable autoramp (Rejected,
@@ -620,6 +656,34 @@ const VbaDetails = () => {
     }
   }, [accountKey, sourceCurrency, usableAutorampKey, walletAddress]);
 
+  // A return to this screen, or the app coming back to the foreground,
+  // starts the approval wait over at the fast interval. The first focus is
+  // the mount itself; the poll effect below already starts then.
+  const hasHandledInitialFocusRef = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasHandledInitialFocusRef.current) {
+        hasHandledInitialFocusRef.current = true;
+        return;
+      }
+      setApprovalPollResetCount((count) => count + 1);
+    }, []),
+  );
+
+  useEffect(() => {
+    let appState = AppState.currentState;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const wasActive = appState === 'active';
+      appState = nextState;
+      if (nextState === 'active' && !wasActive) {
+        setApprovalPollResetCount((count) => count + 1);
+      }
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (networkTier === 'NONE') {
       return;
@@ -627,12 +691,41 @@ const VbaDetails = () => {
 
     let cancelled = false;
     let inFlight = false;
-    const tick = async () => {
+    let pollCount = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let tick: () => Promise<void> = async () => undefined;
+    // Unknown hardware or network stays on the 10s product default. LOW RAM
+    // and slow cellular keep the existing 30s interval. Offline (`NONE`)
+    // already returned above and does not poll.
+    const fastPollIntervalMs =
+      hardwareTier === 'LOW' || networkTier === 'SLOW_CELLULAR'
+        ? CONSTRAINED_POLL_INTERVAL_MS
+        : DEFAULT_POLL_INTERVAL_MS;
+
+    const scheduleNext = () => {
+      if (cancelled || pollingDoneRef.current) {
+        return;
+      }
+      const waitingForApproval = autorampStatusRef.current !== 'Approved';
+      const delay =
+        waitingForApproval && pollCount >= VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT
+          ? VBA_DETAILS_APPROVAL_BACKOFF_POLL_INTERVAL_MS
+          : fastPollIntervalMs;
+      timer = setTimeout(() => {
+        tick().catch(() => undefined);
+      }, delay);
+    };
+
+    tick = async () => {
       const requestKey = accountKeyRef.current;
       if (cancelled || inFlight || pollingDoneRef.current) {
         return;
       }
       inFlight = true;
+      // A registration failure with no destination, and a stale response,
+      // keep the chain going. Only a real stop (unmount, terminal route,
+      // or pollingDone) drops it.
+      let keepPolling = true;
       try {
         await refreshDeposit();
         if (!cancelled && accountKeyRef.current === requestKey) {
@@ -641,46 +734,44 @@ const VbaDetails = () => {
       } catch (error) {
         if (error instanceof AccountCreateRegistrationError) {
           if (cancelled || accountKeyRef.current !== requestKey) {
-            return;
+            keepPolling = false;
+          } else {
+            const destinationId = logAccountCreateFailure(error.result);
+            if (destinationId) {
+              pollingDoneRef.current = true;
+              navigateToVbaOnboardingDestination(
+                navigation,
+                destinationId,
+                undefined,
+                getAccountCreateFailureLogFields(error.result),
+                sourceCurrency,
+              );
+            }
           }
-          const destinationId = logAccountCreateFailure(error.result);
-          if (!destinationId) {
-            return;
+        } else {
+          if (!cancelled && accountKeyRef.current === requestKey) {
+            setLoadError(true);
           }
-          pollingDoneRef.current = true;
-          navigateToVbaOnboardingDestination(
-            navigation,
-            destinationId,
-            undefined,
-            getAccountCreateFailureLogFields(error.result),
-            sourceCurrency,
-          );
-          return;
+          Logger.error(error as Error, {
+            message: 'VbaDetails: deposit refresh failed',
+          });
         }
-        if (!cancelled && accountKeyRef.current === requestKey) {
-          setLoadError(true);
-        }
-        Logger.error(error as Error, {
-          message: 'VbaDetails: deposit refresh failed',
-        });
       } finally {
         inFlight = false;
       }
+      if (!keepPolling || cancelled || pollingDoneRef.current) {
+        return;
+      }
+      pollCount += 1;
+      scheduleNext();
     };
     tick().catch(() => undefined);
-    const timer = setInterval(
-      () => {
-        tick().catch(() => undefined);
-      },
-      hardwareTier === 'LOW' || networkTier === 'SLOW_CELLULAR'
-        ? CONSTRAINED_POLL_INTERVAL_MS
-        : DEFAULT_POLL_INTERVAL_MS,
-    );
     return () => {
       cancelled = true;
-      clearInterval(timer);
+      clearTimeout(timer);
     };
   }, [
+    approvalPollResetCount,
     hardwareTier,
     navigation,
     networkTier,
