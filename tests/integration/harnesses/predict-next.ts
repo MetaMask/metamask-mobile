@@ -6,6 +6,13 @@ import {
 } from '@metamask/messenger';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { AppStateStatus } from 'react-native';
+
+// The native module is an I/O boundary. Its package mock forwards P-256
+// operations to node:crypto so DeviceAuth integration tests use real keys.
+jest.mock('react-native-quick-crypto', () =>
+  jest.requireActual('react-native-quick-crypto/jest'),
+);
+
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
 import {
@@ -51,7 +58,8 @@ import { getPredictDeviceAuthServiceMessenger } from '../../../app/core/Engine/m
  * PredictPortfolioService, PredictLiveDataService, PredictLiveDataClient,
  * KalshiRemoteAdapter, and PredictApiReadClient.
  * MOCKED: HTTP fetch, WebSocket, AppState, bearer token provider, base URL,
- * and client version.
+ * client version, and the native QuickCrypto module through its Node-backed
+ * package Jest mock.
  */
 
 export interface PredictFetchResult {
