@@ -14,11 +14,7 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  HeaderStandard,
-  TextButton,
-} from '@metamask/design-system-react-native';
+import { Box, TextButton } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -84,6 +80,8 @@ import ResourceToggle from '../../components/Tron/ResourceToggle';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import { ComputeFeeResult } from '../../utils/tron-staking-snap';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 ///: END:ONLY_INCLUDE_IF
 
 export const EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID =
@@ -108,6 +106,7 @@ interface EarnWithdrawInputViewContentProps {
 const EarnWithdrawInputViewContent = ({
   token,
 }: EarnWithdrawInputViewContentProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
@@ -909,7 +908,9 @@ const EarnWithdrawInputViewContent = ({
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={title}
         subtitle={headerSubtitle ?? undefined}
         onBack={navBarOptions.hasBackButton ? handleHeaderBackPress : undefined}
