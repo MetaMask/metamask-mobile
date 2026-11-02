@@ -113,7 +113,7 @@ import {
 } from './utils/resolveRampOrderTarget';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
-import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
+import { usePerpsActivityItems } from './perps/usePerpsActivityItems';
 import { usePredictActivityItems } from '../../UI/PredictNext';
 import { useFilledLimitOrders } from './hooks/useFilledLimitOrders';
 import {
