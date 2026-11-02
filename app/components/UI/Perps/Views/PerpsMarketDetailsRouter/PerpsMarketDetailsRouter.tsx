@@ -36,8 +36,7 @@ const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
 // to the top edge of the screen, so it applies the top inset itself and the
 // container must not apply it a second time.
 const SAFE_AREA_EDGES_UNDER_BANNER: Edge[] = ['bottom', 'left', 'right'];
-// The brand refresh runs the market content under the status bar and home
-// indicator, so the layouts apply the top and bottom insets themselves.
+// The brand refresh runs content edge to edge; the layouts apply these insets.
 const SAFE_AREA_EDGES_EDGE_TO_EDGE: Edge[] = ['left', 'right'];
 
 function resolveGenerationTrigger(

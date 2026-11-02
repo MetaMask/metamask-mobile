@@ -84,9 +84,8 @@ import {
 } from '../../Perps.testIds';
 import PerpsMarketHeader, {
   createLiteMarketHeaderTestIDs,
-  PERPS_MARKET_HEADER_HEIGHT,
 } from '../../components/PerpsMarketHeader';
-import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+import { usePerpsMarketHeaderInsets } from '../../components/PerpsMarketHeader/usePerpsMarketHeaderInsets';
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
@@ -428,7 +427,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const currentPositionRef = useRef<Position | null>(null);
   const depositPrepSessionRef = useRef<DepositPrepSession | null>(null);
   const scrollViewRef = useRef<Animated.ScrollView>(null);
-  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -466,13 +464,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
-  // The service banner sits above the header, so it pads the status bar instead.
-  const headerTopInset = isServiceInterruptionBannerEnabled
-    ? 0
-    : (edgeInsets?.top ?? 0);
-  const headerInset = isBrandRefresh
-    ? headerTopInset + PERPS_MARKET_HEADER_HEIGHT
-    : 0;
+  const { headerTopInset, headerInset } = usePerpsMarketHeaderInsets(
+    edgeInsets,
+    isServiceInterruptionBannerEnabled,
+  );
   // iOS only drops the refresh spinner below a real content inset, not a spacer.
   const scrollTopInset = Platform.OS === 'ios' ? headerInset : 0;
 
@@ -526,10 +521,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     currentMarketSymbolRef.current = market?.symbol;
   }, [market?.symbol]);
 
+  // A ref so an inset change (banner shown or dismissed) does not reset the scroll.
+  const scrollTopInsetRef = useRef(scrollTopInset);
+  scrollTopInsetRef.current = scrollTopInset;
+
   // Auto-scroll to top when navigating to a different market (e.g. related markets)
   useEffect(() => {
-    scrollViewRef.current?.scrollTo({ y: -scrollTopInset, animated: false });
-  }, [market?.symbol, scrollTopInset]);
+    scrollViewRef.current?.scrollTo({
+      y: -scrollTopInsetRef.current,
+      animated: false,
+    });
+  }, [market?.symbol]);
 
   // Record the view for the Recently Viewed rail — fires for every entry
   // path into this screen (market list, watchlist, related markets,

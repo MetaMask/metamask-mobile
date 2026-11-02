@@ -84,9 +84,8 @@ import {
 import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
-  PERPS_MARKET_HEADER_HEIGHT,
 } from '../../components/PerpsMarketHeader';
-import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+import { usePerpsMarketHeaderInsets } from '../../components/PerpsMarketHeader/usePerpsMarketHeaderInsets';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
@@ -403,7 +402,6 @@ const PerpsProMarketView = ({
   // sizes to its content, so the threshold comes from its measured height.
   const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
     useHeaderStandardAnimated();
-  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const handleMarketSummaryLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const { height } = event.nativeEvent.layout;
@@ -433,13 +431,10 @@ const PerpsProMarketView = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
-  // The service banner sits above the header, so it pads the status bar instead.
-  const headerTopInset = isServiceInterruptionBannerEnabled
-    ? 0
-    : (edgeInsets?.top ?? 0);
-  const headerInset = isBrandRefresh
-    ? headerTopInset + PERPS_MARKET_HEADER_HEIGHT
-    : 0;
+  const { headerTopInset, headerInset } = usePerpsMarketHeaderInsets(
+    edgeInsets,
+    isServiceInterruptionBannerEnabled,
+  );
   const configuredChartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,

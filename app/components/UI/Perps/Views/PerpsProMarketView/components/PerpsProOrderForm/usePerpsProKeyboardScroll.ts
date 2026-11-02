@@ -143,9 +143,9 @@ export function usePerpsProKeyboardScroll(
         // `ScrollView`'s type omits the measure methods its host instance has.
         const scrollView = scrollViewRef?.current as View | null | undefined;
         if (typeof scrollView?.measureInWindow !== 'function') {
-          // Fall back to treating the whole screen as the visible band. The
-          // card still clears the keyboard; only the top-edge clamp is lost.
-          scroll(0);
+          // Fall back to treating the whole screen below any floating header as
+          // the visible band; only the scroll view's own offset is lost.
+          scroll(viewportTopInset);
           return;
         }
 
