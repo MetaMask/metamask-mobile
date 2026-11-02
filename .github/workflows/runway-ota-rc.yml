@@ -33,7 +33,6 @@ jobs:
     uses: ./.github/workflows/runway-ota-resolve-context.yml
     with:
       source_branch: ${{ inputs.source_branch }}
-    secrets: inherit
 
   validate-ota-pr:
     name: Validate PR for OTA
@@ -63,4 +62,5 @@ jobs:
       channel: rc
       platform: all
       build_attribution: official
-    secrets: inherit
+    # Environment secrets only reach the called workflow through inherit.
+    secrets: inherit # zizmor: ignore[secrets-inherit]

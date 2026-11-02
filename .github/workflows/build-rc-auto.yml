@@ -314,7 +314,6 @@ jobs:
       needs.validate-and-find-pr.outputs.repack-enabled == 'true'
     with:
       source_branch: ${{ github.sha }}
-    secrets: inherit
 
   # Fast path: reuse the donor's native artifacts and swap in this commit's JS. Requires a
   # donor. Skipped when the release PR has 'repack-rc-disabled', or when no donor matches.
@@ -345,7 +344,8 @@ jobs:
       donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
       distribute_external: true
       build_attribution: official
-    secrets: inherit
+    # Environment secrets only reach the called workflow through inherit.
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   repack-android-rc-build:
     name: Repack Android RC Build
@@ -373,7 +373,8 @@ jobs:
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
       build_attribution: official
-    secrets: inherit
+    # Environment secrets only reach the called workflow through inherit.
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   # A repack publishes `ios-ipa-main-rc` / `android-apk-main-rc` — the names build.yml also
   # uses — before its job is over, and actions/upload-artifact@v7 rejects a duplicate name
@@ -473,7 +474,8 @@ jobs:
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       distribute_external: true
       build_attribution: official
-    secrets: inherit
+    # Environment secrets only reach the called workflow through inherit.
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   trigger-android-rc-build:
     name: Trigger Android RC Build
@@ -505,7 +507,8 @@ jobs:
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       build_attribution: official
-    secrets: inherit
+    # Environment secrets only reach the called workflow through inherit.
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   # TODO: In a follow-up PR, move AI test plan generation into its own workflow, so the AI keys
   # and the write token no longer share a job.
@@ -599,4 +602,6 @@ jobs:
       ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code || needs.repack-ios-rc-build.outputs.ios_version_code }}
       android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code || needs.repack-android-rc-build.outputs.android_version_code }}
       pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
-    secrets: inherit
+    secrets:
+      ANDROID_PUBLIC_BUCKET_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

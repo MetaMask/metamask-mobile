@@ -48,7 +48,8 @@ jobs:
     with:
       branch_name: ${{ github.ref_name }}
       build_variant: 'e2e'
-    secrets: inherit
+    # Environment secrets only reach the called workflow through inherit.
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   run-android-login-tests:
     name: Android Login Tests

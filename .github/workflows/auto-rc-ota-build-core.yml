@@ -77,7 +77,6 @@ jobs:
     uses: ./.github/workflows/runway-ota-resolve-context.yml
     with:
       source_branch: ${{ inputs.source_branch }}
-    secrets: inherit
 
   trigger-build:
     name: Trigger build mobile app
@@ -91,7 +90,8 @@ jobs:
       build_number: ${{ inputs.build_number }}
       upload_to_sentry: true
       build_attribution: ${{ inputs.build_attribution }}
-    secrets: inherit
+    # Environment secrets only reach the called workflow through inherit.
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   upload-ios-testflight:
     name: Upload iOS to TestFlight
@@ -106,4 +106,5 @@ jobs:
       build_version: ${{ needs.trigger-build.outputs.semantic_version }}
       build_number: ${{ needs.trigger-build.outputs.ios_version_code }}
       distribute_external: ${{ inputs.distribute_external }}
-    secrets: inherit
+    secrets:
+      AWS_ROLE_APPLE_TESTFLIGHT: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}

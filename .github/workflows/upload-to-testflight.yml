@@ -47,6 +47,9 @@ on:
         required: false
         type: string
         default: ''
+    secrets:
+      AWS_ROLE_APPLE_TESTFLIGHT:
+        required: false
 
 permissions:
   contents: read
