@@ -101,18 +101,24 @@ jest.mock('./hooks/useMembershipBannerModel', () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const createPlusSubscription = (status: Subscription['status']): Subscription =>
+const createPlusSubscription = (
+  status: Subscription['status'],
+  trialPeriodDays?: number,
+): Subscription =>
   ({
     id: 'sub-plus',
     products: [{ name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS }],
     status,
+    ...(trialPeriodDays === undefined ? {} : { trialPeriodDays }),
   }) as Subscription;
 
 const createState = ({
-  isTrialing = false,
+  status = SUBSCRIPTION_STATUSES.active,
+  trialPeriodDays,
   subscriptions,
 }: {
-  isTrialing?: boolean;
+  status?: Subscription['status'];
+  trialPeriodDays?: number;
   subscriptions?: Subscription[];
 } = {}): RootState =>
   ({
@@ -120,13 +126,13 @@ const createState = ({
       backgroundState: {
         SubscriptionController: {
           subscriptions: subscriptions ?? [
-            createPlusSubscription(
-              isTrialing
-                ? SUBSCRIPTION_STATUSES.trialing
-                : SUBSCRIPTION_STATUSES.active,
-            ),
+            createPlusSubscription(status, trialPeriodDays),
           ],
-          trialedProducts: isTrialing ? [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS] : [],
+          trialedProducts:
+            status === SUBSCRIPTION_STATUSES.trialing ||
+            (trialPeriodDays ?? 0) > 0
+              ? [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS]
+              : [],
         },
       },
     },
@@ -134,14 +140,28 @@ const createState = ({
 
 const renderProHub = ({
   isTrialing = false,
+  status,
+  trialPeriodDays,
   subscriptions,
 }: {
   isTrialing?: boolean;
+  status?: Subscription['status'];
+  trialPeriodDays?: number;
   subscriptions?: Subscription[];
 } = {}) =>
   render(
     <Provider
-      store={configureStore(createState({ isTrialing, subscriptions }))}
+      store={configureStore(
+        createState({
+          status:
+            status ??
+            (isTrialing
+              ? SUBSCRIPTION_STATUSES.trialing
+              : SUBSCRIPTION_STATUSES.active),
+          trialPeriodDays,
+          subscriptions,
+        }),
+      )}
     >
       <ProHub />
     </Provider>,
@@ -425,6 +445,28 @@ describe('ProHub', () => {
         toRegex(MOCK_PRO_HUB_STATS.musdBack),
       );
       expect(queryByTestId(`${ProHubTestIds.MUSD_BACK_ROW}-lock`)).toBeNull();
+    });
+
+    it('shows a lock instead of the mUSD back amount while a provisional free trial is still funding', () => {
+      const { getByTestId, queryByText } = renderProHub({
+        status: SUBSCRIPTION_STATUSES.provisional,
+        trialPeriodDays: 14,
+      });
+
+      const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
+      const lock = getByTestId(`${ProHubTestIds.MUSD_BACK_ROW}-lock`);
+
+      expect(lock).toBeOnTheScreen();
+      expect(musdBackRow).toContainElement(lock);
+      expect(queryByText(MOCK_PRO_HUB_STATS.musdBack)).toBeNull();
+      expect(getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE)).toHaveTextContent(
+        strings('pro_hub.physical_card.trial_title', {
+          rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
+        }),
+      );
+      expect(
+        getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION),
+      ).toHaveTextContent(strings('pro_hub.physical_card.trial_description'));
     });
 
     it('shows a lock instead of the mUSD back amount during a free trial', () => {

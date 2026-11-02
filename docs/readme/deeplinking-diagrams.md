@@ -73,8 +73,7 @@ flowchart TD
     Action -->|swap| HandleSwap[handleSwapUrl]
     Action -->|buy/sell| HandleRamp[handleRampUrl]
     Action -->|home| HandleHome[navigateToHomeUrl]
-    Action -->|perps/perps-markets| HandlePerps[handlePerpsUrl]
-    Action -->|perps-asset| NotImplemented[⚠️ NOT IMPLEMENTED]
+    Action -->|perps/perps-markets/perps-asset| HandlePerps[handlePerpsUrl]
     Action -->|predict| HandlePredict[handlePredictUrl]
     Action -->|rewards| HandleRewards[handleRewardsUrl]
     Action -->|dapp| HandleBrowser[handleBrowserUrl]
@@ -96,7 +95,6 @@ flowchart TD
     HandleCard --> Execute
     HandleRecurse --> Execute
     HandleSDK --> Execute
-    NotImplemented --> NoOp[No action taken]
 
     Execute[Handler Execution<br/>1. Parse parameters<br/>2. Navigate to screen<br/>3. Pass data to components<br/>4. Update app state]
 
@@ -108,8 +106,6 @@ flowchart TD
     style InvalidDomain fill:#f8d7da
     style Execute fill:#d4edda
     style MWP fill:#e1f5ff
-    style NotImplemented fill:#f8d7da
-    style NoOp fill:#f8d7da
 ```
 
 ## Signature Creation and Verification Detail
