@@ -2,10 +2,6 @@
 # https://docs.zizmor.sh/configuration/
 
 rules:
-  # secrets-inherit is ignored inline only on calls to this repo's own reusable
-  # workflows: jobs receive only the secrets they reference, and environment
-  # secrets reach a reusable workflow only through `secrets: inherit`.
-
   dependabot-cooldown:
     config:
       # Change the minimum allowed cooldown period for Dependabot to 3 days.
