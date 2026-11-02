@@ -186,7 +186,10 @@ describe('MoneyAddMoneySheet', () => {
       undefined,
     );
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
-    delete process.env.MM_MONEY_VBA_GEO_BYPASS;
+    // Not `delete process.env.MM_MONEY_VBA_GEO_BYPASS`: babel's
+    // transform-inline-environment-variables compiles that to `delete undefined`,
+    // so a bypass set by one test leaked into every later test.
+    Reflect.deleteProperty(process.env, 'MM_MONEY_VBA_GEO_BYPASS');
   });
 
   it('renders all options', () => {
