@@ -413,7 +413,7 @@ export async function getMoneyAccountWithdrawTransactionsData(
 
 // -- Withdrawal helpers ----------------------------------------------------
 
-async function getVaultRate({
+export async function getVaultRate({
   accountantAddress,
   provider,
 }: {

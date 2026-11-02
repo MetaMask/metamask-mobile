@@ -27,6 +27,7 @@ export const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   SUBSCRIPTION_STATUSES.active,
   SUBSCRIPTION_STATUSES.trialing,
   SUBSCRIPTION_STATUSES.provisional,
+  SUBSCRIPTION_STATUSES.awaitingFunds,
 ]);
 /**
  * Statuses under which the user still holds a subscription they can manage.
@@ -114,7 +115,8 @@ export const selectTrialedSubscriptionProducts = createSelector(
 
 /**
  * Selects whether the user has an active Money Account Plus (Pro)
- * subscription. Active covers `active`, `trialing`, and `provisional`.
+ * subscription. Active covers `active`, `trialing`, `provisional`, and
+ * `awaitingFunds`.
  *
  * @param state - The root Redux state.
  * @returns True when a subscription grants Money Account Plus.

@@ -20,7 +20,10 @@ import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectMoneyAccountPremiumVaultConfig,
+  selectMoneyAccountVaultConfig,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
 import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
@@ -28,6 +31,11 @@ import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMem
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import {
+  fetchMembershipFundingRates,
+  getMembershipFundingAmount,
+  type MembershipFundingRates,
+} from '../utils/membershipFundingAmount';
 
 const PAYMENT_UNAVAILABLE_ERROR =
   'Money Account subscription payment is unavailable';
@@ -40,18 +48,23 @@ function isHexAddress(value: string | undefined): value is Hex {
 
 /**
  * Converts an mUSD base-unit shortfall into a USD amount string for MM Pay.
- * Rounds up to cents so the funded balance is never below the required amount.
+ * Adds the few base units the vault deposits round away, so the settled vault
+ * value still covers the shortfall. Keeps full 6-decimal precision; the
+ * confirmation displays it truncated to cents.
  *
  * @param balance - Current mUSD balance in base units (6 decimals).
  * @param requiredBalance - Required mUSD balance in base units (6 decimals).
- * @returns Shortfall in USD as a decimal string with up to 2 fractional digits.
+ * @param rates - Current base and premium vault rates.
+ * @returns Funding amount in USD as a decimal string with up to 6 fractional digits.
  */
-function getTopUpAmountUsd(balance: string, requiredBalance: string): string {
-  return new BigNumber(requiredBalance)
-    .minus(balance)
-    .shiftedBy(-MUSD_DECIMALS)
-    .decimalPlaces(2, BigNumber.ROUND_UP)
-    .toFixed();
+function getTopUpAmountUsd(
+  balance: string,
+  requiredBalance: string,
+  rates: MembershipFundingRates,
+): string {
+  const shortfall = BigInt(requiredBalance) - BigInt(balance);
+  const funding = getMembershipFundingAmount(shortfall, rates);
+  return new BigNumber(funding.toString()).shiftedBy(-MUSD_DECIMALS).toFixed();
 }
 
 type InitiateDeposit = ReturnType<
@@ -67,11 +80,13 @@ type InitiateDeposit = ReturnType<
  * @param initiateDeposit - Money Account deposit starter.
  * @param balance - Current mUSD balance in base units.
  * @param requiredBalance - Required mUSD balance in base units.
+ * @param rates - Current base and premium vault rates.
  */
 async function topUpMembershipShortfall(
   initiateDeposit: InitiateDeposit,
   balance: string,
   requiredBalance: string,
+  rates: MembershipFundingRates,
 ): Promise<void> {
   const batchId = createMoneyAccountBatchId();
   const { promise, cancel } = waitForMembershipTopUp(batchId);
@@ -79,7 +94,7 @@ async function topUpMembershipShortfall(
   try {
     await initiateDeposit({
       batchId,
-      amount: getTopUpAmountUsd(balance, requiredBalance),
+      amount: getTopUpAmountUsd(balance, requiredBalance, rates),
       transactionType: TransactionType.membershipSubscription,
       forceBottomSheet: true,
     });
@@ -372,6 +387,7 @@ export interface UseStartProSubscriptionResult {
 export function useStartProSubscription(): UseStartProSubscriptionResult {
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
+  const premiumVaultConfig = useSelector(selectMoneyAccountPremiumVaultConfig);
   const { initiateDeposit } = useMoneyAccountDeposit();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
@@ -418,10 +434,18 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
         if (hasSufficientBalance) {
           await requestMembershipConsent(plan, options?.isTrial ?? false);
         } else {
+          if (!vaultConfig) {
+            throw new Error(PAYMENT_UNAVAILABLE_ERROR);
+          }
+          const rates = await fetchMembershipFundingRates(
+            vaultConfig,
+            premiumVaultConfig,
+          );
           await topUpMembershipShortfall(
             initiateDeposit,
             balance,
             requiredBalance,
+            rates,
           );
         }
 
@@ -442,7 +466,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
         }
       }
     },
-    [initiateDeposit, moneyAccount?.address, vaultConfig?.chainId],
+    [initiateDeposit, moneyAccount?.address, premiumVaultConfig, vaultConfig],
   );
 
   return { startSubscription, isSubmitting, errorMessage };

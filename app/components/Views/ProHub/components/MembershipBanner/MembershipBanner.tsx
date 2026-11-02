@@ -32,6 +32,18 @@ const MembershipBanner = ({
   onAction,
 }: MembershipBannerProps) => {
   const membershipAlert = model.alert;
+  const alertAction = membershipAlert?.action;
+  const alertActionKey = membershipAlert?.actionKey;
+  const actionButton =
+    alertAction && alertActionKey
+      ? {
+          actionButtonLabel: strings(alertActionKey),
+          actionButtonOnPress: () => onAction(alertAction),
+          actionButtonProps: {
+            testID: ProHubTestIds.MEMBERSHIP_ALERT_ACTION(model.statusKind),
+          },
+        }
+      : {};
 
   return (
     <Card
@@ -79,11 +91,7 @@ const MembershipBanner = ({
                 )
               : undefined
           }
-          actionButtonLabel={strings(membershipAlert.actionKey)}
-          actionButtonOnPress={() => onAction(membershipAlert.action)}
-          actionButtonProps={{
-            testID: ProHubTestIds.MEMBERSHIP_ALERT_ACTION(model.statusKind),
-          }}
+          {...actionButton}
           twClassName="mt-3"
           testID={ProHubTestIds.MEMBERSHIP_ALERT_BANNER(model.statusKind)}
         />

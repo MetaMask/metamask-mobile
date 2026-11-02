@@ -13221,10 +13221,9 @@
       "trial_description": "Unlock card when you complete your free trial"
     },
     "membership_alert": {
-      "low_balance": {
-        "title": "Add funds by {{date}}",
-        "description": "Your Money account is low. Add funds to keep your membership.",
-        "action": "Try again"
+      "awaiting_funds": {
+        "title": "Waiting for your funds",
+        "description": "This can take a few minutes. Your membership starts once the funds reach your Money account."
       },
       "renewal_failed": {
         "title": "Renewal failed",
