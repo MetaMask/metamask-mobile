@@ -16,12 +16,11 @@ import {
 } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
 import { constants } from 'ethers';
-import usePrevious from '../../../../hooks/usePrevious';
 import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../../../selectors/multichainNetworkController';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
@@ -40,7 +39,6 @@ export const useInitialSourceToken = (
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const prevInitialSourceToken = usePrevious(initialSourceToken);
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmNetworkChainId = useSelector(
     selectSelectedNonEvmNetworkChainId,
@@ -57,6 +55,7 @@ export const useInitialSourceToken = (
     selectedNetworkName: selectedEvmNetworkName,
   });
   const bip44DefaultPair = useSelector(selectBip44DefaultPair);
+  const hasInitializedRef = useRef(false);
 
   const chainId = isEvmNetworkSelected
     ? selectedEvmChainId
@@ -89,6 +88,11 @@ export const useInitialSourceToken = (
   );
 
   useEffect(() => {
+    if (hasInitializedRef.current) {
+      return;
+    }
+    hasInitializedRef.current = true;
+
     // If initial source token is already set in Redux (pre-populated before navigation),
     // only handle network switching if needed.
     // Must compare both address AND chainId since native tokens on different chains
@@ -124,7 +128,9 @@ export const useInitialSourceToken = (
       return;
     }
 
-    if (prevInitialSourceToken === initialSourceToken) return;
+    if (!initialSourceToken) {
+      return;
+    }
 
     // Fix for the case where the initial source token is the native token of the current chain
     if (initialSourceToken?.address === constants.AddressZero) {
@@ -152,7 +158,6 @@ export const useInitialSourceToken = (
     chainId,
     dispatch,
     initialSourceAmount,
-    prevInitialSourceToken,
     bip44DefaultPair,
     handleNetworkSwitch,
   ]);

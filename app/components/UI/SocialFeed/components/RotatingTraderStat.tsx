@@ -1,4 +1,5 @@
 import {
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -86,7 +87,8 @@ const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
   return (
     <Animated.View style={animatedStyle}>
       <Text
-        variant={TextVariant.BodySm}
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
         numberOfLines={1}
         testID={testID}

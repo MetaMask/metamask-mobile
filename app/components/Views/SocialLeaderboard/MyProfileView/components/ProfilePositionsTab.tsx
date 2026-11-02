@@ -73,12 +73,12 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
     ));
 
   return (
-    <Box testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
+    <Box paddingTop={6} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
       <FilterButtonGroup
         value={filter}
         onChange={(value) => onFilterChange(value as ProfileAssetFilter)}
         variant={FilterButtonVariant.Primary}
-        twClassName="px-4 py-3"
+        twClassName="px-4 pb-3"
         testID={MyProfileViewSelectorsIDs.ASSET_FILTER}
       >
         <FilterButton

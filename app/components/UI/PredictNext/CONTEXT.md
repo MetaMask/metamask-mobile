@@ -188,6 +188,10 @@ _Avoid_: UI request, transient loading state
 The Predict User's available settlement-currency amount in a Venue Account, ready for placing Orders.
 _Avoid_: Funds, wallet balance, raw token amount
 
+**Displayed Probability**:
+A Venue-provided probability or mark shown as odds for an Outcome, such as a midpoint, last trade, or Venue mark. It is distinct from the executable Ask Price and Bid Price and never substitutes for them.
+_Avoid_: Ask Price, buy quote, guaranteed execution price
+
 **Ask Price**:
 The lowest currently available per-share price to buy an Outcome, expressed in settlement currency. A missing Ask Price means no current buy quote; it does not mean zero.
 _Avoid_: Price, buy price, Yes ask

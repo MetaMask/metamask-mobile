@@ -71,12 +71,16 @@ import {
   type PaginatedVipTransactionsDto,
   type VipTransactionDto,
   type VipTransactionsState,
+  type PerpsFeeResolverScope,
+  type PerpsTradingFeeGrant,
+  type TradingFeeGrantResponseDto,
   CampaignType,
 } from './types';
 import {
   defaultRewardsControllerState,
   getRewardsControllerDefaultState,
 } from './defaultState';
+import { getHyperliquidMainnetBuilderAddress } from './utils/hyperliquid-builder-address';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
   storeSubscriptionToken,
@@ -109,6 +113,7 @@ import {
   InvalidTimestampError,
   AccountAlreadyRegisteredError,
   SeasonNotFoundError,
+  MAX_PERPS_TRADING_FEE_GRANT_BIPS,
 } from './services/rewards-data-service';
 import { sortAccounts } from './utils/sortAccounts';
 
@@ -140,6 +145,10 @@ const VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.
 const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+
+const TRADING_FEE_GRANT_CACHE_TTL_MS = 30_000;
+const TRADING_FEE_GRANT_FAILURE_COOLDOWN_MS = 5_000;
+const TRADING_FEE_GRANT_CACHE_KEY = 'perps-trading-fee-grant';
 
 // VIP transactions cache threshold (first page only).
 // Disabled so each first-page read checks the backend last-updated timestamp.
@@ -614,6 +623,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getMoneyAccountSweepstakesDrawProof',
   'getMoneyAccountSweepstakesParticipantOutcome',
   'getPerpsDiscountForAccount',
+  'getPerpsTradingFeeGrant',
   'getVipTierForAccount',
   'getVipTransactions',
   'getVipTransactionsIfChanged',
@@ -684,6 +694,16 @@ export class RewardsController extends BaseController<
   // Cleared when the promise settles (success or failure).
   #vipFeesFetchInFlight: Map<string, Promise<VipFeesResponseDto | 0>> =
     new Map();
+  #tradingFeeGrantCache: {
+    payload: TradingFeeGrantResponseDto;
+    lastFetched: number;
+  } | null = null;
+  #tradingFeeGrantRequest: Promise<TradingFeeGrantResponseDto> | null = null;
+  #tradingFeeGrantFailureCooldown: {
+    expiresAt: number;
+    errorMessage: string;
+  } | null = null;
+  #tradingFeeGrantCacheGeneration = 0;
   /**
    * In-memory display cache for equity multiplier. Keyed by
    * `${subscriptionId}::${holdingsUsd}`. Not Redux / not program truth.
@@ -940,6 +960,17 @@ export class RewardsController extends BaseController<
     this.messenger.subscribe('KeyringController:unlock', () =>
       this.handleAuthenticationTrigger('KeyringController unlocked'),
     );
+
+    this.messenger.subscribe('AuthenticationController:stateChange', () => {
+      this.#resetTradingFeeGrantCache();
+    });
+  }
+
+  #resetTradingFeeGrantCache(): void {
+    this.#tradingFeeGrantCacheGeneration += 1;
+    this.#tradingFeeGrantCache = null;
+    this.#tradingFeeGrantRequest = null;
+    this.#tradingFeeGrantFailureCooldown = null;
   }
 
   /**
@@ -947,6 +978,7 @@ export class RewardsController extends BaseController<
    */
   resetState(): void {
     const { rewardsEnvUrl } = this.state;
+    this.#resetTradingFeeGrantCache();
     this.#participantOutcomeCache.clear();
     this.#perpsTradingParticipantOutcomeCache.clear();
     this.#predictThePitchParticipantOutcomeCache.clear();
@@ -993,6 +1025,7 @@ export class RewardsController extends BaseController<
     if (!this.canChangeRewardsEnvUrl()) {
       return;
     }
+    this.#resetTradingFeeGrantCache();
     this.update((state) => {
       state.rewardsEnvUrl = url;
     });
@@ -2039,6 +2072,166 @@ export class RewardsController extends BaseController<
       baseFeeBips,
     );
     return vipDiscountBips;
+  }
+
+  async #requestTradingFeeGrant(
+    cacheGeneration: number,
+  ): Promise<TradingFeeGrantResponseDto> {
+    try {
+      const response = await this.messenger.call(
+        'RewardsDataService:getTradingFeeGrants',
+      );
+      if (cacheGeneration === this.#tradingFeeGrantCacheGeneration) {
+        this.#tradingFeeGrantFailureCooldown = null;
+      }
+      return response;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (cacheGeneration === this.#tradingFeeGrantCacheGeneration) {
+        this.#tradingFeeGrantFailureCooldown = {
+          expiresAt: Date.now() + TRADING_FEE_GRANT_FAILURE_COOLDOWN_MS,
+          errorMessage,
+        };
+      }
+      Logger.log(
+        'RewardsController: trading fee grant fetch failed; returning no grant:',
+        errorMessage,
+      );
+      throw error;
+    }
+  }
+
+  #fetchTradingFeeGrant(
+    cacheGeneration: number,
+  ): Promise<TradingFeeGrantResponseDto> {
+    const activeRequest = this.#tradingFeeGrantRequest;
+    if (activeRequest) {
+      return activeRequest;
+    }
+
+    const request = this.#requestTradingFeeGrant(cacheGeneration);
+    this.#tradingFeeGrantRequest = request;
+    request.then(
+      () => {
+        if (this.#tradingFeeGrantRequest === request) {
+          this.#tradingFeeGrantRequest = null;
+        }
+      },
+      () => {
+        if (this.#tradingFeeGrantRequest === request) {
+          this.#tradingFeeGrantRequest = null;
+        }
+      },
+    );
+    return request;
+  }
+
+  async #getTradingFeeGrantResponse(): Promise<TradingFeeGrantResponseDto | null> {
+    const failureCooldown = this.#tradingFeeGrantFailureCooldown;
+    if (failureCooldown) {
+      if (Date.now() < failureCooldown.expiresAt) {
+        Logger.log(
+          'RewardsController: trading fee grant request suppressed during failure cooldown:',
+          failureCooldown.errorMessage,
+        );
+        return null;
+      }
+      this.#tradingFeeGrantFailureCooldown = null;
+    }
+
+    const cacheGeneration = this.#tradingFeeGrantCacheGeneration;
+    try {
+      return await wrapWithCache({
+        key: TRADING_FEE_GRANT_CACHE_KEY,
+        ttl: TRADING_FEE_GRANT_CACHE_TTL_MS,
+        readCache: () => {
+          const cached = this.#tradingFeeGrantCache;
+          const grantExpiresAt = cached?.payload.grant
+            ? Date.parse(cached.payload.grant.expiresAt)
+            : null;
+          if (
+            grantExpiresAt !== null &&
+            (!Number.isFinite(grantExpiresAt) || grantExpiresAt <= Date.now())
+          ) {
+            this.#tradingFeeGrantCache = null;
+            return undefined;
+          }
+          return cached ?? undefined;
+        },
+        fetchFresh: () => this.#fetchTradingFeeGrant(cacheGeneration),
+        writeCache: (_key, response) => {
+          if (cacheGeneration !== this.#tradingFeeGrantCacheGeneration) {
+            return;
+          }
+          const grantExpiresAt = response.grant
+            ? Date.parse(response.grant.expiresAt)
+            : null;
+          if (
+            grantExpiresAt !== null &&
+            (!Number.isFinite(grantExpiresAt) || grantExpiresAt <= Date.now())
+          ) {
+            return;
+          }
+          this.#tradingFeeGrantCache = {
+            payload: response,
+            lastFetched: Date.now(),
+          };
+        },
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Fetch a trading-fee grant for the requested Perps route.
+   * Grant lookup respects Basic Functionality while remaining independent of
+   * Rewards opt-in, VIP feature state, and Rewards subscription state.
+   */
+  async getPerpsTradingFeeGrant(
+    scope: PerpsFeeResolverScope,
+  ): Promise<PerpsTradingFeeGrant | null> {
+    if (
+      this.#isDisabled() ||
+      scope.providerId !== 'hyperliquid' ||
+      scope.isTestnet
+    ) {
+      return null;
+    }
+
+    const response = await this.#getTradingFeeGrantResponse();
+    const grant = response?.grant;
+    if (!grant) {
+      return null;
+    }
+
+    const configuredBuilderAddress =
+      getHyperliquidMainnetBuilderAddress().toLowerCase();
+    if (
+      grant.hyperliquid.builderCode.toLowerCase() !== configuredBuilderAddress
+    ) {
+      return null;
+    }
+
+    const feeBips = Number(grant.hyperliquid.builderFeeBips);
+    const expiresAt = Date.parse(grant.expiresAt);
+    if (
+      !Number.isFinite(feeBips) ||
+      feeBips < 0 ||
+      feeBips > MAX_PERPS_TRADING_FEE_GRANT_BIPS ||
+      !Number.isFinite(expiresAt) ||
+      expiresAt <= Date.now()
+    ) {
+      return null;
+    }
+
+    return {
+      providerId: 'hyperliquid',
+      isTestnet: false,
+      feeBips,
+      expiresAt,
+    };
   }
 
   /**

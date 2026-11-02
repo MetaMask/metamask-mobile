@@ -1,7 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import VbaEmailAdapter from './modules/VbaEmailAdapter';
-import VbaIdentityVerificationModule from './modules/VbaIdentityVerificationModule';
+import VbaEmailAdapter from '../../../KYC/Views/EmailAdapter';
+import VbaIdentityVerified from '../../../KYC/Views/Status/IdentityVerified';
+import VbaIdentityVerificationModule from '../../../KYC/Views/SumSub/IdentityVerification';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
@@ -10,6 +11,7 @@ import {
 } from './modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaOnboardingLoading from './VbaOnboardingLoading';
+import VbaChooseCurrency from './VbaChooseCurrency';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
@@ -35,6 +37,14 @@ const VbaOnboardingNavigator = () => (
     <Stack.Screen
       name={VbaOnboardingRoutes.KYC_PENDING}
       component={VbaKycPendingAdapter}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
+      component={VbaIdentityVerified}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
+      component={VbaChooseCurrency}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.KYC_REJECTED}

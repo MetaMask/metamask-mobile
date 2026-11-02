@@ -59,6 +59,11 @@ export interface LimitOrderPriceAdjustCardProps {
    */
   onLimitPriceInputPress?: () => void;
   /**
+   * When true a press on the limit-price input only dismisses the keypad
+   * (through `onDismissKeypad`) instead of focusing the input.
+   */
+  isLimitPriceInputPressDisabled?: boolean;
+  /**
    * Controlled caret selection for the limit-price input.
    */
   limitPriceSelection?: { start: number; end: number };

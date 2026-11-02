@@ -22,7 +22,7 @@ interface LimitOrdersDataServiceMockOptions {
 
 export function setupLimitOrdersDataServiceMock({
   // An empty page, so component view tests never reach the API.
-  limitOrders = async () => ({ orders: [] }),
+  limitOrders = async () => ({ orders: [], total: 0 }),
 }: LimitOrdersDataServiceMockOptions = {}) {
   // Captured at call time (not import time) so this composes with other
   // api-mocking helpers (e.g. recurringOrders) regardless of setup order.

@@ -4,6 +4,20 @@ import BrazeBannerCard from './BrazeBannerCard';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/BoxGlass';
 
+let mockIsGlassEnabled = false;
+jest.mock('../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
+
 // ---------------------------------------------------------------------------
 // Mock: design-system
 // ---------------------------------------------------------------------------
@@ -132,6 +146,14 @@ describe('BrazeBannerCard', () => {
   );
 
   describe('glass', () => {
+    beforeEach(() => {
+      mockIsGlassEnabled = true;
+    });
+
+    afterEach(() => {
+      mockIsGlassEnabled = false;
+    });
+
     it('keeps the opaque card by default', () => {
       const { getByTestId } = renderCard();
 

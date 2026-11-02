@@ -138,6 +138,7 @@ import UrlAutocomplete, {
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import {
@@ -386,7 +387,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return true;
         }
 
-        const testResult = await getPhishingTestResultAsync(urlToCheck);
+        const testResult = await getPhishingTestResultAsync(
+          urlToCheck,
+          RequestSourceFlow.Browser,
+        );
         return !testResult?.result;
       },
       [whitelist],
@@ -1755,12 +1759,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return;
         }
 
-        // JS `location.href` can skip onLoadEnd on both platforms. Commit when
-        // the load finishes at a new origin so the URL bar can catch up.
-        if (!loading && url) {
+        // Android reports History API path changes (pushState / replaceState)
+        // through onNavigationStateChange and does not fire onLoadEnd. Commit
+        // a finished navigation when the URL changed, including same-origin
+        // SPA routes. Cross-origin location.href updates that skip onLoadEnd
+        // still commit here.
+        if (!loading && url && url !== resolvedUrlRef.current) {
           const incomingOrigin = new URLParse(url).origin;
-          const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
-          if (incomingOrigin && incomingOrigin !== activeOrigin) {
+          if (incomingOrigin) {
             handleSuccessfulPageResolution({
               title: title ?? titleRef.current,
               url,

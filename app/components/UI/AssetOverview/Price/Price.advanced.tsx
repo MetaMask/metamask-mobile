@@ -34,7 +34,7 @@ export interface PriceAdvancedProps {
 const PriceAdvanced = (props: PriceAdvancedProps) => (
   <PriceProvider {...props}>
     <PriceHeader />
-    <PriceChartSection />
+    <PriceChartSection uniformSpacing />
   </PriceProvider>
 );
 

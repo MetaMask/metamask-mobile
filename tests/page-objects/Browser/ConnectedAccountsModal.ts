@@ -6,6 +6,7 @@ import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/Wa
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import { type AppiumElement } from '../../framework';
 
 class ConnectedAccountsModal {
@@ -174,11 +175,26 @@ class ConnectedAccountsModal {
     accountName: string,
     options: { timeout?: number } = {},
   ): Promise<void> {
+    await this.expectConnectedAccountsDisplayed([accountName], options);
+  }
+
+  /**
+   * Wait once for the accounts summary, then assert each connected account name.
+   * Prefer this after Connect returns — bare `expectTextDisplayed` on Account 2/3
+   * races the newly connected cells while Account 1 is already in the tree.
+   */
+  async expectConnectedAccountsDisplayed(
+    accountNames: string[],
+    options: { timeout?: number } = {},
+  ): Promise<void> {
     await this.waitForAccountsSummaryReady();
-    await Assertions.expectTextDisplayed(accountName, {
-      timeout: options.timeout ?? 30_000,
-      description: `"${accountName}" in connected accounts summary`,
-    });
+    const timeout = options.timeout ?? 30_000;
+    for (const accountName of accountNames) {
+      await Assertions.expectTextDisplayed(accountName, {
+        timeout,
+        description: `"${accountName}" in connected accounts summary`,
+      });
+    }
   }
 
   async tapDisconnectButton(): Promise<void> {
@@ -223,10 +239,20 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Confirm disconnect-all. Wait for the confirm control and the connected
+   * sheet's disconnect_all control to leave the tree — iOS can still show the
+   * sheet while the next specs already assert the browser chrome.
+   */
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
       elemDescription: 'Confirm disconnect networks button',
+      waitForElementToDisappear: true,
     });
+    await Utilities.waitForElementToDisappear(
+      this.disconnectAllAccountsAndNetworksButton,
+      15_000,
+    );
   }
 
   async scrollToBottomOfModal(): Promise<void> {

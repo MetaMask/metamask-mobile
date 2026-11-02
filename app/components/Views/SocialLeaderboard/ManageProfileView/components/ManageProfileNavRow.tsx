@@ -21,6 +21,7 @@ interface ManageProfileNavRowProps {
   value?: string;
   showTopBorder?: boolean;
   valueAccessory?: ReactNode;
+  disabled?: boolean;
 }
 
 const ManageProfileNavRow: React.FC<ManageProfileNavRowProps> = ({
@@ -30,8 +31,15 @@ const ManageProfileNavRow: React.FC<ManageProfileNavRowProps> = ({
   value,
   showTopBorder = false,
   valueAccessory,
+  disabled = false,
 }) => (
-  <Pressable accessibilityRole="button" onPress={onPress} testID={testID}>
+  <Pressable
+    accessibilityRole="button"
+    accessibilityState={{ disabled }}
+    disabled={disabled}
+    onPress={onPress}
+    testID={testID}
+  >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}

@@ -33,6 +33,7 @@ import useRegions from '../../hooks/useRegions';
 import useAnalytics from '../../../hooks/useAnalytics';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
+import useOffRampNonEvmEnabled from '../../hooks/useOffRampNonEvmEnabled';
 import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
@@ -96,7 +97,10 @@ import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
-import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
+import {
+  isNonEvmAddress,
+  isNonEvmChainId,
+} from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -155,6 +159,16 @@ const BuildQuote = () => {
     isSell,
     setIntent,
   } = useRampSDK();
+
+  // Non-EVM off-ramp gate: when enabled, allow selecting a non-EVM (e.g. Solana)
+  // account for sell. Buy already supports non-EVM accounts.
+  const isOffRampNonEvmEnabled = useOffRampNonEvmEnabled();
+
+  // EVM gas estimates are in wei and must never be applied to non-EVM balances.
+  const isNonEvmAsset = Boolean(
+    selectedAsset?.network?.chainId &&
+      isNonEvmChainId(selectedAsset.network.chainId),
+  );
 
   useEffect(() => {
     if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
@@ -373,7 +387,9 @@ const BuildQuote = () => {
   );
 
   let maxSellAmount: bigint | null = null;
-  if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
+  if (selectedAsset && isNonEvmAsset) {
+    maxSellAmount = balanceBN ?? null;
+  } else if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
     // Use nullish checks — bigint 0n is falsy, unlike BN instances.
     maxSellAmount =
       balanceBN != null && gasPriceEstimation
@@ -424,7 +440,11 @@ const BuildQuote = () => {
   }, [balanceBN, amountBNMinimalUnit]);
 
   const hasInsufficientNativeBalanceForGas = useMemo(() => {
-    if (isBuy || (selectedAsset && selectedAsset.address === NATIVE_ADDRESS)) {
+    if (
+      isBuy ||
+      isNonEvmAsset ||
+      (selectedAsset && selectedAsset.address === NATIVE_ADDRESS)
+    ) {
       return false;
     }
 
@@ -435,7 +455,13 @@ const BuildQuote = () => {
     }
 
     return nativeTokenBalanceBN < gasPriceEstimation.estimatedGasFee;
-  }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
+  }, [
+    gasPriceEstimation,
+    isBuy,
+    isNonEvmAsset,
+    nativeTokenBalanceBN,
+    selectedAsset,
+  ]);
 
   const displayBalance = useMemo(() => {
     if (!selectedAddress) {
@@ -936,7 +962,7 @@ const BuildQuote = () => {
         >
           <ScreenLayout.Content>
             <Row style={styles.selectors}>
-              <AccountSelector isEvmOnly={isSell} />
+              <AccountSelector isEvmOnly={isSell && !isOffRampNonEvmEnabled} />
               <View style={styles.spacer} />
               {isFetchingRegions ? (
                 <SkeletonText thick />

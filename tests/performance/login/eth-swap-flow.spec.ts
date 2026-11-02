@@ -31,7 +31,7 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
 
       const swapTimer = new TimerHelper(
         'Time since the user enters the amount until the quote is displayed',
-        { ios: 9000, android: 7000 },
+        { ios: 9000, android: 3000 },
         currentDeviceDetails.platform,
       );
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');

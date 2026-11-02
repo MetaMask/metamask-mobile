@@ -1,11 +1,14 @@
 import { createSelector } from 'reselect';
 import { CaipChainId, Json } from '@metamask/utils';
 import { selectRemoteFeatureFlags } from '../../featureFlagController';
+import { parseLimitOrderCostTolerance } from '../../../components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/constants';
+import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../../components/UI/Bridge/constants/limitOrders';
 
 interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
   baseUrl: string;
+  defaultPriceTolerance: number;
 }
 
 interface RawBridgeRecurringBuyFeatureFlagValue extends Record<string, Json> {
@@ -86,6 +89,27 @@ export const selectBridgeLimitOrderTabEnabledFlag = createSelector(
 export const selectBridgeLimitOrderBaseUrl = createSelector(
   selectBridgeLimitOrderFeatureFlags,
   (flags): string | undefined => flags?.baseUrl,
+);
+
+/**
+ * Selector for the cost (price) tolerance in % that limit orders start with
+ * until the user picks another value.
+ *
+ * @returns string - the `defaultPriceTolerance` of the Limit Order feature
+ * flag when it is a valid tolerance, or `LIMIT_ORDER_DEFAULT_COST_TOLERANCE`
+ * otherwise.
+ */
+export const selectBridgeLimitOrderDefaultCostTolerance = createSelector(
+  selectBridgeLimitOrderFeatureFlags,
+  (flags): string => {
+    const defaultPriceTolerance = flags?.defaultPriceTolerance;
+    const remoteValue =
+      typeof defaultPriceTolerance === 'number'
+        ? parseLimitOrderCostTolerance(String(defaultPriceTolerance))
+        : undefined;
+
+    return remoteValue ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE;
+  },
 );
 
 /**

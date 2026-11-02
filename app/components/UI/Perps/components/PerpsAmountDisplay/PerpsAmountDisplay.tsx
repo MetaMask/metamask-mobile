@@ -74,6 +74,7 @@ interface PerpsAmountDisplayProps {
   onDisplayToggle?: () => void;
   displayToggleAccessibilityLabel?: string;
   displayToggleTestID?: string;
+  twClassName?: string;
   /**
    * Custom glyph for the `tradeSheet` fiat/token toggle. When omitted the
    * toggle is the MMDS `ButtonIcon` with `IconName.SwapVertical`; callers
@@ -101,6 +102,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   displayToggleAccessibilityLabel,
   displayToggleTestID,
   displayToggleIcon,
+  twClassName,
 }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -217,6 +219,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
         testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
+        twClassName={twClassName}
       >
         {onPress ? (
           <TouchableOpacity
@@ -295,7 +298,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
 
   const content = (
     <View
-      style={styles.container}
+      style={[styles.container, tw.style(twClassName)]}
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
       {label && (

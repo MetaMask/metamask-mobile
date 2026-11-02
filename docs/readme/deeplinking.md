@@ -288,6 +288,37 @@ Contract:
 https://link.metamask.io/swap?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000
 ```
 
+#### Limit Order Link
+
+Use the existing `swap` action with `tab=limit`:
+
+```
+https://link.metamask.io/swap?tab=limit&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000&expiresInMinutes=10080&priceTolerance=0.5
+```
+
+- `from`, `to`, and `amount` are optional and use the same CAIP-19 and atomic-unit formats as market swap links.
+- `expiresInMinutes` optionally selects an existing expiration preset: `10`, `60`, `1440`, `4320`, `10080`, or `43200`.
+- `priceTolerance` optionally sets a percentage greater than `0` and less than `100`, with at most two decimal places. Do not include the `%` sign.
+- Missing or invalid Limit Order settings use the existing defaults: 60 minutes and 2% price tolerance.
+- The limit price initializes from the live market price.
+- Limit Orders require an eligible same-chain pair. Unsupported or cross-chain inputs are replaced with a supported pair, and an amount that no longer applies is cleared.
+- If the Limit Orders tab is unavailable, the link falls back to the Market tab.
+
+#### Money account deposit link
+
+```
+https://link.metamask.io/money-account-deposit
+metamask://money-account-deposit
+```
+
+Both forms enter the same React bridge route. The bridge checks the Money
+feature flag and geo eligibility before entering the Money account deposit flow.
+The action bypasses the deeplink interstitial. When Money is unavailable or the
+user is geo-blocked, the existing Money deeplink messaging is shown. Eligible
+users who have not seen Money onboarding are sent through onboarding first,
+then continue to the deposit confirmation. Users who have already seen
+onboarding open the editable deposit confirmation directly.
+
 #### Private Link (Signed)
 
 To create a signed link, use the `link-signer-api`:
@@ -973,7 +1004,7 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 
 | Action                   | Purpose                     | Handler Function                 | Notes                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------ | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `swap`                   | Token swap/bridge (CAIP-19) | `handleSwapUrl`                  | Params: `from`, `to`, `amount` (CAIP-19)                                                                                                                                                                                                                                                                                                                                                                                           |
+| `swap`                   | Token swap/bridge (CAIP-19) | `handleSwapUrl`                  | Params: `from`, `to`, `amount` (CAIP-19); `tab=limit` opens the Limit Order form and accepts `expiresInMinutes` and `priceTolerance`                                                                                                                                                                                                                                                                                               |
 | `buy` / `buy-crypto`     | Buy crypto                  | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `sell` / `sell-crypto`   | Sell crypto                 | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `send`                   | Send transaction            | Recursive `parse()` call         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -989,6 +1020,7 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 | `trending`               | Explore / Trending          | `handleTrendingUrl`              | Params: `tab=now\|macro\|rwas\|crypto\|sports\|sites`, `screen=stocks\|trending-tokens\|sites\|favorite-sites\|search`, `q`/`query` (prefills search when `screen=search`), `chainId` (CAIP, e.g. `eip155:4663`; chain-filters the trending tokens list when `screen=trending-tokens`; invalid values are dropped), `timeframe=5m\|1h\|6h\|24h` (preselects the trending tokens time filter) (unknown values fall back to Explore) |
 | `privacy`                | Security & Privacy settings | `handlePrivacyUrl`               | Params: `setting=metametrics\|data-collection` (scrolls to that section; unknown values fall back to `metametrics`)                                                                                                                                                                                                                                                                                                                |
 | `notifications-settings` | Notification settings       | `handleNotificationsSettingsUrl` | Params: `section=wallet-activity\|perps\|social-ai\|agentic-cli\|marketing\|price-alerts` (opens that preference section; unknown or missing values land on the main notification settings page)                                                                                                                                                                                                                                   |
+| `money-account-deposit`  | Money account deposit       | `handleMoneyDeposit`             | Rechecks Money account feature enablement and user geo eligibility in the MoneyDepositDeeplinkBridge; eligible users continue through onboarding when needed, then to the Money account deposit screen                                                                                                                                                                                                                             |
 | `wc`                     | WalletConnect               | Recursive `parse()` call         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `onboarding`             | Fast onboarding             | `handleFastOnboarding`           |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `enable-card-button`     | Enable card feature         | `handleEnableCardButton`         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |

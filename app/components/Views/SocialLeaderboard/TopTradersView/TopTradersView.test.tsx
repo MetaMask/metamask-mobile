@@ -1252,7 +1252,7 @@ describe('TopTradersView', () => {
       });
     };
 
-    it('intercepts the follow without calling toggleFollow when both channels are off', async () => {
+    it('follows and then opens the setup sheet when both channels are off', async () => {
       mockNotificationPreferences = channelsDisabledPreferences;
 
       renderWithProvider(<TopTradersView />);
@@ -1261,15 +1261,15 @@ describe('TopTradersView', () => {
         fireEvent.press(screen.getAllByText('Follow')[0]);
       });
 
-      expect(mockToggleFollow).not.toHaveBeenCalled();
+      expect(mockToggleFollow).toHaveBeenCalledTimes(1);
       expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SOCIAL.TRADING_SIGNALS_SETUP,
-        expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+        expect.objectContaining({ onSetupComplete: undefined }),
       );
     });
 
-    it('intercepts the follow with the feature notifications gate when the master toggle is off', async () => {
+    it('follows and then opens the feature notifications gate when the master toggle is off', async () => {
       mockIsMasterNotificationsEnabled = false;
 
       renderWithProvider(<TopTradersView />);
@@ -1278,7 +1278,7 @@ describe('TopTradersView', () => {
         fireEvent.press(screen.getAllByText('Follow')[0]);
       });
 
-      expect(mockToggleFollow).not.toHaveBeenCalled();
+      expect(mockToggleFollow).toHaveBeenCalledTimes(1);
       expect(mockPlayErrorNotification).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
@@ -1286,7 +1286,7 @@ describe('TopTradersView', () => {
       });
     });
 
-    it('performs the follow when the deferred setup action runs', async () => {
+    it('does not follow again when the setup sheet completes', async () => {
       mockNotificationPreferences = channelsDisabledPreferences;
 
       renderWithProvider(<TopTradersView />);

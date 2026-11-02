@@ -159,12 +159,12 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.isCustomActive).toBe(false);
   });
 
-  it('rounds the market price to two decimal places for a sub-dollar dest token', () => {
+  it('keeps four significant digits of the market price for a sub-dollar dest token', () => {
     mockFiatRates({ destRate: 0.10298176120674981 });
 
     const { result } = renderPriceAdjustHook();
 
-    expect(result.current.limitPrice).toBe('0.1');
+    expect(result.current.limitPrice).toBe('0.103');
   });
 
   it('omits market comparison when market is applied to a sub-dollar dest token', () => {
@@ -467,6 +467,32 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       expect(result.current.limitPrice).toBe('1');
     });
 
+    it('waits for the default price mode reset when the token pair arrives after mount', () => {
+      mockUseLiveTokenFiatRate.mockImplementation((token) => {
+        if (token?.symbol === 'ETH') return 2000;
+        if (token?.symbol === 'USDC') return 1;
+        return undefined;
+      });
+      const initialProps: {
+        destToken: typeof usdc | undefined;
+        sourceToken: typeof sourceToken | undefined;
+      } = {
+        destToken: undefined,
+        sourceToken: undefined,
+      };
+      const { result, rerender } = renderHook(
+        (props) => useSwapsLimitOrderPriceAdjust(props),
+        { initialProps },
+      );
+
+      expect(result.current.limitPrice).toBeUndefined();
+
+      rerender({ destToken: usdc, sourceToken });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+      expect(result.current.limitPrice).toBe('2000');
+    });
+
     it('does not follow the market after a percent preset or after the market preset', () => {
       const { result, rerender } = renderPriceAdjustHook();
 
@@ -689,6 +715,201 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       expect(result.current.isLimitFiatMode).toBe(true);
       expect(result.current.counterToken).toEqual(sourceToken);
       expect(result.current.limitPrice).toBe('1');
+    });
+  });
+
+  describe('cheap quoted tokens', () => {
+    const musd = createMockToken({
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      symbol: 'mUSD',
+      decimals: 6,
+    });
+    const pepe = createMockToken({
+      address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+      symbol: 'PEPE',
+      decimals: 18,
+    });
+
+    beforeEach(() => {
+      mockUseLiveTokenFiatRate.mockImplementation((token) => {
+        if (token?.symbol === 'ETH') {
+          return 4000;
+        }
+        if (token?.symbol === 'mUSD') {
+          return 0.9998;
+        }
+        if (token?.symbol === 'PEPE') {
+          return 0.0000039998;
+        }
+        return undefined;
+      });
+    });
+
+    describe('priced in a 6-decimal stablecoin', () => {
+      it('seeds the market price at 0% from market', () => {
+        const { result } = renderPriceAdjustHook({
+          sourceToken: musd,
+          destToken: pepe,
+        });
+
+        expect(result.current.isLimitFiatMode).toBe(false);
+        expect(result.current.counterToken).toEqual(musd);
+        expect(result.current.limitPrice).toBe('0.0000040006');
+        expect(result.current.marketComparison).toBeUndefined();
+        expect(result.current.secondaryValue).toBe('$0.0₅4');
+      });
+
+      it.each([
+        { percent: 5, limitPrice: '0.00000380057', label: '5.00' },
+        { percent: 10, limitPrice: '0.00000360054', label: '10.00' },
+      ])(
+        'moves the limit price $percent% below market',
+        ({ percent, limitPrice, label }) => {
+          const { result } = renderPriceAdjustHook({
+            sourceToken: musd,
+            destToken: pepe,
+          });
+
+          act(() => {
+            result.current.handlePercentPress(percent);
+          });
+
+          expect(result.current.limitPrice).toBe(limitPrice);
+          expect(result.current.marketComparison).toEqual({
+            label: `(-${label}% from market)`,
+            isNegative: true,
+          });
+        },
+      );
+
+      it('returns to 0% from market on the market preset', () => {
+        const { result } = renderPriceAdjustHook({
+          sourceToken: musd,
+          destToken: pepe,
+        });
+
+        act(() => {
+          result.current.handlePercentPress(10);
+        });
+        act(() => {
+          result.current.handleMarketPress();
+        });
+
+        expect(result.current.limitPrice).toBe('0.0000040006');
+        expect(result.current.marketComparison).toBeUndefined();
+      });
+
+      it('lets the keypad take more decimals than the stablecoin has', () => {
+        const { result } = renderPriceAdjustHook({
+          sourceToken: musd,
+          destToken: pepe,
+        });
+
+        expect(result.current.limitPriceDecimals).toBe(18);
+      });
+    });
+
+    describe('priced in fiat', () => {
+      it('seeds the market price at 0% from market', () => {
+        const { result } = renderPriceAdjustHook({ destToken: pepe });
+
+        expect(result.current.isLimitFiatMode).toBe(true);
+        expect(result.current.limitPrice).toBe('0.000004');
+        expect(result.current.marketComparison).toBeUndefined();
+      });
+
+      it.each([
+        { percent: 5, limitPrice: '0.0000038', label: '5.00' },
+        { percent: 10, limitPrice: '0.0000036', label: '10.00' },
+      ])(
+        'moves the limit price $percent% below market',
+        ({ percent, limitPrice, label }) => {
+          const { result } = renderPriceAdjustHook({ destToken: pepe });
+
+          act(() => {
+            result.current.handlePercentPress(percent);
+          });
+
+          expect(result.current.limitPrice).toBe(limitPrice);
+          expect(result.current.marketComparison).toEqual({
+            label: `(-${label}% from market)`,
+            isNegative: true,
+          });
+        },
+      );
+
+      it('moves the limit price by a committed custom percent', () => {
+        const { result } = renderPriceAdjustHook({ destToken: pepe });
+
+        act(() => {
+          result.current.handleCustomPress();
+          result.current.handleCustomValueChange('7');
+        });
+        act(() => {
+          result.current.commitCustomPercent();
+        });
+
+        expect(result.current.limitPrice).toBe('0.00000372');
+        expect(result.current.marketComparison).toEqual({
+          label: '(-7.00% from market)',
+          isNegative: true,
+        });
+      });
+
+      it('shows the counter token amount instead of rounding it to zero', () => {
+        const { result } = renderPriceAdjustHook({ destToken: pepe });
+
+        act(() => {
+          result.current.handlePercentPress(5);
+        });
+
+        expect(result.current.secondaryValue).toBe('0.0₉95 ETH');
+      });
+
+      it('keeps the price when toggling to the counter token and back', () => {
+        const { result } = renderPriceAdjustHook({ destToken: pepe });
+
+        act(() => {
+          result.current.handlePercentPress(5);
+        });
+        act(() => {
+          result.current.onAmountTypeTogglePress?.();
+        });
+
+        expect(result.current.isLimitFiatMode).toBe(false);
+        expect(result.current.limitPrice).toBe('0.00000000095');
+
+        act(() => {
+          result.current.onAmountTypeTogglePress?.();
+        });
+
+        expect(result.current.isLimitFiatMode).toBe(true);
+        expect(result.current.limitPrice).toBe('0.0000038');
+      });
+
+      it('lets the keypad take as many decimals as the presets produce', () => {
+        const { result } = renderPriceAdjustHook({ destToken: pepe });
+
+        expect(result.current.limitPriceDecimals).toBe(9);
+      });
+    });
+  });
+
+  describe('limitPriceDecimals', () => {
+    it('is two decimal places for a fiat price of at least 1', () => {
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.limitPriceDecimals).toBe(2);
+    });
+
+    it('is 18 decimal places for a counter-token price', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.onAmountTypeTogglePress?.();
+      });
+
+      expect(result.current.limitPriceDecimals).toBe(18);
     });
   });
 

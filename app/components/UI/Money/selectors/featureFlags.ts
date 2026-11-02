@@ -30,6 +30,7 @@ import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmatio
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
+import { parseMoneyVbaActivityDepositFromAddresses } from '../utils/moneyVbaActivityDepositFromAddresses';
 
 /**
  * Selects whether the Money activity detail view is enabled.
@@ -106,6 +107,19 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
     }
     return [...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS];
   },
+);
+
+/**
+ * Selects the remotely managed Iron/MoonPay sender addresses for completed VBA
+ * deposits. The allowlist can overlap while provider addresses rotate. An
+ * absent or malformed flag fails closed; production addresses are never bundled.
+ */
+export const selectMoneyVbaActivityDepositFromAddresses = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] =>
+    parseMoneyVbaActivityDepositFromAddresses(
+      remoteFeatureFlags?.moneyVbaActivityDepositFromAddresses,
+    ),
 );
 
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
@@ -226,6 +240,19 @@ export const selectMoneyEarningSectionEnabledFlag = createSelector(
       remoteFeatureFlags?.earnMoneyEarningSectionEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the Money deposit Braze campaign can emit its trigger event.
+ */
+export const selectIsMoneyDepositBrazeCampaignEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyDepositBrazeCampaignEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

@@ -17,6 +17,7 @@ import PendingSpinner from '../../../UI/Money/components/PendingSpinner/PendingS
 import {
   getPendingTxActionVisibility,
   hasAnyPendingTxAction,
+  showSpeedUp,
 } from '../../../UI/Transactions/pendingTxActions';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
@@ -95,15 +96,17 @@ export function ActivityDetailsPendingBanner({
           >
             {strings('transaction.cancel')}
           </Button>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            twClassName="flex-1"
-            onPress={() => onSpeedUpAction(true, tx)}
-            testID={ActivityDetailsSelectorsIDs.PENDING_SPEED_UP_BUTTON}
-          >
-            {strings('transaction.speedup')}
-          </Button>
+          {showSpeedUp(tx.type) && (
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              twClassName="flex-1"
+              onPress={() => onSpeedUpAction(true, tx)}
+              testID={ActivityDetailsSelectorsIDs.PENDING_SPEED_UP_BUTTON}
+            >
+              {strings('transaction.speedup')}
+            </Button>
+          )}
         </Box>
       ) : null}
 

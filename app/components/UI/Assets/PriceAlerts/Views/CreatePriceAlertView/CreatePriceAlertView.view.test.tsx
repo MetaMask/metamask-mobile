@@ -90,16 +90,17 @@ describeForPlatforms('CreatePriceAlertView', () => {
   });
 
   it('opens in edit mode with pre-filled threshold when editingAlert is passed', async () => {
-    const { getByText, getByTestId } = renderCreatePriceAlertViewWithRoutes({
-      routeParams: {
-        editingAlert,
-        existingAbsoluteAlerts: [],
-      },
-    });
+    const { getByRole, getByText, getByTestId } =
+      renderCreatePriceAlertViewWithRoutes({
+        routeParams: {
+          editingAlert,
+          existingAbsoluteAlerts: [],
+        },
+      });
 
     expect(getByText('Edit ETH price alert')).toBeOnTheScreen();
     // threshold 3000 is pre-filled as "$3000"
-    expect(getByText('$3000')).toBeOnTheScreen();
+    expect(getByRole('text', { name: '$3000' })).toBeOnTheScreen();
     // Update button is shown (not "Set price alert")
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
@@ -113,13 +114,13 @@ describeForPlatforms('CreatePriceAlertView', () => {
 
   it('applies +5% quick percentage pill and updates the target price', async () => {
     // currentPrice defaults to 2500 in the renderer, so +5% → 2625
-    const { getByTestId, findByText } = renderCreatePriceAlertViewWithRoutes();
+    const { getByRole, getByTestId } = renderCreatePriceAlertViewWithRoutes();
 
     fireEvent.press(
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     );
 
-    expect(await findByText('$2625')).toBeOnTheScreen();
+    expect(await getByRole('text', { name: '$2625' })).toBeOnTheScreen();
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).not.toBeDisabled();

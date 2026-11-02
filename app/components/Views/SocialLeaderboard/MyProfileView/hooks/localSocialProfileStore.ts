@@ -1,4 +1,3 @@
-import { MY_PROFILE_SHEET_MOCK_DEFAULTS } from '../utils/myProfileMockDefaults';
 import type { MySocialProfile } from './useMyProfile';
 
 type Listener = () => void;
@@ -29,8 +28,6 @@ const createDefaultProfile = (): MySocialProfile => ({
   shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
-  ...MY_PROFILE_SHEET_MOCK_DEFAULTS,
 });
 
 const bootstrap = (): StoreState => {

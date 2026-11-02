@@ -7,12 +7,15 @@ import {
   internalAccount2,
 } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderShortAddress } from '../../../../../util/address';
+import type { LinkableSocialAccount } from '../../hooks/useLinkableSocialAccounts';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
 import ManageProfileLinkedAccountView from './ManageProfileLinkedAccountView';
 
 const mockGoBack = jest.fn();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
+const mockUseLinkableSocialAccounts = jest.fn<LinkableSocialAccount[], []>();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -21,6 +24,10 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
+}));
+
+jest.mock('../../hooks/useLinkableSocialAccounts', () => ({
+  useLinkableSocialAccounts: () => mockUseLinkableSocialAccounts(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -42,55 +49,85 @@ const state = {
   },
 };
 
+const linkableAccounts: LinkableSocialAccount[] = [
+  {
+    id: internalAccount1.id,
+    name: 'Main Wallet',
+    address: internalAccount1.address,
+    balanceLabel: '$1,234.56',
+  },
+  {
+    id: internalAccount2.id,
+    name: 'Trading',
+    address: internalAccount2.address,
+    balanceLabel: '',
+  },
+];
+
+const controllerResult = (
+  overrides: Partial<UseProfileControllerResult> = {},
+): UseProfileControllerResult => ({
+  isControllerBacked: false,
+  profile: undefined,
+  linkedAddresses: [],
+  updateProfile: jest.fn().mockResolvedValue(undefined),
+  createProfile: jest.fn().mockResolvedValue(undefined),
+  fetchAndUpdateProfile: jest.fn(),
+  fetchAndUpdateXAccount: jest.fn(),
+  disconnectX: jest.fn(),
+  getXAuthorizationUrl: jest.fn(),
+  checkUsernameAvailability: jest.fn(),
+  ...overrides,
+});
+
+const getRow = (accountId: string) =>
+  screen.getByTestId(
+    `${ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}-${accountId}`,
+  );
+
 describe('ManageProfileLinkedAccountView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseProfileController.mockReturnValue({
-      isControllerBacked: false,
-      profile: undefined,
-      linkedAddresses: [],
-      updateProfile: jest.fn().mockResolvedValue(undefined),
-      checkUsernameAvailability: jest.fn(),
-    });
+    mockUseProfileController.mockReturnValue(controllerResult());
+    mockUseLinkableSocialAccounts.mockReturnValue(linkableAccounts);
   });
 
-  it('lists wallet accounts and keeps the selected account checked after a press', () => {
+  it('shows account names and balances instead of addresses', () => {
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
 
-    const selectedRow = screen.getByTestId(
-      `${ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}-${internalAccount2.id}`,
+    const firstRow = getRow(internalAccount1.id);
+    const secondRow = getRow(internalAccount2.id);
+
+    expect(firstRow).toHaveTextContent('Main Wallet$1,234.56');
+    expect(secondRow).toHaveTextContent('Trading');
+    expect(firstRow).not.toHaveTextContent(
+      renderShortAddress(internalAccount1.address),
     );
-    const otherRow = screen.getByTestId(
-      `${ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}-${internalAccount1.id}`,
+  });
+
+  it('does not update the profile when not controller backed', () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    mockUseProfileController.mockReturnValue(
+      controllerResult({ updateProfile }),
     );
 
-    expect(selectedRow).toHaveTextContent('Account 2');
-    expect(otherRow).toHaveTextContent('Account 1');
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
 
-    fireEvent.press(otherRow);
+    fireEvent.press(getRow(internalAccount1.id));
 
-    expect(selectedRow).toHaveTextContent('Account 2');
-    expect(otherRow).toHaveTextContent('Account 1');
+    expect(updateProfile).not.toHaveBeenCalled();
   });
 
   it('updates the profile with the selected EVM account', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
-    mockUseProfileController.mockReturnValue({
-      isControllerBacked: true,
-      profile: undefined,
-      linkedAddresses: [],
-      updateProfile,
-      checkUsernameAvailability: jest.fn(),
-    });
+    mockUseProfileController.mockReturnValue(
+      controllerResult({ isControllerBacked: true, updateProfile }),
+    );
 
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
 
     await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          `${ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}-${internalAccount1.id}`,
-        ),
-      );
+      fireEvent.press(getRow(internalAccount1.id));
     });
 
     expect(updateProfile).toHaveBeenCalledWith({

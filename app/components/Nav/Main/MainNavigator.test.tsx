@@ -15,10 +15,22 @@ import OfflineMode from '../../Views/OfflineMode';
 import {
   slideFromRightNativeOptions,
   transparentModalStackOptions,
+  fadeNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
-
+import type { MoneyDashboardPersona } from '../../../reducers/rewardsMoney/selectors';
+import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
+import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
+}));
+
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => 'MID'),
+}));
+
+jest.mock('../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(() => 'WIFI'),
 }));
 
 jest.mock('@react-navigation/native-stack', () => ({
@@ -90,6 +102,27 @@ jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
 
 jest.mock('../../UI/Rewards/hooks/useRewardsTabPerformance', () => ({
   useRewardsTabPerformance: jest.fn(),
+}));
+
+// RewardsHome routes the tab from the Money referral persona. Mock the routing
+// hook so the navigator tests drive the persona directly instead of running the
+// real profile resolution and referral-me fetch.
+const mockUseRewardsMoneyTabRouting = jest.fn(() => ({
+  moneyEnabled: false,
+  moneyReferralResolved: false,
+  moneyPersona: undefined as MoneyDashboardPersona | undefined,
+  navigatorKey: 'disabled',
+}));
+jest.mock('../../UI/Rewards/hooks/useRewardsMoneyTabRouting', () => ({
+  useRewardsMoneyTabRouting: () => mockUseRewardsMoneyTabRouting(),
+}));
+
+jest.mock('../../UI/Rewards/hooks/usePrefetchRewardsIdentity', () => ({
+  usePrefetchRewardsIdentity: () => undefined,
+}));
+
+jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
+  useRewardsPendingDeeplink: jest.fn(),
 }));
 
 const mockSelectPerpsEnabledFlag = jest.fn();
@@ -180,6 +213,7 @@ describe('MainNavigator', () => {
     jest.clearAllMocks();
     mockIsNativeTabBar = false;
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+    mockSelectIsMoneyAccountVisible.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -307,47 +341,38 @@ describe('MainNavigator', () => {
       Routes.BROWSER.HOME,
       Routes.TRANSACTIONS_VIEW,
       Routes.REWARDS_VIEW,
-    ])(
-      'opts %s out of freeze-on-blur so its unmount-on-blur wrapper can commit',
-      (tabName) => {
-        // Given HomeTabs is rendered
-        const HomeTabs = getHomeTabsComponent();
+    ])('keeps freeze-on-blur off for %s', (tabName) => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
 
-        // When the tab screens are inspected
-        const { root: homeRoot } = renderWithProvider(
-          <HomeTabs route={{ params: {} }} />,
-          { state: initialRootState },
-        );
-        const tabScreen = homeRoot.findAll(
-          (node: ReactTestInstance) =>
-            node.type?.toString?.() === 'TabScreen' &&
-            node.props?.name === tabName,
-        )[0];
+      // When the tab screens are inspected
+      const { root: homeRoot } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+      const tabScreen = homeRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === tabName,
+      )[0];
 
-        // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
-        // frozen subtree suspends the wrapper's unmount and keeps the tab alive
-        expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
-      },
-    );
+      // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
+      // frozen subtree suspends the wrapper's unmount and keeps the tab alive
+      expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
+    });
 
-    describe('Rewards sub-page tab bar visibility', () => {
-      // rewardsViewRoute is found via .find(r => r.name === Routes.REWARDS_VIEW),
-      // so the inner route that wraps the nested nav state must carry that name.
+    describe('Rewards tab bar visibility', () => {
+      // Only the three Rewards home screens live under the tab; every sub-page
+      // is pushed as REWARDS_FLOW on the root stack, which covers the tab
+      // shell entirely. So the tab bar stays up for the whole tab.
       const buildRewardsState = (activeRouteName: string | undefined) => ({
         routes: [
           {
             name: Routes.REWARDS_VIEW,
             state: activeRouteName
               ? {
-                  routes: [
-                    {
-                      name: Routes.REWARDS_VIEW,
-                      state: {
-                        index: 0,
-                        routes: [{ name: activeRouteName }],
-                      },
-                    },
-                  ],
+                  index: 0,
+                  routes: [{ name: activeRouteName }],
                 }
               : undefined,
           },
@@ -355,67 +380,24 @@ describe('MainNavigator', () => {
         index: 0,
       });
 
-      it('hides tab bar when navigated to a rewards sub-page', () => {
-        // Given HomeTabs is rendered and the active route is a rewards sub-page
+      it.each([
+        Routes.REWARDS_DASHBOARD,
+        Routes.REWARDS_MONEY_DASHBOARD,
+        Routes.REWARDS_ONBOARDING_FLOW,
+        undefined,
+      ])('shows tab bar on the Rewards home screen %s', (activeRouteName) => {
+        // Given HomeTabs is rendered with the Rewards tab active
         const HomeTabs = getHomeTabsComponent();
         const renderTabBar = getTabBarFn(HomeTabs);
 
-        // When renderTabBar is called for a rewards sub-page
+        // When renderTabBar is called for that home screen
         const result = renderTabBar({
-          state: buildRewardsState('OndoCampaignDetails'),
+          state: buildRewardsState(activeRouteName),
           descriptors: {},
           navigation: {},
         });
 
-        // Then the tab bar should be hidden
-        expect(result).toBeNull();
-      });
-
-      it('shows tab bar when on the rewards dashboard', () => {
-        // Given HomeTabs is rendered and the active route is the rewards dashboard
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called for the rewards dashboard
-        const result = renderTabBar({
-          state: buildRewardsState(Routes.REWARDS_DASHBOARD),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible
-        expect(result).not.toBeNull();
-      });
-
-      it('shows tab bar when on the rewards onboarding flow', () => {
-        // Given HomeTabs is rendered and the active route is the onboarding flow
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called for the onboarding flow
-        const result = renderTabBar({
-          state: buildRewardsState(Routes.REWARDS_ONBOARDING_FLOW),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible
-        expect(result).not.toBeNull();
-      });
-
-      it('shows tab bar when rewards route has no nested navigation state yet', () => {
-        // Given HomeTabs is rendered and the rewards route has no nested state
-        const HomeTabs = getHomeTabsComponent();
-        const renderTabBar = getTabBarFn(HomeTabs);
-
-        // When renderTabBar is called with no nested rewards state (activeRouteName undefined)
-        const result = renderTabBar({
-          state: buildRewardsState(undefined),
-          descriptors: {},
-          navigation: {},
-        });
-
-        // Then the tab bar should be visible (default to home page)
+        // Then the tab bar is rendered
         expect(result).not.toBeNull();
       });
     });
@@ -846,6 +828,61 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.PROFILE);
     });
 
+    const stateWithSocialArm = (variant: string) => ({
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+              socialAiTSA1122AbtestSocialBundleV1: variant,
+            },
+          },
+        },
+      },
+    });
+
+    it('registers the ProfileDrawer route under the Social V1 treatment arm', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialArm('treatment'),
+      });
+
+      const screenProps = root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+      expect(screenProps).toContain(Routes.SOCIAL_PROFILE.DRAWER);
+    });
+
+    it('does not register the ProfileDrawer route under the control arm', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialArm('control'),
+      });
+
+      const screenProps = root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+      expect(screenProps).not.toContain(Routes.SOCIAL_PROFILE.DRAWER);
+    });
+
     it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
       const stateWithSocialLeaderboard = {
         ...initialRootState,
@@ -942,10 +979,13 @@ describe('MainNavigator', () => {
           name: Routes.RAMP.VBA_DETAILS,
           options: expect.objectContaining({
             animation: 'ios_from_right',
-            gestureEnabled: false,
             headerShown: false,
           }),
         }),
+      );
+      expect(vbaDetailsScreen?.options).not.toHaveProperty(
+        'gestureEnabled',
+        false,
       );
     });
 
@@ -1952,6 +1992,64 @@ describe('MainNavigator', () => {
       expect(tabs).not.toContain(Routes.SOCIAL.TAB);
     });
 
+    it('lets the Social V1 treatment own the refreshed navigation from the header control arm', () => {
+      mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+      const baseState = stateForArm('control', 'treatment');
+      const state = {
+        ...baseState,
+        engine: {
+          ...baseState.engine,
+          backgroundState: {
+            ...baseState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...baseState.engine.backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...baseState.engine.backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: false,
+                  minimumVersion: '0.0.1',
+                },
+              },
+            },
+          },
+        },
+      };
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      const tabs = homeTabNames(container, state).filter(
+        (tab) => tab !== Routes.BROWSER.HOME,
+      );
+
+      expect(tabs).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
+      ]);
+      expect(rootStackScreenNames(container)).toContain(
+        Routes.SOCIAL.ONBOARDING,
+      );
+      expect(
+        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+      ).toBe('trade');
+    });
+
+    it('keeps legacy Social users on the existing tab layout', () => {
+      mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+      const state = stateForArm('tradeFocused', 'control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      expect(homeTabNames(container, state)).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.BROWSER.HOME,
+        Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
+      ]);
+      expect(rootStackScreenNames(container)).not.toContain(Routes.SOCIAL.V1);
+    });
+
     it.each([
       ['searchFocused', 'search'],
       ['tradeFocused', 'trade'],
@@ -2220,6 +2318,14 @@ describe('MainNavigator', () => {
       let homeTabsRoot: ReactTestInstance;
 
       beforeEach(() => {
+        // jest.clearAllMocks() keeps queued return values, so restore the
+        // Money-off default each test rather than inheriting the last override.
+        mockUseRewardsMoneyTabRouting.mockReturnValue({
+          moneyEnabled: false,
+          moneyReferralResolved: false,
+          moneyPersona: undefined,
+          navigatorKey: 'disabled',
+        });
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
@@ -2315,9 +2421,20 @@ describe('MainNavigator', () => {
         expect(mockUseCandidateSubscriptionId).toHaveBeenCalled();
       });
 
-      const findRewardsHomeScreenNames = (
+      const renderRewardsHome = (
         subscriptionId: string | null,
-      ): string[] => {
+        money: {
+          moneyEnabled?: boolean;
+          moneyReferralResolved?: boolean;
+          moneyPersona?: MoneyDashboardPersona;
+        } = {},
+      ) => {
+        mockUseRewardsMoneyTabRouting.mockReturnValue({
+          moneyEnabled: money.moneyEnabled ?? false,
+          moneyReferralResolved: money.moneyReferralResolved ?? false,
+          moneyPersona: money.moneyPersona,
+          navigatorKey: 'test',
+        });
         const RewardsHome = getScreenComponent(
           homeTabsRoot,
           Routes.REWARDS_VIEW,
@@ -2337,15 +2454,36 @@ describe('MainNavigator', () => {
             },
           },
         );
+        return root;
+      };
 
-        return root
+      const findRewardsHomeScreenNames = (
+        subscriptionId: string | null,
+        money?: {
+          moneyEnabled?: boolean;
+          moneyReferralResolved?: boolean;
+          moneyPersona?: MoneyDashboardPersona;
+        },
+      ): string[] =>
+        renderRewardsHome(subscriptionId, money)
           .findAll(
             (node: ReactTestInstance) =>
               node.type?.toString?.() === 'Screen' &&
               typeof node.props?.name === 'string',
           )
           .map((node) => node.props.name as string);
-      };
+
+      const findRewardsHomeInitialRouteName = (
+        subscriptionId: string | null,
+        money?: {
+          moneyEnabled?: boolean;
+          moneyReferralResolved?: boolean;
+          moneyPersona?: MoneyDashboardPersona;
+        },
+      ): string | undefined =>
+        renderRewardsHome(subscriptionId, money).findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'Navigator',
+        )[0]?.props?.initialRouteName as string | undefined;
 
       it('registers onboarding and dashboard in the Rewards tab stack', () => {
         // Both routes stay registered so opt-in can push the dashboard with a
@@ -2384,6 +2522,152 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
         );
         expect(screenNames).not.toContain(Routes.MODAL.REWARDS_SELECT_SHEET);
+        expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        );
+        expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
+        );
+      });
+
+      describe('Rewards Money routing', () => {
+        it('registers the Money dashboard alongside onboarding and the points dashboard', () => {
+          const screenNames = findRewardsHomeScreenNames(null, {
+            moneyEnabled: true,
+            moneyReferralResolved: true,
+            moneyPersona: 'plain',
+          });
+
+          expect(screenNames).toContain(Routes.REWARDS_MONEY_DASHBOARD);
+          expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
+          expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+        });
+
+        it.each<MoneyDashboardPersona>(['referrer', 'referee'])(
+          'opens the Money dashboard for %s',
+          (moneyPersona) => {
+            expect(
+              findRewardsHomeInitialRouteName(null, {
+                moneyEnabled: true,
+                moneyReferralResolved: true,
+                moneyPersona,
+              }),
+            ).toBe(Routes.REWARDS_MONEY_DASHBOARD);
+          },
+        );
+
+        it('opens the points dashboard for a plain user with a subscription', () => {
+          expect(
+            findRewardsHomeInitialRouteName('test-subscription-id', {
+              moneyEnabled: true,
+              moneyReferralResolved: true,
+              moneyPersona: 'plain',
+            }),
+          ).toBe(Routes.REWARDS_DASHBOARD);
+        });
+
+        it('opens onboarding for a plain user without a subscription', () => {
+          expect(
+            findRewardsHomeInitialRouteName(null, {
+              moneyEnabled: true,
+              moneyReferralResolved: true,
+              moneyPersona: 'plain',
+            }),
+          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+        });
+
+        it('opens onboarding when the referral fetch resolved with no persona', () => {
+          expect(
+            findRewardsHomeInitialRouteName(null, {
+              moneyEnabled: true,
+              moneyReferralResolved: true,
+              moneyPersona: undefined,
+            }),
+          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+        });
+
+        it('keeps the points path when Money is disabled', () => {
+          expect(
+            findRewardsHomeInitialRouteName('test-subscription-id', {
+              moneyEnabled: false,
+              moneyReferralResolved: false,
+              moneyPersona: 'referrer',
+            }),
+          ).toBe(Routes.REWARDS_DASHBOARD);
+        });
+
+        it('mounts no home screen while the Money persona is unresolved', () => {
+          // Neither onboarding nor the points dashboard may become active
+          // before the persona settles, or the tab flashes the wrong home and
+          // swaps under the user.
+          const screenNames = findRewardsHomeScreenNames(null, {
+            moneyEnabled: true,
+            moneyReferralResolved: false,
+          });
+
+          expect(screenNames).toEqual([]);
+        });
+
+        it('shows the Rewards tab skeleton while the Money persona is unresolved', () => {
+          const root = renderRewardsHome(null, {
+            moneyEnabled: true,
+            moneyReferralResolved: false,
+          });
+
+          expect(
+            root.findAll(
+              (node: ReactTestInstance) =>
+                node.props?.testID === REWARDS_TAB_SKELETON_TEST_IDS.CONTAINER,
+            ),
+          ).not.toHaveLength(0);
+        });
+
+        it('remounts the nested stack when a plain user becomes a referee', () => {
+          const RewardsHome = getScreenComponent(
+            homeTabsRoot,
+            Routes.REWARDS_VIEW,
+            'TabScreen',
+          );
+          mockUseRewardsMoneyTabRouting.mockReturnValue({
+            moneyEnabled: true,
+            moneyReferralResolved: true,
+            moneyPersona: 'plain',
+            navigatorKey: 'profile-a:rewards',
+          });
+          const rendered = renderWithProvider(
+            <RewardsHome route={{ params: {} }} />,
+            {
+              state: {
+                ...initialRootState,
+                rewards: {
+                  ...initialRootState.rewards,
+                  candidateSubscriptionId: null,
+                },
+              },
+            },
+          );
+          const pointsNavigator = rendered.UNSAFE_root.findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'Navigator',
+          )[0];
+
+          mockUseRewardsMoneyTabRouting.mockReturnValue({
+            moneyEnabled: true,
+            moneyReferralResolved: true,
+            moneyPersona: 'referee',
+            navigatorKey: 'profile-a:rewards-money',
+          });
+          rendered.rerender(<RewardsHome route={{ params: {} }} />);
+          const moneyNavigator = rendered.UNSAFE_root.findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'Navigator',
+          )[0];
+
+          expect(moneyNavigator).not.toBe(pointsNavigator);
+          expect(moneyNavigator.props.initialRouteName).toBe(
+            Routes.REWARDS_MONEY_DASHBOARD,
+          );
+        });
       });
     });
 
@@ -2413,6 +2697,8 @@ describe('MainNavigator', () => {
             Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
             Routes.MODAL.REWARDS_SELECT_SHEET,
+            Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+            Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
           ]),
         );
       });
@@ -2452,7 +2738,56 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
           Routes.MODAL.REWARDS_SELECT_SHEET,
+          Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
         ]);
+      });
+
+      it('presents the Money invite sheet with the shared rewards modal options', () => {
+        // The invite sheet opens from the Rewards tab, REWARDS_FLOW and
+        // non-tab callers, so it must be a root modal presented exactly like
+        // the other rewards sheets: transparent, with no stack animation so
+        // only the BottomSheet slides.
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const group = root.findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'Group',
+        )[0];
+        const inviteScreen = (group?.children ?? []).find(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'props' in child &&
+            child.props?.name === Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        );
+
+        expect(inviteScreen).toBeDefined();
+        expect(inviteScreen?.props?.component).toBe(AcceptInviteSheet);
+        expect(group?.props?.screenOptions).toEqual(
+          transparentModalStackOptions,
+        );
+      });
+
+      it('registers the Money referral-accepted splash with a fade transition', () => {
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const splashScreen = root
+          .findAll(
+            (node: ReactTestInstance) =>
+              typeof node?.props?.name === 'string' &&
+              node.props.name ===
+                Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+          )
+          .at(0);
+
+        expect(splashScreen?.props?.component).toBe(
+          RewardsMoneyReferralAcceptedSplashView,
+        );
+        expect(splashScreen?.props?.options).toEqual({
+          headerShown: false,
+          ...fadeNativeOptions,
+        });
       });
     });
 

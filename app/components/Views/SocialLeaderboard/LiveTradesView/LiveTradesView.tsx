@@ -26,12 +26,14 @@ import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
 import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
+import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import { useFeedNow } from '../FeedView/hooks/useFeedNow';
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../shell/filters/types';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
+import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import LiveStreamStatusDot from './components/LiveStreamStatusDot';
 import LiveTradeRow from './components/LiveTradeRow';
@@ -67,6 +69,10 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const scrollRef = useRef<ScrollView>(null);
+  const livePrices = useSocialLivePrices();
+  const handleScrollSettled = useCallback(() => {
+    livePrices?.requestVisibilityCheck();
+  }, [livePrices]);
   const now = useFeedNow({ enabled: true });
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
   const followingProfileIds = useSelector(selectFollowingProfileIds);
@@ -146,6 +152,8 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
           contentContainerStyle={tw.style('flex-grow pb-8')}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
+          onMomentumScrollEnd={handleScrollSettled}
+          onScrollEndDrag={handleScrollSettled}
           scrollEventThrottle={16}
           testID={LiveTradesViewSelectorsIDs.SCROLL_VIEW}
         >
@@ -168,24 +176,28 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
               {streamLabel}
             </FilterButton>
           </SocialTabFilterBar>
-          {visibleItems.map((item, index) => (
-            <Fragment key={item.id}>
-              {index > 0 ? (
-                <SectionDivider
-                  marginVertical={1}
-                  testID={getSocialV1FeedEntryDividerTestId(
-                    `live-trades-${index}`,
-                  )}
+          {visibleItems.length === 0 ? (
+            <SocialV1FeedEmptyState tab="liveTrades" />
+          ) : (
+            visibleItems.map((item, index) => (
+              <Fragment key={item.id}>
+                {index > 0 ? (
+                  <SectionDivider
+                    marginVertical={1}
+                    testID={getSocialV1FeedEntryDividerTestId(
+                      `live-trades-${index}`,
+                    )}
+                  />
+                ) : null}
+                <LiveTradeRow
+                  item={item}
+                  now={now}
+                  onPositionPress={handlePositionPress}
+                  onTraderPress={handleTraderPress}
                 />
-              ) : null}
-              <LiveTradeRow
-                item={item}
-                now={now}
-                onPositionPress={handlePositionPress}
-                onTraderPress={handleTraderPress}
-              />
-            </Fragment>
-          ))}
+              </Fragment>
+            ))
+          )}
         </Animated.ScrollView>
       </Box>
     </SocialFeedSurfaceProvider>

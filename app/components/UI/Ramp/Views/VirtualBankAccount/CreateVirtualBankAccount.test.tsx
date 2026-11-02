@@ -155,7 +155,59 @@ describe('CreateVirtualBankAccount', () => {
       resolveSuccess?.();
     });
 
+    // Component-view and integration tests cannot observe Fabric's Android
+    // removal transition. Success leaves the CTA busy so a second tap cannot
+    // start another advance while this screen is leaving.
     await waitFor(() => {
+      expect(button).toBeDisabled();
+    });
+  });
+
+  it('keeps the button label from being re-parented while the screen is removed', () => {
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+
+    // Loading toggles whether Fabric flattens the button content row. Pinning
+    // that row stops the label moving during the Android removal transition.
+    expect(
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ).findAllByProps({ collapsable: false }),
+    ).not.toHaveLength(0);
+  });
+
+  it('reenables the CTA when vendor terms are not accepted', async () => {
+    mockAcceptDisclaimers.mockResolvedValue(false);
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockAcceptDisclaimers).toHaveBeenCalledTimes(1);
+      expect(button).toBeEnabled();
+    });
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it('reenables the CTA when advancing throws', async () => {
+    mockOnSuccess.mockRejectedValue(new Error('navigation failed'));
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
       expect(button).toBeEnabled();
     });
   });

@@ -29,6 +29,27 @@ import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors
 
 jest.mock('../../../../../util/haptics');
 
+const mockSetTitleSectionHeight = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    useHeaderStandardAnimated: () => {
+      const animated = actual.useHeaderStandardAnimated();
+
+      return {
+        ...animated,
+        setTitleSectionHeight: (height: number) => {
+          mockSetTitleSectionHeight(height);
+          animated.setTitleSectionHeight(height);
+        },
+      };
+    },
+  };
+});
+
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
@@ -74,6 +95,9 @@ interface MockChartPanelProps {
   selectedCandlePeriod: CandlePeriod;
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
+  onSummaryLayout?: (event: {
+    nativeEvent: { layout: { height: number } };
+  }) => void;
   currentPrice?: number;
   onLatestPriceChange?: (price: number | undefined) => void;
 }
@@ -150,11 +174,12 @@ const mockPerpsProChartPanel = jest.fn(
     selectedCandlePeriod,
     onCandlePeriodChange,
     onMorePress,
+    onSummaryLayout,
   }: MockChartPanelProps) => (
     <>
       <Box
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
-        twClassName="h-[76px]"
+        onLayout={onSummaryLayout}
       />
       <Box
         testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
@@ -1170,15 +1195,31 @@ describe('PerpsProMarketView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('sets the header crossfade threshold from the measured summary height', () => {
+    mockSetTitleSectionHeight.mockClear();
+    const { getByTestId } = renderView();
+    const summary = getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY);
+
+    fireEvent(summary, 'layout', {
+      nativeEvent: { layout: { height: 0, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(mockSetTitleSectionHeight).not.toHaveBeenCalled();
+
+    fireEvent(summary, 'layout', {
+      nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledTimes(1);
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(96);
+  });
+
   it('uses the Figma shell heights', () => {
     const { getByTestId } = renderView();
 
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.HEADER)).toHaveStyle({
       height: 64,
     });
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
-    ).toHaveStyle({ height: 76 });
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_CONTENT),
     ).toHaveStyle({ height: 344 });

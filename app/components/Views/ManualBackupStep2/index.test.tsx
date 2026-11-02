@@ -526,7 +526,7 @@ describe('ManualBackupStep2', () => {
     });
   });
 
-  describe('HeaderStandard back button', () => {
+  describe('header back button', () => {
     it('triggers goBack when back button is pressed', () => {
       const mockGoBack = jest.fn();
       const navProps = createMockNavigationProps({ goBack: mockGoBack });

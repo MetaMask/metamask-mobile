@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -8,12 +11,13 @@ import {
   Text,
   TextColor,
   TextVariant,
-  Button,
-  HeaderStandard,
   TitleStandard,
   ListItem,
   ListItemVariant,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -49,6 +53,11 @@ const StepNumber = ({ children }: { children: string }) => (
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const messenger = useMessenger<RouteMessengerInstance>();
   const hasOpenedVerificationSheetRef = useRef(false);
@@ -119,8 +128,13 @@ const AddDeviceToWallet = () => {
       style={tw.style('flex-1 bg-default')}
       testID={AddDeviceToWalletTestIds.SCREEN}
     >
-      <HeaderStandard includesTopInset onBack={handleBack} />
-      <Box twClassName="flex-1">
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+        onBack={handleBack}
+      />
+      <Box twClassName="flex-1" style={{ marginTop: headerInset }}>
         <TitleStandard
           twClassName="px-4"
           title={strings('app_settings.add_device.add_device_to_wallet')}
@@ -174,17 +188,16 @@ const AddDeviceToWallet = () => {
           title={strings('app_settings.add_device.points.four')}
         />
 
-        <Box twClassName="mt-auto gap-4 px-4 py-4">
-          <Button
-            testID={AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON}
-            twClassName="w-full"
-            onPress={openQRScanner}
-            isDisabled={isBusy}
-            isLoading={isBusy}
-          >
-            {strings('app_settings.add_device.scan_qr_code_button')}
-          </Button>
-        </Box>
+        <FooterGlass
+          twClassName="mt-auto py-4"
+          primaryButtonProps={{
+            children: strings('app_settings.add_device.scan_qr_code_button'),
+            onPress: openQRScanner,
+            isDisabled: isBusy,
+            isLoading: isBusy,
+            testID: AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON,
+          }}
+        />
       </Box>
     </SafeAreaView>
   );

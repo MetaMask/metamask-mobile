@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { IconColor } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
 import {
   PRODUCT_TYPES,
@@ -17,6 +18,11 @@ import {
   TRADE_ALLOWANCE_IDS,
 } from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
+import {
+  getMembershipBannerModel,
+  MembershipStatusKind,
+} from './components/MembershipBanner/MembershipBanner.utils';
+import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
@@ -62,6 +68,11 @@ jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
   useMoneyAccountPlusBenefits: jest.fn(),
 }));
 
+const mockUseMembershipBannerModel = jest.mocked(useMembershipBannerModel);
+jest.mock('./hooks/useMembershipBannerModel', () => ({
+  useMembershipBannerModel: jest.fn(),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const createPlusSubscription = (status: Subscription['status']): Subscription =>
@@ -105,8 +116,13 @@ const toRegex = (s: string) =>
 
 const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
-// CV cannot cover this screen yet: it is still mock-data UI with no Redux /
-// Engine state, so focused unit tests remain the coverage layer.
+const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel(
+  createPlusSubscription(SUBSCRIPTION_STATUSES.active),
+);
+
+// Earnings are still mock data. Access and benefits still depend on the
+// subscriptions query, so this screen test mocks those hooks. The banner
+// model and the displayed-subscription selector have their own unit tests.
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -123,6 +139,10 @@ describe('ProHub', () => {
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
       retry: jest.fn(),
+    });
+    mockUseMembershipBannerModel.mockReturnValue({
+      model: ACTIVE_MEMBERSHIP_BANNER,
+      subscription: undefined,
     });
   });
 
@@ -155,6 +175,42 @@ describe('ProHub', () => {
       renderProHub();
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('leaves when only a cached plan remains after access lapses', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
+    it('leaves when Pro is disabled even if a plan is still displayed', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Disabled,
+      );
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
     it('does not render subscriber content without access', () => {
@@ -225,7 +281,7 @@ describe('ProHub', () => {
         toRegex(strings('pro_hub.title')),
       );
       expect(membershipBanner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_label')),
+        toRegex(strings('pro_hub.membership_status.active')),
       );
       expect(lifetimeEarningsSection).toHaveTextContent(
         toRegex(strings('pro_hub.lifetime_earnings')),
@@ -259,6 +315,81 @@ describe('ProHub', () => {
       expect(lock).toBeOnTheScreen();
       expect(musdBackRow).toContainElement(lock);
       expect(queryByText(MOCK_PRO_HUB_STATS.musdBack)).toBeNull();
+    });
+
+    it('renders an active plan without a membership alert', () => {
+      const { queryByTestId } = renderProHub();
+
+      expect(
+        queryByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Overdue),
+        ),
+      ).toBeNull();
+      expect(
+        queryByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_BANNER(
+            MembershipStatusKind.Deactivated,
+          ),
+        ),
+      ).toBeNull();
+    });
+
+    it('opens add money when the overdue alert action is pressed', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Overdue,
+          statusKey: 'pro_hub.membership_status.overdue',
+          iconColor: IconColor.ErrorDefault,
+          alert: {
+            severity: 'danger' as const,
+            titleKey: 'pro_hub.membership_alert.payment_failed.title',
+            descriptionKey:
+              'pro_hub.membership_alert.payment_failed.description',
+            actionKey: 'pro_hub.membership_alert.payment_failed.action',
+            action: 'addFunds' as const,
+          },
+        },
+        subscription: undefined,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Overdue),
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+
+    it('opens the subscription flow when the renew action is pressed', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+          alert: {
+            severity: 'warning' as const,
+            titleKey: 'pro_hub.membership_alert.cancelled.title',
+            descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+            actionKey: 'pro_hub.membership_alert.cancelled.action',
+            action: 'renew' as const,
+          },
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Cancelled),
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT);
     });
 
     it('renders the physical card banner with title and description', () => {

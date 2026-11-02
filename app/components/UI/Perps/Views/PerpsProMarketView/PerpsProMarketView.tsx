@@ -33,7 +33,7 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { View, type ScrollView } from 'react-native';
+import { View, type LayoutChangeEvent, type ScrollView } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -83,7 +83,6 @@ import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
-import { PRICE_SECTION_HEIGHT } from '../../components/PerpsMarketSummary';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
@@ -262,9 +261,15 @@ const PerpsProMarketView = ({
     [activeProvider, markets, routeMarket?.symbol, routeProviderId],
   );
   const market = useMemo(() => {
-    if (hasFormattedMaxLeverage) return routeMarket;
-    return enrichedMarket ?? routeMarket;
-  }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket]);
+    const resolvedMarket = hasFormattedMaxLeverage
+      ? routeMarket
+      : (enrichedMarket ?? routeMarket);
+    return resolvedMarket &&
+      resolvedMarket.providerId === undefined &&
+      routeProviderId === PROVIDER_CONFIG.LighterProvider
+      ? { ...resolvedMarket, providerId: PROVIDER_CONFIG.LighterProvider }
+      : resolvedMarket;
+  }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket, routeProviderId]);
   const { isOrderBookExpanded, setOrderBookExpanded } =
     usePerpsProOrderBookExpanded();
   const isOrderBookCollapsed = !isOrderBookExpanded;
@@ -332,14 +337,19 @@ const PerpsProMarketView = ({
     setOrderBookExpanded(true);
   }, [setOrderBookExpanded]);
 
-  // Drives the header's subtitle/live-price crossfade (see
-  // PerpsProMarketHeader). The price section above the fold has a fixed
-  // height, so the threshold is set once instead of measured via onLayout.
+  // Drives the header's subtitle/live-price crossfade. The summary row
+  // sizes to its content, so the threshold comes from its measured height.
   const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
     useHeaderStandardAnimated();
-  useEffect(() => {
-    setTitleSectionHeight(PRICE_SECTION_HEIGHT);
-  }, [setTitleSectionHeight]);
+  const handleMarketSummaryLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height > 0) {
+        setTitleSectionHeight(height);
+      }
+    },
+    [setTitleSectionHeight],
+  );
 
   const handleRequestScrollBy = useCallback(
     (delta: number) => {
@@ -649,6 +659,7 @@ const PerpsProMarketView = ({
           onFreshDelivery={() =>
             setChartDeliveryRevision((revision) => revision + 1)
           }
+          onSummaryLayout={handleMarketSummaryLayout}
         />
         {/* The chart's own height (`PerpsProChartPanel`) animates when
             expanded/collapsed above this point — wrap everything that would

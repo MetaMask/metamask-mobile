@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictOrderRetrySheet from './PredictOrderRetrySheet';
-import { Side } from '../../types';
+import { Side, type OrderPreview } from '../../types';
 import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
 
 const mockCloseSheet = jest.fn();
@@ -47,8 +47,11 @@ jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter',
   () => {
     const ReactActual = jest.requireActual('react');
-    const { TouchableOpacity, Text: RNText } =
-      jest.requireActual('react-native');
+    const {
+      View,
+      TouchableOpacity,
+      Text: RNText,
+    } = jest.requireActual('react-native');
     return ({
       buttonPropsArray,
     }: {
@@ -58,18 +61,23 @@ jest.mock(
         testID?: string;
         isDisabled?: boolean;
       }[];
-    }) => {
-      const btn = buttonPropsArray[0];
-      return ReactActual.createElement(
-        TouchableOpacity,
-        {
-          testID: btn.testID ?? 'retry-button',
-          onPress: btn.onPress,
-          disabled: btn.isDisabled,
-        },
-        ReactActual.createElement(RNText, null, btn.label),
+    }) =>
+      ReactActual.createElement(
+        View,
+        null,
+        buttonPropsArray.map((btn, index) =>
+          ReactActual.createElement(
+            TouchableOpacity,
+            {
+              key: btn.testID ?? `footer-button-${index}`,
+              testID: btn.testID ?? `footer-button-${index}`,
+              onPress: btn.onPress,
+              disabled: btn.isDisabled,
+            },
+            ReactActual.createElement(RNText, null, btn.label),
+          ),
+        ),
       );
-    };
   },
 );
 
@@ -77,13 +85,29 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) => {
     const map: Record<string, string> = {
       'predict.order.market_busy_title': 'Market busy',
-      'predict.order.market_busy_body_buy': `The market is moving fast, so we couldn't buy at ${params?.price ?? ''}. Try again at the best available price?`,
-      'predict.order.market_busy_body_sell': `The market is moving fast, so we couldn't sell at ${params?.price ?? ''}. Try again at the best available price?`,
+      'predict.order.getting_price_body':
+        "The market is moving fast, so we couldn't fill your order. Getting the latest price…",
+      'predict.order.price_updated_body':
+        "Here's the latest price. Confirm to try again:",
+      'predict.order.retry_price_label': 'Price',
+      'predict.order.retry_proceeds_label': 'You receive',
+      'predict.order.retry_payout_label': 'To win',
+      'predict.order.retry_worst_case_label': `Worst case (${params?.band ?? ''} band)`,
+      'predict.order.retry_fees_label': 'Fees',
+      'predict.order.yes_buy_at': `Yes, buy at ${params?.price ?? ''}`,
+      'predict.order.yes_sell_at': `Yes, sell at ${params?.price ?? ''}`,
+      'predict.order.price_unavailable_title': 'Price unavailable',
+      'predict.order.price_unavailable_body':
+        "We couldn't get the latest price. Check your connection and try again.",
+      'predict.order.price_moved_title': 'Price moved',
+      'predict.order.price_moved_body': `Moved from ${params?.previousPrice ?? ''} to ${params?.currentPrice ?? ''}`,
+      'predict.order.no_match_title': 'No match',
+      'predict.order.no_match_body':
+        "There isn't enough liquidity to fill your order right now.",
+      'predict.order.try_later': 'Try later',
       'predict.order.order_failed_title': 'Order failed',
       'predict.order.order_failed_body':
-        "There wasn't enough liquidity at this price. Want to try again?",
-      'predict.order.yes_buy': 'Yes, buy',
-      'predict.order.yes_sell': 'Yes, sell',
+        "Your order couldn't be filled. Try again?",
       'predict.order.try_again': 'Try again',
     };
     return map[key] ?? key;
@@ -92,14 +116,42 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../utils/format', () => ({
   formatCents: (value: number) => `${Math.round(value * 100)}¢`,
+  formatPrice: (value: number) => `$${value.toFixed(2)}`,
 }));
+
+function createMockPreview(overrides?: Partial<OrderPreview>): OrderPreview {
+  return {
+    marketId: 'market-123',
+    outcomeId: 'outcome-123',
+    outcomeTokenId: 'token-456',
+    timestamp: Date.now(),
+    side: Side.BUY,
+    sharePrice: 0.65,
+    maxAmountSpent: 10,
+    minAmountReceived: 15.38,
+    slippage: 0.03,
+    tickSize: 0.01,
+    minOrderSize: 1,
+    negRisk: false,
+    fees: {
+      metamaskFee: 0.09,
+      providerFee: 0.03,
+      marketFee: 0.06,
+      totalFee: 0.18,
+      totalFeePercentage: 2,
+      collector: '0x0000000000000000000000000000000000000000',
+    },
+    ...overrides,
+  };
+}
 
 describe('PredictOrderRetrySheet', () => {
   const defaultProps = {
     variant: 'busy' as const,
-    sharePrice: 0.51,
     side: Side.BUY,
+    preview: null as OrderPreview | null,
     onRetry: jest.fn(),
+    onConfirm: jest.fn(),
     onDismiss: jest.fn(),
     isRetrying: false,
   };
@@ -138,88 +190,274 @@ describe('PredictOrderRetrySheet', () => {
       expect(getByText('Market busy')).toBeOnTheScreen();
     });
 
-    it('renders buy body text with price for BUY side', () => {
+    it('renders the fetching-price body', () => {
       const { getByText } = render(
-        <PredictOrderRetrySheet
-          {...defaultProps}
-          variant="busy"
-          side={Side.BUY}
-          sharePrice={0.51}
-        />,
+        <PredictOrderRetrySheet {...defaultProps} variant="busy" />,
       );
 
-      expect(getByText(/couldn't buy at 51¢/)).toBeOnTheScreen();
+      expect(getByText(/Getting the latest price/)).toBeOnTheScreen();
     });
 
-    it('renders sell body text for SELL side', () => {
+    it('renders no action button while the fresh quote is being fetched', () => {
+      const { queryByTestId } = render(
+        <PredictOrderRetrySheet {...defaultProps} variant="busy" />,
+      );
+
+      expect(
+        queryByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      ).toBeNull();
+    });
+  });
+
+  describe('confirm variant — SELL', () => {
+    const sellPreview = createMockPreview({
+      side: Side.SELL,
+      sharePrice: 0.65,
+      maxAmountSpent: 9.5,
+      minAmountReceived: 6.18,
+      slippage: 0.05,
+    });
+
+    it('renders the refreshed cents price', () => {
       const { getByText } = render(
         <PredictOrderRetrySheet
           {...defaultProps}
-          variant="busy"
+          variant="confirm"
           side={Side.SELL}
+          preview={sellPreview}
         />,
       );
 
-      expect(getByText(/couldn't sell at/)).toBeOnTheScreen();
+      expect(getByText('65¢')).toBeOnTheScreen();
     });
 
-    it('renders Yes, buy button for BUY side', () => {
+    it('renders net proceeds, worst case within the 5% band, and fees', () => {
       const { getByText } = render(
         <PredictOrderRetrySheet
           {...defaultProps}
-          variant="busy"
-          side={Side.BUY}
-        />,
-      );
-
-      expect(getByText('Yes, buy')).toBeOnTheScreen();
-    });
-
-    it('renders Yes, sell button for SELL side', () => {
-      const { getByText } = render(
-        <PredictOrderRetrySheet
-          {...defaultProps}
-          variant="busy"
+          variant="confirm"
           side={Side.SELL}
+          preview={sellPreview}
         />,
       );
 
-      expect(getByText('Yes, sell')).toBeOnTheScreen();
+      expect(getByText('You receive')).toBeOnTheScreen();
+      expect(getByText('$6.00')).toBeOnTheScreen();
+      expect(getByText('Worst case (5% band)')).toBeOnTheScreen();
+      expect(getByText('$5.69')).toBeOnTheScreen();
+      expect(getByText('Fees')).toBeOnTheScreen();
+      expect(getByText('$0.18')).toBeOnTheScreen();
+    });
+
+    it('confirms the refreshed quote with a price-bound CTA', () => {
+      const onConfirm = jest.fn();
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="confirm"
+          side={Side.SELL}
+          preview={sellPreview}
+          onConfirm={onConfirm}
+        />,
+      );
+
+      fireEvent.press(getByText('Yes, sell at 65¢'));
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it('formats the band without float noise', () => {
+      // 0.07 * 100 is 7.000000000000001 in float math — the label must
+      // not show the noise.
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="confirm"
+          side={Side.SELL}
+          preview={createMockPreview({
+            side: Side.SELL,
+            sharePrice: 0.65,
+            maxAmountSpent: 9.5,
+            minAmountReceived: 6.18,
+            slippage: 0.07,
+          })}
+        />,
+      );
+
+      expect(getByText('Worst case (7% band)')).toBeOnTheScreen();
+    });
+  });
+
+  describe('confirm variant — BUY', () => {
+    const buyPreview = createMockPreview();
+
+    it('renders payout, worst case within the 3% band, and fees', () => {
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="confirm"
+          side={Side.BUY}
+          preview={buyPreview}
+        />,
+      );
+
+      expect(getByText('To win')).toBeOnTheScreen();
+      expect(getByText('$15.38')).toBeOnTheScreen();
+      expect(getByText('Worst case (3% band)')).toBeOnTheScreen();
+      expect(getByText('$14.92')).toBeOnTheScreen();
+      expect(getByText('Fees')).toBeOnTheScreen();
+      expect(getByText('$0.18')).toBeOnTheScreen();
+    });
+
+    it('confirms the refreshed quote with a price-bound CTA', () => {
+      const onConfirm = jest.fn();
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="confirm"
+          side={Side.BUY}
+          preview={buyPreview}
+          onConfirm={onConfirm}
+        />,
+      );
+
+      fireEvent.press(getByText('Yes, buy at 65¢'));
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('failed variant', () => {
-    it('renders Order failed title', () => {
+    it('renders Order failed title and Try again button', () => {
       const { getByText } = render(
         <PredictOrderRetrySheet {...defaultProps} variant="failed" />,
       );
 
       expect(getByText('Order failed')).toBeOnTheScreen();
-    });
-
-    it('renders liquidity body text', () => {
-      const { getByText } = render(
-        <PredictOrderRetrySheet {...defaultProps} variant="failed" />,
-      );
-
-      expect(getByText(/enough liquidity/)).toBeOnTheScreen();
-    });
-
-    it('renders Try again button', () => {
-      const { getByText } = render(
-        <PredictOrderRetrySheet {...defaultProps} variant="failed" />,
-      );
-
       expect(getByText('Try again')).toBeOnTheScreen();
+    });
+
+    it('calls onRetry when Try again is pressed', () => {
+      const onRetry = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="failed"
+          onRetry={onRetry}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
+
+      expect(onRetry).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('interactions', () => {
-    it('calls onRetry when retry button pressed', () => {
-      const onRetry = jest.fn();
+  describe('quote_unavailable variant', () => {
+    it('renders the recoverable error state without submitting', () => {
+      const onConfirm = jest.fn();
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="quote_unavailable"
+          onConfirm={onConfirm}
+        />,
+      );
 
+      expect(getByText('Price unavailable')).toBeOnTheScreen();
+      expect(
+        getByText(/Check your connection and try again/),
+      ).toBeOnTheScreen();
+      expect(getByText('Try again')).toBeOnTheScreen();
+    });
+
+    it('calls onRetry when Try again is pressed', () => {
+      const onRetry = jest.fn();
       const { getByTestId } = render(
-        <PredictOrderRetrySheet {...defaultProps} onRetry={onRetry} />,
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="quote_unavailable"
+          onRetry={onRetry}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
+
+      expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('price_moved variant', () => {
+    const movedPreview = createMockPreview({
+      side: Side.SELL,
+      sharePrice: 0.62,
+      slippage: 0.05,
+    });
+
+    it('renders the move explicitly with both prices and the quote rows', () => {
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="price_moved"
+          side={Side.SELL}
+          preview={movedPreview}
+          previousPrice={0.65}
+        />,
+      );
+
+      expect(getByText('Price moved')).toBeOnTheScreen();
+      expect(getByText('Moved from 65¢ to 62¢')).toBeOnTheScreen();
+      expect(getByText('Price')).toBeOnTheScreen();
+      expect(getByText('Yes, sell at 62¢')).toBeOnTheScreen();
+    });
+
+    it('submits the displayed quote on confirm', () => {
+      const onConfirm = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="price_moved"
+          side={Side.SELL}
+          preview={movedPreview}
+          previousPrice={0.65}
+          onConfirm={onConfirm}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('no_match variant', () => {
+    it('renders the no-match copy without quote rows or a submit CTA', () => {
+      const { getByText, queryByText } = render(
+        <PredictOrderRetrySheet {...defaultProps} variant="no_match" />,
+      );
+
+      expect(getByText('No match')).toBeOnTheScreen();
+      expect(
+        getByText("There isn't enough liquidity to fill your order right now."),
+      ).toBeOnTheScreen();
+      expect(queryByText('Price')).toBeNull();
+      expect(queryByText(/Yes, (buy|sell) at/)).toBeNull();
+    });
+
+    it('offers Try again that re-fetches', () => {
+      const onRetry = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="no_match"
+          onRetry={onRetry}
+        />,
       );
 
       fireEvent.press(
@@ -229,9 +467,37 @@ describe('PredictOrderRetrySheet', () => {
       expect(onRetry).toHaveBeenCalledTimes(1);
     });
 
-    it('disables retry button when isRetrying is true', () => {
+    it('offers Try later that dismisses without submitting', () => {
+      const onRetry = jest.fn();
+      const onConfirm = jest.fn();
       const { getByTestId } = render(
-        <PredictOrderRetrySheet {...defaultProps} isRetrying />,
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="no_match"
+          onRetry={onRetry}
+          onConfirm={onConfirm}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON),
+      );
+
+      expect(mockCloseSheet).toHaveBeenCalledTimes(1);
+      expect(onConfirm).not.toHaveBeenCalled();
+      expect(onRetry).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('interactions', () => {
+    it('disables the action button when isRetrying is true', () => {
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="confirm"
+          preview={createMockPreview()}
+          isRetrying
+        />,
       );
 
       expect(

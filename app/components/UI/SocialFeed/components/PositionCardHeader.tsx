@@ -4,12 +4,15 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
+import AnimatedSlotText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedSlotText';
 import PositionTokenAvatar, {
   type PositionTokenAvatarData,
 } from './PositionTokenAvatar';
@@ -25,19 +28,18 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
   sell: 'social_leaderboard.feed.position_card.sell',
 };
 
-/** Past tense once the position is gone: `PEPE · Sold`, not `PEPE · Sell`. */
-const CLOSED_SIDE_I18N: Record<SocialV1SpotSide, string> = {
-  buy: 'social_leaderboard.feed.position_card.bought',
-  sell: 'social_leaderboard.feed.position_card.sold',
-};
-
 /**
- * Both layouts lead with the same title line; they differ in what sits under and
- * beside it. `open` puts the mark price below and the running P&L on the right;
- * `closed` puts the settled result directly under the title, because there is no
- * live price left to quote.
+ * Both layouts lead with the token; they differ in what sits beside it. `open`
+ * tags the side, quotes the current price or market cap underneath, and puts
+ * the running P&L on the right; `closed` demotes the title to a caption above
+ * the settled result and puts the close time on the right.
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';
+
+/** Set while an open card follows a streamed price. */
+export interface PositionCardHeaderLiveState {
+  reduceMotion: boolean;
+}
 
 export interface PositionCardHeaderProps {
   layout: PositionCardHeaderLayout;
@@ -45,45 +47,59 @@ export interface PositionCardHeaderProps {
   symbol: string;
   /** Realized P&L on a closed card, merged into the result line. */
   valueLabel: string;
-  /** P&L as a percent. Leads the open card's right-hand column. */
+  /** P&L as a percent. Sits under the USD figure on the open card. */
   pnlLabel: string;
-  /** P&L in USD. Sits under the percent on the open card. */
+  /** P&L in USD. Leads the open card's right-hand column. */
   pnlValueLabel?: string;
   isPnlPositive: boolean;
   direction?: SocialV1PerpDirection;
   leverageLabel?: string;
-  markPriceLabel?: string;
+  /** Current price, or market cap for spot, under the open card's title. */
+  subtitleLabel?: string;
   side?: SocialV1SpotSide;
+  /** `Closed 2 hr ago`, right-aligned on the closed card. */
+  closedAgeLabel?: string;
+  /** Open layout only: roll the figures as live ticks arrive. */
+  live?: PositionCardHeaderLiveState;
+  testID?: string;
 }
 
 const pnlClassName = (isPnlPositive: boolean) =>
   isPnlPositive ? 'text-success-default' : 'text-error-default';
 
-/**
- * `BTC · 40x Short`, `PEPE · Sold`. One uninterrupted string so it truncates as a
- * unit, and one colour, because the P&L beside or below it carries the green/red.
- */
-const cardTitle = ({
-  layout,
-  symbol,
+const pnlColor = (isPnlPositive: boolean) =>
+  isPnlPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+
+/** `15x Short`, `Long`, `Buy`. Empty when the card carries neither. */
+const sideTagLabel = ({
   direction,
   leverageLabel,
   side,
 }: Pick<
   PositionCardHeaderProps,
-  'layout' | 'symbol' | 'direction' | 'leverageLabel' | 'side'
+  'direction' | 'leverageLabel' | 'side'
 >): string => {
-  let meta = '';
   if (direction) {
-    meta = [leverageLabel, strings(DIRECTION_I18N[direction])]
+    return [leverageLabel, strings(DIRECTION_I18N[direction])]
       .filter(Boolean)
       .join(' ');
-  } else if (side) {
-    meta = strings(
-      layout === 'closed' ? CLOSED_SIDE_I18N[side] : SIDE_I18N[side],
-    );
   }
-  return meta ? `${symbol} \u00b7 ${meta}` : symbol;
+  return side ? strings(SIDE_I18N[side]) : '';
+};
+
+const isBullish = ({
+  direction,
+  side,
+}: Pick<PositionCardHeaderProps, 'direction' | 'side'>): boolean =>
+  direction ? direction === 'long' : side !== 'sell';
+
+/**
+ * `BTC · 15x Long` on a closed perp. A closed spot card shows the bare symbol:
+ * its side is spent, and the toned border already says how it ended.
+ */
+const closedTitle = (props: PositionCardHeaderProps): string => {
+  const meta = props.direction ? sideTagLabel(props) : '';
+  return meta ? `${props.symbol} \u00b7 ${meta}` : props.symbol;
 };
 
 /**
@@ -98,116 +114,139 @@ const closedResult = (valueLabel: string, pnlLabel: string): string => {
   return valueLabel || pnlLabel;
 };
 
-const ClosedResult: React.FC<{
-  valueLabel: string;
-  pnlLabel: string;
-  isPnlPositive: boolean;
-}> = ({ valueLabel, pnlLabel, isPnlPositive }) => {
+const ClosedHeader: React.FC<PositionCardHeaderProps> = (props) => {
+  const { avatar, valueLabel, pnlLabel, isPnlPositive, closedAgeLabel } = props;
   const result = closedResult(valueLabel, pnlLabel);
-  if (!result) {
-    return null;
-  }
 
   return (
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      twClassName={pnlClassName(isPnlPositive)}
-      numberOfLines={1}
-    >
-      {result}
-    </Text>
-  );
-};
-
-const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
-  layout,
-  avatar,
-  symbol,
-  valueLabel,
-  pnlLabel,
-  pnlValueLabel,
-  isPnlPositive,
-  direction,
-  leverageLabel,
-  markPriceLabel,
-  side,
-}) => {
-  const title = cardTitle({ layout, symbol, direction, leverageLabel, side });
-  const titleColor =
-    layout === 'closed' ? TextColor.TextAlternative : TextColor.TextDefault;
-
-  const identity = (
-    // `flex-1` is only safe in the open layout, where this row shares a Row
-    // with the P&L column, so the basis resolves against the *width*. The
-    // closed layout returns this row as the shell's first child, and the shell
-    // is a column sized by its content: there `flex-1` is a zero height basis,
-    // the title collapses, and the shell's overflow clips the leftover avatar.
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
-      twClassName={layout === 'closed' ? 'w-full min-w-0' : 'flex-1 min-w-0'}
-      testID={layout === 'closed' ? 'position-card-header-closed' : undefined}
+      twClassName="w-full min-w-0"
+      testID={props.testID ?? 'position-card-header-closed'}
     >
       <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
-      <Box twClassName="flex-1 min-w-0 gap-1">
+      <Box twClassName="flex-1 min-w-0">
         <Text
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
-          color={titleColor}
+          color={TextColor.TextAlternative}
           numberOfLines={1}
         >
-          {title}
+          {closedTitle(props)}
         </Text>
-        {layout === 'closed' ? (
-          <ClosedResult
-            valueLabel={valueLabel}
-            pnlLabel={pnlLabel}
-            isPnlPositive={isPnlPositive}
-          />
-        ) : (
-          markPriceLabel && (
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              {markPriceLabel}
-            </Text>
-          )
-        )}
+        {result ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            twClassName={pnlClassName(isPnlPositive)}
+            numberOfLines={1}
+          >
+            {result}
+          </Text>
+        ) : null}
       </Box>
+      {closedAgeLabel ? (
+        <Text
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextMuted}
+          numberOfLines={1}
+          twClassName="self-start shrink-0"
+        >
+          {closedAgeLabel}
+        </Text>
+      ) : null}
     </Box>
   );
+};
 
-  if (layout === 'closed') {
-    return identity;
-  }
+const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
+  const {
+    avatar,
+    symbol,
+    pnlLabel,
+    pnlValueLabel,
+    isPnlPositive,
+    subtitleLabel,
+    live,
+  } = props;
+  const tagLabel = sideTagLabel(props);
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Start}
+      alignItems={BoxAlignItems.Center}
       gap={2}
+      testID={props.testID}
     >
-      {identity}
+      <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
+      <Box twClassName="flex-1 min-w-0">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          {/* `shrink` so a long symbol truncates before the tag does. */}
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            twClassName="shrink"
+          >
+            {symbol}
+          </Text>
+          {tagLabel ? (
+            <Tag
+              severity={
+                isBullish(props) ? TagSeverity.Success : TagSeverity.Danger
+              }
+              twClassName="shrink-0"
+            >
+              {tagLabel}
+            </Tag>
+          ) : null}
+        </Box>
+        {subtitleLabel && live ? (
+          <AnimatedSlotText
+            animated={!live.reduceMotion}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+            testID={props.testID && `${props.testID}-subtitle`}
+            value={subtitleLabel}
+            variant={TextVariant.BodyXs}
+          />
+        ) : null}
+        {subtitleLabel && !live ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {subtitleLabel}
+          </Text>
+        ) : null}
+      </Box>
       {/* Capped rather than free-growing: a six-figure P&L would otherwise take
         the row and squeeze the symbol it belongs to down to an ellipsis. */}
       <Box
         alignItems={BoxAlignItems.End}
         twClassName="shrink-0 max-w-[45%] min-w-0"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName={pnlClassName(isPnlPositive)}
-          numberOfLines={1}
-        >
-          {pnlLabel}
-        </Text>
-        {pnlValueLabel ? (
+        {pnlValueLabel && live ? (
+          <AnimatedSlotText
+            animated={!live.reduceMotion}
+            color={pnlColor(isPnlPositive)}
+            fontWeight={FontWeight.Medium}
+            testID={props.testID && `${props.testID}-pnl-value`}
+            value={pnlValueLabel}
+            variant={TextVariant.BodySm}
+          />
+        ) : null}
+        {pnlValueLabel && !live ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -217,9 +256,36 @@ const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
             {pnlValueLabel}
           </Text>
         ) : null}
+        {pnlLabel && live ? (
+          <AnimatedSlotText
+            animated={!live.reduceMotion}
+            color={pnlColor(isPnlPositive)}
+            fontWeight={FontWeight.Medium}
+            testID={props.testID && `${props.testID}-pnl`}
+            value={pnlLabel}
+            variant={TextVariant.BodyXs}
+          />
+        ) : null}
+        {pnlLabel && !live ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            twClassName={pnlClassName(isPnlPositive)}
+            numberOfLines={1}
+          >
+            {pnlLabel}
+          </Text>
+        ) : null}
       </Box>
     </Box>
   );
 };
+
+const PositionCardHeader: React.FC<PositionCardHeaderProps> = (props) =>
+  props.layout === 'closed' ? (
+    <ClosedHeader {...props} />
+  ) : (
+    <OpenHeader {...props} />
+  );
 
 export default PositionCardHeader;

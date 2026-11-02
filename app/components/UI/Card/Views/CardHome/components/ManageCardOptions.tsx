@@ -341,7 +341,7 @@ const ManageCardOptions = ({
             description={strings(
               'card.card_home.manage_card_options.travel_description',
             )}
-            rightIcon={IconName.Export}
+            rightIcon={IconName.ArrowSquareOut}
             onPress={onTravel}
             testID={CardHomeSelectors.TRAVEL_ITEM}
           />

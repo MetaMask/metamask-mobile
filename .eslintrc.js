@@ -25,8 +25,6 @@ const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
   'app/components/UI/AccountInfoCard/index.js',
   'app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx',
-  'app/components/UI/Bridge/components/QuoteSelectorView/index.tsx',
-  'app/components/UI/Bridge/hooks/useBridgeQuoteData/index.ts',
   'app/components/UI/Bridge/hooks/useFormattedBalanceWithThreshold/index.ts',
   'app/components/UI/Bridge/hooks/useHasSufficientGas/index.ts',
   'app/components/UI/Bridge/hooks/useInsufficientBalance/index.ts',

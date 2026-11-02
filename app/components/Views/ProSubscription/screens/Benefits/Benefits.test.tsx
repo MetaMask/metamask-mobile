@@ -51,7 +51,10 @@ const mockUseMoneyAccountPlusTrialEligibility = jest.mocked(
 );
 const mockUseStartProSubscription = jest.mocked(useStartProSubscription);
 const mockRetry = jest.fn();
-const mockStartSubscription = jest.fn<Promise<void>, [unknown]>();
+const mockStartSubscription = jest.fn<
+  Promise<void>,
+  [unknown, { isTrial?: boolean }?]
+>();
 
 const MONTHLY_PLAN: PlanPricingView = {
   interval: RECURRING_INTERVALS.month,
@@ -403,7 +406,9 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
 
       await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
-      expect(mockStartSubscription).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
+      expect(mockStartSubscription).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN, {
+        isTrial: false,
+      });
       expect(mockOnSuccess).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
     });
 
@@ -414,8 +419,39 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
 
       await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
-      expect(mockStartSubscription).toHaveBeenCalledWith(MONTHLY_CHECKOUT_PLAN);
+      expect(mockStartSubscription).toHaveBeenCalledWith(
+        MONTHLY_CHECKOUT_PLAN,
+        {
+          isTrial: false,
+        },
+      );
       expect(mockOnSuccess).toHaveBeenCalledWith(MONTHLY_CHECKOUT_PLAN);
+    });
+
+    it('passes isTrial true when the selected plan offers a free trial', async () => {
+      mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
+        isEligibleForTrial: true,
+      });
+      mockPricingState({
+        plusPricing: {
+          ...READY_PLUS_PRICING,
+          monthly: { ...MONTHLY_PLAN, trialPeriodDays: 7 },
+          annual: { ...ANNUAL_PLAN, trialPeriodDays: 7 },
+        },
+      });
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() =>
+        expect(mockStartSubscription).toHaveBeenCalledWith(
+          {
+            ...ANNUAL_CHECKOUT_PLAN,
+            trialPeriodDays: 7,
+          },
+          { isTrial: true },
+        ),
+      );
     });
 
     it('does not call onSuccess when starting the subscription fails', async () => {

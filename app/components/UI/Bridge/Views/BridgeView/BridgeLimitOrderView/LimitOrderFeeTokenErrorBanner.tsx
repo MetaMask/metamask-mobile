@@ -9,18 +9,22 @@ import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 
 interface LimitOrderFeeTokenErrorBannerProps {
   reason?: SentinelFeeTokenValidationReason;
+  supportedTokenSymbols?: string[];
   onRetry: () => void;
 }
 
 export function LimitOrderFeeTokenErrorBanner({
   reason,
+  supportedTokenSymbols,
   onRetry,
 }: LimitOrderFeeTokenErrorBannerProps) {
   if (reason === 'unsupported-pair') {
     return (
       <BannerAlert
         severity={BannerAlertSeverity.Danger}
-        description={strings('bridge.limit.unsupported_fee_token_pair')}
+        description={strings('bridge.limit.unsupported_fee_token_pair', {
+          supportedTokens: supportedTokenSymbols?.join(', ') ?? '',
+        })}
         testID={BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_UNSUPPORTED_BANNER}
       />
     );

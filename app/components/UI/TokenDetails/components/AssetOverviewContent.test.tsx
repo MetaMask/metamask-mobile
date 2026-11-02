@@ -691,7 +691,10 @@ describe('AssetOverviewContent', () => {
         wrapInQueryClient(
           <AssetOverviewContent
             {...defaultProps}
-            recurringOrder={MOCK_RECURRING_OPEN_ORDER}
+            mostRecentOrder={{
+              type: BridgeTabKey.Recurring,
+              order: MOCK_RECURRING_OPEN_ORDER,
+            }}
           />,
         ),
         { state: createState(true) },
@@ -713,7 +716,10 @@ describe('AssetOverviewContent', () => {
       const { getByTestId } = renderAssetOverviewContent(
         <AssetOverviewContent
           {...defaultProps}
-          recurringOrder={MOCK_RECURRING_OPEN_ORDER}
+          mostRecentOrder={{
+            type: BridgeTabKey.Recurring,
+            order: MOCK_RECURRING_OPEN_ORDER,
+          }}
           onExitAction={onExitAction}
         />,
         { state: createState(true) },
@@ -741,7 +747,10 @@ describe('AssetOverviewContent', () => {
       const { getByTestId } = renderAssetOverviewContent(
         <AssetOverviewContent
           {...defaultProps}
-          recurringOrder={MOCK_RECURRING_OPEN_ORDER}
+          mostRecentOrder={{
+            type: BridgeTabKey.Recurring,
+            order: MOCK_RECURRING_OPEN_ORDER,
+          }}
           onExitAction={onExitAction}
         />,
         { state: createState(true) },

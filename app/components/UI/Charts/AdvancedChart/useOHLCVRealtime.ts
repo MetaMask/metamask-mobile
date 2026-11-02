@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { OHLCVBar as WSOHLCVBar } from '@metamask/core-backend';
 import Engine from '../../../../core/Engine';
+import { usePriceApiHost } from '../../TokenDetails/context/PriceApiHostContext';
 
 export interface UseOHLCVRealtimeOptions {
   /** CAIP-19 asset identifier */
@@ -13,6 +14,8 @@ export interface UseOHLCVRealtimeOptions {
   timePeriod: string;
   /** When false, skips subscription (e.g. legacy chart fallback) */
   enabled: boolean;
+  /** Price API origin for the `/latest` fallback. Omitted means prod. */
+  baseUrl?: string;
 }
 
 export interface UseOHLCVRealtimeResult {
@@ -28,7 +31,7 @@ const STALENESS_CHECK_INTERVAL_MS = 5_000;
 /** If no WS message arrives within this window, consider the stream stale */
 const STALENESS_THRESHOLD_MS = 5_000;
 
-const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv';
+const OHLCV_PATH = '/v3/ohlcv';
 
 /**
  * Fetch the current (latest) candle from the dedicated /latest REST endpoint.
@@ -39,9 +42,10 @@ async function fetchLatestBar(
   timePeriod: string,
   wsInterval: string,
   currency: string,
+  baseUrl: string,
   signal?: AbortSignal,
 ): Promise<WSOHLCVBar | null> {
-  const url = new URL(`${OHLCV_BASE_URL}/${assetId}/latest`);
+  const url = new URL(`${baseUrl}${OHLCV_PATH}/${assetId}/latest`);
   url.searchParams.set('timePeriod', timePeriod);
   url.searchParams.set('interval', wsInterval);
   url.searchParams.set('vsCurrency', currency);
@@ -120,11 +124,25 @@ export function useOHLCVRealtime({
   currency,
   timePeriod,
   enabled,
+  baseUrl,
 }: UseOHLCVRealtimeOptions): UseOHLCVRealtimeResult {
-  const [latestBar, setLatestBar] = useState<WSOHLCVBar | null>(null);
+  // Outside a `PriceApiHostProvider` this is prod, which keeps Bridge's live
+  // rate and the legacy chart on the host they already use. The WebSocket
+  // itself is unaffected either way — its gateway comes from the build.
+  const contextBaseUrl = usePriceApiHost();
+  const latestBaseUrl = baseUrl ?? contextBaseUrl;
+
+  const [latest, setLatest] = useState<{
+    channel: string;
+    bar: WSOHLCVBar;
+  } | null>(null);
   // Skips the state update (and re-render) when the bar hasn't changed.
-  const updateLatestBar = useCallback((bar: WSOHLCVBar) => {
-    setLatestBar((prev) => (areBarsEqual(prev, bar) ? prev : bar));
+  const updateLatestBar = useCallback((channel: string, bar: WSOHLCVBar) => {
+    setLatest((prev) =>
+      prev?.channel === channel && areBarsEqual(prev.bar, bar)
+        ? prev
+        : { channel, bar },
+    );
   }, []);
   const subscribedRef = useRef(false);
   const cancelledRef = useRef(false);
@@ -150,7 +168,7 @@ export function useOHLCVRealtime({
     const channel = buildChannel();
     channelRef.current = channel;
     cancelledRef.current = false;
-    setLatestBar(null);
+    setLatest(null);
     lastMessageTimeRef.current = 0;
     chainDownRef.current = false;
 
@@ -166,11 +184,12 @@ export function useOHLCVRealtime({
           timePeriod,
           interval,
           currency,
+          latestBaseUrl,
           controller.signal,
         );
         if (bar) {
           lastMessageTimeRef.current = Date.now();
-          updateLatestBar(bar);
+          updateLatestBar(channel, bar);
         }
       } catch {
         // no-op
@@ -184,7 +203,7 @@ export function useOHLCVRealtime({
       if (payload.channel === channelRef.current) {
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
-        updateLatestBar(payload.bar);
+        updateLatestBar(payload.channel, payload.bar);
       }
     };
 
@@ -309,9 +328,14 @@ export function useOHLCVRealtime({
     currency,
     timePeriod,
     enabled,
+    latestBaseUrl,
     buildChannel,
     updateLatestBar,
   ]);
+
+  // The effect only clears the previous asset's bar after the render in which
+  // the asset changes, so that render must not report it as the new asset's.
+  const latestBar = latest?.channel === buildChannel() ? latest.bar : null;
 
   return { latestBar };
 }

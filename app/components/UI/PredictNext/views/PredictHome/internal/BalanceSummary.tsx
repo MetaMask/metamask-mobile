@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   ButtonVariant,
+  FontFamily,
   SensitiveText,
   SensitiveTextLength,
   Skeleton,
@@ -71,7 +72,8 @@ export const BalanceSummary = ({
   return (
     <Box gap={1} testID={PredictHomeTestIds.BALANCE}>
       <SensitiveText
-        variant={TextVariant.DisplayLg}
+        variant={TextVariant.AmountDisplayLg}
+        fontFamily={FontFamily.Hero}
         isHidden={privacyMode}
         length={SensitiveTextLength.Medium}
         testID={PredictHomeTestIds.BALANCE_AMOUNT}

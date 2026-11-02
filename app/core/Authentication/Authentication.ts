@@ -928,6 +928,7 @@ class AuthenticationService {
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
    * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
+   * @param options.navigationBehavior - `preserve` leaves the current route in place. Resume uses it because the privacy cover is hiding that route. The default navigates to Home, a pending deeplink, or the metrics opt-in screen.
    * @returns - void
    */
   unlockWallet = async (
@@ -935,6 +936,7 @@ class AuthenticationService {
       password,
       authPreference,
       onBeforeNavigate,
+      navigationBehavior = 'default',
       // Optional onboarding trace context; forwarded to rehydrateSeedPhrase so the seedless
       // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
       // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
@@ -943,6 +945,7 @@ class AuthenticationService {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
+      navigationBehavior?: 'default' | 'preserve';
       parentContext?: TraceContext;
     } = {
       password: undefined,
@@ -1025,6 +1028,11 @@ class AuthenticationService {
 
           if (onBeforeNavigate) {
             await onBeforeNavigate();
+          }
+
+          // Resume already has a route under the privacy cover. Leave it.
+          if (navigationBehavior === 'preserve') {
+            return;
           }
 
           // TODO: Refactor this orchestration to sagas.
@@ -1739,6 +1747,39 @@ class AuthenticationService {
       }
       return false;
     }
+  };
+
+  /**
+   * Prompts biometric unlock after checking whether the seedless password is
+   * outdated. Shared by cold start and resume so both prompt identically.
+   * Rejects when unlock fails; callers decide the Login fallback.
+   */
+  tryBiometricUnlock = async (options?: {
+    navigationBehavior?: 'default' | 'preserve';
+  }): Promise<void> => {
+    if (
+      await this.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: false,
+      })
+    ) {
+      NavigationService.navigation?.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.REHYDRATE,
+            params: { isSeedlessPasswordOutdated: true },
+          },
+        ],
+      });
+      return;
+    }
+
+    if (options?.navigationBehavior === 'preserve') {
+      await this.unlockWallet({ navigationBehavior: 'preserve' });
+      return;
+    }
+
+    await this.unlockWallet();
   };
 
   /**

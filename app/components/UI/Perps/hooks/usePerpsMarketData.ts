@@ -17,8 +17,22 @@ export interface UsePerpsMarketDataParams {
    * Untagged records (single-provider mode) still match.
    */
   providerId?: PerpsProviderType;
+  /**
+   * Read directly from the provider when the Terminal snapshot does not carry
+   * venue-only metadata such as isolated-margin restrictions.
+   */
+  useProviderMetadata?: boolean;
   /** Whether to show error toast notifications (default: false) */
   showErrorToast?: boolean;
+}
+
+interface UsePerpsMarketDataResult {
+  marketData: MarketInfo | null;
+  isLoading: boolean;
+  /** Whether the requested provider metadata is available. */
+  isProviderMetadataAvailable: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
 }
 
 /**
@@ -39,15 +53,19 @@ export interface UsePerpsMarketDataParams {
  */
 export const usePerpsMarketData = (
   params: string | UsePerpsMarketDataParams,
-) => {
+): UsePerpsMarketDataResult => {
   // Support both legacy string and new object params
   const asset = typeof params === 'string' ? params : params.asset;
   const showErrorToast =
     typeof params === 'string' ? false : (params.showErrorToast ?? false);
   const providerId = typeof params === 'string' ? undefined : params.providerId;
+  const useProviderMetadata =
+    typeof params === 'string' ? false : (params.useProviderMetadata ?? false);
   const { getMarkets } = usePerpsTrading();
   const [marketData, setMarketData] = useState<MarketInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProviderMetadataAvailable, setIsProviderMetadataAvailable] =
+    useState(!useProviderMetadata);
   const [error, setError] = useState<string | null>(null);
   // Distinguishes "the market list says this asset is not tradable" from "the
   // market list could not be fetched". Only the former may be shown to the
@@ -70,6 +88,7 @@ export const usePerpsMarketData = (
       // paint. That is still in-flight, not a finished empty result.
       setMarketData(null);
       setIsLoading(true);
+      setIsProviderMetadataAvailable(!useProviderMetadata);
       return;
     }
 
@@ -96,21 +115,55 @@ export const usePerpsMarketData = (
           return;
         }
 
-        const assetMarket = markets.find(
+        const allowedMarket = markets.find(
           (market) =>
             market.name === asset &&
             (!providerId ||
               !market.providerId ||
               market.providerId === providerId),
         );
+        let resolvedMarket = allowedMarket;
+        let providerMetadataAvailable = !useProviderMetadata;
+
+        if (allowedMarket && useProviderMetadata) {
+          try {
+            const providerMarkets = await getMarkets({
+              symbols: [asset],
+              skipFilters: true,
+            });
+            if (!isCurrentRequest()) {
+              return;
+            }
+            const providerMarket = providerMarkets.find(
+              (market) =>
+                market.name === asset &&
+                (!providerId ||
+                  !market.providerId ||
+                  market.providerId === providerId),
+            );
+            if (providerMarket) {
+              resolvedMarket = { ...allowedMarket, ...providerMarket };
+              providerMetadataAvailable = true;
+            }
+          } catch (providerError) {
+            DevLogger.log(
+              'Error fetching provider market metadata:',
+              providerError,
+            );
+          }
+        }
+        if (!isCurrentRequest()) {
+          return;
+        }
 
         // The market list came back, so its contents are a real verdict on
         // whether this asset can be traded.
-        setIsAssetUntradable(assetMarket === undefined);
+        setIsAssetUntradable(allowedMarket === undefined);
         setError(
-          assetMarket === undefined ? `Asset ${asset} is not tradable` : null,
+          allowedMarket === undefined ? `Asset ${asset} is not tradable` : null,
         );
-        setMarketData(assetMarket ?? null);
+        setMarketData(resolvedMarket ?? null);
+        setIsProviderMetadataAvailable(providerMetadataAvailable);
         setIsLoading(false);
         return;
       } catch (err) {
@@ -136,7 +189,7 @@ export const usePerpsMarketData = (
         setIsLoading(false);
       }
     }
-  }, [getMarkets, asset, providerId]);
+  }, [getMarkets, asset, providerId, useProviderMetadata]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -170,6 +223,7 @@ export const usePerpsMarketData = (
   return {
     marketData,
     isLoading,
+    isProviderMetadataAvailable,
     error,
     refetch: fetchMarketData,
   };

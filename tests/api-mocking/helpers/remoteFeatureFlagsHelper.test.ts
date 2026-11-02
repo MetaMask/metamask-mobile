@@ -89,6 +89,25 @@ describe('Remote Feature Flags Helper', () => {
       });
     });
 
+    it('pins DeFi controller V2 off and lets a test override win', () => {
+      const defaultResponse = createRemoteFeatureFlagsMock().response as Record<
+        string,
+        unknown
+      >[];
+      const overrideResponse = createRemoteFeatureFlagsMock({
+        defiControllerV2: { enabled: true },
+      }).response as Record<string, unknown>[];
+      const flagByName = (response: Record<string, unknown>[], name: string) =>
+        response.find((obj) => name in obj)?.[name];
+
+      expect(flagByName(defaultResponse, 'defiControllerV2')).toEqual({
+        enabled: false,
+      });
+      expect(flagByName(overrideResponse, 'defiControllerV2')).toEqual({
+        enabled: true,
+      });
+    });
+
     it('uses flask distribution when specified', () => {
       const result = createRemoteFeatureFlagsMock({}, 'flask');
 

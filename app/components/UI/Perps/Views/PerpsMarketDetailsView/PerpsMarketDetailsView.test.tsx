@@ -495,6 +495,10 @@ const mockUsePerpsMarketsImpl = jest.fn<
   isRefreshing: false,
 }));
 
+jest.mock('../../hooks/usePerpsSharePosition', () => ({
+  usePerpsSharePosition: () => ({ sharePosition: jest.fn() }),
+}));
+
 // Mock the direct import path for usePerpsMarkets
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: (

@@ -1,24 +1,25 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Keyboard, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  BottomSheetFooter,
   Box,
-  Button,
   ButtonSize,
-  ButtonsAlignment,
-  ButtonVariant,
-  HeaderStandard,
-  TitleStandard,
   ListItemMultiSelect,
   ListItemVariant,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -83,6 +84,11 @@ const INTEREST_OPTIONS: InterestOption[] = [
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
@@ -219,9 +225,13 @@ const OnboardingInterestQuestionnaire = () => {
       style={tw.style('flex-1 bg-default')}
       testID={OnboardingInterestQuestionnaireTestIds.SCREEN}
     >
-      <HeaderStandard includesTopInset />
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+      />
 
-      <Box twClassName="px-4 pb-4">
+      <Box twClassName="px-4" style={{ marginTop: headerInset }}>
         <TitleStandard
           title={strings('onboarding_interest_questionnaire.title')}
           bottomLabel={strings('onboarding_interest_questionnaire.description')}
@@ -277,9 +287,8 @@ const OnboardingInterestQuestionnaire = () => {
         })}
       </ScrollView>
 
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
-        twClassName="pt-2"
+      <FooterGlass
+        twClassName="pt-2 pb-2"
         primaryButtonProps={{
           children: strings('onboarding_interest_questionnaire.done'),
           onPress: onNext,
@@ -287,18 +296,13 @@ const OnboardingInterestQuestionnaire = () => {
           isDisabled: selectedIds.size === 0,
           testID: OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
         }}
+        tertiaryButtonProps={{
+          children: strings('onboarding_interest_questionnaire.skip'),
+          onPress: onSkip,
+          size: ButtonSize.Lg,
+          testID: OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
+        }}
       />
-      <Box twClassName="px-4 py-2">
-        <Button
-          variant={ButtonVariant.Tertiary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={onSkip}
-          testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
-        >
-          {strings('onboarding_interest_questionnaire.skip')}
-        </Button>
-      </Box>
 
       {isOtherBottomSheetVisible ? (
         <OtherBottomSheet

@@ -1,7 +1,23 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { GlassView } from 'expo-glass-effect';
 import PerpsEmptyBalance from './PerpsEmptyBalance';
+import { mockTheme } from '../../../../../util/theme';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
+
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -93,6 +109,33 @@ describe('PerpsEmptyBalance', () => {
       fireEvent.press(addFundsButton);
 
       expect(onAddFunds).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('glass', () => {
+    it('keeps the solid primary button by default', () => {
+      const { UNSAFE_queryAllByType } = render(
+        <PerpsEmptyBalance onAddFunds={jest.fn()} />,
+      );
+
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+    });
+
+    it('draws Add funds as tinted primary glass and keeps it pressable', () => {
+      const onAddFunds = jest.fn();
+      const { UNSAFE_getByType, getByTestId } = render(
+        <PerpsEmptyBalance onAddFunds={onAddFunds} isGlass />,
+      );
+
+      expect(UNSAFE_getByType(GlassView).props.tintColor).toBe(
+        mockTheme.colors.icon.default,
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      );
+
+      expect(onAddFunds).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -9,6 +9,7 @@ import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTool
 import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
 import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import type { PerpDirection } from '../utils/perp';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 
 export const SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID =
   'social-v1-feed-copy-trade-geo-block';
@@ -18,6 +19,8 @@ export interface OpenPerpsOrderParams {
   /** Market as the Perps order sheet names it (HIP-3 `xyz:` prefix kept). */
   asset: string;
   leverage?: number;
+  /** Social V1 post being copied, when the order should be attributed. */
+  copyTradeOrigin?: CopyTradeOrigin;
 }
 
 export interface UseOpenPerpsOrderOptions {
@@ -51,7 +54,7 @@ export const useOpenPerpsOrder = ({
   const [isGeoBlockVisible, setIsGeoBlockVisible] = useState(false);
 
   const openPerpsOrder = useCallback(
-    ({ direction, asset, leverage }: OpenPerpsOrderParams) => {
+    ({ direction, asset, leverage, copyTradeOrigin }: OpenPerpsOrderParams) => {
       const openOrder = (): Promise<void> => {
         if (!isEligible) {
           setIsGeoBlockVisible(true);
@@ -70,6 +73,7 @@ export const useOpenPerpsOrder = ({
               source: 'trader_feed',
               useBottomSheet: true,
               stayOnCurrentScreen: true,
+              ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
             },
           });
         if (runNavigation) {

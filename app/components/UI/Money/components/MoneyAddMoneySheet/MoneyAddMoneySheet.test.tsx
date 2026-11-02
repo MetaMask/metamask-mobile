@@ -12,7 +12,7 @@ import { ConfirmationLaunchSource } from '../../../../Views/confirmations/compon
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -98,7 +98,7 @@ jest.mock(
     ...jest.requireActual(
       '../../../../../selectors/featureFlagController/moneyAccount',
     ),
-    selectMoneyMovementBrazilNeobankEnabled: jest.fn(),
+    selectMoneyMovementNeobank: jest.fn(),
   }),
 );
 
@@ -167,9 +167,10 @@ describe('MoneyAddMoneySheet', () => {
       true,
     );
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
-    (
-      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
-    ).mockReturnValue(true);
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      regions: ['BR'],
+    });
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
     delete process.env.MM_MONEY_VBA_GEO_BYPASS;
   });
@@ -212,7 +213,7 @@ describe('MoneyAddMoneySheet', () => {
     }
   });
 
-  it('renders the Bank account row enabled with a "New" badge when the neobank flag is on and geolocation is Brazil', () => {
+  it('renders the Bank account row enabled with a "New" badge when moneyMovementNeobank allows Brazil', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
@@ -231,10 +232,11 @@ describe('MoneyAddMoneySheet', () => {
     );
   });
 
-  it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {
-    (
-      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
-    ).mockReturnValue(false);
+  it('keeps the Bank account row as a coming-soon, non-pressable option when moneyMovementNeobank is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
 
     const { getByTestId, getAllByText, queryByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
@@ -248,7 +250,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('hides the Bank account row when the flag is on and geolocation is not Brazil', () => {
+  it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
 
     const { queryByTestId, queryByText, getAllByText } = renderWithProvider(
@@ -275,7 +277,23 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('enables the Bank account row outside Brazil when the dev geo bypass is on', () => {
+  it('enables the Bank account row for a listed US region', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      regions: ['US'],
+    });
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+      'US-NY',
+    );
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeOnTheScreen();
+  });
+
+  it('enables the Bank account row outside the listed regions when the dev geo bypass is on', () => {
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
     process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
 
@@ -295,9 +313,10 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('keeps the coming-soon Bank account row when the flag is off even if the geo bypass is on', () => {
-    (
-      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
-    ).mockReturnValue(false);
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
     process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
 
@@ -672,10 +691,11 @@ describe('MoneyAddMoneySheet', () => {
     ]);
   });
 
-  it('keeps the coming-soon Bank account row in its pre-flag position when the neobank flag is off', () => {
-    (
-      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
-    ).mockReturnValue(false);
+  it('keeps the coming-soon Bank account row in its pre-flag position when moneyMovementNeobank is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
     // Empty wallet: Convert crypto is disabled too, so the disabled rows'
     // relative order must still match prod (Convert crypto above Bank account).
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(

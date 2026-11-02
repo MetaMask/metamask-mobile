@@ -39,6 +39,13 @@ const newOverrides = [
       'app/components/UI/Money/selectors/featureFlags.test.ts',
       'app/lib/Money/feature-flags.ts',
       'app/lib/Money/feature-flags.test.ts',
+      // Money MPC keyring stub: the build gate and static address are read at
+      // runtime so tests can flip them per-case.
+      'app/constants/featureFlags.ts',
+      'app/core/MpcMoneyKeyring/MpcMoneyKeyring.ts',
+      'app/core/MpcMoneyKeyring/MpcMoneyKeyring.test.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.test.ts',
+      'app/core/Engine/wallet-init/keyrings.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
       'app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx',

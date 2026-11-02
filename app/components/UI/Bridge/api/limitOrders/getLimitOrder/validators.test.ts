@@ -135,6 +135,28 @@ describe('parseGetLimitOrderResponse', () => {
     expect(parseGetLimitOrderResponse(response)).toStrictEqual(response);
   });
 
+  it('accepts fields it has not seen before at every level', () => {
+    const response = {
+      newResponseField: true,
+      order: {
+        ...FILLED_RESPONSE.order,
+        newOrderField: 'new',
+        src: { ...FILLED_RESPONSE.order.src, newLegField: 'new' },
+        trigger: { ...FILLED_RESPONSE.order.trigger, newTriggerField: 'new' },
+        timingData: {
+          ...FILLED_RESPONSE.order.timingData,
+          updatedAt: '2026-09-30T13:22:06.000Z',
+        },
+      },
+      transactions: FILLED_RESPONSE.transactions.map((transaction) => ({
+        ...transaction,
+        newTransactionField: 'new',
+      })),
+    };
+
+    expect(parseGetLimitOrderResponse(response)).toStrictEqual(response);
+  });
+
   it('rejects an order without an expiry, which every booked order has', () => {
     expect(() =>
       parseGetLimitOrderResponse({

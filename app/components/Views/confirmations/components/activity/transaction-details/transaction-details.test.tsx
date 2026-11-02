@@ -573,6 +573,59 @@ describe('TransactionDetails', () => {
       });
     });
 
+    it('incoming allowlisted confirmed mUSD transfer returns deposited', () => {
+      const sender = '0x000000000000000000000000000000000000000a';
+      const recipient = '0x000000000000000000000000000000000000000b';
+      const state = merge({}, otherControllersMock, {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                moneyVbaActivityDepositFromAddresses: [sender],
+              },
+            },
+            MoneyAccountController: {
+              moneyAccounts: {
+                account: {
+                  address: recipient,
+                  options: { entropy: { id: 'primary-keyring' } },
+                },
+              },
+            },
+            KeyringController: {
+              keyrings: [
+                {
+                  type: 'HD Key Tree',
+                  accounts: [],
+                  metadata: { id: 'primary-keyring', name: '' },
+                },
+              ],
+            },
+          },
+        },
+      });
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.incoming,
+          status: TransactionStatus.confirmed,
+          chainId: CHAIN_IDS.MONAD,
+          txParams: { from: sender, to: recipient },
+          transferInformation: {
+            amount: '1000000',
+            symbol: 'mUSD',
+            decimals: 6,
+            contractAddress: MUSD_TOKEN_ADDRESS,
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = renderWithProvider(<TransactionDetails />, {
+        state,
+      });
+      expect(getByText(strings('money.transaction.deposited'))).toBeTruthy();
+    });
+
     it('incoming transfer returns received', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {

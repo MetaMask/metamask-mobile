@@ -58,7 +58,7 @@ import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
-import { PostSwapShareBottomSheet } from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
+import { PostTradeShareBottomSheet } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
 import AddWallet from '../../Views/AddWallet';
@@ -104,7 +104,6 @@ import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
-import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
@@ -1340,11 +1339,6 @@ const AppFlow = () => {
         ) : null}
       </NativeStack.Group>
       <NativeStack.Screen
-        name={Routes.LOCK_SCREEN}
-        component={LockScreen}
-        options={{ gestureEnabled: false }}
-      />
-      <NativeStack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         options={{
           gestureEnabled: true,
@@ -1555,7 +1549,7 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
-        <PostSwapShareBottomSheet />
+        <PostTradeShareBottomSheet />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />

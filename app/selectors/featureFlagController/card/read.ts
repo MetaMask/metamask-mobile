@@ -83,6 +83,14 @@ export function readCardFeatureFlag(
     : defaultCardFeatureFlag;
 }
 
+export function readCardLinkApiEnabled(flags: CardRemoteFeatureFlags): boolean {
+  const gated = validatedVersionGatedFeatureFlag(flags?.cardLinkApi);
+  if (gated !== undefined) {
+    return gated;
+  }
+  return process.env.MM_CARD_LINK_API_ENABLED === 'true';
+}
+
 /**
  * Whether a provider is available.
  *

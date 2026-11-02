@@ -16,7 +16,7 @@ import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
-import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
 import { formatPerpsPrice } from '../../../../Perps/utils/formatUtils';
 import { PerpsStreamProvider } from '../../../../Perps/providers/PerpsStreamManager';
 import { usePerpsLiveFocusedPrice } from '../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice';

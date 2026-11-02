@@ -1,8 +1,8 @@
-import { array, object, optional, type Infer } from '@metamask/superstruct';
+import { array, optional, type, type Infer } from '@metamask/superstruct';
 import { CreatedLimitOrderTransactionSchema } from '../create/schema';
 import { LimitOrderSchema } from '../getLimitOrders/schema';
 
-export const GetLimitOrderResponseSchema = object({
+export const GetLimitOrderResponseSchema = type({
   order: LimitOrderSchema,
   transactions: optional(array(CreatedLimitOrderTransactionSchema)),
 });

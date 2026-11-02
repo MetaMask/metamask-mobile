@@ -28,7 +28,7 @@ const PROFILE_OUTPUT_DIRECTORY = 'tests/reporters/reports/hermes-cpuprofiles';
 const SEGMENT_FILE_PREFIX = 'metamask-performance.segment-';
 // The dump is written before the app is allowed to settle in the background,
 // so this only has to cover writing and transferring a multi-megabyte trace.
-// Keep this short on BrowserStack: a missing path makes `pullFile` fail, and
+// Keep this short on TestMu: a missing path makes `pullFile` fail, and
 // WDIO connection retries re-run the same adb failure with backoff — a 30s
 // budget routinely burned ~3 full retry chains (~30s) of WARN spam per test.
 const SEGMENT_WAIT_TIMEOUT_MS = 12_000;
@@ -154,7 +154,7 @@ async function waitForSegment(
 /**
  * Probes contiguous segments starting at `fromIndex`, stopping at the first
  * gap. Segments below `fromIndex` are skipped to avoid re-downloading
- * already-collected multi-MB traces over the BrowserStack tunnel.
+ * already-collected multi-MB traces over the TestMu tunnel.
  */
 async function probeSegmentsFrom(
   appiumDriver: PullFileDriver,
@@ -189,7 +189,7 @@ export async function resetAppProfilingSegments(
 
   // fullReset wipes app-scoped storage between sessions, so no leftover
   // segments can exist. Skip the probe to avoid a guaranteed adb-pull failure
-  // (and its noisy WARN log) on every fresh BrowserStack device.
+  // (and its noisy WARN log) on every fresh TestMu device.
   if (capabilities['appium:fullReset'] === true) {
     collectedSegmentCount = 0;
     return;
@@ -266,7 +266,7 @@ async function saveSegment(
  * single collection can pick up more than one segment.
  *
  * Segments already on the device are probed once and those buffers are reused
- * for catch-up saves — no second download over the BrowserStack tunnel. The
+ * for catch-up saves — no second download over the TestMu tunnel. The
  * segment triggered by this background is waited for; a single-shot pull would
  * race the dump that just started and silently drop the measured-flow trace.
  */
@@ -292,7 +292,7 @@ export async function collectAppProfiling(
     options.segmentWaitTimeoutMs ?? SEGMENT_WAIT_TIMEOUT_MS;
 
   // Only probe segments not yet collected — avoids re-downloading already-saved
-  // multi-MB traces over the BrowserStack tunnel.
+  // multi-MB traces over the TestMu tunnel.
   const newSegments = await probeSegmentsFrom(
     appiumDriver,
     directory,

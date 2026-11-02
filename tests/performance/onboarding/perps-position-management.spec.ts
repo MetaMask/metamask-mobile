@@ -36,7 +36,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       const selectMarketTimer = new TimerHelper(
         'Market list screen visible',
-        { ios: 7500, android: 6000 },
+        { ios: 7500, android: 2400 },
         currentDeviceDetails.platform,
       );
       const openOrderScreenTimer = new TimerHelper(
@@ -88,7 +88,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       await MarketDetailsScreenTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
-          PerpsMarketDetailsView.header,
+          PerpsMarketDetailsView.assetName,
         );
       });
       // Check if there's an existing position and close it before continuing

@@ -99,6 +99,8 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
+Before the first edit on any change, follow `mms-planning` and do what it decides.
+
 **Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set, whose base skills `yarn install` installs for you (Cursor / Codex / Claude harnesses); `yarn skills` adds every domain:
 
 | Guide                                                                                      | Scope                                                                        |

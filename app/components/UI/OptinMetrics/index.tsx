@@ -8,15 +8,16 @@ import {
   NativeSyntheticEvent,
   LayoutChangeEvent,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BottomSheetFooter,
   ButtonSize,
   ContentVariant,
   FontWeight,
-  HeaderStandard,
   ListItemMultiSelect,
   Text,
   TextButton,
@@ -24,6 +25,9 @@ import {
   TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
@@ -83,6 +87,11 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const metrics = useAnalytics();
 
   useScreenPerformance({
@@ -384,9 +393,14 @@ const OptinMetrics = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
-      <HeaderStandard includesTopInset title="" />
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+        title=""
+      />
       <ScrollView
-        style={tw.style('flex-1')}
+        style={[tw.style('flex-1'), { marginTop: headerInset }]}
         scrollEventThrottle={150}
         onContentSizeChange={onContentSizeChange}
         onLayout={onLayout}
@@ -463,7 +477,7 @@ const OptinMetrics = () => {
           </Text>
         </Box>
       </ScrollView>
-      <BottomSheetFooter
+      <FooterGlass
         twClassName="py-2"
         primaryButtonProps={{
           children: strings('privacy_policy.continue'),

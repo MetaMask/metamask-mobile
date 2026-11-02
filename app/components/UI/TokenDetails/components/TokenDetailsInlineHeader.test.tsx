@@ -151,6 +151,33 @@ describe('TokenDetailsInlineHeader', () => {
         }),
       });
     });
+
+    it('forwards tdpVersion "v3" into the security badge bottom sheet params', () => {
+      const { getByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+        tdpVersion: 'v3',
+      });
+
+      fireEvent.press(getByTestId('security-badge-verified'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({ tdpVersion: 'v3' }),
+      });
+    });
+
+    it('defaults tdpVersion to "v2" when no prop is provided', () => {
+      const { getByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+      });
+
+      fireEvent.press(getByTestId('security-badge-verified'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
+        params: expect.objectContaining({ tdpVersion: 'v2' }),
+      });
+    });
   });
 
   describe('titleEndAccessory override', () => {

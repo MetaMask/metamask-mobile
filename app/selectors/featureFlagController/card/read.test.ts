@@ -9,6 +9,7 @@ import {
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
@@ -560,6 +561,55 @@ describe('card feature flag readers', () => {
           hasCompletedMigration: true,
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('readCardLinkApiEnabled', () => {
+    const originalEnv = process.env.MM_CARD_LINK_API_ENABLED;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MM_CARD_LINK_API_ENABLED;
+      } else {
+        process.env.MM_CARD_LINK_API_ENABLED = originalEnv;
+      }
+    });
+
+    it('reads the version-gated cardLinkApi flag when present', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: true, minimumVersion: '0.0.0' },
+        }),
+      ).toBe(true);
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: false, minimumVersion: '0.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('is off when the app is below cardLinkApi.minimumVersion', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: true, minimumVersion: '99.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('ignores cardFeature.cardLinkApiEnabled', () => {
+      delete process.env.MM_CARD_LINK_API_ENABLED;
+      expect(
+        readCardLinkApiEnabled({ cardFeature: { cardLinkApiEnabled: true } }),
+      ).toBe(false);
+    });
+
+    it('falls back to MM_CARD_LINK_API_ENABLED when the remote flag is absent', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(readCardLinkApiEnabled({})).toBe(true);
+      delete process.env.MM_CARD_LINK_API_ENABLED;
+      expect(readCardLinkApiEnabled({})).toBe(false);
     });
   });
 

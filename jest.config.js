@@ -78,6 +78,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/analytics-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
+  '@metamask/chain-agnostic-permission',
   '@metamask/client-controller',
   '@metamask/chomp-api-service',
   '@metamask/client-utils',
@@ -88,9 +89,14 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/controller-utils',
   '@metamask/core-backend',
   '@metamask/cryptography',
+  '@metamask/eth-block-tracker',
+  '@metamask/eth-json-rpc-middleware',
+  '@metamask/eth-json-rpc-provider',
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
+  // ESM-only; the Money MPC keyring V2 adapter.
+  '@metamask/eth-money-mpc-keyring',
   '@metamask/gas-fee-controller',
   // 2.x ships ESM-only under dist/*.js.
   '@metamask/geolocation-controller',
@@ -104,6 +110,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
   '@metamask/multichain-network-controller',
+  '@metamask/network-controller',
   '@metamask/network-enablement-controller',
   '@metamask/notification-services-controller',
   '@metamask/phishing-controller',
@@ -125,6 +132,9 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/messenger',
   '@metamask/native-utils',
   '@metamask/perps-controller',
+  '@metamask/json-rpc-engine',
+  '@metamask/permission-controller',
+  '@metamask/selected-network-controller',
   '@metamask/superstruct',
   '@metamask/react-native-acm',
   '@metamask/react-native-actionsheet',
@@ -254,6 +264,8 @@ const config = {
       '<rootDir>/app/__mocks__/rive-app-react-native.tsx',
     '^react-native-qrcode-svg$':
       '<rootDir>/app/__mocks__/react-native-qrcode-svg.js',
+    '^react-native-laminar$':
+      '<rootDir>/app/__mocks__/react-native-laminar.tsx',
   },
   cache: true,
   ...(process.env.JEST_CACHE_DIRECTORY && {

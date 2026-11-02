@@ -64,6 +64,13 @@ jest.mock('../../../../../../../util/haptics');
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 const createSizeInput = (
   overrides: Partial<PerpsProOrderFormProps['sizeInput']> = {},
@@ -1813,6 +1820,31 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(`${ids.NOTICE}-risk`)).toHaveTextContent(
         'Risk warning',
       );
+    });
+
+    it('renders the rebate banner for standard and Scale orders', () => {
+      mockPerpsRebateBanner.mockClear();
+      const rebateQuote = {
+        coin: 'ETH',
+        direction: 'long' as const,
+        notionalUsd: '100',
+      };
+      const view = renderForm({ rebateQuote });
+      expect(mockPerpsRebateBanner).toHaveBeenCalledWith({
+        ...rebateQuote,
+        textTwClassName: 'text-body-xs leading-[16px]',
+      });
+
+      view.rerender(
+        <PerpsProOrderForm
+          {...createProps({
+            orderType: 'scale',
+            scaleOrder: createScaleOrder(),
+          })}
+        />,
+      );
+
+      expect(mockPerpsRebateBanner).toHaveBeenCalledTimes(2);
     });
   });
 

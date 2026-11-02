@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { render } from '@testing-library/react-native';
 import Price from './Price';
 import { usePriceChartContext } from './Price.context';
+import { PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID } from './Price.Chart';
 import type { TokenI } from '../../Tokens/types';
 import { PriceChartProvider } from '../PriceChart/PriceChart.context';
 import {
@@ -56,7 +57,7 @@ jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
   };
 });
 
-const mockUseOHLCVChart = jest.fn().mockReturnValue({
+const defaultOhlcvChartResult = {
   ohlcvData: [
     { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
     { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
@@ -69,7 +70,9 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
   hasMore: false,
   nextCursor: null,
   hasEmptyData: false,
-});
+};
+
+const mockUseOHLCVChart = jest.fn().mockReturnValue(defaultOhlcvChartResult);
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
   useOHLCVChart: (...args: unknown[]) => mockUseOHLCVChart(...args),
@@ -326,6 +329,62 @@ describe('Price Component', () => {
       expect(getByTestId('token-price')).toBeTruthy();
       expect(getByTestId('interleaved-section')).toBeTruthy();
       expect(getByTestId('mock-advanced-chart')).toBeTruthy();
+    });
+
+    describe('bottom spacing in the candle empty state', () => {
+      beforeEach(() => {
+        mockUseSelector.mockImplementation((selector: unknown) => {
+          if (selector === selectTokenOverviewChartType) {
+            return ChartType.Candles;
+          }
+          if (selector === selectTokenIndicators) {
+            return [];
+          }
+          if (selector === selectTokenDetailsOhlcvWsEnabled) {
+            return false;
+          }
+          if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+            return true;
+          }
+          return undefined;
+        });
+        mockUseOHLCVChart.mockReturnValue({
+          ohlcvData: [],
+          isLoading: false,
+          error: undefined,
+          hasMore: false,
+          nextCursor: null,
+          hasEmptyData: true,
+        });
+      });
+
+      afterEach(() => {
+        mockUseOHLCVChart.mockReturnValue(defaultOhlcvChartResult);
+      });
+
+      it('reserves the indicator bar height by default', () => {
+        const { getByTestId } = renderWithProviders(
+          <Price.Provider {...unifiedProps}>
+            <Price.Chart />
+          </Price.Provider>,
+        );
+
+        expect(
+          getByTestId(PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID),
+        ).toBeOnTheScreen();
+      });
+
+      it('drops the reserved height with uniformSpacing', () => {
+        const { queryByTestId } = renderWithProviders(
+          <Price.Provider {...unifiedProps}>
+            <Price.Chart uniformSpacing />
+          </Price.Provider>,
+        );
+
+        expect(
+          queryByTestId(PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID),
+        ).not.toBeOnTheScreen();
+      });
     });
 
     it('renders a single chart when the parts share one provider', () => {

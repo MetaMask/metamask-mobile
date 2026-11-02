@@ -141,17 +141,32 @@ const ActivityRowView = ({
           </Text>
         ) : null}
       </Box>
-      <SensitiveText
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={amountColor}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Short}
-        twClassName="text-right"
-        testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
-      >
-        {display.fiatAmount}
-      </SensitiveText>
+      <Box alignItems={BoxAlignItems.End}>
+        {display.showPrimaryAmount ? (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={amountColor}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+            twClassName="text-right"
+            testID={MoneyActivityItemTestIds.PRIMARY_AMOUNT}
+          >
+            {display.primaryAmount}
+          </SensitiveText>
+        ) : null}
+        <SensitiveText
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={amountColor}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+          twClassName="text-right"
+          testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
+        >
+          {display.fiatAmount}
+        </SensitiveText>
+      </Box>
     </Pressable>
   );
 };

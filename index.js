@@ -38,6 +38,7 @@ import {
   handleCustomError,
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
+import AppLockService from './app/core/AppLock/AppLockService';
 
 import { enableFreeze } from 'react-native-screens';
 
@@ -47,6 +48,10 @@ if (__DEV__) {
 
 enableFreeze(true);
 
+// Subscribe to AppState before Engine and any screen hooks do, so the privacy
+// screen is raised first when the app backgrounds.
+AppLockService.initialize();
+
 // Setup Sentry
 setupSentry(__DEV__);
 
@@ -54,7 +59,7 @@ setupSentry(__DEV__);
 Performance.setupPerformanceObservers();
 
 // Arm Hermes CPU profiling for the whole process. No-op outside the
-// BrowserStack performance APKs, where IS_PERFORMANCE_TEST is baked in.
+// performance-test APKs, where IS_PERFORMANCE_TEST is baked in.
 initializeAppProfiling();
 
 // Ignore all logs

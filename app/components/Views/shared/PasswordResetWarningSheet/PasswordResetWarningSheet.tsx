@@ -1,11 +1,9 @@
 import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetFooter,
   BottomSheetHeader,
   Box,
   ButtonSize,
-  ButtonsAlignment,
   FontWeight,
   IconAlertSeverity,
   Text,
@@ -14,6 +12,7 @@ import {
   TitleAlert,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import FooterGlass from '../../../../component-library/components-temp/FooterGlass';
 import { strings } from '../../../../../locales/i18n';
 import { PasswordResetWarningSheetSelectorsIDs } from './PasswordResetWarningSheet.testIds';
 
@@ -93,8 +92,7 @@ const PasswordResetWarningSheet = ({
           {strings('choose_password.password_warning_description_part2')}
         </Text>
       </Box>
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
+      <FooterGlass
         primaryButtonProps={{
           children: strings('choose_password.password_warning_confirm'),
           onPress: handleConfirm,
@@ -107,7 +105,6 @@ const PasswordResetWarningSheet = ({
           size: ButtonSize.Lg,
           testID: PasswordResetWarningSheetSelectorsIDs.CANCEL_BUTTON,
         }}
-        twClassName="flex-col-reverse gap-4"
       />
     </BottomSheet>
   );

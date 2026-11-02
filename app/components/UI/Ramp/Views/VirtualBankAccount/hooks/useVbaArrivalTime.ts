@@ -4,7 +4,6 @@ import { formatDelayFromArray } from '../../../Aggregator/utils';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
 import { useRampsPaymentMethodsForContext } from '../../../hooks/useRampsPaymentMethods';
 import { useVbaEligibility } from './useVbaEligibility';
-import { isVbaRegionSupported } from '../../../../../../util/region/isVbaRegionSupported';
 
 export interface VbaArrivalTime {
   /**
@@ -53,14 +52,15 @@ export function getVbaArrivalTimeframe(
  * @returns The formatted arrival window, `undefined` until a fetch succeeds.
  */
 export function useVbaArrivalTime(): VbaArrivalTime {
-  const { location } = useVbaEligibility();
+  const { location, isRegionEligible } = useVbaEligibility();
   const depositAssetId = useMoneyAccountDepositAssetId();
 
-  // Only fetch for regions VBA actually serves (same gate as entry): under
-  // the dev geo bypass the IP lookup can be unknown or non-BR, and the ramps
-  // API has no catalog for it. The geolocation API returns "BR" or "BR-SP";
-  // the ramps API indexes country-level regions by lowercase ISO code ("br").
-  const regionCode = isVbaRegionSupported(location)
+  // Only fetch for countries `moneyMovementNeobank.regions` allows (same gate as
+  // entry). Under the dev geo bypass the IP lookup can be unknown or outside
+  // that list, and the ramps API has no catalog for it. Geolocation returns
+  // "US" or "US-CA"; the ramps API indexes country-level regions by lowercase
+  // ISO code ("us").
+  const regionCode = isRegionEligible
     ? (location?.split('-')[0].toLowerCase() ?? '')
     : '';
 

@@ -15,6 +15,11 @@ export interface CurrentDeviceDetails {
   launchableActivity?: string;
   /** Derived from `use.device.provider === ProviderName.BROWSERSTACK` in Playwright config. */
   isBrowserstack: boolean;
+  /**
+   * Remote cloud device (BrowserStack or TestMu). Local adb/simctl commands
+   * are not available.
+   */
+  isRemoteCloud?: boolean;
 }
 
 /**

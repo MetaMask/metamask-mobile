@@ -39,8 +39,12 @@ export interface DeeplinkUrlParams {
   amount?: string;
   asset?: string;
 
-  // Swap-specific parameters
+  // Market Swap-specific parameters
   slippage?: string;
+
+  // Limit Order-specific parameters
+  expiresInMinutes?: string;
+  priceTolerance?: string;
 
   // Perps-specific parameters
   symbol?: string;
@@ -172,6 +176,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.MMSDK,
   ACTIONS.ANDROID_SDK,
   ACTIONS.MONEY,
+  ACTIONS.MONEY_ACCOUNT_DEPOSIT,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

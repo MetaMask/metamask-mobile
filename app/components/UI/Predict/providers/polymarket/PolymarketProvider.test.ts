@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import {
   CHAIN_IDS,
   TransactionType,
@@ -5,7 +6,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import { Interface } from 'ethers/lib/utils';
+import { Interface, parseUnits } from 'ethers/lib/utils';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
@@ -82,7 +83,10 @@ import type { SignedSafeExecution } from './preflight/core';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
 import { buildTradeAllowancesTx } from './preflight/trade';
-import { buildWithdrawTransaction } from './preflight/withdraw';
+import {
+  buildUnsignedWithdrawTransaction,
+  buildWithdrawTransaction,
+} from './preflight/withdraw';
 import {
   generateTransferData,
   isSmartContractAddress,
@@ -210,6 +214,7 @@ jest.mock('./preflight/trade', () => ({
 }));
 
 jest.mock('./preflight/withdraw', () => ({
+  buildUnsignedWithdrawTransaction: jest.fn(),
   buildWithdrawTransaction: jest.fn(),
 }));
 
@@ -288,6 +293,9 @@ const mockWaitForDepositWalletTransaction = jest.mocked(
 );
 const mockBuildTradeAllowancesTx = jest.mocked(buildTradeAllowancesTx);
 const mockBuildWithdrawTransaction = jest.mocked(buildWithdrawTransaction);
+const mockBuildUnsignedWithdrawTransaction = jest.mocked(
+  buildUnsignedWithdrawTransaction,
+);
 
 const depositWalletAddress = '0x2222222222222222222222222222222222222222';
 const legacySafeAddress = '0x9999999999999999999999999999999999999999';
@@ -397,6 +405,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictPortfolioEnabled: false,
   predictHomeRedesignEnabled: false,
   predictSportCardLivePricesEnabled: true,
+  isMembershipFeeWaiverEnabled: false,
   predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
@@ -1107,6 +1116,10 @@ describe('PolymarketProvider', () => {
       },
       type: TransactionType.predictWithdraw,
     });
+    mockBuildUnsignedWithdrawTransaction.mockResolvedValue({
+      to: '0x9999999999999999999999999999999999999999',
+      data: '0xpreValidatedWithdraw',
+    });
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: jest.fn().mockResolvedValue({ data: [{}] }),
@@ -1757,6 +1770,46 @@ describe('PolymarketProvider', () => {
     );
   });
 
+  it('includes the membership builder code in the signed CLOB order', async () => {
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: membershipBuilderCode,
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(signer.signTypedMessage).toHaveBeenCalledWith(
+      {
+        from: signer.address,
+        data: expect.objectContaining({
+          primaryType: 'Order',
+          message: expect.objectContaining({
+            builder: membershipBuilderCode,
+          }),
+        }),
+      },
+      SignTypedDataVersion.V4,
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            builder: membershipBuilderCode,
+          }),
+        }),
+      }),
+    );
+  });
+
   it('submits deposit-wallet orders with POLY_1271 payload and no Safe trade preflight fields', async () => {
     const innerSignature = `0x${'11'.repeat(65)}`;
     signer.signTypedMessage.mockResolvedValueOnce(innerSignature);
@@ -1970,6 +2023,67 @@ describe('PolymarketProvider', () => {
       expect.objectContaining({
         safeAddress: '0x9999999999999999999999999999999999999999',
         tokenAddress: MATIC_CONTRACTS_V2.collateral,
+      }),
+    );
+  });
+
+  it('authorizes the remaining provider fee with pUSD Permit2 for membership orders', async () => {
+    const providerFee = 0.05;
+    const feeAuthorization = {
+      type: 'safe-permit2' as const,
+      authorization: {
+        permit: {
+          permitted: { token: MATIC_CONTRACTS_V2.collateral, amount: '50000' },
+          nonce: '1',
+          deadline: '2',
+        },
+        spender: '0x2222222222222222222222222222222222222222',
+        signature: '0xsig',
+      },
+    };
+    mockCreatePermit2FeeAuthorization.mockResolvedValue(feeAuthorization);
+
+    const provider = createProvider({
+      feeCollection: {
+        ...DEFAULT_FEE_COLLECTION_FLAG,
+        permit2Enabled: true,
+        executors: ['0x2222222222222222222222222222222222222222'],
+      },
+    });
+
+    await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        fees: {
+          metamaskFee: 0,
+          providerFee,
+          totalFee: providerFee,
+          totalFeePercentage: 0.5,
+          collector: '0x3333333333333333333333333333333333333333',
+          executors: ['0x2222222222222222222222222222222222222222'],
+          permit2Enabled: true,
+        },
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode:
+            '0x4444444444444444444444444444444444444444444444444444444444444444',
+        },
+      },
+    });
+
+    expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: '0x9999999999999999999999999999999999999999',
+        tokenAddress: MATIC_CONTRACTS_V2.collateral,
+        amount: BigInt(parseUnits(providerFee.toString(), 6).toString()),
+        spender: '0x2222222222222222222222222222222222222222',
+      }),
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        feeAuthorization,
+        executor: '0x2222222222222222222222222222222222222222',
       }),
     );
   });
@@ -2592,6 +2706,43 @@ describe('PolymarketProvider', () => {
       amount: 1,
       walletType: 'deposit-wallet',
     });
+  });
+
+  it('builds the Safe withdraw simulation call with the requested amount', async () => {
+    const result = await createProvider().getWithdrawSimulation({
+      signer,
+      amountRaw: 2_000_000n,
+    });
+
+    expect(mockBuildUnsignedWithdrawTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signer,
+        safeAddress: '0x9999999999999999999999999999999999999999',
+        requestedAmountRaw: 2_000_000n,
+        protocol: expect.objectContaining({ key: 'v2' }),
+        safeLegacyUsdceBalance: 0n,
+      }),
+    );
+    expect(result).toEqual({
+      chainId: CHAIN_IDS.POLYGON,
+      from: signer.address,
+      to: '0x9999999999999999999999999999999999999999',
+      data: '0xpreValidatedWithdraw',
+    });
+  });
+
+  it('returns no withdraw simulation for deposit wallets', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    const result = await createProvider().getWithdrawSimulation({
+      signer,
+      amountRaw: 2_000_000n,
+    });
+
+    expect(mockBuildUnsignedWithdrawTransaction).not.toHaveBeenCalled();
+    expect(result).toBeUndefined();
   });
 
   it('gets spot crypto price history from the current Polymarket price history API', async () => {

@@ -52,9 +52,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
   },
-  text: {
-    fontVariant: ['tabular-nums'],
-  },
 });
 
 export interface NumericGlyph {
@@ -123,7 +120,7 @@ const AnimatedNumericText = ({
       accessible={false}
       color={color}
       fontWeight={fontWeight}
-      style={[styles.text, style]}
+      style={style}
       variant={variant}
     >
       {content}
@@ -153,7 +150,7 @@ const AnimatedNumericText = ({
               fontWeight={fontWeight}
               key={key}
               layout={animateGlyphs ? GLYPH_LAYOUT_TRANSITION : undefined}
-              style={[styles.text, style]}
+              style={style}
               variant={variant}
             >
               {character}

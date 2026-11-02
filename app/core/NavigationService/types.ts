@@ -6,6 +6,7 @@ import type {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
 import type { SocialPostComposerViewParams } from '../../components/Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialShellTab } from '../../components/Views/SocialLeaderboard/shell/types';
 import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
@@ -15,6 +16,9 @@ import type { NavigationAnalyticsRouteParams } from '../../util/analytics/naviga
 // Ledger modal params
 import type { LedgerMessageSignModalParams } from '../../components/UI/LedgerModals/LedgerMessageSignModal';
 import type { LedgerTransactionModalParams } from '../../components/UI/LedgerModals/LedgerTransactionModal';
+
+// MFA params
+import type { MfaMethodDetailsParams } from '../../components/Views/Mfa/MfaMethodDetails/MfaMethodDetails';
 
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
@@ -30,6 +34,7 @@ import type {
   HomeTabsParamList,
   ImportPrivateKeyStackParamList,
   MainStackParamList,
+  SocialLeaderboardTabParams,
   SettingsStackParamList,
   SetPasswordFlowParamList,
   WalletTabHomeParamList,
@@ -93,6 +98,7 @@ import type {
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
 import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
+import type { VbaSourceCurrency } from '../../util/region/getVbaSourceCurrency';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -581,7 +587,7 @@ export type RootStackParamList = {
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
-  RampVbaDetails: undefined;
+  RampVbaDetails: { sourceCurrency?: VbaSourceCurrency } | undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -713,6 +719,17 @@ export type RootStackParamList = {
   EndOfSeasonClaimBottomSheet:
     | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
     | undefined;
+  RewardsMoneyInviteSheet:
+    | RewardsNavigationParamList['RewardsMoneyInviteSheet']
+    | undefined;
+  RewardsMoneyTermsSheet:
+    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
+    | undefined;
+  /**
+   * Post-accept confirmation. Registered on the root stack so it can fade
+   * over the Money dashboard after the invite sheet dismisses.
+   */
+  RewardsMoneyReferralAcceptedSplashView: undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
@@ -891,6 +908,7 @@ export type RootStackParamList = {
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
+  MoneyDepositDeeplink: undefined;
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
@@ -1031,13 +1049,15 @@ export type RootStackParamList = {
   /**
    * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
    * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
-   * shape; V1 reads the overlapping `source` / `showNotificationsBanner`.
+   * shape plus `initialTab`; V1 reads `source` / `showNotificationsBanner` /
+   * `initialTab`.
    */
-  SocialLeaderboardTab: RootStackParamList['SocialV0View'];
+  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
   SocialV1View:
     | {
         source?: string;
         showNotificationsBanner?: boolean;
+        initialTab?: SocialShellTab;
       }
     | undefined;
   SocialPostComposerView: SocialPostComposerViewParams | undefined;
@@ -1069,11 +1089,10 @@ export type RootStackParamList = {
   };
   TraderPositionView: TraderPositionViewParams;
   SocialPositionDetailsSheet: PositionDetailsSheetParams;
-  SocialLeaderboardOnboarding: undefined;
+  SocialLeaderboardOnboarding: { returnToTab?: boolean } | undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
-  LockScreen: undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
@@ -1092,6 +1111,8 @@ export type RootStackParamList = {
   SmartAccountOptIn: undefined;
   MfaFlow: undefined;
   MfaSettings: undefined;
+  MfaPasskeys: undefined;
+  MfaMethodDetails: MfaMethodDetailsParams;
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;

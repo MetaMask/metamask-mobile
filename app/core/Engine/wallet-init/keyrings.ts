@@ -38,6 +38,11 @@ import {
   snapKeyringV2Builder,
 } from '../../SnapKeyring/SnapKeyringV2';
 import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
+import {
+  buildMpcMoneyKeyringBuilder,
+  buildMpcMoneyKeyringV2Builder,
+} from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -146,6 +151,14 @@ export function getKeyringBuilders(
   keyrings.push(snapKeyringV2AdaptedAsV1Builder(snapKeyringMessenger));
   ///: END:ONLY_INCLUDE_IF
 
+  // The Money MPC keyring is fenced behind the `MM_MONEY_MPC_KEYRING_ENABLED`
+  // compile-time gate while the feature is unreleased: no released build can
+  // yet hold a Money MPC keyring in its vault, so a build without the flag
+  // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
+  if (isMpcMoneyKeyringBuildEnabled()) {
+    keyrings.push(buildMpcMoneyKeyringBuilder());
+  }
+
   return keyrings;
 }
 
@@ -207,7 +220,7 @@ function buildMoneyKeyringV2Builder<Wrapper, Legacy>(
  * @returns The V2 keyring builders to register with the `KeyringController`.
  */
 export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Builders'] {
-  return [
+  const builders = [
     buildHardwareKeyringV2Builder(LedgerKeyringV2, LedgerKeyring.type),
     buildHardwareKeyringV2Builder(QrKeyringV2, QrKeyring.type),
     buildMoneyKeyringV2Builder(MoneyKeyringV2, MoneyKeyring.type),
@@ -220,4 +233,13 @@ export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Build
     snapKeyringV2Builder(),
     ///: END:ONLY_INCLUDE_IF
   ];
+
+  // The Money MPC keyring is fenced behind the `MM_MONEY_MPC_KEYRING_ENABLED`
+  // compile-time gate while the feature is unreleased, for the same reason as
+  // in `getKeyringBuilders` above. See `buildMpcMoneyKeyringBuilder`.
+  if (isMpcMoneyKeyringBuildEnabled()) {
+    builders.push(buildMpcMoneyKeyringV2Builder());
+  }
+
+  return builders;
 }

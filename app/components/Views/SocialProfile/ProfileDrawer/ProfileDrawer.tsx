@@ -14,6 +14,7 @@ import {
   HeaderBase,
   IconName,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -22,6 +23,18 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { strings } from '../../../../../locales/i18n';
+import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
+import { useAccountName } from '../../../hooks/useAccountName';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import ProfileAvatar from '../../SocialLeaderboard/MyProfileView/components/ProfileAvatar';
+import {
+  useMyProfile,
+  type MySocialProfile,
+} from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
+/* eslint-enable import-x/no-restricted-paths */
 import {
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
@@ -30,6 +43,14 @@ import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { useQRScanner } from '../../../hooks/useQRScanner';
 import { ProfileDrawerSelectorsIDs } from './ProfileDrawer.testIds';
 import ProfileDrawerMenuRow from './ProfileDrawerMenuRow';
+
+const formatProfileHandle = (profile: MySocialProfile): string => {
+  const raw = profile.handle.trim() || profile.displayName.trim();
+  if (!raw) {
+    return '';
+  }
+  return raw.startsWith('@') ? raw : `@${raw}`;
+};
 
 const ProfileDrawer = () => {
   const tw = useTailwind();
@@ -71,8 +92,22 @@ const ProfileDrawer = () => {
     });
   }, [navigation]);
 
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  // Offline or low-memory devices stay on the profile already in the
+  // controller. A refresh is a network fetch, so those cells skip it.
+  const canRefreshProfile = networkTier !== 'NONE' && hardwareTier !== 'LOW';
+  const { profile, isLoading } = useMyProfile({ enabled: canRefreshProfile });
+  const accountGroupName = useAccountGroupName();
+  const accountName = useAccountName();
+  const accountLabel = accountGroupName || accountName;
+
   const handleCreateProfile = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE);
+    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  }, [navigation]);
+
+  const handleOpenProfile = useCallback(() => {
+    navigateToSocialV1Profile(navigation);
   }, [navigation]);
 
   // TODO: wire Subscriptions and Help and support once those screens exist.
@@ -149,27 +184,76 @@ const ProfileDrawer = () => {
         contentContainerStyle={tw.style('pb-8')}
         testID={ProfileDrawerSelectorsIDs.CONTENT}
       >
-        <Pressable
-          onPress={handleCreateProfile}
-          accessibilityRole="button"
-          accessibilityLabel={strings('profile_drawer.create_profile')}
-          testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE}
-          style={({ pressed }) =>
-            tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
-          }
-        >
-          <Box alignItems={BoxAlignItems.Center} gap={3}>
-            <AvatarIcon
-              iconName={IconName.UserCircleAdd}
-              size={AvatarIconSize.Xl}
-              severity={AvatarIconSeverity.Neutral}
-              testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR}
-            />
-            <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
-              {strings('profile_drawer.create_profile')}
-            </Text>
-          </Box>
-        </Pressable>
+        {profile ? (
+          <Pressable
+            onPress={handleOpenProfile}
+            accessibilityRole="button"
+            accessibilityLabel={formatProfileHandle(profile)}
+            testID={ProfileDrawerSelectorsIDs.PROFILE_IDENTITY}
+            style={({ pressed }) =>
+              tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
+            }
+          >
+            <Box alignItems={BoxAlignItems.Center} gap={3}>
+              <ProfileAvatar
+                imageUrl={profile.imageUrl}
+                avatarPresetId={profile.avatarPresetId}
+                avatarBackgroundId={profile.avatarBackgroundId}
+                size="lg"
+                testID={ProfileDrawerSelectorsIDs.PROFILE_AVATAR}
+              />
+              <Box alignItems={BoxAlignItems.Center} gap={1} accessible={false}>
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  fontWeight={FontWeight.Bold}
+                  testID={ProfileDrawerSelectorsIDs.PROFILE_HANDLE}
+                >
+                  {formatProfileHandle(profile)}
+                </Text>
+                {accountLabel ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    testID={ProfileDrawerSelectorsIDs.PROFILE_ACCOUNT_NAME}
+                  >
+                    {accountLabel}
+                  </Text>
+                ) : null}
+              </Box>
+            </Box>
+          </Pressable>
+        ) : isLoading ? (
+          <Box
+            twClassName="px-4 pb-6 pt-2"
+            accessible={false}
+            testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING}
+          />
+        ) : (
+          <Pressable
+            onPress={handleCreateProfile}
+            accessibilityRole="button"
+            accessibilityLabel={strings('profile_drawer.create_profile')}
+            testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE}
+            style={({ pressed }) =>
+              tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
+            }
+          >
+            <Box alignItems={BoxAlignItems.Center} gap={3}>
+              <AvatarIcon
+                iconName={IconName.UserCircleAdd}
+                size={AvatarIconSize.Xl}
+                severity={AvatarIconSeverity.Neutral}
+                testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR}
+              />
+              <Text
+                variant={TextVariant.HeadingLg}
+                fontWeight={FontWeight.Bold}
+              >
+                {strings('profile_drawer.create_profile')}
+              </Text>
+            </Box>
+          </Pressable>
+        )}
 
         <Box>
           {menuItems.map(({ iconName, label, badgeCount, onPress, testID }) => (

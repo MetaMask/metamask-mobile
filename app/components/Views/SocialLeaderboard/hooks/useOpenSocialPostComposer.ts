@@ -23,6 +23,8 @@ export interface OpenComposerOptions {
   position: Position;
   /** Where the share was started from. */
   entryPoint: SocialPostComposerEntryPoint;
+  /** On success, replace the composer with Social V1 instead of going back. */
+  openFeedAfterPost?: boolean;
 }
 
 export interface UseOpenSocialPostComposerResult {

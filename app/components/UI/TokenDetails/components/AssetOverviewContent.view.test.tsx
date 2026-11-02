@@ -36,6 +36,10 @@ import {
   clearRecurringOrdersDataServiceMock,
   setupRecurringOrdersDataServiceMock,
 } from '../../../../../tests/component-view/api-mocking/recurringOrders';
+import {
+  clearLimitOrdersDataServiceMock,
+  setupLimitOrdersDataServiceMock,
+} from '../../../../../tests/component-view/api-mocking/limitOrders';
 import Routes from '../../../../constants/navigation/Routes';
 import MarketInsightsView from '../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { AccessRestrictedProvider } from '../../Compliance';
@@ -46,6 +50,8 @@ import {
   MOCK_RECURRING_OPEN_ORDER_3,
 } from '../../Bridge/api/recurringOrders.mock';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
+import { MOCK_LIMIT_OPEN_ORDER } from '../../Bridge/api/limitOrders/getLimitOrders/mock';
+import { OpenOrderRowSelectorsIDs } from '../../Bridge/components/OpenOrderRow/OpenOrderRow.testIds';
 import Engine from '../../../../core/Engine';
 
 const ETH_NATIVE = '0x0000000000000000000000000000000000000000';
@@ -62,6 +68,22 @@ const ethMainnetToken: TokenI = {
   image: '',
   isETH: true,
   isNative: true,
+  hasBalanceError: false,
+  aggregators: [],
+};
+
+const usdcMainnetToken: TokenI = {
+  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  chainId: '0x1',
+  symbol: 'USDC',
+  name: 'USD Coin',
+  decimals: 6,
+  balance: '100',
+  balanceFiat: '$100',
+  logo: '',
+  image: '',
+  isETH: false,
+  isNative: false,
   hasBalanceError: false,
   aggregators: [],
 };
@@ -164,7 +186,15 @@ function buildTokenDetailsMarketInsightsState(
   );
 }
 
-function buildTokenDetailsOrdersState(isRecurringBuyEnabled: boolean) {
+function buildTokenDetailsOrdersState({
+  isRecurringBuyEnabled = true,
+  recurringBuyEnabledChainIds = ['eip155:1'],
+  isLimitOrderEnabled = true,
+}: {
+  isRecurringBuyEnabled?: boolean;
+  recurringBuyEnabledChainIds?: string[];
+  isLimitOrderEnabled?: boolean;
+} = {}) {
   return merge({}, buildTokenDetailsMarketInsightsState(false), {
     engine: {
       backgroundState: {
@@ -178,7 +208,12 @@ function buildTokenDetailsOrdersState(isRecurringBuyEnabled: boolean) {
             ...remoteFeatureFlagMarketInsightsEnabled(false),
             swapsRecurringBuy: {
               enabled: isRecurringBuyEnabled,
+              enabledChainIds: recurringBuyEnabledChainIds,
+            },
+            swapsLimitOrder: {
+              enabled: isLimitOrderEnabled,
               enabledChainIds: ['eip155:1'],
+              baseUrl: 'https://limit-orders.test',
             },
           },
         },
@@ -290,26 +325,54 @@ describeForPlatforms(
 describeForPlatforms('Token Details Orders section', () => {
   beforeEach(() => {
     setupRecurringOrdersDataServiceMock();
+    setupLimitOrdersDataServiceMock();
     jest.mocked(Engine.controllerMessenger.call).mockClear();
   });
 
   afterEach(() => {
+    clearLimitOrdersDataServiceMock();
     clearRecurringOrdersDataServiceMock();
   });
 
-  function renderTokenDetails(isRecurringBuyEnabled = true) {
+  function renderTokenDetails({
+    token = ethMainnetToken,
+    isRecurringBuyEnabled = true,
+    recurringBuyEnabledChainIds = ['eip155:1'],
+    isLimitOrderEnabled = true,
+  }: {
+    token?: TokenI;
+    isRecurringBuyEnabled?: boolean;
+    recurringBuyEnabledChainIds?: string[];
+    isLimitOrderEnabled?: boolean;
+  } = {}) {
     return renderScreenWithRoutes(
       TokenDetailsOrdersHarness,
       { name: 'TokenDetailsOrders' },
-      [{ name: Routes.BRIDGE.ROOT }],
-      { state: buildTokenDetailsOrdersState(isRecurringBuyEnabled) },
-      { ...ethMainnetToken },
+      [{ name: Routes.BRIDGE.ROOT }, { name: Routes.BRIDGE.MODALS.ROOT }],
+      {
+        state: buildTokenDetailsOrdersState({
+          isRecurringBuyEnabled,
+          recurringBuyEnabledChainIds,
+          isLimitOrderEnabled,
+        }),
+      },
+      { ...token },
     );
   }
 
   it('shows the newest matching order fields and opens its details', async () => {
     renderTokenDetails();
 
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'RecurringOrdersDataService:getRecurringOrdersByAsset',
+        expect.anything(),
+      );
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'LimitOrdersDataService:getLimitOrders',
+        expect.anything(),
+      );
+    });
     const row = await screen.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
         MOCK_RECURRING_OPEN_ORDER_3.orderId,
@@ -337,19 +400,43 @@ describeForPlatforms('Token Details Orders section', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not request or show orders when recurring buy is disabled', async () => {
-    renderTokenDetails(false);
+  it('does not query recurring orders when recurring buy is disabled', async () => {
+    renderTokenDetails({ isRecurringBuyEnabled: false });
 
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'LimitOrdersDataService:getLimitOrders',
+        expect.anything(),
+      );
+    });
     expect(
-      await screen.findByTestId(TokenOverviewSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+          MOCK_RECURRING_OPEN_ORDER_3.orderId,
+        ),
+      ),
+    ).toBeNull();
     expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
       'RecurringOrdersDataService:getRecurringOrdersByAsset',
       expect.anything(),
     );
-    expect(
-      screen.queryByTestId(TokenOverviewSelectorsIDs.ORDERS_SECTION),
-    ).toBeNull();
+  });
+
+  it('does not query recurring orders when the asset chain is disabled', async () => {
+    renderTokenDetails({
+      recurringBuyEnabledChainIds: ['eip155:137'],
+    });
+
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'LimitOrdersDataService:getLimitOrders',
+        expect.anything(),
+      );
+    });
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+      'RecurringOrdersDataService:getRecurringOrdersByAsset',
+      expect.anything(),
+    );
   });
 
   it('hides the section when no order matches the asset', async () => {
@@ -357,6 +444,7 @@ describeForPlatforms('Token Details Orders section', () => {
     setupRecurringOrdersDataServiceMock({
       recurringOrdersByAsset: async () => [],
     });
+    setupLimitOrdersDataServiceMock();
     jest.mocked(Engine.controllerMessenger.call).mockClear();
 
     renderTokenDetails();
@@ -372,5 +460,91 @@ describeForPlatforms('Token Details Orders section', () => {
     expect(
       screen.queryByTestId(TokenOverviewSelectorsIDs.ORDERS_SECTION),
     ).toBeNull();
+  });
+
+  it.each([
+    {
+      name: 'source ETH',
+      token: ethMainnetToken,
+      assetId: 'eip155:1/slip44:60',
+    },
+    {
+      name: 'destination USDC',
+      token: usdcMainnetToken,
+      assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    },
+  ])(
+    'shows the newest matching limit order for $name',
+    async ({ token, assetId }) => {
+      clearLimitOrdersDataServiceMock();
+      setupRecurringOrdersDataServiceMock();
+      setupLimitOrdersDataServiceMock({
+        limitOrders: async () => ({
+          orders: [MOCK_LIMIT_OPEN_ORDER],
+          total: 1,
+        }),
+      });
+
+      renderTokenDetails({ token });
+
+      expect(
+        await screen.findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'LimitOrdersDataService:getLimitOrders',
+        expect.objectContaining({
+          assetId,
+          limit: 1,
+        }),
+      );
+      expect(
+        screen.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+            MOCK_RECURRING_OPEN_ORDER_3.orderId,
+          ),
+        ),
+      ).toBeNull();
+    },
+  );
+
+  it('opens limit order details from the newest order row', async () => {
+    clearLimitOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock();
+    setupLimitOrdersDataServiceMock({
+      limitOrders: async () => ({
+        orders: [MOCK_LIMIT_OPEN_ORDER],
+        total: 1,
+      }),
+    });
+    renderTokenDetails();
+
+    fireEvent.press(
+      await screen.findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+    );
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.BRIDGE.MODALS.ROOT)),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the Limit UI from the header when a limit order is newest', async () => {
+    clearLimitOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock();
+    setupLimitOrdersDataServiceMock({
+      limitOrders: async () => ({
+        orders: [MOCK_LIMIT_OPEN_ORDER],
+        total: 1,
+      }),
+    });
+    renderTokenDetails();
+    await screen.findByTestId(OpenOrderRowSelectorsIDs.CONTAINER);
+
+    fireEvent.press(
+      screen.getByTestId(TokenOverviewSelectorsIDs.ORDERS_HEADER),
+    );
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.BRIDGE.ROOT)),
+    ).toBeOnTheScreen();
   });
 });

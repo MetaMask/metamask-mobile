@@ -19,24 +19,30 @@ describe('CustomAmount', () => {
   });
 
   it('renders amount', () => {
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    const amountValue = getByTestId('custom-amount-input-value');
+
+    expect(amountValue).toHaveTextContent('123.45');
+    expect(amountValue).toHaveProp('accessible', true);
+    expect(amountValue).toHaveProp('accessibilityLabel', '123.45');
   });
 
   it('renders the amount formatted with thousand separators', () => {
     mockFormatAmountWithLocaleSeparators.mockImplementation(() => '1,000,000');
 
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="1000000" />,
     );
 
     expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
       '1000000',
     );
-    expect(getByText('1,000,000')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+      '1,000,000',
+    );
   });
 
   it('renders fiat symbol for specified currency', () => {
@@ -78,11 +84,13 @@ describe('CustomAmount', () => {
   });
 
   it('renders the amount even on Max — the input shows the full amount being paid, which is known synchronously and does not wait on quotes', () => {
-    const { getByText, queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+      '123.45',
+    );
     expect(queryByTestId('custom-amount-skeleton')).toBeNull();
   });
 
@@ -120,29 +128,35 @@ describe('CustomAmount', () => {
 
   describe('cents truncation', () => {
     it('truncates full-precision amounts to two decimals', () => {
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="500.123456" />,
       );
 
-      expect(getByText('500.12')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+        '500.12',
+      );
     });
 
     it('truncates rather than rounding up', () => {
       // The rendered value is re-typable through the keypad, so rounding up
       // would let the user enter an amount above their balance.
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="10.379" />,
       );
 
-      expect(getByText('10.37')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+        '10.37',
+      );
     });
 
     it('never carries into the whole part', () => {
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="1.999" />,
       );
 
-      expect(getByText('1.99')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+        '1.99',
+      );
     });
 
     it('truncates before applying locale separators', () => {
@@ -156,30 +170,83 @@ describe('CustomAmount', () => {
     it('normalises a comma decimal separator to a period', () => {
       // formatAmountWithLocaleSeparators splits on `.` and applies the locale
       // separator itself, so handing it a comma would drop the decimals.
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="500,987654" />,
       );
 
-      expect(getByText('500.98')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+        '500.98',
+      );
     });
 
     it('renders malformed input unchanged rather than NaN', () => {
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="1.2.3456" />,
       );
 
-      expect(getByText('1.2.3456')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+        '1.2.3456',
+      );
     });
 
     it.each(['500', '1000000', '123.45', '123.4', '0.10', '12.'])(
       'leaves keypad input %s exactly as typed',
       (amountFiat) => {
-        const { getByText } = renderWithProvider(
+        const { getByTestId } = renderWithProvider(
           <CustomAmount amountFiat={amountFiat} />,
         );
 
-        expect(getByText(amountFiat)).toBeOnTheScreen();
+        expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+          amountFiat,
+        );
       },
     );
+  });
+
+  describe('order entry decimal assistive behavior', () => {
+    it('displays "00" assistive text after cursor when decimal point is typed on whole number', () => {
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="10000." showCursor />,
+      );
+
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+        '10000.',
+      );
+      expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-assistive')).toHaveTextContent('00');
+    });
+
+    it('displays single "0" assistive text when one decimal digit is typed', () => {
+      const { getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="1.2" showCursor />,
+      );
+
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent('1.2');
+      expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-assistive')).toHaveTextContent('0');
+    });
+
+    it('displays no assistive text when two decimal digits are typed', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="1.25" showCursor />,
+      );
+
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+        '1.25',
+      );
+      expect(queryByTestId('custom-amount-assistive')).toBeNull();
+    });
+
+    it('auto drops ".00" when not actively editing', () => {
+      const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="10000.00" showCursor={false} />,
+      );
+
+      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+        '10000',
+      );
+      expect(queryByText('10000.00')).toBeNull();
+      expect(queryByTestId('custom-amount-assistive')).toBeNull();
+    });
   });
 });

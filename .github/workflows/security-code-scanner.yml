@@ -9,30 +9,57 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  run-security-scan:
-    runs-on: ubuntu-latest
+  analyse-code:
+    name: Analyse code
     permissions:
       actions: read
       contents: read
       security-events: write
+    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2
+    with:
+      scanner-ref: v2
+      # ubuntu-latest cannot finish these detected languages, so they fail the
+      # required check before any finding is reported. Swift needs macOS. C/C++
+      # has no compiled source. Java looks for ./mvnw, which this repo does not
+      # have. JavaScript, TypeScript, Python, Ruby, Actions, and Semgrep still run.
+      languages-config: |
+        [
+          {"language":"swift","ignore":true},
+          {"language":"cpp","ignore":true},
+          {"language":"java","ignore":true}
+        ]
+      paths-ignored: |
+        tests/
+        docs/
+        scripts/money-movement/debug-dashboard/
+        .storybook/
+        '**/*.test.js'
+        '**/*.test.ts'
+        '**/*.test.jsx'
+        '**/*.test.tsx'
+        '**/*.stories.tsx'
+        '**/*.stories.js'
+        '**/*.snap'
+      rules-excluded: example
+    secrets:
+      project-metrics-token: ${{ secrets.SECURITY_SCAN_METRICS_TOKEN }}
+      slack-webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
+
+  security-scan-required:
+    name: Security scan required
+    needs: analyse-code
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
     steps:
-      - name: MetaMask Security Code Scanner
-        uses: MetaMask/action-security-code-scanner@v1
-        with:
-          repo: ${{ github.repository }}
-          paths_ignored: |
-            tests/
-            docs/
-            scripts/money-movement/debug-dashboard/
-            .storybook/
-            '**/*.test.js'
-            '**/*.test.ts'
-            '**/*.test.jsx'
-            '**/*.test.tsx'
-            '**/*.stories.tsx'
-            '**/*.stories.js'
-            '**/*.snap'
-          rules_excluded: example
-          project_metrics_token: ${{secrets.SECURITY_SCAN_METRICS_TOKEN}}
-          slack_webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
+      - name: Require a successful security scan
+        env:
+          SCAN_RESULT: ${{ needs.analyse-code.result }}
+        run: |
+          if [ "$SCAN_RESULT" != "success" ]; then
+            echo "Security scan result is '$SCAN_RESULT'. Pull requests require this scan to run and succeed."
+            exit 1
+          fi

@@ -41,6 +41,7 @@ import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import type { QuickBuyFooterLayout } from '../../QuickBuy/abTestConfig';
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   traderPositionFooter: {
-    paddingTop: 4,
+    paddingTop: 0,
     paddingBottom: 0,
   },
   iconButton: {
@@ -150,6 +151,12 @@ interface TokenStickyFooterProps {
   useAmbientColor?: boolean;
   /** Enables the updated button treatment used by the feature-flagged V1 page. */
   isTokenDetailsV1?: boolean;
+  /**
+   * Token Details page analytics version. `'v3'` for the new (V1) page, `'v2'`
+   * for the legacy page. Threaded into the footer `TOKEN_DETAILS_CTA_CLICKED`
+   * events and the shared security warning bottom-sheet events.
+   */
+  tdpVersion?: TdpVersion;
   /** Optional trader position header rendered above the footer actions. */
   traderPositionPnl?: TraderPositionPnlProps;
 }
@@ -175,6 +182,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   sourcePage,
   useAmbientColor = false,
   isTokenDetailsV1 = false,
+  tdpVersion = 'v2',
   traderPositionPnl,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -454,6 +462,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           tokenSymbol: token.symbol || token.name,
           chainId: token.chainId,
           features: securityData?.features,
+          tdpVersion,
         },
       });
     },
@@ -465,6 +474,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       token.name,
       token.address,
       token.chainId,
+      tdpVersion,
     ],
   );
 
@@ -476,6 +486,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       tokenAddress: token.address ?? '',
       chainId: token.chainId ?? '',
       indicatorsActive,
+      tdp_version: tdpVersion,
     });
     handleFooterAction(
       () => onOpenQuickBuy(mode),
@@ -491,7 +502,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     () => ({
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
-      paddingTop: traderPositionPnl?.isExpanded ? 22 : 8,
+      paddingTop: traderPositionPnl?.isExpanded ? 22 : 0,
       paddingBottom: 0,
     }),
     [colors.background.default, traderPositionPnl?.isExpanded],
@@ -539,6 +550,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           tokenAddress: token.address ?? '',
           chainId: token.chainId ?? '',
           indicatorsActive,
+          tdp_version: tdpVersion,
         });
         handleFooterAction(moneyDepositCta.onPress, moneyDepositCta.label);
       }}
@@ -583,7 +595,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       <Box
         testID="bottomsheetfooter"
         style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
-        twClassName={traderPositionPnl ? 'mt-2' : undefined}
       >
         {showSwapButton && !isBuySellLayout && (
           <Button
@@ -611,6 +622,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(
                 onSwap,
@@ -645,6 +657,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(onBuy, buyButtonLabel, onBuyPress);
             }}
@@ -696,6 +709,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(
                 onQuickBuyPress,

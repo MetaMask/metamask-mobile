@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -6,8 +6,10 @@ import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
 import {
+  LIMIT_ORDER_PRICE_DECIMALS,
   formatLimitOrderFiatInputPriceFromTokenAmount,
   formatLimitOrderFiatPriceFromTokenAmount,
+  getLimitOrderFiatPriceDecimals,
   roundLimitOrderMarketFiatToInput,
 } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import {
@@ -43,6 +45,17 @@ export const useSwapsLimitOrderPriceAdjust = ({
     executionType: defaultExecutionType,
     isLimitFiatMode: defaultIsLimitFiatMode,
   } = getSwapsLimitOrderDefaultPriceMode({ destToken, sourceToken });
+  const defaultPriceModeKey = [
+    sourceToken?.chainId,
+    sourceToken?.address,
+    destToken?.chainId,
+    destToken?.address,
+    defaultExecutionType,
+    defaultIsLimitFiatMode,
+  ].join(':');
+  const previousDefaultPriceModeKeyRef = useRef(defaultPriceModeKey);
+  const isDefaultPriceModeResetPending =
+    previousDefaultPriceModeKeyRef.current !== defaultPriceModeKey;
   const [state, dispatch] = useReducer(
     limitOrderPriceAdjustReducer,
     {
@@ -68,6 +81,14 @@ export const useSwapsLimitOrderPriceAdjust = ({
   const counterToken = isSell ? destToken : sourceToken;
   const quotedFiatRate = isSell ? sourceFiatRate : destFiatRate;
   const counterFiatRate = isSell ? destFiatRate : sourceFiatRate;
+  // Precision of the limit price, shared by Market, the percent presets, the
+  // keypad and the market comparison. A fiat price follows the market price so
+  // that a cheap quoted token is not rounded to cents; a counter-token price
+  // is a rate, so it is not bound by the counter token's decimals.
+  const fiatPriceDecimals = getLimitOrderFiatPriceDecimals(quotedFiatRate);
+  const limitPriceDecimals = isLimitFiatMode
+    ? fiatPriceDecimals
+    : LIMIT_ORDER_PRICE_DECIMALS;
 
   const handleLimitPriceChange = useCallback((value: string | undefined) => {
     dispatch({ type: 'setLimitPrice', limitPrice: value });
@@ -84,13 +105,13 @@ export const useSwapsLimitOrderPriceAdjust = ({
       formatLimitOrderQuickPrice(
         getSwapsLimitOrderPriceFromMarketPercent({
           counterFiatRate,
-          counterTokenDecimals: counterToken?.decimals,
+          decimals: limitPriceDecimals,
           isLimitFiatMode,
           marketFiat: quotedFiatRate,
           signedPercent,
         }),
       ),
-    [counterFiatRate, counterToken?.decimals, isLimitFiatMode, quotedFiatRate],
+    [counterFiatRate, isLimitFiatMode, limitPriceDecimals, quotedFiatRate],
   );
 
   const handleMarketPress = useCallback(() => {
@@ -150,27 +171,23 @@ export const useSwapsLimitOrderPriceAdjust = ({
   // A new pair starts over on the side and denomination that pair defaults to,
   // which is also what makes a source/dest flip land on the right ones.
   useEffect(() => {
+    previousDefaultPriceModeKeyRef.current = defaultPriceModeKey;
     dispatch({
       type: 'reset',
       executionType: defaultExecutionType,
       isLimitFiatMode: defaultIsLimitFiatMode,
     });
-  }, [
-    defaultExecutionType,
-    defaultIsLimitFiatMode,
-    destToken?.address,
-    destToken?.chainId,
-    sourceToken?.address,
-    sourceToken?.chainId,
-  ]);
+  }, [defaultPriceModeKey, defaultExecutionType, defaultIsLimitFiatMode]);
 
-  // Seeds the limit price from the live market rate exactly once whenever
-  // there isn't one yet (initial mount, a new token pair, or after flipping
-  // sides). Once seeded, the price stays put even as the market rate keeps
-  // moving; only the market-comparison label below keeps reflecting the live
-  // difference between the fixed price and the current market rate.
+  // Wait for a token-pair reset before seeding. A cold Limit deeplink can
+  // receive ETH/mUSD after mount; seeding in that transition render would use
+  // the stale buy mode and incorrectly price mUSD ($1) instead of ETH.
   useEffect(() => {
-    if (!isTrackingMarket || limitPrice !== undefined) {
+    if (
+      isDefaultPriceModeResetPending ||
+      !isTrackingMarket ||
+      limitPrice !== undefined
+    ) {
       return;
     }
 
@@ -182,8 +199,17 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'seedFromMarket',
       limitPrice: nextLimitPrice,
+      executionType,
+      isLimitFiatMode,
     });
-  }, [getLimitPriceFromSignedPercent, isTrackingMarket, limitPrice]);
+  }, [
+    executionType,
+    getLimitPriceFromSignedPercent,
+    isDefaultPriceModeResetPending,
+    isLimitFiatMode,
+    isTrackingMarket,
+    limitPrice,
+  ]);
 
   const canToggleLimitPrice = Boolean(
     destFiatRate && destFiatRate > 0 && sourceFiatRate && sourceFiatRate > 0,
@@ -212,26 +238,27 @@ export const useSwapsLimitOrderPriceAdjust = ({
             ? formatTokenInputAmountFromFiat({
                 fiatAmount: currentLimitPrice,
                 tokenFiatRate: counterFiatRate,
-                tokenDecimals: counterToken?.decimals,
+                tokenDecimals: LIMIT_ORDER_PRICE_DECIMALS,
               })
             : formatLimitOrderFiatInputPriceFromTokenAmount(
                 currentLimitPrice,
                 counterFiatRate,
+                fiatPriceDecimals,
               ),
         ),
     });
   }, [
     canToggleLimitPrice,
     counterFiatRate,
-    counterToken?.decimals,
+    fiatPriceDecimals,
     isLimitFiatMode,
   ]);
 
   const secondaryValue = getSwapsLimitOrderSecondaryValue({
     counterFiatRate,
-    counterTokenDecimals: counterToken?.decimals,
     counterTokenSymbol: counterToken?.symbol,
     currentCurrency,
+    fiatDecimals: fiatPriceDecimals,
     isLimitFiatMode,
     limitPrice,
   });
@@ -240,7 +267,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     ? limitPrice
     : formatLimitOrderFiatPriceFromTokenAmount(limitPrice, counterFiatRate);
   const comparisonMarketFiat = isLimitFiatMode
-    ? roundLimitOrderMarketFiatToInput(quotedFiatRate)
+    ? roundLimitOrderMarketFiatToInput(quotedFiatRate, fiatPriceDecimals)
     : quotedFiatRate;
   const marketComparison = getSwapsLimitOrderPriceMarketComparison({
     limitFiat,
@@ -274,6 +301,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     isTriggerPriceNearMarket,
     executionType,
     limitPrice,
+    limitPriceDecimals,
     marketComparison,
     priceComparisonDirection,
     onAmountTypeTogglePress: canToggleLimitPrice

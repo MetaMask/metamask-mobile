@@ -35,25 +35,21 @@ describe('PositionCardShell', () => {
 
   // Every stop shares one hue so the wash fades out through itself: fading to
   // `transparent` fades towards black, which dirties the card on a light theme.
-  it('fades one hue from 9% to nothing, and is already fading a third of the way across', () => {
+  it('fades one hue linearly from 15% to nothing', () => {
     const utils = renderShell('positive');
     const base = lightTheme.colors.success.default;
 
-    expect(gradientColorsOf(utils)).toEqual([
-      `${base}17`,
-      `${base}0d`,
-      `${base}00`,
-    ]);
+    expect(gradientColorsOf(utils)).toEqual([`${base}26`, `${base}00`]);
     expect(
       utils.UNSAFE_getAllByType(LinearGradient)[0].props.locations,
-    ).toEqual([0, 0.32, 1]);
+    ).toEqual([0, 1]);
   });
 
   it('washes a neutral card with the foreground tint behind a hairline border', () => {
     const utils = renderShell('neutral');
 
     expect(gradientColorsOf(utils)[0]).toBe(
-      `${lightTheme.colors.icon.default}17`,
+      `${lightTheme.colors.icon.default}26`,
     );
     expect(cardStyleOf(utils)?.borderColor).toBe(
       lightTheme.colors.border.muted,
@@ -66,7 +62,7 @@ describe('PositionCardShell', () => {
     const utils = renderShell('positive');
 
     expect(gradientColorsOf(utils)[0]).toBe(
-      `${lightTheme.colors.success.default}17`,
+      `${lightTheme.colors.success.default}26`,
     );
     expect(cardStyleOf(utils)?.borderColor).toBe(
       lightTheme.colors.success.default,
@@ -78,7 +74,7 @@ describe('PositionCardShell', () => {
     const utils = renderShell('negative');
 
     expect(gradientColorsOf(utils)[0]).toBe(
-      `${lightTheme.colors.error.default}17`,
+      `${lightTheme.colors.error.default}26`,
     );
     expect(cardStyleOf(utils)?.borderColor).toBe(
       lightTheme.colors.error.default,

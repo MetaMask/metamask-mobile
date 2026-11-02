@@ -7,6 +7,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import { ScrollView } from 'react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderBridgeViewWithRecurringOrderDetails,
@@ -31,6 +32,7 @@ import ToastService from '../../../../../core/ToastService';
 import { RecurringSwapDetailsViewSelectorsIDs } from '../RecurringSwapDetailsView';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 import { OrdersTabsSelectorsIDs } from '../../components/OrdersTabs/OrdersTabs.testIds';
+import { OpenOrderRowSelectorsIDs } from '../../components/OpenOrderRow/OpenOrderRow.testIds';
 
 async function openInProgressOrderDetails(
   renderResult: ReturnType<typeof renderBridgeViewWithRecurringOrderDetails>,
@@ -186,8 +188,8 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ),
     );
     expect(
-      within(historyRow).getByText(strings('bridge.recurring.cancelled')),
-    ).toBeOnTheScreen();
+      within(historyRow).queryByText(strings('bridge.recurring.cancelled')),
+    ).not.toBeOnTheScreen();
     expect(showToast).toHaveBeenCalledTimes(1);
 
     await userEvent.press(
@@ -328,51 +330,89 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     });
     await openOrderDetails(renderResult);
 
-    const expectedRows = [
-      {
-        swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
-        status: strings('bridge.recurring.filled'),
-        received: '+3 USDC',
-        spent: '-0.0015 ETH',
-      },
-      {
-        swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[1],
-        status: strings('bridge.recurring.filled'),
-        received: '+3 USDC',
-        spent: '-0.0015 ETH',
-      },
+    const filledRow = {
+      received: '+3 USDC',
+      spent: '-0.0015 ETH',
+      titleColor: lightTheme.colors.text.default,
+      receivedColor: lightTheme.colors.success.default,
+      hasWarningIcon: false,
+    };
+    const skippedRow = {
+      received: '+0 USDC',
+      spent: '-0 ETH',
+      titleColor: lightTheme.colors.text.alternative,
+      receivedColor: lightTheme.colors.text.alternative,
+      hasWarningIcon: true,
+    };
+    const expectedRows: {
+      swap: (typeof MOCK_RECURRING_OPEN_ORDER_SWAPS)[number];
+      skipReason?: string;
+      received: string;
+      spent: string;
+      titleColor: string;
+      receivedColor: string;
+      hasWarningIcon: boolean;
+    }[] = [
+      { swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[0], ...filledRow },
+      { swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[1], ...filledRow },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[2],
-        status: strings('bridge.recurring.insufficient_balance'),
-        received: '+0 USDC',
-        spent: '-0 ETH',
+        skipReason: strings('bridge.recurring.insufficient_balance'),
+        ...skippedRow,
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[3],
-        status: strings('bridge.recurring.out_of_price_range'),
-        received: '+0 USDC',
-        spent: '-0 ETH',
+        skipReason: strings('bridge.recurring.out_of_price_range'),
+        ...skippedRow,
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[4],
-        status: strings('bridge.recurring.failed'),
         received: '+0 USDC',
         spent: '-0 ETH',
+        titleColor: lightTheme.colors.error.default,
+        receivedColor: lightTheme.colors.text.alternative,
+        hasWarningIcon: false,
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[5],
-        status: strings('bridge.recurring.needs_smart_account'),
-        received: '+0 USDC',
-        spent: '-0 ETH',
+        skipReason: strings('bridge.recurring.needs_smart_account'),
+        ...skippedRow,
       },
     ];
 
-    for (const { swap, status, received, spent } of expectedRows) {
+    for (const {
+      swap,
+      skipReason,
+      received,
+      spent,
+      titleColor,
+      receivedColor,
+      hasWarningIcon,
+    } of expectedRows) {
       const row = within(
         await renderResult.findByTestId(
           RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId),
         ),
       );
+
+      expect(row.getByTestId(OpenOrderRowSelectorsIDs.TITLE)).toHaveStyle({
+        color: titleColor,
+      });
+      expect(row.getByTestId(OpenOrderRowSelectorsIDs.PRIMARY)).toHaveStyle({
+        color: receivedColor,
+      });
+      if (hasWarningIcon) {
+        expect(
+          row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+        ).toBeOnTheScreen();
+        expect(row.getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveStyle({
+          color: lightTheme.colors.warning.default,
+        });
+      } else {
+        expect(
+          row.queryByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+        ).not.toBeOnTheScreen();
+      }
 
       expect(
         row.getByText(
@@ -382,7 +422,15 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
           }),
         ),
       ).toBeOnTheScreen();
-      expect(row.getByText(status)).toBeOnTheScreen();
+      if (skipReason) {
+        expect(row.getByText(skipReason)).toBeOnTheScreen();
+      }
+      expect(
+        row.queryByText(strings('bridge.recurring.filled')),
+      ).not.toBeOnTheScreen();
+      expect(
+        row.queryByText(strings('bridge.recurring.failed')),
+      ).not.toBeOnTheScreen();
       expect(row.getByText(received)).toBeOnTheScreen();
       expect(row.getByText(spent)).toBeOnTheScreen();
     }

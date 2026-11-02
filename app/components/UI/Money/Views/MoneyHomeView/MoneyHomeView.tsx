@@ -6,6 +6,11 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type LayoutChangeEvent } from 'react-native';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import {
+  NativeHeaderBackdrop,
+  useNativeHeaderScroll,
+} from '../../../../hooks/useNativeHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
@@ -28,13 +33,22 @@ import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader, {
-  type MoneyHeaderProButton,
   type MoneyHeaderProps,
+  useMoneyNativeHeader,
 } from '../../components/MoneyHeader';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyVbaHomeCard from '../../components/MoneyVbaHomeCard';
+import {
+  useVbaHomeCard,
+  useVbaHomeCardRefresh,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
+import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -113,12 +127,10 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
-import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
-
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
-const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
+/** Row is Add + Send + Card, plus Details once the VBA account is ready. */
+const ACTION_BUTTON_ROW_BASE_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -127,7 +139,7 @@ const MoneyHomeView = () => {
   // than rooted in the tab bar, which is the only case that gets a back
   // affordance and the title that collapses into the header on scroll.
   const isPushed = Boolean(showBackButton);
-  const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
+  const { titleSectionHeightSv, setTitleSectionHeight } =
     useHeaderStandardAnimated();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
@@ -138,11 +150,6 @@ const MoneyHomeView = () => {
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
-
-  // usePlusAccess already mounts the subscriptions query while the Pro flow
-  // is enabled, so this view only needs the resolved chrome flags.
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
 
   const {
     trackButtonClicked,
@@ -195,6 +202,22 @@ const MoneyHomeView = () => {
   }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
+
+  // At most one VBA identity-status card; `none` renders nothing. The focus
+  // refresh is the one-shot KYC session GET.
+  const vbaHomeCard = useVbaHomeCard();
+  useVbaHomeCardRefresh();
+  // The Details button is live for every VBA-eligible user (flag + IP region,
+  // the same eligibility gate the home cards use). Its destination is the same
+  // coordinator the cards use: a complete account lands on the PIX details
+  // screen, everyone else on their first incomplete onboarding module.
+  const { isEligible: isVbaEligible } = useVbaEligibility();
+  const openVbaOnboarding = useOpenVbaOnboarding('vba-action-row-details');
+  const [isDetailsOpening, setIsDetailsOpening] = useState(false);
+  const showVbaDetailsButton = isVbaEligible;
+  const actionButtonRowCount = showVbaDetailsButton
+    ? ACTION_BUTTON_ROW_BASE_COUNT + 1
+    : ACTION_BUTTON_ROW_BASE_COUNT;
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
@@ -398,49 +421,26 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackButtonClicked]);
 
-  const handleGetProPress = useCallback(() => {
-    const destination = isPlusSubscriber
-      ? {
-          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
-          label_key: 'pro_subscription.pro',
-          redirect_target: SCREEN_NAMES.PRO_HUB,
-          route: Routes.PRO_HUB.ROOT,
-        }
-      : {
-          button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
-          label_key: 'pro_subscription.join_pro',
-          redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
-          route: Routes.PRO_SUBSCRIPTION.ROOT,
-        };
-
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      component_name: COMPONENT_NAMES.MONEY_HEADER,
-      button_intent: destination.button_intent,
-      label_key: destination.label_key,
-      redirect_target: destination.redirect_target,
-    });
-
-    navigation.navigate(destination.route, {
-      source: 'money_header',
-    });
-  }, [navigation, isPlusSubscriber, trackButtonClicked]);
-
-  const proButton: MoneyHeaderProButton | undefined =
-    isProSubscriptionEnabled && !isPlusAccessUnknown
-      ? {
-          label: isPlusSubscriber
-            ? strings('pro_subscription.pro')
-            : strings('pro_subscription.join_pro'),
-          onPress: handleGetProPress,
-        }
-      : undefined;
-
   // Only set when this stack was pushed over the caller's (e.g. a Rewards
   // campaign funding flow), so back returns there instead of to a tab.
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const isBrandRefresh = useSelector(selectMoneyBrandRefreshEnabled) === true;
+  const isGlass = useIsGlassSurfaceEnabled(selectMoneyBrandRefreshEnabled);
+  const isNativeHeader = useMoneyNativeHeader({
+    onMenuPress: handleMenuPress,
+    onBack: isPushed ? handleBackPress : undefined,
+    isEnabled: isBrandRefresh,
+  });
+
+  const { scrollY, scrollDistance, onScroll } =
+    useNativeHeaderScroll(isNativeHeader);
+  const isFloatingHeader = isBrandRefresh && !isNativeHeader;
+  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
+    useHeaderGlassInset(isFloatingHeader, insets.top);
+  const topInset = isNativeHeader || isFloatingHeader ? 0 : insets.top;
 
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -454,14 +454,13 @@ const MoneyHomeView = () => {
   const headerProps: MoneyHeaderProps = isPushed
     ? {
         onMenuPress: handleMenuPress,
-        proButton,
         onBack: handleBackPress,
         scrollY,
         titleSectionHeight: titleSectionHeightSv,
       }
     : {
         onMenuPress: handleMenuPress,
-        proButton,
+        scrollY,
       };
 
   const handleAddPress = useCallback(
@@ -508,13 +507,13 @@ const MoneyHomeView = () => {
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
-      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
+      button_row_button_count: actionButtonRowCount,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
-  }, [navigation, trackButtonClicked]);
+  }, [navigation, trackButtonClicked, actionButtonRowCount]);
 
   const navigateToCardHome = useCallback(() => {
     const isUpsell = metamaskCardMode === 'upsell';
@@ -538,7 +537,7 @@ const MoneyHomeView = () => {
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       redirect_target: SCREEN_NAMES.CARD_HOME,
       button_position: 3,
-      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
+      button_row_button_count: actionButtonRowCount,
     });
 
     trackEvent(
@@ -560,6 +559,42 @@ const MoneyHomeView = () => {
     createEventBuilder,
     activeProviderId,
     navigateToCardHome,
+    actionButtonRowCount,
+  ]);
+
+  const handleActionButtonDetailsPress = useCallback(() => {
+    if (isDetailsOpening) {
+      return;
+    }
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
+      label_key: 'money.action.details',
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+      button_position: 4,
+      button_row_button_count: actionButtonRowCount,
+    });
+
+    setIsDetailsOpening(true);
+    // Intentionally not awaited: openVbaOnboarding already routes internal
+    // failures to the recoverable-error screen. Log anything that escapes.
+    openVbaOnboarding()
+      .catch((error) => {
+        Logger.error(error as Error, {
+          tags: { feature: 'money-home' },
+          context: {
+            name: 'MoneyHomeView',
+            data: { step: 'handleActionButtonDetailsPress' },
+          },
+        });
+      })
+      .finally(() => setIsDetailsOpening(false));
+  }, [
+    isDetailsOpening,
+    openVbaOnboarding,
+    trackButtonClicked,
+    actionButtonRowCount,
   ]);
 
   const getPressRedirectTargetByMode = useCallback(
@@ -965,6 +1000,7 @@ const MoneyHomeView = () => {
       key: 'condensed-info',
       node: (
         <MoneyCondensedInfoCards
+          isGlass={isGlass}
           onHowItWorksPress={() =>
             handleHowItWorksPress({
               componentName:
@@ -996,16 +1032,29 @@ const MoneyHomeView = () => {
 
   return (
     <Box
-      style={[styles.safeArea, { paddingTop: insets.top }]}
+      style={[styles.safeArea, { paddingTop: topInset }]}
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader {...headerProps} />
+      {/* Mounted before the content so assistive tech reads the header first. */}
+      {!isNativeHeader && (
+        <MoneyHeader
+          {...headerProps}
+          isGlass={isFloatingHeader}
+          onLayout={isFloatingHeader ? handleFloatingHeaderLayout : undefined}
+        />
+      )}
       <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: 40 + floatingTabBarInset },
+          {
+            paddingTop: floatingHeaderInset,
+            paddingBottom: 40 + floatingTabBarInset,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
@@ -1016,6 +1065,7 @@ const MoneyHomeView = () => {
             onRefresh={handlePullRefresh}
             tintColor={colors.icon.default}
             colors={[colors.primary.default]}
+            progressViewOffset={floatingHeaderInset}
           />
         }
       >
@@ -1027,7 +1077,7 @@ const MoneyHomeView = () => {
           onLayout={isPushed ? handleTitleSectionLayout : undefined}
         >
           {showBalanceUnavailableBanner && (
-            <Box twClassName="px-4 pt-2">
+            <Box twClassName="px-4 pt-2 pb-2">
               <BannerAlert
                 severity={BannerAlertSeverity.Warning}
                 title={strings('money.balance_unavailable')}
@@ -1045,17 +1095,18 @@ const MoneyHomeView = () => {
             onApyInfoPress={handleApyInfoPress}
             privacyMode={privacyMode}
             onBalancePress={handleBalancePress}
-            showTitle={isPushed}
+            showTitle={isPushed && !isNativeHeader}
           />
         </Box>
         <MoneyActionButtonRow
+          isGlass={isGlass}
           add={{
             onPress: () =>
               handleAddPress({
                 labelKey: 'money.action.add',
                 componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
                 buttonPosition: 1,
-                buttonRowButtonCount: ACTION_BUTTON_ROW_BUTTON_COUNT,
+                buttonRowButtonCount: actionButtonRowCount,
               }),
           }}
           transfer={{
@@ -1063,8 +1114,19 @@ const MoneyHomeView = () => {
             disabled: !hasSpendableBalance,
           }}
           card={{ onPress: handleActionButtonCardPress }}
+          details={
+            showVbaDetailsButton
+              ? {
+                  onPress: handleActionButtonDetailsPress,
+                  disabled: isDetailsOpening,
+                }
+              : undefined
+          }
         />
-        <MoneyOnboardingCard />
+        {vbaHomeCard.type !== 'none' && (
+          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
+        )}
+        <MoneyOnboardingCard isGlass={isGlass} />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
             {index > 0 && <Divider />}
@@ -1072,6 +1134,12 @@ const MoneyHomeView = () => {
           </React.Fragment>
         ))}
       </Animated.ScrollView>
+      {isNativeHeader && (
+        <NativeHeaderBackdrop
+          scrollDistance={scrollDistance}
+          testID={MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP}
+        />
+      )}
     </Box>
   );
 };

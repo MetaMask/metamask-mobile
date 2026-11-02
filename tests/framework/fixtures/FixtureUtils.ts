@@ -719,7 +719,7 @@ export function buildPermissions(chainIds: string[]): Caip25Permission {
   };
 
   for (const chainId of chainIds) {
-    optionalScopes[`eip155:${parseInt(chainId, 10)}`] = {
+    optionalScopes[`eip155:${BigInt(chainId).toString(10)}`] = {
       accounts: [],
     };
   }

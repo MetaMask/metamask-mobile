@@ -86,6 +86,13 @@ export const PredictEventProperties = {
   FAILURE_STAGE: 'failure_stage',
   FAILURE_CATEGORY: 'failure_category',
 
+  // Order retry (bounded-retry flow)
+  RETRY_REASON: 'retry_reason',
+  RETRY_COUNT: 'retry_count',
+  ONE_TICK_DECISION: 'one_tick_decision',
+  SLIPPAGE_BAND: 'slippage_band',
+  RETRY_OUTCOME: 'retry_outcome',
+
   // Betslip dismissal
   DISMISSAL_METHOD: 'dismissal_method',
   HAD_ENTERED_AMOUNT: 'had_entered_amount',
@@ -179,6 +186,20 @@ export const PredictEventValues = {
     USER_REJECTED: 'user_rejected',
     OTHER: 'other',
   },
+  RETRY_REASON: {
+    ORDER_NOT_FILLED: 'order_not_filled',
+  },
+  ONE_TICK_DECISION: {
+    // Fresh quote at most 1 tick worse: single confirmation suffices.
+    WITHIN_ONE_TICK: 'within_one_tick',
+    // Fresh quote more than 1 tick worse: explicit re-confirmation shown.
+    BEYOND_ONE_TICK: 'beyond_one_tick',
+  },
+  RETRY_OUTCOME: {
+    SUCCESS: 'success',
+    NOT_FILLED: 'not_filled',
+    FAILED: 'failed',
+  },
   MARKET_TYPE: {
     BINARY: 'binary',
     MULTI_OUTCOME: 'multi-outcome',
@@ -247,6 +268,7 @@ export const PredictTradeStatus = {
   SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
+  RETRY_COMPLETED: 'retry_completed',
   PAYMENT_FAILURE_PROMPTED: 'payment_failure_prompted',
   ADD_FUNDS_SUBMITTED: 'add_funds_submitted',
   ATTEMPT_STARTED: 'attempt_started',
@@ -271,6 +293,15 @@ export type PredictFailureStageValue =
 
 export type PredictFailureCategoryValue =
   (typeof PredictEventValues.FAILURE_CATEGORY)[keyof typeof PredictEventValues.FAILURE_CATEGORY];
+
+export type PredictRetryReasonValue =
+  (typeof PredictEventValues.RETRY_REASON)[keyof typeof PredictEventValues.RETRY_REASON];
+
+export type PredictOneTickDecisionValue =
+  (typeof PredictEventValues.ONE_TICK_DECISION)[keyof typeof PredictEventValues.ONE_TICK_DECISION];
+
+export type PredictRetryOutcomeValue =
+  (typeof PredictEventValues.RETRY_OUTCOME)[keyof typeof PredictEventValues.RETRY_OUTCOME];
 
 /**
  * Dismissal method values for the Predict Betslip Dismissed event

@@ -11,9 +11,11 @@ import {
   formatRecurringTokenAmount,
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
+  getOrderTypeFromPriceRange,
   getUsdToCurrentCurrencyRate,
   isRecurringSwapEligibleForAddFunds,
 } from './recurringOrders';
+import { OrderType } from '../types/advancedOrders';
 
 describe('recurring order formatting', () => {
   it('converts V2 native and ERC-20 assets to Bridge tokens', () => {
@@ -141,6 +143,62 @@ describe('recurring order formatting', () => {
 
     expect(result).toBe('€1,800.00');
   });
+});
+
+describe('getOrderTypeFromPriceRange', () => {
+  it.each([
+    {
+      label: 'dest min',
+      priceRange: {
+        tokenSide: 'dest' as const,
+        currency: 'USD' as const,
+        min: '1000',
+      },
+      expected: OrderType.BUY_ABOVE,
+    },
+    {
+      label: 'dest max',
+      priceRange: {
+        tokenSide: 'dest' as const,
+        currency: 'USD' as const,
+        max: '2000',
+      },
+      expected: OrderType.BUY_BELOW,
+    },
+    {
+      label: 'source max',
+      priceRange: {
+        tokenSide: 'source' as const,
+        currency: 'USD' as const,
+        max: '2000',
+      },
+      expected: OrderType.SELL_BELOW,
+    },
+    {
+      label: 'source min',
+      priceRange: {
+        tokenSide: 'source' as const,
+        currency: 'USD' as const,
+        min: '1000',
+      },
+      expected: OrderType.SELL_ABOVE,
+    },
+    {
+      label: 'missing range',
+      priceRange: undefined,
+      expected: OrderType.SELL_ABOVE,
+    },
+  ])(
+    'returns $expected for a $label price range',
+    ({ priceRange, expected }) => {
+      const result = getOrderTypeFromPriceRange(priceRange);
+
+      expect(result).toBe(expected);
+      expect(result).toEqual(
+        expect.stringMatching(/^(buy|sell)_(above|below)$/),
+      );
+    },
+  );
 });
 
 describe('isRecurringSwapEligibleForAddFunds', () => {

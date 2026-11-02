@@ -8,6 +8,8 @@ const mockGetFundingSources = jest.fn();
 const mockGetResumeCardInfo = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
 const mockPatchContactDetails = jest.fn();
+const mockRecordProviderOnboardingStarted = jest.fn();
+const mockRecordCardActivated = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -21,6 +23,10 @@ jest.mock('../../../../core/Engine', () => ({
         mockGetSpendingPrerequisites(...args),
       patchContactDetails: (...args: unknown[]) =>
         mockPatchContactDetails(...args),
+      recordProviderOnboardingStarted: (...args: unknown[]) =>
+        mockRecordProviderOnboardingStarted(...args),
+      recordCardActivated: (...args: unknown[]) =>
+        mockRecordCardActivated(...args),
     },
   },
 }));
@@ -81,12 +87,90 @@ const contactPrereqs: CardSpendingPrerequisite[] = [
 describe('useImmersveResumeOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
+    mockRecordCardActivated.mockResolvedValue(undefined);
     mockImmersveConfig = { fundingChannelId: 'base-channel' };
     mockSignIn.mockResolvedValue({ done: true });
     mockGetResumeCardInfo.mockResolvedValue(null);
     mockGetFundingSources.mockResolvedValue([]);
     mockCreateFundingSource.mockResolvedValue({ id: 'fs-new' });
     mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+  });
+
+  describe('card link write', () => {
+    it('records onboarding started for the SIWE account after sign-in succeeds', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordProviderOnboardingStarted).toHaveBeenCalledTimes(1);
+      expect(mockRecordProviderOnboardingStarted).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
+    });
+
+    it('does not record onboarding started when the user is already authenticated', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current({ ...PARAMS, alreadyAuthenticated: true });
+      });
+
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
+
+    it('records active, not onboarding, when a fresh SIWE finds an existing card', async () => {
+      mockGetResumeCardInfo.mockResolvedValue({ fundingSourceIds: ['fs-1'] });
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordCardActivated).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
+
+    it('records the card as active for a returning user with an existing card', async () => {
+      mockGetResumeCardInfo.mockResolvedValue({ fundingSourceIds: ['fs-1'] });
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current({ ...PARAMS, alreadyAuthenticated: true });
+      });
+
+      expect(mockRecordCardActivated).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
+    });
+
+    it('does not record activation for a user without a card', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordCardActivated).not.toHaveBeenCalled();
+    });
+
+    it('does not record onboarding started when sign-in fails', async () => {
+      mockSignIn.mockRejectedValue(new Error('siwe failed'));
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await expect(result.current(PARAMS)).rejects.toThrow('siwe failed');
+      });
+
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
   });
 
   it('sets the provider country, signs in, patches contact, then routes for a new user', async () => {

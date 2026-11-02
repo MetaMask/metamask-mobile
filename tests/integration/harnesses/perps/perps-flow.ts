@@ -68,6 +68,7 @@
 let mockDelegateController: Record<string, unknown> | null = null;
 const mockRewardsController = {
   getPerpsDiscountForAccount: jest.fn().mockResolvedValue(undefined),
+  getPerpsTradingFeeGrant: jest.fn().mockResolvedValue(null),
   estimatePoints: jest.fn().mockResolvedValue({
     pointsEstimate: 0,
     bonusBips: 0,

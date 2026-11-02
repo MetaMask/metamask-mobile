@@ -22,7 +22,6 @@ import {
   AvatarNetworkSize,
   Tag,
 } from '@metamask/design-system-react-native';
-import { KeyringAccountType } from '@metamask/keyring-api';
 import { formatAddress } from '../../../../util/address';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
@@ -52,7 +51,7 @@ const MultichainAddressRow = ({
 }: MultichainAddressRowProps) => {
   const networkImageSource = getNetworkImageSource({ chainId });
   const accountTypeLabel = accountType
-    ? ACCOUNT_TYPE_LABELS[accountType as KeyringAccountType]
+    ? ACCOUNT_TYPE_LABELS[accountType]
     : undefined;
   const truncatedAddress = useMemo(
     () => formatAddress(address, 'short'),
