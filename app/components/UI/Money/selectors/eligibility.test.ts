@@ -19,6 +19,24 @@ const mockSelectIsCardAuthenticated =
 const mockSelectHasCardholderAccounts =
   selectHasCardholderAccounts as unknown as jest.MockedFunction<() => boolean>;
 
+// This file isn't in babel.config.tests.js's inline-env exclude list, so a
+// literal `process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES` is compiled to
+// `undefined` (and `delete` of it to `delete undefined`). Read and clear the
+// variable through a non-literal key so the selector really sees it unset.
+const GEO_BLOCKED_COUNTRIES_ENV = 'MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES';
+
+const withGeoBlockedCountriesEnvCleared = (run: () => void) => {
+  const original = process.env[GEO_BLOCKED_COUNTRIES_ENV];
+  Reflect.deleteProperty(process.env, GEO_BLOCKED_COUNTRIES_ENV);
+  try {
+    run();
+  } finally {
+    if (original !== undefined) {
+      process.env[GEO_BLOCKED_COUNTRIES_ENV] = original;
+    }
+  }
+};
+
 describe('selectIsMoneyAccountGeoEligible', () => {
   const createStateWithGeolocation = (
     geolocation: string | null | undefined,
@@ -142,33 +160,23 @@ describe('selectIsMoneyAccountGeoEligible', () => {
   });
 
   it('defaults to blocking GB when no remote flag and no env var is set', () => {
-    const originalEnv = process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES;
-    delete process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES;
+    withGeoBlockedCountriesEnvCleared(() => {
+      const state = createStateWithGeolocation('GB', {});
 
-    const state = createStateWithGeolocation('GB', {});
+      const result = selectIsMoneyAccountGeoEligible(state);
 
-    const result = selectIsMoneyAccountGeoEligible(state);
-
-    expect(result).toBe(false);
-
-    if (originalEnv !== undefined) {
-      process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES = originalEnv;
-    }
+      expect(result).toBe(false);
+    });
   });
 
   it('returns true for non-blocked country when using default blocked list', () => {
-    const originalEnv = process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES;
-    delete process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES;
+    withGeoBlockedCountriesEnvCleared(() => {
+      const state = createStateWithGeolocation('US', {});
 
-    const state = createStateWithGeolocation('US', {});
+      const result = selectIsMoneyAccountGeoEligible(state);
 
-    const result = selectIsMoneyAccountGeoEligible(state);
-
-    expect(result).toBe(true);
-
-    if (originalEnv !== undefined) {
-      process.env.MM_MONEY_ACCOUNT_GEO_BLOCKED_COUNTRIES = originalEnv;
-    }
+      expect(result).toBe(true);
+    });
   });
 });
 
