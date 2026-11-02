@@ -16,6 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import VbaIllustration, {
   VbaIllustrationSource,
 } from '../../components/Illustration';
@@ -27,6 +28,7 @@ export const VbaKycPendingSelectorsIDs = {
 } as const;
 
 const VbaKycPending = ({ onLeave }: { onLeave?: () => void }) => {
+  useTrackKycResultViewed('pending');
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 

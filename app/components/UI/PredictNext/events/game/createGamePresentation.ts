@@ -8,6 +8,12 @@ import type {
 } from '../../types';
 
 export type GameSelection = 'away' | 'home';
+
+/**
+ * The order Teams appear in across a Game's UI: header, cards and line
+ * pickers. Kalshi football lists the away Team first.
+ */
+export const GAME_TEAM_ORDER: readonly GameSelection[] = ['away', 'home'];
 export type GamePresentationVariant = 'compact' | 'featured' | 'detail';
 
 export interface GameStatusLine {
@@ -48,7 +54,8 @@ export const getEventGame = (event: PredictEvent): PredictGame | undefined =>
 const getStatusLabel = (status: PredictGameStatus) =>
   strings(`predict.game_status.${STATUS_KEYS[status]}`);
 
-const getTeamAbbreviation = (team: PredictTeam): string =>
+/** A Team's short label: its abbreviation, else its first three letters. */
+export const getTeamAbbreviation = (team: PredictTeam): string =>
   (team.abbreviation ?? team.name.slice(0, 3)).toUpperCase();
 
 const TIME_OPTIONS: Intl.DateTimeFormatOptions = {
