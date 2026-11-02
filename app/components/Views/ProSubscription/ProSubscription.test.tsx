@@ -221,7 +221,7 @@ describe('ProSubscription', () => {
       mockUseHasProMembership.mockReturnValue(true);
       rerender(<ProSubscription />);
 
-      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expectProHubReplacesSubscriptionModal();
     });
 
     it('keeps Benefits open for a canceled membership', () => {
@@ -231,7 +231,7 @@ describe('ProSubscription', () => {
 
       const { getByTestId } = render(<ProSubscription />);
 
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(getByTestId('mock-benefits')).toBeOnTheScreen();
     });
   });
