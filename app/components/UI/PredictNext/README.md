@@ -84,6 +84,7 @@ These are boundaries, not a requirement to create every possible directory or mo
 - [`docs/ui-components.md`](./docs/ui-components.md) — composition rules for complex PredictNext UI components.
 - [`docs/module-structure.md`](./docs/module-structure.md) — directory ownership, public module APIs, and internal boundaries.
 - [`docs/public-api-contract.md`](./docs/public-api-contract.md) — external consumer migration, the pass-through legacy branch, and PRED-1356 inputs.
+- [`docs/active-venue.md`](./docs/active-venue.md) — Active Venue resolution, its persisted inputs, availability, and the transition semantics of `predictConfig` and `predictTradingEnabled`.
 - [`docs/adr/0002-permanent-public-api-private-legacy.md`](./docs/adr/0002-permanent-public-api-private-legacy.md) — permanent public API with pass-through legacy Polymarket.
 - [`docs/venue-adapters.md`](./docs/venue-adapters.md) — capability adapter rules.
 - [`docs/remote-adapters.md`](./docs/remote-adapters.md) — remote trust and transport rules.

@@ -3717,7 +3717,7 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcome": "Outcome"
+      "outcomes": "Outcomes"
     },
     "search": {
       "placeholder": "Search markets",
@@ -3892,7 +3892,8 @@
       "line_unavailable": "line unavailable",
       "price_unavailable": "price unavailable",
       "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
-      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
+      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}",
+      "choice_accessibility_label": "{{option}}, {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",
@@ -5187,7 +5188,7 @@
     "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
     "x_account_disconnect_body": "Disconnecting removes your X handle from your MetaMask profile. You can reconnect at any time.",
     "x_account_disconnect_sheet_title": "Disconnect X account?",
-    "x_account_disconnect_sheet_body": "{{handle}} will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_sheet_body": "{{handle}} on X will no longer be connected to your MetaMask profile. Your username, posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
