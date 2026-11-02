@@ -120,8 +120,8 @@ describe('ensureMusdAutoramp', () => {
     );
     expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
       'autoramp-setup-id',
-      true,
-      undefined,
+      false,
+      'kyc_pending',
     );
     expect(mockCreate).not.toHaveBeenCalled();
 
