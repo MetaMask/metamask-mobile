@@ -55,7 +55,9 @@ export const EventMarketSection = ({
         title={title}
         titleProps={{ variant: TextVariant.HeadingSm }}
         onPress={handlePress}
-        accessibilityLabel={title}
+        // The label replaces the header's text for screen readers, so it
+        // carries the visible volume too.
+        accessibilityLabel={volume ? `${title}, ${volume}` : title}
         accessibilityState={{ expanded: open }}
         testID={EventMarketSectionTestIds.HEADER}
         twClassName="py-3.5"

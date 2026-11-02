@@ -72,10 +72,16 @@ describe('EventMarketSection', () => {
     expect(screen.queryByText(CONTENT)).not.toBeOnTheScreen();
   });
 
-  it('labels the header button with its title', () => {
+  it('labels the header button with its title and volume', () => {
     renderSection();
 
     expect(header()).toHaveProp('accessibilityRole', 'button');
+    expect(header()).toHaveProp('accessibilityLabel', 'Moneyline, $1.2K');
+  });
+
+  it('labels the header button with its title alone without a volume', () => {
+    renderSection({ volume: undefined });
+
     expect(header()).toHaveProp('accessibilityLabel', 'Moneyline');
   });
 });
