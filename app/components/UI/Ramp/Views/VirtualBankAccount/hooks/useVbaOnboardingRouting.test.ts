@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
+import { HttpError } from '@metamask/controller-utils';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -76,6 +77,7 @@ const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockStartSession = jest.fn();
+const mockClearState = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 const mockRampsState: {
   autoramps: { id: string; walletAddress: string; status: string }[];
@@ -98,6 +100,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       },
       readSessionStatus: () => mockReadSessionStatus(),
       startSession: (...args: unknown[]) => mockStartSession(...args),
+      clearState: (...args: unknown[]) => mockClearState(...args),
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
@@ -188,6 +191,46 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
+  });
+
+  it('clears a stale session and restarts at vendor terms when the stored session status returns 404', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValue(
+      new HttpError(
+        404,
+        "Fetching 'https://kyc.example/sessions/session-1/status' failed with status '404'",
+      ),
+    );
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockClearState).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalledWith({
+      walletAddress: '0xabc',
+      refreshKyc: true,
+      refreshAutoramps: true,
+    });
+    expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
+  });
+
+  it('shows the setup error, without clearing the session, when the stored session status returns 500', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValue(
+      new HttpError(
+        500,
+        "Fetching 'https://kyc.example/sessions/session-1/status' failed with status '500'",
+      ),
+    );
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockClearState).not.toHaveBeenCalled();
     expect(mockHydrate).not.toHaveBeenCalled();
     expectResetTo({ name: VbaOnboardingRoutes.ERROR });
   });
@@ -1040,6 +1083,49 @@ describe('resolveVbaOnboarding', () => {
     await expect(
       resolveVbaOnboarding('money-add-money-bank-account'),
     ).resolves.toEqual({ status: 'error' });
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('clears the session and resolves to vendor terms when the stored session status returns 404', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValue(
+      new HttpError(
+        404,
+        "Fetching 'https://kyc.example/sessions/session-1/status' failed with status '404'",
+      ),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({
+      status: 'ready',
+      destinationId: 'vendorTerms',
+      snapshot: expect.objectContaining({
+        sessionExists: false,
+        kycStatus: 'none',
+      }),
+    });
+    expect(mockClearState).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalledWith({
+      walletAddress: '0xabc',
+      refreshKyc: true,
+      refreshAutoramps: true,
+    });
+  });
+
+  it('returns an error without clearing the session when the stored session status returns 500', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValue(
+      new HttpError(
+        500,
+        "Fetching 'https://kyc.example/sessions/session-1/status' failed with status '500'",
+      ),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({ status: 'error' });
+    expect(mockClearState).not.toHaveBeenCalled();
     expect(mockHydrate).not.toHaveBeenCalled();
   });
 
