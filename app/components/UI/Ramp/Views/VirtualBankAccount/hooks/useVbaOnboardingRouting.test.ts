@@ -1410,45 +1410,26 @@ describe('openVbaEntry', () => {
     });
 
     it.each([
-      ['a rejected session', 'rejected', 'rejected', 'not_started'],
-      [
-        'a retry session that was not resubmitted',
-        'retry',
-        'rejected',
-        'started',
-      ],
-    ])(
-      'opens kyc rejected for %s',
-      (_case, finalStatus, kycStatus, providerFlowStatus) => {
-        givenSession({ finalStatus, kycStatus }, providerFlowStatus);
+      ['a rejected session', 'rejected', 'not_started', 'KYC_REJECTED'],
+      ['an unsubmitted retry session', 'retry', 'started', 'KYC_REJECTED'],
+      ['a pending session', 'pending', 'not_started', 'KYC_PENDING'],
+      ['a resubmitted retry session', 'retry', 'submitted', 'LOADING'],
+    ] as const)(
+      'opens the right screen for %s',
+      (_case, status, flow, screen) => {
+        givenSession(
+          {
+            finalStatus: status,
+            kycStatus: status === 'retry' ? 'rejected' : status,
+          },
+          flow,
+        );
 
         openVbaEntry(entryNavigation);
 
-        expectOnboardingScreen(VbaOnboardingRoutes.KYC_REJECTED);
+        expectOnboardingScreen(VbaOnboardingRoutes[screen]);
       },
     );
-
-    it.each([['a pending session', 'pending', 'pending', 'not_started']])(
-      'opens kyc pending for %s',
-      (_case, finalStatus, kycStatus, providerFlowStatus) => {
-        givenSession({ finalStatus, kycStatus }, providerFlowStatus);
-
-        openVbaEntry(entryNavigation);
-
-        expectOnboardingScreen(VbaOnboardingRoutes.KYC_PENDING);
-      },
-    );
-
-    it('opens the loading screen for a resubmitted retry session', () => {
-      givenSession(
-        { finalStatus: 'retry', kycStatus: 'rejected' },
-        'submitted',
-      );
-
-      openVbaEntry(entryNavigation);
-
-      expectOnboardingScreen(VbaOnboardingRoutes.LOADING);
-    });
 
     it('opens the loading screen when no session exists', () => {
       openVbaEntry(entryNavigation);

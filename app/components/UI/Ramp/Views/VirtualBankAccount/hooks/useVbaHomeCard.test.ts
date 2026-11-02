@@ -449,6 +449,7 @@ describe('getVbaHomeCard', () => {
 
   it.each([
     ['account_pending', 'no autoramp', WALLET, undefined],
+    ['account_is_ready', 'a usable autoramp', WALLET, AutorampStatus.Created],
     [
       'account_is_ready',
       'an Approved autoramp',
@@ -471,26 +472,13 @@ describe('getVbaHomeCard', () => {
           kycStatus: 'approved',
         }),
         autoramps: status ? [makeAutoramp({ walletAddress, status })] : [],
+        hasUsableAutoramp: status === AutorampStatus.Created,
         isProviderApprovalPending: true,
       });
 
       expect(card).toEqual({ type: expected });
     },
   );
-
-  it('renders account_is_ready over the provider approval flag once a usable autoramp exists', () => {
-    const card = getVbaHomeCard({
-      ...baseInputs,
-      sessionStatus: makeSession({
-        finalStatus: 'approved',
-        kycStatus: 'approved',
-      }),
-      hasUsableAutoramp: true,
-      isProviderApprovalPending: true,
-    });
-
-    expect(card).toEqual({ type: 'account_is_ready' });
-  });
 
   it.each([
     {
