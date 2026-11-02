@@ -14,6 +14,42 @@ jest.mock('../OAuthService/OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
 }));
 
+jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
+  AuthServerUrl: 'https://auth.example',
+  web3AuthNetwork: 'sapphire_devnet',
+  SupportedPlatforms: { Android: 'android', IOS: 'ios' },
+  AuthConnectionConfig: {
+    ios: {
+      google: {
+        authConnectionId: 'ios-google',
+        groupedAuthConnectionId: 'g-google',
+      },
+      apple: {
+        authConnectionId: 'ios-apple',
+        groupedAuthConnectionId: 'g-apple',
+      },
+      telegram: {
+        authConnectionId: 'ios-telegram',
+        groupedAuthConnectionId: 'g-telegram',
+      },
+    },
+    android: {
+      google: {
+        authConnectionId: 'android-google',
+        groupedAuthConnectionId: 'g-google',
+      },
+      apple: {
+        authConnectionId: 'android-apple',
+        groupedAuthConnectionId: 'g-apple',
+      },
+      telegram: {
+        authConnectionId: 'android-telegram',
+        groupedAuthConnectionId: 'g-telegram',
+      },
+    },
+  },
+}));
+
 jest.mock('react-native', () => {
   const actual = jest.requireActual('react-native');
   return {
@@ -28,11 +64,11 @@ jest.mock('react-native', () => {
 const mockedIsMoneyMfaEnabled = jest.mocked(isMoneyMfaEnabled);
 const mockCreateLoginHandler = jest.mocked(createLoginHandler);
 
-const PROOF_PUBLIC_KEY = '{"kty":"EC","crv":"P-256","x":"abc","y":"def"}';
+const PROOF_PUBLIC_KEY = new Uint8Array(32).fill(7);
 const REQUEST_HASH = `0x${'11'.repeat(32)}`;
 
 const googleIdentifier: Identifier = {
-  type: 'oidc',
+  type: 'social',
   namespace: 'https://accounts.google.com',
   value: 'google-sub-1',
   verifier: { auds: ['client-id'] },
@@ -145,7 +181,13 @@ describe('createMoneyMfaOidcIdentifierAuthProvider', () => {
 
   it('uses the default login handler when loginWithNonce is omitted', async () => {
     mockedIsMoneyMfaEnabled.mockReturnValue(true);
-    const expectedNonce = computeKeyBoundNonce(PROOF_PUBLIC_KEY, REQUEST_HASH);
+    const { bytesToHex } = jest.requireActual('@metamask/utils') as {
+      bytesToHex: (value: Uint8Array) => string;
+    };
+    const expectedNonce = computeKeyBoundNonce(
+      bytesToHex(PROOF_PUBLIC_KEY),
+      REQUEST_HASH,
+    );
     const idToken = buildIdToken({
       iss: 'https://accounts.google.com',
       sub: 'google-sub-1',
@@ -153,7 +195,25 @@ describe('createMoneyMfaOidcIdentifierAuthProvider', () => {
       nonce: expectedNonce,
     });
     const login = jest.fn().mockResolvedValue({ idToken });
-    mockCreateLoginHandler.mockReturnValue({ login } as never);
+    const getAuthTokens = jest.fn().mockResolvedValue({
+      id_token: 'auth-jwt',
+      provider_id_token: idToken,
+      access_token: 'access',
+      metadata_access_token: 'metadata',
+      refresh_token: 'refresh',
+      revoke_token: 'revoke',
+      indexes: [],
+      endpoints: {},
+    });
+    const getUserInfo = jest.fn().mockReturnValue({
+      userId: 'auth-sub',
+      accountName: 'user@example.com',
+    });
+    mockCreateLoginHandler.mockReturnValue({
+      login,
+      getAuthTokens,
+      getUserInfo,
+    } as never);
 
     const provider = createMoneyMfaOidcIdentifierAuthProvider({
       getRemoteFeatureFlags: () => ({
@@ -174,5 +234,46 @@ describe('createMoneyMfaOidcIdentifierAuthProvider', () => {
       { nonce: expectedNonce },
     );
     expect(token.providerAssertion).toBe(idToken);
+  });
+
+  it('exposes getKeyBoundIdentifierLogin for the seedless password path', async () => {
+    mockedIsMoneyMfaEnabled.mockReturnValue(true);
+    const loginWithNonce = jest.fn().mockImplementation(async ({ nonce }) =>
+      buildIdToken({
+        iss: 'https://accounts.google.com',
+        sub: 'google-sub-1',
+        aud: 'client-id',
+        nonce,
+      }),
+    );
+    const loginWithNonceAndSeedlessAuth = jest.fn().mockResolvedValue({
+      providerIdToken: buildIdToken({
+        iss: 'https://accounts.google.com',
+        sub: 'google-sub-1',
+        aud: 'client-id',
+        nonce: 'unused',
+      }),
+      seedlessAuthData: {
+        idTokens: ['auth-jwt'],
+        accessToken: 'access',
+        metadataAccessToken: 'metadata',
+        refreshToken: 'refresh',
+        authConnection: AuthConnection.Google,
+        authConnectionId: 'ios-google',
+        userId: 'auth-sub',
+      },
+    });
+
+    // Override via createOidc path: factory only accepts loginWithNonce today.
+    // Ensure the produced provider still has getKeyBoundIdentifierLogin.
+    const provider = createMoneyMfaOidcIdentifierAuthProvider({
+      getRemoteFeatureFlags: () => ({
+        isMoneyMfaEnabled: { enabled: true, minimumVersion: '0.0.0' },
+      }),
+      loginWithNonce,
+    });
+
+    expect(provider.getKeyBoundIdentifierLogin).toEqual(expect.any(Function));
+    expect(loginWithNonceAndSeedlessAuth).not.toHaveBeenCalled();
   });
 });
