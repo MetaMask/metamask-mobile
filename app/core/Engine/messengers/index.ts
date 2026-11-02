@@ -41,7 +41,10 @@ import { getSignatureControllerMessenger } from './signature-controller-messenge
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
-import { getPerpsControllerMessenger } from './perps-controller-messenger';
+import {
+  getPerpsControllerInitMessenger,
+  getPerpsControllerMessenger,
+} from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import {
   getPredictMarketDataServiceMessenger,
@@ -310,7 +313,7 @@ export const MESSENGER_FACTORIES = {
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getPerpsControllerInitMessenger,
   },
   PredictController: {
     getMessenger: getPredictControllerMessenger,

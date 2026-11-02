@@ -3,7 +3,6 @@ import {
   addEventListener as addNetInfoEventListener,
   type NetInfoState,
 } from '@react-native-community/netinfo';
-import type { GeolocationControllerState } from '@metamask/geolocation-controller';
 import Logger from '../../../../util/Logger';
 import type { RootExtendedMessenger } from '../../types';
 
@@ -34,9 +33,6 @@ const isOnline = (state: NetInfoState): boolean =>
 const getNetworkSignature = (state: NetInfoState): string =>
   `${state.type}:${isOnline(state)}`;
 
-const selectLocation = (state: GeolocationControllerState): string =>
-  state.location;
-
 /**
  * Keeps geolocation current for the whole app without a restart, so turning a
  * VPN on or off (or travelling) updates geo-gated features in place.
@@ -48,8 +44,7 @@ const selectLocation = (state: GeolocationControllerState): string =>
  * nothing for a VPN on the same Wi-Fi on iOS, so the foreground trigger is the
  * reliable signal there: toggling a VPN means leaving the app.
  *
- * When the location actually changes, features that keep their own derived
- * copy are told to re-evaluate. Redux consumers update on their own.
+ * Consumers react to the new location through GeolocationController state.
  *
  * @param messenger - Root Engine messenger.
  * @param options - Refresh options.
@@ -124,24 +119,6 @@ export function registerGeolocationRefresh(
       refresh();
     }
   });
-
-  messenger.subscribe(
-    'GeolocationController:stateChange',
-    () => {
-      if (!isEnabled()) {
-        return;
-      }
-
-      // TODO: Remove once @metamask/perps-controller refreshes eligibility on
-      // GeolocationController:stateChange itself (MCWP-1143).
-      messenger
-        .call('PerpsController:refreshEligibility')
-        .catch((error: unknown) =>
-          Logger.log('Perps eligibility refresh failed: ', error),
-        );
-    },
-    selectLocation,
-  );
 
   return () => {
     clearTimeout(networkChangeTimer);

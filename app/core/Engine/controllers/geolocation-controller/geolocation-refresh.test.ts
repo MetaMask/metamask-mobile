@@ -3,7 +3,6 @@ import {
   addEventListener as addNetInfoEventListener,
   type NetInfoState,
 } from '@react-native-community/netinfo';
-import type { GeolocationControllerState } from '@metamask/geolocation-controller';
 import type { RootExtendedMessenger } from '../../types';
 import {
   FOREGROUND_REFRESH_THROTTLE_MS,
@@ -28,9 +27,6 @@ const createNetInfoState = (
     isInternetReachable,
     details: null,
   }) as unknown as NetInfoState;
-
-const createGeolocationState = (location: string): GeolocationControllerState =>
-  ({ location }) as GeolocationControllerState;
 
 interface SetupOptions {
   isEnabled?: boolean;
@@ -79,13 +75,9 @@ const setup = ({ isEnabled = true, isUnlocked = true }: SetupOptions = {}) => {
     removeNetInfoListener,
     countRefreshes: () =>
       countCalls('GeolocationController:refreshGeolocation'),
-    countEligibilityRefreshes: () =>
-      countCalls('PerpsController:refreshEligibility'),
     emitAppState: (state: AppStateStatus) => appStateListener(state),
     emitNetInfo: (state: NetInfoState) => netInfoListener(state),
     emitUnlock: () => getSubscription('KeyringController:unlock')?.[1](),
-    getLocationSubscription: () =>
-      getSubscription('GeolocationController:stateChange'),
   };
 };
 
@@ -247,37 +239,6 @@ describe('registerGeolocationRefresh', () => {
       emitUnlock();
 
       expect(countRefreshes()).toBe(0);
-    });
-  });
-
-  describe('location change', () => {
-    it('subscribes to location changes only', () => {
-      const { getLocationSubscription } = setup();
-      const selector = getLocationSubscription()?.[2];
-
-      const selected = selector(createGeolocationState('FR'));
-
-      expect(selected).toBe('FR');
-    });
-
-    it('refreshes Perps eligibility when the location changes', () => {
-      const { getLocationSubscription, countEligibilityRefreshes } = setup();
-      const handler = getLocationSubscription()?.[1];
-
-      handler('FR', 'US');
-
-      expect(countEligibilityRefreshes()).toBe(1);
-    });
-
-    it('does not refresh Perps eligibility when refreshes are disabled', () => {
-      const { getLocationSubscription, countEligibilityRefreshes } = setup({
-        isEnabled: false,
-      });
-      const handler = getLocationSubscription()?.[1];
-
-      handler('FR', 'US');
-
-      expect(countEligibilityRefreshes()).toBe(0);
     });
   });
 

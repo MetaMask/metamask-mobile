@@ -16,8 +16,22 @@ import {
 } from '@metamask/perps-controller';
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { getPerpsControllerMessenger } from '../../messengers/perps-controller-messenger';
+import {
+  getPerpsControllerInitMessenger,
+  getPerpsControllerMessenger,
+  PerpsControllerInitMessenger,
+} from '../../messengers/perps-controller-messenger';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
+import {
+  getDefaultGeolocationControllerState,
+  type GeolocationControllerState,
+  type GeolocationControllerStateChangeEvent,
+} from '@metamask/geolocation-controller';
+import Logger from '../../../../util/Logger';
+
+jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
 
 // Mock mobile-specific modules that ./index.ts imports to avoid pulling in
 // Engine and React Native dependencies in the test environment
@@ -65,19 +79,54 @@ jest.mock('@metamask/perps-controller', () => {
 
 describe('perps controller init', () => {
   const perpsControllerClassMock = jest.mocked(PerpsController);
-  let initRequestMock: jest.Mocked<
-    MessengerClientInitRequest<PerpsControllerMessenger>
+  let baseControllerMessenger: ExtendedMessenger<
+    MockAnyNamespace,
+    never,
+    GeolocationControllerStateChangeEvent
   >;
+  let initRequestMock: jest.Mocked<
+    MessengerClientInitRequest<
+      PerpsControllerMessenger,
+      PerpsControllerInitMessenger
+    >
+  >;
+
+  const publishLocation = (
+    location: string,
+    status: GeolocationControllerState['status'] = 'complete',
+  ) => {
+    baseControllerMessenger.publish(
+      'GeolocationController:stateChange',
+      { ...getDefaultGeolocationControllerState(), location, status },
+      [],
+    );
+  };
+
+  const mockRefreshEligibility = (refreshEligibility: jest.Mock) => {
+    perpsControllerClassMock.mockImplementation(
+      () => ({ refreshEligibility }) as unknown as PerpsController,
+    );
+  };
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    baseControllerMessenger = new ExtendedMessenger<
+      MockAnyNamespace,
+      never,
+      GeolocationControllerStateChangeEvent
+    >({
       namespace: MOCK_ANY_NAMESPACE,
     });
     // Create messenger client init request mock
-    initRequestMock = buildMessengerClientInitRequestMock(
-      baseControllerMessenger,
-    );
+    initRequestMock = {
+      ...buildMessengerClientInitRequestMock(baseControllerMessenger),
+      initMessenger: getPerpsControllerInitMessenger(baseControllerMessenger),
+    } as jest.Mocked<
+      MessengerClientInitRequest<
+        PerpsControllerMessenger,
+        PerpsControllerInitMessenger
+      >
+    >;
 
     // Mock getState to return proper Redux state structure for feature flags
     // Using Partial since we only need RemoteFeatureFlagController for this test
@@ -197,6 +246,43 @@ describe('perps controller init', () => {
       perpsControllerClassMock.mock.calls[0][0].state;
 
     expect(perpsControllerState).toStrictEqual(initialPerpsControllerState);
+  });
+
+  describe('geolocation changes', () => {
+    it('refreshes eligibility when the location changes', () => {
+      const refreshEligibility = jest.fn().mockResolvedValue(undefined);
+      mockRefreshEligibility(refreshEligibility);
+      perpsControllerInit(initRequestMock);
+
+      publishLocation('US-CA');
+
+      expect(refreshEligibility).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not refresh eligibility when only the status changes', () => {
+      const refreshEligibility = jest.fn().mockResolvedValue(undefined);
+      mockRefreshEligibility(refreshEligibility);
+      perpsControllerInit(initRequestMock);
+      publishLocation('US-CA');
+
+      publishLocation('US-CA', 'loading');
+
+      expect(refreshEligibility).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs when the eligibility refresh fails', async () => {
+      const error = new Error('geolocation failed');
+      mockRefreshEligibility(jest.fn().mockRejectedValue(error));
+      perpsControllerInit(initRequestMock);
+
+      publishLocation('FR');
+      await Promise.resolve();
+
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Perps eligibility refresh failed: ',
+        error,
+      );
+    });
   });
 });
 
