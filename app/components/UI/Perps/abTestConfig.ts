@@ -154,3 +154,55 @@ export const PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappin
       EVENT_NAME.PERPS_ERROR,
     ],
   };
+
+/**
+ * TAT-4267: Perps home Live trades.
+ *
+ * Control keeps the Social section as it is (Trending first and default).
+ * Treatment adds a Live trades tab as the first and default tab.
+ *
+ * Dark-launch the LaunchDarkly JSON flag at 100% control (control threshold
+ * `1`, treatment threshold `0`), then move to 50/50. Missing, invalid, or
+ * unresolved assignments fall back to `control` inside `useABTest`.
+ *
+ * Consume via `usePerpsLiveTradesAbTest()` — do not read the raw flag.
+ */
+export const PERPS_LIVE_TRADES_AB_TEST_KEY = 'perpsTAT4267AbtestLiveTrades';
+
+export enum PerpsLiveTradesVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsLiveTradesVariantConfig {
+  showLiveTrades: boolean;
+}
+
+export const PERPS_LIVE_TRADES_VARIANTS: Record<
+  PerpsLiveTradesVariant,
+  PerpsLiveTradesVariantConfig
+> = {
+  [PerpsLiveTradesVariant.Control]: { showLiveTrades: false },
+  [PerpsLiveTradesVariant.Treatment]: { showLiveTrades: true },
+};
+
+export const PERPS_LIVE_TRADES_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Home Live Trades',
+  variationNames: {
+    control: 'Trending first',
+    treatment: 'Live trades first',
+  },
+} as const;
+
+export const PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_LIVE_TRADES_AB_TEST_KEY,
+    validVariants: Object.values(PerpsLiveTradesVariant),
+    eventNames: [
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.PERPS_ERROR,
+    ],
+  };
