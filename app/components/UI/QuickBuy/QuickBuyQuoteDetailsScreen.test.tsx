@@ -105,6 +105,15 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     expect(screen.getByTestId('mock-countdown')).toBeOnTheScreen();
   });
 
+  it('names the tooltip control with its title and a localized hint', () => {
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    expect(screen.getByLabelText('bridge.slippage_info_title')).toHaveProp(
+      'accessibilityHint',
+      'bridge.tooltip_accessibility_hint',
+    );
+  });
+
   it('opens the tooltip when a dotted label is pressed', () => {
     render(<QuickBuyQuoteDetailsScreen />);
 

@@ -16,6 +16,7 @@ import {
 import { KeyValueRowStubs } from '../../../../component-library/components-temp/KeyValueRow';
 import useTooltipModal from '../../../hooks/useTooltipModal';
 import { useTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
 import DottedUnderline from '../../DottedUnderline';
 
 const styles = StyleSheet.create({
@@ -72,7 +73,8 @@ export const QuickBuyQuoteDetailRow: React.FC<QuickBuyQuoteDetailRowProps> = ({
         <TouchableOpacity
           onPress={onPressLabel}
           accessibilityRole="button"
-          accessibilityLabel={`${tooltipTitle} tooltip`}
+          accessibilityLabel={tooltipTitle}
+          accessibilityHint={strings('bridge.tooltip_accessibility_hint')}
           activeOpacity={0.6}
         >
           <DottedUnderline color={colors.text.alternative}>
