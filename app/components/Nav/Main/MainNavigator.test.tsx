@@ -152,8 +152,11 @@ jest.mock('../../UI/Predict', () => {
   };
 });
 
-jest.mock('../../UI/PredictNext', () => ({
-  PredictRoot: () => 'PredictRoot',
+// Stub only PredictRoot so the entry point's other exports, which Wallet's
+// Homepage callers read, stay real.
+jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => 'PredictRoot',
 }));
 
 jest.mock('../../UI/Trending/contexts', () => {

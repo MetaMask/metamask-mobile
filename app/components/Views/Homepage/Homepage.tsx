@@ -23,7 +23,7 @@ import { SectionRefreshHandle, type HomepageDeviceCapability } from './types';
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { useIsActivePerpsTrader } from '../../UI/Perps/hooks';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import { selectPredictAvailability } from '../../UI/PredictNext';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -132,7 +132,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       hasMountedOptionalSections || canMountOptionalSections;
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const isPredictEnabled = useSelector(selectPredictAvailability);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;

@@ -509,12 +509,6 @@ jest.mock('../../UI/Perps', () => ({
   ),
 }));
 
-jest.mock('../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(
-    (state: { predictEnabled: boolean }) => state.predictEnabled,
-  ),
-}));
-
 let mockPerpsSourceState: {
   items: unknown[];
   isLoading: boolean;
@@ -542,6 +536,9 @@ jest.mock('./hooks/usePerpsActivityItems', () => ({
 const mockIsInactivePredictVenueItem = jest.fn((_item: unknown) => false);
 
 jest.mock('../../UI/PredictNext', () => ({
+  selectPredictAvailability: jest.fn(
+    (state: { predictEnabled: boolean }) => state.predictEnabled,
+  ),
   usePredictActivityItems: jest.fn(() => ({
     isInactiveVenueItem: mockIsInactivePredictVenueItem,
     ...mockPredictSourceState,
