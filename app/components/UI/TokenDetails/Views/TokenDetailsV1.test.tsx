@@ -421,6 +421,15 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: (...args: unknown[]) => mockUseTokenBalance(...args),
 }));
 
+jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
+  useMoneyAssetOverviewCtas: () => ({
+    isFooterCtaLoading: false,
+    isFooterCtaVisible: false,
+    footerLabelLocalized: undefined,
+    onFooterPress: jest.fn(),
+  }),
+}));
+
 jest.mock('../TraderPositionPnl/useOpenPositionHeader', () => ({
   useOpenPositionHeader: () => ({ isLoading: false }),
 }));
@@ -615,7 +624,7 @@ describe('TokenDetailsV1', () => {
     });
   });
 
-  it('configures the sticky footer with buy and sell actions', () => {
+  it('configures the sticky footer with the shared token details actions', () => {
     mockUseTokenBalance.mockReturnValue({ balance: '2.5' });
     render(
       <TokenDetailsV1
@@ -628,14 +637,15 @@ describe('TokenDetailsV1', () => {
       expect.objectContaining({
         currentTokenBalance: '2.5',
         hasTokenBalance: true,
-        isTokenDetailsV1: true,
-        // Footer defaults to 'v2'; V1 must pass 'v3' so footer Buy/Sell events
-        // (and the security-warning sheet) are not mislabelled as legacy.
+        // Footer defaults to 'v2'; the launchpad page must pass 'v3' so
+        // Buy/Sell events (and the security-warning sheet) are not labelled
+        // as the legacy page. The button layout itself matches that page.
         tdpVersion: 'v3',
-        quickBuyEntrypointLayout: 'buy_sell',
+        quickBuyEntrypointLayout: 'lightning_swap_buy',
         onOpenQuickBuy: expect.any(Function),
       }),
     );
+    expect(mockStickyFooterProps[0].isTokenDetailsV1).toBeUndefined();
   });
 
   it('does not show sell when the live balance is zero despite a stale route balance', () => {

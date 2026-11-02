@@ -1,6 +1,5 @@
 import { render } from '@testing-library/react-native';
 import React from 'react';
-import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import TokenDetailsPagePending, {
   TOKEN_DETAILS_PAGE_PENDING_TEST_ID,
@@ -22,6 +21,19 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: () => null,
 }));
 
+const actionFooterProps: Record<string, unknown>[] = [];
+
+jest.mock('../components/TokenDetailsActionFooter', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      actionFooterProps.push(props);
+      return <View testID="token-details-action-footer" />;
+    },
+  };
+});
+
 const token = {
   address: '0xabc',
   chainId: '0x1',
@@ -29,16 +41,16 @@ const token = {
 } as TokenDetailsRouteParams;
 
 describe('TokenDetailsPagePending', () => {
-  it('renders a skeleton without Buy, Sell, or Swap while the page is unresolved', () => {
-    const { getByTestId, queryByTestId } = render(
-      <TokenDetailsPagePending token={token} />,
-    );
+  beforeEach(() => {
+    actionFooterProps.length = 0;
+  });
+
+  it('shows the shared action footer while the page is unresolved', () => {
+    const { getByTestId } = render(<TokenDetailsPagePending token={token} />);
 
     expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeOnTheScreen();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeNull();
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeNull();
-    expect(queryByTestId('token-details-footer-quick-buy')).toBeNull();
-    expect(queryByTestId('token-details-footer-quick-sell')).toBeNull();
-    expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    expect(getByTestId('token-details-action-footer')).toBeOnTheScreen();
+    expect(actionFooterProps[0]).toEqual(expect.objectContaining({ token }));
+    expect(actionFooterProps[0].traderPositionPnl).toBeUndefined();
   });
 });

@@ -44,6 +44,27 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: {
+      footerLayout: 'lightning_swap_buy',
+      useAmbientPriceColor: false,
+      showMoneyDepositFooterCta: false,
+    },
+    variantName: 'control',
+    isActive: false,
+  }),
+}));
+
+jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
+  useMoneyAssetOverviewCtas: () => ({
+    isFooterCtaLoading: false,
+    isFooterCtaVisible: false,
+    footerLabelLocalized: undefined,
+    onFooterPress: jest.fn(),
+  }),
+}));
+
 jest.mock('./useOpenPositionHeader', () => ({
   useOpenPositionHeader: jest.fn(),
 }));

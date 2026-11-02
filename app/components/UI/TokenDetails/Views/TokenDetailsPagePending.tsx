@@ -10,6 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
+import TokenDetailsActionFooter from '../components/TokenDetailsActionFooter';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useTokenPrice } from '../hooks/useTokenPrice';
@@ -18,9 +19,9 @@ export const TOKEN_DETAILS_PAGE_PENDING_TEST_ID = 'token-details-page-pending';
 
 /**
  * Shown while `/v2/assets` is still deciding the meme page versus the legacy
- * page. The header uses the route token. Buy, Sell, and Swap stay hidden
- * until that decision lands, so the footer does not flash Swap + Buy and
- * then replace them.
+ * page. The header uses the route token. The action bar is the same one both
+ * pages use, so a tap can land before that decision and the buttons do not
+ * change when it does. Position PnL waits for the launchpad page.
  */
 const TokenDetailsPagePending = ({
   token,
@@ -63,6 +64,7 @@ const TokenDetailsPagePending = ({
         <Skeleton height={20} width="70%" twClassName="rounded-md" />
         <Skeleton height={20} width="45%" twClassName="rounded-md" />
       </Box>
+      <TokenDetailsActionFooter token={token} />
     </Box>
   );
 };
