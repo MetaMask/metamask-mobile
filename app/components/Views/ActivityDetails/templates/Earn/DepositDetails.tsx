@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import { ActivityDetailsAmountHeader } from '../../components';
 import { ActivityDetailsStandardTemplate } from '../ActivityDetailsStandardTemplate';
 
