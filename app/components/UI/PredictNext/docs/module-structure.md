@@ -17,6 +17,10 @@ PredictNext/
     NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
   availability/
     index.ts                   # Venue-aware selectPredictAvailability / usePredictAvailability
+  venueSelection/
+    index.ts                   # Venue picker for the Predict home headers (PRED-1401)
+    PredictVenueSelectorButton.tsx
+    internal/                  # Picker sheet and the preference-writing hook
   activity/
     index.ts                   # Activity projections for the shared Activity list and details
     usePredictActivityItems.ts # Activity as shared ActivityListItems

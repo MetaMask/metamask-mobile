@@ -17,6 +17,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   HeaderStandard,
   IconName,
   Text,
@@ -87,6 +91,7 @@ import {
 } from '../../../../../component-library/components-temp/Tabs';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
+import { PredictVenueSelectorButton } from '../../../PredictNext/venueSelection';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -699,13 +704,21 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             backButtonProps={{
               testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
             }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: handleShowSearch,
-                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-              },
-            ]}
+            endAccessory={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <PredictVenueSelectorButton variant="standard" />
+                <ButtonIcon
+                  size={ButtonIconSize.Md}
+                  iconName={IconName.Search}
+                  onPress={handleShowSearch}
+                  testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
+                />
+              </Box>
+            }
           />
         </Box>
 

@@ -128,6 +128,11 @@ jest.mock('react-redux', () => {
   };
 });
 
+// The venue picker is a PredictNext module with its own view tests.
+jest.mock('../../../PredictNext/venueSelection', () => ({
+  PredictVenueSelectorButton: () => null,
+}));
+
 jest.mock('../../selectors/featureFlags', () => ({
   selectPredictFeaturedCarouselEnabledFlag:
     'selectPredictFeaturedCarouselEnabledFlag',
