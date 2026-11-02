@@ -4,14 +4,13 @@ import { useTheme } from '../../../../../util/theme';
 import { createStyles } from '../NotificationOptionToggle/styles';
 import {
   FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import Icon, {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 export const NOTIFICATION_SWITCH = 'notifications-switch';
 export const CUSTOM_NOTIFICATIONS_ROW_SWITCH_CONTAINER_TEST_ID = (
