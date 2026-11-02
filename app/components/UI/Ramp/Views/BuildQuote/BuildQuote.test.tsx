@@ -161,10 +161,6 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: jest.fn((value: unknown) => value),
 }));
 
-jest.mock('../../hooks/useBlinkingCursor', () => ({
-  useBlinkingCursor: () => 1,
-}));
-
 const mockUseRampsController = jest.requireMock(
   '../../hooks/useRampsController',
 ).useRampsController as jest.Mock;
@@ -411,14 +407,15 @@ describe('BuildQuote', () => {
 
   describe('amount display', () => {
     it('renders a short amount in Grotzec at 88px with the send caret', () => {
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId, getByText } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
       const cursor = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR);
 
-      expect(amountInput).toHaveStyle({
+      expect(amountInput).toHaveTextContent('100');
+      expect(getByText('1')).toHaveStyle({
         fontFamily: 'GrotzecCond-Bold',
         fontSize: 88,
         lineHeight: 88,
@@ -429,7 +426,6 @@ describe('BuildQuote', () => {
         height: 84,
         backgroundColor: 'muted',
         transform: [{ translateY: -4 }],
-        opacity: 1,
       });
       expect(getByTestId(BUILD_QUOTE_TEST_IDS.AMOUNT_ROW)).toHaveStyle({
         height: 88,
@@ -447,8 +443,9 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId('keypad-trigger-empty'));
       });
 
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '0',
+      );
     });
 
     it('updates amount from string input with parsed valueAsNumber', async () => {
@@ -460,8 +457,9 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId('keypad-trigger-string'));
       });
 
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('250');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '250',
+      );
     });
 
     it('uses valueAsNumber when provided with string input', async () => {
@@ -473,23 +471,28 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId('keypad-trigger-with-value-as-number'));
       });
 
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('99.99');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '99.99',
+      );
     });
 
     it('clears rampsError when amount is updated', async () => {
       mockUseParams.mockReturnValue({ nativeFlowError: 'Some error' });
 
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      expect(getByText('Some error')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByTestId('keypad-trigger-string'));
       });
 
-      expect(amountInput.props.color).toBeUndefined();
+      expect(queryByText('Some error')).not.toBeOnTheScreen();
     });
 
     it('clears amount to 0 when Back key pressed and keyboard not dirty', async () => {
@@ -501,8 +504,9 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId('keypad-trigger-back'));
       });
 
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '0',
+      );
     });
 
     it('updates amount when Back key pressed and keyboard is dirty', async () => {
@@ -517,8 +521,9 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId('keypad-trigger-back'));
       });
 
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('10');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '10',
+      );
     });
   });
 

@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, View } from 'react-native';
+import { View } from 'react-native';
 import {
   useNavigation,
   useFocusEffect,
@@ -37,7 +37,10 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { getFontSizeForInputLength } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  AnimatedAmountDisplay,
+  getFontSizeForInputLength,
+} from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
@@ -50,7 +53,6 @@ import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
 import useEmbeddedCheckout from '../../hooks/useEmbeddedCheckout';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
@@ -142,7 +144,6 @@ function BuildQuote() {
   const isOnBuildQuoteScreen = useIsFocused();
   const { styles, theme } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
-  const cursorOpacity = useBlinkingCursor();
 
   const params = useParams<BuildQuoteParams>();
   const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
@@ -822,35 +823,27 @@ function BuildQuote() {
                 testID={BUILD_QUOTE_TEST_IDS.AMOUNT_ROW}
                 style={[styles.amountRow, { height: AMOUNT_ROW_HEIGHT }]}
               >
-                <Text
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.DisplayMd}
-                  fontFamily={FontFamily.Hero}
+                <AnimatedAmountDisplay
+                  amountAccessible
+                  amountTestID={BuildQuoteSelectors.AMOUNT_INPUT}
+                  animated
                   color={
-                    amountInputHasError ? TextColor.ErrorDefault : undefined
+                    amountInputHasError
+                      ? TextColor.ErrorDefault
+                      : TextColor.TextDefault
                   }
+                  cursor={{
+                    animated: true,
+                    style: cursorStyle,
+                    testID: BuildQuoteSelectors.AMOUNT_INPUT_CURSOR,
+                  }}
+                  fontFamily={FontFamily.Hero}
+                  prefix={currencyPrefix || undefined}
                   style={amountTextStyle}
-                  numberOfLines={1}
-                >
-                  {currencyPrefix}
-                  {amount}
-                </Text>
-                <Animated.View
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT_CURSOR}
-                  style={[cursorStyle, { opacity: cursorOpacity }]}
+                  suffix={currencySuffix || undefined}
+                  value={amount}
+                  variant={TextVariant.DisplayMd}
                 />
-                {currencySuffix ? (
-                  <Text
-                    variant={TextVariant.DisplayMd}
-                    fontFamily={FontFamily.Hero}
-                    color={
-                      amountInputHasError ? TextColor.ErrorDefault : undefined
-                    }
-                    style={amountTextStyle}
-                  >
-                    {currencySuffix}
-                  </Text>
-                ) : null}
               </View>
               <PaymentMethodPill
                 label={
