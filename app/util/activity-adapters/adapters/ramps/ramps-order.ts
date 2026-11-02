@@ -4,7 +4,7 @@
  * two order types.
  */
 import type { RampsOrder } from '@metamask/ramps-controller';
-import type { ActivityListItem } from '../types';
+import type { ActivityListItem } from '../../types';
 import {
   getRampsOrderCreatedAt,
   getRampsOrderTransactionHash,

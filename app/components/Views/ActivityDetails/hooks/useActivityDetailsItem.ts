@@ -20,7 +20,7 @@ import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
 import { isValidTransactionHash } from '../../ActivityList/hooks/activity/isValidTransactionHash';
-import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivityItems';
+import { useRampActivityItemsById } from '../../ActivityList/ramps/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import {
   mapNonEvmTransactions,

@@ -489,6 +489,8 @@ app/components/Views/ActivityDetails/templates/Perps/       @MetaMask/perps @Met
 app/components/Views/ActivityDetails/templates/Ramps/       @MetaMask/money-movement @MetaMask/mobile-core-ux
 app/components/Views/ActivityList/perps/                    @MetaMask/perps @MetaMask/mobile-core-ux
 app/util/activity-adapters/adapters/perps/                  @MetaMask/perps @MetaMask/mobile-core-ux
+app/components/Views/ActivityList/ramps/                    @MetaMask/money-movement @MetaMask/mobile-core-ux
+app/util/activity-adapters/adapters/ramps/                  @MetaMask/money-movement @MetaMask/mobile-core-ux
 app/components/UI/PredictNext/activity/                     @MetaMask/predict @MetaMask/mobile-core-ux
 
 # Snapshots – no code owners assigned

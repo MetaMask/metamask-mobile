@@ -23,7 +23,7 @@ import { useActivityDetailsItem } from './useActivityDetailsItem';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
-import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivityItems';
+import { useRampActivityItemsById } from '../../ActivityList/ramps/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -32,7 +32,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../ActivityList/hooks/activity/useApiTransaction');
-jest.mock('../../ActivityList/hooks/useRampActivityItems');
+jest.mock('../../ActivityList/ramps/useRampActivityItems');
 jest.mock('../../ActivityList/useTransactionsQuery');
 jest.mock('../../ActivityList/helpers/transformations', () => ({
   ...jest.requireActual('../../ActivityList/helpers/transformations'),

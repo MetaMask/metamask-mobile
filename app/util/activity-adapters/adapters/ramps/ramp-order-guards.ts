@@ -1,6 +1,6 @@
 import type { RampsOrder } from '@metamask/ramps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { FiatOrder } from '../../../reducers/fiatOrders/types';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 
 /**
  * Discriminates legacy fiat Redux orders from native RampsController orders.
