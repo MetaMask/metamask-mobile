@@ -9,6 +9,7 @@ import Logger from '../../../../util/Logger';
 import I18n from '../../../../../locales/i18n';
 import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
+import { toSumSubLocale } from '../utils/toSumSubLocale';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -117,7 +118,7 @@ export const useLaunchSumSub = (
 
         trackKycVerificationUpdated({ status: 'started' });
         const outcome = await KycController.launchProviderFlow({
-          locale: I18n.locale,
+          locale: toSumSubLocale(I18n.locale),
         });
         if (cancelled) {
           return;

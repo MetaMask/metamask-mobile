@@ -4,6 +4,8 @@ import I18n from '../../../../../locales/i18n';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
 import { useLaunchSumSub } from './useLaunchSumSub';
 
+const originalLocale = I18n.locale;
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
@@ -37,12 +39,17 @@ const mockTrack = jest.mocked(trackKycVerificationUpdated);
 describe('useLaunchSumSub analytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    I18n.locale = 'pt';
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
     mockKycController.fetchSessionDisclaimers.mockResolvedValue({
       idOS: [],
       kycProvider: [],
     });
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    I18n.locale = originalLocale;
   });
 
   it('tracks started right before the provider flow launches', async () => {
@@ -54,7 +61,7 @@ describe('useLaunchSumSub analytics', () => {
 
     await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
     expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
-      locale: I18n.locale,
+      locale: 'pt-BR',
     });
     expect(mockTrack).toHaveBeenCalledWith({ status: 'started' });
     expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
