@@ -188,4 +188,15 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
 
     expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledTimes(1);
   });
+
+  it('retries a later deposit after an earlier retry fails', async () => {
+    mockRetryPlusChargeAfterDeposit.mockRejectedValueOnce(
+      new Error('refresh failed'),
+    );
+
+    await handleTransactionConfirmedForPlusChargeRetry(makeTx({ id: 'tx-1' }));
+    await handleTransactionConfirmedForPlusChargeRetry(makeTx({ id: 'tx-2' }));
+
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledTimes(2);
+  });
 });
