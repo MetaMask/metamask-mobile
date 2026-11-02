@@ -1,8 +1,7 @@
-import { p256 } from '@noble/curves/nist';
-
 import SecureKeychain from '../../../../core/SecureKeychain';
 import { ensureError } from '../../../../util/errorUtils';
 import Logger from '../../../../util/Logger';
+import { importP256SecretKey, type P256KeyMaterial } from './p256QuickCrypto';
 import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
 const PERSISTED_KEY_VERSION = 2;
@@ -15,10 +14,8 @@ const DEVICE_KEY_SERVICE_PREFIX = 'com.metamask.predict.device-key';
 
 type DeviceKeyProfile = VenueAuthenticationProfile['deviceKey'];
 
-export interface StoredP256DeviceKey {
+export interface StoredP256DeviceKey extends P256KeyMaterial {
   keySlot: string;
-  secretKey: Uint8Array;
-  publicRaw: Uint8Array;
   saltRaw: Uint8Array;
 }
 
@@ -36,7 +33,7 @@ export async function readPersistedP256DeviceKey(
     return { status: 'missing' };
   }
 
-  const read = parsePersistedKey(profile, item.value);
+  const read = await parsePersistedKey(profile, item.value);
   if (read.status === 'unusable') {
     Logger.error(
       new Error('Predict device key record was discarded'),
@@ -72,10 +69,10 @@ export async function deletePersistedP256DeviceKey(
   await clearScope(getSecureScope(profile));
 }
 
-function parsePersistedKey(
+async function parsePersistedKey(
   profile: DeviceKeyProfile,
   payload: string,
-): Exclude<PersistedP256DeviceKeyRead, { status: 'missing' }> {
+): Promise<Exclude<PersistedP256DeviceKeyRead, { status: 'missing' }>> {
   try {
     const parsed: unknown = JSON.parse(payload);
     const version = readPersistedVersion(parsed);
@@ -88,26 +85,22 @@ function parsePersistedKey(
 
     const secretKey = fromBase64Url(parsed.secretKey);
     const saltRaw = fromBase64Url(parsed.salt);
-    if (
-      !p256.utils.isValidSecretKey(secretKey) ||
-      saltRaw.length !== P256_DEVICE_SALT_LENGTH
-    ) {
+    if (saltRaw.length !== P256_DEVICE_SALT_LENGTH) {
       return { status: 'unusable' };
     }
 
-    const publicRaw = p256.getPublicKey(secretKey, false);
-    if (publicRaw.length !== P256_PUBLIC_KEY_LENGTH || publicRaw[0] !== 0x04) {
+    const key = await importP256SecretKey(secretKey);
+    secretKey.fill(0);
+    if (
+      key.publicRaw.length !== P256_PUBLIC_KEY_LENGTH ||
+      key.publicRaw[0] !== 0x04
+    ) {
       return { status: 'unusable' };
     }
 
     return {
       status: 'present',
-      key: {
-        keySlot: profile.keySlot,
-        secretKey: copyBytes(secretKey),
-        publicRaw: copyBytes(publicRaw),
-        saltRaw: copyBytes(saltRaw),
-      },
+      key: { ...key, keySlot: profile.keySlot, saltRaw },
     };
   } catch {
     return { status: 'unusable' };
@@ -172,10 +165,6 @@ async function clearScope(
       'Failed to delete Predict device key',
     );
   }
-}
-
-function copyBytes(bytes: Uint8Array): Uint8Array {
-  return new Uint8Array(bytes);
 }
 
 function bytesToBase64Url(bytes: Uint8Array): string {

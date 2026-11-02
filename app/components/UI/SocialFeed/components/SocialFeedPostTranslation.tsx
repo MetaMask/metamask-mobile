@@ -194,9 +194,10 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
   };
 
   return (
-    <Box twClassName="gap-2">
+    <Box twClassName="mt-1">
       <Text
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Regular}
         color={TextColor.TextDefault}
         accessibilityLiveRegion="polite"
       >

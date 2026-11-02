@@ -3,6 +3,7 @@ import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import {
   beginPostTradeShareSession,
   clearPostTradeShareSession,
+  hasPostTradeShareReopenOwner,
   PostTradeShareOwner,
   requestPostTradeShareReopen,
 } from './postTradeShareSession';
@@ -94,6 +95,42 @@ describe('usePostTradeShareReopen', () => {
 
     expect(feedReopen).not.toHaveBeenCalled();
     expect(positionReopen).toHaveBeenCalledWith(target, undefined, 'sell');
+  });
+
+  it('registers the owner while mounted and unregisters on unmount', () => {
+    const { unmount } = renderHook(() =>
+      usePostTradeShareReopen(jest.fn(), PostTradeShareOwner.socialV1Feed),
+    );
+
+    expect(hasPostTradeShareReopenOwner(PostTradeShareOwner.socialV1Feed)).toBe(
+      true,
+    );
+
+    unmount();
+
+    expect(hasPostTradeShareReopenOwner(PostTradeShareOwner.socialV1Feed)).toBe(
+      false,
+    );
+  });
+
+  it('unregisters the owner when it becomes undefined', () => {
+    const { rerender } = renderHook(
+      ({ owner }: { owner?: typeof PostTradeShareOwner.socialV1Feed }) =>
+        usePostTradeShareReopen(jest.fn(), owner),
+      {
+        initialProps: {
+          owner: PostTradeShareOwner.socialV1Feed as
+            | typeof PostTradeShareOwner.socialV1Feed
+            | undefined,
+        },
+      },
+    );
+
+    rerender({ owner: undefined });
+
+    expect(hasPostTradeShareReopenOwner(PostTradeShareOwner.socialV1Feed)).toBe(
+      false,
+    );
   });
 
   it('does not call onReopen when the session is cleared', () => {

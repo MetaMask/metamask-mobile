@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { getVersion } from 'react-native-device-info';
 import type { Json } from '@metamask/utils';
 import type { Position } from '@metamask/perps-controller';
+import type { Position as SocialPosition } from '@metamask/social-controllers';
 import { getDefaultProfileControllerState } from '@metamask/profile-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
@@ -47,6 +48,30 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+const mockTraderPositionsState: {
+  openPositions: SocialPosition[];
+  isLoadingOpen: boolean;
+} = {
+  openPositions: [],
+  isLoadingOpen: false,
+};
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/TraderProfileView/hooks/useTraderPositions',
+  () => ({
+    useTraderPositions: () => ({
+      openPositions: mockTraderPositionsState.openPositions,
+      closedPositions: [],
+      isLoadingOpen: mockTraderPositionsState.isLoadingOpen,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn(),
+    }),
+  }),
+);
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -77,11 +102,39 @@ const socialProfile = {
   updatedAt: '',
 };
 
+const indexedEthLong = {
+  tokenSymbol: 'ETH',
+  chain: 'hyperliquid',
+  perpPositionType: 'long',
+} as SocialPosition;
+
+let activeState: RootState;
+
+const publishSocialProfile = () => {
+  activeState = {
+    ...activeState,
+    engine: {
+      ...activeState.engine,
+      backgroundState: {
+        ...activeState.engine.backgroundState,
+        ProfileController: {
+          profile: socialProfile,
+        },
+      },
+    },
+  } as RootState;
+};
+
 const sheetNavigation = [
   Routes.PERPS.MODALS.ROOT,
   {
     screen: Routes.PERPS.MODALS.SHARE_POSITION,
-    params: { position, marketPrice, accountAddress: PERPS_ACCOUNT_ADDRESS },
+    params: {
+      position,
+      marketPrice,
+      accountAddress: PERPS_ACCOUNT_ADDRESS,
+      socialPosition: indexedEthLong,
+    },
   },
 ];
 const pnlCardNavigation = [
@@ -143,7 +196,8 @@ const renderWithGates = (
       },
     },
   } as unknown as RootState;
-  mockUseSelector.mockImplementation((selector) => selector(state));
+  activeState = state;
+  mockUseSelector.mockImplementation((selector) => selector(activeState));
 
   return renderHook(() => usePerpsSharePosition(), {
     wrapper: ({ children }: { children: ReactNode }) =>
@@ -162,10 +216,15 @@ describe('usePerpsSharePosition', () => {
     jest.clearAllMocks();
     mockSelectedAccountAddress = PERPS_ACCOUNT_ADDRESS;
     jest.mocked(getVersion).mockReturnValue('8.17.0');
+    mockTraderPositionsState.openPositions = [indexedEthLong];
+    mockTraderPositionsState.isLoadingOpen = false;
     mockGetSessionProfile.mockResolvedValue({
       profileId: 'session-profile-id',
     });
-    mockFetchAndUpdateProfile.mockResolvedValue(socialProfile);
+    mockFetchAndUpdateProfile.mockImplementation(async () => {
+      publishSocialProfile();
+      return socialProfile;
+    });
   });
 
   it('opens the Share position sheet with the Perps account when the user can post to the Social feed', () => {
@@ -212,168 +271,120 @@ describe('usePerpsSharePosition', () => {
     );
   });
 
-  it('waits for a profile lookup in flight, then opens the sheet when the profile arrives', async () => {
+  it('opens the PnL hero card immediately while the profile lookup from screen load is still running', async () => {
     const profileLookup = createDeferred<typeof socialProfile>();
     mockFetchAndUpdateProfile.mockReturnValue(profileLookup.promise);
     const { result } = renderWithGates({ hasSocialProfile: false });
     await waitFor(() => expect(mockFetchAndUpdateProfile).toHaveBeenCalled());
 
+    const bitcoinPosition = { ...position, symbol: 'BTC' } as Position;
     act(() => {
       result.current.sharePosition(position, marketPrice);
+      result.current.sharePosition(bitcoinPosition, marketPrice);
     });
-    expect(mockNavigate).not.toHaveBeenCalled();
+
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, ...pnlCardNavigation);
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.PERPS.PNL_HERO_CARD,
+      {
+        position: bitcoinPosition,
+        marketPrice,
+      },
+    );
+    expect(mockGetSessionProfile).toHaveBeenCalledTimes(1);
+    expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(1);
+    profileLookup.resolve(socialProfile);
+  });
+
+  it('opens the share sheet from the finished screen-load lookup without looking up again', async () => {
+    const profileLookup = createDeferred<typeof socialProfile>();
+    mockFetchAndUpdateProfile.mockImplementation(async () => {
+      publishSocialProfile();
+      return profileLookup.promise;
+    });
+    const { result } = renderWithGates({ hasSocialProfile: false });
+    await waitFor(() => expect(mockFetchAndUpdateProfile).toHaveBeenCalled());
 
     await act(async () => {
       profileLookup.resolve(socialProfile);
     });
-
     await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(...sheetNavigation),
+      expect(result.current.findSocialPosition(position)).toBeDefined(),
     );
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-  });
-
-  it('waits for a profile lookup in flight, then opens the PnL hero card when no profile exists', async () => {
-    const profileLookup = createDeferred<typeof socialProfile>();
-    mockFetchAndUpdateProfile.mockReturnValue(profileLookup.promise);
-    const { result } = renderWithGates({ hasSocialProfile: false });
-    await waitFor(() => expect(mockFetchAndUpdateProfile).toHaveBeenCalled());
 
     act(() => {
       result.current.sharePosition(position, marketPrice);
     });
-    expect(mockNavigate).not.toHaveBeenCalled();
 
-    await act(async () => {
-      profileLookup.reject(new Error('GET_PROFILE_FAILED: 404'));
-    });
-
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation),
-    );
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(...sheetNavigation);
+    expect(mockGetSessionProfile).toHaveBeenCalledTimes(1);
+    expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(1);
   });
 
-  it('retries once when the lookup a share is waiting on fails, then opens the sheet', async () => {
-    const firstLookup = createDeferred<{ profileId: string }>();
-    mockGetSessionProfile.mockReturnValueOnce(firstLookup.promise);
-    const { result } = renderWithGates({ hasSocialProfile: false });
-    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
-
-    act(() => {
-      result.current.sharePosition(position, marketPrice);
-    });
-    await act(async () => {
-      firstLookup.reject(new Error('Network error'));
-    });
-
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(...sheetNavigation),
-    );
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
-  });
-
-  it('opens the PnL hero card when the retry for a waiting share also fails', async () => {
-    const firstLookup = createDeferred<{ profileId: string }>();
-    mockGetSessionProfile
-      .mockReturnValueOnce(firstLookup.promise)
-      .mockRejectedValueOnce(new Error('Network error'));
-    const { result } = renderWithGates({ hasSocialProfile: false });
-    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
-
-    act(() => {
-      result.current.sharePosition(position, marketPrice);
-    });
-    await act(async () => {
-      firstLookup.reject(new Error('Network error'));
-    });
-
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation),
-    );
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
-  });
-
-  it('keeps a single retry when share is tapped again while the retry is in flight', async () => {
-    const firstLookup = createDeferred<{ profileId: string }>();
-    const retryLookup = createDeferred<{ profileId: string }>();
-    mockGetSessionProfile
-      .mockReturnValueOnce(firstLookup.promise)
-      .mockReturnValueOnce(retryLookup.promise);
-    const { result } = renderWithGates({ hasSocialProfile: false });
-    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
-
-    act(() => {
-      result.current.sharePosition(position, marketPrice);
-    });
-    await act(async () => {
-      firstLookup.reject(new Error('Network error'));
-    });
-    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(2));
-
-    act(() => {
-      result.current.sharePosition(position, marketPrice);
-    });
-    await act(async () => {
-      retryLookup.reject(new Error('Network error'));
-    });
-
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation),
-    );
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
-  });
-
-  it('keeps the sharing account when the selected account changes during the profile lookup', async () => {
-    const profileLookup = createDeferred<typeof socialProfile>();
-    mockFetchAndUpdateProfile.mockReturnValue(profileLookup.promise);
+  it('opens the PnL hero card when the position belongs to another wallet', () => {
     mockSelectedAccountAddress = OTHER_ACCOUNT_ADDRESS;
-    const { result, rerender } = renderWithGates({ hasSocialProfile: false });
-    await waitFor(() => expect(mockFetchAndUpdateProfile).toHaveBeenCalled());
+    const { result } = renderWithGates();
 
-    act(() => {
-      result.current.sharePosition(position, marketPrice);
-    });
-    mockSelectedAccountAddress = PERPS_ACCOUNT_ADDRESS;
-    rerender({});
-    await act(async () => {
-      profileLookup.resolve(socialProfile);
-    });
+    result.current.sharePosition(position, marketPrice);
 
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-        screen: Routes.PERPS.MODALS.SHARE_POSITION,
-        params: {
-          position,
-          marketPrice,
-          accountAddress: OTHER_ACCOUNT_ADDRESS,
-        },
-      }),
-    );
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation);
   });
 
-  it('retries a failed session lookup on share and recovers to the sheet', async () => {
+  it('opens the PnL hero card when Social has not indexed the position', () => {
+    mockTraderPositionsState.openPositions = [];
+    const { result } = renderWithGates();
+
+    result.current.sharePosition(position, marketPrice);
+
+    expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation);
+  });
+
+  it('opens the PnL hero card for a position from a provider other than Hyperliquid', () => {
+    const lighterPosition = { ...position, providerId: 'lighter' } as Position;
+    const { result } = renderWithGates();
+
+    result.current.sharePosition(lighterPosition, marketPrice);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PNL_HERO_CARD, {
+      position: lighterPosition,
+      marketPrice,
+    });
+  });
+
+  it('opens the PnL hero card immediately while the position index is still loading', () => {
+    mockTraderPositionsState.isLoadingOpen = true;
+    mockTraderPositionsState.openPositions = [];
+    const { result } = renderWithGates();
+
+    result.current.sharePosition(position, marketPrice);
+
+    expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation);
+  });
+
+  it('opens the PnL hero card immediately when a still-loading index cannot match this wallet', () => {
+    mockTraderPositionsState.isLoadingOpen = true;
+    mockSelectedAccountAddress = OTHER_ACCOUNT_ADDRESS;
+    const { result } = renderWithGates();
+
+    result.current.sharePosition(position, marketPrice);
+
+    expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation);
+  });
+
+  it('does not look up the Social profile again when share is tapped after a failed lookup', async () => {
     mockGetSessionProfile.mockRejectedValueOnce(new Error('Network error'));
     const { result } = renderWithGates({ hasSocialProfile: false });
     await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
     await flushQueries();
-    expect(mockFetchAndUpdateProfile).not.toHaveBeenCalled();
 
     act(() => {
       result.current.sharePosition(position, marketPrice);
     });
 
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(...sheetNavigation),
-    );
-    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
-    expect(mockFetchAndUpdateProfile).toHaveBeenCalledWith(
-      'session-profile-id',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation);
+    expect(mockGetSessionProfile).toHaveBeenCalledTimes(1);
+    expect(mockFetchAndUpdateProfile).not.toHaveBeenCalled();
   });
 
   it('does not keep a failed session lookup as a missing profile when the screen remounts', async () => {

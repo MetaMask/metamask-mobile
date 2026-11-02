@@ -39,6 +39,7 @@ import {
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
+import { hydrateSocialTermsAcceptance } from '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
@@ -421,6 +422,8 @@ export function* startAppServices() {
 
   // Apply vault initialization
   yield call(applyVaultInitialization);
+
+  yield call(hydrateSocialTermsAcceptance);
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
