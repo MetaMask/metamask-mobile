@@ -8702,7 +8702,8 @@
     },
     "passkey": {
       "title_setup": "Create a passkey",
-      "title_verify": "Use your passkey"
+      "title_verify": "Use your passkey",
+      "use_another_method": "Use another method"
     },
     "failure": {
       "title": "Something went wrong",

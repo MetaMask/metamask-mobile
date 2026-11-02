@@ -69,6 +69,14 @@ export const createMfaFlow = ({
   let lastOperation: (() => Promise<void>) | undefined;
   /** The authenticator setup on screen before its code, so back can return. */
   let totpSetup: Extract<MfaFlowStep, { name: 'totpSetup' }> | undefined;
+  /**
+   * Picker options the user came from, so passkey verification failure can
+   * offer a different method. Cleared when the user returns to the picker or
+   * advances past verification.
+   */
+  let pickerContext:
+    | { purpose: Exclude<MfaPurpose, 'setup'>; options: MfaMethod[] }
+    | undefined;
   let state: MfaFlowState = {
     step: { name: 'idle' },
     busy: false,
@@ -567,10 +575,19 @@ export const createMfaFlow = ({
     try {
       await runPasskey();
     } catch (error) {
-      show({ name: 'passkey', purpose });
+      const otherOptions =
+        pickerContext?.purpose === purpose
+          ? pickerContext.options.filter((m) => m !== 'passkey')
+          : undefined;
+      show({
+        name: 'passkey',
+        purpose,
+        otherOptions: otherOptions?.length ? otherOptions : undefined,
+      });
       throw error;
     }
     // The ceremony went through: retrying must not run it again.
+    pickerContext = undefined;
     lastOperation = advance;
     await advance();
   }
@@ -678,7 +695,8 @@ export const createMfaFlow = ({
         return;
       case 'choose':
         if (step.name === 'picker' && step.options.includes(action.method)) {
-          const { purpose } = step;
+          const { purpose, options } = step;
+          pickerContext = { purpose, options };
           await run(() => startVerification(action.method, purpose));
         }
         return;
@@ -724,6 +742,18 @@ export const createMfaFlow = ({
           current?.email
         ) {
           show({ name: 'emailEntry', prefillEmail: current.email });
+        } else if (
+          step.name === 'passkey' &&
+          step.otherOptions?.length &&
+          pickerContext
+        ) {
+          // Passkey verification failed; return to the picker so the user can
+          // choose a different method.
+          show({
+            name: 'picker',
+            purpose: pickerContext.purpose,
+            options: pickerContext.options,
+          });
         }
         return;
       case 'dismiss':
