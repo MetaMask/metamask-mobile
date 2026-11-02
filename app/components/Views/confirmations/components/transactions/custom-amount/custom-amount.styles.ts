@@ -49,9 +49,6 @@ const styleSheet = (params: {
         },
       ],
     },
-    skeleton: {
-      borderRadius: 8,
-    },
     alertMessage: {
       textAlign: 'center',
       marginTop: 16,
