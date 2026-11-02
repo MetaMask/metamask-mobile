@@ -3,7 +3,7 @@ import { DepositCryptoCurrency } from '../types/legacyDeposit';
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
 export const TRANSAK_URL = 'https://www.transak.com';
 export const CONSENSYS_PRIVACY_POLICY_URL =
-  'https://metamask.com/privacy-notice';
+  'https://consensys.net/privacy-policy';
 export const TRANSAK_TERMS_URL_US =
   'https://www.transak.com/terms-of-service-us';
 export const TRANSAK_TERMS_URL_WORLD =
