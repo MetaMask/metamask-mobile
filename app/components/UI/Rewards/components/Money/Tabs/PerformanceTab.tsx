@@ -26,14 +26,18 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../../reducers';
 import type { ReferralFunnelEntry } from '../../../../../../reducers/rewardsMoney';
 import {
+  selectEarningsSummaryEntry,
   selectReferralFunnelEntry,
   selectReferralMeLocalizedText,
   type MoneyDashboardPersona,
 } from '../../../../../../reducers/rewardsMoney/selectors';
 import type {
+  EarningsSummaryDto,
   ReferralFunnelDto,
   ReferralLocalizedText,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
+import { formatMusdBaseUnits } from '../../../utils/formatUtils';
+import { earnedByOthersLifetime } from '../../../utils/earningsSummaryTotals';
 import { strings } from '../../../../../../../locales/i18n';
 import { navigateToRewardsRoute } from '../../../utils';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
@@ -48,27 +52,10 @@ import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
 } from '../PerformanceActivityRows';
+import { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab.testIds';
 
 /** Rows shown under each Performance section before "see all". */
 const PERFORMANCE_PREVIEW_COUNT = 5;
-
-export const PERFORMANCE_TAB_TEST_IDS = {
-  CONTAINER: 'rewards-money-performance-tab',
-  FUNNEL: 'rewards-money-performance-funnel',
-  FUNNEL_BAR: 'rewards-money-performance-funnel-bar',
-  COMMISSIONS: 'rewards-money-performance-commissions',
-  COMMISSIONS_HEADER: 'rewards-money-performance-commissions-header',
-  COMMISSIONS_DIVIDER: 'rewards-money-performance-commissions-divider',
-  REBATES: 'rewards-money-performance-rebates',
-  REBATES_HEADER: 'rewards-money-performance-rebates-header',
-  REBATES_DIVIDER: 'rewards-money-performance-rebates-divider',
-  FUNNEL_SKELETON: 'rewards-money-performance-funnel-skeleton',
-  FUNNEL_ERROR: 'rewards-money-performance-funnel-error',
-  COMMISSIONS_ERROR: 'rewards-money-performance-commissions-error',
-  COMMISSIONS_EMPTY: 'rewards-money-performance-commissions-empty',
-  REBATES_ERROR: 'rewards-money-performance-rebates-error',
-  REBATES_EMPTY: 'rewards-money-performance-rebates-empty',
-} as const;
 
 // ---------------------------------------------------------------------------
 // Derived state. Each source (funnel, commissions, rebates) reduces to the
@@ -229,8 +216,9 @@ const ReferralFunnelSkeleton: React.FC = () => {
 const FunnelSection: React.FC<{
   localizedText: ReferralLocalizedText;
   funnel: ReferralFunnelDto | null | undefined;
+  earningsSummary: EarningsSummaryDto | null | undefined;
   loading: boolean;
-}> = ({ localizedText, funnel, loading }) => {
+}> = ({ localizedText, funnel, earningsSummary, loading }) => {
   const funnelMax = Math.max(funnel?.enrolled ?? 0, 1);
   const rows = funnel
     ? [
@@ -253,15 +241,31 @@ const FunnelSection: React.FC<{
     <>
       <SectionHeader title={localizedText.referrals} twClassName="pt-6 pb-4">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {localizedText.last30DaysUpdatedDaily}
+          {localizedText.updatedDaily}
         </Text>
       </SectionHeader>
       <Box twClassName="px-4">
         {loading ? <ReferralFunnelSkeleton /> : null}
         {funnel ? (
           <Box twClassName="gap-5" testID={PERFORMANCE_TAB_TEST_IDS.FUNNEL}>
+            <Box>
+              <Text variant={TextVariant.DisplayMd}>
+                {formatMusdBaseUnits(
+                  earnedByOthersLifetime(earningsSummary, 'REFERRAL_REV_SHARE'),
+                ) ?? '—'}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {localizedText.eligibleFees}
+              </Text>
+            </Box>
             {rows.map((row, index) => (
-              <Box key={row.key}>
+              <Box
+                key={row.key}
+                testID={`${PERFORMANCE_TAB_TEST_IDS.FUNNEL_ROW}-${row.key}`}
+              >
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   justifyContent={BoxJustifyContent.Between}
@@ -399,7 +403,7 @@ function ActivitySection<T extends { id: string }>({
 interface PerformanceTabProps {
   profileId: string;
   persona: MoneyDashboardPersona;
-  /** False while another Money tab is selected. The panel stays mounted. */
+  /** Gates this tab's reads. The dashboard mounts the tab only while it is selected. */
   active: boolean;
 }
 
@@ -414,6 +418,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
   const showCommissions = (isReferrer || isReferee) && SHOW_TRADING_COMMISSIONS;
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
+  );
+  const earningsSummary = useSelector(
+    (state: RootState) =>
+      selectEarningsSummaryEntry(state, profileId)?.data ?? null,
   );
   const funnelEntry = useSelector((state: RootState) =>
     selectReferralFunnelEntry(state, profileId),
@@ -456,16 +464,13 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
         <FunnelSection
           localizedText={localizedText}
           funnel={funnel.data}
+          earningsSummary={earningsSummary}
           loading={funnel.loading}
         />
       ) : null}
       {commissions.show ? (
         <ActivitySection
-          title={
-            isReferrer
-              ? localizedText.tradeCommissions
-              : localizedText.tradingCommissionsSection
-          }
+          title={localizedText.tradingCommissionsSection}
           testIDs={{
             header: PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER,
             divider: PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_DIVIDER,

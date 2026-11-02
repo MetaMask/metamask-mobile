@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -17,8 +17,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
+import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import Routes from '../../../../constants/navigation/Routes';
 import { useMfa } from '../../../../util/identity/mfa';
+import { useTheme } from '../../../../util/theme';
 import { getActivePasskeys } from '../credentials';
 import { getAddedOn, getPasskeyName } from '../labels';
 import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
@@ -29,7 +35,9 @@ import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
  */
 const MfaPasskeys = () => {
   const tw = useTailwind();
+  const theme = useTheme();
   const navigation = useNavigation();
+  const { toastRef } = useContext(ToastContext);
   const { credentials, enroll } = useMfa();
   const passkeys = getActivePasskeys(credentials);
 
@@ -37,7 +45,17 @@ const MfaPasskeys = () => {
     enroll({
       method: 'passkey',
       reason: { operation: 'settings.addPasskey' },
-    }).catch(() => undefined);
+    })
+      .then(() =>
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [{ label: strings('mfa.settings.passkey_added') }],
+          iconName: ToastIconName.Confirmation,
+          iconColor: theme.colors.success.default,
+          hasNoTimeout: false,
+        }),
+      )
+      .catch(() => undefined);
   };
 
   return (

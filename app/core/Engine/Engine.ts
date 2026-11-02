@@ -49,6 +49,7 @@ import {
 } from './utils/buildAssetsBalanceUpdateFromPush';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
+import { ensureError } from '../../util/errorUtils';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
@@ -136,6 +137,7 @@ import {
   predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
+import { predictDeviceAuthServiceInit } from './controllers/predict-device-auth-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
 import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { sentinelFeeTokensDataServiceInit } from './controllers/sentinel-fee-tokens-data-service-init';
@@ -177,12 +179,14 @@ import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-i
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { socialServiceInit } from './controllers/social-service-init';
+import { socialRealtimeServiceInit } from './controllers/social-realtime-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { profileServiceInit } from './controllers/profile-service-init';
 import { profileControllerInit } from './controllers/profile-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
+import { predictVenueControllerInit } from './controllers/predict-venue-controller-init';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
@@ -325,6 +329,7 @@ export class Engine {
         GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
         GeolocationController: geolocationControllerInit,
+        PredictVenueController: predictVenueControllerInit,
         TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
@@ -369,6 +374,7 @@ export class Engine {
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         PredictOrderService: predictOrderServiceInit,
+        PredictDeviceAuthService: predictDeviceAuthServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
         SentinelFeeTokensDataService: sentinelFeeTokensDataServiceInit,
@@ -389,6 +395,7 @@ export class Engine {
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
+        SocialRealtimeService: socialRealtimeServiceInit,
         SocialController: socialControllerInit,
         ProfileService: profileServiceInit,
         ProfileController: profileControllerInit,
@@ -667,6 +674,8 @@ export class Engine {
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictDeviceAuthService: messengerClientsByName.PredictDeviceAuthService,
+      PredictVenueController: messengerClientsByName.PredictVenueController,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
       LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
@@ -684,6 +693,7 @@ export class Engine {
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       SocialService: socialService,
+      SocialRealtimeService: messengerClientsByName.SocialRealtimeService,
       SocialController: socialController,
       ProfileService: messengerClientsByName.ProfileService,
       ProfileController: messengerClientsByName.ProfileController,
@@ -1351,6 +1361,10 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      PredictOrderService,
+      PredictPortfolioService,
+      PredictDeviceAuthService,
+      PredictVenueController,
     } = this.context;
 
     // Remove all permissions.
@@ -1395,6 +1409,27 @@ export class Engine {
 
     // KYC:
     KycController.clearState();
+
+    // PredictNext account state. A wallet reset replaces the Predict User
+    // within one process, so the previous person's account reads and their
+    // Order observation must not outlive it. Commits are abandoned before the
+    // reads are dropped, so no receipt can refill the cache afterwards. The
+    // Venue-scoped market-data and live-data caches carry public data and stay.
+    try {
+      PredictOrderService.abandonCommits();
+      await PredictPortfolioService.clearAccountData();
+    } catch (error) {
+      // Housekeeping a replaced person must never break the reset itself.
+      Logger.error(
+        ensureError(error, 'Engine.resetState'),
+        'Engine: failed to clear cached PredictNext account data',
+      );
+    }
+
+    await PredictDeviceAuthService.reset();
+    // The Venue Selection Preference and the last Active Venue are device
+    // Venue history, not the next person's choice.
+    PredictVenueController.clearState();
   };
 
   removeAllListeners() {
@@ -1543,6 +1578,7 @@ export default {
       BridgeStatusController,
       CardController,
       UiSlotsController,
+      PredictVenueController,
       ConfigRegistryController,
       ConnectivityController,
       NetworkConnectionBannerController,
@@ -1661,6 +1697,7 @@ export default {
       ProfileController: ProfileController.state,
       CardController: CardController.state,
       UiSlotsController: UiSlotsController.state,
+      PredictVenueController: PredictVenueController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       KycController: KycController.state,

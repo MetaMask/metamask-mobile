@@ -12,7 +12,7 @@ const renderCard = (
       iconName={IconName.UserCircleAdd}
       label="Referrals"
       amount="$41.75"
-      caption="recorded claims"
+      caption="recorded earnings"
       testID="metric-card"
       {...props}
     />,
@@ -26,14 +26,14 @@ describe('MoneyMetricCard', () => {
     expect(getByTestId('metric-card')).toBeOnTheScreen();
     expect(getByText('Referrals')).toBeOnTheScreen();
     expect(getByText('$41.75')).toBeOnTheScreen();
-    expect(getByText('recorded claims')).toBeOnTheScreen();
+    expect(getByText('recorded earnings')).toBeOnTheScreen();
   });
 
   it('keeps the label and caption when there is no amount', () => {
     const { getByText, queryByText } = renderCard({ amount: null });
 
     expect(getByText('Referrals')).toBeOnTheScreen();
-    expect(getByText('recorded claims')).toBeOnTheScreen();
+    expect(getByText('recorded earnings')).toBeOnTheScreen();
     expect(getByText('—')).toBeOnTheScreen();
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
   });

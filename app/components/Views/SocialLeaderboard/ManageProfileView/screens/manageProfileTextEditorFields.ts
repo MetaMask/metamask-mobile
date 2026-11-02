@@ -16,7 +16,7 @@ interface ManageProfileTextEditorFieldConfig {
     | 'social_leaderboard.manage_profile.display_name'
     | 'social_leaderboard.manage_profile.handle'
     | 'social_leaderboard.manage_profile.bio'
-    | 'social_leaderboard.manage_profile.socials';
+    | 'social_leaderboard.manage_profile.x_account';
   helperKey?:
     | 'social_leaderboard.manage_profile.handle_helper'
     | 'social_leaderboard.manage_profile.socials_helper';
@@ -73,9 +73,9 @@ export const MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG: Record<
     },
   },
   socials: {
-    titleKey: 'social_leaderboard.manage_profile.socials',
+    titleKey: 'social_leaderboard.manage_profile.x_account',
     helperKey: 'social_leaderboard.manage_profile.socials_helper',
-    prefix: 'X @',
+    prefix: '@',
     getInitialValue: (profile) => profile?.xHandle ?? '',
     testIDs: {
       container: ManageProfileEditorSelectorsIDs.SOCIALS_CONTAINER,

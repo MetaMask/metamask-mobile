@@ -244,6 +244,9 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
   twapSummary,
+  feeDisplayMode,
+  takerFeeRate,
+  makerFeeRate,
 }: PerpsProOrderSummaryProps) => (
   <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
     {twapSummary ? (
@@ -331,6 +334,9 @@ const OrderSummary = ({
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
+          feeDisplayMode={feeDisplayMode}
+          takerFeeRate={takerFeeRate}
+          makerFeeRate={makerFeeRate}
         />
       }
       keyEndButtonIconProps={buttonIcon(
@@ -509,6 +515,7 @@ const PerpsProOrderForm = ({
   onUseMidPricePress,
   chaseMaxDistance = '',
   onChaseMaxDistanceChange = () => undefined,
+  onChaseMaxDistanceFocus,
   chaseMaxDistanceUnit = 'usd',
   onChaseMaxDistanceUnitChange = () => undefined,
   chaseReferencePrice = PERPS_CONSTANTS.FallbackPriceDisplay,
@@ -911,6 +918,7 @@ const PerpsProOrderForm = ({
                   label={`${strings('perps.order.chase.max_distance')} (${chaseMaxDistanceUnit === 'usd' ? 'USD' : '%'})`}
                   value={chaseMaxDistance}
                   onChangeText={onChaseMaxDistanceChange}
+                  onFocus={onChaseMaxDistanceFocus}
                   testID={ids.CHASE_MAX_DISTANCE_INPUT}
                   isDisabled={isScaleFormLocked}
                   variant="inline-labeled"

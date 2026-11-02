@@ -1,26 +1,97 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictPortfolioScreen } from '../../../../../../tests/component-view/renderers/predictNext';
+import { createComponentViewQueryClient } from '../../../../../../tests/component-view/render';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import {
   composePredictNextOrderService,
   composePredictNextPortfolioTrading,
   configurePredictNextFeeds,
-  makePredictNextFill,
   makePredictNextPosition,
   makePredictNextSellPreview,
   makePredictNextSellReceipt,
   makePredictNextSettlement,
+  makePredictNextSummary,
+  makePredictNextTrade,
   messengerCall,
+  mockPredictNextMessenger,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
-import { KALSHI_VENUE_ID } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 // eslint-disable-next-line import-x/no-namespace -- spy on named `endTrace` export
 import * as Trace from '../../../../../util/trace';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
+
+/**
+ * Routes the renderer's UI query client to real Predict services: its
+ * messenger adapter calls the Engine controller messenger, so point the
+ * portfolio actions and cache events at the composition root the composed
+ * services share. Every other action keeps the fixture answers.
+ *
+ * @param rootMessenger - The composition root the real services run on.
+ * @returns A restore function for the caller's cleanup.
+ */
+const routePredictPortfolioServicesTo = (
+  rootMessenger: ReturnType<
+    typeof composePredictNextPortfolioTrading
+  >['rootMessenger'],
+) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    call: (action: string, ...params: unknown[]) => Promise<unknown>;
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalCall = controllerMessenger.call;
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and a spy here can re-enter itself when
+  // the fixture delegate is the same mock.
+  controllerMessenger.call = (action: string, ...params: unknown[]) => {
+    if (action.startsWith('PredictPortfolioService:')) {
+      // The composition root is a MockAnyNamespace messenger: it accepts any
+      // action the real services registered.
+      return (
+        rootMessenger.call as unknown as (
+          action: string,
+          ...params: unknown[]
+        ) => Promise<unknown>
+      )(action, ...params);
+    }
+    return originalCall(action, ...params);
+  };
+  controllerMessenger.subscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.subscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.unsubscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  return () => {
+    controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
+  };
+};
 
 describe('PredictPortfolioScreen', () => {
   beforeEach(() => {
@@ -33,49 +104,125 @@ describe('PredictPortfolioScreen', () => {
     onlineManager.setOnline(true);
   });
 
-  it('loads and rounds the available Balance', async () => {
+  it('renders the Portfolio Summary read, not a sum of loaded rows', async () => {
     const endTraceSpy = jest.spyOn(Trace, 'endTrace');
+    // The loaded page values one Position at $45.00; the Summary covers
+    // every holding, so its figures differ and are the ones shown.
+    configurePredictNextFeeds({
+      positions: [makePredictNextPosition()],
+      summary: makePredictNextSummary({
+        availableBalance: '120.50',
+        positionsValue: '33.00',
+        totalValue: '153.50',
+        unrealizedPnl: '0.64',
+        unrealizedPnlPercent: '2.32',
+      }),
+    });
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
-    ).toHaveTextContent('$123.13');
-    await view.findByTestId(PredictPortfolioScreenTestIds.EMPTY_STATE);
+      await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+    ).toHaveTextContent('$153.50');
 
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+    ).toHaveTextContent('$120.50');
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_VALUE),
+    ).toHaveTextContent('$33.00');
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.UNREALIZED_PNL),
+    ).toHaveTextContent('+$0.64 (+2.32%)');
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.SUMMARY_INCOMPLETE),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.CLAIMABLE_VALUE),
+    ).not.toBeOnTheScreen();
     expect(messengerCall).toHaveBeenCalledWith(
+      'PredictPortfolioService:getPortfolioSummary',
+      KALSHI_VENUE_ID,
+    );
+    expect(messengerCall).not.toHaveBeenCalledWith(
       'PredictPortfolioService:getBalance',
       KALSHI_VENUE_ID,
     );
-    expect(endTraceSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: Trace.TraceName.PredictNextPortfolioView,
-        data: { success: true },
-      }),
+    await waitFor(() =>
+      expect(endTraceSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: Trace.TraceName.PredictNextPortfolioView,
+          data: { success: true },
+        }),
+      ),
     );
   });
 
-  it('masks the available Balance in privacy mode', async () => {
+  it('flags an incomplete Summary instead of hiding or zeroing it', async () => {
+    configurePredictNextFeeds({
+      summary: makePredictNextSummary({
+        availableBalance: '50.00',
+        positionsValue: '24.40',
+        totalValue: '74.40',
+        unrealizedPnl: '1.78',
+        unrealizedPnlPercent: '7.85',
+        complete: false,
+      }),
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+    expect(
+      await view.findByTestId(PredictPortfolioScreenTestIds.SUMMARY_INCOMPLETE),
+    ).toHaveTextContent(
+      "Partial total: some positions couldn't be valued right now.",
+    );
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+    ).toHaveTextContent('$74.40');
+  });
+
+  it('renders a Summary PnL without a percent when the backend sends none', async () => {
+    configurePredictNextFeeds({
+      summary: makePredictNextSummary({
+        positionsValue: '0',
+        totalValue: '123.13',
+        unrealizedPnl: '0',
+        unrealizedPnlPercent: undefined,
+      }),
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+    expect(
+      await view.findByTestId(PredictPortfolioScreenTestIds.UNREALIZED_PNL),
+    ).toHaveTextContent('$0.00');
+    expect(view.queryByText(/%/u)).not.toBeOnTheScreen();
+  });
+
+  it('masks the Summary in privacy mode', async () => {
     const view = renderPredictPortfolioScreen(
       { venueId: KALSHI_VENUE_ID },
       true,
     );
 
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
 
+    expect(view.queryByText('$168.13')).not.toBeOnTheScreen();
     expect(view.queryByText('$123.13')).not.toBeOnTheScreen();
+    expect(view.queryByText('+$3.75 (+9.09%)')).not.toBeOnTheScreen();
   });
 
-  it('retries a failed Balance read', async () => {
+  it('retries a failed Summary read', async () => {
     let fails = true;
-    messengerCall.mockImplementation((action: string) =>
-      action === 'PredictPortfolioService:getBalance'
+    mockPredictNextMessenger((action: string) =>
+      action === 'PredictPortfolioService:getPortfolioSummary'
         ? fails
-          ? Promise.reject(new Error('Balance failed'))
-          : Promise.resolve({
-              venueId: 'kalshi',
-              currency: 'USD',
-              available: '5',
-            })
+          ? Promise.reject(new Error('Summary failed'))
+          : Promise.resolve(
+              makePredictNextSummary({
+                availableBalance: '5',
+                positionsValue: '0',
+                totalValue: '5',
+              }),
+            )
         : Promise.resolve({
             venueId: 'kalshi',
             positions: [],
@@ -83,27 +230,30 @@ describe('PredictPortfolioScreen', () => {
           }),
     );
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_ERROR);
+    await view.findByTestId(PredictPortfolioScreenTestIds.SUMMARY_ERROR);
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+    ).not.toBeOnTheScreen();
 
     fails = false;
     fireEvent.press(
-      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_RETRY),
+      view.getByTestId(PredictPortfolioScreenTestIds.SUMMARY_RETRY),
     );
 
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
     ).toHaveTextContent('$5.00');
   });
 
-  it('keeps the cached Balance visible when a later refetch fails', async () => {
+  it('keeps the cached Summary visible when a later refetch fails', async () => {
     const now = jest.spyOn(Date, 'now').mockReturnValue(1_000);
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
 
     messengerCall.mockClear();
-    messengerCall.mockImplementation((action: string) =>
-      action === 'PredictPortfolioService:getBalance'
-        ? Promise.reject(new Error('Balance refetch failed'))
+    mockPredictNextMessenger((action: string) =>
+      action === 'PredictPortfolioService:getPortfolioSummary'
+        ? Promise.reject(new Error('Summary refetch failed'))
         : Promise.resolve({
             venueId: 'kalshi',
             positions: [],
@@ -118,25 +268,25 @@ describe('PredictPortfolioScreen', () => {
 
     await waitFor(() =>
       expect(messengerCall).toHaveBeenCalledWith(
-        'PredictPortfolioService:getBalance',
+        'PredictPortfolioService:getPortfolioSummary',
         KALSHI_VENUE_ID,
       ),
     );
-    // Let the failed refetch settle before asserting the cached amount
+    // Let the failed refetch settle before asserting the cached Summary
     // survives it.
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
-    ).toBeOnTheScreen();
+      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+    ).toHaveTextContent('$168.13');
     expect(
-      view.queryByTestId(PredictPortfolioScreenTestIds.BALANCE_ERROR),
+      view.queryByTestId(PredictPortfolioScreenTestIds.SUMMARY_ERROR),
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps loading while the first Balance read is offline', async () => {
+  it('keeps loading while the first Summary read is offline', async () => {
     const endTraceSpy = jest.spyOn(Trace, 'endTrace');
     onlineManager.setOnline(false);
 
@@ -144,7 +294,7 @@ describe('PredictPortfolioScreen', () => {
 
     await waitFor(() =>
       expect(
-        view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_LOADING),
+        view.getByTestId(PredictPortfolioScreenTestIds.SUMMARY_LOADING),
       ).toBeOnTheScreen(),
     );
     expect(endTraceSpy).not.toHaveBeenCalledWith(
@@ -157,7 +307,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('switches between mounted empty-state tabs', async () => {
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
 
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
@@ -181,7 +331,7 @@ describe('PredictPortfolioScreen', () => {
       initialTab: 'activity',
     });
 
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
 
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB).props
@@ -191,7 +341,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('returns to Home from the empty-state CTA', async () => {
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
 
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.BROWSE_MARKETS),
@@ -248,13 +398,9 @@ describe('PredictPortfolioScreen', () => {
 
   it('does not complete Portfolio TTI while the active list is still loading', async () => {
     const endTraceSpy = jest.spyOn(Trace, 'endTrace');
-    messengerCall.mockImplementation((action: string) => {
-      if (action === 'PredictPortfolioService:getBalance') {
-        return Promise.resolve({
-          venueId: 'kalshi',
-          currency: 'USD',
-          available: '123.125',
-        });
+    mockPredictNextMessenger((action: string) => {
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return Promise.resolve(makePredictNextSummary());
       }
       if (action === 'PredictPortfolioService:getPositions') {
         return new Promise(() => undefined);
@@ -265,7 +411,7 @@ describe('PredictPortfolioScreen', () => {
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LOADING),
@@ -278,18 +424,59 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
-  it('renders open Positions on the Positions tab', async () => {
-    configurePredictNextFeeds({ positions: [makePredictNextPosition()] });
+  it('renders every valued field of open and resolved Positions', async () => {
+    configurePredictNextFeeds({
+      positions: [
+        makePredictNextPosition(),
+        makePredictNextPosition({
+          marketId: 'KXNBAGAME-20MAY01-LALBOS-LAL',
+          status: 'settled',
+          shares: '5',
+          costBasis: '3.22',
+          currentValue: '5.00',
+          unrealizedPnl: '1.78',
+          unrealizedPnlPercent: '55.28',
+        }),
+      ],
+    });
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
+    await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST);
+    const [open, settled] = view.getAllByTestId(
+      PredictPortfolioScreenTestIds.POSITION_ROW,
+    );
+
+    expect(within(open).getByText('Lakers vs Celtics')).toBeOnTheScreen();
+    expect(within(open).getByText('Will the Lakers win?')).toBeOnTheScreen();
+    expect(within(open).getByText('Lakers · 75 shares')).toBeOnTheScreen();
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST),
+      within(open).getByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_VALUE,
+      ),
+    ).toHaveTextContent('$45.00');
+    expect(
+      within(open).getByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_PNL),
+    ).toHaveTextContent('+$3.75 (+9.09%)');
+    expect(
+      within(open).getByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
+      ),
     ).toBeOnTheScreen();
-    expect(view.getByText('Lakers vs Celtics')).toBeOnTheScreen();
-    expect(view.getByText('Will the Lakers win?')).toBeOnTheScreen();
-    expect(view.getByText('Lakers · 75 shares')).toBeOnTheScreen();
-    expect(view.getByText('$41.25')).toBeOnTheScreen();
-    expect(view.getByText('-$2.50')).toBeOnTheScreen();
+    expect(
+      within(settled).getByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_STATUS,
+      ),
+    ).toHaveTextContent('Settled');
+    expect(
+      within(settled).getByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_VALUE,
+      ),
+    ).toHaveTextContent('$5.00');
+    expect(
+      within(settled).queryByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
+      ),
+    ).not.toBeOnTheScreen();
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictPortfolioService:getPositions',
       KALSHI_VENUE_ID,
@@ -297,31 +484,211 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
-  it('renders Fills and Settlements on the Activity tab', async () => {
+  it('shows an unquoted Position as having no price, never $0.00', async () => {
     configurePredictNextFeeds({
-      activity: [makePredictNextFill(), makePredictNextSettlement()],
+      positions: [
+        makePredictNextPosition({
+          currentValue: undefined,
+          unrealizedPnl: undefined,
+          unrealizedPnlPercent: undefined,
+        }),
+      ],
     });
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
 
-    fireEvent.press(
-      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
+    const row = await view.findByTestId(
+      PredictPortfolioScreenTestIds.POSITION_ROW,
     );
 
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST),
+      within(row).getByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_VALUE_UNAVAILABLE,
+      ),
+    ).toHaveTextContent('No price');
+    expect(
+      within(row).queryByTestId(
+        PredictPortfolioScreenTestIds.POSITION_ROW_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(row).queryByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_PNL),
+    ).not.toBeOnTheScreen();
+    expect(within(row).queryByText(/\$0\.00/u)).not.toBeOnTheScreen();
+  });
+
+  it('shows the latest copy of a Position repeated across pages', async () => {
+    configurePredictNextFeeds({
+      positionPages: [
+        {
+          positions: [makePredictNextPosition()],
+          nextCursor: 'page-2',
+        },
+        {
+          cursor: 'page-2',
+          positions: [
+            makePredictNextPosition({
+              status: 'settled',
+              currentValue: '75.00',
+              unrealizedPnl: '33.75',
+              unrealizedPnlPercent: '81.82',
+            }),
+          ],
+        },
+      ],
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST);
+
+    await act(async () => {
+      fireEvent(
+        view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST),
+        'onEndReached',
+      );
+    });
+
+    await waitFor(() =>
+      expect(
+        view.getByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_STATUS),
+      ).toHaveTextContent('Settled'),
+    );
+    expect(
+      view.getAllByTestId(PredictPortfolioScreenTestIds.POSITION_ROW),
+    ).toHaveLength(1);
+  });
+
+  it('renders a Position without catalog context with neutral copy, never its ticker', async () => {
+    configurePredictNextFeeds({
+      positions: [makePredictNextPosition({ context: undefined, side: 'no' })],
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+    const row = await view.findByTestId(
+      PredictPortfolioScreenTestIds.POSITION_ROW,
+    );
+
+    expect(
+      within(row).getByText('Market details unavailable'),
     ).toBeOnTheScreen();
-    // Fills carry exposure semantics only: the outcome label, no buy/sell
-    // claim (Kalshi's canonical fields cannot distinguish buying Yes from
-    // selling No).
-    expect(view.getByText('Lakers')).toBeOnTheScreen();
-    expect(view.getByText('75 @ $0.55')).toBeOnTheScreen();
-    expect(view.getByText('Settled')).toBeOnTheScreen();
-    expect(view.getByText('+$10.00')).toBeOnTheScreen();
+    expect(within(row).getByText('No · 75 shares')).toBeOnTheScreen();
+    expect(within(row).queryByText(/KXNBAGAME/u)).not.toBeOnTheScreen();
+  });
+
+  it('renders trades and Settlements in the pinned order with their amounts', async () => {
+    const timestamp = '2026-09-01T12:00:00.000Z';
+    configurePredictNextFeeds({
+      // The backend's pinned order: newest first, then trades before
+      // Settlements at an equal timestamp.
+      activity: [
+        makePredictNextTrade({ timestamp }),
+        makePredictNextSettlement({ timestamp }),
+        makePredictNextTrade({
+          id: '0199e2b4-1f0d-7c55-8a10-6b7c8d9e0f1a',
+          action: 'buy',
+          shares: '50',
+          price: '0.55',
+          amount: '28.28',
+          fee: '0.78',
+          realizedPnl: undefined,
+          timestamp: '2026-08-30T16:30:02.118Z',
+        }),
+      ],
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+
+    await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST);
+    const rows = view.getAllByTestId(
+      PredictPortfolioScreenTestIds.ACTIVITY_ROW,
+    );
+
+    expect(rows).toHaveLength(3);
+    expect(within(rows[0]).getByText('Sold Lakers')).toBeOnTheScreen();
+    expect(
+      within(rows[0]).getByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_ROW_AMOUNT,
+      ),
+    ).toHaveTextContent('+$5.93');
+    expect(within(rows[0]).getByText('10 @ $0.61')).toBeOnTheScreen();
+    expect(within(rows[1]).getByText('Settled · Lakers')).toBeOnTheScreen();
+    expect(
+      within(rows[1]).getByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_ROW_AMOUNT,
+      ),
+    ).toHaveTextContent('+$10.00');
+    expect(within(rows[2]).getByText('Bought Lakers')).toBeOnTheScreen();
+    expect(
+      within(rows[2]).getByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_ROW_AMOUNT,
+      ),
+    ).toHaveTextContent('-$28.28');
+    expect(
+      view.queryByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON,
+      ),
+    ).not.toBeOnTheScreen();
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictPortfolioService:getActivity',
       KALSHI_VENUE_ID,
       { limit: 20 },
+    );
+  });
+
+  it('renders a losing Settlement without context as $0.00 with neutral copy', async () => {
+    configurePredictNextFeeds({
+      activity: [
+        makePredictNextSettlement({
+          side: 'no',
+          result: 'yes',
+          proceeds: '0',
+          realizedPnl: '-3.36',
+          context: undefined,
+        }),
+      ],
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+
+    const row = await view.findByTestId(
+      PredictPortfolioScreenTestIds.ACTIVITY_ROW,
+    );
+
+    expect(within(row).getByText('Settled · No')).toBeOnTheScreen();
+    expect(
+      within(row).getByText('Market details unavailable'),
+    ).toBeOnTheScreen();
+    expect(
+      within(row).getByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_ROW_AMOUNT,
+      ),
+    ).toHaveTextContent('$0.00');
+  });
+
+  it('says from when Settlements are complete when a page reaches the archive', async () => {
+    const horizon = '2026-08-27T00:00:00.000Z';
+    configurePredictNextFeeds({
+      activity: [makePredictNextTrade()],
+      settlementsCompleteFrom: horizon,
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+
+    const notice = await view.findByTestId(
+      PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON,
+    );
+
+    const date = new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(horizon));
+    expect(notice).toHaveTextContent(
+      `Settlements are complete from ${date}. Earlier ones may be missing.`,
     );
   });
 
@@ -339,18 +706,14 @@ describe('PredictPortfolioScreen', () => {
 
     expect(await view.findByText('No activity yet')).toBeOnTheScreen();
     expect(
-      view.getByText('Your fills and settlements will appear here.'),
+      view.getByText('Your trades and settlements will appear here.'),
     ).toBeOnTheScreen();
   });
 
   it('fetches the next Positions page on end reached', async () => {
-    messengerCall.mockImplementation((action: string) => {
-      if (action === 'PredictPortfolioService:getBalance') {
-        return Promise.resolve({
-          venueId: 'kalshi',
-          currency: 'USD',
-          available: '123.125',
-        });
+    mockPredictNextMessenger((action: string) => {
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return Promise.resolve(makePredictNextSummary());
       }
       if (action === 'PredictPortfolioService:getPositions') {
         return Promise.resolve({
@@ -370,7 +733,7 @@ describe('PredictPortfolioScreen', () => {
 
     let resolveNextPage: (value: unknown) => void = () => undefined;
     await act(async () => {
-      messengerCall.mockImplementation((action: string) => {
+      mockPredictNextMessenger((action: string) => {
         if (action === 'PredictPortfolioService:getPositions') {
           return new Promise((resolve) => {
             resolveNextPage = resolve;
@@ -410,13 +773,9 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('fetches the next Activity page on end reached', async () => {
-    messengerCall.mockImplementation((action: string) => {
-      if (action === 'PredictPortfolioService:getBalance') {
-        return Promise.resolve({
-          venueId: 'kalshi',
-          currency: 'USD',
-          available: '123.125',
-        });
+    mockPredictNextMessenger((action: string) => {
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return Promise.resolve(makePredictNextSummary());
       }
       if (action === 'PredictPortfolioService:getPositions') {
         return Promise.resolve({ venueId: 'kalshi', positions: [] });
@@ -424,7 +783,7 @@ describe('PredictPortfolioScreen', () => {
       if (action === 'PredictPortfolioService:getActivity') {
         return Promise.resolve({
           venueId: 'kalshi',
-          activity: [makePredictNextFill()],
+          activity: [makePredictNextTrade()],
           nextCursor: 'page-2',
         });
       }
@@ -432,7 +791,7 @@ describe('PredictPortfolioScreen', () => {
     });
 
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
     );
@@ -440,7 +799,7 @@ describe('PredictPortfolioScreen', () => {
 
     let resolveNextPage: (value: unknown) => void = () => undefined;
     await act(async () => {
-      messengerCall.mockImplementation((action: string) => {
+      mockPredictNextMessenger((action: string) => {
         if (action === 'PredictPortfolioService:getActivity') {
           return new Promise((resolve) => {
             resolveNextPage = resolve;
@@ -479,24 +838,24 @@ describe('PredictPortfolioScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('retries a failed Activity read independently of Balance', async () => {
+  it('retries a failed Activity read independently of the Summary', async () => {
     configurePredictNextFeeds({
       activity: new Error('Activity failed'),
     });
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
-    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
     );
     await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ERROR);
-    // Balance stays independently loaded.
+    // The Summary stays independently loaded.
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
     ).toBeOnTheScreen();
 
     configurePredictNextFeeds({
-      activity: [makePredictNextFill()],
+      activity: [makePredictNextTrade()],
     });
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_RETRY),
@@ -515,7 +874,6 @@ describe('PredictPortfolioScreen', () => {
             eventId: 'nfl-1',
             eventTitle: 'Lakers vs Celtics',
             marketQuestion: 'Will the Lakers win?',
-            outcomeId: 'nfl-1-yes',
             outcomeLabel: 'Lakers',
           },
         }),
@@ -544,12 +902,12 @@ describe('PredictPortfolioScreen', () => {
 
   it('renders first-load skeletons for Positions and Activity', async () => {
     // Never-resolving reads keep both panels in their loading state.
-    messengerCall.mockImplementation(() => new Promise(() => undefined));
+    mockPredictNextMessenger(() => new Promise(() => undefined));
 
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_LOADING),
+      await view.findByTestId(PredictPortfolioScreenTestIds.SUMMARY_LOADING),
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LOADING),
@@ -562,19 +920,19 @@ describe('PredictPortfolioScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('retries a failed Positions read independently of Balance', async () => {
+  it('retries a failed Positions read independently of the Summary', async () => {
     configurePredictNextFeeds({
       positions: new Error('Positions failed'),
     });
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
     await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_ERROR);
-    // Balance stays independently loaded.
+    // The Summary stays independently loaded.
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
     ).toBeOnTheScreen();
 
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getPositions') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -584,12 +942,8 @@ describe('PredictPortfolioScreen', () => {
       if (action === 'PredictPortfolioService:getActivity') {
         return Promise.resolve({ venueId: 'kalshi', activity: [] });
       }
-      if (action === 'PredictPortfolioService:getBalance') {
-        return Promise.resolve({
-          venueId: 'kalshi',
-          currency: 'USD',
-          available: '123.125',
-        });
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return Promise.resolve(makePredictNextSummary());
       }
       return Promise.resolve(undefined);
     });
@@ -643,7 +997,6 @@ describe('PredictPortfolioScreen', () => {
             eventId: 'nfl-1',
             eventTitle: 'Lakers vs Celtics',
             marketQuestion: 'Will the Lakers win?',
-            outcomeId: 'nfl-1-yes',
             outcomeLabel: 'Lakers',
           },
         }),
@@ -702,8 +1055,8 @@ describe('PredictPortfolioScreen', () => {
 
     await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST);
 
-    expect(view.queryByText('$41.25')).not.toBeOnTheScreen();
-    expect(view.queryByText('-$2.50')).not.toBeOnTheScreen();
+    expect(view.queryByText('$45.00')).not.toBeOnTheScreen();
+    expect(view.queryByText('+$3.75 (+9.09%)')).not.toBeOnTheScreen();
     expect(view.queryByText('Lakers · 75 shares')).not.toBeOnTheScreen();
     expect(view.getByText('Lakers vs Celtics')).toBeOnTheScreen();
 
@@ -713,7 +1066,7 @@ describe('PredictPortfolioScreen', () => {
     await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST);
 
     expect(view.queryByText('+$10.00')).not.toBeOnTheScreen();
-    expect(view.getByText('Settled')).toBeOnTheScreen();
+    expect(view.getByText('Settled · Lakers')).toBeOnTheScreen();
   });
 
   describe('Cash Out', () => {
@@ -873,7 +1226,7 @@ describe('PredictPortfolioScreen', () => {
       expect(view.queryByText('Lakers · 75 shares')).not.toBeOnTheScreen();
     });
 
-    it('updates the mounted Position and Balance reads after a Cash Out', async () => {
+    it('updates the mounted Position and Summary reads after a Cash Out', async () => {
       // Real services over the stubbed transport: the reads the screen
       // observes run through the real Portfolio service cache and its
       // cacheUpdated events, the way the Engine composes them.
@@ -886,6 +1239,10 @@ describe('PredictPortfolioScreen', () => {
         currency: 'USD',
         available: '123.12',
       };
+      let summaryBody: unknown = makePredictNextSummary({
+        availableBalance: '123.12',
+        totalValue: '168.12',
+      });
       fetchMock.mockImplementation(async (url, init) => {
         if (String(url).endsWith('/orders/commit')) {
           return {
@@ -923,6 +1280,13 @@ describe('PredictPortfolioScreen', () => {
             json: async () => balanceBody,
           } as Response;
         }
+        if (String(url).includes('/venues/kalshi/portfolio/summary')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => summaryBody,
+          } as Response;
+        }
         return { ok: false, status: 404, json: async () => ({}) } as Response;
       });
       globalThis.fetch = fetchMock as unknown as typeof fetch;
@@ -936,62 +1300,7 @@ describe('PredictPortfolioScreen', () => {
       // adapter to the Engine controller messenger: route the Predict
       // service actions and cache events to the real services' root. The
       // remaining actions keep the fixture answers.
-      const controllerMessenger = Engine.controllerMessenger as unknown as {
-        call: (action: string, ...params: unknown[]) => Promise<unknown>;
-        subscribe: (
-          event: string,
-          callback: (...args: unknown[]) => void,
-        ) => void;
-        unsubscribe: (
-          event: string,
-          callback: (...args: unknown[]) => void,
-        ) => void;
-      };
-      const originalCall = controllerMessenger.call;
-      const originalSubscribe = controllerMessenger.subscribe;
-      const originalUnsubscribe = controllerMessenger.unsubscribe;
-      testRestores.push(() => {
-        controllerMessenger.call = originalCall;
-        controllerMessenger.subscribe = originalSubscribe;
-        controllerMessenger.unsubscribe = originalUnsubscribe;
-      });
-      // Direct property swap, not jest.spyOn: the mocked
-      // controllerMessenger's methods are already Jest mocks, and a spy
-      // here can re-enter itself when the fixture delegate is the same
-      // mock.
-      controllerMessenger.call = (action: string, ...params: unknown[]) => {
-        if (action.startsWith('PredictPortfolioService:')) {
-          // The composition root is a MockAnyNamespace messenger: it
-          // accepts any action the real services registered.
-          return (
-            trading.rootMessenger.call as unknown as (
-              action: string,
-              ...params: unknown[]
-            ) => Promise<unknown>
-          )(action, ...params);
-        }
-        return originalCall(action, ...params);
-      };
-      controllerMessenger.subscribe = (event, callback) => {
-        if (event.startsWith('PredictPortfolioService:')) {
-          (
-            trading.rootMessenger.subscribe as unknown as (
-              event: string,
-              callback: (...args: unknown[]) => void,
-            ) => void
-          )(event, callback);
-        }
-      };
-      controllerMessenger.unsubscribe = (event, callback) => {
-        if (event.startsWith('PredictPortfolioService:')) {
-          (
-            trading.rootMessenger.unsubscribe as unknown as (
-              event: string,
-              callback: (...args: unknown[]) => void,
-            ) => void
-          )(event, callback);
-        }
-      };
+      testRestores.push(routePredictPortfolioServicesTo(trading.rootMessenger));
 
       const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
@@ -1033,7 +1342,12 @@ describe('PredictPortfolioScreen', () => {
       positionsBody = {
         venueId: 'kalshi',
         positions: [
-          makePredictNextPosition({ shares: '33.00', marketExposure: '18.15' }),
+          makePredictNextPosition({
+            shares: '33.00',
+            costBasis: '18.15',
+            currentValue: '19.80',
+            unrealizedPnl: '1.65',
+          }),
         ],
       };
       balanceBody = {
@@ -1041,6 +1355,12 @@ describe('PredictPortfolioScreen', () => {
         currency: 'USD',
         available: '153.75',
       };
+      summaryBody = makePredictNextSummary({
+        availableBalance: '153.75',
+        positionsValue: '19.80',
+        totalValue: '173.55',
+        unrealizedPnl: '1.65',
+      });
 
       fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.APPROVE));
       await view.findByTestId(PredictOrderFlowTestIds.DONE);
@@ -1051,8 +1371,90 @@ describe('PredictPortfolioScreen', () => {
       );
       await waitFor(() =>
         expect(
+          view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+        ).toHaveTextContent('$173.55'),
+      );
+      expect(
+        view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      ).toHaveTextContent('$153.75');
+    });
+  });
+
+  describe('platform reset', () => {
+    const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
+    const composedServices: ReturnType<
+      typeof composePredictNextPortfolioTrading
+    >[] = [];
+    const testRestores: (() => void)[] = [];
+
+    afterEach(() => {
+      testRestores.splice(0).forEach((restore) => restore());
+      composedServices.splice(0).forEach((composed) => composed.destroy());
+      delete (Engine.context as Record<string, unknown>).PredictOrderService;
+    });
+
+    it('shows no previous Summary on a screen that remounts after a reset', async () => {
+      // Real services over the stubbed transport, as the Engine composes
+      // them: both caches under test are real.
+      let balance = '123.12';
+      fetchMock.mockImplementation(async (url) => {
+        const payload = String(url).includes('/portfolio/summary')
+          ? makePredictNextSummary({
+              availableBalance: balance,
+              positionsValue: '0',
+              totalValue: balance,
+            })
+          : String(url).includes('/positions')
+            ? { venueId: 'kalshi', positions: [] }
+            : { venueId: 'kalshi', activity: [] };
+        return {
+          ok: true,
+          status: 200,
+          json: async () => payload,
+        } as Response;
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const trading = composePredictNextPortfolioTrading();
+      composedServices.push(trading);
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        trading.orderService;
+      testRestores.push(routePredictPortfolioServicesTo(trading.rootMessenger));
+
+      // One shared UI query client for both mounts: it stands in for the
+      // app-wide cache, which survives the reset in production.
+      const queryClient = createComponentViewQueryClient();
+      const view = renderPredictPortfolioScreen(
+        { venueId: KALSHI_VENUE_ID },
+        false,
+        queryClient,
+      );
+      await waitFor(() =>
+        expect(
           view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
-        ).toHaveTextContent('$153.75'),
+        ).toHaveTextContent('$123.12'),
+      );
+
+      // The reset: the portfolio purge, then the shared client clear.
+      balance = '500.00';
+      await act(async () => {
+        await trading.portfolioService.clearAccountData();
+        queryClient.clear();
+      });
+
+      // The reset lands on onboarding, so the screen remounts afterwards.
+      // Neither cache may answer for the new person first.
+      view.unmount();
+      const remounted = renderPredictPortfolioScreen(
+        { venueId: KALSHI_VENUE_ID },
+        false,
+        queryClient,
+      );
+      expect(remounted.queryByText('$123.12')).not.toBeOnTheScreen();
+      await waitFor(() =>
+        expect(
+          remounted.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+        ).toHaveTextContent('$500.00'),
       );
     });
   });

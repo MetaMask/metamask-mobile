@@ -84,21 +84,4 @@ describe('PasswordResetWarningSheet', () => {
     expect(onDismiss).toHaveBeenCalled();
     expect(onConfirm).not.toHaveBeenCalled();
   });
-
-  it('dismisses when the close button is pressed', () => {
-    const onDismiss = jest.fn();
-    const { getByTestId } = render(
-      <PasswordResetWarningSheet
-        isVisible
-        onConfirm={jest.fn()}
-        onDismiss={onDismiss}
-      />,
-    );
-
-    fireEvent.press(
-      getByTestId(PasswordResetWarningSheetSelectorsIDs.CLOSE_BUTTON),
-    );
-
-    expect(onDismiss).toHaveBeenCalled();
-  });
 });

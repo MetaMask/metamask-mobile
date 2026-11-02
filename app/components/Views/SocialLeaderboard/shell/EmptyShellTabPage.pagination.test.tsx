@@ -61,8 +61,7 @@ const mockRefresh = jest.fn();
 const arrangeFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) => {
   mockUseSocialV1Feed.mockReturnValue({
     posts: [],
-    pendingPost: null,
-    pendingStartedAtMs: null,
+    pinnedPosts: [],
     isLoading: false,
     isFetchingNextPage: false,
     hasNextPage: false,
@@ -82,6 +81,7 @@ const populatedFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) =>
         timestampMs: Date.now(),
         reactions: [],
         item: {
+          variant: 'spotOpen',
           author: { id: 'author-1' },
         } as UseSocialV1FeedResult['posts'][number]['item'],
       },

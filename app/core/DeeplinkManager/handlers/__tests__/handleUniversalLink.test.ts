@@ -17,6 +17,7 @@ import Logger from '../../../../util/Logger';
 import handleRampReturnUrl from '../legacy/handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderUrl } from '../legacy/handleSocialTraderUrl';
 import { handleSocialTraderPositionUrl } from '../legacy/handleSocialTraderPositionUrl';
 import { handleWhatsHappeningUrl } from '../legacy/handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../intent/handleSwapUrl';
@@ -97,6 +98,7 @@ jest.mock('../legacy/handleFastOnboarding');
 jest.mock('../intent/handleTrendingUrl');
 jest.mock('../legacy/handleWhatsHappeningUrl');
 jest.mock('../legacy/handleSocialLeaderboardUrl');
+jest.mock('../legacy/handleSocialTraderUrl');
 jest.mock('../legacy/handleSocialTraderPositionUrl');
 jest.mock('../../../redux', () => ({
   __esModule: true,
@@ -1216,7 +1218,7 @@ describe('handleUniversalLink', () => {
         createPerpsDeeplinkIntent as jest.MockedFunction<
           typeof createPerpsDeeplinkIntent
         >
-      ).mockReturnValueOnce(intent);
+      ).mockResolvedValueOnce(intent);
 
       const result = await handleUniversalLink({
         instance,
@@ -1231,6 +1233,93 @@ describe('handleUniversalLink', () => {
       expect(result).toBe(intent);
       expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
         perpsPath: 'perps?screen=asset&symbol=ETH',
+      });
+      expect(handlePerpsUrl).not.toHaveBeenCalled();
+    });
+
+    it('forwards a mode=pro param on PERPS_ASSET through to the shared perps handler in execute mode', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=ETH&mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=ETH&mode=pro',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&symbol=ETH&mode=pro',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('forwards a mode=pro param with no symbol so the handler defaults to BTC', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?mode=pro',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&mode=pro',
+      });
+    });
+
+    it('returns a perps asset startup intent in resolve mode with mode=pro forwarded', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=BTC&mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=BTC&mode=pro',
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'main-stack',
+          routeName: 'Perps',
+        },
+      };
+      (
+        createPerpsDeeplinkIntent as jest.MockedFunction<
+          typeof createPerpsDeeplinkIntent
+        >
+      ).mockResolvedValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&symbol=BTC&mode=pro',
       });
       expect(handlePerpsUrl).not.toHaveBeenCalled();
     });
@@ -1717,7 +1806,78 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleSocialLeaderboardUrl).toHaveBeenCalledTimes(1);
+      expect(handleSocialLeaderboardUrl).toHaveBeenCalledWith({
+        actionPath: '?ignored=true',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.SOCIAL', () => {
+    it.each([
+      ['?tab=following', handleSocialLeaderboardUrl],
+      ['/profile?traderId=trader-1', handleSocialTraderUrl],
+      [
+        '/profile/position?positionId=position-1&traderId=trader-1',
+        handleSocialTraderPositionUrl,
+      ],
+      ['/feed', handleSocialLeaderboardUrl],
+    ])(
+      'routes /social%s without showing the interstitial',
+      async (actionPath, handler) => {
+        const queryIndex = actionPath.indexOf('?');
+        const path =
+          queryIndex === -1 ? actionPath : actionPath.slice(0, queryIndex);
+        const search = queryIndex === -1 ? '' : actionPath.slice(queryIndex);
+        const socialUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}${actionPath}`;
+        const socialUrlObj = {
+          ...urlObj,
+          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+          href: socialUrl,
+          pathname: `/${ACTIONS.SOCIAL}${path}`,
+          search,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: socialUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: socialUrl,
+          source: 'test-source',
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handler).toHaveBeenCalledWith({ actionPath });
+        expect(handled).toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('ACTIONS.SOCIAL_TRADER', () => {
+    it('opens a trader profile without showing the interstitial', async () => {
+      const traderUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER}?traderId=trader-1`;
+      const traderUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: traderUrl,
+        pathname: `/${ACTIONS.SOCIAL_TRADER}`,
+        search: '?traderId=trader-1',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: traderUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: traderUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleSocialTraderUrl).toHaveBeenCalledWith({
+        actionPath: '?traderId=trader-1',
+      });
       expect(handled).toHaveBeenCalled();
     });
   });

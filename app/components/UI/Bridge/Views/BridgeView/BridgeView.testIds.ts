@@ -10,6 +10,11 @@ export const BridgeViewSelectorsIDs = {
   CONFIRM_BUTTON: 'bridge-confirm-button',
   CONFIRM_BUTTON_KEYPAD: 'bridge-confirm-button-keypad',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  /**
+   * Countdown text beside Rate. Tapping Rate opens its tooltip, so keypad
+   * dismissal uses this plain text instead.
+   */
+  QUOTE_KEYPAD_DISMISS_TARGET: 'quote-keypad-dismiss-target',
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
@@ -44,6 +49,11 @@ export const BridgeViewSelectorsIDs = {
   RECURRING_DEST_TOKEN_INPUT: 'recurring-dest-token-area-input',
   RECURRING_DEST_YOU_GET: 'recurring-dest-you-get',
   RECURRING_SPEND_SUMMARY: 'recurring-spend-summary',
+  RECURRING_FEE_TOKEN_UNSUPPORTED_BANNER:
+    'recurring-fee-token-unsupported-banner',
+  RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER:
+    'recurring-fee-tokens-unavailable-banner',
+  RECURRING_FEE_TOKEN_RETRY_BUTTON: 'recurring-fee-token-retry-button',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

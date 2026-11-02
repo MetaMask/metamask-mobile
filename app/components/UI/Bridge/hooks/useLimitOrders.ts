@@ -51,9 +51,11 @@ export function useLimitOrders({
     initialPageParam: undefined as string | undefined,
     enabled: isEnabled,
   });
+  const orders = useMemo(
+    () => query.data?.pages.flatMap((page) => page.orders) ?? [],
+    [query.data],
+  );
 
-  // A plain `refetchInterval` would be answered from the data service cache
-  // until its stale time lapses, so the query is invalidated instead.
   useEffect(() => {
     if (!isEnabled || !refetchInterval) {
       return undefined;
@@ -81,7 +83,7 @@ export function useLimitOrders({
   }
 
   return {
-    orders: query.data?.pages.flatMap((page) => page.orders) ?? [],
+    orders,
     // Each page reports the total as of when it was fetched, so the latest
     // page has the freshest one.
     total: query.data?.pages.at(-1)?.total,

@@ -1241,7 +1241,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             ) {
               return;
             }
-            backgroundBridgeRef.current?.onMessage(dataParsed);
+
+            // Provider messages use the frame URL from the WebView event.
+            const frameUrl = nativeEvent.url;
+            if (!isHttpPageUrl(frameUrl)) {
+              return;
+            }
+
+            backgroundBridgeRef.current?.onMessage({
+              ...dataParsed,
+              origin: frameUrl,
+            });
             return;
           }
         } catch (e: unknown) {
@@ -1580,7 +1590,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const handleClosePress = useCallback(() => {
       if (fromExploreSearch) {
-        navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
+        // ExploreSearch is the previous screen on the root stack; goBack keeps
+        // the user on Search instead of dismissing it to Home or Explore.
+        navigation.goBack();
       } else if (fromPerps) {
         navigateToPerpsHome();
       } else if (fromBenefit) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { KeyboardAvoidingView, FlatList, Platform } from 'react-native';
+import { KeyboardAvoidingView, FlatList } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -17,6 +17,7 @@ import {
   TextColor,
   Text,
   TextVariant,
+  FontWeight,
   TextField,
   ButtonSize,
   BoxAlignItems,
@@ -287,7 +288,7 @@ const ManualBackupStep1 = () => {
 
   const renderConfirmPassword = () => (
     <KeyboardAvoidingView
-      style={tw.style('flex-1 flex-row self-center mb-[30px]')}
+      style={tw.style('flex-1 flex-row self-center')}
       behavior={'padding'}
     >
       <KeyboardAwareScrollView style={tw.style('flex-grow')} enableOnAndroid>
@@ -330,7 +331,7 @@ const ManualBackupStep1 = () => {
           </Box>
           <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
             <FooterGlass
-              twClassName="px-0"
+              twClassName="px-0 py-2"
               primaryButtonProps={{
                 children: strings('manual_backup_step_1.confirm'),
                 onPress: tryUnlock,
@@ -350,24 +351,31 @@ const ManualBackupStep1 = () => {
   const renderSeedphraseView = () => (
     <Box twClassName="flex-1 justify-between">
       <Box
-        twClassName="flex-1 flex-col gap-4"
+        twClassName="flex-1 flex-col gap-6"
         testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <Box gap={1}>
-          <TitleStandard
-            title={strings('manual_backup_step_1.action')}
-            bottomLabel={strings('manual_backup_step_1.description')}
-          />
-          <TextButton
-            variant={TextVariant.BodySm}
-            onPress={showWhatIsSeedphrase}
-            testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
-          >
-            {strings('manual_backup_step_1.what_is_srp')}
-          </TextButton>
-        </Box>
+        <TitleStandard
+          title={strings('manual_backup_step_1.action')}
+          bottomLabel={
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              twClassName="flex-1"
+            >
+              {strings('manual_backup_step_1.description')}{' '}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={showWhatIsSeedphrase}
+                testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
+              >
+                {strings('manual_backup_step_1.what_is_srp')}
+              </TextButton>
+            </Text>
+          }
+        />
         {seedPhraseHidden ? (
-          <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
+          <Box twClassName="bg-default rounded-xl flex-row border border-muted min-h-[230px]">
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
@@ -411,7 +419,7 @@ const ManualBackupStep1 = () => {
         )}
       </Box>
       <FooterGlass
-        twClassName={`px-0 ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}
+        twClassName="px-0 py-2"
         primaryButtonProps={{
           children: strings('manual_backup_step_1.continue'),
           onPress: goNext,

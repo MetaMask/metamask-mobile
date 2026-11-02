@@ -36,9 +36,14 @@ jest.mock('react-redux', () => ({
   shallowEqual: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
+jest.mock('../../../../selectors/profileController', () => ({
+  selectIsProfileTradingActivityPrivate: jest.fn(),
 }));
+
+jest.mock('@react-navigation/native', () => {
+  const navigate = jest.fn();
+  return { useNavigation: () => ({ navigate }) };
+});
 
 jest.mock('../../Bridge/hooks/useAssetMetadata/utils', () => ({
   toAssetId: jest.fn(
@@ -183,6 +188,13 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   })),
   setDestToken: jest.fn((v) => ({ type: 'bridge/setDestToken', payload: v })),
   resetBridgeState: jest.fn(() => ({ type: 'bridge/resetBridgeState' })),
+  resetHardwareWalletsSwaps: jest.fn(() => ({
+    type: 'bridge/resetHardwareWalletsSwaps',
+  })),
+  updateHardwareWalletsSwaps: jest.fn((v) => ({
+    type: 'bridge/updateHardwareWalletsSwaps',
+    payload: v,
+  })),
   setIsSubmittingTx: jest.fn((v) => ({
     type: 'bridge/setIsSubmittingTx',
     payload: v,
@@ -273,6 +285,11 @@ jest.mock('../quickBuyToastOptions', () => ({
 jest.mock('../resolveQuickBuyTerminalToast', () => ({
   resolveQuickBuyTerminalToast: jest.fn(),
 }));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: jest.fn() }),
+);
 
 jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn(),

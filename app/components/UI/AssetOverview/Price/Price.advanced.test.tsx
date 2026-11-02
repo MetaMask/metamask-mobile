@@ -182,10 +182,14 @@ jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
     __esModule: true,
     default: ({
       onIndicatorToggle,
+      isGlass,
     }: {
       onIndicatorToggle?: (name: string) => void;
+      isGlass?: boolean;
     }) => (
-      <View testID="mock-indicator-bar">
+      <View
+        testID={isGlass ? 'mock-indicator-bar-glass' : 'mock-indicator-bar'}
+      >
         <Pressable
           testID="toggle-rsi"
           onPress={() => onIndicatorToggle?.('RSI')}
@@ -425,13 +429,11 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
   });
 
-  it('shows candle empty state when OHLCV has fewer than 5 candles', () => {
+  it('shows candle empty state when OHLCV has fewer than 3 candles', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
         { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
-        { time: 3000, open: 105, high: 106, low: 104, close: 105, volume: 1 },
-        { time: 4000, open: 105, high: 106, low: 104, close: 105, volume: 1 },
       ],
       isLoading: false,
       error: undefined,
@@ -1043,6 +1045,27 @@ describe('PriceAdvanced', () => {
       ).toBe(false);
     });
 
+    it('draws the indicator bar on glass when the screen passes isGlass', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} isGlass />);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(getByTestId('mock-indicator-bar-glass')).toBeOnTheScreen();
+    });
+
     it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
@@ -1600,16 +1623,14 @@ describe('PriceAdvanced', () => {
       expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(true); // positive price
     });
 
-    it('does not call onPriceDirectionChange when OHLCV data is insufficient (< 5 bars) - legacy handles it', () => {
+    it('does not call onPriceDirectionChange when OHLCV data is insufficient (< 3 bars) - legacy handles it', () => {
       const mockOnPriceDirectionChange = jest.fn();
 
-      // Insufficient OHLCV data (4 bars total) - should fallback to legacy
+      // Insufficient OHLCV data (2 bars total) - should fallback to legacy
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 100, open: 90, high: 91, low: 89, close: 90, volume: 1 },
           { time: 200, open: 90, high: 91, low: 89, close: 91, volume: 1 },
-          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
-          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
         ],
         isLoading: false,
         error: undefined,

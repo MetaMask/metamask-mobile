@@ -65,6 +65,11 @@ const mockUsePerpsLiquidationPrice = jest.fn((_params: unknown) => ({
   isCalculating: false,
 }));
 let mockTotalFee = 5;
+// Only populated by the fee display format A/B test
+// treatment tests below; `undefined` matches the real hook's control-mode
+// (includeFeeRateBreakdown: false) result.
+let mockTakerFeeRate: number | undefined;
+let mockMakerFeeRate: number | undefined;
 const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   totalFee: mockTotalFee,
   undiscountedTotalFee: 6,
@@ -75,6 +80,8 @@ const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   originalMetamaskFeeRate: 0.01,
   feeDiscountPercentage: 10,
   estimatedPoints: 100,
+  takerFeeRate: mockTakerFeeRate,
+  makerFeeRate: mockMakerFeeRate,
 }));
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
@@ -119,6 +126,7 @@ const mockCommitLimitPrice = jest.fn();
 const mockCommitTriggerPrice = jest.fn();
 const mockSetTriggerPrice = jest.fn();
 const mockResetPriceInputInteraction = jest.fn();
+const mockRegisterPriceFieldHandlers = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
@@ -149,11 +157,13 @@ const mockContextValue = {
   triggerPrice: undefined as string | undefined,
   setTriggerPrice: mockSetTriggerPrice,
   resetPriceInputInteraction: mockResetPriceInputInteraction,
+  registerPriceFieldHandlers: mockRegisterPriceFieldHandlers,
   setOrderType: mockSetOrderType,
   pendingReduceOnly: undefined as boolean | undefined,
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
   setMaxPossibleAmountOverride: mockSetMaxPossibleAmountOverride,
+  setEstimatedFeeRate: jest.fn(),
   balanceForValidation: 500,
 };
 
@@ -317,6 +327,7 @@ jest.mock('../../../../hooks', () => ({
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
+  usePerpsQuotedFeeReservation: jest.fn(),
   usePerpsOrderValidation: (params: typeof mockOrderValidationParams) => {
     mockOrderValidationParams = params;
     if (mockValidateCalculatedMargin && params) {
@@ -432,6 +443,15 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
 jest.mock('../../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   usePerpsScreenVsBottomSheetAbTest: () => ({
     useBottomSheet: mockUseBottomSheet,
+  }),
+}));
+
+let mockFeeDisplayMode: 'dollar' | 'percentage' = 'dollar';
+jest.mock('../../../../hooks/usePerpsFeeDisplayAbTest', () => ({
+  usePerpsFeeDisplayAbTest: () => ({
+    feeDisplayMode: mockFeeDisplayMode,
+    variantName: mockFeeDisplayMode === 'percentage' ? 'treatment' : 'control',
+    isActive: mockFeeDisplayMode === 'percentage',
   }),
 }));
 
@@ -695,6 +715,9 @@ describe('usePerpsProOrderForm', () => {
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
     mockTotalFee = 5;
+    mockTakerFeeRate = undefined;
+    mockMakerFeeRate = undefined;
+    mockFeeDisplayMode = 'dollar';
     mockSizeDecimals = 3;
     mockSelectedAddress = '0xaccount-a';
     mockPerpsAccountAddress = undefined;
@@ -887,6 +910,73 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.feeDiscountPercentage).toBe(10);
       expect(result.current.feeMetamaskFeeRate).toBe(0.01);
       expect(result.current.feeProtocolFeeRate).toBe(0.02);
+    });
+
+    it('keeps the summary in dollar mode with no taker/maker rates for control', () => {
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: false }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
+    });
+
+    it('requests the breakdown and surfaces both rates on the summary for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockTakerFeeRate = 0.00143;
+      mockMakerFeeRate = 0.00114;
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: true }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('percentage');
+      expect(result.current.summary.takerFeeRate).toBe(0.00143);
+      expect(result.current.summary.makerFeeRate).toBe(0.00114);
+    });
+
+    it('hides taker/maker rates on the summary while the amount is invalid, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockTakerFeeRate = 0.00143;
+      mockMakerFeeRate = 0.00114;
+      mockOrderForm.amount = '0';
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
+    });
+
+    it('keeps a reduce-only close in dollar mode and does not request the breakdown, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockContextValue.pendingReduceOnly = true;
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: false }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+    });
+
+    it('keeps a TWAP order in dollar mode and does not request the breakdown, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockOrderForm.type = 'twap';
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          includeFeeRateBreakdown: false,
+        }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
     });
 
     it('routes Scale fees and validation through the concrete provider', () => {
@@ -4797,6 +4887,52 @@ describe('usePerpsProOrderForm', () => {
       });
     };
 
+    it('registers order-book price-field handlers for Scale start/end and Chase max distance', () => {
+      mockOrderForm.type = 'scale';
+      renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      expect(typeof handlers?.scaleStart).toBe('function');
+      expect(typeof handlers?.scaleEnd).toBe('function');
+      expect(typeof handlers?.chaseMaxDistance).toBe('function');
+    });
+
+    it('fills the Scale start price from a registered order-book handler', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleStart?.('88000');
+      });
+
+      expect(result.current.scaleOrder.startPrice).toBe('88000');
+    });
+
+    it('fills the Scale end price from a registered order-book handler', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleEnd?.('92000');
+      });
+
+      expect(result.current.scaleOrder.endPrice).toBe('92000');
+    });
+
+    it('ignores an undefined order-book price for Scale fields', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleStart?.(undefined);
+      });
+
+      expect(result.current.scaleOrder.startPrice).toBe('');
+    });
+
     it('keeps Scale placement disabled for a Lighter route', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
@@ -8657,6 +8793,118 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.chaseMaxDistanceUnit).toBe('percent');
+      expect(result.current.chaseMaxDistance).toBe('');
+    });
+
+    it('fills Chase max distance (USD) from a tapped order-book price', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('91000');
+      });
+
+      expect(result.current.chaseMaxDistanceUnit).toBe('usd');
+      expect(result.current.chaseMaxDistance).toBe('1000');
+    });
+
+    it.each([
+      ['long', '91000'],
+      ['long', '89000'],
+      ['short', '91000'],
+      ['short', '89000'],
+    ] as const)(
+      'stores the absolute Chase USD distance for a %s when the book price is %s',
+      (direction, tappedPrice) => {
+        mockOrderForm.type = 'chase';
+        mockOrderForm.direction = direction;
+        mockLivePrice = '90000';
+        const { result } = renderProForm();
+
+        const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+        act(() => {
+          handlers?.chaseMaxDistance?.(tappedPrice);
+        });
+
+        expect(result.current.chaseMaxDistance).toBe('1000');
+      },
+    );
+
+    it('keeps a half-tick Chase USD distance instead of rounding it to zero', () => {
+      // szDecimals 2 and a reference between ticks: |0.5432 - 0.54325|
+      // canonicalizes to "0" under venue price rounding.
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '0.54325';
+      mockSizeDecimals = 2;
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('0.5432');
+      });
+
+      expect(result.current.chaseMaxDistance).toBe('0.00005');
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
+    });
+
+    it('fills Chase max distance (percent) from a tapped order-book price', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('91800');
+      });
+
+      expect(result.current.chaseMaxDistance).toBe('2');
+    });
+
+    it('keeps a fractional Chase percent when the tapped price is one unit from the reference', () => {
+      // Arrange: reference 90000, percent unit. A $1 book tap is ~0.00111%.
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+
+      // Act
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('90001');
+      });
+
+      // Assert: two-decimal rounding would store 0.00 and block placement.
+      expect(result.current.chaseMaxDistance).toBe('0.00111111');
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
+    });
+
+    it('ignores a tapped price equal to the live reference price for Chase max distance', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('90000');
+      });
+
       expect(result.current.chaseMaxDistance).toBe('');
     });
 

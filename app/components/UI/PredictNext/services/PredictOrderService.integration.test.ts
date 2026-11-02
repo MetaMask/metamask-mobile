@@ -11,7 +11,7 @@ import {
   PREDICT_ORDER_SERVICE_NAME,
   PredictOrderService,
 } from '../services/PredictOrderService';
-import { KALSHI_VENUE_ID } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const previewResponse = {
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -93,17 +93,17 @@ const position = {
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL',
   side: 'yes',
+  status: 'open',
   shares: '75.00',
-  marketExposure: '41.25',
-  realizedPnl: '-2.50',
-  feesPaid: '0.14',
-  totalTraded: '41.25',
-  updatedAt: '2026-09-01T12:00:00.000Z',
+  averagePrice: '0.55',
+  costBasis: '41.25',
+  currentValue: '45.00',
+  unrealizedPnl: '3.75',
+  unrealizedPnlPercent: '9.09',
   context: {
     eventId: 'KXNBAGAME-26MAY12-LALBOS',
     eventTitle: 'Lakers vs Celtics',
     marketQuestion: 'Will the Lakers win?',
-    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES',
     outcomeLabel: 'Lakers',
   },
 };
@@ -402,7 +402,16 @@ describe('PredictNext Order Preview request', () => {
     // The venue now reports the reduced Position the Cash Out left behind.
     positionsBody = {
       venueId: 'kalshi',
-      positions: [{ ...position, shares: '37.50', marketExposure: '20.63' }],
+      positions: [
+        {
+          ...position,
+          shares: '37.50',
+          costBasis: '20.63',
+          currentValue: '22.50',
+          unrealizedPnl: '1.87',
+          unrealizedPnlPercent: '9.06',
+        },
+      ],
     };
     // A later wall clock stamps the refresh's dataUpdatedAt: the UI cache
     // hydrates a service snapshot only when it is strictly newer.
@@ -542,5 +551,81 @@ describe('PredictNext Order Preview request', () => {
 
     await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
     expect(balanceCalls()).toBe(2);
+  });
+
+  describe('platform reset', () => {
+    /** A pending Receipt: accepted, still working, so it is re-POSTed. */
+    const pendingReceipt = {
+      ...buyReceiptResponse,
+      status: 'pending',
+      venueOrderId: null,
+      filledContracts: null,
+      averageFillPrice: null,
+      fee: null,
+      actualSpend: null,
+      payoutExposure: null,
+    };
+
+    it('stops an observation loop without further commits or portfolio refreshes', async () => {
+      let commitCalls = 0;
+      let releaseObservation: (body: unknown) => void = () => undefined;
+      const harness = buildPredictNextIntegrationHarness((url) => {
+        if (String(url).includes('/balance')) {
+          return {
+            body: { venueId: 'kalshi', currency: 'USD', available: '100.00' },
+          };
+        }
+        if (String(url).endsWith('/orders/commit')) {
+          commitCalls += 1;
+          if (commitCalls === 1) {
+            return { body: pendingReceipt };
+          }
+          // The observation the test abandons: it stays open until released.
+          return new Promise<{ body: unknown }>((resolve) => {
+            releaseObservation = (body) => resolve({ body });
+          });
+        }
+        return { status: 404 };
+      });
+      // Composed on the harness root, like the Engine does, so a terminal
+      // receipt can invalidate the real portfolio cache.
+      const orderService = new PredictOrderService({
+        messenger: getPredictOrderServiceMessenger(
+          harness.messenger as unknown as Parameters<
+            typeof getPredictOrderServiceMessenger
+          >[0],
+        ),
+        trading: harness.adapter.trading,
+        venueId: harness.adapter.venueId,
+        observationDelayMs: 0,
+      });
+      const balanceCalls = () =>
+        harness.fetchMock.mock.calls.filter(([url]) =>
+          String(url).includes('/balance'),
+        ).length;
+
+      // Prime the portfolio cache: a terminal receipt refreshes it.
+      await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
+      expect(balanceCalls()).toBe(1);
+
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        buyReceiptResponse.previewId,
+      );
+      await until(() => commitCalls === 2);
+
+      // The platform reset replaces the Predict User while the second
+      // observation is in flight.
+      orderService.abandonCommits();
+      await expect(commit).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+      // The observation's terminal receipt arrives after the reset: the loop
+      // sends no further Commit and refreshes no portfolio read.
+      releaseObservation(buyReceiptResponse);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(commitCalls).toBe(2);
+      expect(balanceCalls()).toBe(1);
+    });
   });
 });

@@ -1,9 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
+  BottomSheetFooter,
   Box,
   ButtonSize,
+  ButtonsAlignment,
   FontWeight,
   IconAlertSeverity,
   Text,
@@ -12,7 +13,6 @@ import {
   TitleAlert,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import FooterGlass from '../../../../component-library/components-temp/FooterGlass';
 import { strings } from '../../../../../locales/i18n';
 import { PasswordResetWarningSheetSelectorsIDs } from './PasswordResetWarningSheet.testIds';
 
@@ -61,13 +61,7 @@ const PasswordResetWarningSheet = ({
       onClose={onDismiss}
       testID={PasswordResetWarningSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{
-          testID: PasswordResetWarningSheetSelectorsIDs.CLOSE_BUTTON,
-        }}
-      />
-      <Box twClassName="px-4 pb-2 gap-2">
+      <Box gap={4} twClassName="px-4">
         <TitleAlert
           severity={IconAlertSeverity.Danger}
           title={strings('choose_password.password_warning_title')}
@@ -75,6 +69,7 @@ const PasswordResetWarningSheet = ({
             variant: TextVariant.HeadingMd,
             testID: PasswordResetWarningSheetSelectorsIDs.TITLE,
           }}
+          twClassName="pt-6"
         />
         <Text
           variant={TextVariant.BodyMd}
@@ -92,12 +87,14 @@ const PasswordResetWarningSheet = ({
           {strings('choose_password.password_warning_description_part2')}
         </Text>
       </Box>
-      <FooterGlass
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Vertical}
         primaryButtonProps={{
           children: strings('choose_password.password_warning_confirm'),
           onPress: handleConfirm,
           size: ButtonSize.Lg,
           testID: PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON,
+          style: { marginTop: 0 },
         }}
         secondaryButtonProps={{
           children: strings('choose_password.password_warning_cancel'),
@@ -105,6 +102,7 @@ const PasswordResetWarningSheet = ({
           size: ButtonSize.Lg,
           testID: PasswordResetWarningSheetSelectorsIDs.CANCEL_BUTTON,
         }}
+        twClassName="pt-6 flex-col-reverse gap-4"
       />
     </BottomSheet>
   );

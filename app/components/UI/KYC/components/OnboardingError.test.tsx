@@ -72,9 +72,6 @@ describe('VbaOnboardingError', () => {
     expect(
       getByTestId(VbaOnboardingErrorSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaOnboardingErrorSelectorsIDs.ILLUSTRATION),
-    ).toBeOnTheScreen();
     expect(getByText("We couldn't verify your identity")).toBeOnTheScreen();
     expect(getByText('A few details need your attention.')).toBeOnTheScreen();
     expect(getByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeOnTheScreen();
@@ -107,8 +104,8 @@ describe('VbaOnboardingError', () => {
     ).toBeNull();
   });
 
-  it('hides the list when no items are provided', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
+  it('hides the list and keeps the header top-aligned when no items are provided', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <VbaOnboardingError
         title="Couldn't continue"
         description="Something went wrong."
@@ -120,7 +117,9 @@ describe('VbaOnboardingError', () => {
     expect(
       getByTestId(VbaOnboardingErrorSelectorsIDs.CONTAINER).props
         .contentContainerStyle,
-    ).toEqual(expect.objectContaining({ justifyContent: 'center' }));
+    ).not.toHaveProperty('justifyContent');
+    expect(getByText("Couldn't continue")).toBeOnTheScreen();
+    expect(getByText('Something went wrong.')).toBeOnTheScreen();
   });
 
   it('calls the primary action when its button is pressed', async () => {

@@ -1,6 +1,7 @@
 import {
   parsePredictActivityPage,
   parsePredictBalance,
+  parsePredictPortfolioSummary,
   parsePredictPositionsPage,
 } from '../../contracts/v1/portfolio';
 import {
@@ -14,8 +15,10 @@ import {
   parsePredictSearchResults,
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
+import { parsePredictVenueCatalog } from '../../contracts/v1/venueCatalog';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictError, PredictErrorCode } from '../../errors';
-import { KALSHI_VENUE_ID, type FetchOrderPreviewParams } from '../../types';
+import type { FetchOrderPreviewParams, PredictVenueId } from '../../types';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -52,6 +55,16 @@ const isSameAmount = (left: string, right: string): boolean =>
   left.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '') ===
   right.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '');
 
+/**
+ * Keeps the HTTP status and the backend's canonical code for diagnosis.
+ * Never the response body.
+ */
+const toHttpErrorMetadata = ({
+  status,
+  bodyCode,
+}: PredictHttpError): Record<string, unknown> =>
+  bodyCode === undefined ? { status } : { status, bodyCode };
+
 const mapError = (error: unknown): never => {
   if (isAbortError(error) || error instanceof PredictError) {
     throw error;
@@ -62,18 +75,27 @@ const mapError = (error: unknown): never => {
   }
 
   if (error instanceof PredictHttpError) {
+    const metadata = toHttpErrorMetadata(error);
     if (error.status === 401) {
-      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
+    }
+    // A 451, or a 403 from the backend or its edge, refuses the user's
+    // region. Retrying cannot change that.
+    if (error.status === 403 || error.status === 451) {
+      throw PredictError.from(PredictErrorCode.GEO_BLOCKED, { metadata });
     }
     if (error.status === 429) {
-      throw PredictError.from(PredictErrorCode.RATE_LIMITED);
+      throw PredictError.from(PredictErrorCode.RATE_LIMITED, { metadata });
     }
     if (error.status === 503) {
-      throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE);
+      throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, {
+        metadata,
+      });
     }
     if (error.status >= 500) {
-      throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
+      throw PredictError.from(PredictErrorCode.NETWORK_ERROR, { metadata });
     }
+    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE, { metadata });
   }
 
   throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
@@ -85,11 +107,18 @@ const mapTradingError = (error: unknown): never => {
   if (error instanceof PredictHttpError && error.bodyCode) {
     const mapped = TRADING_ERROR_CODE_BY_BACKEND_CODE[error.bodyCode];
     if (mapped) {
-      throw PredictError.from(mapped);
+      throw PredictError.from(mapped, {
+        metadata: toHttpErrorMetadata(error),
+      });
     }
   }
   return mapError(error);
 };
+
+/** Kalshi's Venue ID. Only Kalshi's adapter and its composition name it;
+ * every other caller takes the Venue from the Active Venue, a route, or an
+ * intent. */
+export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
 
 export class KalshiRemoteAdapter {
   readonly venueId = KALSHI_VENUE_ID;
@@ -211,6 +240,21 @@ export class KalshiRemoteAdapter {
           return mapError(error);
         }
       },
+      fetchPortfolioSummary: async (options) => {
+        try {
+          const value = await client.fetchPortfolioSummary(
+            this.venueId,
+            options,
+          );
+          const result = parsePredictPortfolioSummary(value);
+          if (result.venueId !== this.venueId) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
       fetchActivity: async (params, options) => {
         try {
           const value = await client.fetchActivity(
@@ -232,6 +276,10 @@ export class KalshiRemoteAdapter {
       },
     };
     this.marketData = {
+      // Static client config until PRED-1403 serves the catalog from the
+      // Predict API; only this method changes then.
+      fetchVenueCatalog: async () =>
+        parsePredictVenueCatalog(KALSHI_STATIC_VENUE_CATALOG, this.venueId),
       fetchVenueStatus: async (options) => {
         try {
           const value = await client.fetchVenueStatus(this.venueId, options);
