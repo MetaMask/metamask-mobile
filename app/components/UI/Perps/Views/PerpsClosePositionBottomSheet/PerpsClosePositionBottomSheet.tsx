@@ -81,6 +81,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     confirmButtonProps,
     feeResults,
     summaryPnl,
+    summaryRoePercentage,
     receiveAmount,
     filteredErrors,
     isClosing,
@@ -168,11 +169,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     feeResults.metamaskFeeRate,
     feeResults.originalMetamaskFeeRate,
   );
-  // The sheet shows the position's actual %RoE — the same value the position
-  // component renders (`returnOnEquity × 100`) — instead of deriving a
-  // percentage from $PnL over the PnL-inclusive `marginUsed`.
-  const closeRoePercentage =
-    (Number.parseFloat(livePosition.returnOnEquity || '0') || 0) * 100;
 
   const displayedErrors = useMemo(
     () =>
@@ -256,7 +252,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       {!isEditingLimitPrice && !isInputFocused && (
         <PerpsCloseTotals
           pnl={summaryPnl}
-          roePercentage={closeRoePercentage}
+          roePercentage={summaryRoePercentage}
           receiveAmount={receiveAmount}
         />
       )}

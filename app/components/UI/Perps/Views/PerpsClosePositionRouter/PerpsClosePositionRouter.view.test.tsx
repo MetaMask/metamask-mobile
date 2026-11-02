@@ -4,9 +4,11 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
-import { act, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import type { Position } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
@@ -15,8 +17,15 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionRouter } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
-import { ScreenVsBottomSheetVariant } from '../../abTestConfig';
 import {
+  PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+  ScreenVsBottomSheetVariant,
+} from '../../abTestConfig';
+import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
+import {
+  PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionBottomSheetSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
@@ -161,5 +170,150 @@ describe('PerpsClosePositionRouter', () => {
       screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();
     expect(calculateFees).toHaveBeenCalled();
+  });
+});
+
+describe('PerpsClosePositionRouter bottom-sheet P&L row', () => {
+  /**
+   * Renders the treatment (bottom-sheet) variant with a specific position.
+   * `price` drives the live ETH price; `limitOrderFlag` also enables the
+   * close-position limit-order flag so the order-type toggle is reachable.
+   */
+  const renderTreatmentSheet = (
+    position: Position,
+    options: { price?: string; limitOrderFlag?: boolean } = {},
+  ) => {
+    const { price = '2500', limitOrderFlag = false } = options;
+    const remoteFeatureFlags: Record<string, unknown> = {
+      [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]:
+        ScreenVsBottomSheetVariant.Treatment,
+    };
+    if (limitOrderFlag) {
+      remoteFeatureFlags.perpsClosePositionLimitOrderEnabled = {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      };
+    }
+
+    const result = renderPerpsClosePositionRouter({
+      initialParams: { position },
+      overrides: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>,
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    act(() => {
+      result.stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price,
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+    });
+
+    return result;
+  };
+
+  const findPnlRow = () =>
+    screen.findByTestId(
+      PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+
+  beforeEach(() => {
+    // The sheet remembers the last order type across mounts; a limit test
+    // must not leak the limit default into the market-mode tests.
+    resetLastCloseOrderType();
+  });
+
+  it('shows the position RoE in the P&L row for a market close', async () => {
+    // Fixture: unrealizedPnl 100, returnOnEquity 0.10 (i.e. +10.00%),
+    // deliberately different from PnL over margin (100 / 833.33 = +12.00%).
+    renderTreatmentSheet(createLongPositionForViews());
+
+    expect(await findPnlRow()).toHaveTextContent('+$100 (+10.00%)');
+  });
+
+  it('keeps the position RoE on a partial market close', async () => {
+    renderTreatmentSheet(createLongPositionForViews());
+
+    fireEvent.press(
+      await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+    );
+    fireEvent.press(screen.getByText('50%'));
+    fireEvent.press(screen.getByText(strings('perps.deposit.done_button')));
+
+    expect(await findPnlRow()).toHaveTextContent('+$50 (+10.00%)');
+  });
+
+  it('shows the RoE at the limit price for a limit close', async () => {
+    // Entry 2500, 3x leverage, limit at the live price 2600: the RoE at that
+    // price is (2600 - 2500) / 2500 × 3 = +12.00%, agreeing with the +$100
+    // limit P&L instead of the mark-price position RoE.
+    renderTreatmentSheet(createLongPositionForViews(), {
+      price: '2600',
+      limitOrderFlag: true,
+    });
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRESET_MID,
+      ),
+    );
+    fireEvent.press(screen.getByText(strings('perps.deposit.done_button')));
+
+    expect(await findPnlRow()).toHaveTextContent('+$100 (+12.00%)');
+  });
+
+  it('omits the percentage when nothing is being closed', async () => {
+    // A losing position closed at size 0: the $P&L is ±$0, and the row must
+    // not show the position's RoE beside it (previously this rendered as a
+    // green "+$0 (-12.00%)" because -100 × 0 is -0 and -0 < 0 is false).
+    renderTreatmentSheet(
+      createLongPositionForViews({
+        unrealizedPnl: '-100',
+        returnOnEquity: '-0.12',
+      }),
+    );
+
+    fireEvent.press(
+      await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+    );
+    // Clear the initialized USD amount ($2,500.00) down to nothing.
+    for (let i = 0; i < 9; i += 1) {
+      fireEvent.press(screen.getByTestId(KeypadTestIds.DELETE_BUTTON));
+    }
+    fireEvent.press(screen.getByText(strings('perps.deposit.done_button')));
+
+    const pnlRow = await findPnlRow();
+    expect(pnlRow).toHaveTextContent('+$0');
+    expect(pnlRow).not.toHaveTextContent(/%/);
+  });
+
+  it('omits the percentage when the position RoE is unavailable', async () => {
+    renderTreatmentSheet(createLongPositionForViews({ returnOnEquity: '' }));
+
+    const pnlRow = await findPnlRow();
+    expect(pnlRow).toHaveTextContent('+$100');
+    expect(pnlRow).not.toHaveTextContent(/%/);
   });
 });

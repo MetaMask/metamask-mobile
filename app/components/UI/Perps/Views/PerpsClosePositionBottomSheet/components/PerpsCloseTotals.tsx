@@ -18,10 +18,13 @@ const formatSummaryFiat = (value: number) =>
 export interface PerpsCloseTotalsProps {
   pnl: number;
   /**
-   * The position's actual %RoE (`returnOnEquity × 100`), the same value the
-   * position component renders for the same position.
+   * The %RoE shown beside the $PnL: the position's actual %RoE
+   * (`returnOnEquity × 100`) for market closes, or the RoE at the effective
+   * (limit) price for limit closes — the same value the position component
+   * renders for a market close. Omitted when nothing is being closed or the
+   * value is unavailable.
    */
-  roePercentage: number;
+  roePercentage?: number;
   receiveAmount: number;
 }
 
@@ -49,9 +52,11 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
       variant={KeyValueRowVariant.Summary}
       twClassName="mt-0.5"
       keyLabel={strings('perps.close_position.included_pnl')}
-      value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))} (${formatPercentage(
-        roePercentage,
-      )})`}
+      value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))}${
+        roePercentage !== undefined
+          ? ` (${formatPercentage(roePercentage)})`
+          : ''
+      }`}
       valueTextProps={{
         color: pnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault,
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
