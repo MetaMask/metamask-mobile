@@ -5,14 +5,15 @@ import React, {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
 import { type LayoutChangeEvent, RefreshControl, View } from 'react-native';
 import Animated, {
-  runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -652,7 +653,7 @@ const TraderPositionView = () => {
     },
     (elevated, previous) => {
       if (elevated !== previous) {
-        runOnJS(setIsPinnedChartElevated)(elevated);
+        scheduleOnRN(setIsPinnedChartElevated, elevated);
       }
     },
   );
@@ -690,10 +691,41 @@ const TraderPositionView = () => {
     },
     (index, previous) => {
       if (index !== previous) {
-        runOnJS(setTopDayIndex)(index);
+        scheduleOnRN(setTopDayIndex, index);
       }
     },
   );
+
+  // Flagged positions stay on the history screen with Buy and Trade hidden.
+  let copyTradeAction: ReactNode;
+  if (isFlaggedPosition) {
+    copyTradeAction = null;
+  } else if (isPerp && displayPosition) {
+    copyTradeAction = (
+      <PerpsTradeButton
+        symbol={displayPosition.tokenSymbol}
+        onTrade={handlePerpTrade}
+        testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
+      />
+    );
+  } else {
+    copyTradeAction = (
+      <TraderPositionBuyCta
+        position={displayPosition ?? null}
+        traderAddress={traderAddress}
+        marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+        tokenPriceFiat={
+          typeof currentPrice === 'number' ? currentPrice : undefined
+        }
+        source={quickBuySource}
+        originalEntryPoint={quickBuyOriginalEntryPoint}
+        isTraderPositionClosed={isClosed}
+        onBuyCtaClicked={handleBuyCtaClicked}
+        postTradeShare={isSocialV1 === true}
+        buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+      />
+    );
+  }
 
   const loadedPositionContent = (
     <>
@@ -853,28 +885,7 @@ const TraderPositionView = () => {
         </Animated.View>
       </View>
 
-      {isFlaggedPosition ? null : isPerp && displayPosition ? (
-        <PerpsTradeButton
-          symbol={displayPosition.tokenSymbol}
-          onTrade={handlePerpTrade}
-          testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
-        />
-      ) : (
-        <TraderPositionBuyCta
-          position={displayPosition ?? null}
-          traderAddress={traderAddress}
-          marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-          tokenPriceFiat={
-            typeof currentPrice === 'number' ? currentPrice : undefined
-          }
-          source={quickBuySource}
-          originalEntryPoint={quickBuyOriginalEntryPoint}
-          isTraderPositionClosed={isClosed}
-          onBuyCtaClicked={handleBuyCtaClicked}
-          postTradeShare={isSocialV1 === true}
-          buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-        />
-      )}
+      {copyTradeAction}
     </>
   );
 
