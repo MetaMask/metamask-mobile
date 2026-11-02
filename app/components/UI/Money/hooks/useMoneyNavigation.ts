@@ -1,11 +1,22 @@
 import { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
-import type { MoneyOnboardingParams } from '../types/navigation';
 import type { NavigationAnalyticsContext } from '../../../../util/analytics/navigationAnalyticsAttribution';
+import { strings } from '../../../../../locales/i18n';
+import { MoneyPostOnboardingRedirectType } from '../types/navigation';
+import { selectMoneyEntryContext } from '../selectors/entry';
+import {
+  getMoneyEntryDecision,
+  type MoneyEntryDecision,
+} from '../navigation/moneyEntryDecision';
+import { navigateToMoneyHomeRoute } from '../navigation/navigateToMoneyHome';
+import {
+  useMoneyAccountDeposit,
+  type InitiateDepositOptions,
+} from './useMoneyAccount';
 
 export interface NavigateToMoneyHomeOptions {
   analyticsContext?: NavigationAnalyticsContext;
@@ -15,83 +26,117 @@ export interface NavigateToMoneyHomeOptions {
    * navigation into Money Home. Defaults to true.
    */
   pop?: boolean;
+  track?: TrackMoneyEntry;
 }
 
-/**
- * Why NavigationService instead of useNavigation():
- *
- * This hook is consumed by TabBar, which is rendered via the `tabBar` render prop on Tab.Navigator (a plain function)
- * not a screen component. No navigator-scoped NavigationContext exists at that call site,
- * so useNavigation() isn't available.
- *
- * NavigationService holds a module-level ref to the root NavigationContainerRef,
- * bypassing the context requirement entirely.
- *
- * See: https://github.com/react-navigation/react-navigation/issues/6472
- */
-export const useMoneyOnboardingNavigation = () => {
-  const hasSeenOnboarding = useSelector(selectMoneyOnboardingSeen);
-  const isOnboardingEnabled = useSelector(
-    selectMoneyOnboardingStepperAnimationEnabled,
-  );
-
-  const redirectToOnboarding = useCallback((params?: MoneyOnboardingParams) => {
-    if (params) {
-      NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING, params);
-      return;
-    }
-
-    NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
-  }, []);
-
-  const redirectToOnboardingIfNeeded = useCallback(
-    (params?: MoneyOnboardingParams) => {
-      if (hasSeenOnboarding || !isOnboardingEnabled) {
-        return false;
-      }
-
-      redirectToOnboarding(params);
-      return true;
-    },
-    [hasSeenOnboarding, isOnboardingEnabled, redirectToOnboarding],
-  );
-
-  return {
-    isOnboardingRedirectNeeded: !hasSeenOnboarding && isOnboardingEnabled,
-    redirectToOnboardingIfNeeded,
-  };
-};
+export type TrackMoneyEntry = (
+  decision: Pick<MoneyEntryDecision, 'redirect_target' | 'button_intent'>,
+) => void;
 
 export const useMoneyNavigation = () => {
-  const { isOnboardingRedirectNeeded, redirectToOnboardingIfNeeded } =
-    useMoneyOnboardingNavigation();
+  const entryContext = useSelector(selectMoneyEntryContext);
 
   const navigateToMoneyHome = useCallback(
     (options?: NavigateToMoneyHomeOptions) => {
-      const { analyticsContext, pop = true } = options ?? {};
+      const { analyticsContext, pop = true, track } = options ?? {};
+      const decision = getMoneyEntryDecision('home', entryContext);
 
-      if (
-        redirectToOnboardingIfNeeded(
-          analyticsContext ? { analyticsContext } : undefined,
-        )
-      ) {
+      track?.({
+        redirect_target: decision.redirect_target,
+        button_intent: decision.button_intent,
+      });
+
+      if (decision.destination === 'featureDisabled') {
+        NavigationService.navigation.navigate(
+          Routes.MONEY.MODALS.DEEPLINK_MODAL,
+          {
+            title: strings('money.deeplink_modal.money_account_disabled.title'),
+            description: strings(
+              'money.deeplink_modal.money_account_disabled.description',
+            ),
+          },
+        );
         return;
       }
 
-      NavigationService.navigation.navigate(
-        Routes.HOME_TABS,
-        {
-          screen: Routes.MONEY.ROOT,
-          params: {
-            screen: Routes.MONEY.HOME,
-            ...(analyticsContext ? { params: { analyticsContext } } : {}),
-          },
-        },
-        { pop },
-      );
+      if (decision.destination === 'geoBlockSheet') {
+        NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        });
+        return;
+      }
+
+      if (decision.destination === 'onboarding') {
+        if (analyticsContext) {
+          NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING, {
+            analyticsContext,
+          });
+        } else {
+          NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
+        }
+        return;
+      }
+
+      navigateToMoneyHomeRoute({ analyticsContext, pop });
     },
-    [redirectToOnboardingIfNeeded],
+    [entryContext],
   );
 
-  return { isOnboardingRedirectNeeded, navigateToMoneyHome };
+  return { navigateToMoneyHome };
+};
+
+export const useMoneyDepositNavigation = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const entryContext = useSelector(selectMoneyEntryContext);
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const navigateToMoneyDeposit = useCallback(
+    async ({
+      track,
+      ...options
+    }: InitiateDepositOptions & { track?: TrackMoneyEntry } = {}) => {
+      const decision = getMoneyEntryDecision('deposit', entryContext);
+
+      track?.({
+        redirect_target: decision.redirect_target,
+        button_intent: decision.button_intent,
+      });
+
+      if (decision.destination === 'featureDisabled') {
+        navigation.navigate(Routes.MONEY.MODALS.DEEPLINK_MODAL, {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        });
+        return;
+      }
+
+      if (decision.destination === 'geoBlockSheet') {
+        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        });
+        return;
+      }
+
+      if (decision.destination === 'onboarding') {
+        const { preferredPaymentToken, autoSelectFiatPayment, intent } =
+          options;
+        navigation.navigate(Routes.MONEY.ONBOARDING, {
+          postOnboardingRedirect: {
+            type: MoneyPostOnboardingRedirectType.DEPOSIT,
+            preferredPaymentToken,
+            autoSelectFiatPayment,
+            intent,
+          },
+        });
+        return;
+      }
+
+      await initiateDeposit(options);
+    },
+    [entryContext, initiateDeposit, navigation],
+  );
+
+  return { navigateToMoneyDeposit };
 };
