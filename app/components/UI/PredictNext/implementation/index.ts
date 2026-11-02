@@ -7,6 +7,7 @@ export {
 export { NextVenueProvider, useNextVenueId } from './NextVenueContext';
 export { PredictImplementationSwitch } from './PredictImplementationSwitch';
 export { usePredictImplementation } from './usePredictImplementation';
+export { resolveVenueImplementation } from './venueImplementations';
 export type {
   ActiveVenueResolution,
   ActiveVenueSource,

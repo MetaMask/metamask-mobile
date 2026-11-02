@@ -70,6 +70,11 @@ PredictNext/
   hooks/                       # Existing cross-screen React query integration
   navigation/
     root/                      # Predict root router (legacy or PredictNext stack)
+    entry/                     # Intents, openPredict and usePredictEntryActions (PRED-1379)
+      internal/
+        legacy/                # Today's legacy routes and params for each intent
+        next/                  # PredictNext routes with the Active Venue
+    appRoutes.ts               # Predict's root-navigator route types for NavigationService
 
   auth/                        # Internal P-256, A2T, and bundled profile primitives
     p256DeviceKey.ts           # Profile-bound P-256 implementation
