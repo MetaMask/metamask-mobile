@@ -27,8 +27,8 @@ export interface EventMarketPeriodChipsProps {
   onSelect: (key: string) => void;
 }
 
-// Sub-pixel scroll offsets shouldn't keep the fade on at the end.
-const SCROLL_END_TOLERANCE = 1;
+// Sub-pixel scroll offsets shouldn't keep a fade on at either end.
+const SCROLL_EDGE_TOLERANCE = 1;
 
 /** `#rrggbb` → `#rrggbb00`, so the fade blends into the background colour. */
 const transparent = (hexColor: string) =>
@@ -36,8 +36,8 @@ const transparent = (hexColor: string) =>
 
 /**
  * Single-select chips for an Event market section's periods (Full game, 1st
- * half, …). Scrolls horizontally when the chips overflow, with a fade over the
- * trailing edge while more chips are off-screen.
+ * half, …). Scrolls horizontally when the chips overflow, with a fade over
+ * each edge while chips are hidden past it.
  */
 export const EventMarketPeriodChips = ({
   items,
@@ -63,9 +63,11 @@ export const EventMarketPeriodChips = ({
     [],
   );
 
-  const hasHiddenChips =
+  const hasChipsBefore = scrollX > SCROLL_EDGE_TOLERANCE;
+  const hasChipsAfter =
     containerWidth > 0 &&
-    contentWidth - containerWidth - scrollX > SCROLL_END_TOLERANCE;
+    contentWidth - containerWidth - scrollX > SCROLL_EDGE_TOLERANCE;
+  const background = colors.background.default;
 
   return (
     <Box>
@@ -93,17 +95,24 @@ export const EventMarketPeriodChips = ({
           </FilterButton>
         ))}
       </FilterButtonGroup>
-      {hasHiddenChips ? (
+      {hasChipsBefore ? (
         <LinearGradient
           pointerEvents="none"
-          colors={[
-            transparent(colors.background.default),
-            colors.background.default,
-          ]}
+          colors={[background, transparent(background)]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={tw.style('absolute left-0 top-0 bottom-0 w-14')}
+          testID={EventMarketPeriodChipsTestIds.FADE('start')}
+        />
+      ) : null}
+      {hasChipsAfter ? (
+        <LinearGradient
+          pointerEvents="none"
+          colors={[transparent(background), background]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={tw.style('absolute right-0 top-0 bottom-0 w-14')}
-          testID={EventMarketPeriodChipsTestIds.FADE}
+          testID={EventMarketPeriodChipsTestIds.FADE('end')}
         />
       ) : null}
     </Box>

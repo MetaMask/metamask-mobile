@@ -71,19 +71,28 @@ describe('EventMarketPeriodChips', () => {
     expect(screen.getByTestId(TestIds.CHIP('full_game'))).toBeOnTheScreen();
   });
 
-  it('fades the trailing edge only while more chips are off-screen', () => {
+  it('fades each edge only while chips are hidden past it', () => {
     renderChips();
+    const fade = (edge: 'start' | 'end') =>
+      screen.queryByTestId(TestIds.FADE(edge));
 
-    expect(screen.queryByTestId(TestIds.FADE)).not.toBeOnTheScreen();
+    expect(fade('start')).not.toBeOnTheScreen();
+    expect(fade('end')).not.toBeOnTheScreen();
 
     layOut(361, 760);
-    expect(screen.getByTestId(TestIds.FADE)).toBeOnTheScreen();
-
-    scrollTo(399, 361, 760);
-    expect(screen.queryByTestId(TestIds.FADE)).not.toBeOnTheScreen();
+    expect(fade('start')).not.toBeOnTheScreen();
+    expect(fade('end')).toBeOnTheScreen();
 
     scrollTo(100, 361, 760);
-    expect(screen.getByTestId(TestIds.FADE)).toBeOnTheScreen();
+    expect(fade('start')).toBeOnTheScreen();
+    expect(fade('end')).toBeOnTheScreen();
+
+    scrollTo(399, 361, 760);
+    expect(fade('start')).toBeOnTheScreen();
+    expect(fade('end')).not.toBeOnTheScreen();
+
+    scrollTo(0, 361, 760);
+    expect(fade('start')).not.toBeOnTheScreen();
   });
 
   it('does not fade when every chip fits', () => {
@@ -91,6 +100,7 @@ describe('EventMarketPeriodChips', () => {
 
     layOut(361, 190);
 
-    expect(screen.queryByTestId(TestIds.FADE)).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(TestIds.FADE('start'))).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(TestIds.FADE('end'))).not.toBeOnTheScreen();
   });
 });
