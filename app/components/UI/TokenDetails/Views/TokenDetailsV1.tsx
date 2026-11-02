@@ -18,6 +18,8 @@ import {
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Theme } from '@metamask/design-tokens';
 import {
   Box,
@@ -109,6 +111,8 @@ import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
 import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
 import { formatTokenAge } from '../utils/formatTokenAge';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip';
@@ -436,13 +440,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   // read this page's instead of measuring their own footer on a timer.
   const pageScroll = useTokenDetailsScroll();
   const { onScroll: onPageScroll } = pageScroll;
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      const scrollOffset = event.nativeEvent.contentOffset.y;
+      headerScrollY.set(scrollOffset);
+      onScrollOffset(scrollOffset);
       onPageScroll(event);
     },
-    [onPageScroll, onScrollOffset],
+    [headerScrollY, onPageScroll, onScrollOffset],
   );
 
   const {
@@ -592,6 +604,27 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const emptyFeedBottomPadding = hasBalanceValue
     ? balanceFooterHeight + 48
     : 48;
+  const scrollContentStyle = useMemo(() => {
+    if (!isGlassHeader) {
+      return isEmptyFeed
+        ? [styles.scrollContent, { paddingBottom: emptyFeedBottomPadding }]
+        : styles.scrollContent;
+    }
+
+    return [
+      styles.scrollContent,
+      {
+        paddingTop: headerInset,
+        ...(isEmptyFeed ? { paddingBottom: emptyFeedBottomPadding } : {}),
+      },
+    ];
+  }, [
+    emptyFeedBottomPadding,
+    headerInset,
+    isGlassHeader,
+    isEmptyFeed,
+    styles.scrollContent,
+  ]);
 
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
@@ -809,6 +842,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               />
             ) : undefined
           }
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          scrollY={headerScrollY}
         />
         {/* The tab bar is a direct ScrollView child registered in
             `stickyHeaderIndices`, so it docks right below the nav header
@@ -818,14 +854,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             <ScrollView
               ref={scrollViewRef}
               style={styles.scroll}
-              contentContainerStyle={
-                isEmptyFeed
-                  ? [
-                      styles.scrollContent,
-                      { paddingBottom: emptyFeedBottomPadding },
-                    ]
-                  : styles.scrollContent
-              }
+              contentContainerStyle={scrollContentStyle}
               stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
               onScroll={onScrollViewScroll}
               scrollEventThrottle={16}

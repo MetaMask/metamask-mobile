@@ -22,6 +22,7 @@ import {
   selectMemecoinTdpV1TabConfigOrder,
   selectMemecoinTdpV1TokenApiBaseUrl,
 } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import {
   LIVE_PRICE_HEADER_TEST_ID,
   LIVE_PRICE_SCROLL_THRESHOLD_PX,
@@ -69,10 +70,12 @@ const mockSelectors = ({
   socialEnabled = false,
   tabConfigOrder = TOKEN_DETAILS_V1_TABS,
   tokenApiBaseUrl = PROD_TOKEN_API_BASE_URL,
+  brandRefreshEnabled = false,
 }: {
   socialEnabled?: boolean;
   tabConfigOrder?: TokenDetailsV1TabKey[];
   tokenApiBaseUrl?: string;
+  brandRefreshEnabled?: boolean;
 } = {}) => {
   const { useSelector } = jest.requireMock('react-redux') as {
     useSelector: jest.Mock;
@@ -87,6 +90,9 @@ const mockSelectors = ({
     }
     if (selector === selectMemecoinTdpV1TokenApiBaseUrl) {
       return tokenApiBaseUrl;
+    }
+    if (selector === selectTokenDetailsBrandRefreshEnabled) {
+      return brandRefreshEnabled;
     }
     return undefined;
   });
@@ -548,6 +554,63 @@ describe('TokenDetailsV1', () => {
     expect(mockActionsSectionProps[0]).toEqual(
       expect.objectContaining({ tdpVersion: 'v3' }),
     );
+  });
+
+  describe('glass header', () => {
+    it('keeps the header in normal flow when brand refresh is disabled', () => {
+      render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      expect(mockInlineHeaderProps[0]).toEqual(
+        expect.objectContaining({ isGlass: false }),
+      );
+    });
+
+    it('passes glass layout and scroll props when brand refresh is enabled', () => {
+      mockSelectors({ brandRefreshEnabled: true });
+
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      const headerProps = mockInlineHeaderProps[0] as React.ComponentProps<
+        typeof TokenDetailsInlineHeader
+      >;
+
+      expect(headerProps.isGlass).toBe(true);
+      expect(headerProps.scrollY?.value).toBe(0);
+      expect(headerProps.onLayout).toEqual(expect.any(Function));
+
+      const layoutEvent = {
+        nativeEvent: { layout: { height: 120 } },
+      } as LayoutChangeEvent;
+
+      act(() => {
+        headerProps.onLayout?.(layoutEvent);
+      });
+
+      expect(
+        getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
+          .contentContainerStyle,
+      ).toEqual(
+        expect.arrayContaining([expect.objectContaining({ paddingTop: 120 })]),
+      );
+
+      fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
+        nativeEvent: {
+          contentOffset: { y: 80 },
+        },
+      });
+
+      expect(headerProps.scrollY?.value).toBe(80);
+    });
   });
 
   it('renders the age chip when launchedAt is available', () => {
