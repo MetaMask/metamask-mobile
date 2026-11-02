@@ -1,39 +1,38 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { Position } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfilePositionsTab from './ProfilePositionsTab';
 
-jest.mock('../../../../UI/SocialFeed/utils/perp', () => ({
-  isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
-    position.perpPositionType != null || position.chain === 'hyperliquid',
-}));
-
-jest.mock('../../TraderProfileView/components/PositionRow', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+jest.mock('../../../../UI/SocialFeed/utils/perp', () => {
+  const actual = jest.requireActual('../../../../UI/SocialFeed/utils/perp');
   return {
-    __esModule: true,
-    default: ({
-      position,
-      onPress,
-      showFlaggedState,
-    }: {
-      position: Position;
-      onPress?: (next: Position) => void;
-      showFlaggedState?: boolean;
-    }) => (
-      <Pressable
-        testID={`position-row-${position.tokenSymbol}`}
-        accessibilityState={{ disabled: Boolean(showFlaggedState) }}
-        onPress={() => onPress?.(position)}
-      >
-        <Text>{position.tokenSymbol}</Text>
-      </Pressable>
-    ),
+    ...actual,
+    isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
+      position.perpPositionType != null || position.chain === 'hyperliquid',
   };
 });
+
+jest.mock('../../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+const viewOpacities = () =>
+  screen.UNSAFE_getAllByType(View).map((view) => {
+    const style = StyleSheet.flatten(view.props.style) as
+      | { opacity?: number }
+      | undefined;
+    return style?.opacity;
+  });
+
+const rowTestIds = () =>
+  screen
+    .getAllByTestId(/position-row-/)
+    .map((row) => row.props.testID as string)
+    .filter((testID) => !testID.includes('flag-label'));
 
 const openSpot: Position = {
   positionId: 'eth-spot',
@@ -244,20 +243,15 @@ describe('ProfilePositionsTab', () => {
         minHeight: 44,
       }),
     );
-    expect(
-      screen.getAllByTestId(/position-row-/).map((row) => row.props.testID),
-    ).toEqual([
+    expect(rowTestIds()).toEqual([
       'position-row-LOW',
       'position-row-MID',
       'position-row-Nigel',
       'position-row-Moodeng',
     ]);
-    expect(
-      screen.getByTestId('position-row-Nigel').props.accessibilityState,
-    ).toEqual({ disabled: false });
-    expect(
-      screen.getByTestId('position-row-Moodeng').props.accessibilityState,
-    ).toEqual({ disabled: false });
+    expect(screen.getByText('Insider allocation - excluded')).toBeOnTheScreen();
+    expect(screen.getByText('Contract creator - excluded')).toBeOnTheScreen();
+    expect(viewOpacities()).not.toContain(0.5);
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
     ).toBeNull();
@@ -308,8 +302,9 @@ describe('ProfilePositionsTab', () => {
       screen.queryByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
     ).toBeNull();
     expect(
-      screen.getByTestId('position-row-ETH').props.accessibilityState,
-    ).toEqual({ disabled: false });
+      screen.queryByText('Insider allocation - excluded'),
+    ).not.toBeOnTheScreen();
+    expect(viewOpacities()).not.toContain(0.5);
 
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
@@ -450,9 +445,8 @@ describe('ProfilePositionsTab', () => {
 
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
-    expect(
-      screen.getByTestId('position-row-ETH').props.accessibilityState,
-    ).toEqual({ disabled: false });
+    expect(screen.getByText('Insider allocation - excluded')).toBeOnTheScreen();
+    expect(viewOpacities()).not.toContain(0.5);
     expect(onPositionPress).not.toHaveBeenCalled();
   });
 

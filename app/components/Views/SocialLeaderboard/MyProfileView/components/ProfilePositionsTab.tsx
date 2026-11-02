@@ -100,9 +100,9 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         position={position}
         isClosed={isClosed}
         showTradeDate={isClosed}
-        // Legacy showFlaggedState greys the row. #38564 replaces this line
-        // with flaggedPresentation="subline" for the full-color "· Insider" label.
-        showFlaggedState={false}
+        // #38564 replaces showFlaggedState with flaggedPresentation="subline"
+        // for the full-color "· Insider" label.
+        showFlaggedState={showFlaggedState}
         onPress={
           showFlaggedState && getPositionFlagLabelKey(position)
             ? undefined
