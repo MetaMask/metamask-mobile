@@ -722,9 +722,12 @@ const VbaDetails = () => {
         return;
       }
       inFlight = true;
-      // A registration failure with no destination, and a stale response,
-      // keep the chain going. Only a real stop (unmount, terminal route,
-      // or pollingDone) drops it.
+      // The next timeout is scheduled only after this tick finishes.
+      // Unmount sets `cancelled`. `pollingDone` is set when instructions
+      // load or a Rejected, Cancelled, setup, or registration route runs.
+      // A registration error also stops the chain when it is stale: the
+      // account key changed, or this effect was already cancelled. A
+      // registration error with no destination keeps polling.
       let keepPolling = true;
       try {
         await refreshDeposit();
