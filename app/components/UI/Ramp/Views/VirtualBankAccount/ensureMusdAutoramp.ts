@@ -1,3 +1,4 @@
+import { HttpError } from '@metamask/controller-utils';
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -33,13 +34,36 @@ const trackAutorampCreateFailed = (sourceCurrency: VbaSourceCurrency) => {
 /**
  * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
  * `terminal`: only Rejected or Cancelled autoramps, and no replacement asked.
+ * `existing_on_other_wallet`: MoonPay already has an onramp for this customer,
+ * and re-listing did not find a usable route for this wallet.
  */
 export type MusdAutorampSetupOutcome =
   | 'ready'
   | 'waiting'
   | 'awaiting_provider'
   | 'failed'
-  | 'terminal';
+  | 'terminal'
+  | 'existing_on_other_wallet';
+
+/**
+ * MoonPay rejects a second onramp for the same customer with 409, or with 400
+ * whose body says the customer already has one. The proxy copies that body
+ * into the HttpError message.
+ */
+const AUTORAMP_ALREADY_EXISTS_MESSAGE = /already has an? \w+ onramp/i;
+
+const isAutorampConflictError = (error: unknown): boolean => {
+  if (!(error instanceof HttpError)) {
+    return false;
+  }
+  if (error.httpStatus === 409) {
+    return true;
+  }
+  return (
+    error.httpStatus === 400 &&
+    AUTORAMP_ALREADY_EXISTS_MESSAGE.test(error.message)
+  );
+};
 
 interface AutorampCursor {
   walletAddress: string;
@@ -151,13 +175,77 @@ const createAutoramp = async (
       ...AUTORAMP_DESTINATION,
     }));
   } catch (error) {
-    if (error instanceof AccountCreateRegistrationError) {
+    if (
+      error instanceof AccountCreateRegistrationError ||
+      isAutorampConflictError(error)
+    ) {
       throw error;
     }
     trackAutorampCreateFailed(sourceCurrency);
     throw new AccountCreateRegistrationError(
       getAccountCreateResultFromError(error),
     );
+  }
+};
+
+/**
+ * Logs how many autoramps the customer has, without wallet addresses or other
+ * identifiers. Status, currency, and whether any row belongs to another wallet
+ * are enough to tell a missing route from a route on a different account.
+ */
+const logAutorampConflict = (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): void => {
+  const autoramps = readAutoramps();
+  Logger.error(
+    new Error('VBA autoramp exists for this customer but not this wallet'),
+    {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'ensureMusdAutoramp',
+        data: {
+          sourceCurrency,
+          rowCount: autoramps.length,
+          statuses: autoramps.map((autoramp) => autoramp.status),
+          hasOtherWallet: autoramps.some(
+            (autoramp) => !isForWallet(autoramp, walletAddress),
+          ),
+          currencies: autoramps.map(
+            (autoramp) => knownCurrency(autoramp) ?? 'unknown',
+          ),
+        },
+      },
+    },
+  );
+};
+
+/**
+ * Creates the autoramp. When MoonPay says this customer already has one,
+ * re-lists and reuses a usable route for this wallet. Anything else stays a
+ * conflict so the caller does not treat it as a details-verification failure.
+ */
+const createOrReuseAutoramp = async (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): Promise<MusdAutorampSetupOutcome> => {
+  try {
+    await createAutoramp(walletAddress, sourceCurrency);
+    return 'ready';
+  } catch (error) {
+    if (!isAutorampConflictError(error)) {
+      throw error;
+    }
+    await Engine.context.RampsController.hydrateVbaOnboarding({
+      walletAddress,
+      refreshKyc: false,
+      refreshAutoramps: true,
+    });
+    if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
+      return 'ready';
+    }
+    logAutorampConflict(walletAddress, sourceCurrency);
+    return 'existing_on_other_wallet';
   }
 };
 
@@ -193,8 +281,7 @@ const runSetup = async (
   // Hydrate reports ready when any fiat is usable. A different known fiat
   // does not satisfy this request, so create one for the requested currency.
   if (snapshot.autorampStatus === 'ready') {
-    await createAutoramp(walletAddress, sourceCurrency);
-    return 'ready';
+    return createOrReuseAutoramp(walletAddress, sourceCurrency);
   }
 
   if (
@@ -256,8 +343,7 @@ const runSetup = async (
     return 'ready';
   }
 
-  await createAutoramp(walletAddress, sourceCurrency);
-  return 'ready';
+  return createOrReuseAutoramp(walletAddress, sourceCurrency);
 };
 
 /**

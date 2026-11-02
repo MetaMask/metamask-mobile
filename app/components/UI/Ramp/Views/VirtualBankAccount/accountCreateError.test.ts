@@ -215,6 +215,10 @@ describe('accountCreateError', () => {
   it.each([
     [ACCOUNT_CREATE_ERROR_DESTINATION.details, 'details'],
     [ACCOUNT_CREATE_ERROR_DESTINATION.generic, 'generic'],
+    [
+      ACCOUNT_CREATE_ERROR_DESTINATION.existing_on_other_wallet,
+      'existing_on_other_wallet',
+    ],
   ] as const)('maps destination %s to %s', (destination, variant) => {
     expect(isAccountCreateErrorDestination(destination)).toBe(true);
     expect(accountCreateErrorVariantForDestination(destination)).toBe(variant);

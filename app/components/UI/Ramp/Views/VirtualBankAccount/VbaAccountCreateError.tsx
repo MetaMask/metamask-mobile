@@ -38,9 +38,29 @@ interface VbaAccountCreateErrorProps {
 
 type PendingAction = 'primary' | 'secondary';
 
+const descriptionKeyFor = (
+  variant: AccountCreateErrorVariant,
+  primaryActionType: AccountCreateErrorPrimaryAction,
+): string => {
+  if (variant === 'existing_on_other_wallet') {
+    return 'virtual_bank_account.account_create_error.existing_on_other_wallet.description';
+  }
+  if (primaryActionType === 'retry') {
+    return 'virtual_bank_account.account_create_error.generic.description';
+  }
+  return 'virtual_bank_account.account_create_error.details.description';
+};
+
+const secondaryKeyFor = (variant: AccountCreateErrorVariant): string =>
+  variant === 'existing_on_other_wallet'
+    ? 'virtual_bank_account.account_create_error.details.secondary'
+    : `virtual_bank_account.account_create_error.${variant}.secondary`;
+
 /**
  * Account-creation failure. The variant controls the title, while the action
  * controls whether the description directs the user to support or to retry.
+ * An onramp that already pays another wallet reuses the support and Done
+ * buttons from the details variant.
  */
 const VbaAccountCreateError = ({
   variant,
@@ -81,11 +101,7 @@ const VbaAccountCreateError = ({
     [pendingAction],
   );
 
-  const description = strings(
-    primaryActionType === 'retry'
-      ? 'virtual_bank_account.account_create_error.generic.description'
-      : 'virtual_bank_account.account_create_error.details.description',
-  );
+  const description = strings(descriptionKeyFor(variant, primaryActionType));
   const primaryLabel = strings(
     primaryActionType === 'retry'
       ? 'virtual_bank_account.account_create_error.generic.primary'
@@ -152,9 +168,7 @@ const VbaAccountCreateError = ({
           onPress={() => runAction('secondary', onSecondary)}
           testID={VbaAccountCreateErrorSelectorsIDs.SECONDARY_BUTTON}
         >
-          {strings(
-            `virtual_bank_account.account_create_error.${variant}.secondary`,
-          )}
+          {strings(secondaryKeyFor(variant))}
         </Button>
       </Box>
     </SafeAreaView>

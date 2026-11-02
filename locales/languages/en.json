@@ -1228,6 +1228,10 @@
         "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
         "primary": "Try again",
         "secondary": "Done"
+      },
+      "existing_on_other_wallet": {
+        "title": "You already have a Pix account",
+        "description": "You already have a Pix account linked to another wallet."
       }
     },
     "error": {

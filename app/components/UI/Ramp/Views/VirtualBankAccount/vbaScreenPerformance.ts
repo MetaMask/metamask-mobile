@@ -20,6 +20,7 @@ export const VBA_SCREEN_ID = {
   ACCOUNT_PROVISIONING_ERROR: 'account_provisioning_error',
   ACCOUNT_CREATE_DETAILS_ERROR: 'account_create_details_error',
   ACCOUNT_CREATE_GENERIC_ERROR: 'account_create_generic_error',
+  ACCOUNT_CREATE_OTHER_WALLET_ERROR: 'account_create_other_wallet_error',
   ONBOARDING_ERROR: 'onboarding_error',
   ACCOUNT_CREATION: 'account_creation',
   ACCOUNT_DETAILS: 'account_details',
@@ -57,6 +58,7 @@ export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {
   [VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR]: [
     VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR,
     VBA_SCREEN_ID.ACCOUNT_CREATE_GENERIC_ERROR,
+    VBA_SCREEN_ID.ACCOUNT_CREATE_OTHER_WALLET_ERROR,
   ],
   [VbaOnboardingRoutes.ERROR]: [VBA_SCREEN_ID.ONBOARDING_ERROR],
 } as const;

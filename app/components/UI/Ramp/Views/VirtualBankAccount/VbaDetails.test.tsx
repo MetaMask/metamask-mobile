@@ -2,6 +2,7 @@ import React, { StrictMode } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { HttpError } from '@metamask/controller-utils';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import renderWithProvider, {
   type ProviderValues,
@@ -1026,6 +1027,45 @@ describe('VbaDetails', () => {
     });
     expect(mockHydrate).not.toHaveBeenCalled();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('opens the other-wallet error instead of the details error when Pix already exists', async () => {
+    setAutoramps([]);
+    mockHydrate.mockImplementation(async () => {
+      setAutoramps([
+        {
+          id: 'ar-other',
+          walletAddress: '0xother',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+      return { autorampStatus: 'ready' };
+    });
+    mockCreateAutoramp.mockRejectedValue(
+      new HttpError(
+        400,
+        "Fetching 'https://neobank.example/neobank/autoramps' failed with status '400' - Customer already has a Pix onramp",
+      ),
+    );
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateExistingOnOtherWallet',
+        undefined,
+        undefined,
+        'BRL',
+      );
+    });
+    expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+    const detailsNavigations =
+      mockNavigateToVbaOnboardingDestination.mock.calls.filter(
+        (call) => call[1] === 'accountCreateDetails',
+      );
+    expect(detailsNavigations).toHaveLength(0);
   });
 
   it('opens the generic error instead of replacing a rejected autoramp', async () => {

@@ -13,6 +13,7 @@ import VbaAccountCreateError from '../VbaAccountCreateError';
 import {
   buildAccountCreateSupportUrl,
   getAccountCreateErrorPrimaryAction,
+  type AccountCreateErrorVariant,
 } from '../accountCreateError';
 import {
   openCompletedVbaAccount,
@@ -24,13 +25,28 @@ import {
   VBA_SCREEN_CONTENT_STATE,
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenId,
 } from '../vbaScreenPerformance';
 import { endVbaCufJourney } from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
+const screenIdForVariant = (
+  variant: AccountCreateErrorVariant,
+): VbaScreenId => {
+  if (variant === 'details') {
+    return VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR;
+  }
+  if (variant === 'existing_on_other_wallet') {
+    return VBA_SCREEN_ID.ACCOUNT_CREATE_OTHER_WALLET_ERROR;
+  }
+  return VBA_SCREEN_ID.ACCOUNT_CREATE_GENERIC_ERROR;
+};
+
 /**
  * Wires the account-creation error screens into onboarding.
  * Validation and setup failures open support. Only HTTP 500 can be retried.
+ * An onramp that already pays another wallet uses the same support and Done
+ * actions, with copy that does not blame the user's details.
  */
 const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -39,10 +55,7 @@ const VbaAccountCreateErrorAdapter = () => {
   const { variant, failure, sourceCurrency, retryable } = route.params;
   useScreenPerformance({
     config: VBA_SCREEN_PERFORMANCE_CONFIG,
-    screenId:
-      variant === 'details'
-        ? VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR
-        : VBA_SCREEN_ID.ACCOUNT_CREATE_GENERIC_ERROR,
+    screenId: screenIdForVariant(variant),
     contentReady: true,
     contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
   });
@@ -83,10 +96,10 @@ const VbaAccountCreateErrorAdapter = () => {
     await resumeOnboarding();
   }, [navigation, resumeOnboarding, sourceCurrency]);
 
-  if (variant === 'details') {
+  if (variant === 'details' || variant === 'existing_on_other_wallet') {
     return (
       <VbaAccountCreateError
-        variant="details"
+        variant={variant}
         primaryActionType="contactSupport"
         onPrimary={contactSupport}
         onSecondary={leave}

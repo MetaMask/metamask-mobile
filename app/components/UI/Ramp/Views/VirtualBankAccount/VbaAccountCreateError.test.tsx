@@ -62,6 +62,57 @@ describe('VbaAccountCreateError', () => {
     },
   );
 
+  it('shows the other-wallet copy and runs support and Done', async () => {
+    const { getByText, getByTestId, queryByText } = renderError({
+      variant: 'existing_on_other_wallet',
+      primaryActionType: 'contactSupport',
+    });
+
+    expect(
+      getByText(
+        strings(
+          'virtual_bank_account.account_create_error.existing_on_other_wallet.title',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings(
+          'virtual_bank_account.account_create_error.existing_on_other_wallet.description',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.details.primary'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.details.secondary'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(
+        strings('virtual_bank_account.account_create_error.details.title'),
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
+    );
+    await waitFor(() => {
+      expect(mockOnPrimary).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.press(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.SECONDARY_BUTTON),
+    );
+    await waitFor(() => {
+      expect(mockOnSecondary).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('calls the primary and secondary actions', async () => {
     const { getByTestId } = renderError({ onBack: mockOnBack });
 

@@ -1,5 +1,7 @@
+import { HttpError } from '@metamask/controller-utils';
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
 import { flushPromises } from '../../../../../util/test/utils';
 import { trackVbaEvent } from './vbaAnalytics';
 import {
@@ -41,6 +43,15 @@ jest.mock('./vbaCufTrace', () => ({
 
 const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
 const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
+
+/** Matches NeoBankService's HttpError: status plus the upstream body. */
+const autorampHttpError = (status: number, body?: string): HttpError =>
+  new HttpError(
+    status,
+    body === undefined
+      ? `Fetching 'https://neobank.example/neobank/autoramps' failed with status '${status}'`
+      : `Fetching 'https://neobank.example/neobank/autoramps' failed with status '${status}' - ${body}`,
+  );
 
 const setAutoramps = (
   autoramps: {
@@ -365,5 +376,99 @@ describe('ensureMusdAutoramp', () => {
     await ensureMusdAutoramp('0xabc', 'BRL');
 
     expect(trackVbaEvent).not.toHaveBeenCalled();
+  });
+
+  it('returns ready when a 400 onramp conflict re-lists a same-wallet route', async () => {
+    mockHydrate
+      .mockResolvedValueOnce({ autorampStatus: 'needs_source_currency' })
+      .mockImplementationOnce(async () => {
+        setAutoramps([
+          {
+            walletAddress: '0xabc',
+            status: 'Approved',
+            depositRailsSummary: { currency: 'BRL' },
+          },
+        ]);
+        return { autorampStatus: 'ready' };
+      });
+    mockCreate.mockRejectedValue(
+      autorampHttpError(400, 'Customer already has a Pix onramp'),
+    );
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalledTimes(2);
+    expect(trackVbaEvent).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('returns existing_on_other_wallet when a 400 conflict re-lists another wallet', async () => {
+    const otherWallet = '0xotherwallet';
+    mockHydrate.mockImplementation(async () => {
+      setAutoramps([
+        {
+          walletAddress: otherWallet,
+          status: 'Approved',
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+      return { autorampStatus: 'ready' };
+    });
+    mockCreate.mockRejectedValue(
+      autorampHttpError(400, 'Customer already has a Pix onramp'),
+    );
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
+      'existing_on_other_wallet',
+    );
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    const logged = JSON.stringify(jest.mocked(Logger.error).mock.calls);
+    expect(logged).not.toContain(otherWallet);
+    expect(logged).not.toContain('0xabc');
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        tags: { feature: 'vba-onboarding' },
+        context: expect.objectContaining({
+          name: 'ensureMusdAutoramp',
+          data: {
+            sourceCurrency: 'BRL',
+            rowCount: 1,
+            statuses: ['Approved'],
+            hasOtherWallet: true,
+            currencies: ['BRL'],
+          },
+        }),
+      }),
+    );
+  });
+
+  it('rejects a 400 whose message is not an existing onramp', async () => {
+    mockCreate.mockRejectedValue(
+      autorampHttpError(400, 'Invalid bank details'),
+    );
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        result: { kind: 'http', status: 400 },
+      }),
+    );
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalledTimes(1);
+    expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns existing_on_other_wallet for HTTP 409', async () => {
+    mockCreate.mockRejectedValue(autorampHttpError(409));
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
+      'existing_on_other_wallet',
+    );
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalledTimes(2);
   });
 });

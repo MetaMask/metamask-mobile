@@ -404,6 +404,17 @@ const VbaDetails = () => {
           );
           return;
         }
+        if (outcome === 'existing_on_other_wallet') {
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            ACCOUNT_CREATE_ERROR_DESTINATION.existing_on_other_wallet,
+            undefined,
+            undefined,
+            sourceCurrency,
+          );
+          return;
+        }
         autoramp = findUsableAutoramp(
           readAutoramps(),
           walletAddress,

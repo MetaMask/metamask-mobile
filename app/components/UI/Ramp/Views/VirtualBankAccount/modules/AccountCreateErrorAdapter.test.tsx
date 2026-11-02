@@ -155,6 +155,32 @@ describe('VbaAccountCreateErrorAdapter', () => {
     );
   });
 
+  it('opens support and returns home for an onramp on another wallet', () => {
+    mockRouteParams = { variant: 'existing_on_other_wallet' };
+    const props = renderAdapter();
+
+    expect(props.variant).toBe('existing_on_other_wallet');
+    expect(props.primaryActionType).toBe('contactSupport');
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.ACCOUNT_CREATE_OTHER_WALLET_ERROR,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
+
+    props.onPrimary();
+    props.onSecondary();
+    props.onBack?.();
+
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
+    expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
+    expect(mockNavigation.navigate).toHaveBeenCalledTimes(2);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  });
+
   it('leaves account creation from Back and Done', () => {
     mockRouteParams = { variant: 'details' };
     const props = renderAdapter();

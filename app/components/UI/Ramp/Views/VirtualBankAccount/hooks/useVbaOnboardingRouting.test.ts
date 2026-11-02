@@ -1171,6 +1171,24 @@ describe('navigateToVbaOnboardingDestination account create error', () => {
     });
   });
 
+  it('opens the other-wallet error screen', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateExistingOnOtherWallet',
+      undefined,
+      undefined,
+      'BRL',
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'existing_on_other_wallet',
+        sourceCurrency: 'BRL',
+      },
+    });
+  });
+
   it('passes the safe registration fields to contact support', () => {
     navigateToVbaOnboardingDestination(
       navigation,
