@@ -829,6 +829,10 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
   SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
   SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
+  // Percentage mode: `PerpsFeesDisplay` derives these as
+  // `${SUMMARY_FEES_VALUE}-taker`/`-maker`.
+  SUMMARY_FEES_VALUE_TAKER: 'perps-pro-order-form-summary-fees-value-taker',
+  SUMMARY_FEES_VALUE_MAKER: 'perps-pro-order-form-summary-fees-value-maker',
   SUMMARY_TWAP_RUNTIME: 'perps-pro-order-form-summary-twap-runtime',
   SUMMARY_TWAP_RUNTIME_VALUE: 'perps-pro-order-form-summary-twap-runtime-value',
   SUMMARY_TWAP_SIZE_PER_SUBORDER:
@@ -1060,6 +1064,10 @@ export const PerpsOrderViewSelectorsIDs = {
   LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
   FEES_VALUE: 'perps-order-view-fees-value',
   ORIGINAL_FEES_VALUE: 'perps-order-view-fees-value-original',
+  // Percentage mode: `PerpsFeesDisplay` derives these as
+  // `${FEES_VALUE}-taker`/`-maker`.
+  FEES_VALUE_TAKER: 'perps-order-view-fees-value-taker',
+  FEES_VALUE_MAKER: 'perps-order-view-fees-value-maker',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',

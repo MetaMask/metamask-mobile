@@ -31,6 +31,7 @@ import {
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
+  isNftToken,
   isPerpsOrderKind,
   isSpendingCapUnlimited,
   shouldShowPlusSign,
@@ -524,7 +525,7 @@ function resolveCoreContent(
     case 'send':
     case 'receive': {
       const token = item.data.token;
-      const symbol = token?.symbol ?? '';
+      const symbol = token?.symbol ?? (isNftToken(token) ? 'NFT' : '');
       const address = item.type === 'receive' ? item.data.from : item.data.to;
       const isMoneyDeposit = item.type === 'send' && isMoneyAccountCounterparty;
       const label = isMoneyDeposit
