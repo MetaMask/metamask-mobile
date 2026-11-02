@@ -11,7 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import Tokens from '../../UI/Tokens';
 import { goToAddEvmToken } from '../../UI/Tokens/util';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import Engine from '../../../core/Engine';
@@ -30,7 +30,7 @@ const TokensFullView = () => {
   );
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const currentChainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectEvmChainId);
 
   const goToAddToken = useCallback(() => {
     goToAddEvmToken({

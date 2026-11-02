@@ -80,6 +80,64 @@ interface TokensProps {
   hideSecondaryPriceRow?: boolean;
 }
 
+type TokensEmptyContentProps = Pick<
+  TokensProps,
+  | 'isFullView'
+  | 'showOnlyMusd'
+  | 'hasMusdBalanceOnAnyChain'
+  | 'listHeaderComponent'
+  | 'listFooterComponent'
+  | 'refreshControl'
+> & { bottomInset: number };
+
+const TokensEmptyContent = ({
+  isFullView,
+  showOnlyMusd,
+  hasMusdBalanceOnAnyChain,
+  listHeaderComponent,
+  listFooterComponent,
+  refreshControl,
+  bottomInset,
+}: TokensEmptyContentProps) => {
+  const tw = useTailwind();
+
+  const cashEmptyDescription =
+    showOnlyMusd && hasMusdBalanceOnAnyChain
+      ? strings('homepage.sections.money_empty_description_network_filter')
+      : showOnlyMusd
+        ? strings('homepage.sections.money_empty_description')
+        : undefined;
+
+  const emptyState = (
+    <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
+      {cashEmptyDescription !== undefined ? (
+        <TokensEmptyState description={cashEmptyDescription} />
+      ) : (
+        <TokensEmptyState />
+      )}
+    </Box>
+  );
+
+  if (listHeaderComponent || listFooterComponent || refreshControl) {
+    return (
+      <ScrollView
+        style={tw`flex-1`}
+        contentContainerStyle={
+          isFullView ? { paddingBottom: bottomInset } : undefined
+        }
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
+        {listHeaderComponent}
+        {emptyState}
+        {listFooterComponent}
+      </ScrollView>
+    );
+  }
+
+  return emptyState;
+};
+
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   (
     {
@@ -267,41 +325,17 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         );
       }
 
-      const cashEmptyDescription =
-        showOnlyMusd && hasMusdBalanceOnAnyChainProp
-          ? strings('homepage.sections.money_empty_description_network_filter')
-          : showOnlyMusd
-            ? strings('homepage.sections.money_empty_description')
-            : undefined;
-
-      const emptyState = (
-        <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          {cashEmptyDescription !== undefined ? (
-            <TokensEmptyState description={cashEmptyDescription} />
-          ) : (
-            <TokensEmptyState />
-          )}
-        </Box>
+      return (
+        <TokensEmptyContent
+          isFullView={isFullView}
+          showOnlyMusd={showOnlyMusd}
+          hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChainProp}
+          listHeaderComponent={listHeaderComponent}
+          listFooterComponent={listFooterComponent}
+          refreshControl={refreshControl}
+          bottomInset={bottomInset}
+        />
       );
-
-      if (listHeaderComponent || listFooterComponent || refreshControl) {
-        return (
-          <ScrollView
-            style={tw`flex-1`}
-            contentContainerStyle={
-              isFullView ? { paddingBottom: bottomInset } : undefined
-            }
-            showsVerticalScrollIndicator={false}
-            refreshControl={refreshControl}
-          >
-            {listHeaderComponent}
-            {emptyState}
-            {listFooterComponent}
-          </ScrollView>
-        );
-      }
-
-      return emptyState;
     }, [
       hasInitialLoad,
       hideLoadingSkeleton,
@@ -311,7 +345,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       clearSearch,
       showOnlyMusd,
       hasMusdBalanceOnAnyChainProp,
-      tw,
       refreshing,
       onRefresh,
       showRemoveMenu,
