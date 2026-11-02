@@ -95,7 +95,7 @@ const openPicker = async (view: RootView) => {
 
 const isMarked = (view: RootView, venue: PredictConfiguredVenue) =>
   view.getByTestId(PredictVenueSelectorTestIds.option(venue)).props
-    .accessibilityState?.selected;
+    .accessibilityState?.checked;
 
 const chooseVenue = async (view: RootView, venue: PredictConfiguredVenue) => {
   await openPicker(view);

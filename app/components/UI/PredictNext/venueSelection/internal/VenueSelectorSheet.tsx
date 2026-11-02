@@ -98,7 +98,7 @@ export const VenueSelectorSheet = ({
                       isSelected={isSelected}
                       showSelectedIcon
                       accessibilityRole="radio"
-                      accessibilityState={{ selected: isSelected }}
+                      accessibilityState={{ checked: isSelected }}
                       onPress={() => handleSelect(venue)}
                     />
                   );
