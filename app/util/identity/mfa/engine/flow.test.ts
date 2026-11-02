@@ -956,7 +956,11 @@ describe('createMfaFlow', () => {
       // User chooses passkey but it fails.
       await act(flow, { type: 'choose', method: 'passkey' });
       expect(flow.getState()).toMatchObject({
-        step: { name: 'passkey', purpose: 'verify', otherOptions: ['email_otp'] },
+        step: {
+          name: 'passkey',
+          purpose: 'verify',
+          otherOptions: ['email_otp'],
+        },
         error: 'invalid_assertion',
       });
 
