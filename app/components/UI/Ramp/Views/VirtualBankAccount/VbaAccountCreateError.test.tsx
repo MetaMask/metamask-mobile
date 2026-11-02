@@ -83,6 +83,18 @@ describe('VbaAccountCreateError', () => {
       ),
     ).toBeOnTheScreen();
     expect(
+      strings(
+        'virtual_bank_account.account_create_error.existing_on_other_wallet.title',
+      ),
+    ).toBe('You already have a Pix account');
+    expect(
+      strings(
+        'virtual_bank_account.account_create_error.existing_on_other_wallet.description',
+      ),
+    ).toBe(
+      "There's already a Pix account for your profile that we can't use here. Contact support and we'll help you sort it out.",
+    );
+    expect(
       getByText(
         strings('virtual_bank_account.account_create_error.details.primary'),
       ),
