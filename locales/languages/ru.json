@@ -1510,7 +1510,7 @@
         "kols": "Лидеры мнений"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Применить",
         "apply": "Применить",
         "reset": "Сброс",

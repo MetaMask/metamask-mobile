@@ -1510,7 +1510,7 @@
         "kols": "Fikir Liderleri"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Uygula",
         "apply": "Uygula",
         "reset": "Sıfırla",

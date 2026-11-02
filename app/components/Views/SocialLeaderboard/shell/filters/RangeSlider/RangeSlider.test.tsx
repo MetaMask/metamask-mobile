@@ -1,4 +1,3 @@
-/* eslint-disable @metamask/design-tokens/color-no-hex */
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { playImpact } from '../../../../../../util/haptics';
@@ -62,15 +61,6 @@ jest.mock('../../../../../../util/haptics', () => ({
   ImpactMoment: { SliderGrip: 'SliderGrip', SliderTick: 'SliderTick' },
 }));
 
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#fff', muted: '#eee' },
-      icon: { default: '#000' },
-    },
-  }),
-}));
-
 const defaultProps = {
   minimumValue: 0,
   maximumValue: 100,
@@ -107,6 +97,14 @@ describe('RangeSlider', () => {
 
     expect(screen.getByTestId('market-cap-slider-min-thumb')).toBeOnTheScreen();
     expect(screen.getByTestId('market-cap-slider-max-thumb')).toBeOnTheScreen();
+    expect(screen.getByTestId('market-cap-slider-min-thumb')).toHaveStyle({
+      width: 32,
+      height: 32,
+    });
+    expect(screen.getByTestId('market-cap-slider-max-thumb')).toHaveStyle({
+      width: 32,
+      height: 32,
+    });
   });
 
   it('renders the root track with the base testID', () => {
@@ -118,7 +116,9 @@ describe('RangeSlider', () => {
       />,
     );
 
-    expect(screen.getByTestId('market-cap-slider')).toBeOnTheScreen();
+    expect(screen.getByTestId('market-cap-slider')).toHaveStyle({
+      paddingTop: 13,
+    });
   });
 
   it('accepts a default testID when none is provided', () => {

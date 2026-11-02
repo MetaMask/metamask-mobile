@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -7,79 +6,33 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useTheme } from '../../../../../../util/theme';
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../../../util/haptics';
 
 /**
- * Geometry constants mirrored from `@metamask/design-system-react-native`'s
- * `Slider.constants.mjs`. Keep in sync if that package's Slider geometry changes.
+ * Geometry from `@metamask/design-system-react-native` `Slider`. The package
+ * slider draws one thumb, so this control reuses that track, fill, and thumb
+ * and adds a second thumb. Keep in sync if the package slider geometry changes.
  */
 const THUMB_SIZE = 32;
 const THUMB_TOP_OFFSET = -13;
 /** Negative offset so the thumb center aligns with the track start at 0%. */
 const THUMB_LEFT_OFFSET = -16;
 const THUMB_BOTTOM_OFFSET = THUMB_TOP_OFFSET + THUMB_SIZE;
-const TRACK_HEIGHT = 8;
-const SLIDER_VERTICAL_PADDING = 8;
 /**
  * Default horizontal inset on the root container; equals |THUMB_LEFT_OFFSET| so
  * the thumb can overhang at min/max without clipping.
  */
 const SLIDER_TRACK_INSET = Math.abs(THUMB_LEFT_OFFSET);
-const SLIDER_TRACK_AREA_HEIGHT =
-  SLIDER_VERTICAL_PADDING * 2 + THUMB_BOTTOM_OFFSET;
 
-const styles = StyleSheet.create({
-  root: {
-    alignSelf: 'stretch',
-    marginHorizontal: SLIDER_TRACK_INSET,
-    overflow: 'visible',
-  },
-  trackArea: {
-    position: 'relative',
-    height: SLIDER_TRACK_AREA_HEIGHT,
-    paddingVertical: SLIDER_VERTICAL_PADDING,
-    overflow: 'visible',
-  },
-  track: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top:
-      SLIDER_VERTICAL_PADDING +
-      THUMB_TOP_OFFSET +
-      THUMB_SIZE / 2 -
-      TRACK_HEIGHT / 2,
-    height: TRACK_HEIGHT,
-    borderRadius: TRACK_HEIGHT / 2,
-  },
-  fill: {
-    position: 'absolute',
-    top:
-      SLIDER_VERTICAL_PADDING +
-      THUMB_TOP_OFFSET +
-      THUMB_SIZE / 2 -
-      TRACK_HEIGHT / 2,
-    height: TRACK_HEIGHT,
-    borderRadius: TRACK_HEIGHT / 2,
-  },
-  thumb: {
-    position: 'absolute',
-    top: SLIDER_VERTICAL_PADDING + THUMB_TOP_OFFSET,
-    left: THUMB_LEFT_OFFSET,
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: THUMB_SIZE / 2,
-    borderWidth: 2,
-    elevation: 4,
-  },
-  minThumb: {
-    zIndex: 1,
-  },
-  maxThumb: {
-    zIndex: 2,
-  },
-});
+const THUMB_LAYOUT = {
+  width: THUMB_SIZE,
+  height: THUMB_SIZE,
+  top: THUMB_TOP_OFFSET,
+  left: THUMB_LEFT_OFFSET,
+  elevation: 4,
+};
 
 export interface RangeSliderProps {
   minimumValue: number;
@@ -179,9 +132,9 @@ function resolvedValueWorklet(
 }
 
 /**
- * Dual-thumb range slider. MMDS `Slider` is single-thumb only, so this mirrors
- * its geometry and gesture patterns (pixel `translateX`, track inset, full-track
- * pan) with separate min/max thumbs.
+ * Dual-thumb range slider. Uses the design-system `Slider` track (`border-muted`),
+ * fill (`icon-alternative`), and 32px `icon-default` thumb, with a second thumb
+ * so a range can be selected.
  */
 const RangeSlider: React.FC<RangeSliderProps> = ({
   minimumValue,
@@ -194,7 +147,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   maxThumbAccessibilityLabel,
   testID,
 }) => {
-  const { colors } = useTheme();
+  const tw = useTailwind();
 
   const span = maximumValue - minimumValue;
   const minPercent = useSharedValue(
@@ -346,7 +299,17 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           : 'max';
     };
 
+    // Horizontal activation so the sheet pan and the scroll view keep
+    // vertical drags, and this slider keeps min/max drags.
     return Gesture.Pan()
+      .activeOffsetX([-6, 6])
+      .failOffsetY([-12, 12])
+      .hitSlop({
+        top: -THUMB_TOP_OFFSET,
+        bottom: 8,
+        left: SLIDER_TRACK_INSET,
+        right: SLIDER_TRACK_INSET,
+      })
       .onStart((event) => {
         'worklet';
         isDragging.value = true;
@@ -421,28 +384,42 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   const baseTestID = testID ?? 'range-slider';
 
   return (
-    <View style={styles.root} onLayout={handleLayout} testID={baseTestID}>
+    <Box
+      testID={baseTestID}
+      onLayout={handleLayout}
+      twClassName="relative self-stretch overflow-visible pb-2"
+      // The thumb is drawn 13px above the track. That top padding keeps the
+      // thumb inside this box so the section's 8px margin stays visible.
+      style={{
+        marginHorizontal: SLIDER_TRACK_INSET,
+        paddingTop: -THUMB_TOP_OFFSET,
+      }}
+    >
       <GestureDetector gesture={gesture}>
-        <Animated.View style={styles.trackArea} accessibilityRole="adjustable">
-          <View
-            style={[styles.track, { backgroundColor: colors.background.muted }]}
+        <Animated.View
+          accessibilityRole="adjustable"
+          style={[
+            tw.style('relative overflow-visible'),
+            { height: THUMB_BOTTOM_OFFSET },
+          ]}
+        >
+          <Animated.View
+            style={tw.style(
+              'absolute left-0 top-0 h-2 w-full rounded-full bg-border-muted',
+            )}
           />
           <Animated.View
             style={[
-              styles.fill,
-              { backgroundColor: colors.icon.default },
+              tw.style('absolute top-0 h-2 rounded-full bg-icon-alternative'),
               trackFillStyle,
             ]}
           />
           <Animated.View
             style={[
-              styles.thumb,
-              styles.minThumb,
+              tw.style('absolute rounded-full bg-icon-default'),
+              THUMB_LAYOUT,
+              { zIndex: 1 },
               minThumbStyle,
-              {
-                backgroundColor: colors.background.default,
-                borderColor: colors.icon.default,
-              },
             ]}
             pointerEvents="none"
             accessibilityLabel={minThumbAccessibilityLabel}
@@ -451,13 +428,10 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           />
           <Animated.View
             style={[
-              styles.thumb,
-              styles.maxThumb,
+              tw.style('absolute rounded-full bg-icon-default'),
+              THUMB_LAYOUT,
+              { zIndex: 2 },
               maxThumbStyle,
-              {
-                backgroundColor: colors.background.default,
-                borderColor: colors.icon.default,
-              },
             ]}
             pointerEvents="none"
             accessibilityLabel={maxThumbAccessibilityLabel}
@@ -466,7 +440,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           />
         </Animated.View>
       </GestureDetector>
-    </View>
+    </Box>
   );
 };
 

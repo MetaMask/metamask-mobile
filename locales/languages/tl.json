@@ -1510,7 +1510,7 @@
         "kols": "Mga KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Ilapat",
         "apply": "Ilapat",
         "reset": "I-reset",

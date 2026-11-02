@@ -1510,7 +1510,7 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Áp dụng",
         "apply": "Áp dụng",
         "reset": "Đặt lại",
