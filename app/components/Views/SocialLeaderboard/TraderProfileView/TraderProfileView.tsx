@@ -651,7 +651,7 @@ const TraderProfileView = () => {
                         }
                         isClosed={activeTab === 'closed'}
                         showTradeDate={currentSortKey === 'recent'}
-                        showFlaggedState
+                        flaggedPresentation="excluded"
                       />
                     ))
                   )}
