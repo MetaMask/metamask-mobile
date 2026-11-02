@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -145,6 +145,10 @@ const VbaEmailAdapter = () => {
     };
 
     verifyEmail().catch((error: unknown) => {
+      Alert.alert(
+        'verifyEmail',
+        error instanceof Error ? error.message : String(error),
+      );
       if (!active) {
         return;
       }
