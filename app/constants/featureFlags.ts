@@ -37,7 +37,6 @@ export enum FeatureFlagNames {
   complianceEnabled = 'complianceEnabled',
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
-  geolocationRefreshOnNetworkChange = 'geolocationRefreshOnNetworkChange',
   telegramLoginEnabled = 'telegram_login_enabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
@@ -54,6 +53,7 @@ export enum FeatureFlagNames {
   moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
   exploreBrandRefresh = 'exploreBrandRefresh',
+  glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
 }
 

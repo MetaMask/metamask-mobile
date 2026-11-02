@@ -164,7 +164,6 @@ import { geolocationApiServiceInit } from './controllers/geolocation-api-service
 import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { registerGeolocationRefresh } from './controllers/geolocation-controller/geolocation-refresh';
-import { selectGeolocationRefreshEnabled } from '../../selectors/featureFlagController/geolocationRefresh';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
@@ -977,13 +976,7 @@ export class Engine {
     this.#stopGeolocationRefresh = registerGeolocationRefresh(
       this.controllerMessenger,
       {
-        isEnabled: () => {
-          const state = store.getState();
-          return (
-            selectBasicFunctionalityEnabled(state) &&
-            selectGeolocationRefreshEnabled(state)
-          );
-        },
+        isEnabled: () => selectBasicFunctionalityEnabled(store.getState()),
       },
     );
 

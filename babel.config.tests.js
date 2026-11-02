@@ -86,8 +86,6 @@ const newOverrides = [
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.test.ts',
-      'app/selectors/featureFlagController/geolocationRefresh/index.ts',
-      'app/selectors/featureFlagController/geolocationRefresh/index.test.ts',
       'app/selectors/featureFlagController/confirmations/index.ts',
       'app/selectors/featureFlagController/confirmations/index.test.ts',
       'app/selectors/featureFlagController/seedlessTelegramLogin/index.ts',

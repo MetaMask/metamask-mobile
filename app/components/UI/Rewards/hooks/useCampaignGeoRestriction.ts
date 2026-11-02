@@ -25,11 +25,14 @@ const useCampaignGeoRestriction = (
   const geolocation = useSelector(getDetectedGeolocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
 
+  // A refresh keeps the previous location until the new one arrives, so only
+  // a lookup without a known location counts as loading.
   const isGeoLoading =
     !campaign ||
-    !geolocationStatus ||
-    geolocationStatus === 'loading' ||
-    geolocationStatus === 'idle';
+    (!geolocation &&
+      (!geolocationStatus ||
+        geolocationStatus === 'loading' ||
+        geolocationStatus === 'idle'));
 
   const isGeoRestricted = useMemo(() => {
     if (isFeatureGeoRestricted) return true;

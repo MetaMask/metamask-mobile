@@ -21,8 +21,8 @@ export const NETWORK_CHANGE_DEBOUNCE_MS = 1_500;
 
 export interface GeolocationRefreshOptions {
   /**
-   * Whether refreshes are allowed right now (basic functionality and the
-   * remote kill switch). Read on every trigger so toggles apply immediately.
+   * Whether refreshes are allowed right now (basic functionality). Read on
+   * every trigger so toggles apply immediately.
    */
   isEnabled: () => boolean;
 }
