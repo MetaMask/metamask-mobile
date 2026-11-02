@@ -518,7 +518,10 @@ const MyProfileView: React.FC = () => {
           }}
           endAccessory={
             !isOwner && traderId ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
+              <SocialHeaderGlassSurface
+                twClassName="gap-2 px-2"
+                testID={MyProfileViewSelectorsIDs.HEADER_ACTIONS_CAPSULE}
+              >
                 <ButtonIcon
                   iconName={IconName.Share}
                   iconProps={{ color: IconColor.IconDefault }}
