@@ -66,7 +66,7 @@ While the Active Venue is `resolving`, the root route and the legacy market-list
 
 PRED-1401. `PredictVenueSelectorButton` (`venueSelection/`) sits next to the search icon on the PredictNext home and on both legacy Polymarket homes (`PredictFeed` and the redesigned `PredictHome`, through `PredictHeaderStacked`). It renders nothing unless `selectSelectableVenues` offers a choice. The picker is therefore absent, not disabled, while `predictConfig.venueSelection.enabled` is off or fewer than two Venues are rolled out.
 
-Its bottom sheet lists the selectable Venues and marks the Active Venue. A choice is applied only after the sheet's modal has been dismissed (iOS `onDismiss`, with a 1 s fallback; at once on Android): applying it while iOS was still dismissing the modal remounted the presenting screen mid-dismissal and froze the app. Choosing one then does two things, in order:
+Its bottom sheet lists the selectable Venues and marks the Active Venue. Choosing one does two things, in order:
 
 1. It navigates to the root `Predict` route without legacy market-list parameters. Otherwise an entry that pinned Polymarket (`resolvePinnedVenue`, for example Explore's "view all") would stay on the legacy home.
 2. It calls `PredictVenueController:setVenueSelectionPreference`. The root route then remounts on the chosen Venue's home.

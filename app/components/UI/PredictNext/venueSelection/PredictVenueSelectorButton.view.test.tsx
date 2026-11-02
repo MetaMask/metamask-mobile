@@ -1,5 +1,4 @@
 import '../../../../../tests/component-view/mocks';
-import { Modal } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   configurePredictNextFeeds,
@@ -9,7 +8,6 @@ import {
   renderPredictRoot,
   type RenderPredictRootOptions,
 } from '../../../../../tests/component-view/renderers/predictNext';
-import { itForPlatforms } from '../../../../../tests/component-view/platform';
 import Engine from '../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { updateBgState } from '../../../../core/redux/slices/engine';
@@ -24,7 +22,6 @@ import type { PredictConfig } from '../config/predictConfig';
 import type { PredictConfiguredVenue } from '../implementation';
 import { PredictHomeTestIds } from '../views/PredictHome/PredictHome.testIds';
 import { PredictVenueSelectorTestIds } from './PredictVenueSelector.testIds';
-import { VENUE_SELECTOR_DISMISS_FALLBACK_MS } from './internal/VenueSelectorSheet';
 
 const BOTH_VENUES: PredictConfig = {
   enabled: true,
@@ -100,25 +97,13 @@ const isMarked = (view: RootView, venue: PredictConfiguredVenue) =>
   view.getByTestId(PredictVenueSelectorTestIds.option(venue)).props
     .accessibilityState?.selected;
 
-const pressOption = async (view: RootView, venue: PredictConfiguredVenue) => {
+const chooseVenue = async (view: RootView, venue: PredictConfiguredVenue) => {
+  await openPicker(view);
   await act(async () => {
     fireEvent.press(
       view.getByTestId(PredictVenueSelectorTestIds.option(venue)),
     );
   });
-};
-
-/** iOS reports the picker's modal dismissed; jest's Modal never does. */
-const dismissPicker = (view: RootView) => {
-  act(() => {
-    fireEvent(view.UNSAFE_getByType(Modal), 'dismiss');
-  });
-};
-
-const chooseVenue = async (view: RootView, venue: PredictConfiguredVenue) => {
-  await openPicker(view);
-  await pressOption(view, venue);
-  dismissPicker(view);
 };
 
 const storedPreference = (view: RootView) =>
@@ -150,8 +135,11 @@ describe('PredictVenueSelectorButton', () => {
     expect(isMarked(view, 'polymarket')).toBe(true);
     expect(isMarked(view, 'kalshi')).toBe(false);
 
-    await pressOption(view, 'kalshi');
-    dismissPicker(view);
+    await act(async () => {
+      fireEvent.press(
+        view.getByTestId(PredictVenueSelectorTestIds.option('kalshi')),
+      );
+    });
 
     expect(await findNextHome(view)).toBeOnTheScreen();
     expect(
@@ -172,8 +160,11 @@ describe('PredictVenueSelectorButton', () => {
 
     await openPicker(view);
     expect(isMarked(view, 'kalshi')).toBe(true);
-    await pressOption(view, 'polymarket');
-    dismissPicker(view);
+    await act(async () => {
+      fireEvent.press(
+        view.getByTestId(PredictVenueSelectorTestIds.option('polymarket')),
+      );
+    });
 
     expect(await findLegacyHome(view)).toBeOnTheScreen();
     expect(view.queryByTestId(PredictHomeTestIds.HOME)).not.toBeOnTheScreen();
@@ -216,62 +207,14 @@ describe('PredictVenueSelectorButton', () => {
 
     await openPicker(view);
     expect(isMarked(view, 'kalshi')).toBe(true);
-    await pressOption(view, 'kalshi');
-    dismissPicker(view);
+    await act(async () => {
+      fireEvent.press(
+        view.getByTestId(PredictVenueSelectorTestIds.option('kalshi')),
+      );
+    });
 
     expect(await findNextHome(view)).toBeOnTheScreen();
   });
-
-  it('applies the choice only once the picker modal is dismissed', async () => {
-    const view = renderRoot();
-    await findLegacyHome(view);
-    await openPicker(view);
-
-    await pressOption(view, 'kalshi');
-
-    expect(
-      view.getByTestId(PredictMarketListSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(storedPreference(view)).toBeNull();
-
-    dismissPicker(view);
-
-    expect(await findNextHome(view)).toBeOnTheScreen();
-    expect(storedPreference(view)).toBe('kalshi');
-  });
-
-  it('applies the choice after a fallback when the dismissal is never reported', async () => {
-    const view = renderRoot();
-    await findLegacyHome(view);
-    await openPicker(view);
-
-    await pressOption(view, 'kalshi');
-
-    expect(
-      await view.findByTestId(PredictHomeTestIds.HOME, undefined, {
-        timeout: VENUE_SELECTOR_DISMISS_FALLBACK_MS * 3,
-      }),
-    ).toBeOnTheScreen();
-  });
-
-  itForPlatforms(
-    'applies the choice as soon as the modal hides, without a dismissal event',
-    async () => {
-      const view = renderRoot();
-      await findLegacyHome(view);
-      await openPicker(view);
-
-      await pressOption(view, 'kalshi');
-
-      // Well inside the iOS fallback: Android has no dismissal to wait for.
-      expect(
-        await view.findByTestId(PredictHomeTestIds.HOME, undefined, {
-          timeout: VENUE_SELECTOR_DISMISS_FALLBACK_MS / 2,
-        }),
-      ).toBeOnTheScreen();
-    },
-    'android',
-  );
 
   it('keeps the chosen venue across a remount', async () => {
     const first = renderRoot();
