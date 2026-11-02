@@ -1,4 +1,5 @@
 import React from 'react';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
@@ -98,7 +99,10 @@ describe('SportsTab', () => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPredictAvailability) return true;
-      return undefined;
+      // Other selectors, such as Predict's Active Venue, read the default state.
+      return (selector as (state: unknown) => unknown)({
+        engine: { backgroundState },
+      });
     });
     mockUsePredictionsFeed.mockReturnValue({
       data: [{ id: 'sports-market-1' }],

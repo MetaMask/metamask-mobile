@@ -128,8 +128,6 @@ const predictImportBurndownFiles = [
   'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionsCarouselSection.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionsSkeleton.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/predictionsNavigation.test.ts',
-  'app/components/Views/TrendingView/feeds/predictions/predictionsNavigation.ts',
   'app/components/Views/TrendingView/feeds/predictions/usePredictionsFeed.ts',
   'app/components/Views/TrendingView/feeds/predictions/useSportsMarketsFeed.test.ts',
   'app/components/Views/TrendingView/feeds/predictions/useSportsMarketsFeed.ts',
