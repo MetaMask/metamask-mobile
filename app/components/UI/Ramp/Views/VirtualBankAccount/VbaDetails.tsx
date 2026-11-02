@@ -228,13 +228,12 @@ const VbaDetails = () => {
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const location = useSelector(selectGeolocationLocation);
-  const { isEnabled: isGateEnabled, regionOverride } = useSelector(
-    selectMoneyMovementNeobank,
-  );
+  const { regionOverride } = useSelector(selectMoneyMovementNeobank);
   const markets = useSelector(selectNeobankMarkets);
-  const sourceCurrency = isGateEnabled
-    ? getVbaMarketForCountry(markets, regionOverride ?? location)?.currency
-    : undefined;
+  const sourceCurrency = getVbaMarketForCountry(
+    markets,
+    regionOverride ?? location,
+  )?.currency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();

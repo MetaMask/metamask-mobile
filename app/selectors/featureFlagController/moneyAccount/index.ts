@@ -139,45 +139,41 @@ function normalizeVbaRegionOverride(
 
 export interface MoneyMovementNeobankRollout {
   /**
-   * Whether this binary may offer new Virtual Bank Accounts. False when the
-   * flag is missing, disabled, malformed, or older than `minimumVersion`.
-   */
-  isEnabled: boolean;
-  /**
    * True when the user picks the account currency on Choose Currency. Only a
-   * literal `true` enables it, and it is false whenever `isEnabled` is false.
+   * literal `true` enables it. Read even when `enabled` is false so a Settings
+   * override of this field alone works.
    */
   chooseCurrency: boolean;
   /**
    * Country code used ahead of the IP location. Undefined when the field is
-   * missing, not a string, blank, or the gate is closed.
+   * missing, not a string, or blank. Read even when `enabled` is false so a
+   * Settings override of this field alone works.
    */
   regionOverride: string | undefined;
 }
 
-const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
-  isEnabled: false,
+const NEOBANK_ROLLOUT_DEFAULT: MoneyMovementNeobankRollout = {
   chooseCurrency: false,
   regionOverride: undefined,
 };
 
 /**
- * Global Virtual Bank Account switch from `moneyMovementNeobank`:
- * `{ enabled, minimumVersion, chooseCurrency, regionOverride }`. The countries
- * and currencies come from the per-currency flags in `selectNeobankMarkets`.
+ * Non-gating fields from `moneyMovementNeobank`: `chooseCurrency` and
+ * `regionOverride`. Signup gating uses the per-currency flags in
+ * `selectNeobankMarkets`. Older builds (8.17 to 8.20) still read `enabled`
+ * and `minimumVersion` from this flag.
  *
- * @returns The rollout switch, or a disabled rollout.
+ * @returns The config fields, or defaults when the flag is missing or malformed.
  */
 export const selectMoneyMovementNeobank = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): MoneyMovementNeobankRollout => {
     const remoteFlag = remoteFeatureFlags?.[MONEY_MOVEMENT_NEOBANK_FLAG_KEY];
     const payload = readGatedFlagPayload<MoneyMovementNeobankFlag>(remoteFlag);
-    if (!payload || validatedVersionGatedFeatureFlag(payload) !== true) {
-      return NEOBANK_ROLLOUT_DISABLED;
+    if (!payload) {
+      return NEOBANK_ROLLOUT_DEFAULT;
     }
     return {
-      isEnabled: true,
       chooseCurrency: payload.chooseCurrency === true,
       regionOverride: normalizeVbaRegionOverride(payload.regionOverride),
     };
@@ -189,9 +185,17 @@ function readNeobankMarket(
   currency: VbaSourceCurrency,
 ): VbaMarket | undefined {
   const payload = readGatedFlagPayload<NeobankMarketFlag>(remoteFlag);
+  if (!payload) {
+    return undefined;
+  }
+  let versionGatePassed = false;
+  try {
+    versionGatePassed = validatedVersionGatedFeatureFlag(payload) === true;
+  } catch {
+    return undefined;
+  }
   if (
-    !payload ||
-    validatedVersionGatedFeatureFlag(payload) !== true ||
+    !versionGatePassed ||
     typeof payload.currency !== 'string' ||
     payload.currency.trim().toUpperCase() !== currency
   ) {
@@ -225,8 +229,8 @@ export const selectNeobankMarkets = createSelector(
 
 /**
  * Local escape hatch so engineers can open the live Bank account row from an
- * IP outside every market's `regions`. `moneyMovementNeobank` must still be
- * enabled. Set `MM_MONEY_VBA_GEO_BYPASS=true` in `.js.env` and restart Metro.
+ * IP outside every market's `regions`. At least one currency flag must still
+ * be open. Set `MM_MONEY_VBA_GEO_BYPASS=true` in `.js.env` and restart Metro.
  *
  * @returns Whether the VBA geolocation requirement is bypassed.
  */

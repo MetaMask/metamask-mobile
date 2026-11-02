@@ -96,7 +96,6 @@ jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
     selectMoneyMovementNeobank: (state: unknown) =>
       mockNeobankFlagOn
         ? {
-            isEnabled: true,
             chooseCurrency: mockChooseCurrency,
             regionOverride: mockRegionOverride,
           }

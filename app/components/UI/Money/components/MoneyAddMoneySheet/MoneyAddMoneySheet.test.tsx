@@ -183,7 +183,8 @@ describe('MoneyAddMoneySheet', () => {
     );
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
     (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
-      isEnabled: true,
+      chooseCurrency: false,
+      regionOverride: undefined,
     });
     (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([
       { currency: 'BRL', regions: ['BR'] },
@@ -251,10 +252,8 @@ describe('MoneyAddMoneySheet', () => {
     );
   });
 
-  it('keeps the Bank account row as a coming-soon, non-pressable option when moneyMovementNeobank is off', () => {
-    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
-      isEnabled: false,
-    });
+  it('keeps the Bank account row as a coming-soon, non-pressable option when no currency flag is open', () => {
+    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
 
     const { getByTestId, getAllByText, queryByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
@@ -268,10 +267,8 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('enables the Bank account row for a usable autoramp even when the flag is off', () => {
-    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
-      isEnabled: false,
-    });
+  it('enables the Bank account row for a usable autoramp even when no currency flag is open', () => {
+    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
     (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue({
       id: 'ar-1',
     });
@@ -287,7 +284,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getAllByText('Coming soon')).toHaveLength(1);
   });
 
-  it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {
+  it('hides the Bank account row when a currency flag is open and geolocation is outside its regions', () => {
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
 
     const { queryByTestId, queryByText, getAllByText } = renderWithProvider(
@@ -299,55 +296,6 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
     expect(queryByText('Bank transfer')).toBeNull();
     expect(queryByText('New')).toBeNull();
-    expect(getAllByText('Coming soon')).toHaveLength(1);
-  });
-
-  it('hides the Bank account row for a brand new user in the transition state: the global switch is on but no per-currency market is open yet, and there is no existing autoramp', () => {
-    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
-      isEnabled: true,
-      chooseCurrency: false,
-      regionOverride: undefined,
-    });
-    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
-    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue(
-      undefined,
-    );
-
-    const { queryByTestId, queryByText, getAllByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    // Nothing is open to sign up for yet, so this matches the flag-off case:
-    // the row is hidden outright, not shown as a disabled "Coming soon" row.
-    expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-    ).toBeNull();
-    expect(queryByText('Bank transfer')).toBeNull();
-    expect(queryByText('New')).toBeNull();
-    expect(getAllByText('Coming soon')).toHaveLength(1);
-  });
-
-  it('enables the Bank account row in the transition state for a user with an existing usable autoramp, even though no per-currency market is open yet', () => {
-    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
-      isEnabled: true,
-      chooseCurrency: false,
-      regionOverride: undefined,
-    });
-    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
-    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue({
-      id: 'ar-1',
-    });
-
-    const { getByTestId, getAllByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    // An existing account must keep working through the transition
-    // regardless of the per-currency flags being open.
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-    ).toBeEnabled();
-    // Only External address is coming soon.
     expect(getAllByText('Coming soon')).toHaveLength(1);
   });
 
@@ -396,10 +344,8 @@ describe('MoneyAddMoneySheet', () => {
     );
   });
 
-  it('keeps the coming-soon Bank account row when the flag is off even if the geo bypass is on', () => {
-    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
-      isEnabled: false,
-    });
+  it('keeps the coming-soon Bank account row when no currency flag is open even if the geo bypass is on', () => {
+    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
     process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
 
@@ -774,10 +720,8 @@ describe('MoneyAddMoneySheet', () => {
     ]);
   });
 
-  it('keeps the coming-soon Bank account row in its pre-flag position when moneyMovementNeobank is off', () => {
-    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
-      isEnabled: false,
-    });
+  it('keeps the coming-soon Bank account row in its pre-flag position when no currency flag is open', () => {
+    (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([]);
     // Empty wallet: Convert crypto is disabled too, so the disabled rows'
     // relative order must still match prod (Convert crypto above Bank account).
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(

@@ -17,18 +17,18 @@ import {
 
 export interface VbaEligibility {
   /**
-   * Whether the user may start a new VBA signup. True when
-   * `moneyMovementNeobank` is enabled for this binary and an open currency
-   * flag lists the effective country, or the flag is enabled and the dev
-   * bypass is set. The effective location
-   * is `regionOverride` when the flag sets one, otherwise the IP location.
+   * Whether the user may start a new VBA signup. True when an open currency
+   * flag lists the effective country, or when at least one currency flag is
+   * open and the dev bypass is set. The effective location is `regionOverride`
+   * from `moneyMovementNeobank` when that field is set, otherwise the IP
+   * location.
    */
   isEligible: boolean;
   /** IP lookup has not resolved yet; callers should hold rather than deny. */
   isLoading: boolean;
   /**
-   * `moneyMovementNeobank` is enabled for this binary. Missing, disabled,
-   * malformed, or too old is false.
+   * At least one per-currency market is open for this binary. Missing,
+   * disabled, malformed, or too-old currency flags yield false.
    */
   isFlagEnabled: boolean;
   /** An open currency flag lists the effective location's country. */
@@ -59,7 +59,8 @@ export interface VbaEligibilityInputs {
  * `moneyMovementNeobank` when the flag sets one, otherwise the
  * GeolocationController IP lookup. The Settings region picker
  * (`RampsController.userRegion`) is not consulted. An override country still
- * has to be listed by an open market.
+ * has to be listed by an open market. `isFlagEnabled` is true when at least
+ * one currency flag is open.
  */
 export function getVbaEligibility({
   isFlagEnabled,
@@ -89,20 +90,19 @@ export function getVbaEligibility({
 
 /**
  * Single gate for every Virtual Bank Account entry point (Add funds row, Money
- * home cards, deeplinks). Combines the effective location, `moneyMovementNeobank`
- * (enabled, minimumVersion, and optional regionOverride), the per-currency
- * markets, the dev escape hatch, and a loading state.
+ * home cards). Combines the effective location, the per-currency markets, the
+ * optional `regionOverride` from `moneyMovementNeobank`, the dev escape hatch,
+ * and a loading state.
  *
  * @example
  * const { isEligible, isLoading } = useVbaEligibility();
  */
 export function useVbaEligibility(): VbaEligibility {
-  const { isEnabled: isFlagEnabled, regionOverride } = useSelector(
-    selectMoneyMovementNeobank,
-  );
+  const { regionOverride } = useSelector(selectMoneyMovementNeobank);
   const markets = useSelector(selectNeobankMarkets);
   const location = useSelector(selectGeolocationLocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
+  const isFlagEnabled = markets.length > 0;
 
   return useMemo(
     () =>

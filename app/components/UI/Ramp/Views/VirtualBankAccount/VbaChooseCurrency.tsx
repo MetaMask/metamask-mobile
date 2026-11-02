@@ -41,8 +41,9 @@ const getCurrencyName = (currency: VbaSourceCurrency): string =>
 
 /**
  * Lets the user pick the account currency after identity verification. Only
- * shown when `moneyMovementNeobank.chooseCurrency` is true; otherwise the
- * account is created in the IP country's currency.
+ * shown when `moneyMovementNeobank.chooseCurrency` is true. The pick does not
+ * change the currency that gets created; that still comes from the open market
+ * for the effective location.
  */
 const VbaChooseCurrency = () => {
   const navigation = useNavigation<AppNavigationProp>();
