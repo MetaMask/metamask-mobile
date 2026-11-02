@@ -13,8 +13,19 @@ const mockedValidate =
   >;
 
 describe('isMoneyAccountEnabled', () => {
+  const originalLocalFlag = process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT;
+  });
+
+  afterEach(() => {
+    if (originalLocalFlag === undefined) {
+      delete process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT;
+    } else {
+      process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT = originalLocalFlag;
+    }
   });
 
   it('returns true when remote flag is enabled and version requirement is met', () => {
@@ -37,7 +48,7 @@ describe('isMoneyAccountEnabled', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false when remote flag returns undefined', () => {
+  it('returns false when remote flag returns undefined and no local override is set', () => {
     mockedValidate.mockReturnValue(undefined);
 
     const result = isMoneyAccountEnabled({});
@@ -45,7 +56,25 @@ describe('isMoneyAccountEnabled', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false when remoteFeatureFlags is undefined', () => {
+  it('uses MM_MONEY_ENABLE_MONEY_ACCOUNT when the remote flag is unavailable', () => {
+    process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT = 'true';
+    mockedValidate.mockReturnValue(undefined);
+
+    const result = isMoneyAccountEnabled({});
+
+    expect(result).toBe(true);
+  });
+
+  it('keeps a false remote flag authoritative over the local override', () => {
+    process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT = 'true';
+    mockedValidate.mockReturnValue(false);
+
+    const result = isMoneyAccountEnabled({});
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remoteFeatureFlags is undefined and no local override is set', () => {
     mockedValidate.mockReturnValue(undefined);
 
     const result = isMoneyAccountEnabled(undefined);

@@ -17,11 +17,12 @@ export const IS_MONEY_MFA_ENABLED_FLAG_NAME = 'isMoneyMfaEnabled';
 export function isMoneyAccountEnabled(
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): boolean {
+  const localFlag = process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT === 'true';
   const remoteFlag = remoteFeatureFlags?.[
     MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME
   ] as VersionGatedFeatureFlag;
 
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
 }
 
 /**
