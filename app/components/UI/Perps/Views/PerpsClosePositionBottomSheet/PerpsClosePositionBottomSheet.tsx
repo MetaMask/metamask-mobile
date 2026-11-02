@@ -14,6 +14,7 @@ import {
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
@@ -173,6 +174,11 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     summaryMargin !== 0
       ? (summaryPnl / Math.abs(summaryMargin)) * 100
       : undefined;
+  const markerRoePct =
+    (Number.parseFloat(livePosition.returnOnEquity || '0') || 0) * 100;
+  DevLogger.log(
+    `[TAT-4355] BUG_MARKER: close sheet pnl percentage derived from PnL-inclusive margin (derivedPct=${summaryPnlPercentage === undefined ? 'undefined' : summaryPnlPercentage.toFixed(4)}, roePct=${markerRoePct.toFixed(4)}, roeMatch=${summaryPnlPercentage !== undefined && Math.abs(summaryPnlPercentage - markerRoePct) < 0.005})`,
+  );
 
   const displayedErrors = useMemo(
     () =>
