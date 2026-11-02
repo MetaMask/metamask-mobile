@@ -2,6 +2,12 @@ import { renderHook } from '@testing-library/react-native';
 import { useFollowWithNotificationSetup } from './useFollowWithNotificationSetup';
 import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 
+const mockEnsureSocialTermsAccepted = jest.fn(() => true);
+jest.mock('../terms/useSocialTermsGate', () => ({
+  useSocialTermsGate: () => ({
+    ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
+  }),
+}));
 jest.mock('./useOpenTradingSignalsSetup');
 
 const mockUseOpenTradingSignalsSetup =
@@ -17,7 +23,24 @@ const setGate = (intercepts: boolean) => {
 };
 
 describe('useFollowWithNotificationSetup', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockEnsureSocialTermsAccepted.mockReturnValue(true);
+  });
+
+  it('skips the follow and setup when the Social terms are not accepted', async () => {
+    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+    const openSetupIfNeeded = setGate(true);
+    const performFollow = jest.fn();
+
+    const { result } = renderHook(() =>
+      useFollowWithNotificationSetup({ requireSocialTerms: true }),
+    );
+    await result.current.followWithSetup(false, performFollow);
+
+    expect(performFollow).not.toHaveBeenCalled();
+    expect(openSetupIfNeeded).not.toHaveBeenCalled();
+  });
 
   it('follows directly when setup is not needed', async () => {
     const openSetupIfNeeded = setGate(false);

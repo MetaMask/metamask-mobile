@@ -339,6 +339,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           return (
             <SocialFeedRow
               post={item.post}
+              requireSocialTerms
               dividerTestID={dividerTestID}
               entrances={entrances}
               scheduleEntryDelay={scheduleEntryDelay}

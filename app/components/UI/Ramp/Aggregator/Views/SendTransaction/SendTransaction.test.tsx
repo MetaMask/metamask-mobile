@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
@@ -11,6 +12,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
+import { validateTronTransferAmount } from '../../../../../../core/Multichain/tron';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 import SendTransaction from './SendTransaction';
 import APP_CONSTANTS from '../../../../../../core/AppConstants';
@@ -346,6 +348,30 @@ const mockTronOrder = {
   } as DeepPartial<SellOrder>,
 } as FiatOrder;
 
+const TRON_USDT_ASSET_REFERENCE = 'trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+
+const mockTronUsdtOrder = {
+  ...mockTronOrder,
+  id: 'test-id-tron-usdt',
+  cryptocurrency: 'USDT',
+  cryptoAmount: '100',
+  data: {
+    ...mockTronOrder.data,
+    id: 'test-id-tron-usdt',
+    providerOrderId: 'test-id-tron-usdt',
+    cryptoAmount: '100',
+    cryptoCurrency: {
+      ...(mockTronOrder.data as SellOrder).cryptoCurrency,
+      id: '/currencies/crypto/tron/usdt',
+      logo: 'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdt.svg',
+      address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      assetId: TRON_USDT_ASSET_REFERENCE,
+    },
+  } as DeepPartial<SellOrder>,
+} as FiatOrder;
+
 const STELLAR_WALLET_ADDRESS =
   'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF';
 
@@ -396,6 +422,7 @@ const mockedOrders = [
   mockOrder3,
   mockSolanaOrder,
   mockTronOrder,
+  mockTronUsdtOrder,
   mockStellarOrder,
 ];
 
@@ -461,6 +488,10 @@ jest.mock('../../../../../Views/confirmations/utils/multichain-snaps', () => ({
   sendMultichainTransactionForReview: jest.fn(),
 }));
 
+jest.mock('../../../../../../core/Multichain/tron', () => ({
+  validateTronTransferAmount: jest.fn(),
+}));
+
 jest.mock('../../../../../../selectors/accountsController', () => ({
   __esModule: true,
   ...jest.requireActual('../../../../../../selectors/accountsController'),
@@ -469,6 +500,7 @@ jest.mock('../../../../../../selectors/accountsController', () => ({
 
 const mockSendMultichainTransactionForReview =
   sendMultichainTransactionForReview as jest.Mock;
+const mockValidateTronTransferAmount = validateTronTransferAmount as jest.Mock;
 const mockGetInternalAccountByAddress =
   getMemoizedInternalAccountByAddress as unknown as jest.Mock;
 
@@ -491,6 +523,7 @@ describe('SendTransaction View', () => {
     mockTrackEvent.mockClear();
     mockAddTransaction.mockClear();
     mockSendMultichainTransactionForReview.mockClear();
+    mockValidateTronTransferAmount.mockReset();
     mockGetInternalAccountByAddress.mockReset();
   });
 
@@ -498,6 +531,10 @@ describe('SendTransaction View', () => {
     mockUseParamsValues = {
       orderId: 'test-id-1',
     };
+    mockValidateTronTransferAmount.mockResolvedValue({
+      valid: true,
+      errors: [],
+    });
     // Default: no resolvable non-EVM account (EVM tests don't read it).
     mockGetInternalAccountByAddress.mockReturnValue(undefined);
   });
@@ -864,6 +901,15 @@ describe('SendTransaction View', () => {
       await act(async () => fireEvent.press(nextButton));
 
       expect(mockAddTransaction).not.toHaveBeenCalled();
+      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+        mockTronAccount,
+        {
+          accountId: mockTronAccount.id,
+          assetId: 'tron:728126428/slip44:195',
+          value: '42',
+          toAddress: TRON_DEPOSIT_ADDRESS,
+        },
+      );
       expect(mockSendMultichainTransactionForReview).toHaveBeenCalledWith(
         mockTronAccount,
         {
@@ -886,6 +932,352 @@ describe('SendTransaction View', () => {
           ],
         ]
       `);
+    });
+
+    it('blocks a Tron transfer when the account lacks TRX or network resources', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockValidateTronTransferAmount.mockResolvedValueOnce({
+        valid: false,
+        errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+      });
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+        mockTronAccount,
+        {
+          accountId: mockTronAccount.id,
+          assetId: 'tron:728126428/slip44:195',
+          value: '42',
+          toAddress: TRON_DEPOSIT_ADDRESS,
+        },
+      );
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId('send-transaction-validation-error'),
+      ).toHaveTextContent(
+        'This account needs more TRX or network resources to complete the transaction.',
+      );
+      expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockTrackEvent.mock.lastCall?.[0]).toBe(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+      );
+    });
+
+    it('validates and sends Tron USDT through the Snap', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron-usdt' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockSendMultichainTransactionForReview.mockResolvedValueOnce({
+        transactionId: 'tron-usdt-tx-hash-789',
+      });
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      const assetId = `tron:728126428/${TRON_USDT_ASSET_REFERENCE}`;
+      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+        mockTronAccount,
+        {
+          accountId: mockTronAccount.id,
+          assetId,
+          value: '100',
+          toAddress: TRON_DEPOSIT_ADDRESS,
+        },
+      );
+      expect(mockSendMultichainTransactionForReview).toHaveBeenCalledWith(
+        mockTronAccount,
+        {
+          fromAccountId: mockTronAccount.id,
+          toAddress: TRON_DEPOSIT_ADDRESS,
+          assetId,
+          amount: '100',
+        },
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: {
+            orderId: 'test-id-tron-usdt',
+            txHash: 'tron-usdt-tx-hash-789',
+          },
+        }),
+      );
+    });
+
+    it('blocks Tron USDT when the account lacks TRX or network resources', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron-usdt' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockValidateTronTransferAmount.mockResolvedValueOnce({
+        valid: false,
+        errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+      });
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
+        mockTronAccount,
+        {
+          accountId: mockTronAccount.id,
+          assetId: `tron:728126428/${TRON_USDT_ASSET_REFERENCE}`,
+          value: '100',
+          toAddress: TRON_DEPOSIT_ADDRESS,
+        },
+      );
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId('send-transaction-validation-error'),
+      ).toHaveTextContent(
+        'This account needs more TRX or network resources to complete the transaction.',
+      );
+      expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+    });
+
+    it('shows insufficient funds when the Tron Snap reports InsufficientBalance', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockValidateTronTransferAmount.mockResolvedValueOnce({
+        valid: false,
+        errors: [{ code: 'InsufficientBalance' }],
+      });
+
+      render(SendTransaction);
+      await act(async () =>
+        fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+      );
+
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId('send-transaction-validation-error'),
+      ).toHaveTextContent('Insufficient funds');
+      expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+    });
+
+    it('fails closed with a retryable error when Tron validation throws', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockValidateTronTransferAmount.mockRejectedValueOnce(
+        new Error('Snap unavailable'),
+      );
+
+      render(SendTransaction);
+      await act(async () =>
+        fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+      );
+
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId('send-transaction-validation-error'),
+      ).toHaveTextContent(
+        "We couldn't verify this transfer. Please try again.",
+      );
+      expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+      expect(
+        screen.getByTestId('send-transaction-retry-validation'),
+      ).toBeOnTheScreen();
+      expect(mockTrackEvent.mock.lastCall?.[0]).toBe(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+      );
+    });
+
+    it('fails closed when the Tron Snap returns no validation result', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockValidateTronTransferAmount.mockResolvedValueOnce(undefined);
+
+      render(SendTransaction);
+      await act(async () =>
+        fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+      );
+
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId('send-transaction-validation-error'),
+      ).toHaveTextContent(
+        "We couldn't verify this transfer. Please try again.",
+      );
+      expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+    });
+
+    it('keeps Next disabled when a Tron retry still lacks resources', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockValidateTronTransferAmount.mockResolvedValue({
+        valid: false,
+        errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+      });
+
+      render(SendTransaction);
+      await act(async () =>
+        fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+      );
+      await act(async () =>
+        fireEvent.press(
+          screen.getByTestId('send-transaction-retry-validation'),
+        ),
+      );
+
+      expect(mockValidateTronTransferAmount).toHaveBeenCalledTimes(2);
+      expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+      expect(
+        screen.getByTestId('send-transaction-validation-error'),
+      ).toBeOnTheScreen();
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+    });
+
+    it('re-enables Next after a successful Tron retry without sending, then sends on Next', async () => {
+      mockUseParamsValues = { orderId: 'test-id-tron' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+      mockValidateTronTransferAmount
+        .mockResolvedValueOnce({
+          valid: false,
+          errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+        })
+        .mockResolvedValue({ valid: true, errors: [] });
+      mockSendMultichainTransactionForReview.mockResolvedValueOnce({
+        transactionId: 'tron-retry-tx-hash',
+      });
+
+      render(SendTransaction);
+      await act(async () =>
+        fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+      );
+      expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+
+      await act(async () =>
+        fireEvent.press(
+          screen.getByTestId('send-transaction-retry-validation'),
+        ),
+      );
+
+      expect(
+        screen.queryByTestId('send-transaction-validation-error'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('send-transaction-retry-validation'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByRole('button', { name: 'Next' })).not.toBeDisabled();
+      // Retry only re-checks; it never opens the Snap confirmation itself.
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+
+      await act(async () =>
+        fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+      );
+
+      // Next validates again right before sending.
+      expect(mockValidateTronTransferAmount).toHaveBeenCalledTimes(3);
+      expect(mockSendMultichainTransactionForReview).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    describe('Tron validation accessibility', () => {
+      const TRON_RESOURCES_ERROR =
+        'This account needs more TRX or network resources to complete the transaction.';
+      let announceSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        announceSpy = jest
+          .spyOn(AccessibilityInfo, 'announceForAccessibility')
+          .mockImplementation(() => undefined);
+        // The react-native jest preset already mocks this function, so clear
+        // calls made by earlier tests in this file.
+        announceSpy.mockClear();
+      });
+
+      afterEach(() => {
+        announceSpy.mockRestore();
+      });
+
+      it('announces the validation error and exposes it as an alert', async () => {
+        mockUseParamsValues = { orderId: 'test-id-tron' };
+        mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+        mockValidateTronTransferAmount.mockResolvedValueOnce({
+          valid: false,
+          errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+        });
+
+        render(SendTransaction);
+        await act(async () =>
+          fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+        );
+
+        expect(announceSpy).toHaveBeenCalledTimes(1);
+        expect(announceSpy).toHaveBeenCalledWith(TRON_RESOURCES_ERROR);
+        expect(
+          screen.getByTestId('send-transaction-validation-error'),
+        ).toHaveProp('accessibilityRole', 'alert');
+      });
+
+      it('announces again when a retry fails with the same error', async () => {
+        mockUseParamsValues = { orderId: 'test-id-tron' };
+        mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+        mockValidateTronTransferAmount.mockResolvedValue({
+          valid: false,
+          errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+        });
+
+        render(SendTransaction);
+        await act(async () =>
+          fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+        );
+        await act(async () =>
+          fireEvent.press(
+            screen.getByTestId('send-transaction-retry-validation'),
+          ),
+        );
+
+        expect(announceSpy).toHaveBeenCalledTimes(2);
+        expect(announceSpy).toHaveBeenNthCalledWith(2, TRON_RESOURCES_ERROR);
+      });
+
+      it('marks Try again as busy while validation is running', async () => {
+        mockUseParamsValues = { orderId: 'test-id-tron' };
+        mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+        let resolveRetry: (value: unknown) => void = () => undefined;
+        mockValidateTronTransferAmount
+          .mockResolvedValueOnce({
+            valid: false,
+            errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+          })
+          .mockImplementationOnce(
+            () =>
+              new Promise((resolve) => {
+                resolveRetry = resolve;
+              }),
+          );
+
+        render(SendTransaction);
+        await act(async () =>
+          fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+        );
+        expect(
+          screen.getByTestId('send-transaction-retry-validation'),
+        ).toHaveProp('accessibilityState', { busy: false, disabled: false });
+
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId('send-transaction-retry-validation'),
+          );
+        });
+        expect(
+          screen.getByTestId('send-transaction-retry-validation'),
+        ).toHaveProp('accessibilityState', { busy: true, disabled: true });
+
+        await act(async () => {
+          resolveRetry({
+            valid: false,
+            errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+          });
+        });
+        expect(
+          screen.getByTestId('send-transaction-retry-validation'),
+        ).toHaveProp('accessibilityState', { busy: false, disabled: false });
+      });
     });
 
     it('blocks Stellar sends until provider memo support is wired', async () => {

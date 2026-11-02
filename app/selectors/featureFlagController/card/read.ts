@@ -398,6 +398,20 @@ export function readCardUkMigrationSignInRoutingEnabled(
   return process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED === 'true';
 }
 
+/**
+ * Immersve SIWE MFA. Off unless `cardImmersveMfa` explicitly enables it, or
+ * `MM_CARD_IMMERSVE_MFA_ENABLED=true` when the remote flag is missing.
+ */
+export function readCardImmersveMfaEnabled(
+  flags: CardRemoteFeatureFlags,
+): boolean {
+  const gated = validatedVersionGatedFeatureFlag(flags?.cardImmersveMfa);
+  if (gated !== undefined) {
+    return gated;
+  }
+  return process.env.MM_CARD_IMMERSVE_MFA_ENABLED === 'true';
+}
+
 /** Soft-period window that elevates the Accounts menu badge to warning. */
 export const CARD_UK_MIGRATION_UPDATE_BADGE_WARNING_DAYS = 7;
 

@@ -1,19 +1,13 @@
 import React from 'react';
 import {
   Box,
-  Button,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
   IconColor,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
 import type { PredictMarket, PredictOutcome } from '../../../types';
 import {
   formatAskPrice,
@@ -24,6 +18,7 @@ import { MarketGroupOptionSelector } from './MarketGroupOptionSelector';
 import { MarketGroupCardTestIds } from '../MarketGroupCard.testIds';
 import { MarketCard } from './MarketCard';
 import { isOutcomeTradeable } from '../../shared/tradeable';
+import { OutcomeRow as SharedOutcomeRow } from '../../shared/ui';
 
 export interface MarketGroupCardProps {
   groupKey: string;
@@ -55,6 +50,9 @@ function getOutcomeOptionValue(
   return formatMarketGroupOption(market, outcome.side) ?? '—';
 }
 
+// Keeps a near-zero chance visible as a short line.
+const MIN_LINE_PERCENT = 9.5;
+
 function OutcomeRow({
   groupKey,
   market,
@@ -66,51 +64,39 @@ function OutcomeRow({
   outcome: PredictOutcome;
   onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
 }): React.JSX.Element {
+  const { colors } = useTheme();
   const price = formatAskPrice(outcome.askPrice);
   const optionValue = getOutcomeOptionValue(market, outcome);
   const askPricePercent = getAskPricePercent(outcome.askPrice);
-  const isYes = outcome.side === 'yes';
-  const color = isYes ? TextColor.SuccessDefault : TextColor.ErrorDefault;
-  const barColor = isYes ? 'bg-success-default' : 'bg-error-default';
+  const color =
+    outcome.side === 'yes' ? colors.success.default : colors.error.default;
 
   return (
-    <Box
+    <SharedOutcomeRow.Root
       testID={MarketGroupCardTestIds.row(groupKey, market.id, outcome.side)}
-      twClassName="flex-row items-center gap-3"
     >
-      <Box twClassName="min-w-0 flex-1 gap-2">
-        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-          {outcome.label}
-        </Text>
-        {askPricePercent === undefined ? null : (
-          <Box
-            testID={MarketGroupCardTestIds.quoteBar(
-              groupKey,
-              market.id,
-              outcome.side,
-            )}
-            twClassName="h-0.5 w-full rounded-full"
-          >
-            <Box
-              twClassName={`h-0.5 rounded-full ${barColor}`}
-              style={{ width: `${Math.max(9.5, askPricePercent)}%` }}
-            />
-          </Box>
-        )}
-      </Box>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        numberOfLines={1}
-      >
-        {`${outcomePrefix(outcome)} ${optionValue}`}
-      </Text>
-      <Button
-        testID={MarketGroupCardTestIds.outcomeButton(
+      <SharedOutcomeRow.Label
+        label={outcome.label}
+        percent={
+          askPricePercent === undefined
+            ? undefined
+            : Math.max(MIN_LINE_PERCENT, askPricePercent)
+        }
+        color={color}
+        lineTestID={MarketGroupCardTestIds.quoteBar(
           groupKey,
           market.id,
           outcome.side,
         )}
+      />
+      <SharedOutcomeRow.Value>
+        {`${outcomePrefix(outcome)} ${optionValue}`}
+      </SharedOutcomeRow.Value>
+      <SharedOutcomeRow.Price
+        price={price}
+        color={color}
+        isDisabled={!isOutcomeTradeable(market, outcome)}
+        onPress={() => onOrder?.(market, outcome)}
         accessibilityLabel={strings(
           'predict.market_groups.outcome_accessibility_label',
           {
@@ -119,21 +105,13 @@ function OutcomeRow({
             price: price ?? strings('predict.market_groups.price_unavailable'),
           },
         )}
-        isDisabled={!isOutcomeTradeable(market, outcome)}
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={() => onOrder?.(market, outcome)}
-        twClassName="h-12 min-w-[64px] rounded-xl bg-muted px-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={color}
-        >
-          {price ?? '—'}
-        </Text>
-      </Button>
-    </Box>
+        testID={MarketGroupCardTestIds.outcomeButton(
+          groupKey,
+          market.id,
+          outcome.side,
+        )}
+      />
+    </SharedOutcomeRow.Root>
   );
 }
 

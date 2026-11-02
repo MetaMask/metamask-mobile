@@ -146,6 +146,23 @@ describe('getSelectableActivityTypeFilters', () => {
   });
 });
 
+describe('Predictions filter', () => {
+  it('includes Settlements under Predictions only', () => {
+    expect(
+      activityKindMatchesTypeFilter(
+        'predictionSettled',
+        ActivityTypeFilter.Predictions,
+      ),
+    ).toBe(true);
+    expect(
+      activityKindMatchesTypeFilter(
+        'predictionSettled',
+        ActivityTypeFilter.Transactions,
+      ),
+    ).toBe(false);
+  });
+});
+
 describe('resolveInitialActivityTypeFilter', () => {
   it('defaults to Transactions when there are no params', () => {
     expect(resolveInitialActivityTypeFilter(undefined)).toBe(

@@ -34,6 +34,33 @@ interface MyProfileHeaderProps {
   onFollowingPress: () => void;
 }
 
+/** A muted icon and label in the row under the follower counts. */
+const ProfileMetaItem: React.FC<{
+  iconName: IconName;
+  label: string;
+  testID?: string;
+}> = ({ iconName, label, testID }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    gap={1}
+    testID={testID}
+  >
+    <Icon
+      name={iconName}
+      size={IconSize.Sm}
+      color={IconColor.IconAlternative}
+    />
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+    >
+      {label}
+    </Text>
+  </Box>
+);
+
 const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   profile,
   overlayedStats,
@@ -57,7 +84,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   const thesis = profile.bio?.trim() || '';
 
   return (
-    <Box paddingHorizontal={4} paddingBottom={4}>
+    <Box paddingHorizontal={4} paddingTop={3} paddingBottom={4}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -71,7 +98,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             diameter={56}
             onPress={onEditAvatar}
             avatarTestID={MyProfileViewSelectorsIDs.AVATAR}
-            editTestID={MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON}
+            showEditIcon={false}
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.avatar_accessibility_label',
             )}
@@ -101,18 +128,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             >
               {profile.displayName}
             </Text>
-            {profile.xHandle ? (
-              <Pressable
-                onPress={handleXPress}
-                accessibilityRole="link"
-                accessibilityLabel={strings(
-                  'social_leaderboard.trader_profile.twitter_link',
-                )}
-                testID={MyProfileViewSelectorsIDs.X_LINK}
-              >
-                <Icon name={IconName.X} size={IconSize.Md} twClassName="mt-1" />
-              </Pressable>
-            ) : null}
           </Box>
           <Text
             variant={TextVariant.BodyMd}
@@ -212,26 +227,36 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Pressable>
       </Box>
 
-      {joinedLabel ? (
+      {profile.xHandle || joinedLabel ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={1}
+          gap={4}
           paddingTop={2}
-          testID={MyProfileViewSelectorsIDs.JOINED}
+          testID={MyProfileViewSelectorsIDs.META_ROW}
         >
-          <Icon
-            name={IconName.Calendar}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {joinedLabel}
-          </Text>
+          {profile.xHandle ? (
+            <Pressable
+              onPress={handleXPress}
+              accessibilityRole="link"
+              accessibilityLabel={strings(
+                'social_leaderboard.trader_profile.twitter_link',
+              )}
+              testID={MyProfileViewSelectorsIDs.X_LINK}
+            >
+              <ProfileMetaItem
+                iconName={IconName.Link}
+                label={strings('social_leaderboard.my_profile.x_link')}
+              />
+            </Pressable>
+          ) : null}
+          {joinedLabel ? (
+            <ProfileMetaItem
+              iconName={IconName.Calendar}
+              label={joinedLabel}
+              testID={MyProfileViewSelectorsIDs.JOINED}
+            />
+          ) : null}
         </Box>
       ) : null}
     </Box>
