@@ -252,7 +252,7 @@ export interface TokenDetailsV1TabBarProps {
 const getTabLabel = (tab: TokenDetailsV1TabKey): string =>
   strings(`token_details_v1.tabs.${tab}`);
 
-const getTabTestID = (tab: TokenDetailsV1TabKey): string =>
+export const getTokenDetailsV1TabTestId = (tab: TokenDetailsV1TabKey): string =>
   `token-details-v1-tab-${tab}`;
 
 const TokenDetailsV1TabBar = memo(
@@ -289,7 +289,7 @@ const TokenDetailsV1TabBar = memo(
           key: tab,
           label: getTabLabel(tab),
           content: null,
-          testID: getTabTestID(tab),
+          testID: getTokenDetailsV1TabTestId(tab),
         })),
       [tabs],
     );
