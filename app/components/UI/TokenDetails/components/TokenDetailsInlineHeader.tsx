@@ -42,10 +42,18 @@ import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddres
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 
+const COMPACT_ADDRESS_EDGE_LENGTH = 4;
+
 const formatCompactContractAddress = (address: string): string => {
   const formatted = toFormattedAddress(address);
-  const tail = formatted.slice(-4);
-  return formatted.toLowerCase().startsWith('0x') ? `0x..${tail}` : `..${tail}`;
+  const tail = formatted.slice(-COMPACT_ADDRESS_EDGE_LENGTH);
+  if (formatted.toLowerCase().startsWith('0x')) {
+    return `0x..${tail}`;
+  }
+  if (formatted.length <= COMPACT_ADDRESS_EDGE_LENGTH * 2) {
+    return formatted;
+  }
+  return `${formatted.slice(0, COMPACT_ADDRESS_EDGE_LENGTH)}..${tail}`;
 };
 
 export const TokenDetailsInlineHeader = ({

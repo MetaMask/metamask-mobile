@@ -363,6 +363,47 @@ describe('TokenDetailsInlineHeader', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders a Solana contract address with its first and last four characters', () => {
+      mockResolveTokenContractAddress.mockReturnValue(
+        'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+      );
+
+      const { getByText } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: 'STONK',
+          ticker: 'STONK',
+          symbol: 'STONK',
+        },
+      });
+
+      expect(getByText('DezX..B263')).toBeOnTheScreen();
+    });
+
+    it('renders a Tron contract address with its first and last four characters', () => {
+      mockResolveTokenContractAddress.mockReturnValue(
+        'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+      );
+
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: 'Sun Token',
+          ticker: 'SUN',
+          symbol: 'SUN',
+        },
+      });
+
+      const subtitle = within(getByTestId('token-details-subtitle'));
+
+      expect(subtitle.getByText('SUN')).toBeOnTheScreen();
+      expect(subtitle.getByText('TR7N..Lj6t')).toBeOnTheScreen();
+    });
+
     it('ellipsizes a long ticker and keeps the contract address on the same line', () => {
       const longTicker = 'SUPERCALIFRAGILISTIC';
       const { getByTestId } = renderHeader({
