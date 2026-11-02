@@ -32,6 +32,7 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from '../../controllers/transaction-controller/event-handlers/metrics';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from '../../controllers/transaction-controller/event-handlers/money-account-override';
+import { handleTransactionConfirmedForPlusChargeRetry } from '../../controllers/transaction-controller/event-handlers/plus-charge-retry';
 
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('../../../../util/transactions/account-supports-7702');
@@ -45,6 +46,9 @@ jest.mock(
 jest.mock('../../controllers/transaction-controller/event-handlers/metrics');
 jest.mock(
   '../../controllers/transaction-controller/event-handlers/money-account-override',
+);
+jest.mock(
+  '../../controllers/transaction-controller/event-handlers/plus-charge-retry',
 );
 
 const CHAIN_ID_MOCK = '0x1';
@@ -332,6 +336,9 @@ describe('setupTransactionControllerListeners', () => {
     expect(handleTransactionFinalizedEventForMetrics).toHaveBeenCalledWith(
       MOCK_TRANSACTION_META,
       expect.anything(),
+    );
+    expect(handleTransactionConfirmedForPlusChargeRetry).toHaveBeenCalledWith(
+      MOCK_TRANSACTION_META,
     );
   });
 

@@ -35,6 +35,7 @@ import {
 } from '../../controllers/transaction-controller/event-handlers/metrics';
 import { handleShowNotification } from '../../controllers/transaction-controller/event-handlers/notification';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from '../../controllers/transaction-controller/event-handlers/money-account-override';
+import { handleTransactionConfirmedForPlusChargeRetry } from '../../controllers/transaction-controller/event-handlers/plus-charge-retry';
 import { TransactionControllerInitMessenger } from '../messengers/transaction-controller-messenger';
 import type { PreferencesStateWithSavedGasFees } from '../../controllers/preferences-controller-types';
 
@@ -128,6 +129,11 @@ export function setupTransactionControllerListeners({
         transactionEventHandlerRequest,
       );
     },
+  );
+
+  messenger.subscribe(
+    'TransactionController:transactionConfirmed',
+    handleTransactionConfirmedForPlusChargeRetry,
   );
 
   messenger.subscribe(
