@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
@@ -9,13 +9,32 @@ const colorOf = (node: ReturnType<typeof screen.getByText>) =>
   (StyleSheet.flatten(node.props.style) as { color?: string } | undefined)
     ?.color;
 
-const viewOpacities = () =>
-  screen.UNSAFE_getAllByType(View).map((view) => {
-    const style = StyleSheet.flatten(view.props.style) as
-      | { opacity?: number }
-      | undefined;
-    return style?.opacity;
-  });
+const opacityOf = (node: ReturnType<typeof screen.getByTestId>) =>
+  (StyleSheet.flatten(node.props.style) as { opacity?: number } | undefined)
+    ?.opacity;
+
+const flexShrinkOf = (node: ReturnType<typeof screen.getByTestId>) =>
+  (StyleSheet.flatten(node.props.style) as { flexShrink?: number } | undefined)
+    ?.flexShrink;
+
+const rowCopy = (symbol: string) => {
+  const subtitleNode = screen.getByTestId(`position-row-subtitle-${symbol}`);
+  const flagSuffix = screen.queryByTestId(`position-row-flag-suffix-${symbol}`);
+  const subtitle = flagSuffix
+    ? `${subtitleNode.props.children as string}${flagSuffix.props.children as string}`
+    : (subtitleNode.props.children as string);
+
+  return {
+    subtitle,
+    flagLine:
+      (screen.queryByTestId(`position-row-flag-label-${symbol}`)?.props
+        .children as string | undefined) ?? null,
+    accessibilityLabel:
+      (screen.getByTestId(`position-row-${symbol}`).props.accessibilityLabel as
+        | string
+        | undefined) ?? null,
+  };
+};
 
 jest.mock('../../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
@@ -215,35 +234,16 @@ describe('PositionRow', () => {
       <PositionRow position={basePosition} onPress={onPress} />,
     );
 
-    expect(screen.getByRole('button')).toBeOnTheScreen();
-
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    const row = screen.getByTestId('position-row-STARKBOT');
 
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onPress).toHaveBeenCalledWith(basePosition);
+    expect(row).toHaveProp('accessibilityRole', 'button');
   });
 
-  it('keeps a flagged row non-pressable when showFlaggedState is set', () => {
-    const onPress = jest.fn();
-    const position = { ...basePosition, flags: ['insider'] };
-
-    renderWithProvider(
-      <PositionRow position={position} onPress={onPress} showFlaggedState />,
-    );
-
-    expect(
-      screen.getByTestId('position-row-flag-label-STARKBOT'),
-    ).toHaveTextContent('Insider allocation - excluded');
-    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
-    expect(
-      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
-    ).toBeUndefined();
-    expect(
-      screen.getByTestId('position-row-STARKBOT').props.onPress,
-    ).toBeUndefined();
-  });
-
-  it('calls onPress when a flagged row sets allowFlaggedPress', () => {
+  it('shows the insider label and ignores onPress for the excluded presentation', () => {
     const onPress = jest.fn();
     const position = { ...basePosition, flags: ['insider'] };
 
@@ -251,81 +251,248 @@ describe('PositionRow', () => {
       <PositionRow
         position={position}
         onPress={onPress}
-        showFlaggedState
-        allowFlaggedPress
+        flaggedPresentation="excluded"
       />,
     );
 
-    expect(screen.getByRole('button')).toBeOnTheScreen();
-
-    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
-
-    expect(onPress).toHaveBeenCalledTimes(1);
-    expect(onPress).toHaveBeenCalledWith(position);
+    expect(rowCopy('STARKBOT')).toMatchInlineSnapshot(`
+      {
+        "accessibilityLabel": null,
+        "flagLine": "Insider allocation - excluded",
+        "subtitle": "1.50B STARKBOT",
+      }
+    `);
+    expect(opacityOf(screen.getByTestId('position-row-STARKBOT'))).toBe(0.5);
+    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
+    expect(onPress).not.toHaveBeenCalled();
   });
 
-  it('keeps a flagged row at full opacity with PnL colour', () => {
+  it('uses muted color for excluded percent instead of PnL color', () => {
     const position = { ...basePosition, flags: ['insider'] };
-    const unflagged = renderWithProvider(<PositionRow position={position} />);
-    const unflaggedPercentColor = colorOf(screen.getByText('+182.00%'));
-    const unflaggedOpacities = viewOpacities();
-    unflagged.unmount();
-
-    renderWithProvider(<PositionRow position={position} showFlaggedState />);
-
-    expect(viewOpacities()).toEqual(unflaggedOpacities);
-    expect(viewOpacities()).not.toContain(0.5);
-    expect(colorOf(screen.getByText('+182.00%'))).toBe(unflaggedPercentColor);
-    expect(screen.queryByRole('button')).toBeNull();
-  });
-
-  it('keeps a pressable flagged row at full opacity with PnL colour', () => {
-    const position = { ...basePosition, flags: ['insider'] };
-    const unflagged = renderWithProvider(
-      <PositionRow position={position} onPress={jest.fn()} />,
-    );
-    const unflaggedPercentColor = colorOf(screen.getByText('+182.00%'));
-    const unflaggedOpacities = viewOpacities();
-    unflagged.unmount();
 
     renderWithProvider(
-      <PositionRow
-        position={position}
-        onPress={jest.fn()}
-        showFlaggedState
-        allowFlaggedPress
-      />,
+      <PositionRow position={position} flaggedPresentation="excluded" />,
     );
 
-    expect(screen.getByRole('button')).toBeOnTheScreen();
-    expect(viewOpacities()).toEqual(unflaggedOpacities);
-    expect(viewOpacities()).not.toContain(0.5);
-    expect(colorOf(screen.getByText('+182.00%'))).toBe(unflaggedPercentColor);
+    const percentColor = colorOf(screen.getByText('+182.00%'));
+    const labelColor = colorOf(
+      screen.getByText('Insider allocation - excluded'),
+    );
+
+    expect(percentColor).toBeDefined();
+    expect(percentColor).toBe(labelColor);
   });
 
-  it('keeps closed flagged PnL colour', () => {
-    const position = { ...closedPosition, flags: ['insider'] };
-    const unflagged = renderWithProvider(<PositionRow position={position} />);
-    const unflaggedPnlColor = colorOf(screen.getByText('+$300.00'));
-    unflagged.unmount();
-
-    renderWithProvider(<PositionRow position={position} showFlaggedState />);
-
-    expect(colorOf(screen.getByText('+$300.00'))).toBe(unflaggedPnlColor);
-    expect(viewOpacities()).not.toContain(0.5);
-  });
-
-  it('shows the generic excluded label for unrecognized flags when showFlaggedState is set', () => {
+  it('shows the generic excluded label for unrecognized flags in the excluded presentation', () => {
     const position = { ...basePosition, flags: ['blocked'] };
 
-    renderWithProvider(<PositionRow position={position} showFlaggedState />);
+    renderWithProvider(
+      <PositionRow position={position} flaggedPresentation="excluded" />,
+    );
 
     expect(
       screen.getByTestId('position-row-flag-label-STARKBOT'),
     ).toHaveTextContent('Excluded from PnL');
   });
 
-  it('keeps a flagged row pressable when showFlaggedState is omitted', () => {
+  it('appends Insider to the open subtitle and keeps PnL colour for the subline presentation', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+    const { unmount } = renderWithProvider(<PositionRow position={position} />);
+    const unflaggedPercentColor = colorOf(screen.getByText('+182.00%'));
+    unmount();
+
+    renderWithProvider(
+      <PositionRow
+        position={position}
+        onPress={onPress}
+        flaggedPresentation="subline"
+      />,
+    );
+
+    expect(rowCopy('STARKBOT')).toMatchInlineSnapshot(`
+      {
+        "accessibilityLabel": "STARKBOT, $2,259.96, up 182.00%, not counted in P&L, insider",
+        "flagLine": null,
+        "subtitle": "1.50B STARKBOT · Insider",
+      }
+    `);
+    expect(
+      opacityOf(screen.getByTestId('position-row-STARKBOT')),
+    ).toBeUndefined();
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
+    ).toBeUndefined();
+    expect(colorOf(screen.getByText('+182.00%'))).toBe(unflaggedPercentColor);
+    expect(screen.queryByText('Insider allocation - excluded')).toBeNull();
+    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('appends Creator for a developer flag in the subline presentation', () => {
+    const position = { ...basePosition, flags: ['developer'] };
+
+    renderWithProvider(
+      <PositionRow position={position} flaggedPresentation="subline" />,
+    );
+
+    expect(
+      screen.getByTestId('position-row-subtitle-STARKBOT'),
+    ).toHaveTextContent('1.50B STARKBOT');
+    expect(
+      screen.getByTestId('position-row-flag-suffix-STARKBOT').props.children,
+    ).toBe(' · Creator');
+    expect(screen.getByTestId('position-row-STARKBOT')).toHaveProp(
+      'accessibilityLabel',
+      'STARKBOT, $2,259.96, up 182.00%, not counted in P&L, creator',
+    );
+  });
+
+  it('appends Excluded for an unrecognized flag in the subline presentation', () => {
+    const position = { ...basePosition, flags: ['blocked'] };
+
+    renderWithProvider(
+      <PositionRow position={position} flaggedPresentation="subline" />,
+    );
+
+    expect(
+      screen.getByTestId('position-row-subtitle-STARKBOT'),
+    ).toHaveTextContent('1.50B STARKBOT');
+    expect(
+      screen.getByTestId('position-row-flag-suffix-STARKBOT').props.children,
+    ).toBe(' · Excluded');
+    expect(screen.getByTestId('position-row-STARKBOT')).toHaveProp(
+      'accessibilityLabel',
+      'STARKBOT, $2,259.96, up 182.00%, not counted in P&L, excluded',
+    );
+  });
+
+  it('describes a losing subline row as down in the screen reader label', () => {
+    const position = {
+      ...basePosition,
+      flags: ['insider'],
+      pnlValueUsd: -250,
+      pnlPercent: -25,
+    };
+
+    renderWithProvider(
+      <PositionRow position={position} flaggedPresentation="subline" />,
+    );
+
+    expect(screen.getByTestId('position-row-STARKBOT')).toHaveProp(
+      'accessibilityLabel',
+      'STARKBOT, $2,259.96, down 25.00%, not counted in P&L, insider',
+    );
+    expect(colorOf(screen.getByText('-25.00%'))).not.toBe(
+      colorOf(screen.getByTestId('position-row-subtitle-STARKBOT')),
+    );
+  });
+
+  it('appends the flag to the trade date for a closed subline row', () => {
+    const position = { ...closedPosition, flags: ['insider'] };
+
+    renderWithProvider(
+      <PositionRow
+        position={position}
+        flaggedPresentation="subline"
+        isClosed
+      />,
+    );
+
+    expect(rowCopy('STARKBOT')).toMatchInlineSnapshot(`
+      {
+        "accessibilityLabel": "STARKBOT, +$300.00, up 25.00%, not counted in P&L, insider",
+        "flagLine": null,
+        "subtitle": "Apr 15 at 2:00 pm · Insider",
+      }
+    `);
+    expect(colorOf(screen.getByText('+$300.00'))).toBe(
+      colorOf(screen.getByText('+25.00%')),
+    );
+  });
+
+  it('reads unchanged when a subline row is break-even', () => {
+    const position = {
+      ...basePosition,
+      flags: ['insider'],
+      pnlValueUsd: 0,
+      pnlPercent: 0,
+    };
+
+    renderWithProvider(
+      <PositionRow position={position} flaggedPresentation="subline" />,
+    );
+
+    expect(screen.getByTestId('position-row-STARKBOT')).toHaveProp(
+      'accessibilityLabel',
+      'STARKBOT, $2,259.96, unchanged 0.00%, not counted in P&L, insider',
+    );
+  });
+
+  it('omits the change clause when a subline row has no P&L percent', () => {
+    const position = {
+      ...basePosition,
+      flags: ['insider'],
+      pnlPercent: null,
+      pnlValueUsd: null,
+    } as unknown as Position;
+
+    renderWithProvider(
+      <PositionRow position={position} flaggedPresentation="subline" />,
+    );
+
+    expect(screen.getByTestId('position-row-STARKBOT')).toHaveProp(
+      'accessibilityLabel',
+      'STARKBOT, $2,259.96, not counted in P&L, insider',
+    );
+  });
+
+  it('shrinks the amount before the flag word on a subline row', () => {
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(
+      <PositionRow position={position} flaggedPresentation="subline" />,
+    );
+
+    const amount = screen.getByTestId('position-row-subtitle-STARKBOT');
+    const flag = screen.getByTestId('position-row-flag-suffix-STARKBOT');
+
+    expect(amount.props.children).toBe('1.50B STARKBOT');
+    expect(amount.props.numberOfLines).toBe(1);
+    expect(flexShrinkOf(amount)).toBe(1);
+    expect(flag.props.children).toBe(' · Insider');
+    expect(flag.props.numberOfLines).toBe(1);
+    expect(flexShrinkOf(flag)).toBe(0);
+    expect(
+      opacityOf(screen.getByTestId('position-row-STARKBOT')),
+    ).toBeUndefined();
+  });
+
+  it('leaves an unflagged row unchanged when the subline presentation is set', () => {
+    const onPress = jest.fn();
+
+    renderWithProvider(
+      <PositionRow
+        position={basePosition}
+        onPress={onPress}
+        flaggedPresentation="subline"
+      />,
+    );
+
+    expect(rowCopy('STARKBOT')).toMatchInlineSnapshot(`
+      {
+        "accessibilityLabel": null,
+        "flagLine": null,
+        "subtitle": "1.50B STARKBOT",
+      }
+    `);
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a flagged row pressable when flagged presentation is omitted', () => {
     const onPress = jest.fn();
     const position = { ...basePosition, flags: ['insider'] };
 

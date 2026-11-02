@@ -208,17 +208,13 @@ jest.mock('../TraderProfileView/components/PositionRow', () => {
     default: ({
       position,
       onPress,
-      showFlaggedState,
-      allowFlaggedPress,
+      flaggedPresentation,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
-      showFlaggedState?: boolean;
-      allowFlaggedPress?: boolean;
+      flaggedPresentation?: 'excluded' | 'subline';
     }) => {
-      const flagged =
-        showFlaggedState === true && Boolean(position.flags?.length);
-      const pressable = Boolean(onPress) && (!flagged || allowFlaggedPress);
+      const pressable = Boolean(onPress) && flaggedPresentation !== 'excluded';
       if (!pressable) {
         return (
           <View testID={`position-row-${position.tokenSymbol}`}>

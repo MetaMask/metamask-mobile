@@ -39,6 +39,11 @@ export interface ProfilePositionsTabProps {
   onFilterChange: (filter: ProfileAssetFilter) => void;
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
+  /**
+   * When true, flagged rows use the V1 subline treatment and stay pressable
+   * so position history can open. Own profiles omit this so flagged data
+   * stays a normal row.
+   */
   showFlaggedState?: boolean;
 }
 
@@ -70,8 +75,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         position={position}
         isClosed={isClosed}
         showTradeDate={isClosed}
-        showFlaggedState={showFlaggedState}
-        allowFlaggedPress
+        flaggedPresentation={showFlaggedState ? 'subline' : undefined}
         onPress={onPositionPress}
       />
     ));

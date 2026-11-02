@@ -17,20 +17,19 @@ jest.mock('../../TraderProfileView/components/PositionRow', () => {
     default: ({
       position,
       onPress,
-      showFlaggedState,
-      allowFlaggedPress,
+      flaggedPresentation,
     }: {
       position: Position;
       onPress?: (next: Position) => void;
-      showFlaggedState?: boolean;
-      allowFlaggedPress?: boolean;
+      flaggedPresentation?: 'excluded' | 'subline';
     }) => {
-      const flagged =
-        showFlaggedState === true && Boolean(position.flags?.length);
-      const pressable = Boolean(onPress) && (!flagged || allowFlaggedPress);
+      const pressable = Boolean(onPress) && flaggedPresentation !== 'excluded';
       if (!pressable) {
         return (
-          <View testID={`position-row-${position.tokenSymbol}`}>
+          <View
+            testID={`position-row-${position.tokenSymbol}`}
+            accessibilityLabel={flaggedPresentation ?? 'default'}
+          >
             <Text>{position.tokenSymbol}</Text>
           </View>
         );
@@ -38,6 +37,7 @@ jest.mock('../../TraderProfileView/components/PositionRow', () => {
       return (
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={flaggedPresentation ?? 'default'}
           testID={`position-row-${position.tokenSymbol}`}
           onPress={() => onPress?.(position)}
         >
@@ -191,6 +191,10 @@ describe('ProfilePositionsTab', () => {
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
     expect(onPositionPress).toHaveBeenCalledWith(openSpot);
+    expect(screen.getByTestId('position-row-ETH')).toHaveProp(
+      'accessibilityLabel',
+      'default',
+    );
   });
 
   it('notifies when a flagged row is pressed with showFlaggedState', () => {
@@ -213,6 +217,10 @@ describe('ProfilePositionsTab', () => {
     expect(screen.getByTestId('position-row-ETH')).toHaveProp(
       'accessibilityRole',
       'button',
+    );
+    expect(screen.getByTestId('position-row-ETH')).toHaveProp(
+      'accessibilityLabel',
+      'subline',
     );
 
     fireEvent.press(screen.getByTestId('position-row-ETH'));
