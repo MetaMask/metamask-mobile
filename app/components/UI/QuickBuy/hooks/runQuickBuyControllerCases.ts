@@ -3962,6 +3962,25 @@ export const runQuickBuyControllerCases = ({
             });
           };
 
+          const mockShareSheetPrompt = () => {
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'share_sheet',
+              countKey: { address: '0xlinked', product: 'swap' },
+            });
+          };
+
+          const expectNormalQuickBuyFeedback = () => {
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: false,
+                postTradePrompt: undefined,
+              }),
+            );
+          };
+
           it('opens a pending share sheet that counts toward the limit', async () => {
             const countKey = { address: '0xlinked', product: 'swap' };
             mockResolvePostTradePrompt.mockReturnValue({
@@ -4034,42 +4053,15 @@ export const runQuickBuyControllerCases = ({
             );
           });
 
-          it('uses normal toasts for share trades at the minimum amount', async () => {
-            mockResolvePostTradePrompt.mockReturnValue({
-              kind: 'share_sheet',
-              countKey: { address: '0xlinked', product: 'swap' },
-            });
+          it.each([
+            ['the minimum amount', '10'],
+            ['an amount below the minimum', '5'],
+          ])('uses normal toasts for share trades at %s', async (_, amount) => {
+            mockShareSheetPrompt();
 
-            await submit(false, '10');
+            await submit(false, amount);
 
-            expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
-            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
-              'tx-1',
-              expect.objectContaining({
-                postTradeShare: false,
-                postTradePrompt: undefined,
-              }),
-            );
-          });
-
-          it('uses normal toasts for share trades below the minimum amount', async () => {
-            mockResolvePostTradePrompt.mockReturnValue({
-              kind: 'share_sheet',
-              countKey: { address: '0xlinked', product: 'swap' },
-            });
-
-            await submit(false, '5');
-
-            expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
-            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
-              'tx-1',
-              expect.objectContaining({
-                postTradeShare: false,
-                postTradePrompt: undefined,
-              }),
-            );
+            expectNormalQuickBuyFeedback();
           });
 
           it('keeps the create profile sheet below the minimum amount', async () => {
@@ -4091,15 +4083,7 @@ export const runQuickBuyControllerCases = ({
             await submit(true, '5');
 
             expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
-            expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
-            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
-              'tx-1',
-              expect.objectContaining({
-                postTradeShare: false,
-                postTradePrompt: undefined,
-              }),
-            );
+            expectNormalQuickBuyFeedback();
           });
 
           it('uses normal toasts without the post-to-feed link below the minimum amount', async () => {
@@ -4109,13 +4093,7 @@ export const runQuickBuyControllerCases = ({
 
             await submit(false, '5');
 
-            expect(getPostTradeShareSession()).toBeNull();
-            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
-              'tx-1',
-              expect.objectContaining({
-                postTradePrompt: undefined,
-              }),
-            );
+            expectNormalQuickBuyFeedback();
           });
 
           it('skips the prompt for copy-trades', async () => {
