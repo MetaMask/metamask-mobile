@@ -217,13 +217,10 @@ describe('Order polling for removed and live providers, V1 and V2 (TRAM-3417)', 
   });
 
   describe('a removed provider whose fetch fails with HTTP 500 every time', () => {
-    // TRAM-3417: expected failure on main. The catch block returns the order
-    // unchanged, so it is fetched every POLLING_FREQUENCY (10 s) forever. The
-    // fix backs off (100 s, 1,000 s, 10,000 s, 100,000 s) and stops after
-    // MAX_ERROR_COUNT failures in a row, counted in `fetchErrorCount` (Tech Lead
-    // decision, Nov 1): consecutive fetch failures, cleared on any reply.
-    // `errorCount` keeps today's behaviour.
-    it.failing.each(removedPaths)(
+    // Consecutive HTTP 500s back off (100 s, 1,000 s, 10,000 s, 100,000 s) and
+    // stop after MAX_ERROR_COUNT, counted in `fetchErrorCount`. A successful
+    // reply clears it. `errorCount` keeps its own backoff.
+    it.each(removedPaths)(
       '%s: backs off, then stops after MAX_ERROR_COUNT consecutive 500s (fetchErrorCount)',
       async (_path, makePath) => {
         const path = makePath();
@@ -240,10 +237,9 @@ describe('Order polling for removed and live providers, V1 and V2 (TRAM-3417)', 
       },
     );
 
-    // TRAM-3417: expected failure on main (no fetchErrorCount; the stored value
-    // is kept). Any reply, here a plain UNKNOWN, clears fetchErrorCount, while
-    // errorCount moves as it does today.
-    it.failing.each(removedPaths)(
+    // Any reply, here a plain UNKNOWN, clears fetchErrorCount. errorCount still
+    // moves with the existing UNKNOWN backoff.
+    it.each(removedPaths)(
       '%s: clears fetchErrorCount on any reply and keeps errorCount as today',
       async (_path, makePath) => {
         const path = makePath();
@@ -262,12 +258,10 @@ describe('Order polling for removed and live providers, V1 and V2 (TRAM-3417)', 
   });
 
   describe('a listed removed provider that answers UNKNOWN + PROVIDER_REMOVED', () => {
-    // TRAM-3417: expected failure on main. The UNKNOWN branch ignores
-    // statusReason and keeps backing off (V1: 6 fetches in 30 days; V2: 7). The
-    // fix treats statusReason 'PROVIDER_REMOVED' as final (design L255),
-    // whatever canBeUpdated says (Tech Lead decision). V1 sell polls use
-    // getSellOrder (aggregator.ts:108) and get the same body (design L218-232).
-    it.failing.each([
+    // UNKNOWN plus statusReason PROVIDER_REMOVED is final (design L255),
+    // whatever canBeUpdated says. V1 sell polls use getSellOrder and get the
+    // same body (design L218-232).
+    it.each([
       ['V1 aggregator buy', false, () => v1('unlimitmeld', 'o-1')],
       [
         'V1 aggregator sell',
@@ -294,12 +288,10 @@ describe('Order polling for removed and live providers, V1 and V2 (TRAM-3417)', 
       },
     );
 
-    // TRAM-3417: expected failure on main. A forced refresh (the user opens the
-    // order) skips the UNKNOWN branch and merges or converts the stub, so the
-    // stored data is lost and main keeps polling. The fix handles
-    // PROVIDER_REMOVED on the forced path too: exactly one fetch, then final
-    // with its stored data and state, forceUpdate cleared, never polled again.
-    it.failing.each(removedPaths)(
+    // A forced refresh that receives UNKNOWN plus PROVIDER_REMOVED fetches
+    // once, then the order is final: stored data and state kept, forceUpdate
+    // cleared, and it is not polled again.
+    it.each(removedPaths)(
       '%s: a forced refresh of an unflagged order that gets PROVIDER_REMOVED fetches once, marks it final, then never polls again',
       async (_path, makePath) => {
         const path = makePath();
@@ -320,10 +312,9 @@ describe('Order polling for removed and live providers, V1 and V2 (TRAM-3417)', 
       },
     );
 
-    // TRAM-3417: expected failure on main (it fetches and merges the stub). An
-    // order already flagged providerRemoved is final: a forced refresh makes
-    // no request and returns it unchanged (Tech Lead decision, Nov 1).
-    it.failing.each(removedPaths)(
+    // An order already flagged providerRemoved is final: a forced refresh makes
+    // no request and returns it unchanged.
+    it.each(removedPaths)(
       '%s: a forced refresh of an order already flagged providerRemoved makes no request and keeps it unchanged',
       async (_path, makePath) => {
         const path = makePath();
@@ -348,7 +339,7 @@ describe('Order polling for removed and live providers, V1 and V2 (TRAM-3417)', 
 
     // Final means status UNKNOWN plus statusReason PROVIDER_REMOVED only (Tech
     // Lead decision, Nov 1): with any other status, here PENDING, the order is
-    // not flagged and polls as normal. Passes on main, which ignores statusReason.
+    // not flagged and polls as normal.
     it.each(removedPaths)(
       '%s: does not treat statusReason PROVIDER_REMOVED with status PENDING as removed and polls every 10 seconds',
       async (_path, makePath) => {
@@ -404,7 +395,7 @@ describe('Order polling for removed and live providers, V1 and V2 (TRAM-3417)', 
         errorCount: Math.min(fetchCount, cap),
         lastTimeFetched: START_MS + schedule[fetchCount - 1],
       });
-      // Unset on main; the fixed processor sets 0 on every reply.
+      // Every reply sets fetchErrorCount to 0.
       expect(fetchErrorCount ?? 0).toBe(0);
       path.expectEveryFetchTargetsTheOrder();
       expect(Logger.error).not.toHaveBeenCalled();
