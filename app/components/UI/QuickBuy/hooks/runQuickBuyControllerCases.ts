@@ -3981,14 +3981,17 @@ export const runQuickBuyControllerCases = ({
             );
           };
 
-          it('opens a pending share sheet that counts toward the limit', async () => {
+          it.each([
+            ['the minimum amount', '10'],
+            ['an amount above the minimum', '20'],
+          ])('opens a pending share sheet for %s', async (_, amount) => {
             const countKey = { address: '0xlinked', product: 'swap' };
             mockResolvePostTradePrompt.mockReturnValue({
               kind: 'share_sheet',
               countKey,
             });
 
-            await submit();
+            await submit(false, amount);
 
             expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('swap');
             expect(getPostTradeShareSession()).toEqual(
@@ -4053,13 +4056,10 @@ export const runQuickBuyControllerCases = ({
             );
           });
 
-          it.each([
-            ['the minimum amount', '10'],
-            ['an amount below the minimum', '5'],
-          ])('uses normal toasts for share trades at %s', async (_, amount) => {
+          it('uses normal toasts for share trades below the minimum amount', async () => {
             mockShareSheetPrompt();
 
-            await submit(false, amount);
+            await submit(false, '5');
 
             expectNormalQuickBuyFeedback();
           });
