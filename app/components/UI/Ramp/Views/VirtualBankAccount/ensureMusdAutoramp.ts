@@ -32,6 +32,24 @@ const trackAutorampCreateFailed = (sourceCurrency: VbaSourceCurrency) => {
 };
 
 /**
+ * Counts a MoonPay "already has an onramp" conflict on the same create event.
+ * `outcome` is `ready` when the re-list found a usable route for this wallet.
+ */
+const trackAutorampConflict = (
+  sourceCurrency: VbaSourceCurrency,
+  outcome: 'ready' | 'existing_on_other_wallet',
+): void => {
+  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, () => ({
+    ...buildVbaBaseProperties({
+      currencySource: sourceCurrency,
+      failureReason: 'already_exists',
+    }),
+    status: 'failed',
+    outcome,
+  }));
+};
+
+/**
  * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
  * `terminal`: only Rejected or Cancelled autoramps, and no replacement asked.
  * `existing_on_other_wallet`: MoonPay already has an onramp for this customer,
@@ -239,9 +257,11 @@ const createOrReuseAutoramp = async (
       refreshAutoramps: true,
     });
     if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
+      trackAutorampConflict(sourceCurrency, 'ready');
       return 'ready';
     }
     logAutorampConflict(walletAddress, sourceCurrency);
+    trackAutorampConflict(sourceCurrency, 'existing_on_other_wallet');
     return 'existing_on_other_wallet';
   }
 };

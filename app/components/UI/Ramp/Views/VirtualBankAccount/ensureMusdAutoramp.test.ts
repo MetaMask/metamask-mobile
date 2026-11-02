@@ -44,6 +44,29 @@ jest.mock('./vbaCufTrace', () => ({
 const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
 const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
 
+const expectConflictTracked = (
+  outcome: 'ready' | 'existing_on_other_wallet',
+  hiddenAddress?: string,
+): void => {
+  expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+  const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+  expect(event).toMatchObject({
+    category: 'Money VBA Autoramp Create Updated',
+  });
+  const properties = buildProperties();
+  expect(properties).toMatchObject({
+    status: 'failed',
+    failure_reason: 'already_exists',
+    outcome,
+    currency_source: 'BRL',
+  });
+  expect(properties).not.toHaveProperty('autoramp_id');
+  expect(JSON.stringify(properties)).not.toContain('0xabc');
+  if (hiddenAddress) {
+    expect(JSON.stringify(properties)).not.toContain(hiddenAddress);
+  }
+};
+
 /** Matches NeoBankService's HttpError: status plus the upstream body. */
 const autorampHttpError = (status: number, body?: string): HttpError =>
   new HttpError(
@@ -399,8 +422,8 @@ describe('ensureMusdAutoramp', () => {
 
     expect(mockCreate).toHaveBeenCalledTimes(1);
     expect(mockHydrate).toHaveBeenCalledTimes(2);
-    expect(trackVbaEvent).not.toHaveBeenCalled();
     expect(Logger.error).not.toHaveBeenCalled();
+    expectConflictTracked('ready');
   });
 
   it('returns existing_on_other_wallet when a 400 conflict re-lists another wallet', async () => {
@@ -427,6 +450,7 @@ describe('ensureMusdAutoramp', () => {
     const logged = JSON.stringify(jest.mocked(Logger.error).mock.calls);
     expect(logged).not.toContain(otherWallet);
     expect(logged).not.toContain('0xabc');
+    expectConflictTracked('existing_on_other_wallet', otherWallet);
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
@@ -470,5 +494,6 @@ describe('ensureMusdAutoramp', () => {
 
     expect(mockCreate).toHaveBeenCalledTimes(1);
     expect(mockHydrate).toHaveBeenCalledTimes(2);
+    expectConflictTracked('existing_on_other_wallet');
   });
 });
