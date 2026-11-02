@@ -37,6 +37,22 @@ jest.mock('@ledgerhq/device-transport-kit-react-native-ble', () => ({
   RNBleTransportFactory: 'RNBleTransportFactory',
 }));
 
+jest.mock('@metamask/eth-money-mpc-keyring', () => ({
+  MpcMoneyKeyring: Object.assign(
+    jest.fn().mockImplementation((options) => ({ options })),
+    { type: 'MPC Money Keyring' },
+  ),
+}));
+
+jest.mock('@metamask/mpc-react-native', () => ({
+  cl24Lib: { name: 'cl24' },
+  dkls23Lib: { name: 'dkls23' },
+}));
+
+jest.mock('../../MpcMoneyKeyring/empty-ikm-hkdf-workaround', () => ({
+  applyEmptyIkmHkdfWorkaround: jest.fn(),
+}));
+
 jest.mock('../../SnapKeyring', () => ({
   snapKeyringBuilder: jest.fn(() => {
     const builder = () => ({});
@@ -257,12 +273,18 @@ describe('wallet-init/keyrings', () => {
 
   describe('MPC money keyring registration', () => {
     const originalFlag = process.env.MM_MONEY_MPC_KEYRING_ENABLED;
+    const originalRealFlag = process.env.MM_MONEY_MPC_REAL_KEYRING;
 
     afterEach(() => {
       if (originalFlag === undefined) {
         delete process.env.MM_MONEY_MPC_KEYRING_ENABLED;
       } else {
         process.env.MM_MONEY_MPC_KEYRING_ENABLED = originalFlag;
+      }
+      if (originalRealFlag === undefined) {
+        delete process.env.MM_MONEY_MPC_REAL_KEYRING;
+      } else {
+        process.env.MM_MONEY_MPC_REAL_KEYRING = originalRealFlag;
       }
     });
 
@@ -282,6 +304,7 @@ describe('wallet-init/keyrings', () => {
 
     it('registers the MPC money keyring builders when the build flag is on', () => {
       process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+      delete process.env.MM_MONEY_MPC_REAL_KEYRING;
 
       const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
       const byV1Type = Object.fromEntries(
@@ -298,6 +321,25 @@ describe('wallet-init/keyrings', () => {
         { id: 'metadata-id', name: 'name' },
       );
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
+    });
+
+    it('registers the real MPC money keyring when the real build flag is on', () => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
+
+      const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
+      const byV1Type = Object.fromEntries(
+        v1Builders.map((builder) => [builder.type, builder]),
+      );
+
+      // The mocked real keyring records its constructor options.
+      const keyring = byV1Type[MpcMoneyKeyring.type]() as unknown as {
+        options: { cloudURL: string; cl24Lib: { name: string } };
+      };
+      expect(keyring.options.cloudURL).toBe(
+        'https://mpc-service.dev-api.cx.metamask.io/v2',
+      );
+      expect(keyring.options.cl24Lib).toEqual({ name: 'cl24' });
     });
   });
 });
