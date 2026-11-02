@@ -26,7 +26,6 @@ jobs:
         with:
           # Use installation token to ensure that the commit later can trigger status check workflows
           token: ${{ steps.get-token.outputs.token }}
-          # Uploading sources never runs git, so the token is not kept on disk.
           persist-credentials: false
 
       - name: crowdin upload sources
