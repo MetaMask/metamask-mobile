@@ -1014,8 +1014,8 @@ export function usePerpsClosePositionForm(
   // `calculateRoEForPrice`: the live position RoE is measured at the mark
   // price and can disagree with the limit-price $PnL in both sign and size
   // (#37377 rejected it for limit closes for exactly this reason). Omitted
-  // when nothing is being closed or the value is unavailable, so the row
-  // never fabricates a 0.00%.
+  // when nothing is being closed or the value is unavailable; a computed
+  // 0.00% (for example a limit at the entry price) is still shown.
   let summaryRoePercentage: number | undefined;
   if (closePercentage === 0) {
     summaryRoePercentage = undefined;

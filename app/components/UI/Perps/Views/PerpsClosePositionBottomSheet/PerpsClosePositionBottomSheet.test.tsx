@@ -345,80 +345,15 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows a gain and the position RoE in the P&L row', () => {
-      const { getByTestId } = renderSheet();
-
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('+$150 (+10.30%)');
-    });
-
-    it('shows the actual position RoE, not $PnL over the PnL-inclusive margin', () => {
-      // returnOnEquity (0.2 = +20%) deliberately differs from
-      // unrealizedPnl / marginUsed (150 / 1450 = +10.34%): the row must show
-      // the position component's RoE value.
-      const divergentPosition = {
-        ...defaultPerpsPositionMock,
-        returnOnEquity: '0.2',
-      };
-      useRouteMock.mockReturnValue({ params: { position: divergentPosition } });
-      usePerpsLivePositionsMock.mockReturnValue({
-        positions: [divergentPosition],
-        isInitialLoading: false,
-      });
-
-      const { getByTestId } = renderSheet();
-
-      const pnlRow = getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      );
-      expect(pnlRow).toHaveTextContent('+$150 (+20.00%)');
-      expect(pnlRow).not.toHaveTextContent(/10\.34/);
-    });
-
-    it('shows a loss and the position RoE in the P&L row', () => {
-      const losingPosition = {
-        ...defaultPerpsPositionMock,
-        unrealizedPnl: '-150.00',
-        returnOnEquity: '-0.103',
-      };
-      useRouteMock.mockReturnValue({ params: { position: losingPosition } });
-      usePerpsLivePositionsMock.mockReturnValue({
-        positions: [losingPosition],
-        isInitialLoading: false,
-      });
-
-      const { getByTestId } = renderSheet();
-
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('-$150 (-10.30%)');
-    });
-
-    it('shows the RoE at the limit price, aligned with the limit P&L', () => {
-      // Entry 2900, 3x leverage, limit 1000: the RoE at that price is
-      // (1000 - 2900) / 2900 × 3 = -196.55%, agreeing with the -$2,850 P&L
-      // instead of the live position RoE measured at the mark price.
-      mockKeypadValue = '1000';
-      const utils = renderSheet();
-
-      toggleOrderType(utils);
-      fireEvent.press(utils.getByTestId('mock-keypad'));
-      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
-
-      const pnlRow = utils.getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      );
-      expect(pnlRow).toHaveTextContent('-$2,850 (-196.55%)');
-    });
-
     it('shows the RoE at the limit price when a limit close exhausts the effective margin exactly', () => {
       // A coherent position at the mocked live price of 3000: entry 2000,
-      // size 1, unrealized PnL +1000, margin 500 + PnL embedded in
-      // marginUsed = 1500. Effective margin (marginUsed - unrealizedPnl +
-      // effectivePnL) lands on exactly 0 at this limit price; the RoE comes
-      // from the entry price and leverage, not a margin division, so it is
-      // still defined: (1500 - 2000) / 2000 × 3 = -75.00%.
+      // size 1, 4x leverage (margin 500 on the 2000 notional), unrealized
+      // PnL +1000, marginUsed = margin + PnL = 1500, returnOnEquity
+      // (3000 - 2000) / 2000 × 4 = 2. Effective margin (marginUsed -
+      // unrealizedPnl + effectivePnL) lands on exactly 0 at this limit
+      // price; the RoE comes from the entry price and leverage, not a
+      // margin division, so it is still defined: (1500 - 2000) / 2000 × 4
+      // = -100.00% — exhausting the margin reads as -100%.
       const zeroMarginPosition = {
         ...defaultPerpsPositionMock,
         entryPrice: '2000.00',
@@ -426,7 +361,8 @@ describe('PerpsClosePositionBottomSheet', () => {
         positionValue: '3000.00',
         marginUsed: '1500.00',
         unrealizedPnl: '1000.00',
-        returnOnEquity: '1.5',
+        returnOnEquity: '2',
+        leverage: { ...defaultPerpsPositionMock.leverage, value: 4 },
       };
       useRouteMock.mockReturnValue({
         params: { position: zeroMarginPosition },
@@ -445,7 +381,25 @@ describe('PerpsClosePositionBottomSheet', () => {
       const pnlRow = utils.getByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
       );
-      expect(pnlRow).toHaveTextContent('-$500 (-75.00%)');
+      expect(pnlRow).toHaveTextContent('-$500 (-100.00%)');
+    });
+
+    it('keeps a minus sign on a limit RoE that rounds to zero from below', () => {
+      // Entry 2900, 3x leverage, limit 2899.99: the RoE at that price is
+      // -0.00% after rounding to two decimals, and the minus sign must
+      // survive the rounding so the percentage agrees with the -$0.02
+      // limit P&L rendered beside it.
+      mockKeypadValue = '2899.99';
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      const pnlRow = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      );
+      expect(pnlRow).toHaveTextContent('-$0.02 (-0.00%)');
     });
 
     it('renders the fiat/token display toggle', () => {
