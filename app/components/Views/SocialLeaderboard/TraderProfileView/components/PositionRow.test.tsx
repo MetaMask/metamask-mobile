@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
@@ -8,6 +8,14 @@ import type { Position } from '@metamask/social-controllers';
 const colorOf = (node: ReturnType<typeof screen.getByText>) =>
   (StyleSheet.flatten(node.props.style) as { color?: string } | undefined)
     ?.color;
+
+const viewOpacities = () =>
+  screen.UNSAFE_getAllByType(View).map((view) => {
+    const style = StyleSheet.flatten(view.props.style) as
+      | { opacity?: number }
+      | undefined;
+    return style?.opacity;
+  });
 
 jest.mock('../../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
@@ -228,18 +236,49 @@ describe('PositionRow', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
-  it('uses muted color for flagged percent instead of PnL color', () => {
+  it('keeps a non-pressable flagged row at full opacity with PnL colour', () => {
     const position = { ...basePosition, flags: ['insider'] };
+    const unflagged = renderWithProvider(<PositionRow position={position} />);
+    const unflaggedPercentColor = colorOf(screen.getByText('+182.00%'));
+    const unflaggedOpacities = viewOpacities();
+    unflagged.unmount();
+
+    renderWithProvider(
+      <PositionRow position={position} onPress={jest.fn()} showFlaggedState />,
+    );
+
+    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
+    expect(viewOpacities()).toEqual(unflaggedOpacities);
+    expect(viewOpacities()).not.toContain(0.5);
+    expect(colorOf(screen.getByText('+182.00%'))).toBe(unflaggedPercentColor);
+  });
+
+  it('keeps a pressable flagged row at full opacity when showFlaggedState is omitted', () => {
+    const position = { ...basePosition, flags: ['insider'] };
+    const unflagged = renderWithProvider(
+      <PositionRow position={basePosition} onPress={jest.fn()} />,
+    );
+    const unflaggedPercentColor = colorOf(screen.getByText('+182.00%'));
+    const unflaggedOpacities = viewOpacities();
+    unflagged.unmount();
+
+    renderWithProvider(<PositionRow position={position} onPress={jest.fn()} />);
+
+    expect(viewOpacities()).toEqual(unflaggedOpacities);
+    expect(viewOpacities()).not.toContain(0.5);
+    expect(colorOf(screen.getByText('+182.00%'))).toBe(unflaggedPercentColor);
+  });
+
+  it('keeps closed flagged PnL colour', () => {
+    const position = { ...closedPosition, flags: ['insider'] };
+    const unflagged = renderWithProvider(<PositionRow position={position} />);
+    const unflaggedPnlColor = colorOf(screen.getByText('+$300.00'));
+    unflagged.unmount();
 
     renderWithProvider(<PositionRow position={position} showFlaggedState />);
 
-    const percentColor = colorOf(screen.getByText('+182.00%'));
-    const labelColor = colorOf(
-      screen.getByText('Insider allocation - excluded'),
-    );
-
-    expect(percentColor).toBeDefined();
-    expect(percentColor).toBe(labelColor);
+    expect(colorOf(screen.getByText('+$300.00'))).toBe(unflaggedPnlColor);
+    expect(viewOpacities()).not.toContain(0.5);
   });
 
   it('shows the generic excluded label for unrecognized flags when showFlaggedState is set', () => {
