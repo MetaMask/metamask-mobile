@@ -66,7 +66,7 @@ import {
   getMockRecurringOrders,
   setupRecurringOrdersDataServiceMock,
 } from '../../../../../../../tests/component-view/api-mocking/recurringOrders';
-import type NetInfoMock from '../../../../../../../__mocks__/@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../../__mocks__/@react-native-community/netinfo';
 
 const errorColor = lightTheme.colors.error.default;
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
