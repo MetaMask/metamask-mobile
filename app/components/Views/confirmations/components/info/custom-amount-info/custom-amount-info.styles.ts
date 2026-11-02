@@ -37,10 +37,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
 
-    amountAlert: {
-      fontSize: 16,
-    },
-
     // Sits on top of the safe-area inset, so the confirm button and the keypad
     // keep clear of the home indicator / navigation bar on both platforms.
     bottomBlock: {

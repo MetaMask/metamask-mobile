@@ -474,7 +474,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 <AlertMessage
                   content={alertContent}
                   alertMessage={alertMessage}
-                  style={styles.amountAlert}
                 />
               ) : (
                 <>
