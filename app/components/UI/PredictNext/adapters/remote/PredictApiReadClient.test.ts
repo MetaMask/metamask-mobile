@@ -342,6 +342,176 @@ describe('PredictApiReadClient', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  describe('device-signed Balance', () => {
+    const signatureRequired = {
+      code: 'venue_signature_required',
+      authority: 'demo-api.kalshi.co',
+      requests: [
+        {
+          ref: 'balance',
+          method: 'GET',
+          path: '/trade-api/v2/portfolio/balance',
+          query: '',
+          components: [
+            '@method',
+            '@authority',
+            '@path',
+            '@query',
+            'authorization',
+            'kalshi-device-request-id',
+            'kalshi-device-key',
+            'kalshi-device-key-salt',
+          ],
+        },
+      ],
+    };
+    const header = { name: 'Kalshi-Device-Auth', value: 'envelope' };
+    const withClone = (response: Response): Response => {
+      (response as unknown as { clone: () => Response }).clone = () =>
+        createResponse({
+          status: response.status,
+          json: { code: 'venue_auth_invalid' },
+        });
+      return response;
+    };
+
+    let signRequests: jest.Mock;
+    let invalidateSigningSession: jest.Mock;
+
+    beforeEach(() => {
+      signRequests = jest.fn().mockResolvedValue(header);
+      invalidateSigningSession = jest.fn();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRequests,
+        invalidateSigningSession,
+      });
+    });
+
+    it('signs the 428 for the balance operation and retries once', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          createResponse({ status: 428, json: signatureRequired }),
+        )
+        .mockResolvedValueOnce(
+          createResponse({ json: { available: '1.0000' } }),
+        );
+
+      await expect(client.fetchBalance(venueId)).resolves.toEqual({
+        available: '1.0000',
+      });
+
+      expect(signRequests).toHaveBeenCalledWith(
+        { operations: ['balance'] },
+        {
+          authority: 'demo-api.kalshi.co',
+          requests: signatureRequired.requests,
+        },
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const firstHeaders = (fetchMock.mock.calls[0][1] as RequestInit)
+        .headers as Record<string, string>;
+      const retryHeaders = (fetchMock.mock.calls[1][1] as RequestInit)
+        .headers as Record<string, string>;
+      expect(firstHeaders['Kalshi-Device-Auth']).toBeUndefined();
+      expect(retryHeaders['Kalshi-Device-Auth']).toBe('envelope');
+    });
+
+    it('treats a second 428 as an error', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          createResponse({ status: 428, json: signatureRequired }),
+        )
+        .mockResolvedValueOnce(
+          createResponse({
+            status: 428,
+            json: { code: 'venue_signature_required' },
+          }),
+        );
+
+      await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+        status: 428,
+        bodyCode: 'venue_signature_required',
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not send a signature the policy refused', async () => {
+      const { VenueSigningPolicyError } = jest.requireActual(
+        '../../auth/signing/venueSigningPolicy',
+      );
+      signRequests.mockRejectedValue(new VenueSigningPolicyError('authority'));
+      fetchMock.mockResolvedValueOnce(
+        createResponse({ status: 428, json: signatureRequired }),
+      );
+
+      await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+        status: 428,
+        bodyCode: 'venue_signing_refused_authority',
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops the A2T and signs again once on venue_auth_invalid', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          createResponse({ status: 428, json: signatureRequired }),
+        )
+        .mockResolvedValueOnce(
+          withClone(
+            createResponse({
+              status: 403,
+              json: { code: 'venue_auth_invalid' },
+            }),
+          ),
+        )
+        .mockResolvedValueOnce(createResponse({ json: { available: '2' } }));
+
+      await expect(client.fetchBalance(venueId)).resolves.toEqual({
+        available: '2',
+      });
+      expect(invalidateSigningSession).toHaveBeenCalledTimes(1);
+      expect(signRequests).toHaveBeenCalledTimes(2);
+    });
+
+    it('surfaces the backend code on a venue error', async () => {
+      const denied = createResponse({
+        status: 403,
+        json: { code: 'venue_account_not_enabled' },
+      });
+      (denied as unknown as { clone: () => Response }).clone = () =>
+        createResponse({
+          status: 403,
+          json: { code: 'venue_account_not_enabled' },
+        });
+      fetchMock
+        .mockResolvedValueOnce(
+          createResponse({ status: 428, json: signatureRequired }),
+        )
+        .mockResolvedValueOnce(denied);
+
+      await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+        status: 403,
+        bodyCode: 'venue_account_not_enabled',
+      });
+      expect(invalidateSigningSession).not.toHaveBeenCalled();
+    });
+
+    it('does not sign reads that are not device-signed', async () => {
+      fetchMock.mockResolvedValueOnce(
+        createResponse({ status: 428, json: signatureRequired }),
+      );
+
+      await expect(client.fetchVenueStatus(venueId)).rejects.toMatchObject({
+        status: 428,
+      });
+      expect(signRequests).not.toHaveBeenCalled();
+    });
+  });
+
   describe('commitOrder', () => {
     const previewId = 'b3c2a1d0-1111-4222-8333-444455556666';
 

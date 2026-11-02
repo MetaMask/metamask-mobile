@@ -26,13 +26,14 @@ describe('createOnboardingController', () => {
 
   let clock = 0;
 
-  const start = () => {
+  const start = (relink = false) => {
     const controller = createOnboardingController(
       () => ({
         client,
         walletAddress: '0x1234567890AbcdEF1234567890aBcdef12345678',
         network: 'base',
         pollIntervalMs: 0,
+        relink,
         onActivated: jest.fn(),
         newKey: () => {
           const key = `key-${keys.length + 1}`;
@@ -110,6 +111,64 @@ describe('createOnboardingController', () => {
       'key-1',
       'key-3',
     ]);
+  });
+
+  describe('relink (temporary debug)', () => {
+    it('starts at the email step without reading status', async () => {
+      client.getStatus.mockResolvedValue(statusOf('active'));
+      const controller = start(true);
+
+      controller.start();
+      await flush();
+
+      expect(client.getStatus).not.toHaveBeenCalled();
+      expect(events.at(-1)).toMatchObject({ type: 'status', state: 'none' });
+    });
+
+    it('links against the existing intent without creating a new one', async () => {
+      const controller = start(true);
+
+      controller.submitEmail('a@example.com');
+      await flush();
+
+      expect(client.createIntent).not.toHaveBeenCalled();
+      expect(client.submitEmail).toHaveBeenCalledWith(
+        'a@example.com',
+        expect.any(String),
+      );
+    });
+
+    it('goes from a verified code to the wallet step without reading status', async () => {
+      client.getStatus.mockResolvedValue(statusOf('active'));
+      const controller = start(true);
+
+      controller.submitEmail('a@example.com');
+      await flush();
+      controller.verifyCode('888888');
+      await flush();
+
+      expect(client.getStatus).not.toHaveBeenCalled();
+      expect(events.at(-1)).toMatchObject({
+        type: 'status',
+        state: 'approved',
+        initial: false,
+      });
+    });
+
+    it('still asks for the second factor before the wallet step', async () => {
+      client.verifyCode.mockResolvedValueOnce({
+        verified: false,
+        mfa: { method: 'sms', phoneLast4: '1234' },
+      } as unknown as KalshiLinkVerify);
+      const controller = start(true);
+
+      controller.submitEmail('a@example.com');
+      await flush();
+      controller.verifyCode('888888');
+      await flush();
+
+      expect(events.at(-1)).toMatchObject({ type: 'mfa_required' });
+    });
   });
 
   it('runs demo KYC and then polls until the intent leaves review', async () => {

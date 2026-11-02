@@ -1,5 +1,13 @@
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
+import {
+  parseSignatureRequired,
+  type SignatureRequired,
+} from '../../auth/signing/venueRequest';
+import {
+  VenueSigningPolicyError,
+  type VenueSigningIntent,
+} from '../../auth/signing/venueSigningPolicy';
 import type {
   FetchFeedParams,
   FetchOrderCommitParams,
@@ -13,6 +21,12 @@ import type {
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
+
+/** A device-auth header to attach to the retried read. */
+export interface DeviceAuthHeader {
+  name: string;
+  value: string;
+}
 
 export interface PredictApiReadTransport {
   fetchVenueStatus(
@@ -83,6 +97,18 @@ export interface PredictApiReadClientOptions {
   clientVersion: string;
   fetch?: typeof fetch;
   getBearerToken: () => Promise<string | undefined>;
+  /**
+   * Checks a 428 against the bundled signing profile, signs what it accepts,
+   * and returns the device-auth header. Undefined when signing is
+   * unavailable. Throws `VenueSigningPolicyError` on a refusal. Without it,
+   * device-signed reads are not signed and a 428 is an error.
+   */
+  signRequests?: (
+    intent: VenueSigningIntent,
+    required: SignatureRequired,
+  ) => Promise<DeviceAuthHeader | undefined>;
+  /** Drops the cached A2T after `venue_auth_invalid`. */
+  invalidateSigningSession?: () => void;
 }
 
 const parseBaseUrl = (baseUrl?: string): URL | undefined => {
@@ -114,17 +140,23 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   readonly #clientVersion: string;
   readonly #fetch: typeof fetch;
   readonly #getBearerToken: () => Promise<string | undefined>;
+  readonly #signRequests?: PredictApiReadClientOptions['signRequests'];
+  readonly #invalidateSigningSession?: () => void;
 
   constructor({
     baseUrl,
     clientVersion,
     fetch: fetchFn = global.fetch,
     getBearerToken,
+    signRequests,
+    invalidateSigningSession,
   }: PredictApiReadClientOptions) {
     this.#baseUrl = parseBaseUrl(baseUrl);
     this.#clientVersion = clientVersion;
     this.#fetch = fetchFn;
     this.#getBearerToken = getBearerToken;
+    this.#signRequests = signRequests;
+    this.#invalidateSigningSession = invalidateSigningSession;
   }
 
   fetchVenueStatus(
@@ -138,7 +170,10 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(['v1', 'venues', venueId, 'balance'], undefined, options);
+    // The balance is the user's own Kalshi balance, so it is device-signed.
+    return this.#get(['v1', 'venues', venueId, 'balance'], undefined, options, {
+      operations: ['balance'],
+    });
   }
 
   fetchPositions(
@@ -270,10 +305,17 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     return token;
   }
 
+  /**
+   * `signing` marks a read that acts as the user on the venue. predict-api
+   * answers it with 428 and the exact venue calls to sign. The signing
+   * policy checks those against the operations named here, and the read is
+   * retried once with the device signature (ADR-0003).
+   */
   async #get(
     segments: readonly string[],
     params?: PredictApiReadQueryParams,
     options?: PredictReadOptions,
+    signing?: VenueSigningIntent,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
 
@@ -288,19 +330,27 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       }
     }
 
-    const response = await this.#fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'x-metamask-clientproduct': 'metamask-mobile',
-        'x-metamask-clientversion': this.#clientVersion,
-        Authorization: `Bearer ${bearerToken}`,
-      },
-      signal: options?.signal,
-    });
+    const send = (deviceAuth?: DeviceAuthHeader): Promise<Response> =>
+      this.#fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'x-metamask-clientproduct': 'metamask-mobile',
+          'x-metamask-clientversion': this.#clientVersion,
+          Authorization: `Bearer ${bearerToken}`,
+          ...(deviceAuth ? { [deviceAuth.name]: deviceAuth.value } : {}),
+        },
+        signal: options?.signal,
+      });
+
+    let response = await send();
+    if (signing && response.status === 428) {
+      response = await this.#retrySigned(response, send, signing);
+    }
 
     if (!response.ok) {
-      throw new PredictHttpError(response.status);
+      const bodyCode = await this.#extractErrorCode(response);
+      throw new PredictHttpError(response.status, bodyCode);
     }
 
     try {
@@ -359,6 +409,65 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       }
       throw new PredictHttpError(response.status);
     }
+  }
+
+  /**
+   * Handles a 428 `venue_signature_required`. Signs what the policy accepts
+   * and retries once. A second 428 is returned to the caller as an error. A
+   * stale A2T (`venue_auth_invalid`) is dropped and signed again once.
+   */
+  async #retrySigned(
+    challenge: Response,
+    send: (deviceAuth?: DeviceAuthHeader) => Promise<Response>,
+    intent: VenueSigningIntent,
+  ): Promise<Response> {
+    const signRequests = this.#signRequests;
+    if (!signRequests) {
+      return challenge;
+    }
+    let body: unknown;
+    try {
+      body = await challenge.json();
+    } catch {
+      throw new PredictHttpError(428);
+    }
+    const required = parseSignatureRequired(body);
+    if (!required) {
+      throw new PredictHttpError(428);
+    }
+
+    const sign = async (): Promise<DeviceAuthHeader> => {
+      let header: DeviceAuthHeader | undefined;
+      try {
+        header = await signRequests(intent, required);
+      } catch (error) {
+        if (error instanceof VenueSigningPolicyError) {
+          Logger.log('PredictNext: venue read signing refused', error.rule);
+          throw new PredictHttpError(
+            428,
+            `venue_signing_refused_${error.rule}`,
+          );
+        }
+        throw error;
+      }
+      if (!header) {
+        throw new PredictHttpError(428, 'venue_signing_unavailable');
+      }
+      return header;
+    };
+
+    const signed = await send(await sign());
+    if (signed.status !== 403) {
+      return signed;
+    }
+    // Read the code from a clone so the response can still be returned.
+    if (
+      (await this.#extractErrorCode(signed.clone())) !== 'venue_auth_invalid'
+    ) {
+      return signed;
+    }
+    this.#invalidateSigningSession?.();
+    return send(await sign());
   }
 
   /** Reads the canonical error code from an error response body, if any. */

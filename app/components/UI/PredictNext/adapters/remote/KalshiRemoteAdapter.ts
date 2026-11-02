@@ -79,6 +79,16 @@ const mapError = (error: unknown): never => {
     if (error.status === 401) {
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
     }
+    // Venue authentication failures are 403s too, but they are about the
+    // user's Kalshi account or device signature, not their region.
+    if (error.bodyCode === 'venue_auth_invalid') {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
+    }
+    if (error.bodyCode === 'venue_account_not_enabled') {
+      throw PredictError.from(PredictErrorCode.BALANCE_UNAVAILABLE, {
+        metadata,
+      });
+    }
     // A 451, or a 403 from the backend or its edge, refuses the user's
     // region. Retrying cannot change that.
     if (error.status === 403 || error.status === 451) {

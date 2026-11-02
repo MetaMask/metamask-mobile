@@ -4,6 +4,10 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
+import type {
+  PredictDeviceAuthServiceClearAction,
+  PredictDeviceAuthServiceSignVenueRequestsAction,
+} from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import type { PredictPortfolioServiceMessenger } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
 import type { RootMessenger } from '../types';
 
@@ -20,7 +24,9 @@ export const getPredictPortfolioServiceMessenger = (
 
 export type PredictPortfolioServiceInitMessenger = Messenger<
   'PredictPortfolioServiceInit',
-  AuthenticationController.AuthenticationControllerGetBearerTokenAction,
+  | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | PredictDeviceAuthServiceSignVenueRequestsAction
+  | PredictDeviceAuthServiceClearAction,
   never
 >;
 
@@ -35,7 +41,11 @@ export const getPredictPortfolioServiceInitMessenger = (
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
+    actions: [
+      'AuthenticationController:getBearerToken',
+      'PredictDeviceAuthService:signVenueRequests',
+      'PredictDeviceAuthService:clear',
+    ],
     events: [],
     messenger,
   });

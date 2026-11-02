@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -20,6 +20,10 @@ import {
   kalshiDemoPayoutWallet,
 } from './internal/demoOnboardingConfig';
 import { KalshiDemoOnboardingModal } from './internal/KalshiDemoOnboardingModal';
+import {
+  getKalshiRelinkNonce,
+  subscribeKalshiRelink,
+} from './internal/kalshiRelinkRequest';
 import {
   useKalshiDemoOnboarding,
   type KalshiOnboardingApi,
@@ -45,11 +49,14 @@ const invalidatePortfolioReads = () => {
 interface KalshiDemoOnboardingFlowProps {
   client: KalshiOnboardingApi;
   walletAddress?: string;
+  /** TEMPORARY debug: run the link flow again for an active profile. */
+  relink?: boolean;
 }
 
 const KalshiDemoOnboardingFlow = ({
   client,
   walletAddress,
+  relink,
 }: KalshiDemoOnboardingFlowProps) => {
   const networkTier = useNetworkTier();
   const hardwareTier = getHardwareTier();
@@ -65,6 +72,7 @@ const KalshiDemoOnboardingFlow = ({
     walletAddress,
     network,
     pollIntervalMs,
+    relink,
     canPoll: () => networkTier !== 'NONE',
     onActivated: invalidatePortfolioReads,
   });
@@ -112,14 +120,21 @@ export const KalshiDemoOnboardingGate = ({
     [enabled],
   );
   const walletAddress = kalshiDemoPayoutWallet(evmAddress);
+  // TEMPORARY debug: a new key remounts the flow, which starts it again.
+  const relinkNonce = useSyncExternalStore(
+    subscribeKalshiRelink,
+    getKalshiRelinkNonce,
+  );
 
   return (
     <>
       {children}
       {client ? (
         <KalshiDemoOnboardingFlow
+          key={relinkNonce}
           client={client}
           walletAddress={walletAddress}
+          relink={relinkNonce > 0}
         />
       ) : null}
     </>

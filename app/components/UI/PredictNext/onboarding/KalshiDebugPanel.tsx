@@ -1,0 +1,211 @@
+import React, { useCallback, useState } from 'react';
+import { Modal, ScrollView } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+
+import Engine from '../../../../core/Engine';
+import type { PredictBalance } from '../types';
+import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
+import { isKalshiDemoOnboardingEnabled } from './internal/demoOnboardingConfig';
+import { requestKalshiRelink } from './internal/kalshiRelinkRequest';
+import {
+  readKalshiDemoEmail,
+  summarizeA2t,
+  type A2tSummary,
+} from './internal/kalshiDebugInfo';
+
+interface DebugSnapshot {
+  fetchedAt: string;
+  status?: {
+    state: string;
+    intentStatus?: string;
+    expireTs?: string | number;
+  };
+  statusError?: string;
+  a2t: A2tSummary;
+  lastEmail?: string;
+}
+
+const Row = ({ label, value }: { label: string; value?: string }) => (
+  <Box twClassName="gap-0.5">
+    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Text variant={TextVariant.BodySm} selectable>
+      {value ?? '—'}
+    </Text>
+  </Box>
+);
+
+const describeError = (error: unknown): string => {
+  if (error && typeof error === 'object') {
+    const { status, code, message } = error as {
+      status?: number;
+      code?: string;
+      message?: string;
+    };
+    return [status, code, message].filter(Boolean).join(' ') || 'error';
+  }
+  return String(error);
+};
+
+/**
+ * TEMPORARY. Shows which Kalshi account this profile is linked to and what
+ * Kalshi says about it. Rendered only when the demo onboarding build flag is
+ * on. Delete with the demo onboarding.
+ */
+export const KalshiDebugPanel = ({
+  balance,
+  balanceError,
+}: {
+  balance?: PredictBalance;
+  balanceError: Error | null;
+}) => {
+  const tw = useTailwind();
+  const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [snapshot, setSnapshot] = useState<DebugSnapshot>();
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    const next: DebugSnapshot = {
+      fetchedAt: new Date().toISOString(),
+      a2t: {},
+    };
+    try {
+      next.lastEmail = await readKalshiDemoEmail();
+      next.a2t = summarizeA2t(
+        await Engine.controllerMessenger.call(
+          'PredictDeviceAuthService:getA2t',
+        ),
+      );
+    } catch (error) {
+      next.statusError = `a2t: ${describeError(error)}`;
+    }
+    try {
+      // Reads Kalshi's balance and current intent, so it can hit the
+      // device-lane rate limit when tapped right after a balance read.
+      const status = await createKalshiOnboardingClient().getStatus();
+      next.status = {
+        state: status.state,
+        intentStatus: status.intentStatus,
+        expireTs: status.expireTs,
+      };
+    } catch (error) {
+      next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}status: ${describeError(error)}`;
+    }
+    setSnapshot(next);
+    setLoading(false);
+  }, []);
+
+  const open = useCallback(() => {
+    setVisible(true);
+    refresh();
+  }, [refresh]);
+
+  // Close this sheet first so two sheets are not presented at once.
+  const relink = useCallback(() => {
+    setVisible(false);
+    setTimeout(requestKalshiRelink, 600);
+  }, []);
+
+  if (!isKalshiDemoOnboardingEnabled()) {
+    return null;
+  }
+
+  return (
+    <>
+      <Box twClassName="self-start">
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          onPress={open}
+        >
+          Kalshi debug
+        </Button>
+      </Box>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setVisible(false)}
+      >
+        <ScrollView contentContainerStyle={tw.style('p-4 gap-3')}>
+          <Text variant={TextVariant.HeadingMd}>Kalshi demo debug</Text>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            Temporary. Shows what predict-api and Kalshi report for this
+            profile.
+          </Text>
+
+          <Row
+            label="Email typed in onboarding (this device, last attempt)"
+            value={snapshot?.lastEmail ?? 'none remembered'}
+          />
+          <Row label="Onboarding state" value={snapshot?.status?.state} />
+          <Row
+            label="Kalshi intent status"
+            value={snapshot?.status?.intentStatus}
+          />
+          <Row
+            label="Intent expireTs"
+            value={
+              snapshot?.status?.expireTs !== undefined
+                ? String(snapshot.status.expireTs)
+                : undefined
+            }
+          />
+          <Row label="Profile ID (A2T sub)" value={snapshot?.a2t.sub} />
+          <Row label="A2T audience" value={snapshot?.a2t.aud} />
+          <Row label="A2T expires" value={snapshot?.a2t.expiresAt} />
+          <Row
+            label="Balance the app is showing"
+            value={
+              balance
+                ? JSON.stringify(balance)
+                : balanceError
+                  ? `error: ${describeError(balanceError)}`
+                  : 'loading'
+            }
+          />
+          <Row label="Status error" value={snapshot?.statusError} />
+          <Row label="Fetched at" value={snapshot?.fetchedAt} />
+
+          <Box twClassName="flex-row gap-2">
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={refresh}
+              isLoading={loading}
+            >
+              Refresh
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={() => setVisible(false)}
+            >
+              Close
+            </Button>
+          </Box>
+
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            Relink replaces the Kalshi account bound to this profile with the
+            one whose email you enter. Enter the email, the code, then the MFA
+            code if Kalshi asks, and confirm the wallet.
+          </Text>
+          <Box twClassName="self-start">
+            <Button variant={ButtonVariant.Secondary} onPress={relink}>
+              Relink Kalshi account
+            </Button>
+          </Box>
+        </ScrollView>
+      </Modal>
+    </>
+  );
+};
