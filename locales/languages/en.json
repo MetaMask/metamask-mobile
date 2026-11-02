@@ -4742,6 +4742,7 @@
       "all": "All types",
       "transactions": "Transactions",
       "buy_sell": "Buy/Sell",
+      "limit_orders": "Limit orders",
       "perps": "Perps",
       "predictions": "Predictions",
       "metamask_card": "Card"
@@ -4784,6 +4785,10 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
+      },
+      "limit_orders": {
+        "description": "Your filled limit orders will show up here.",
+        "action": "Swap tokens"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",
@@ -9748,6 +9753,9 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
+      "microdeposit": "Test Deposit",
+      "microdeposit_from": "From {{name}}",
+      "microdeposit_from_bank": "From your bank",
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
@@ -10472,6 +10480,9 @@
       "confirm": "Confirm",
       "preview_order": "Preview Order",
       "confirm_title": "Confirm recurring order",
+      "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
+      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "try_again": "Try again",
       "order_created_toast_title": "Order created",
       "order_created_toast_body": "We'll let you know when it's filled.",
       "order_canceled_toast_title": "Order canceled",
