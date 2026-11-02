@@ -5,9 +5,9 @@ import {
   completePerpsPostTradeShare,
   failPerpsPostTradeShare,
   isPerpsPostTradeShareEligible,
-  MIN_PERPS_POST_TRADE_SHARE_USD,
   openPerpsPostTradeShareSession,
 } from './perpsPostTradeShare';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
@@ -41,7 +41,7 @@ describe('perpsPostTradeShare', () => {
 
     it('returns true at the minimum value without leverage', () => {
       const result = isPerpsPostTradeShareEligible({
-        amountUsd: String(MIN_PERPS_POST_TRADE_SHARE_USD),
+        amountUsd: String(MIN_POST_TRADE_SHARE_USD),
         leverage: 1,
       });
 

@@ -1,10 +1,10 @@
 import {
   isSpotPostTradeShareEligible,
-  MIN_SPOT_POST_TRADE_SHARE_USD,
   POST_TRADE_SHARE_SHEET_LIMIT,
   resolvePostTradePrompt,
   type ResolvePostTradePromptInput,
 } from './resolvePostTradePrompt';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 
 const input = (
   overrides: Partial<ResolvePostTradePromptInput> = {},
@@ -21,7 +21,7 @@ const input = (
 
 describe('isSpotPostTradeShareEligible', () => {
   it('returns false at the minimum postable trade value', () => {
-    const amountUsd = MIN_SPOT_POST_TRADE_SHARE_USD;
+    const amountUsd = MIN_POST_TRADE_SHARE_USD;
 
     const result = isSpotPostTradeShareEligible(amountUsd);
 
@@ -29,7 +29,7 @@ describe('isSpotPostTradeShareEligible', () => {
   });
 
   it('returns true above the minimum postable trade value', () => {
-    const amountUsd = MIN_SPOT_POST_TRADE_SHARE_USD + 0.5;
+    const amountUsd = MIN_POST_TRADE_SHARE_USD + 0.5;
 
     const result = isSpotPostTradeShareEligible(amountUsd);
 

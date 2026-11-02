@@ -3,6 +3,7 @@ import {
   type OrderType,
 } from '@metamask/perps-controller';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 import {
   formatTradeUnitPrice,
   formatUsd,
@@ -29,9 +30,6 @@ const resolveProviderId = (activeProvider: string | undefined): string =>
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
 
-/** Minimum leveraged USD value required for a Perps trade to be postable. */
-export const MIN_PERPS_POST_TRADE_SHARE_USD = 10;
-
 /** Returns whether the entered Perps amount reaches the sharing threshold. */
 export const isPerpsPostTradeShareEligible = ({
   amountUsd,
@@ -44,7 +42,7 @@ export const isPerpsPostTradeShareEligible = ({
   const leveragedAmount = amount * (leverage ?? 0);
   return (
     Number.isFinite(leveragedAmount) &&
-    leveragedAmount >= MIN_PERPS_POST_TRADE_SHARE_USD
+    leveragedAmount >= MIN_POST_TRADE_SHARE_USD
   );
 };
 

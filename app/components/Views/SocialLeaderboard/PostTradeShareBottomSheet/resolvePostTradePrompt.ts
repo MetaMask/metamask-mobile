@@ -1,14 +1,12 @@
 import type { PostTradePromptProduct } from '../../../../util/social/postTradePromptStorage';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 
 /** Share sheets shown per product on the linked account before the toast takes over. */
 export const POST_TRADE_SHARE_SHEET_LIMIT = 3;
 
-/** Minimum USD value required for a spot trade to be postable. */
-export const MIN_SPOT_POST_TRADE_SHARE_USD = 10;
-
 /** Returns whether a spot trade can be offered for post-trade sharing. */
 export const isSpotPostTradeShareEligible = (amountUsd: number): boolean =>
-  Number.isFinite(amountUsd) && amountUsd > MIN_SPOT_POST_TRADE_SHARE_USD;
+  Number.isFinite(amountUsd) && amountUsd > MIN_POST_TRADE_SHARE_USD;
 
 export interface PostTradeShareSheetCountKey {
   /** Linked EVM address the count is stored under. */
