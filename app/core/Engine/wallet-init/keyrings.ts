@@ -73,13 +73,21 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
  * `getLedgerDmkMode`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
+// Restoring the MPC key follows turning on 2-step verification, so it reuses
+// that verification when it is this recent.
+const MONEY_MPC_RESTORE_MAX_SESSION_AGE_MS = 2 * 60_000;
+
 /**
  * Prompts for 2-step verification before a Money MPC call that needs it.
  *
  * @param operation - The operation shown in the verification reason.
+ * @param maxSessionAgeMs - How old a reused verification may be; 0 always prompts.
  * @returns The 2FA-verified profile token.
  */
-async function verifyMoneyMpc(operation: string): Promise<string> {
+async function verifyMoneyMpc(
+  operation: string,
+  maxSessionAgeMs: number,
+): Promise<string> {
   // Loaded lazily: the MFA flow pulls in UI and store modules that import the Engine.
   /* eslint-disable @typescript-eslint/no-require-imports */
   const { verifyOrEnroll } = require('../../../util/identity/mfa/useMfa');
@@ -90,8 +98,7 @@ async function verifyMoneyMpc(operation: string): Promise<string> {
   const { token } = await verifyOrEnroll({
     methods: MONEY_MFA_METHODS,
     verifyWith: MONEY_MFA_METHODS,
-    // Every transfer and restore needs its own verification; never reuse a session.
-    maxSessionAgeMs: 0,
+    maxSessionAgeMs,
     reason: { operation },
   });
   if (!token) {
@@ -202,11 +209,16 @@ export function getKeyringBuilders(
                       request,
                     ),
                   verify: async () => {
-                    await verifyMoneyMpc('money.mpcSign');
+                    // Every transfer needs its own verification.
+                    await verifyMoneyMpc('money.mpcSign', 0);
                   },
                 })
               : undefined,
-            getTwoFactorToken: () => verifyMoneyMpc('money.mpcRestore'),
+            getTwoFactorToken: () =>
+              verifyMoneyMpc(
+                'money.mpcRestore',
+                MONEY_MPC_RESTORE_MAX_SESSION_AGE_MS,
+              ),
           })
         : buildMpcMoneyKeyringBuilder(),
     );
