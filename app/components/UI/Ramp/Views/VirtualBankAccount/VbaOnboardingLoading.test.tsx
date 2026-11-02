@@ -31,6 +31,14 @@ jest.mock('./vbaCufTrace', () => ({
   startVbaCufJourney: jest.fn(),
 }));
 
+// The error stub tracks an analytics event on mount. `analytics.trackEvent`
+// lazily requires this path, so point it at the test's existing Engine mock
+// instead of synchronously loading the real Engine graph on a cold cache.
+jest.mock('../../../../../core/Engine/Engine', () => ({
+  __esModule: true,
+  default: jest.requireMock('../../../../../core/Engine'),
+}));
+
 const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
 const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
