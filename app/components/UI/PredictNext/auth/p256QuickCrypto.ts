@@ -53,7 +53,9 @@ export async function generateP256Key(): Promise<P256KeyMaterial> {
     throw new Error('P-256 private key export did not include d');
   }
 
-  const secretKey = fromBase64Url(d);
+  // JWK base64url can omit leading zero bytes. The PKCS#8 prefix fixes the
+  // scalar at 32 bytes, so pad it the same way as the x and y coordinates.
+  const secretKey = leftPad(fromBase64Url(d));
   return {
     // Re-import so the held key is not extractable.
     privateKey: await importPkcs8(secretKey, false),
@@ -169,7 +171,7 @@ function concatBytes(...parts: Uint8Array[]): Uint8Array {
 
 function leftPad(bytes: Uint8Array): Uint8Array {
   if (bytes.length > P256_SCALAR_LENGTH) {
-    throw new Error('P-256 coordinate is too long');
+    throw new Error('P-256 value is longer than 32 bytes');
   }
   const out = new Uint8Array(P256_SCALAR_LENGTH);
   out.set(bytes, P256_SCALAR_LENGTH - bytes.length);
