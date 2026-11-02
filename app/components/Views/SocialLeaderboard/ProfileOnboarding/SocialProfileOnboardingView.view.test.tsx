@@ -672,11 +672,16 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.queryByText('Use letters, numbers, and underscores.'),
     ).not.toBeOnTheScreen();
-    await waitFor(() => {
-      expect(
-        Engine.context.ProfileController.checkUsernameAvailability,
-      ).toHaveBeenCalledWith('hello_');
-    });
+    // Availability is debounced (USERNAME_CHECK_DEBOUNCE_MS = 400). The default
+    // waitFor budget is 1000ms, which loses to a late timer on a busy shard.
+    await waitFor(
+      () => {
+        expect(
+          Engine.context.ProfileController.checkUsernameAvailability,
+        ).toHaveBeenCalledWith('hello_');
+      },
+      { timeout: 5000 },
+    );
     expect(
       await screen.findByText('Username available', { exact: true }),
     ).toBeOnTheScreen();
