@@ -77,99 +77,73 @@ describe('getPositionFlagLabelKey', () => {
     expect(result).toBe(POSITION_FLAG_LABEL_KEYS.excluded);
   });
 
-  it('returns the short insider label for the subline presentation', () => {
-    const result = getPositionFlagLabelKey(
-      { ...basePosition, flags: ['insider'] },
-      'subline',
-    );
+  it.each([
+    ['insider', ['insider'], POSITION_FLAG_SHORT_LABEL_KEYS.insider],
+    ['creator', ['developer'], POSITION_FLAG_SHORT_LABEL_KEYS.developer],
+    ['excluded', ['blocked'], POSITION_FLAG_SHORT_LABEL_KEYS.excluded],
+    [
+      'insider when both known flags are present',
+      ['developer', 'insider'],
+      POSITION_FLAG_SHORT_LABEL_KEYS.insider,
+    ],
+  ] as const)(
+    'returns the short %s label for the subline presentation',
+    (_name, flags, expected) => {
+      const result = getPositionFlagLabelKey(
+        { ...basePosition, flags: [...flags] },
+        'subline',
+      );
 
-    expect(result).toBe(POSITION_FLAG_SHORT_LABEL_KEYS.insider);
-  });
-
-  it('returns the short creator label for a developer flag', () => {
-    const result = getPositionFlagLabelKey(
-      { ...basePosition, flags: ['developer'] },
-      'subline',
-    );
-
-    expect(result).toBe(POSITION_FLAG_SHORT_LABEL_KEYS.developer);
-  });
-
-  it('returns the short excluded label for an unrecognized flag', () => {
-    const result = getPositionFlagLabelKey(
-      { ...basePosition, flags: ['blocked'] },
-      'subline',
-    );
-
-    expect(result).toBe(POSITION_FLAG_SHORT_LABEL_KEYS.excluded);
-  });
-
-  it('prefers the short insider label when both known flags are present', () => {
-    const result = getPositionFlagLabelKey(
-      { ...basePosition, flags: ['developer', 'insider'] },
-      'subline',
-    );
-
-    expect(result).toBe(POSITION_FLAG_SHORT_LABEL_KEYS.insider);
-  });
+      expect(result).toBe(expected);
+    },
+  );
 });
 
 describe('getPositionFlagAccessibilityReasonKey', () => {
-  it('returns null when the position has no flags', () => {
-    const result = getPositionFlagAccessibilityReasonKey(basePosition);
-
-    expect(result).toBeNull();
-  });
-
-  it('returns the insider reason for an insider flag', () => {
-    const result = getPositionFlagAccessibilityReasonKey({
-      ...basePosition,
-      flags: ['insider'],
-    });
-
-    expect(result).toBe(
+  it.each([
+    ['no flags', basePosition, null],
+    [
+      'an insider flag',
+      { ...basePosition, flags: ['insider' as const] },
       'social_leaderboard.position_flags.accessibility.reason_insider',
-    );
-  });
-
-  it('returns the creator reason for a developer flag', () => {
-    const result = getPositionFlagAccessibilityReasonKey({
-      ...basePosition,
-      flags: ['developer'],
-    });
-
-    expect(result).toBe(
+    ],
+    [
+      'a developer flag',
+      { ...basePosition, flags: ['developer' as const] },
       'social_leaderboard.position_flags.accessibility.reason_creator',
-    );
+    ],
+  ])('returns the reason for %s', (_name, position, expected) => {
+    const result = getPositionFlagAccessibilityReasonKey(position);
+
+    expect(result).toBe(expected);
   });
 });
 
 describe('formatFlaggedPositionAccessibilityLabel', () => {
-  it('includes the direction, percent, and reason', () => {
-    const result = formatFlaggedPositionAccessibilityLabel({
-      symbol: 'Nigel',
-      value: '$693.24',
-      direction: 'up',
-      percent: '47.28%',
-      reasonKey:
-        'social_leaderboard.position_flags.accessibility.reason_insider',
-    });
-
-    expect(result).toBe(
+  it.each([
+    [
+      'the direction, percent, and reason',
+      'up' as const,
+      '47.28%',
+      'social_leaderboard.position_flags.accessibility.reason_insider',
       'Nigel, $693.24, up 47.28%, not counted in P&L, insider',
-    );
-  });
-
-  it('drops the change clause when percent is missing', () => {
+    ],
+    [
+      'no change clause when percent is missing',
+      null,
+      null,
+      'social_leaderboard.position_flags.accessibility.reason_creator',
+      'Nigel, $693.24, not counted in P&L, creator',
+    ],
+  ])('includes %s', (_name, direction, percent, reasonKey, expected) => {
     const result = formatFlaggedPositionAccessibilityLabel({
       symbol: 'Nigel',
       value: '$693.24',
-      direction: null,
-      percent: null,
-      reasonKey:
-        'social_leaderboard.position_flags.accessibility.reason_creator',
+      direction,
+      percent,
+      reasonKey,
     });
 
-    expect(result).toBe('Nigel, $693.24, not counted in P&L, creator');
+    expect(result).toBe(expected);
   });
 });
