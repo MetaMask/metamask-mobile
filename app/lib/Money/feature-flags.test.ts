@@ -13,7 +13,8 @@ const mockedValidate =
   >;
 
 describe('isMoneyAccountEnabled', () => {
-  const originalLocalFlag = process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
+  const agenticLocalTestFlag =
+    process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -21,10 +22,10 @@ describe('isMoneyAccountEnabled', () => {
   });
 
   afterEach(() => {
-    if (originalLocalFlag === undefined) {
+    if (agenticLocalTestFlag === undefined) {
       delete process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
     } else {
-      process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED = originalLocalFlag;
+      process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED = agenticLocalTestFlag;
     }
   });
 
