@@ -26,14 +26,13 @@ const position = (
   ...overrides,
 });
 
+const ids = (rows: Position[]) => rows.map((row) => row.positionId);
+
 describe('partitionUncountedPositions', () => {
-  it('returns false when flags are missing or empty', () => {
+  it('treats only a non-empty flags list as uncounted', () => {
     expect(isUncountedPosition(position('plain'))).toBe(false);
     expect(isUncountedPosition(position('empty', { flags: [] }))).toBe(false);
     expect(isUncountedPosition(position('none', { flags: null }))).toBe(false);
-  });
-
-  it('treats insider, developer, and other flags as uncounted', () => {
     expect(isUncountedPosition(position('nigel', { flags: ['insider'] }))).toBe(
       true,
     );
@@ -45,40 +44,22 @@ describe('partitionUncountedPositions', () => {
     );
   });
 
-  it('pins flagged rows to the end without sorting either group by value', () => {
-    const low = position('LOW', { currentValueUSD: 1 });
-    const flaggedHigh = position('Nigel', {
-      flags: ['insider'],
-      currentValueUSD: 999,
-    });
-    const mid = position('MID', { currentValueUSD: 50 });
-    const flaggedLow = position('Moodeng', {
-      flags: ['developer'],
-      currentValueUSD: 2,
-    });
-
-    const result = partitionUncountedPositions([
-      low,
-      flaggedHigh,
-      mid,
-      flaggedLow,
+  it('pins flagged rows to the end in input order and leaves an unflagged list alone', () => {
+    const mixed = partitionUncountedPositions([
+      position('LOW', { currentValueUSD: 1 }),
+      position('Nigel', { flags: ['insider'], currentValueUSD: 999 }),
+      position('MID', { currentValueUSD: 50 }),
+      position('Moodeng', { flags: ['developer'], currentValueUSD: 2 }),
+    ]);
+    const plain = partitionUncountedPositions([
+      position('SOL'),
+      position('ETH'),
     ]);
 
-    expect(result.counted.map((row) => row.positionId)).toEqual(['LOW', 'MID']);
-    expect(result.uncounted.map((row) => row.positionId)).toEqual([
-      'Nigel',
-      'Moodeng',
-    ]);
-  });
-
-  it('keeps an all-unflagged list in input order with an empty uncounted group', () => {
-    const first = position('ETH');
-    const second = position('SOL');
-
-    const result = partitionUncountedPositions([second, first]);
-
-    expect(result.counted.map((row) => row.positionId)).toEqual(['SOL', 'ETH']);
-    expect(result.uncounted).toEqual([]);
+    expect(ids(mixed.counted)).toEqual(['LOW', 'MID']);
+    expect(ids(mixed.uncounted)).toEqual(['Nigel', 'Moodeng']);
+    expect(ids(plain.counted)).toEqual(['SOL', 'ETH']);
+    expect(plain.uncounted).toEqual([]);
   });
 });
 
@@ -90,22 +71,19 @@ describe('filterPositionsByAsset', () => {
     perpPositionType: 'long',
   });
 
-  it('keeps mixed input order for the All filter', () => {
-    const result = filterPositionsByAsset([perp, token], 'all');
+  it.each([
+    ['all', [perp, token], ['BTC', 'Nigel']],
+    ['tokens', [token, perp], ['Nigel']],
+    ['perps', [token, perp], ['BTC']],
+  ] as const)('keeps %s rows in input order', (filter, rows, expected) => {
+    const result = filterPositionsByAsset([...rows], filter);
 
-    expect(result.map((row) => row.positionId)).toEqual(['BTC', 'Nigel']);
+    expect(ids(result)).toEqual([...expected]);
   });
 
-  it('drops perps for Tokens and tokens for Perps', () => {
-    expect(
-      filterPositionsByAsset([token, perp], 'tokens').map(
-        (row) => row.positionId,
-      ),
-    ).toEqual(['Nigel']);
-    expect(
-      listUncountedPositions([token, perp], 'perps').map(
-        (row) => row.positionId,
-      ),
-    ).toEqual(['BTC']);
+  it('lists uncounted perps after the Perps filter', () => {
+    const result = listUncountedPositions([token, perp], 'perps');
+
+    expect(ids(result)).toEqual(['BTC']);
   });
 });

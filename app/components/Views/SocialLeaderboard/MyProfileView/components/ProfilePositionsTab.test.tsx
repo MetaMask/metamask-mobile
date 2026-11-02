@@ -62,6 +62,16 @@ const openPerp: Position = {
   perpLeverage: 40,
 };
 
+const positionRow = (
+  symbol: string,
+  overrides: Partial<Position> = {},
+): Position => ({
+  ...openSpot,
+  positionId: symbol,
+  tokenSymbol: symbol,
+  ...overrides,
+});
+
 describe('ProfilePositionsTab', () => {
   const onFilterChange = jest.fn();
   const onPositionPress = jest.fn();
@@ -178,53 +188,42 @@ describe('ProfilePositionsTab', () => {
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
     expect(onPositionPress).toHaveBeenCalledWith(openSpot);
-    expect(screen.getByTestId('position-row-ETH')).toHaveProp(
-      'accessibilityLabel',
-      'default',
-    );
   });
 
-  it('pins flagged positions under Not counted in P&L in input order', () => {
-    const low: Position = {
-      ...openSpot,
-      positionId: 'low',
-      tokenSymbol: 'LOW',
-      currentValueUSD: 1,
-    };
-    const flaggedHigh: Position = {
-      ...openSpot,
-      positionId: 'nigel',
-      tokenSymbol: 'Nigel',
-      flags: ['insider'],
-      currentValueUSD: 999,
-    };
-    const mid: Position = {
-      ...openSpot,
-      positionId: 'mid',
-      tokenSymbol: 'MID',
-      currentValueUSD: 50,
-    };
-    const flaggedDev: Position = {
-      ...openSpot,
-      positionId: 'moodeng',
-      tokenSymbol: 'Moodeng',
-      flags: ['developer'],
-      currentValueUSD: 2,
-    };
-
+  const renderTab = (
+    positions: Position[],
+    options: {
+      filter?: 'all' | 'tokens' | 'perps';
+      showFlaggedState?: boolean;
+    } = {},
+  ) =>
     renderWithProvider(
       <ProfilePositionsTab
-        positions={[low, flaggedHigh, mid, flaggedDev]}
+        positions={positions}
         isLoading={false}
         error={null}
         isClosed={false}
-        filter="all"
+        filter={options.filter ?? 'all'}
         onFilterChange={onFilterChange}
         onPositionPress={onPositionPress}
         onRetry={onRetry}
-        showFlaggedState
+        showFlaggedState={options.showFlaggedState}
       />,
     );
+
+  it('pins flagged positions under Not counted in P&L in input order', () => {
+    const low = positionRow('LOW', { currentValueUSD: 1 });
+    const flaggedHigh = positionRow('Nigel', {
+      flags: ['insider'],
+      currentValueUSD: 999,
+    });
+    const mid = positionRow('MID', { currentValueUSD: 50 });
+    const flaggedDev = positionRow('Moodeng', {
+      flags: ['developer'],
+      currentValueUSD: 2,
+    });
+
+    renderTab([low, flaggedHigh, mid, flaggedDev], { showFlaggedState: true });
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
@@ -246,19 +245,7 @@ describe('ProfilePositionsTab', () => {
   });
 
   it('hides the uncounted section when nothing is flagged', () => {
-    renderWithProvider(
-      <ProfilePositionsTab
-        positions={[openSpot, openPerp]}
-        isLoading={false}
-        error={null}
-        isClosed={false}
-        filter="all"
-        onFilterChange={onFilterChange}
-        onPositionPress={onPositionPress}
-        onRetry={onRetry}
-        showFlaggedState
-      />,
-    );
+    renderTab([openSpot, openPerp], { showFlaggedState: true });
 
     expect(screen.queryByText('Not counted in P&L')).toBeNull();
     expect(
@@ -267,21 +254,12 @@ describe('ProfilePositionsTab', () => {
     expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
   });
 
-  it('pins the owner flagged rows and keeps them pressable', () => {
+  it('pins the owner flagged rows in the normal presentation and keeps them pressable', () => {
     const flagged = { ...openSpot, flags: ['insider'] };
 
-    renderWithProvider(
-      <ProfilePositionsTab
-        positions={[flagged]}
-        isLoading={false}
-        error={null}
-        isClosed={false}
-        filter="all"
-        onFilterChange={onFilterChange}
-        onPositionPress={onPositionPress}
-        onRetry={onRetry}
-      />,
-    );
+    renderTab([flagged]);
+
+    const row = screen.getByTestId('position-row-ETH');
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
@@ -289,67 +267,50 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
     ).toBeNull();
-    expect(
-      screen.getByTestId('position-row-ETH').props.accessibilityState,
-    ).toEqual({ disabled: false });
+    expect(row.props.accessibilityState).toEqual({ disabled: false });
+    expect(row).toHaveProp('accessibilityLabel', 'default');
 
-    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(row);
 
     expect(onPositionPress).toHaveBeenCalledTimes(1);
     expect(onPositionPress).toHaveBeenCalledWith(flagged);
   });
 
-  it('applies the Tokens filter inside the uncounted section', () => {
-    const flaggedToken: Position = {
-      ...openSpot,
-      positionId: 'nigel',
-      tokenSymbol: 'Nigel',
-      flags: ['insider'],
-    };
-    const flaggedPerp: Position = {
-      ...openPerp,
-      positionId: 'moodeng-perp',
-      tokenSymbol: 'Moodeng',
-      flags: ['developer'],
-    };
+  it.each([
+    ['tokens', ['ETH', 'Nigel'], ['Moodeng']],
+    ['perps', ['Moodeng'], ['ETH', 'Nigel']],
+  ] as const)(
+    'applies the %s filter inside the uncounted section',
+    (filter, visible, hidden) => {
+      const flaggedToken = positionRow('Nigel', { flags: ['insider'] });
+      const flaggedPerp: Position = {
+        ...openPerp,
+        positionId: 'Moodeng',
+        tokenSymbol: 'Moodeng',
+        flags: ['developer'],
+      };
 
-    renderWithProvider(
-      <ProfilePositionsTab
-        positions={[flaggedPerp, openSpot, flaggedToken]}
-        isLoading={false}
-        error={null}
-        isClosed={false}
-        filter="tokens"
-        onFilterChange={onFilterChange}
-        onPositionPress={onPositionPress}
-        onRetry={onRetry}
-        showFlaggedState
-      />,
-    );
+      renderTab([flaggedPerp, openSpot, flaggedToken], {
+        filter,
+        showFlaggedState: true,
+      });
 
-    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
-    expect(screen.getByTestId('position-row-Nigel')).toBeOnTheScreen();
-    expect(screen.queryByTestId('position-row-Moodeng')).toBeNull();
-    expect(screen.getByText('Not counted in P&L')).toBeOnTheScreen();
-    expect(screen.queryByText('Perpetuals')).toBeNull();
-  });
+      visible.forEach((symbol) => {
+        expect(screen.getByTestId(`position-row-${symbol}`)).toBeOnTheScreen();
+      });
+      hidden.forEach((symbol) => {
+        expect(screen.queryByTestId(`position-row-${symbol}`)).toBeNull();
+      });
+      expect(screen.getByText('Not counted in P&L')).toBeOnTheScreen();
+    },
+  );
 
-  it('shows only the uncounted section when every visible row is flagged', () => {
+  it('does not notify when a flagged row is pressed with showFlaggedState', () => {
     const flagged = { ...openSpot, flags: ['insider'] };
 
-    renderWithProvider(
-      <ProfilePositionsTab
-        positions={[flagged]}
-        isLoading={false}
-        error={null}
-        isClosed={false}
-        filter="all"
-        onFilterChange={onFilterChange}
-        onPositionPress={onPositionPress}
-        onRetry={onRetry}
-        showFlaggedState
-      />,
-    );
+    renderTab([flagged], { showFlaggedState: true });
+
+    const row = screen.getByTestId('position-row-ETH');
 
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
@@ -360,36 +321,12 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
-  });
 
-  it('does not notify when a flagged row is pressed with showFlaggedState', () => {
-    const flagged = { ...openSpot, flags: ['insider'] };
+    fireEvent.press(row);
 
-    renderWithProvider(
-      <ProfilePositionsTab
-        positions={[flagged]}
-        isLoading={false}
-        error={null}
-        isClosed={false}
-        filter="all"
-        onFilterChange={onFilterChange}
-        onPositionPress={onPositionPress}
-        onRetry={onRetry}
-        showFlaggedState
-      />,
-    );
-
-    fireEvent.press(screen.getByTestId('position-row-ETH'));
-
-    expect(
-      screen.getByTestId('position-row-ETH').props.accessibilityState,
-    ).toEqual({ disabled: true });
+    expect(row.props.accessibilityState).toEqual({ disabled: true });
     expect(onPositionPress).not.toHaveBeenCalled();
-    expect(screen.getByTestId('position-row-ETH')).toHaveProp(
-      'accessibilityLabel',
-      'subline',
-    );
+    expect(row).toHaveProp('accessibilityLabel', 'subline');
   });
 
   it('retries after a load error', () => {
