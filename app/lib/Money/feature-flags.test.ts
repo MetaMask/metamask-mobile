@@ -13,18 +13,18 @@ const mockedValidate =
   >;
 
 describe('isMoneyAccountEnabled', () => {
-  const originalLocalFlag = process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT;
+  const originalLocalFlag = process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT;
+    delete process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
   });
 
   afterEach(() => {
     if (originalLocalFlag === undefined) {
-      delete process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT;
+      delete process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
     } else {
-      process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT = originalLocalFlag;
+      process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED = originalLocalFlag;
     }
   });
 
@@ -56,8 +56,8 @@ describe('isMoneyAccountEnabled', () => {
     expect(result).toBe(false);
   });
 
-  it('uses MM_MONEY_ENABLE_MONEY_ACCOUNT when the remote flag is unavailable', () => {
-    process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT = 'true';
+  it('uses MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED when the remote flag is unavailable', () => {
+    process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED = 'true';
     mockedValidate.mockReturnValue(undefined);
 
     const result = isMoneyAccountEnabled({});
@@ -66,7 +66,7 @@ describe('isMoneyAccountEnabled', () => {
   });
 
   it('keeps a false remote flag authoritative over the local override', () => {
-    process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT = 'true';
+    process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED = 'true';
     mockedValidate.mockReturnValue(false);
 
     const result = isMoneyAccountEnabled({});

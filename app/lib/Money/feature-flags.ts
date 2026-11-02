@@ -17,7 +17,10 @@ export const IS_MONEY_MFA_ENABLED_FLAG_NAME = 'isMoneyMfaEnabled';
 export function isMoneyAccountEnabled(
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): boolean {
-  const localFlag = process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT === 'true';
+  // Agentic/test-only fallback: let local harness runs enable Money when
+  // remote feature flags are overridden. Never set this in production.
+  const localFlag =
+    process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED === 'true';
   const remoteFlag = remoteFeatureFlags?.[
     MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME
   ] as VersionGatedFeatureFlag;
