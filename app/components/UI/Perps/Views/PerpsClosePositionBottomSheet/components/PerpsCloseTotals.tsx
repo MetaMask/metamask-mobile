@@ -18,11 +18,10 @@ const formatSummaryFiat = (value: number) =>
 export interface PerpsCloseTotalsProps {
   pnl: number;
   /**
-   * Percentage return on the margin being closed (e.g. 20.22 for +20.22%).
-   * Undefined when margin is exactly zero, since the percentage is
-   * mathematically undefined (division by zero) rather than actually 0.
+   * The position's actual %RoE (`returnOnEquity × 100`), the same value the
+   * position component renders for the same position.
    */
-  pnlPercentage?: number;
+  roePercentage: number;
   receiveAmount: number;
 }
 
@@ -33,7 +32,7 @@ export interface PerpsCloseTotalsProps {
  */
 const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   pnl,
-  pnlPercentage,
+  roePercentage,
   receiveAmount,
 }) => (
   <>
@@ -50,11 +49,9 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
       variant={KeyValueRowVariant.Summary}
       twClassName="mt-0.5"
       keyLabel={strings('perps.close_position.included_pnl')}
-      value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))}${
-        pnlPercentage !== undefined
-          ? ` (${formatPercentage(pnlPercentage)})`
-          : ''
-      }`}
+      value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))} (${formatPercentage(
+        roePercentage,
+      )})`}
       valueTextProps={{
         color: pnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault,
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,

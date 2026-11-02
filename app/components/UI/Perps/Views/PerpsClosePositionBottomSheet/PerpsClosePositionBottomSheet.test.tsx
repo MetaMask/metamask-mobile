@@ -345,18 +345,42 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows a gain and its return percentage in the P&L row', () => {
+    it('shows a gain and the position RoE in the P&L row', () => {
       const { getByTestId } = renderSheet();
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('+$150 (+10.34%)');
+      ).toHaveTextContent('+$150 (+10.30%)');
     });
 
-    it('shows a loss and its return percentage in the P&L row', () => {
+    it('shows the actual position RoE, not $PnL over the PnL-inclusive margin', () => {
+      // returnOnEquity (0.2 = +20%) deliberately differs from
+      // unrealizedPnl / marginUsed (150 / 1450 = +10.34%): the row must show
+      // the position component's RoE value.
+      const divergentPosition = {
+        ...defaultPerpsPositionMock,
+        returnOnEquity: '0.2',
+      };
+      useRouteMock.mockReturnValue({ params: { position: divergentPosition } });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [divergentPosition],
+        isInitialLoading: false,
+      });
+
+      const { getByTestId } = renderSheet();
+
+      const pnlRow = getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      );
+      expect(pnlRow).toHaveTextContent('+$150 (+20.00%)');
+      expect(pnlRow).not.toHaveTextContent('10.34');
+    });
+
+    it('shows a loss and the position RoE in the P&L row', () => {
       const losingPosition = {
         ...defaultPerpsPositionMock,
         unrealizedPnl: '-150.00',
+        returnOnEquity: '-0.103',
       };
       useRouteMock.mockReturnValue({ params: { position: losingPosition } });
       usePerpsLivePositionsMock.mockReturnValue({
@@ -368,10 +392,10 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('-$150 (-10.34%)');
+      ).toHaveTextContent('-$150 (-10.30%)');
     });
 
-    it('keeps the percentage sign aligned with the loss when a limit price wipes out the effective margin', () => {
+    it('keeps showing the position RoE when a limit price wipes out the effective margin', () => {
       mockKeypadValue = '1000';
       const utils = renderSheet();
 
@@ -382,16 +406,17 @@ describe('PerpsClosePositionBottomSheet', () => {
       const pnlRow = utils.getByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
       );
-      expect(pnlRow).toHaveTextContent('-$2,850 (-183.87%)');
+      expect(pnlRow).toHaveTextContent('-$2,850 (+10.30%)');
     });
 
-    it('omits the percentage when a limit price exhausts the effective margin exactly', () => {
+    it('still shows the position RoE when a limit price exhausts the effective margin exactly', () => {
       const zeroMarginPosition = {
         ...defaultPerpsPositionMock,
         entryPrice: '2000.00',
         size: '1',
         marginUsed: '500.00',
         unrealizedPnl: '0.00',
+        returnOnEquity: '-0.103',
       };
       useRouteMock.mockReturnValue({
         params: { position: zeroMarginPosition },
@@ -401,8 +426,8 @@ describe('PerpsClosePositionBottomSheet', () => {
         isInitialLoading: false,
       });
       // Effective margin (marginUsed - unrealizedPnl + effectivePnL) lands on
-      // exactly 0 at this limit price, so the true percentage is undefined
-      // (division by zero) rather than actually 0.
+      // exactly 0 at this limit price; the RoE is still defined because it is
+      // sourced from the position's returnOnEquity, not a margin division.
       mockKeypadValue = '1500';
       const utils = renderSheet();
 
@@ -413,8 +438,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       const pnlRow = utils.getByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
       );
-      expect(pnlRow).toHaveTextContent('-$500');
-      expect(pnlRow).not.toHaveTextContent('%');
+      expect(pnlRow).toHaveTextContent('-$500 (-10.30%)');
     });
 
     it('renders the fiat/token display toggle', () => {
