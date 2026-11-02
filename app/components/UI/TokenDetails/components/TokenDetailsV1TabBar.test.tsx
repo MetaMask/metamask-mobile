@@ -129,6 +129,20 @@ describe('TokenDetailsV1TabBar', () => {
     expect(onTabPress).toHaveBeenCalledWith('security');
   });
 
+  it('reserves the floating header inset when provided', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1TabBar
+        activeTab="overview"
+        onTabPress={jest.fn()}
+        topInset={120}
+      />,
+    );
+
+    expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toHaveStyle({
+      paddingTop: 120,
+    });
+  });
+
   it('forwards onLayout to the tab bar container', () => {
     const onLayout = jest.fn();
     const { getByTestId } = render(

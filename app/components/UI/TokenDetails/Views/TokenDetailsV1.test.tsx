@@ -324,35 +324,48 @@ jest.mock('../components/tabs/OverviewTab', () => {
 
 // Tab bar stand-in: expose each tab as a pressable that reports the tab key,
 // so this view test can cover tab switching end to end.
+const mockTabBarProps: Record<string, unknown>[] = [];
+
 jest.mock('../components/TokenDetailsV1TabBar', () => {
   const actual = jest.requireActual('../components/TokenDetailsV1TabBar');
   const { View, Pressable, Text } = jest.requireActual('react-native');
   return {
     ...actual,
     __esModule: true,
-    default: ({
-      activeTab,
-      onTabPress,
-      onLayout,
-      tabs = ['feed', 'overview', 'security'],
-    }: {
+    default: (props: {
       activeTab: string;
       onTabPress: (tab: string) => void;
       onLayout?: (event: LayoutChangeEvent) => void;
+      topInset?: number;
       tabs?: readonly string[];
-    }) => (
-      <View testID="mock-tab-bar" onLayout={onLayout}>
-        {tabs.map((tab) => (
-          <Pressable
-            key={tab}
-            testID={`token-details-v1-tab-${tab}`}
-            onPress={() => onTabPress(tab)}
-          >
-            <Text>{`${tab}:${activeTab === tab}`}</Text>
-          </Pressable>
-        ))}
-      </View>
-    ),
+    }) => {
+      mockTabBarProps.push(props);
+      const {
+        activeTab,
+        onTabPress,
+        onLayout,
+        topInset = 0,
+        tabs = ['feed', 'overview', 'security'],
+      } = props;
+
+      return (
+        <View
+          testID="mock-tab-bar"
+          onLayout={onLayout}
+          style={{ paddingTop: topInset }}
+        >
+          {tabs.map((tab) => (
+            <Pressable
+              key={tab}
+              testID={`token-details-v1-tab-${tab}`}
+              onPress={() => onTabPress(tab)}
+            >
+              <Text>{`${tab}:${activeTab === tab}`}</Text>
+            </Pressable>
+          ))}
+        </View>
+      );
+    },
   };
 });
 
@@ -532,6 +545,7 @@ describe('TokenDetailsV1', () => {
     mockSecurityQueryResult.dataUpdatedAt = 0;
     mockStickyFooterProps.length = 0;
     mockInlineHeaderProps.length = 0;
+    mockTabBarProps.length = 0;
     mockActionsSectionProps.length = 0;
   });
 
@@ -568,6 +582,9 @@ describe('TokenDetailsV1', () => {
       expect(mockInlineHeaderProps[0]).toEqual(
         expect.objectContaining({ isGlass: false }),
       );
+      expect(mockTabBarProps[0]).toEqual(
+        expect.objectContaining({ topInset: 0 }),
+      );
     });
 
     it('passes glass layout and scroll props when brand refresh is enabled', () => {
@@ -587,6 +604,7 @@ describe('TokenDetailsV1', () => {
       expect(headerProps.isGlass).toBe(true);
       expect(headerProps.scrollY?.value).toBe(0);
       expect(headerProps.onLayout).toEqual(expect.any(Function));
+      expect(mockTabBarProps[0].topInset).toBeGreaterThan(0);
 
       const layoutEvent = {
         nativeEvent: { layout: { height: 120 } },
@@ -602,6 +620,7 @@ describe('TokenDetailsV1', () => {
       ).toEqual(
         expect.arrayContaining([expect.objectContaining({ paddingTop: 120 })]),
       );
+      expect(mockTabBarProps.at(-1)?.topInset).toBe(120);
 
       fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
         nativeEvent: {

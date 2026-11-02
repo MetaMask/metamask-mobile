@@ -917,6 +917,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
                 onLayout={handleTabBarContainerLayout}
+                topInset={isGlassHeader ? headerInset : 0}
                 tabs={visibleTabs}
               />
 

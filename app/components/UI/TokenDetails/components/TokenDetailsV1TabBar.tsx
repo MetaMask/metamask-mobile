@@ -225,6 +225,8 @@ export interface TokenDetailsV1TabBarProps {
   activeTab: TokenDetailsV1TabKey;
   onTabPress: (tab: TokenDetailsV1TabKey) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** Reserves space for a floating header when this bar becomes sticky. */
+  topInset?: number;
   /** Visible tabs. Defaults to Feed, Overview, Security, Holders. */
   tabs?: readonly TokenDetailsV1TabKey[];
 }
@@ -240,6 +242,7 @@ const TokenDetailsV1TabBar = memo(
     activeTab,
     onTabPress,
     onLayout,
+    topInset = 0,
     tabs = TOKEN_DETAILS_V1_TABS,
   }: TokenDetailsV1TabBarProps) => {
     const tabItems = useMemo<TabItem[]>(
@@ -274,15 +277,18 @@ const TokenDetailsV1TabBar = memo(
       // own container because both edges land in the same place, and this is
       // the element that already identifies the tab bar.
       <Box
-        twClassName="border-b border-muted bg-default pt-3"
+        twClassName="border-b border-muted bg-default"
+        style={topInset > 0 ? { paddingTop: topInset } : undefined}
         testID={TOKEN_DETAILS_V1_TAB_BAR_TEST_ID}
         onLayout={onLayout}
       >
-        <TabsBar
-          tabs={tabItems}
-          activeIndex={activeIndex}
-          onTabPress={handleTabPress}
-        />
+        <Box twClassName="pt-3">
+          <TabsBar
+            tabs={tabItems}
+            activeIndex={activeIndex}
+            onTabPress={handleTabPress}
+          />
+        </Box>
       </Box>
     );
   },
