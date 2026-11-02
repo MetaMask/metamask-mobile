@@ -60,9 +60,9 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
 }) => {
   const { tokens, perps, uncounted } = useMemo(() => {
     // Every viewer, including the owner, pins flagged rows after Tokens and
-    // Perpetuals. `showFlaggedState` only greys those rows and blocks presses,
-    // which stays limited to other traders. This list is already one Open or
-    // Closed tab, so the pin is per tab.
+    // Perpetuals. `showFlaggedState` blocks presses on other traders' rows.
+    // Flagged rows stay full color. This list is already one Open or Closed
+    // tab, so the pin is per tab.
     const split = partitionUncountedPositions(positions);
     const sections = getFilteredPositionSections(split.counted, filter);
 
