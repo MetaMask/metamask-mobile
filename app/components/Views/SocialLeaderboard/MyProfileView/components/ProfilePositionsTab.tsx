@@ -13,9 +13,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import React, { useMemo } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import DottedUnderline from '../../../../UI/DottedUnderline';
+import { useTheme } from '../../../../../util/theme';
 import PositionRow from '../../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeletons';
 import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
@@ -49,6 +53,8 @@ export interface ProfilePositionsTabProps {
    * Own profiles omit this so flagged data stays a normal row.
    */
   showFlaggedState?: boolean;
+  /** Opens the uncounted-positions explainer. */
+  onUncountedHeaderPress?: () => void;
 }
 
 const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
@@ -61,7 +67,10 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   onPositionPress,
   onRetry,
   showFlaggedState,
+  onUncountedHeaderPress,
 }) => {
+  const { colors } = useTheme();
+  const tw = useTailwind();
   const { tokens, perps, uncounted } = useMemo(() => {
     // Every viewer, including the owner, pins flagged rows after Tokens and
     // Perpetuals. `showFlaggedState` blocks presses on other traders' rows
@@ -83,6 +92,12 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
     getProfilePositionsEmptyMessageKey(isClosed ? 'closed' : 'open', filter),
   );
 
+  const uncountedAccessibilityLabel = strings(
+    uncounted.length === 1
+      ? 'social_leaderboard.my_profile.not_counted_section_a11y_one'
+      : 'social_leaderboard.my_profile.not_counted_section_a11y_other',
+    { count: uncounted.length },
+  );
   const renderRows = (sectionPositions: Position[]) =>
     sectionPositions.map((position) => (
       <PositionRow
@@ -204,14 +219,32 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           ) : null}
           {uncounted.length > 0 ? (
             <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
+              <TouchableOpacity
                 accessibilityRole="header"
-                twClassName="px-4 pt-2 pb-1"
+                accessibilityLabel={uncountedAccessibilityLabel}
+                onPress={onUncountedHeaderPress}
+                style={tw.style(
+                  'min-h-11 self-start items-center justify-center px-4 py-2',
+                )}
+                testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER}
               >
-                {strings('social_leaderboard.my_profile.not_counted_in_pnl')}
-              </Text>
+                <DottedUnderline
+                  color={colors.text.default}
+                  twClassName="self-start shrink-0"
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                    numberOfLines={1}
+                    twClassName="-mt-0.5 shrink-0"
+                  >
+                    {strings(
+                      'social_leaderboard.my_profile.not_counted_in_pnl',
+                    )}
+                  </Text>
+                </DottedUnderline>
+              </TouchableOpacity>
               {renderRows(uncounted)}
             </Box>
           ) : null}
