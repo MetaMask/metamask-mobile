@@ -20,12 +20,12 @@ const input = (
 });
 
 describe('isSpotPostTradeShareEligible', () => {
-  it('returns false at the minimum postable trade value', () => {
+  it('returns true at the minimum postable trade value', () => {
     const amountUsd = MIN_POST_TRADE_SHARE_USD;
 
     const result = isSpotPostTradeShareEligible(amountUsd);
 
-    expect(result).toBe(false);
+    expect(result).toBe(true);
   });
 
   it('returns true above the minimum postable trade value', () => {

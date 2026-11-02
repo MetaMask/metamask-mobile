@@ -6,7 +6,7 @@ export const POST_TRADE_SHARE_SHEET_LIMIT = 3;
 
 /** Returns whether a spot trade can be offered for post-trade sharing. */
 export const isSpotPostTradeShareEligible = (amountUsd: number): boolean =>
-  Number.isFinite(amountUsd) && amountUsd > MIN_POST_TRADE_SHARE_USD;
+  Number.isFinite(amountUsd) && amountUsd >= MIN_POST_TRADE_SHARE_USD;
 
 export interface PostTradeShareSheetCountKey {
   /** Linked EVM address the count is stored under. */
