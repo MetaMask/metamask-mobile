@@ -184,10 +184,16 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     />
   );
 
-  const sortLabel = strings(getSortOption(tokenSortConfig).labelKey);
+  const sortOption = getSortOption(tokenSortConfig);
+  const isSortAscending = tokenSortConfig.order === 'asc';
+  const sortLabel = strings(sortOption.labelKey);
+  const sortOrderLabel = strings(
+    sortOption.orderLabelKeys[isSortAscending ? 'asc' : 'dsc'],
+  );
   const sortButton = !hideSort && (
     <SelectButton
       testID={WalletViewSelectorsIDs.SORT_BUTTON}
+      accessibilityLabel={`${strings('wallet.sort_by')}, ${sortLabel}, ${sortOrderLabel}`}
       variant={SelectButtonVariant.Secondary}
       placeholder={sortLabel}
       value={sortLabel}
@@ -199,11 +205,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       }}
       endAccessory={
         <Icon
-          name={
-            tokenSortConfig.order === 'asc'
-              ? DsIconName.Arrow2Up
-              : DsIconName.Arrow2Down
-          }
+          name={isSortAscending ? DsIconName.Arrow2Up : DsIconName.Arrow2Down}
           size={IconSize.Sm}
           color={IconColor.IconAlternative}
         />

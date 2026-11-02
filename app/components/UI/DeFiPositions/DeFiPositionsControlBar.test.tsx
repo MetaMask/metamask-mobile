@@ -86,7 +86,13 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
 }));
 
 jest.mock('../Tokens/TokenSortBottomSheet/TokenSortBottomSheet', () => ({
-  getSortOption: () => ({ labelKey: 'wallet.sort_balance' }),
+  getSortOption: () => ({
+    labelKey: 'wallet.sort_balance',
+    orderLabelKeys: {
+      dsc: 'wallet.sort_high_to_low',
+      asc: 'wallet.sort_low_to_high',
+    },
+  }),
   createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
 }));
 

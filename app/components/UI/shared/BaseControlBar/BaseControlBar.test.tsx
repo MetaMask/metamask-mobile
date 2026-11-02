@@ -45,12 +45,22 @@ jest.mock('../../../hooks/useStyles', () => ({
 
 jest.mock('../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
-  getSortOption: (config: { key: string }) => ({
-    labelKey:
-      config.key === 'tokenFiatAmount'
-        ? 'wallet.sort_balance'
-        : 'wallet.sort_name',
-  }),
+  getSortOption: (config: { key: string }) =>
+    config.key === 'tokenFiatAmount'
+      ? {
+          labelKey: 'wallet.sort_balance',
+          orderLabelKeys: {
+            dsc: 'wallet.sort_high_to_low',
+            asc: 'wallet.sort_low_to_high',
+          },
+        }
+      : {
+          labelKey: 'wallet.sort_name',
+          orderLabelKeys: {
+            asc: 'wallet.sort_a_to_z',
+            dsc: 'wallet.sort_z_to_a',
+          },
+        },
 }));
 
 jest.mock('../../NetworkManager', () => ({
@@ -253,10 +263,16 @@ describe('BaseControlBar', () => {
     });
 
     it('renders the sort button with the balance label and a down arrow by default', () => {
-      const { getByTestId, getByText, UNSAFE_getAllByType } = renderComponent();
+      const { getByTestId, getByText, getByLabelText, UNSAFE_getAllByType } =
+        renderComponent();
 
       expect(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON)).toBeOnTheScreen();
       expect(getByText('wallet.sort_balance')).toBeOnTheScreen();
+      expect(
+        getByLabelText(
+          'wallet.sort_by, wallet.sort_balance, wallet.sort_high_to_low',
+        ),
+      ).toBeOnTheScreen();
       expect(
         UNSAFE_getAllByType(Icon).some(
           (icon) => icon.props.name === IconName.Arrow2Down,
@@ -280,9 +296,13 @@ describe('BaseControlBar', () => {
         },
       };
 
-      const { getByText, UNSAFE_getAllByType } = renderComponent({}, state);
+      const { getByText, getByLabelText, UNSAFE_getAllByType } =
+        renderComponent({}, state);
 
       expect(getByText('wallet.sort_name')).toBeOnTheScreen();
+      expect(
+        getByLabelText('wallet.sort_by, wallet.sort_name, wallet.sort_a_to_z'),
+      ).toBeOnTheScreen();
       expect(
         UNSAFE_getAllByType(Icon).some(
           (icon) => icon.props.name === IconName.Arrow2Up,

@@ -5,7 +5,7 @@ import {
   selectAssetsBySelectedAccountGroup,
   selectStakedAssets,
 } from '../../../../selectors/assets/assets-list';
-import { useTokenSearch } from './useTokenSearch';
+import { useFilteredTokenKeys } from './useFilteredTokenKeys';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -81,7 +81,7 @@ const mockSelectors = (
     return undefined;
   });
 
-describe('useTokenSearch', () => {
+describe('useFilteredTokenKeys', () => {
   const tokenKeys = [ETH_KEY, USDC_KEY, SOL_KEY];
 
   beforeEach(() => {
@@ -89,58 +89,64 @@ describe('useTokenSearch', () => {
   });
 
   it('returns the same array reference when the query is empty', () => {
-    const { result } = renderHook(() => useTokenSearch(tokenKeys, ''));
+    const { result } = renderHook(() => useFilteredTokenKeys(tokenKeys, ''));
 
     expect(result.current).toBe(tokenKeys);
   });
 
   it('returns the same array reference when the query is only whitespace', () => {
-    const { result } = renderHook(() => useTokenSearch(tokenKeys, '   '));
+    const { result } = renderHook(() => useFilteredTokenKeys(tokenKeys, '   '));
 
     expect(result.current).toBe(tokenKeys);
   });
 
   it('matches by symbol case-insensitively', () => {
-    const { result } = renderHook(() => useTokenSearch(tokenKeys, 'eTh'));
+    const { result } = renderHook(() => useFilteredTokenKeys(tokenKeys, 'eTh'));
 
     expect(result.current).toEqual([ETH_KEY]);
   });
 
   it('matches by name', () => {
-    const { result } = renderHook(() => useTokenSearch(tokenKeys, 'coin'));
+    const { result } = renderHook(() =>
+      useFilteredTokenKeys(tokenKeys, 'coin'),
+    );
 
     expect(result.current).toEqual([USDC_KEY]);
   });
 
   it('trims the query', () => {
-    const { result } = renderHook(() => useTokenSearch(tokenKeys, '  sol  '));
+    const { result } = renderHook(() =>
+      useFilteredTokenKeys(tokenKeys, '  sol  '),
+    );
 
     expect(result.current).toEqual([SOL_KEY]);
   });
 
   it('returns an empty array when nothing matches', () => {
-    const { result } = renderHook(() => useTokenSearch(tokenKeys, 'zzz'));
+    const { result } = renderHook(() => useFilteredTokenKeys(tokenKeys, 'zzz'));
 
     expect(result.current).toEqual([]);
   });
 
   it('matches the staked row by its own name', () => {
     const { result } = renderHook(() =>
-      useTokenSearch([ETH_KEY, STAKED_ETH_KEY], 'stak'),
+      useFilteredTokenKeys([ETH_KEY, STAKED_ETH_KEY], 'stak'),
     );
 
     expect(result.current).toEqual([STAKED_ETH_KEY]);
   });
 
   it('does not match the native row by the staked name', () => {
-    const { result } = renderHook(() => useTokenSearch([ETH_KEY], 'staked'));
+    const { result } = renderHook(() =>
+      useFilteredTokenKeys([ETH_KEY], 'staked'),
+    );
 
     expect(result.current).toEqual([]);
   });
 
   it('matches staked rows using the underlying asset symbol', () => {
     const { result } = renderHook(() =>
-      useTokenSearch([ETH_KEY, STAKED_ETH_KEY], 'eth'),
+      useFilteredTokenKeys([ETH_KEY, STAKED_ETH_KEY], 'eth'),
     );
 
     expect(result.current).toEqual([ETH_KEY, STAKED_ETH_KEY]);
@@ -162,15 +168,15 @@ describe('useTokenSearch', () => {
     );
 
     expect(
-      renderHook(() => useTokenSearch([ETH_KEY], 'undef')).result.current,
+      renderHook(() => useFilteredTokenKeys([ETH_KEY], 'undef')).result.current,
     ).toEqual([]);
     expect(
-      renderHook(() => useTokenSearch([ETH_KEY], 'eth')).result.current,
+      renderHook(() => useFilteredTokenKeys([ETH_KEY], 'eth')).result.current,
     ).toEqual([ETH_KEY]);
   });
 
   it('does not match a query that spans the symbol and name', () => {
-    const { result } = renderHook(() => useTokenSearch([ETH_KEY], 'h e'));
+    const { result } = renderHook(() => useFilteredTokenKeys([ETH_KEY], 'h e'));
 
     expect(result.current).toEqual([]);
   });
@@ -178,7 +184,7 @@ describe('useTokenSearch', () => {
   it('excludes keys that have no matching asset data', () => {
     mockSelectors({}, []);
 
-    const { result } = renderHook(() => useTokenSearch(tokenKeys, 'eth'));
+    const { result } = renderHook(() => useFilteredTokenKeys(tokenKeys, 'eth'));
 
     expect(result.current).toEqual([]);
   });

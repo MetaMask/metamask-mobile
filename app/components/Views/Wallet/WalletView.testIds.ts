@@ -47,6 +47,7 @@ export const WalletViewSelectorsIDs = {
   SORT_BUTTON: 'token-sort-button',
   SORT_BY: 'sort-by',
   SORT_APPLY: 'sort-apply',
+  SORT_CLOSE: 'sort-close',
   SORT_RESET: 'sort-reset',
   NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
   TOKEN_NETWORK_FILTER: 'tokens-network-filter',

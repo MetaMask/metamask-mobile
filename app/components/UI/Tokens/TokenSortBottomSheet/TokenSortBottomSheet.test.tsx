@@ -73,6 +73,17 @@ describe('TokenSortBottomSheet', () => {
     expect(queryByText('wallet.sort_a_to_z')).not.toBeOnTheScreen();
   });
 
+  it('marks only the selected option as checked', () => {
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
+    ).toBeChecked();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL),
+    ).not.toBeChecked();
+  });
+
   it('flips the direction when the selected option is pressed again', () => {
     const { getByTestId, getByText } = renderSheet();
 
@@ -122,6 +133,17 @@ describe('TokenSortBottomSheet', () => {
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
 
     await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+  });
+
+  it('pops the route without saving when the close button is pressed', async () => {
+    const { getByTestId } = renderSheet();
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_CLOSE));
+
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+    expect(
+      Engine.context.PreferencesController.setTokenSortConfig,
+    ).not.toHaveBeenCalled();
   });
 
   it('restores the default sort in the draft when Reset is pressed', async () => {

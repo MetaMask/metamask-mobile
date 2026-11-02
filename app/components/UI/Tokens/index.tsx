@@ -36,7 +36,7 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { useRefreshTokens } from './hooks/useRefreshTokens';
-import { useTokenSearch } from './hooks/useTokenSearch';
+import { useFilteredTokenKeys } from './hooks/useFilteredTokenKeys';
 import { TokensEmptyState } from '../TokensEmptyState';
 import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
@@ -184,7 +184,10 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     );
 
     const [searchQuery, setSearchQuery] = useState('');
-    const searchedTokenKeys = useTokenSearch(tokenKeysForList, searchQuery);
+    const searchedTokenKeys = useFilteredTokenKeys(
+      tokenKeysForList,
+      searchQuery,
+    );
     const clearSearch = useCallback(() => setSearchQuery(''), []);
 
     const [, forceUpdate] = useState(0);

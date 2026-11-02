@@ -132,6 +132,7 @@ export const TokenSortBottomSheet = () => {
     >
       <BottomSheetHeader
         onClose={handleClose}
+        closeButtonProps={{ testID: WalletViewSelectorsIDs.SORT_CLOSE }}
         testID={WalletViewSelectorsIDs.SORT_BY}
       >
         {strings('wallet.sort_by')}
@@ -148,7 +149,7 @@ export const TokenSortBottomSheet = () => {
             showSelectedIcon={false}
             onPress={() => handleOptionPress(option)}
             accessibilityRole="radio"
-            accessibilityState={{ selected: isSelected }}
+            accessibilityState={{ checked: isSelected }}
             testID={option.testID}
             endAccessory={
               isSelected ? (

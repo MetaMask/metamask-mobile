@@ -30,7 +30,7 @@ const toEntry = (
  * on their own name (e.g. "Staked Ethereum").
  * An empty query returns the original array.
  */
-export const useTokenSearch = (
+export const useFilteredTokenKeys = (
   tokenKeys: FlashListAssetKey[],
   searchQuery: string,
 ): FlashListAssetKey[] => {
