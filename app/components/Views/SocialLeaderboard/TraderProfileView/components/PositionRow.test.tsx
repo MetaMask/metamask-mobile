@@ -336,9 +336,9 @@ describe('PositionRow', () => {
       <PositionRow position={position} flaggedPresentation="subline" />,
     );
 
-    expect(screen.getByTestId('position-row-subtitle-STARKBOT')).toHaveTextContent(
-      '1.50B STARKBOT',
-    );
+    expect(
+      screen.getByTestId('position-row-subtitle-STARKBOT'),
+    ).toHaveTextContent('1.50B STARKBOT');
     expect(
       screen.getByTestId('position-row-flag-suffix-STARKBOT').props.children,
     ).toBe(' · Creator');
@@ -355,9 +355,9 @@ describe('PositionRow', () => {
       <PositionRow position={position} flaggedPresentation="subline" />,
     );
 
-    expect(screen.getByTestId('position-row-subtitle-STARKBOT')).toHaveTextContent(
-      '1.50B STARKBOT',
-    );
+    expect(
+      screen.getByTestId('position-row-subtitle-STARKBOT'),
+    ).toHaveTextContent('1.50B STARKBOT');
     expect(
       screen.getByTestId('position-row-flag-suffix-STARKBOT').props.children,
     ).toBe(' · Excluded');
