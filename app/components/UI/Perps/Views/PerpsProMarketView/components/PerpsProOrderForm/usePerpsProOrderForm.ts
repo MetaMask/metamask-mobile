@@ -101,6 +101,7 @@ import {
   unmountPerpsUiScaleForm,
 } from '../../../../utils/perpsUiObservations';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
+import { usePerpsFeeDisplayAbTest } from '../../../../hooks/usePerpsFeeDisplayAbTest';
 import { usePerpsMarginModeLock } from '../../../../hooks/usePerpsMarginModeLock';
 import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
 import type { PerpsStackParamList } from '../../../../types/navigation';
@@ -696,6 +697,8 @@ export const usePerpsProOrderForm = ({
   // this cannot double-count — and silencing it here would drop exposure
   // entirely whenever that panel is absent.
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
+  // Fee row shows a $ amount, or Taker/Maker rates when treatment is assigned.
+  const { feeDisplayMode } = usePerpsFeeDisplayAbTest();
 
   const {
     orderForm,
@@ -725,6 +728,10 @@ export const usePerpsProOrderForm = ({
 
   // Restore reduce-only from the 30s pending draft.
   const [reduceOnly, setReduceOnly] = useState(Boolean(pendingReduceOnly));
+  // Opening orders may show rates. Closes and TWAP stay on dollars: a TWAP
+  // quote has no builder fee, and the limit quote for the other side does.
+  const effectiveFeeDisplayMode =
+    reduceOnly || orderForm.type === 'twap' ? 'dollar' : feeDisplayMode;
   const [twapDays, setTwapDays] = useState('');
   const [twapHours, setTwapHours] = useState('');
   const [twapMinutes, setTwapMinutes] = useState(
@@ -1768,6 +1775,7 @@ export const usePerpsProOrderForm = ({
     currentBidPrice: currentTopOfBook?.bestBid
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
+    includeFeeRateBreakdown: effectiveFeeDisplayMode === 'percentage',
   });
   // Size the max off the same resolved quote that drives the displayed fee.
   usePerpsQuotedFeeReservation(feeResults.totalFeeRate);
@@ -4106,6 +4114,9 @@ export const usePerpsProOrderForm = ({
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
       feeDiscountKind: feeResults.feeDiscountKind,
+      feeDisplayMode: effectiveFeeDisplayMode,
+      takerFeeRate: hasValidAmount ? feeResults.takerFeeRate : undefined,
+      makerFeeRate: hasValidAmount ? feeResults.makerFeeRate : undefined,
       twapSummary: isTwapOrder
         ? {
             runtime: twapRuntimeSummary,
@@ -4131,6 +4142,9 @@ export const usePerpsProOrderForm = ({
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
     feeResults.feeDiscountKind,
+    feeResults.takerFeeRate,
+    feeResults.makerFeeRate,
+    effectiveFeeDisplayMode,
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,

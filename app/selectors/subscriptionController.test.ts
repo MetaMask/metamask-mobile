@@ -15,6 +15,7 @@ import {
 import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
+  isMoneyAccountPlusFreeTrial,
   selectDisplayedMoneyAccountPlusSubscription,
   selectHasAnyMoneyAccountPlusEntitlement,
   selectHasExistingMoneyAccountPlusSubscription,
@@ -745,6 +746,54 @@ describe('subscriptionController selectors', () => {
         });
 
         expect(selectIsMoneyAccountPlusTrialing(state)).toBe(true);
+      });
+
+      it('returns true for a provisional Plus plan that still has trial days', () => {
+        const subscription = createSubscription({
+          id: 'sub-plus',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.provisional,
+          trialPeriodDays: 14,
+        });
+        const state = createState({
+          subscriptions: [subscription],
+          trialedProducts: [],
+        });
+
+        expect(isMoneyAccountPlusFreeTrial(subscription)).toBe(true);
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(true);
+      });
+
+      it('returns false for a provisional Plus plan with no trial days', () => {
+        const subscription = createSubscription({
+          id: 'sub-plus',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.provisional,
+          trialPeriodDays: 0,
+        });
+        const state = createState({
+          subscriptions: [subscription],
+          trialedProducts: [],
+        });
+
+        expect(isMoneyAccountPlusFreeTrial(subscription)).toBe(false);
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(false);
+      });
+
+      it('returns false when a paid Plus plan still carries trial days', () => {
+        const subscription = createSubscription({
+          id: 'sub-plus',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.active,
+          trialPeriodDays: 14,
+        });
+        const state = createState({
+          subscriptions: [subscription],
+          trialedProducts: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
+        });
+
+        expect(isMoneyAccountPlusFreeTrial(subscription)).toBe(false);
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(false);
       });
 
       it('returns false when a paid Plus subscription remains in trialed products', () => {

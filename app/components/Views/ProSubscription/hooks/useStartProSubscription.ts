@@ -27,6 +27,10 @@ import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAc
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
+import {
+  resolveProSubscriptionStartOutcome,
+  type StartProSubscriptionOutcome,
+} from '../utils/proSubscriptionPaymentStatus';
 import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
 
@@ -335,6 +339,10 @@ function reportStartSubscriptionError(
   throw loggedError;
 }
 
+export interface StartProSubscriptionResult {
+  outcome: StartProSubscriptionOutcome;
+}
+
 export interface StartProSubscriptionOptions {
   isTrial?: boolean;
 }
@@ -343,7 +351,7 @@ export interface UseStartProSubscriptionResult {
   startSubscription: (
     plan: SelectedPlusPlan,
     options?: StartProSubscriptionOptions,
-  ) => Promise<void>;
+  ) => Promise<StartProSubscriptionResult>;
   isSubmitting: boolean;
   errorMessage: string | undefined;
 }
@@ -364,8 +372,11 @@ export interface UseStartProSubscriptionResult {
  * `@metamask/subscription-controller` 13 removed `skipApproval`. The service
  * expects the caller to obtain consent before the call.
  *
- * Resolves after the subscription starts. The caller shows the success screen;
- * this hook does not navigate. The delegation start refreshes subscriptions
+ * Resolves after the subscription starts. A crypto payment (balance already
+ * in the Money Account) returns `ready` and the caller shows the success
+ * screen. An on-ramp or bridge top-up that is still provisional or awaiting
+ * funds returns `processing`; the caller shows a toast and opens Pro Hub.
+ * This hook does not navigate. The delegation start refreshes subscriptions
  * before it resolves.
  *
  * @returns Subscription start callback and its request state.
@@ -390,7 +401,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
     async (
       plan: SelectedPlusPlan,
       options?: StartProSubscriptionOptions,
-    ): Promise<void> => {
+    ): Promise<StartProSubscriptionResult> => {
       if (isSubmittingRef.current) {
         throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
       }
@@ -426,10 +437,18 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
           );
         }
 
-        await SubscriptionDelegationService.startSubscriptionWithDelegation({
-          ...subscriptionParams,
-          chainId,
-        });
+        const startedSubscription =
+          await SubscriptionDelegationService.startSubscriptionWithDelegation({
+            ...subscriptionParams,
+            chainId,
+          });
+
+        return {
+          outcome: resolveProSubscriptionStartOutcome(
+            hasSufficientBalance,
+            startedSubscription.status,
+          ),
+        };
       } catch (error) {
         reportStartSubscriptionError(
           error,
