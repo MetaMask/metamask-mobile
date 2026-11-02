@@ -347,8 +347,7 @@ export default {
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
     TERMS_ACCEPTED: 'ToU Accepted',
-    TERMS_OF_USE_URL_WITHOUT_COOKIES:
-      'https://metamask.com/plain/terms-of-use/',
+    TERMS_OF_USE_URL_WITHOUT_COOKIES: 'https://metamask.com/terms-of-use',
   },
   FAVICON_CACHE_MAX_SIZE: 100,
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
