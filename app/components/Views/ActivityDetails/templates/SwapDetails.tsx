@@ -21,7 +21,7 @@ import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
-import { useActivityDetailsLendAgain } from '../hooks/useActivityDetailsLendAgain';
+import { useActivityDetailsLendAgain } from './Earn/useActivityDetailsLendAgain';
 import { getSwapAgainLabel } from './swapAgainLabel';
 
 function LendAgainButton({

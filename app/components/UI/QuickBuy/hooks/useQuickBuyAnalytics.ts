@@ -48,6 +48,8 @@ export function useQuickBuyAnalytics(
   trackTradeSubmitted: (props: Record<string, unknown>) => void;
   trackTradeCompleted: (props: Record<string, unknown>) => void;
   markTradeSubmitted: () => void;
+  /** Skips the dismiss-time bridge reset; the receiving screen must reset it. */
+  preserveBridgeStateOnUnmount: () => void;
 } {
   const dispatch = useDispatch();
   const { track } = useSocialLeaderboardAnalytics();
@@ -61,6 +63,7 @@ export function useQuickBuyAnalytics(
     QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
   );
   const submitStartedAtRef = useRef<number | null>(null);
+  const shouldResetBridgeOnUnmountRef = useRef(true);
 
   const resolvedTraderAddress =
     analyticsContext?.traderAddress ?? traderAddress;
@@ -89,9 +92,11 @@ export function useQuickBuyAnalytics(
 
   useEffect(
     () => () => {
-      dispatch(resetBridgeState());
-      if (Engine.context.BridgeController?.resetState) {
-        Engine.context.BridgeController.resetState();
+      if (shouldResetBridgeOnUnmountRef.current) {
+        dispatch(resetBridgeState());
+        if (Engine.context.BridgeController?.resetState) {
+          Engine.context.BridgeController.resetState();
+        }
       }
       if (!tradeSubmittedRef.current && resolvedTraderAddress && caip19) {
         const numeric = Number(lastTrackedAmountRef.current);
@@ -252,6 +257,10 @@ export function useQuickBuyAnalytics(
     dismissStageRef.current = QuickBuyEventValues.DISMISS_STAGE.CONFIRMATION;
   }, []);
 
+  const preserveBridgeStateOnUnmount = useCallback(() => {
+    shouldResetBridgeOnUnmountRef.current = false;
+  }, []);
+
   return {
     refs: {
       dismissStageRef,
@@ -269,5 +278,6 @@ export function useQuickBuyAnalytics(
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
+    preserveBridgeStateOnUnmount,
   };
 }

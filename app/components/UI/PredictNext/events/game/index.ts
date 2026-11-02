@@ -8,6 +8,7 @@ export {
   findGameSelectionQuote,
   type GameSelectionQuote,
 } from './findGameSelectionQuote';
+export { getGameMoneylineMarkets } from './getGameMoneylineMarkets';
 export {
   findGameTradingQuote,
   findWinnerMarketQuotes,
