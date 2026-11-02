@@ -131,6 +131,19 @@ describe('usePerpsLiveTrades', () => {
     ]);
   });
 
+  it('shows cached trades from the first render', () => {
+    mockFeedState.posts = buildPosts('p', 5);
+    const renderedTrades: string[][] = [];
+
+    renderHook(() => {
+      const result = usePerpsLiveTrades({ isActive: true });
+      renderedTrades.push(idsOf(result.trades));
+      return result;
+    });
+
+    expect(renderedTrades[0]).toEqual(['p0', 'p1', 'p2', 'p3', 'p4']);
+  });
+
   it('adds new trades at the top one per second', async () => {
     mockFeedState.posts = buildPosts('p', 5);
     const { result, rerender } = renderLiveTrades();

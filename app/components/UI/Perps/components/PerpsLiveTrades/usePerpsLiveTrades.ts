@@ -51,7 +51,7 @@ export const usePerpsLiveTrades = ({
     LIVE_TRADES_SOURCE,
     { filterPost: isLiveTradePost, realtime: isActive },
   );
-  const [trades, setTrades] = useState<SocialV1FeedPost[]>([]);
+  const [trades, setTrades] = useState<SocialV1FeedPost[] | null>(null);
   const [hasQueuedTrades, setHasQueuedTrades] = useState(false);
   const seenIdsRef = useRef<Set<string> | null>(null);
   const queueRef = useRef<SocialV1FeedPost[]>([]);
@@ -90,7 +90,7 @@ export const usePerpsLiveTrades = ({
         setTrades((current) =>
           [
             nextTrade,
-            ...current.filter((trade) => trade.id !== nextTrade.id),
+            ...(current ?? []).filter((trade) => trade.id !== nextTrade.id),
           ].slice(0, PERPS_LIVE_TRADES_CONFIG.MaxTrades),
         );
       }
@@ -101,9 +101,12 @@ export const usePerpsLiveTrades = ({
     return () => clearInterval(intervalId);
   }, [hasQueuedTrades, isActive]);
 
+  const visibleTrades =
+    trades ?? posts.slice(0, PERPS_LIVE_TRADES_CONFIG.MaxTrades);
+
   return {
-    trades,
-    isLoading: isLoading && trades.length === 0,
+    trades: visibleTrades,
+    isLoading: isLoading && visibleTrades.length === 0,
     error,
     refresh,
   };
