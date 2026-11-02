@@ -5,6 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import DeFiPositionsControlBar from './DeFiPositionsControlBar';
 import { strings } from '../../../../locales/i18n';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -330,7 +331,7 @@ describe('DeFiPositionsControlBar', () => {
     expect(getByTestId('defi-positions-network-filter')).not.toBeDisabled();
   });
 
-  it('should render the sort button', () => {
+  it('renders the sort button', () => {
     const mockState = createMockState();
     store = mockStore(mockState);
 
@@ -340,7 +341,7 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    expect(getByTestId('defi-positions-network-filter')).toBeDefined();
-    expect(getByTestId('token-sort-button')).toBeDefined();
+    expect(getByTestId('defi-positions-network-filter')).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON)).toBeOnTheScreen();
   });
 });

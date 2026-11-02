@@ -336,6 +336,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               onChangeText={setSearchQuery}
               onPressClearButton={clearSearch}
               placeholder={strings('wallet.search_tokens')}
+              inputAccessibilityLabel={strings('wallet.search_tokens')}
               inputProps={{
                 autoComplete: 'off',
                 autoCorrect: false,

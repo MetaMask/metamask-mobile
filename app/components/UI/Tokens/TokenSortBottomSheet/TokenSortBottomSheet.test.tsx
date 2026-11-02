@@ -55,20 +55,22 @@ describe('TokenSortBottomSheet', () => {
   it('renders the title, both options, Reset and Apply', () => {
     const { getByTestId, getByText } = renderSheet();
 
-    expect(getByTestId(WalletViewSelectorsIDs.SORT_BY)).toBeTruthy();
+    expect(getByTestId(WalletViewSelectorsIDs.SORT_BY)).toBeOnTheScreen();
     expect(
       getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
-    ).toBeTruthy();
-    expect(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL)).toBeTruthy();
-    expect(getByText('wallet.sort_reset')).toBeTruthy();
-    expect(getByText('wallet.sort_apply')).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL),
+    ).toBeOnTheScreen();
+    expect(getByText('wallet.sort_reset')).toBeOnTheScreen();
+    expect(getByText('wallet.sort_apply')).toBeOnTheScreen();
   });
 
   it('shows the direction label only on the selected option', () => {
     const { getByText, queryByText } = renderSheet();
 
-    expect(getByText('wallet.sort_high_to_low')).toBeTruthy();
-    expect(queryByText('wallet.sort_a_to_z')).toBeNull();
+    expect(getByText('wallet.sort_high_to_low')).toBeOnTheScreen();
+    expect(queryByText('wallet.sort_a_to_z')).not.toBeOnTheScreen();
   });
 
   it('flips the direction when the selected option is pressed again', () => {
@@ -76,7 +78,7 @@ describe('TokenSortBottomSheet', () => {
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE));
 
-    expect(getByText('wallet.sort_low_to_high')).toBeTruthy();
+    expect(getByText('wallet.sort_low_to_high')).toBeOnTheScreen();
   });
 
   it('selects a new option with its default direction', () => {
@@ -84,7 +86,7 @@ describe('TokenSortBottomSheet', () => {
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
 
-    expect(getByText('wallet.sort_a_to_z')).toBeTruthy();
+    expect(getByText('wallet.sort_a_to_z')).toBeOnTheScreen();
   });
 
   it('does not save anything until Apply is pressed', () => {

@@ -255,8 +255,8 @@ describe('BaseControlBar', () => {
     it('renders the sort button with the balance label and a down arrow by default', () => {
       const { getByTestId, getByText, UNSAFE_getAllByType } = renderComponent();
 
-      expect(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON)).toBeTruthy();
-      expect(getByText('wallet.sort_balance')).toBeTruthy();
+      expect(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON)).toBeOnTheScreen();
+      expect(getByText('wallet.sort_balance')).toBeOnTheScreen();
       expect(
         UNSAFE_getAllByType(Icon).some(
           (icon) => icon.props.name === IconName.Arrow2Down,
@@ -282,7 +282,7 @@ describe('BaseControlBar', () => {
 
       const { getByText, UNSAFE_getAllByType } = renderComponent({}, state);
 
-      expect(getByText('wallet.sort_name')).toBeTruthy();
+      expect(getByText('wallet.sort_name')).toBeOnTheScreen();
       expect(
         UNSAFE_getAllByType(Icon).some(
           (icon) => icon.props.name === IconName.Arrow2Up,
@@ -293,7 +293,9 @@ describe('BaseControlBar', () => {
     it('does not render the sort button when hideSort is true', () => {
       const { queryByTestId } = renderComponent({ hideSort: true });
 
-      expect(queryByTestId(WalletViewSelectorsIDs.SORT_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.SORT_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders additional buttons when provided', () => {

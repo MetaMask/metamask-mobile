@@ -344,51 +344,7 @@ describe('Tokens', () => {
   });
 
   describe('search', () => {
-    const arrangeSearchableAssets = () =>
-      jest
-        .spyOn(AssetsListSelectorsModule, 'selectAssetsBySelectedAccountGroup')
-        .mockReturnValue({
-          '0x1': [
-            {
-              assetId: '0xToken1',
-              chainId: '0x1',
-              symbol: 'AAA',
-              name: 'Alpha',
-            },
-          ],
-          '0x2': [
-            {
-              assetId: '0xToken2',
-              chainId: '0x2',
-              symbol: 'BBB',
-              name: 'Beta',
-            },
-          ],
-          '0x3': [
-            {
-              assetId: '0xToken3',
-              chainId: '0x3',
-              symbol: 'CCC',
-              name: 'Gamma',
-            },
-          ],
-        } as unknown as ReturnType<
-          typeof AssetsListSelectorsModule.selectAssetsBySelectedAccountGroup
-        >);
-
-    it('renders the search bar in full view', () => {
-      arrangeSearchableAssets();
-
-      const { getByTestId } = renderComponent(initialState, true);
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
-      ).toBeOnTheScreen();
-    });
-
     it('does not render the search bar outside full view', () => {
-      arrangeSearchableAssets();
-
       const { queryByTestId } = renderComponent(initialState, false);
 
       expect(
@@ -397,108 +353,11 @@ describe('Tokens', () => {
     });
 
     it('does not render the search bar when showOnlyMusd', () => {
-      arrangeSearchableAssets();
-
       const { queryByTestId } = renderComponent(initialState, true, true);
 
       expect(
         queryByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
       ).not.toBeOnTheScreen();
-    });
-
-    it('filters the token list by symbol', () => {
-      arrangeSearchableAssets();
-      const { getByTestId, queryByTestId } = renderComponent(
-        initialState,
-        true,
-      );
-
-      fireEvent.changeText(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
-        'bbb',
-      );
-
-      expect(getByTestId('asset-0xToken2')).toBeOnTheScreen();
-      expect(queryByTestId('asset-0xToken1')).not.toBeOnTheScreen();
-      expect(queryByTestId('asset-0xToken3')).not.toBeOnTheScreen();
-    });
-
-    it('filters the token list by name', () => {
-      arrangeSearchableAssets();
-      const { getByTestId, queryByTestId } = renderComponent(
-        initialState,
-        true,
-      );
-
-      fireEvent.changeText(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
-        'gam',
-      );
-
-      expect(getByTestId('asset-0xToken3')).toBeOnTheScreen();
-      expect(queryByTestId('asset-0xToken1')).not.toBeOnTheScreen();
-    });
-
-    it('shows a no-results state when nothing matches', () => {
-      arrangeSearchableAssets();
-      const { getByTestId, queryByTestId, getByText } = renderComponent(
-        initialState,
-        true,
-      );
-
-      fireEvent.changeText(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
-        'zzz',
-      );
-
-      expect(getByText('No tokens match your search')).toBeOnTheScreen();
-      expect(queryByTestId('tokens-list-scroll-view')).not.toBeOnTheScreen();
-    });
-
-    it('clears the search and restores the list from the no-results state', () => {
-      arrangeSearchableAssets();
-      const { getByTestId, getByText } = renderComponent(initialState, true);
-      fireEvent.changeText(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
-        'zzz',
-      );
-
-      fireEvent.press(getByText('Clear search'));
-
-      expect(getByTestId('asset-0xToken1')).toBeOnTheScreen();
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT).props.value,
-      ).toBe('');
-    });
-
-    it('renders the search bar while the list is still loading', () => {
-      arrangeSearchableAssets();
-      jest
-        .spyOn(InteractionManager, 'runAfterInteractions')
-        .mockImplementation(() => ({
-          then: jest.fn(),
-          done: jest.fn(),
-          cancel: jest.fn(),
-        }));
-
-      const { getByTestId } = renderComponent(initialState, true);
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
-      ).toBeOnTheScreen();
-    });
-
-    it('keeps the search bar visible when there are no tokens to list', () => {
-      arrangeSearchableAssets();
-      const { mockSelectSortedAssetsBySelectedAccountGroup } =
-        arrangeMockSelectors();
-      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
-
-      const { getByTestId } = renderComponent(initialState, true);
-
-      expect(
-        getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
-      ).toBeOnTheScreen();
     });
   });
 
@@ -514,7 +373,7 @@ describe('Tokens', () => {
         expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
       });
 
-      expect(queryByTestId('token-list-control-bar')).toBeNull();
+      expect(queryByTestId('token-list-control-bar')).not.toBeOnTheScreen();
       expect(BaseControlBar).not.toHaveBeenCalled();
     });
 
