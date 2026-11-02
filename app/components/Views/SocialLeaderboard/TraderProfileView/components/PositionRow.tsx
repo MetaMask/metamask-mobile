@@ -46,10 +46,10 @@ export interface PositionRowProps {
   showTradeDate?: boolean;
   /**
    * Visual treatment for positions that carry server flags.
-   * `excluded` greys the row, mutes P&L colour, and shows the long exclusion label on its own line (legacy trader profile).
-   * `subline` keeps full opacity and P&L colour, and appends the short flag word to the existing subtitle (V1 profile).
+   * `excluded` greys the row, mutes P&L colour, shows the long exclusion label on its own line, and ignores `onPress` (legacy trader profile).
+   * `subline` keeps full opacity and P&L colour, appends the short flag word to the existing subtitle, and stays pressable when `onPress` is passed (V1 profile).
    * The flag word is a separate non-shrinking text so the amount or date truncates first.
-   * Either value ignores `onPress` for flagged rows. Omit it to leave flagged data looking and behaving like an unflagged row.
+   * Omit it to leave flagged data looking and behaving like an unflagged row.
    */
   flaggedPresentation?: FlaggedPositionPresentation;
 }
@@ -133,7 +133,9 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   const isFlagged = flagLabelKey != null;
   const isExcluded = flaggedPresentation === 'excluded' && isFlagged;
   const isSublineFlag = flaggedPresentation === 'subline' && isFlagged;
-  const isPressable = Boolean(onPress) && !isFlagged;
+  // Legacy excluded rows ignore presses. Subline rows stay pressable when
+  // onPress is passed, so history can open from a flagged V1 row.
+  const isPressable = Boolean(onPress) && !isExcluded;
   // The legacy excluded treatment drops success/error so the signed % and
   // closed PnL look disabled, not just faded green/red under opacity-50.
   // The subline treatment keeps the normal P&L colours.

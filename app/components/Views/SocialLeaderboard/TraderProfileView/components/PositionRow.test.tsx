@@ -317,16 +317,20 @@ describe('PositionRow', () => {
         "subtitle": "1.50B STARKBOT · Insider",
       }
     `);
-    expect(
-      opacityOf(screen.getByTestId('position-row-STARKBOT')),
-    ).toBeUndefined();
-    expect(
-      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
-    ).toBeUndefined();
+    expect(opacityOf(screen.getByTestId('position-row-STARKBOT'))).not.toBe(
+      0.5,
+    );
+    expect(screen.getByTestId('position-row-STARKBOT')).toHaveProp(
+      'accessibilityRole',
+      'button',
+    );
     expect(colorOf(screen.getByText('+182.00%'))).toBe(unflaggedPercentColor);
     expect(screen.queryByText('Insider allocation - excluded')).toBeNull();
-    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
-    expect(onPress).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledWith(position);
   });
 
   it('appends Creator for a developer flag in the subline presentation', () => {

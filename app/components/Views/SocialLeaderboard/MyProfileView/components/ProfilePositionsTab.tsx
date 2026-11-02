@@ -21,6 +21,10 @@ import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeleton
 import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import {
+  filterPositionsByAsset,
+  partitionUncountedPositions,
+} from '../utils/partitionUncountedPositions';
+import {
   getFilteredPositionSections,
   getProfilePositionsEmptyMessageKey,
   type ProfileAssetFilter,
@@ -58,12 +62,23 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   onRetry,
   showFlaggedState,
 }) => {
-  const { tokens, perps } = useMemo(
-    () => getFilteredPositionSections(positions, filter),
-    [filter, positions],
-  );
+  const { tokens, perps, uncounted } = useMemo(() => {
+    // Every viewer, including the owner, pins flagged rows after Tokens and
+    // Perpetuals. `showFlaggedState` blocks presses on other traders' rows
+    // and draws them with the subline treatment (full color, short flag).
+    // The owner omits it, so those rows stay tappable and full color.
+    // This list is already one Open or Closed tab, so the pin is per tab.
+    const split = partitionUncountedPositions(positions);
+    const sections = getFilteredPositionSections(split.counted, filter);
+
+    return {
+      ...sections,
+      uncounted: filterPositionsByAsset(split.uncounted, filter),
+    };
+  }, [filter, positions]);
   const showSectionHeaders = filter === 'all';
-  const isEmpty = tokens.length === 0 && perps.length === 0;
+  const isEmpty =
+    tokens.length === 0 && perps.length === 0 && uncounted.length === 0;
   const emptyMessage = strings(
     getProfilePositionsEmptyMessageKey(isClosed ? 'closed' : 'open', filter),
   );
@@ -185,6 +200,19 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
                 </Text>
               ) : null}
               {renderRows(perps)}
+            </Box>
+          ) : null}
+          {uncounted.length > 0 ? (
+            <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                accessibilityRole="header"
+                twClassName="px-4 pt-2 pb-1"
+              >
+                {strings('social_leaderboard.my_profile.not_counted_in_pnl')}
+              </Text>
+              {renderRows(uncounted)}
             </Box>
           ) : null}
         </>
