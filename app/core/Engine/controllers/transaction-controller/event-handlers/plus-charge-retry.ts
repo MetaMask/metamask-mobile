@@ -12,6 +12,7 @@ import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccount
 import { selectMoneyAccountPlusSubscription } from '../../../../../selectors/subscriptionController';
 import { ensureError } from '../../../../../util/errorUtils';
 import Logger from '../../../../../util/Logger';
+import Engine from '../../../../Engine';
 import { retryPlusChargeAfterDeposit } from '../../../../../components/Views/ProHub/utils/retryPlusChargeAfterDeposit';
 
 const LOG_OPTIONS = {
@@ -23,16 +24,6 @@ const LOG_OPTIONS = {
 
 let isRetrying = false;
 
-/**
- * A stuck Plus plan can be funded from either deposit path.
- * Pro Hub add funds creates a `moneyAccountDeposit`. The checkout shortfall
- * top-up creates a `membershipSubscription`. Either confirmation can land
- * the balance the retry needs. Whether the charge is actually retried is
- * decided later by the subscription status gates.
- *
- * @param transactionMeta - Confirmed transaction from TransactionController.
- * @returns Whether this confirmation can fund a Plus charge retry.
- */
 /**
  * Confirmed receipts store `blockNumber` as a 0x-prefixed hex quantity. A
  * missing or non-hex value omits `minBlock` so the balance re-read still runs.
@@ -49,6 +40,16 @@ function toConfirmedMinBlock(
   return hexToNumber(blockNumber);
 }
 
+/**
+ * A stuck Plus plan can be funded from either deposit path.
+ * Pro Hub add funds creates a `moneyAccountDeposit`. The checkout shortfall
+ * top-up creates a `membershipSubscription`. Either confirmation can land
+ * the balance the retry needs. Whether the charge is actually retried is
+ * decided later by the subscription status gates.
+ *
+ * @param transactionMeta - Confirmed transaction from TransactionController.
+ * @returns Whether this confirmation can fund a Plus charge retry.
+ */
 function isDepositEligibleForPlusRetry(
   transactionMeta: TransactionMeta,
 ): boolean {
@@ -68,8 +69,9 @@ function isDepositEligibleForPlusRetry(
  * Subscribed from Engine for the life of TransactionController. Locked or
  * signed-out sessions and a retry already in flight are ignored. Failures
  * are logged only; the membership banner keeps its Add funds action.
- * `updatePaymentMethod` refreshes subscriptions, so this does not touch
- * React Query.
+ * Every eligible deposit refreshes subscriptions afterwards, including when
+ * the charge is skipped, so Pro Hub sees a server-side status change. The
+ * refresh runs after the in-flight flag is cleared.
  *
  * @param transactionMeta - Confirmed transaction from TransactionController.
  */
@@ -109,5 +111,14 @@ export async function handleTransactionConfirmedForPlusChargeRetry(
     );
   } finally {
     isRetrying = false;
+  }
+
+  try {
+    await Engine.context.SubscriptionController.getSubscriptions();
+  } catch (error) {
+    Logger.error(
+      ensureError(error, 'handleTransactionConfirmedForPlusChargeRetry'),
+      LOG_OPTIONS,
+    );
   }
 }

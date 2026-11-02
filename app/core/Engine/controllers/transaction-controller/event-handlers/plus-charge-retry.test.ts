@@ -18,7 +18,19 @@ import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectMoneyAccountPlusSubscription } from '../../../../../selectors/subscriptionController';
 import { retryPlusChargeAfterDeposit } from '../../../../../components/Views/ProHub/utils/retryPlusChargeAfterDeposit';
+import Engine from '../../../../Engine';
 import { handleTransactionConfirmedForPlusChargeRetry } from './plus-charge-retry';
+
+jest.mock('../../../../Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      SubscriptionController: {
+        getSubscriptions: jest.fn().mockResolvedValue([]),
+      },
+    },
+  },
+}));
 
 jest.mock('../../../../redux', () => ({
   __esModule: true,
@@ -70,6 +82,8 @@ const mockSelectMoneyAccountPlusSubscription =
   selectMoneyAccountPlusSubscription as unknown as jest.Mock;
 const mockRetryPlusChargeAfterDeposit =
   retryPlusChargeAfterDeposit as jest.Mock;
+const mockGetSubscriptions = Engine.context.SubscriptionController
+  .getSubscriptions as jest.Mock;
 
 const subscription: Subscription = {
   id: 'sub-plus',
@@ -118,6 +132,7 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
     });
     mockSelectMoneyAccountPlusSubscription.mockReturnValue(subscription);
     mockRetryPlusChargeAfterDeposit.mockResolvedValue(undefined);
+    mockGetSubscriptions.mockResolvedValue([]);
   });
 
   it('retries the Plus charge for a confirmed membership top-up', async () => {
@@ -131,6 +146,7 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
       MONEY_ACCOUNT_ADDRESS,
       16,
     );
+    expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
   });
 
   it('retries the Plus charge for a confirmed money account deposit', async () => {
@@ -151,6 +167,7 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
     );
 
     expect(mockRetryPlusChargeAfterDeposit).not.toHaveBeenCalled();
+    expect(mockGetSubscriptions).not.toHaveBeenCalled();
   });
 
   it('does not retry when the wallet is locked', async () => {
@@ -159,6 +176,7 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
     await handleTransactionConfirmedForPlusChargeRetry(makeTx());
 
     expect(mockRetryPlusChargeAfterDeposit).not.toHaveBeenCalled();
+    expect(mockGetSubscriptions).not.toHaveBeenCalled();
   });
 
   it('does not retry when the user is signed out', async () => {
@@ -167,6 +185,7 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
     await handleTransactionConfirmedForPlusChargeRetry(makeTx());
 
     expect(mockRetryPlusChargeAfterDeposit).not.toHaveBeenCalled();
+    expect(mockGetSubscriptions).not.toHaveBeenCalled();
   });
 
   it('retries only once when two deposits confirm while a retry is in flight', async () => {
@@ -202,5 +221,15 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
     await handleTransactionConfirmedForPlusChargeRetry(makeTx({ id: 'tx-2' }));
 
     expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledTimes(2);
+  });
+
+  it('refreshes subscriptions when a later deposit follows a failed refresh', async () => {
+    mockGetSubscriptions.mockRejectedValueOnce(new Error('refresh failed'));
+
+    await handleTransactionConfirmedForPlusChargeRetry(makeTx({ id: 'tx-1' }));
+    await handleTransactionConfirmedForPlusChargeRetry(makeTx({ id: 'tx-2' }));
+
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledTimes(2);
+    expect(mockGetSubscriptions).toHaveBeenCalledTimes(2);
   });
 });
