@@ -1,4 +1,5 @@
 import { merge } from 'lodash';
+import { act, waitFor } from '@testing-library/react-native';
 import type { GasFeeState } from '@metamask/gas-fee-controller';
 import useGasPriceEstimation from './useGasPriceEstimation';
 import {
@@ -42,6 +43,12 @@ function setGasFeeControllerState(
 const gWeiToWeiConversionRate = 1e9;
 
 describe('useGasPriceEstimation', () => {
+  // The Engine mock is shared by the file; count only this test's calls.
+  // clearAllMocks keeps the getGasFeeEstimatesAndStartPolling implementation.
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should return null if gasLimit is 0', async () => {
     // gasLimit is 0 when the Build Quote view is used by the Buy flow instead of the sell flow.
     const { result } = renderHookWithProvider(
@@ -99,6 +106,15 @@ describe('useGasPriceEstimation', () => {
       },
     );
     expect(result.current).toBeNull();
+    // disconnectPoller needs the poll token, which arrives asynchronously.
+    // Without waiting, this test only passed on an earlier test's cleanup call.
+    const startPolling = jest.mocked(
+      Engine.context.GasFeeController.getGasFeeEstimatesAndStartPolling,
+    );
+    await waitFor(() => expect(startPolling).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      await startPolling.mock.results[0].value;
+    });
     unmount();
     expect(
       Engine.context.GasFeeController.disconnectPoller,

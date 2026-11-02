@@ -122,6 +122,8 @@ function render(component: React.ComponentType) {
 describe('TokenNotAvailableModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // The buyFlowOrigin describes override the route params; restore the default.
+    mockUseParams.mockReturnValue({ assetId: MOCK_ASSET_ID });
     mockSelectedProvider = {
       id: '/providers/transak',
       name: 'Transak',

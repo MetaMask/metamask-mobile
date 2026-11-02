@@ -36,10 +36,20 @@ describe('useERC20GasLimitEstimation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks keeps queued mockImplementationOnce values; the concurrent
+    // test can leave one unconsumed, so drop them before setting the default.
+    mockGetGasLimit.mockReset();
+    mockGenerateTransferData.mockReset();
     mockGetGasLimit.mockImplementation(async () => ({
       gas: { toNumber: () => DEFAULT_GAS_LIMIT },
     }));
     mockGenerateTransferData.mockReturnValue('0xmockedData');
+  });
+
+  // Tests that switch to fake timers must not leave them on for the next test
+  // (including when they fail before switching back).
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('returns default transfer gas limit for native token', () => {
@@ -136,7 +146,7 @@ describe('useERC20GasLimitEstimation', () => {
     });
     expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
 
-    jest.useFakeTimers({ legacyFakeTimers: true });
+    jest.useRealTimers();
   });
 
   it('handles different decimal values correctly', async () => {
@@ -183,7 +193,7 @@ describe('useERC20GasLimitEstimation', () => {
     // Should still be 1 since polling stopped
     expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
 
-    jest.useFakeTimers({ legacyFakeTimers: true });
+    jest.useRealTimers();
   });
 
   it('updates gas estimation when amount changes', async () => {
@@ -228,7 +238,7 @@ describe('useERC20GasLimitEstimation', () => {
       }),
     );
 
-    jest.useFakeTimers({ legacyFakeTimers: true });
+    jest.useRealTimers();
   });
 
   it('handles invalid amount or decimals', async () => {
@@ -302,7 +312,7 @@ describe('useERC20GasLimitEstimation', () => {
       }),
     );
 
-    jest.useFakeTimers({ legacyFakeTimers: true });
+    jest.useRealTimers();
   });
 
   it('handles concurrent estimation requests', async () => {
@@ -361,6 +371,6 @@ describe('useERC20GasLimitEstimation', () => {
     expect(result.current).toBeGreaterThan(0);
     expect(typeof result.current).toBe('number');
 
-    jest.useFakeTimers({ legacyFakeTimers: true });
+    jest.useRealTimers();
   });
 });

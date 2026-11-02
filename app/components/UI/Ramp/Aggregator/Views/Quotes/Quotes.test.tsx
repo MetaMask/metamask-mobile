@@ -489,13 +489,20 @@ describe('Quotes', () => {
       orderId: 'test-order-id',
     });
 
-    let mockedBuyAction = {
+    const appBrowserBuyAction = {
       url: 'https://test-url.on-ramp.metamask',
       orderId: 'test-order-id',
       browser:
         ProviderBuyFeatureBrowserEnum.AppBrowser as ProviderBuyFeatureBrowserEnum,
       createWidget: createWidgetMock,
     };
+    let mockedBuyAction = appBrowserBuyAction;
+
+    // One test switches the action to the iOS browser; start each test from
+    // the App Browser action.
+    beforeEach(() => {
+      mockedBuyAction = appBrowserBuyAction;
+    });
 
     const getSellUrl = jest.fn().mockResolvedValue(mockedBuyAction);
     const getBuyUrl = jest.fn().mockResolvedValue(mockedBuyAction);

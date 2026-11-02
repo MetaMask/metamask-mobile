@@ -134,6 +134,10 @@ const wrapper =
 describe('useRampsProviders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks keeps mockReturnValue; some tests set one on these
+    // implementation-less mocks, so reset them to return undefined again.
+    mockUseQuery.mockReset();
+    jest.mocked(determinePreferredProvider).mockReset();
   });
 
   describe('providers query', () => {

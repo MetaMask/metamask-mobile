@@ -148,6 +148,7 @@ jest.mock('../vbaVendorTermsStorage', () => ({
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);

@@ -171,6 +171,10 @@ jest.mock('../../sdk', () => ({
   withRampSDK: jest.fn().mockImplementation((Component) => Component),
 }));
 
+// Settings.tsx calls withRampSDK once, when the module loads. afterEach clears
+// mock calls, so record the import-time calls before any test runs.
+const withRampSDKCallsAtImport = [...jest.mocked(withRampSDK).mock.calls];
+
 describe('Settings', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -191,7 +195,7 @@ describe('Settings', () => {
   it('renders correctly', () => {
     render(Settings);
     expect(screen.getByText('Buy and sell crypto')).toBeOnTheScreen();
-    expect(withRampSDK).toHaveBeenCalled();
+    expect(withRampSDKCallsAtImport).toHaveLength(1);
   });
 
   it('renders inline header with title Buy and sell crypto', () => {
