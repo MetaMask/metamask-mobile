@@ -1,11 +1,11 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
   HeaderStandard,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -59,14 +59,16 @@ const VbaCreatingAccount = ({
         includesTopInset
       />
       <Box
-        twClassName="flex-1 gap-4 px-4"
+        gap={4}
+        paddingHorizontal={4}
+        twClassName="flex-1"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         accessible
         accessibilityRole="progressbar"
         accessibilityLabel={title}
       >
-        <ActivityIndicator testID={VbaCreatingAccountSelectorsIDs.SPINNER} />
+        <Spinner testID={VbaCreatingAccountSelectorsIDs.SPINNER} />
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}

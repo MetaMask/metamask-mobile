@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ImageSourcePropType, View } from 'react-native';
+import { AccessibilityInfo, ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -62,11 +62,37 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
+import {
+  SnapAmountValidationResult,
+  validateTronTransferAmount,
+} from '../../../../../../core/Multichain/tron';
 
 import { RAMPS_SEND } from '../../constants';
 
 interface SendTransactionParams {
   orderId?: string;
+}
+
+// A missing result means the Snap threw or returned nothing. We fail closed
+// with a retryable message instead of opening the Snap confirmation.
+function getTronValidationErrorMessage(
+  result: SnapAmountValidationResult | undefined,
+): string {
+  if (!result) {
+    return strings(
+      'fiat_on_ramp_aggregator.send_transaction.tron_validation_failed',
+    );
+  }
+  const errorCode = result.errors?.[0]?.code;
+  if (errorCode === 'InsufficientBalance') {
+    return strings('send.insufficient_funds');
+  }
+  if (errorCode === 'InsufficientBalanceToCoverFee') {
+    return strings(
+      'fiat_on_ramp_aggregator.send_transaction.insufficient_tron_resources',
+    );
+  }
+  return strings('send.invalid_value');
 }
 
 function SendTransaction() {
@@ -82,6 +108,8 @@ function SendTransaction() {
   );
 
   const [isConfirming, setIsConfirming] = useState(false);
+  const [validationError, setValidationError] = useState<string>();
+  const [isValidating, setIsValidating] = useState(false);
 
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = theme;
@@ -99,6 +127,7 @@ function SendTransaction() {
     [assetChainId],
   );
   const isStellar = assetChainId?.startsWith('stellar:') ?? false;
+  const isTron = assetChainId?.startsWith('tron:') ?? false;
 
   const fromAccount = useSelector((state: RootState) =>
     orderData?.walletAddress
@@ -153,6 +182,51 @@ function SendTransaction() {
     );
   }, [trackEvent, transactionAnalyticsPayload]);
 
+  // Tron resource and fee requirements depend on the destination and the
+  // transaction being built, so validate against the provider deposit address.
+  // Returns true only when the Snap explicitly reports the transfer as valid.
+  const validateTronTransfer = useCallback(async (): Promise<boolean> => {
+    const chainId = orderData?.cryptoCurrency?.network?.chainId;
+    const assetReference = orderData?.cryptoCurrency?.assetId;
+    if (!orderData || !fromAccount || !chainId || !assetReference) {
+      return false;
+    }
+
+    let result: SnapAmountValidationResult | undefined;
+    try {
+      result = await validateTronTransferAmount(fromAccount, {
+        accountId: fromAccount.id,
+        assetId: `${chainId}/${assetReference}` as CaipAssetType,
+        value: String(orderData.cryptoAmount ?? '0'),
+        toAddress: orderData.depositWallet,
+      });
+    } catch {
+      result = undefined;
+    }
+
+    if (result?.valid === true) {
+      setValidationError(undefined);
+      return true;
+    }
+    const errorMessage = getTronValidationErrorMessage(result);
+    setValidationError(errorMessage);
+    // Announce on every failed attempt, including a retry that returns the
+    // same message, so screen reader users know the check ran again.
+    AccessibilityInfo.announceForAccessibility(errorMessage);
+    return false;
+  }, [orderData, fromAccount]);
+
+  // Next stays disabled while a validation error is shown (ticket criterion).
+  // The user re-checks explicitly, e.g. after adding TRX or staking for energy.
+  const handleRetryValidation = useCallback(async () => {
+    setIsValidating(true);
+    try {
+      await validateTronTransfer();
+    } finally {
+      setIsValidating(false);
+    }
+  }, [validateTronTransfer]);
+
   const handleSend = useCallback(async () => {
     const chainId = orderData?.cryptoCurrency?.network?.chainId;
     if (!chainId) return;
@@ -175,6 +249,24 @@ function SendTransaction() {
 
       try {
         setIsConfirming(true);
+        setValidationError(undefined);
+
+        // The Ramps API splits the CAIP-19 asset id into network.chainId (CAIP-2)
+        // and assetId (the asset reference); recombine them with a slash.
+        const assetId = `${chainId}/${assetReference}` as CaipAssetType;
+        const amount = String(orderData.cryptoAmount ?? '0');
+
+        if (isTron && !(await validateTronTransfer())) {
+          trackEvent(
+            'OFFRAMP_SEND_TRANSACTION_REJECTED',
+            //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+            // transactionAnalyticsPayload expecting chain_id_source to be a string
+            // but RampTransaction type / interface expecting it to be a number
+            transactionAnalyticsPayload,
+          );
+          return;
+        }
+
         trackEvent(
           'OFFRAMP_SEND_TRANSACTION_INVOKED',
           //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
@@ -183,16 +275,13 @@ function SendTransaction() {
           transactionAnalyticsPayload,
         );
 
-        // The Ramps API splits the CAIP-19 asset id into network.chainId (CAIP-2)
-        // and assetId (the asset reference); recombine them with a slash.
-        const assetId = `${chainId}/${assetReference}` as CaipAssetType;
         const result = (await sendMultichainTransactionForReview(fromAccount, {
           fromAccountId: fromAccount.id,
           toAddress: orderData.depositWallet,
           assetId,
           // `confirmSend` expects a human-readable decimal amount (the Snap
           // applies decimals), unlike the EVM path which uses minimal units.
-          amount: String(orderData.cryptoAmount ?? '0'),
+          amount,
         })) as { transactionId?: string; valid?: boolean } | undefined;
 
         // Match the existing non-EVM send: only `valid === false` is a
@@ -326,7 +415,9 @@ function SendTransaction() {
     transactionAnalyticsPayload,
     networkClientId,
     isNonEvm,
+    isTron,
     fromAccount,
+    validateTronTransfer,
   ]);
 
   if (!order || !orderData?.cryptoCurrency) {
@@ -468,7 +559,11 @@ function SendTransaction() {
               accessibilityRole="button"
               accessible
               isDisabled={
-                isConfirming || isStellar || (!isNonEvm && !networkClientId)
+                isConfirming ||
+                isValidating ||
+                isStellar ||
+                Boolean(validationError) ||
+                (!isNonEvm && !networkClientId)
               }
               label={
                 <Text
@@ -480,6 +575,37 @@ function SendTransaction() {
               }
             />
           </Row>
+          {validationError ? (
+            <Row>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Error}
+                testID="send-transaction-validation-error"
+                accessibilityRole="alert"
+              >
+                {validationError}
+              </Text>
+            </Row>
+          ) : null}
+          {validationError && isTron ? (
+            <Row>
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                onPress={handleRetryValidation}
+                isDisabled={isValidating}
+                accessibilityState={{
+                  busy: isValidating,
+                  disabled: isValidating,
+                }}
+                label={strings(
+                  'fiat_on_ramp_aggregator.send_transaction.retry_validation',
+                )}
+                testID="send-transaction-retry-validation"
+              />
+            </Row>
+          ) : null}
           {/* <Row>
             <ButtonConfirm onLongPress={handleSend} disabled={isLoadingGas} />
           </Row> */}

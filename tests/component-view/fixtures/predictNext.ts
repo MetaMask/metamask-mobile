@@ -19,14 +19,18 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
+  PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
   PredictMarket,
   PredictOutcome,
+  PredictPosition,
   PredictSignedAmount,
+  PredictSignedPercent,
   PredictTimestamp,
+  PredictVenueId,
 } from '../../../app/components/UI/PredictNext/types';
 
 interface GameEventOptions {
@@ -525,66 +529,88 @@ export const composePredictNextPortfolioTrading = () => {
   };
 };
 
+const lakersContext = {
+  eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
+  eventTitle: 'Lakers vs Celtics',
+  marketQuestion: 'Will the Lakers win?',
+  outcomeLabel: 'Lakers',
+};
+
+/** A valued open Position, valid against the C1 Positions contract. */
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
+): PredictPosition =>
+  ({
+    venueId: 'kalshi' as PredictVenueId,
+    marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+    side: 'yes' as const,
+    status: 'open' as const,
+    shares: '75.00' as PredictAmount,
+    averagePrice: '0.55' as PredictDecimal,
+    costBasis: '41.25' as PredictAmount,
+    currentValue: '45.00' as PredictAmount,
+    unrealizedPnl: '3.75' as PredictSignedAmount,
+    unrealizedPnlPercent: '9.09' as PredictSignedPercent,
+    context: lakersContext,
+    ...overrides,
+  }) as PredictPosition;
+
+/** A sell Trade, valid against the C1 Activity contract. */
+export const makePredictNextTrade = (
+  overrides: Record<string, unknown> = {},
 ) => ({
+  type: 'trade' as const,
+  id: '0199f6a0-8c1e-7b3a-9d2e-4f1a2b3c4d5e',
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
   side: 'yes' as const,
-  shares: '75.00',
-  marketExposure: '41.25',
-  realizedPnl: '-2.50' as PredictSignedAmount,
-  updatedAt: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
-  context: {
-    eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
-    eventTitle: 'Lakers vs Celtics',
-    marketQuestion: 'Will the Lakers win?',
-    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES' as PredictEntityId,
-    outcomeLabel: 'Lakers',
-  },
-  ...overrides,
-});
-
-export const makePredictNextFill = (
-  overrides: Record<string, unknown> = {},
-) => ({
-  type: 'fill' as const,
-  id: 'fill-1',
-  venueId: 'kalshi',
-  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
-  outcomeSide: 'yes' as const,
-  shares: '75.00',
-  price: '0.55' as PredictDecimal,
-  fee: '0.10',
+  action: 'sell' as const,
+  shares: '10',
+  price: '0.61' as PredictDecimal,
+  amount: '5.93',
+  fee: '0.17',
+  realizedPnl: '0.27' as PredictSignedAmount,
   timestamp: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
-  context: {
-    eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
-    eventTitle: 'Lakers vs Celtics',
-    marketQuestion: 'Will the Lakers win?',
-    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES' as PredictEntityId,
-    outcomeLabel: 'Lakers',
-  },
+  context: lakersContext,
   ...overrides,
 });
 
+/** A winning Settlement of the net held side, valid against C1. */
 export const makePredictNextSettlement = (
   overrides: Record<string, unknown> = {},
 ) => ({
   type: 'settlement' as const,
-  id: 'KXNBAGAME-20MAY01-LALBOS-LAL:2026-05-21T00:00:00.000Z',
+  id: 'settlement-KXNBAGAME-20MAY01-LALBOS-LAL-yes',
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-20MAY01-LALBOS-LAL' as PredictEntityId,
-  result: 'yes' as const,
   side: 'yes' as const,
   shares: '10.00',
+  result: 'yes' as const,
   proceeds: '10.00',
-  costBasis: '5.20',
+  realizedPnl: '4.80' as PredictSignedAmount,
   timestamp: '2026-05-21T00:00:00.000Z' as PredictTimestamp,
   context: {
+    ...lakersContext,
     eventId: 'KXNBAGAME-20MAY01-LALBOS' as PredictEntityId,
-    eventTitle: 'Lakers vs Celtics',
-    marketQuestion: 'Will the Lakers win?',
   },
+  ...overrides,
+});
+
+/** A complete Portfolio Summary whose total is the exact sum of its parts,
+ * valid against C1. Override the parts and the total together. */
+export const makePredictNextSummary = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  venueId: 'kalshi',
+  currency: 'USD' as const,
+  availableBalance: '123.13',
+  positionsValue: '45.00',
+  claimableValue: '0',
+  totalValue: '168.13',
+  unrealizedPnl: '3.75',
+  unrealizedPnlPercent: '9.09',
+  asOf: '2026-10-23T12:00:05.120Z' as PredictTimestamp,
+  complete: true,
   ...overrides,
 });
 
@@ -659,6 +685,8 @@ export const configurePredictNextFeeds = ({
   positions,
   positionPages,
   activity,
+  settlementsCompleteFrom,
+  summary = makePredictNextSummary(),
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
@@ -668,6 +696,9 @@ export const configurePredictNextFeeds = ({
    * pagination; `positions` is ignored when this is set. */
   positionPages?: readonly PredictNextPositionsPageFixture[];
   activity?: readonly unknown[] | Error;
+  /** The Activity pages' settlement archive horizon. */
+  settlementsCompleteFrom?: string;
+  summary?: unknown;
 } = {}) => {
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
@@ -718,7 +749,14 @@ export const configurePredictNextFeeds = ({
           : Promise.resolve({
               venueId: 'kalshi',
               activity: activity ?? [],
+              ...(settlementsCompleteFrom ? { settlementsCompleteFrom } : {}),
             });
+      }
+
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return summary instanceof Error
+          ? Promise.reject(summary)
+          : Promise.resolve(summary);
       }
 
       if (action === 'PredictMarketDataService:getEvent') {

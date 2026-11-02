@@ -13,6 +13,7 @@ import {
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import AnimatedSlotText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedSlotText';
+import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import PositionTokenAvatar, {
   type PositionTokenAvatarData,
 } from './PositionTokenAvatar';
@@ -164,8 +165,12 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         alignItems={BoxAlignItems.End}
         twClassName="shrink-0 max-w-[45%] min-w-0"
       >
+        {/* Glyph row, not the slot reel: AnimatedSlotText sizes each digit to a
+            `0` but measures the real glyphs. Inter digits are proportional, so a
+            `1` leaves the reel wider than its measured box and the K or % overruns
+            the column. */}
         {pnlValueLabel && live ? (
-          <AnimatedSlotText
+          <AnimatedNumericText
             animated={!live.reduceMotion}
             color={pnlColor(isPnlPositive)}
             fontWeight={FontWeight.Medium}
@@ -185,7 +190,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
           </Text>
         ) : null}
         {pnlLabel && live ? (
-          <AnimatedSlotText
+          <AnimatedNumericText
             animated={!live.reduceMotion}
             color={pnlColor(isPnlPositive)}
             fontWeight={FontWeight.Medium}

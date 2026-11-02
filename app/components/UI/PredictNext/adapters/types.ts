@@ -1,6 +1,7 @@
 import type {
   FetchFeedParams,
   FetchPortfolioPageParams,
+  FetchPositionsParams,
   FetchSearchParams,
   PredictActivityPage,
   PredictBalance,
@@ -13,6 +14,7 @@ import type {
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
+  PredictPortfolioSummary,
   PredictPositionsPage,
   PredictReadOptions,
   PredictSearchResults,
@@ -23,9 +25,13 @@ import type {
 export interface VenuePortfolioAdapter {
   fetchBalance(options?: PredictReadOptions): Promise<PredictBalance>;
   fetchPositions(
-    params: FetchPortfolioPageParams,
+    params: FetchPositionsParams,
     options?: PredictReadOptions,
   ): Promise<PredictPositionsPage>;
+  /** Totals over every holding, computed by the backend. */
+  fetchPortfolioSummary(
+    options?: PredictReadOptions,
+  ): Promise<PredictPortfolioSummary>;
   fetchActivity(
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,

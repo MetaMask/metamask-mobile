@@ -191,7 +191,7 @@ export const rankEarnAssets = (
 
 /**
  * Projects the CAIP-19-deduplicated catalogue produced by buildEarnAssets into
- * fixed homepage slots. Positive-balance assets rank first, and missing assets
+ * fixed Earn section slots. Positive-balance assets rank first, and missing assets
  * are padded so the section always renders five slots by default.
  *
  * @param assets - Earn catalogue assets to place into section slots.

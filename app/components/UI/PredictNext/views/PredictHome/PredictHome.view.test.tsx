@@ -2,9 +2,9 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
-import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
+import { EventMarketListTestIds } from '../PredictEvent/internal/EventMarketList.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
@@ -407,10 +407,12 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
 
-      expect(watchedEventIds()).toEqual([
-        ...eventIds(nflEvents),
-        ...eventIds(ncaaEvents),
-      ]);
+      // Each section resolves its own preview Feed, so the service may hear
+      // the two watches in either order. The ids are the contract, not the
+      // arrival order; sorting keeps extra or duplicate watches failing.
+      expect(watchedEventIds().sort()).toEqual(
+        [...eventIds(nflEvents), ...eventIds(ncaaEvents)].sort(),
+      );
       expect(
         liveDataCalls().filter(
           ([action]) => action === 'PredictLiveDataService:unwatchEvents',
@@ -682,7 +684,7 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(MarketFooterCardTestIds.ROOT),
+      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
     ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([

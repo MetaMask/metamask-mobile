@@ -3,7 +3,7 @@ import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { AppiumAssertions } from '../../../framework';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
-import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
+import PredictHome from '../../../page-objects/Predict/PredictHome';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
 import { enableHermesAppProfiling } from '../../helpers/appProfiling';
@@ -42,10 +42,9 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       await WalletView.scrollAndTapPredictionsSection();
 
       await timer1.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          PredictMarketList.container,
-          { timeout: 60000 },
-        );
+        await AppiumAssertions.expectElementToBeVisible(PredictHome.container, {
+          timeout: 60000,
+        });
       });
 
       // Add all timers to performance tracker
