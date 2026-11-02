@@ -44,6 +44,7 @@ import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
+import { AggregatorOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 export interface OrderDetailsParams {
   orderId?: string;
@@ -187,7 +188,8 @@ const OrderDetails = () => {
     }
     hasAttemptedInitialCreatedRefreshRef.current = true;
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
-      handleOnRefresh();
+      // eslint-disable-next-line no-void -- handleOnRefresh logs its own errors.
+      void handleOnRefresh();
     }
   }, [order?.state, handleOnRefresh]);
 
@@ -202,7 +204,8 @@ const OrderDetails = () => {
 
   useInterval(
     () => {
-      handleOnRefresh({ fromInterval: true });
+      // eslint-disable-next-line no-void -- handleOnRefresh logs its own errors.
+      void handleOnRefresh({ fromInterval: true });
     },
     {
       delay:
@@ -272,6 +275,7 @@ const OrderDetails = () => {
         onBack={() => navigation.goBack()}
       />
       <ScrollView
+        testID={AggregatorOrderDetailsSelectorsIDs.SCROLL_VIEW}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}

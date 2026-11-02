@@ -220,6 +220,28 @@ function registerRampSdkNockInterceptors(): void {
 }
 
 /**
+ * Answers every Aggregator SDK `getOrder` poll of `orderPath` (the order id,
+ * e.g. `/providers/<code>/orders/<id>`) with `body`.
+ * Call after setupRampSdkApiMock().
+ *
+ * @returns A function that reports how many requests reached the endpoint.
+ */
+export function mockRampAggregatorOrder(
+  orderPath: string,
+  body: Record<string, unknown>,
+): () => number {
+  let requests = 0;
+  const reply = (): [number, Record<string, unknown>] => {
+    requests += 1;
+    return [200, body];
+  };
+  for (const origin of RAMP_ORDERS_ORIGINS) {
+    nock(origin).get(orderPath).query(true).reply(reply).persist();
+  }
+  return () => requests;
+}
+
+/**
  * Sets up nock interceptors for all Ramp SDK API calls.
  * Call in beforeEach.
  */
