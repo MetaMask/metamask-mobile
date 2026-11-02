@@ -100,11 +100,40 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     currency,
   );
 
-  const statusIconClassName = isCompleted
-    ? 'bg-success-muted'
-    : isFailed
-      ? 'bg-error-muted'
-      : '';
+  const getStatusIconClassName = () => {
+    if (isCompleted) {
+      return 'bg-success-muted';
+    }
+    if (isFailed) {
+      return 'bg-error-muted';
+    }
+    return '';
+  };
+
+  const getStatusIcon = () => {
+    if (isProcessing) {
+      return <ActivityIndicator size="large" />;
+    }
+    if (isCompleted) {
+      return (
+        <Icon
+          name={IconName.CheckBold}
+          size={IconSize.Xl}
+          color={IconColor.SuccessDefault}
+        />
+      );
+    }
+    return (
+      <Icon
+        name={IconName.Close}
+        size={IconSize.Xl}
+        color={IconColor.ErrorDefault}
+      />
+    );
+  };
+
+  const statusIconClassName = getStatusIconClassName();
+  const statusIcon = getStatusIcon();
 
   return (
     <>
@@ -113,21 +142,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           <Box
             twClassName={`h-10 w-10 items-center justify-center rounded-full ${statusIconClassName}`}
           >
-            {isProcessing ? (
-              <ActivityIndicator size="large" />
-            ) : isCompleted ? (
-              <Icon
-                name={IconName.CheckBold}
-                size={IconSize.Xl}
-                color={IconColor.SuccessDefault}
-              />
-            ) : (
-              <Icon
-                name={IconName.Close}
-                size={IconSize.Xl}
-                color={IconColor.ErrorDefault}
-              />
-            )}
+            {statusIcon}
           </Box>
           {cryptoToken ? (
             <BadgeWrapper

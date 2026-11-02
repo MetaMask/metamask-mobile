@@ -42,6 +42,19 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 const AMOUNT_PLACEHOLDER = '...';
+
+const getShortOrderId = (
+  providerOrderId: RampsOrder['providerOrderId'],
+): string => {
+  if (!providerOrderId) {
+    return '...';
+  }
+  if (providerOrderId.length > 8) {
+    return `...${providerOrderId.slice(-6)}`;
+  }
+  return providerOrderId;
+};
+
 const TERMINAL_STATUSES = new Set([
   RampsOrderStatus.Completed,
   RampsOrderStatus.Failed,
@@ -104,11 +117,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
       ).paymentDetails
     : undefined;
 
-  const shortOrderId = order.providerOrderId
-    ? order.providerOrderId.length > 8
-      ? `...${order.providerOrderId.slice(-6)}`
-      : order.providerOrderId
-    : '...';
+  const shortOrderId = getShortOrderId(order.providerOrderId);
 
   const handleCopyOrderId = useCallback(() => {
     if (order.providerOrderId) {
@@ -326,6 +335,48 @@ const OrderContent: React.FC<OrderContentProps> = ({
     };
   }, [hasBankDetails, getFieldValue]);
 
+  const formatOrderFiat = (amount: number) =>
+    formatWithThreshold(amount, 0, I18n.locale, {
+      style: 'currency',
+      currency: fiatCurrencyCode,
+      minimumFractionDigits: fiatDecimals,
+      maximumFractionDigits: fiatDecimals,
+    });
+
+  const getDateAndTimeValue = () => {
+    if (isLoading) {
+      return <Box twClassName="h-[18px] w-40 rounded bg-muted" />;
+    }
+    if (order.createdAt) {
+      return toDateFormat(order.createdAt);
+    }
+    return AMOUNT_PLACEHOLDER;
+  };
+
+  const getFeesValue = () => {
+    if (isLoading) {
+      return <Box twClassName="h-[18px] w-20 rounded bg-muted" />;
+    }
+    if (hasAmounts) {
+      return formatOrderFiat(Number(order.totalFeesFiat ?? 0));
+    }
+    return AMOUNT_PLACEHOLDER;
+  };
+
+  const getTotalValue = () => {
+    if (isLoading) {
+      return <Box twClassName="h-[18px] w-24 rounded bg-muted" />;
+    }
+    if (hasAmounts) {
+      return formatOrderFiat(Number(order.fiatAmount ?? 0));
+    }
+    return AMOUNT_PLACEHOLDER;
+  };
+
+  const dateAndTimeValue = getDateAndTimeValue();
+  const feesValue = getFeesValue();
+  const totalValue = getTotalValue();
+
   return (
     <Box twClassName="w-full flex-1">
       <Box twClassName="items-center pt-8 pb-6">
@@ -436,58 +487,19 @@ const OrderContent: React.FC<OrderContentProps> = ({
       <KeyValueRow
         twClassName="h-auto px-0 py-3"
         keyLabel={strings('ramps_order_details.date_and_time')}
-        value={
-          isLoading ? (
-            <Box twClassName="h-[18px] w-40 rounded bg-muted" />
-          ) : order.createdAt ? (
-            toDateFormat(order.createdAt)
-          ) : (
-            AMOUNT_PLACEHOLDER
-          )
-        }
+        value={dateAndTimeValue}
       />
 
       <KeyValueRow
         twClassName="h-auto px-0 py-3"
         keyLabel={strings('ramps_order_details.fees')}
-        value={
-          isLoading ? (
-            <Box twClassName="h-[18px] w-20 rounded bg-muted" />
-          ) : hasAmounts ? (
-            formatWithThreshold(
-              Number(order.totalFeesFiat ?? 0),
-              0,
-              I18n.locale,
-              {
-                style: 'currency',
-                currency: fiatCurrencyCode,
-                minimumFractionDigits: fiatDecimals,
-                maximumFractionDigits: fiatDecimals,
-              },
-            )
-          ) : (
-            AMOUNT_PLACEHOLDER
-          )
-        }
+        value={feesValue}
       />
 
       <KeyValueRow
         twClassName="h-auto px-0 py-3"
         keyLabel={strings('ramps_order_details.total')}
-        value={
-          isLoading ? (
-            <Box twClassName="h-[18px] w-24 rounded bg-muted" />
-          ) : hasAmounts ? (
-            formatWithThreshold(Number(order.fiatAmount ?? 0), 0, I18n.locale, {
-              style: 'currency',
-              currency: fiatCurrencyCode,
-              minimumFractionDigits: fiatDecimals,
-              maximumFractionDigits: fiatDecimals,
-            })
-          ) : (
-            AMOUNT_PLACEHOLDER
-          )
-        }
+        value={totalValue}
       />
 
       {hasBankDetails && bankDetailFields && !isLoading && (
