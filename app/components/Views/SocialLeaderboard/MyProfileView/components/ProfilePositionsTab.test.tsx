@@ -30,9 +30,8 @@ const viewOpacities = () =>
 
 const rowTestIds = () =>
   screen
-    .getAllByTestId(/position-row-/)
-    .map((row) => row.props.testID as string)
-    .filter((testID) => !testID.includes('flag-label'));
+    .getAllByTestId(/^position-row-(?!subtitle-|flag-|perp-badges-)/)
+    .map((row) => row.props.testID as string);
 
 const openSpot: Position = {
   positionId: 'eth-spot',
@@ -249,8 +248,8 @@ describe('ProfilePositionsTab', () => {
       'position-row-Nigel',
       'position-row-Moodeng',
     ]);
-    expect(screen.getByText('Insider allocation - excluded')).toBeOnTheScreen();
-    expect(screen.getByText('Contract creator - excluded')).toBeOnTheScreen();
+    expect(screen.getByText(/· Insider/)).toBeOnTheScreen();
+    expect(screen.getByText(/· Creator/)).toBeOnTheScreen();
     expect(viewOpacities()).not.toContain(0.5);
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
@@ -301,6 +300,7 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
     ).toBeNull();
+    expect(screen.queryByText(/· Insider/)).not.toBeOnTheScreen();
     expect(
       screen.queryByText('Insider allocation - excluded'),
     ).not.toBeOnTheScreen();
@@ -445,7 +445,7 @@ describe('ProfilePositionsTab', () => {
 
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
-    expect(screen.getByText('Insider allocation - excluded')).toBeOnTheScreen();
+    expect(screen.getByText(/· Insider/)).toBeOnTheScreen();
     expect(viewOpacities()).not.toContain(0.5);
     expect(onPositionPress).not.toHaveBeenCalled();
   });

@@ -48,6 +48,10 @@ export interface ProfilePositionsTabProps {
   onFilterChange: (filter: ProfileAssetFilter) => void;
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
+  /**
+   * When true, flagged rows use the V1 subline treatment and ignore presses.
+   * Own profiles omit this so flagged data stays a normal row.
+   */
   showFlaggedState?: boolean;
   /** Measured so the P&L note can scroll this section into view. */
   uncountedSectionRef?: React.Ref<View>;
@@ -78,9 +82,10 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   const tw = useTailwind();
   const { tokens, perps, uncounted } = useMemo(() => {
     // Every viewer, including the owner, pins flagged rows after Tokens and
-    // Perpetuals. `showFlaggedState` only blocks presses on other traders'
-    // flagged rows. Rows stay full color. This list is already one Open or
-    // Closed tab, so the pin is per tab.
+    // Perpetuals. `showFlaggedState` blocks presses on other traders' rows
+    // and draws them with the subline treatment (full color, short flag).
+    // The owner omits it, so those rows stay tappable and full color.
+    // This list is already one Open or Closed tab, so the pin is per tab.
     const split = partitionUncountedPositions(positions);
     const sections = getFilteredPositionSections(split.counted, filter);
 
@@ -109,9 +114,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         position={position}
         isClosed={isClosed}
         showTradeDate={isClosed}
-        // #38564 replaces showFlaggedState with flaggedPresentation="subline"
-        // for the full-color "· Insider" label.
-        showFlaggedState={showFlaggedState}
+        flaggedPresentation={showFlaggedState ? 'subline' : undefined}
         onPress={
           showFlaggedState && getPositionFlagLabelKey(position)
             ? undefined
