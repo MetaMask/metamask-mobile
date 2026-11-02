@@ -129,13 +129,31 @@ export const setMpcTwoFactorTokenProvider = (
 };
 
 // JWT segments are base64url; the React Native `buffer` polyfill only decodes base64.
-const getProfileId = (token: string): string => {
+const decodeClaims = (token: string): { sub: string; nbf?: number } => {
   const payload = token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/');
-  return (
-    JSON.parse(Buffer.from(payload, 'base64').toString('utf8')) as {
-      sub: string;
-    }
-  ).sub;
+  return JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));
+};
+
+const getProfileId = (token: string): string => decodeClaims(token).sub;
+
+// Test build only, not for merge: the dev MPC service clock runs a few seconds
+// behind the issuer and rejects tokens whose `nbf` is still ahead of it, until
+// mpc-service#108 adds a clock tolerance.
+export const MPC_TOKEN_SKEW_MS = 8000;
+
+export const waitForTokenSkew = async (token: string): Promise<string> => {
+  let nbf: number | undefined;
+  try {
+    ({ nbf } = decodeClaims(token));
+  } catch {
+    return token;
+  }
+  const waitMs =
+    typeof nbf === 'number' ? nbf * 1000 + MPC_TOKEN_SKEW_MS - Date.now() : 0;
+  if (waitMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, waitMs));
+  }
+  return token;
 };
 
 /**
@@ -167,20 +185,22 @@ export function buildRealMpcMoneyKeyringBuilder({
       dkls23Lib,
       cloudURL: MPC_CLOUD_URL,
       relayerURL: MPC_RELAYER_URL,
-      getProfileToken: (options?: {
+      getProfileToken: async (options?: {
         twoFactor?: boolean;
         challenge?: Uint8Array;
       }) => {
         if (options?.twoFactor && twoFactorTokenProvider) {
-          return twoFactorTokenProvider();
+          return waitForTokenSkew(await twoFactorTokenProvider());
         }
         if (options?.twoFactor && options.challenge && getTwoFactorApproval) {
-          return getTwoFactorApproval(options.challenge);
+          return waitForTokenSkew(
+            await getTwoFactorApproval(options.challenge),
+          );
         }
         if (options?.twoFactor && !options.challenge && getTwoFactorToken) {
-          return getTwoFactorToken();
+          return waitForTokenSkew(await getTwoFactorToken());
         }
-        return getBearerToken();
+        return waitForTokenSkew(await getBearerToken());
       },
       // TODO: replace the placeholder once the backup key source is decided.
       getBackupEncryptionKey: async () =>
