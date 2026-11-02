@@ -71,6 +71,10 @@ import {
   getCandlePeriodBottomSheetSelectors as getPerpsCandlePeriodBottomSheetSelector,
 } from '../../../Charts/CandlePeriodSelector';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { PERPS_SHARE_POSITION_INTERACTION_TYPE } from '../PerpsSharePositionView/PerpsSharePositionView.constants';
@@ -95,6 +99,14 @@ function renderEligibleNoPositionPerpsDetails(
     ...params,
   });
 }
+
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
 
 describe('PerpsMarketDetailsView', () => {
   it('renders error state when route does not provide market params', async () => {

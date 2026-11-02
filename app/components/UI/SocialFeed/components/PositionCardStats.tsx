@@ -67,8 +67,8 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
   }
 
   return (
-    // The shell's own gap sits above the divider; matching it below keeps the
-    // rule optically centred between the header and the first stat row.
+    // The divider takes no layout height and hangs in the gap above, so the
+    // shell's gap below the header and this gap below the rule both stay 8px.
     <Box twClassName="gap-2">
       <PositionCardDivider
         testID={getSocialFeedPositionCardSectionDividerTestId(cardId)}

@@ -9,6 +9,8 @@ import ApplePaySplash from '../Views/ApplePaySplash';
 import ApplePayConfirmation from '../Views/ApplePayConfirmation';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import CardMfaMethod from '../Views/CardMfa/CardMfaMethod';
+import CardMfaCode from '../Views/CardMfa/CardMfaCode';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
@@ -147,6 +149,14 @@ const MainRoutes = () => {
       <ScreensStack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.MFA_METHOD}
+        component={CardMfaMethod}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.MFA_CODE}
+        component={CardMfaCode}
       />
       <ScreensStack.Screen
         name={Routes.CARD.SPENDING_LIMIT}

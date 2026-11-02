@@ -1,5 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import {
+  CommonActions,
+  useNavigation,
+  type NavigationState,
+  type PartialState,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -40,6 +45,31 @@ export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
 // The preset has no tracking-* utilities, and the uppercase eyebrow needs the
 // extra letter spacing to stay legible at BodySm.
 const eyebrowTrackingStyle = { letterSpacing: 0.8 };
+
+/**
+ * Screens at and below Home. Accept already popped Settings or the invite
+ * sheet, so the pre-accept Rewards home and the rewards flow can still sit
+ * above Home. Keeping those would make Back return to the old persona.
+ */
+function routesAtOrBelowHome(
+  routes: NavigationState['routes'] | undefined,
+): PartialState<NavigationState>['routes'] {
+  if (routes == null) {
+    return [];
+  }
+  const homeIndex = routes.findIndex(
+    (route) => route.name === Routes.HOME_TABS,
+  );
+  if (homeIndex === -1) {
+    return [];
+  }
+  // Home's nested state is a full NavigationState (`stale: false`). Reset
+  // accepts that at runtime, and its PartialState type only allows `stale: true`.
+  return routes.slice(
+    0,
+    homeIndex + 1,
+  ) as PartialState<NavigationState>['routes'];
+}
 
 /**
  * Formats a cashback window timestamp for the current locale.
@@ -120,17 +150,24 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
     ],
   );
 
-  // The tab picked its home from the pre-accept persona and does not remount
-  // while this splash is the active screen. Popping back would reveal that
-  // earlier home, so every exit selects the Money dashboard explicitly.
+  // Rewards home is the root RewardsView stack. Drop the splash and every
+  // rewards screen above Home, then open the Money dashboard. Back leaves
+  // Rewards instead of returning to the pre-accept persona.
   const showMoneyDashboard = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
+    const kept = routesAtOrBelowHome(navigation.getState()?.routes);
+    const routes: PartialState<NavigationState>['routes'] = [
+      ...kept,
+      {
+        name: Routes.REWARDS_VIEW,
+        params: { screen: Routes.REWARDS_MONEY_DASHBOARD },
       },
-    });
+    ];
+    navigation.dispatch(
+      CommonActions.reset({
+        index: routes.length - 1,
+        routes,
+      }),
+    );
   }, [navigation]);
 
   const handleDismiss = useCallback(() => {

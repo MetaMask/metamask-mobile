@@ -32,6 +32,7 @@ import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
   HomeTabsParamList,
+  RewardsHomeParamList,
   ImportPrivateKeyStackParamList,
   MainStackParamList,
   SocialLeaderboardTabParams,
@@ -634,7 +635,7 @@ export type RootStackParamList = {
   TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
-  RewardsView: undefined;
+  RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
@@ -1060,7 +1061,12 @@ export type RootStackParamList = {
       }
     | undefined;
   SocialPostComposerView: SocialPostComposerViewParams | undefined;
-  SocialProfileOnboardingView: undefined;
+  SocialProfileOnboardingView:
+    | {
+        /** Opens only the terms sheet for users with an existing profile. */
+        termsOnly?: boolean;
+      }
+    | undefined;
   MyProfileView: SocialV1ProfileViewParams | undefined;
   SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
   FollowConnectionsView: {
@@ -1200,6 +1206,8 @@ export type RootStackParamList = {
   CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
   CardWelcome: CardScreensStackParamList['CardWelcome'];
   CardAuthentication: CardScreensStackParamList['CardAuthentication'];
+  CardMfaMethod: CardScreensStackParamList['CardMfaMethod'];
+  CardMfaCode: CardScreensStackParamList['CardMfaCode'];
   CardSpendingLimit: CardScreensStackParamList['CardSpendingLimit'];
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];

@@ -109,6 +109,7 @@ const Routes = {
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  NFT_DETAILS: 'NftDetails',
   TRANSACTION_DETAILS: 'TransactionDetails',
   // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
   // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
@@ -609,6 +610,8 @@ const Routes = {
     APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    MFA_METHOD: 'CardMfaMethod',
+    MFA_CODE: 'CardMfaCode',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',

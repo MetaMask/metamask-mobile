@@ -25,6 +25,7 @@ export interface SocialFeedRowProps {
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;
+  requireSocialTerms?: boolean;
   /** Clock for relative timestamps; a new value re-renders the row. */
   now?: number;
 }
@@ -55,6 +56,7 @@ export const areSocialFeedRowPropsEqual = (
   previous.onAuthorPress === next.onAuthorPress &&
   previous.onCopyTrade === next.onCopyTrade &&
   previous.onPositionPress === next.onPositionPress &&
+  previous.requireSocialTerms === next.requireSocialTerms &&
   previous.now === next.now &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
@@ -87,6 +89,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
+  requireSocialTerms,
   now,
 }) => {
   const eventId = useSocialFeedEntranceEventId(entrances, post.realtimeEventId);
@@ -100,6 +103,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
       <Box twClassName="px-4">
         <SocialFeedPostShell
           post={post}
+          requireSocialTerms={requireSocialTerms}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}
