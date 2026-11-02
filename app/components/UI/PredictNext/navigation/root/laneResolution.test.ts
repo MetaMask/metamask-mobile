@@ -1,19 +1,9 @@
-import type { PredictConfig } from '../../config/predictConfig';
 import {
   hasLegacyMarketListParams,
+  resolvePinnedMarketListVenue,
   resolvePinnedVenue,
-  resolvePredictMarketListLane,
 } from './laneResolution';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-
-const config = (polymarket: boolean, kalshi: boolean): PredictConfig => ({
-  enabled: true,
-  venues: {
-    polymarket: { enabled: polymarket },
-    kalshi: { enabled: kalshi },
-  },
-  venueSelection: { enabled: false },
-});
 
 describe('temporary Predict lane resolution', () => {
   it.each([
@@ -27,21 +17,19 @@ describe('temporary Predict lane resolution', () => {
   });
 
   it('keeps a parameterized market list on Polymarket', () => {
-    const result = resolvePredictMarketListLane(config(false, true), {
-      query: 'election',
-    });
+    const result = resolvePinnedMarketListVenue({ query: 'election' });
 
     expect(result).toBe('polymarket');
   });
 
-  it('routes a generic market list to Kalshi', () => {
-    const result = resolvePredictMarketListLane(config(false, true));
+  it('leaves a generic market list to the Active Venue', () => {
+    const result = resolvePinnedMarketListVenue();
 
-    expect(result).toBe('kalshi');
+    expect(result).toBeUndefined();
   });
 
   it('does not change venue for transaction attribution metadata', () => {
-    const result = resolvePredictMarketListLane(config(false, true), {
+    const result = resolvePinnedMarketListVenue({
       transactionActiveAbTests: [
         createActiveABTestAssignment(
           'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
@@ -50,7 +38,7 @@ describe('temporary Predict lane resolution', () => {
       ],
     });
 
-    expect(result).toBe('kalshi');
+    expect(result).toBeUndefined();
   });
 
   it('keeps a specific child route on Polymarket', () => {

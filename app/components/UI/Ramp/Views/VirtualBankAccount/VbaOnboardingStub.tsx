@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -18,6 +18,8 @@ import VbaOnboardingError from '../../../KYC/components/OnboardingError';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
 
 export type VbaOnboardingStubVariant = 'account_provisioning_error' | 'error';
 
@@ -35,6 +37,13 @@ interface VbaOnboardingStubProps {
 const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
+
+  useEffect(() => {
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_ERROR_VIEWED, () =>
+      buildVbaBaseProperties({ screenName: `vba_${variant}` }),
+    );
+  }, [variant]);
+
   const tw = useTailwind();
   const [isContinuing, setIsContinuing] = useState(false);
 

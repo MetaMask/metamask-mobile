@@ -68,7 +68,12 @@ export function getHumanReadableTokenAmount(
     // Mapper fail-closed (client-utils / TMCU-1303) omits amount when the scale
     // is unknown but keeps symbol/assetId. Do not invent "0" — that looks like
     // a real zero transfer and scares users.
-    if (token.assetType === 'erc20' || token.assetType === 'native') {
+    if (
+      token.assetType === 'erc20' ||
+      token.assetType === 'native' ||
+      token.assetType === 'erc721' ||
+      token.assetType === 'erc1155'
+    ) {
       return undefined;
     }
     if (token.symbol || token.assetId) {
