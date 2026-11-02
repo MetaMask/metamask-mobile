@@ -93,7 +93,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       return;
     }
 
-    if (keepHeaderHiddenOnReset && hasStickyHeader) {
+    if (keepHeaderHiddenOnReset) {
       // The sticky row starts where the list header ends.
       const headerHeight = list.getFirstItemOffset();
       if (list.getAbsoluteLastScrollOffset() > headerHeight) {
@@ -103,7 +103,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     }
 
     list.scrollToOffset({ offset: 0, animated: true });
-  }, [scrollResetToken, hasStickyHeader, keepHeaderHiddenOnReset]);
+  }, [scrollResetToken, keepHeaderHiddenOnReset]);
 
   const listData = useMemo<MarketListRow[]>(() => {
     const rows: MarketListRow[] = hasStickyHeader ? [STICKY_HEADER_ROW] : [];

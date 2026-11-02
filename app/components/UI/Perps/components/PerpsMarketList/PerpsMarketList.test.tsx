@@ -951,6 +951,23 @@ describe('PerpsMarketList', () => {
         });
       });
 
+      it('does not scroll when the sticky header appears without a filter change', () => {
+        mockGetFirstItemOffset.mockReturnValue(300);
+        mockGetAbsoluteLastScrollOffset.mockReturnValue(900);
+        const { rerender } = render(
+          <PerpsMarketList
+            markets={mockMarkets}
+            onMarketPress={mockOnMarketPress}
+            keepHeaderHiddenOnReset
+            filterKey="all"
+          />,
+        );
+
+        rerender(renderSticky('all'));
+
+        expect(mockScrollToOffset).not.toHaveBeenCalled();
+      });
+
       it('does not scroll when the list header is still visible', () => {
         mockGetFirstItemOffset.mockReturnValue(300);
         mockGetAbsoluteLastScrollOffset.mockReturnValue(100);

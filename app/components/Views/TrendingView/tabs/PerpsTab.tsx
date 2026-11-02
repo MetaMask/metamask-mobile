@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { Modal, RefreshControl, View } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -20,6 +20,9 @@ import { usePerpsEventTracking } from '../../../UI/Perps/hooks/usePerpsEventTrac
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks/usePerpsMarkets';
+import { PerpsConnectionContext } from '../../../UI/Perps/providers/PerpsConnectionProvider';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { usePerpsSorting } from '../../../UI/Perps/hooks/usePerpsSorting';
 import { useNowOnScreenFocus } from '../../../UI/Perps/hooks/useNowOnScreenFocus';
 import { selectPerpsWatchlistMarkets } from '../../../UI/Perps/selectors/perpsController';
@@ -79,6 +82,15 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
+  // Device capability (see app/util/deviceCapability/README.md): skip the
+  // leaderboard fetch and profile prefetch with no network, or on low-end
+  // hardware over slow cellular. `null` (unknown) keeps the default.
+  const [hardwareTier] = useState(() => getHardwareTier());
+  const networkTier = useNetworkTier();
+  const showTopTraders =
+    isTopTradersEnabled &&
+    networkTier !== 'NONE' &&
+    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
   const [isSortSheetVisible, setIsSortSheetVisible] = useState(false);
   const floatingTabBarInset = useFloatingTabBarInset();
   const contentContainerStyle = useMemo(
@@ -88,10 +100,13 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   // Local (not persisted) state; the watchlist and categories are exclusive.
-  const { markets: allMarkets, isLoading } = usePerpsMarkets({
+  const { markets: allMarkets, isLoading: isLoadingMarkets } = usePerpsMarkets({
     showZeroVolume: false,
     showZeroOpenInterest: false,
   });
+  // Like usePerpsFeed: a failed connection must not leave skeletons up forever.
+  const connectionError = useContext(PerpsConnectionContext)?.error;
+  const isLoading = isLoadingMarkets && !connectionError;
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
   const now = useNowOnScreenFocus();
   const [selection, setSelection] = useState<MarketTypeFilter | 'watchlist'>(
@@ -214,8 +229,8 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   );
 
   const listHeader = useMemo(
-    () => <PerpsTabListHeader showTopTraders={isTopTradersEnabled} />,
-    [isTopTradersEnabled],
+    () => <PerpsTabListHeader showTopTraders={showTopTraders} />,
+    [showTopTraders],
   );
 
   // Body shown instead of rows. While loading: skeletons (the list stays

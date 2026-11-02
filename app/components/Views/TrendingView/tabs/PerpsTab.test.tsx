@@ -193,6 +193,15 @@ jest.mock('../../../../util/theme', () => ({
   }),
 }));
 
+const mockGetHardwareTier = jest.fn();
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockGetHardwareTier(),
+}));
+const mockUseNetworkTier = jest.fn();
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockUseNetworkTier(),
+}));
+
 jest.mock('../feeds/perps/PerpsSectionProvider', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
@@ -204,6 +213,10 @@ import { selectPerpsWatchlistEnabledFlag } from '../../../UI/Perps/selectors/fea
 import { selectPerpsWatchlistMarkets } from '../../../UI/Perps/selectors/perpsController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  PerpsConnectionContext,
+  type PerpsConnectionContextValue,
+} from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import PerpsTab from './PerpsTab';
 
 const defaultTabProps: TabProps = {
@@ -237,6 +250,8 @@ describe('PerpsTab', () => {
       markets: mockMarkets,
       isLoading: false,
     });
+    mockGetHardwareTier.mockReturnValue(null);
+    mockUseNetworkTier.mockReturnValue(null);
   });
 
   describe('watchlist filter', () => {
@@ -356,6 +371,48 @@ describe('PerpsTab', () => {
       'market-count-0',
     );
     expect(queryByTestId('perps-tab-filters')).toBeNull();
+  });
+
+  it('stops showing skeletons when the Perps connection fails', () => {
+    mockUsePerpsMarkets.mockReturnValue({ markets: [], isLoading: true });
+
+    const { queryByTestId } = render(
+      <NavigationContainer>
+        <PerpsConnectionContext.Provider
+          value={{ error: 'connection failed' } as PerpsConnectionContextValue}
+        >
+          <PerpsTab {...defaultTabProps} />
+        </PerpsConnectionContext.Provider>
+      </NavigationContainer>,
+    );
+
+    expect(queryByTestId('perps-tab-loading')).toBeNull();
+  });
+
+  it('hides top traders when there is no network', () => {
+    mockUseNetworkTier.mockReturnValue('NONE');
+
+    const { queryByTestId } = renderPerpsTab();
+
+    expect(queryByTestId('top-traders-section')).toBeNull();
+  });
+
+  it('hides top traders on low-end hardware over slow cellular', () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+    mockUseNetworkTier.mockReturnValue('SLOW_CELLULAR');
+
+    const { queryByTestId } = renderPerpsTab();
+
+    expect(queryByTestId('top-traders-section')).toBeNull();
+  });
+
+  it('keeps top traders on low-end hardware with a fast connection', () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+    mockUseNetworkTier.mockReturnValue('WIFI');
+
+    const { getByTestId } = renderPerpsTab();
+
+    expect(getByTestId('top-traders-section')).toBeOnTheScreen();
   });
 
   it('keeps top traders mounted when markets finish loading', () => {
