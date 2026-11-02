@@ -15,11 +15,13 @@ import {
 const formatSummaryFiat = (value: number) =>
   formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
 
-// `formatPercentage` renders -0 as "+0.00%"; a RoE that rounds to zero from
-// below (a limit just under the entry price) must keep its minus sign so the
-// percentage agrees with the $P&L rendered beside it.
-const formatSummaryPercentage = (value: number) =>
-  Object.is(value, -0) ? '-0.00%' : formatPercentage(value);
+// `formatPercentage` renders -0 as "+0.00%"; a limit RoE that rounds to
+// zero from below (a limit just under the entry price) must keep its minus
+// sign so the percentage agrees with the $P&L rendered beside it. The $P&L
+// must also be negative, so a market RoE of exactly -0 beside a non-negative
+// P&L keeps the plain formatted value.
+const formatSummaryPercentage = (value: number, pnl: number) =>
+  Object.is(value, -0) && pnl < 0 ? '-0.00%' : formatPercentage(value);
 
 export interface PerpsCloseTotalsProps {
   pnl: number;
@@ -60,7 +62,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
       keyLabel={strings('perps.close_position.included_pnl')}
       value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))}${
         roePercentage !== undefined
-          ? ` (${formatSummaryPercentage(roePercentage)})`
+          ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
           : ''
       }`}
       valueTextProps={{

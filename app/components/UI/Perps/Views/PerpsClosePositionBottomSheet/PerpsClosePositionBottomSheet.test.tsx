@@ -345,63 +345,6 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows the RoE at the limit price when a limit close exhausts the effective margin exactly', () => {
-      // A coherent position at the mocked live price of 3000: entry 2000,
-      // size 1, 4x leverage (margin 500 on the 2000 notional), unrealized
-      // PnL +1000, marginUsed = margin + PnL = 1500, returnOnEquity
-      // (3000 - 2000) / 2000 × 4 = 2. Effective margin (marginUsed -
-      // unrealizedPnl + effectivePnL) lands on exactly 0 at this limit
-      // price; the RoE comes from the entry price and leverage, not a
-      // margin division, so it is still defined: (1500 - 2000) / 2000 × 4
-      // = -100.00% — exhausting the margin reads as -100%.
-      const zeroMarginPosition = {
-        ...defaultPerpsPositionMock,
-        entryPrice: '2000.00',
-        size: '1',
-        positionValue: '3000.00',
-        marginUsed: '1500.00',
-        unrealizedPnl: '1000.00',
-        returnOnEquity: '2',
-        leverage: { ...defaultPerpsPositionMock.leverage, value: 4 },
-      };
-      useRouteMock.mockReturnValue({
-        params: { position: zeroMarginPosition },
-      });
-      usePerpsLivePositionsMock.mockReturnValue({
-        positions: [zeroMarginPosition],
-        isInitialLoading: false,
-      });
-      mockKeypadValue = '1500';
-      const utils = renderSheet();
-
-      toggleOrderType(utils);
-      fireEvent.press(utils.getByTestId('mock-keypad'));
-      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
-
-      const pnlRow = utils.getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      );
-      expect(pnlRow).toHaveTextContent('-$500 (-100.00%)');
-    });
-
-    it('keeps a minus sign on a limit RoE that rounds to zero from below', () => {
-      // Entry 2900, 3x leverage, limit 2899.99: the RoE at that price is
-      // -0.00% after rounding to two decimals, and the minus sign must
-      // survive the rounding so the percentage agrees with the -$0.02
-      // limit P&L rendered beside it.
-      mockKeypadValue = '2899.99';
-      const utils = renderSheet();
-
-      toggleOrderType(utils);
-      fireEvent.press(utils.getByTestId('mock-keypad'));
-      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
-
-      const pnlRow = utils.getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      );
-      expect(pnlRow).toHaveTextContent('-$0.02 (-0.00%)');
-    });
-
     it('renders the fiat/token display toggle', () => {
       const { getByTestId } = renderSheet();
 

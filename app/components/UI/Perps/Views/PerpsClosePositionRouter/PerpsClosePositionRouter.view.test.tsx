@@ -256,8 +256,7 @@ describe('PerpsClosePositionRouter', () => {
     });
 
     it('shows a loss and the position RoE in the P&L row for a market close', async () => {
-      // The market-loss case, moved from the hook-mocked bottom-sheet unit
-      // suite: unrealizedPnl -100 with returnOnEquity -0.10 (i.e. -10.00%).
+      // Fixture: unrealizedPnl -100 with returnOnEquity -0.10 (i.e. -10.00%).
       renderTreatmentSheet(
         createLongPositionForViews({
           unrealizedPnl: '-100',
@@ -319,6 +318,66 @@ describe('PerpsClosePositionRouter', () => {
       });
 
       await selectLimitAtMidPrice();
+
+      expect(await findPnlRow()).toHaveTextContent('+$100 (+12.00%)');
+    });
+
+    it('keeps a minus sign on a limit RoE that rounds to zero from below', async () => {
+      // Entry 2500, 1x leverage, limit at the live price 2499.9: the RoE at
+      // that price is -0.004%, which rounds to -0.00%, and the minus sign
+      // must survive the rounding so the percentage agrees with the -$0.10
+      // limit P&L rendered beside it.
+      const longResult = renderTreatmentSheet(
+        createLongPositionForViews({
+          leverage: { type: 'isolated', value: 1 },
+        }),
+        { price: '2499.9', limitOrderFlag: true },
+      );
+
+      await selectLimitAtMidPrice();
+
+      expect(await findPnlRow()).toHaveTextContent('-$0.10 (-0.00%)');
+
+      // A short position with the limit just above the entry price rounds
+      // to zero from below the same way: limit 2500.1 gives -$0.10 (-0.00%).
+      longResult.unmount();
+      // The sheet remembers the last order type across mounts; reset so the
+      // second render opens in market mode like the first.
+      resetLastCloseOrderType();
+      renderTreatmentSheet(
+        createLongPositionForViews({
+          size: '-1',
+          leverage: { type: 'isolated', value: 1 },
+        }),
+        { price: '2500.1', limitOrderFlag: true },
+      );
+
+      await selectLimitAtMidPrice();
+
+      expect(await findPnlRow()).toHaveTextContent('-$0.10 (-0.00%)');
+    });
+
+    it('keeps the RoE at the limit price when the live price moves after it is set', async () => {
+      // Limit set at the live price 2600, then the stream moves to 2700: the
+      // row must keep the RoE at the limit price (+12.00%, from entry 2500
+      // at 3x leverage), not recompute it from the new live price (+24.00%).
+      const result = renderTreatmentSheet(createLongPositionForViews(), {
+        price: '2600',
+        limitOrderFlag: true,
+      });
+
+      await selectLimitAtMidPrice();
+
+      act(() => {
+        result.stream.emitPrices({
+          ETH: {
+            symbol: 'ETH',
+            price: '2700',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
 
       expect(await findPnlRow()).toHaveTextContent('+$100 (+12.00%)');
     });
