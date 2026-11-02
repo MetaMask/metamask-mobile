@@ -492,9 +492,9 @@ describe('TrendingView', () => {
       });
       const nowRenderCountBeforeSwitch = mockTabRenderCounts.Now;
 
-      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-2'));
 
-      // The "Perps" tab (index 1) mounts once it becomes active.
+      // The "Perps" tab (index 2) mounts once it becomes active.
       await waitFor(() => {
         expect(mockTabRenderCounts.Perps).toBeGreaterThanOrEqual(1);
       });
