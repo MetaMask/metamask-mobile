@@ -772,7 +772,7 @@ jobs:
         env:
           WITH_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           WITHOUT_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
-          ALL_SECRETS: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
+          ALL_SECRETS: ${{ toJSON(secrets) }}
           CI: 'true'
           GITHUB_CI: 'true'
           PLATFORM: android

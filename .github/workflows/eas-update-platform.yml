@@ -139,7 +139,7 @@ jobs:
       - name: Set secrets from builds.yml mapping
         env:
           CONFIG_SECRETS: ${{ inputs.secrets_json }}
-          ALL_SECRETS: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
+          ALL_SECRETS: ${{ toJSON(secrets) }}
         run: node scripts/set-secrets-from-config.js
 
       - name: Determine signing secret name

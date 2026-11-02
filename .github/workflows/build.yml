@@ -499,7 +499,7 @@ jobs:
       - name: Validate secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
-          SECRETS_JSON: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
+          SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
 
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
@@ -519,7 +519,7 @@ jobs:
       - name: Set secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
-          ALL_SECRETS: ${{ toJSON(secrets) }} # zizmor: ignore[overprovisioned-secrets]
+          ALL_SECRETS: ${{ toJSON(secrets) }}
         run: node scripts/set-secrets-from-config.js
 
       # Android only: minimal env (SDK is pre-installed on Cirrus runner)
