@@ -1,5 +1,6 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { query } from '@metamask/controller-utils';
+import type { Hex } from '@metamask/utils';
 import type { Signer } from '../types';
 import {
   DEPOSIT_WALLET_FACTORY_ADDRESS,
@@ -140,11 +141,11 @@ describe('depositWallet', () => {
   });
 
   it('starts the UUPS deployment check before the factory beacon resolves', async () => {
-    let resolveBeacon: (value: string) => void = () => undefined;
+    let resolveBeacon: (value: Hex | undefined) => void = () => undefined;
     let resolveDeployed: (value: boolean) => void = () => undefined;
     const readFactoryBeacon = jest.fn(
       () =>
-        new Promise<string>((resolve) => {
+        new Promise<Hex | undefined>((resolve) => {
           resolveBeacon = resolve;
         }),
     );
