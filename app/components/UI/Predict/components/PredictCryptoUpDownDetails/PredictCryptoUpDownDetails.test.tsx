@@ -88,6 +88,33 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
+let mockPredictBrandRefreshEnabled = false;
+jest.mock('react-redux', () => {
+  const { selectPredictBrandRefreshEnabled } = jest.requireActual(
+    '../../../../../selectors/featureFlagController/predictBrandRefresh',
+  );
+  return {
+    ...jest.requireActual('react-redux'),
+    useSelector: (selector: unknown) =>
+      selector === selectPredictBrandRefreshEnabled
+        ? mockPredictBrandRefreshEnabled
+        : undefined,
+  };
+});
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
+
 jest.mock(
   '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
@@ -333,6 +360,7 @@ describe('PredictCryptoUpDownDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPredictBrandRefreshEnabled = false;
     mockChartCurrentPrice = undefined;
     mockUsePredictSeries.mockReturnValue({
       data: [
@@ -450,6 +478,43 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(
       screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the current header without glass capsules when the brand refresh is off', () => {
+    render(
+      <PredictCryptoUpDownDetails
+        market={createMockMarket()}
+        onBack={mockOnBack}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('capsule')).toBeNull();
+  });
+
+  it('renders back and share in glass capsules when the brand refresh is on', () => {
+    mockPredictBrandRefreshEnabled = true;
+
+    render(
+      <PredictCryptoUpDownDetails
+        market={createMockMarket()}
+        onBack={mockOnBack}
+      />,
+    );
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.getAllByTestId('capsule')).toHaveLength(2);
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
 
   it('calls usePredictShare with market id and slug', () => {
