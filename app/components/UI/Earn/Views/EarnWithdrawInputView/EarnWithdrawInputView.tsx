@@ -73,6 +73,9 @@ import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { formatChainIdForAnalytics } from '../../utils';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronUnstake from '../../hooks/useTronUnstake';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
@@ -80,8 +83,6 @@ import ResourceToggle from '../../components/Tron/ResourceToggle';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import { ComputeFeeResult } from '../../utils/tron-staking-snap';
-import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 ///: END:ONLY_INCLUDE_IF
 
 export const EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID =
