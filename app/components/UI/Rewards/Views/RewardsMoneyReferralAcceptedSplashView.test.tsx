@@ -21,6 +21,7 @@ const TEST_IDS = REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS;
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn();
 
 const mockHomeRoute = {
   key: 'home-key',
@@ -72,7 +73,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({
-      canGoBack: () => true,
+      canGoBack: mockCanGoBack,
       dispatch: mockDispatch,
       getState: () => ({
         index: mockRootRoutesBeforeDismiss.length - 1,
@@ -214,6 +215,7 @@ describe('fillInviteAcceptedBodyDate', () => {
 describe('RewardsMoneyReferralAcceptedSplashView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
   });
 
   const renderSplash = (
@@ -314,11 +316,22 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
 
-  it('opens the money dashboard when the splash is closed', () => {
+  it('returns to the screen the invite was offered over when the splash is closed', () => {
     const { getByTestId } = renderSplash();
 
     fireEvent.press(getByTestId(TEST_IDS.CLOSE));
 
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('opens the money dashboard when the splash is closed with nothing to go back to', () => {
+    mockCanGoBack.mockReturnValue(false);
+    const { getByTestId } = renderSplash();
+
+    fireEvent.press(getByTestId(TEST_IDS.CLOSE));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
 

@@ -151,9 +151,6 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
     ],
   );
 
-  // Rewards home is the root RewardsView stack. Drop the splash and every
-  // rewards screen above Home, then open the Money dashboard. Back leaves
-  // Rewards instead of returning to the pre-accept persona.
   const showMoneyDashboard = useCallback(() => {
     const kept = routesAtOrBelowHome(navigation.getState()?.routes);
     const routes: PartialState<NavigationState>['routes'] = [
@@ -171,9 +168,15 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
     );
   }, [navigation]);
 
-  const handleDismiss = useCallback(() => {
-    showMoneyDashboard();
-  }, [showMoneyDashboard]);
+  // Closing returns to the screen the invite was offered over, such as a
+  // deeplink's destination.
+  const handleClose = useCallback(() => {
+    if (!navigation.canGoBack()) {
+      showMoneyDashboard();
+      return;
+    }
+    navigation.goBack();
+  }, [navigation, showMoneyDashboard]);
 
   const handleStartTrading = useCallback(() => {
     showMoneyDashboard();
@@ -193,7 +196,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Sm}
-          onPress={handleDismiss}
+          onPress={handleClose}
           accessibilityLabel={localizedText?.inviteAcceptedCloseA11y ?? ''}
           testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.CLOSE}
         />
@@ -272,7 +275,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             isFullWidth
-            onPress={handleDismiss}
+            onPress={showMoneyDashboard}
             testID={
               REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.VIEW_REWARDS
             }
