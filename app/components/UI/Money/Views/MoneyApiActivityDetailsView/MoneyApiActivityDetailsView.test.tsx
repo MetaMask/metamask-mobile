@@ -95,6 +95,13 @@ let mockRouteParams:
       neobankActivity?: NeobankBankTransferActivity;
     }
   | undefined;
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: () => false,
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useRoute: () => ({
