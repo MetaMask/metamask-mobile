@@ -150,8 +150,8 @@ const closedStats = (item: {
  * one. Perps quote a price, and a closed spot card drops the side tag. Composer
  * spot shares reuse the open layout and gate Copy trade with `showCopyTrade`.
  *
- * Dark mode washes the card with the P&L hue. A closed card also outlines in
- * that hue, so a win and a loss still read while scrolling past at speed.
+ * Dark mode washes the card with the P&L hue. Open and closed cards share the
+ * muted 1px border.
  */
 export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   item,

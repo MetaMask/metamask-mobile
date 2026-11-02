@@ -86,23 +86,15 @@ const washColors = (muted: string, base: string): [string, string] => [
 ];
 
 const borderClassName = (
-  tone: PositionCardTone,
-  emphasizeBorder: boolean,
-): string => {
-  if (emphasizeBorder && tone === 'positive') {
-    return 'border-2 border-success-default';
-  }
-  if (emphasizeBorder && tone === 'negative') {
-    return 'border-2 border-error-default';
-  }
-  return 'border border-muted';
-};
+  _tone: PositionCardTone,
+  _emphasizeBorder: boolean,
+): string => 'border border-muted';
 
 export interface PositionCardShellProps {
   tone?: PositionCardTone;
   /**
-   * Closed cards outline in the P&L colour at 2px. Open cards keep the muted
-   * hairline even when the wash is tinted.
+   * Accepted for existing call sites. Every card uses the muted hairline;
+   * closed cards no longer take the thicker P&L outline.
    */
   emphasizeBorder?: boolean;
   /**
@@ -115,8 +107,8 @@ export interface PositionCardShellProps {
 
 /**
  * The surface a position card is drawn on. Dark mode lays a diagonal P&L wash
- * under the content. Light mode has no wash. A closed card's border takes the
- * same hue, heavier, so a win and a loss still read at a glance without it.
+ * under the content. Light mode has no wash. Open and closed cards share the
+ * muted 1px border.
  *
  * Liquid Glass was tried here and dropped -- a material that samples whatever
  * scrolled behind it reads as noise in a list of cards.

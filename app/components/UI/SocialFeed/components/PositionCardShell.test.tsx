@@ -127,11 +127,11 @@ describe('PositionCardShell', () => {
     expect(gradient.props.end.x).toBeCloseTo(0.3868, 3);
   });
 
-  it('keeps the 2px outline on a compact closed card', () => {
+  it('keeps the muted hairline on a compact closed card', () => {
     renderShell('positive', true, true);
 
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.success.default);
-    expect(cardStyleOf()?.borderWidth).toBe(2);
+    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
+    expect(cardStyleOf()?.borderWidth).toBe(1);
   });
 
   it('keeps a hairline border when the wash is tinted but the border is not emphasized', () => {
@@ -141,21 +141,21 @@ describe('PositionCardShell', () => {
     expect(cardStyleOf()?.borderWidth).toBe(1);
   });
 
-  it('outlines a winning card in green, twice as thick', () => {
+  it('keeps the muted hairline on a winning closed card', () => {
     renderShell('positive', true);
 
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.success.default);
-    expect(cardStyleOf()?.borderWidth).toBe(2);
+    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
+    expect(cardStyleOf()?.borderWidth).toBe(1);
   });
 
-  it('washes a losing card red and outlines it in red', () => {
+  it('washes a losing card red and keeps the muted hairline', () => {
     const utils = renderShell('negative', true);
 
     expect(gradientOf(utils).props.colors[0]).toBe(
       darkTheme.colors.error.muted,
     );
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.error.default);
-    expect(cardStyleOf()?.borderWidth).toBe(2);
+    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
+    expect(cardStyleOf()?.borderWidth).toBe(1);
   });
 
   it('leaves a neutral card without a wash', () => {
