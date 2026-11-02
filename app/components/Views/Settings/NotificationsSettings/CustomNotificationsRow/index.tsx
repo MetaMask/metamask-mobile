@@ -45,7 +45,7 @@ const CustomNotificationsRow = ({
         <Icon
           name={icon}
           style={styles.icon}
-          color={IconColor.Default}
+          color={IconColor.IconDefault}
           size={IconSize.Lg}
         />
       )}
