@@ -356,16 +356,16 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        const pending = expect(
-          service.validateReferralCode('ABC123'),
-        ).rejects.toMatchObject({
+        const pending = service
+          .validateReferralCode('ABC123')
+          .catch((error: unknown) => error);
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
           message: 'Validate referral code failed: 503',
         });
-        await jest.advanceTimersByTimeAsync(3000);
-
-        await pending;
         expect(mockFetch).toHaveBeenCalledTimes(2);
         expect(getBearerToken).not.toHaveBeenCalled();
       } finally {
@@ -420,14 +420,16 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        const pending = expect(service.getReferralMe()).rejects.toMatchObject({
+        const pending = service
+          .getReferralMe()
+          .catch((error: unknown) => error);
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
           message: 'Get referral me failed: 503',
         });
-        await jest.advanceTimersByTimeAsync(3000);
-
-        await pending;
         expect(mockFetch).toHaveBeenCalledTimes(2);
       } finally {
         jest.useRealTimers();
@@ -1064,16 +1066,16 @@ describe('RewardsMoneyDataService', () => {
       });
       jest.useFakeTimers();
       try {
-        const busyQuotePending = expect(
-          service.getRebateQuote({ product: 'perps' }),
-        ).rejects.toMatchObject({
+        const busyQuotePending = service
+          .getRebateQuote({ product: 'perps' })
+          .catch((error: unknown) => error);
+        await jest.advanceTimersByTimeAsync(3000);
+        await expect(busyQuotePending).resolves.toMatchObject({
           status: 503,
           failure: 'UNAVAILABLE',
           detail: 'Server busy, retry shortly',
           retryAfterSeconds: 2,
         });
-        await jest.advanceTimersByTimeAsync(3000);
-        await busyQuotePending;
       } finally {
         jest.useRealTimers();
       }
