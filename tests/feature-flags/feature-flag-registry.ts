@@ -4180,46 +4180,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  musd1313AbtestEarnSectionOnHomepage: {
-    name: 'musd1313AbtestEarnSectionOnHomepage',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-        thresholdName: 'control',
-        thresholdVersion: 2,
-        value: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-        thresholdName: 'treatment',
-        thresholdVersion: 2,
-        value: 'treatment',
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnHomeSectionEnabled: {
-    name: 'earnHomeSectionEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnExploreSectionEnabled: {
     name: 'earnExploreSectionEnabled',
     type: FeatureFlagType.Remote,
@@ -5129,6 +5089,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '8.18.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  glassHeaders: {
+    name: 'glassHeaders',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.20.0',
     },
     status: FeatureFlagStatus.Active,
   },

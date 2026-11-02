@@ -1623,6 +1623,11 @@
       "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
     },
     "all_networks": "All networks",
+    "position_flags": {
+      "insider": "Insider allocation - excluded",
+      "developer": "Contract creator - excluded",
+      "excluded": "Excluded from PnL"
+    },
     "trader_profile": {
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
@@ -1700,11 +1705,21 @@
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
       "joined": "Joined {{time}}",
+      "x_link": "X",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
       "retry": "Try again"
+    },
+    "terms": {
+      "title": "Review our Terms of Use",
+      "close": "Close",
+      "checkbox": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+      "agree": "Agree",
+      "scroll_helper": "Please scroll to read all sections",
+      "scroll_to_bottom": "Scroll to the bottom",
+      "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
     "profile_onboarding": {
       "intro_title": "See trades as they happen",
@@ -1714,6 +1729,8 @@
       "just_now": "just now",
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
+      "connect_x_before_logo": "Connect",
+      "connect_x_after_logo": "account",
       "create_manually": "Create profile manually",
       "choose_x_identity": "Choose a MetaMask username and avatar",
       "choose_x_identity_description": "This is how other traders will know who you are.",
@@ -1746,10 +1763,6 @@
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "select_account": "Select an account",
-      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
-      "link_account_benefit_private": "Your account address stays private.",
-      "link_account_benefit_follow": "Other traders can follow your profile.",
-      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
       "link_account_change_footnote": "You can change your linked account every 30 days.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
@@ -1759,6 +1772,13 @@
       "lets_go": "Let's go",
       "continue": "Continue"
     },
+    "trading_activity_benefits": {
+      "positions": "Your profile shows all of this account's positions.",
+      "performance": "Trade performance, including profit and win rate, covers the last 30 days.",
+      "fees": "Earn 15% on fees when someone copies your trades.",
+      "private": "Your account address stays private.",
+      "follow": "Other traders can follow your profile."
+    },
     "manage_profile": {
       "title": "Manage profile",
       "about": "About",
@@ -1766,7 +1786,7 @@
       "display_name": "Display name",
       "handle": "Handle",
       "bio": "Bio",
-      "socials": "Socials",
+      "x_account": "X account",
       "trading_activity": "Trading activity",
       "trading_activity_on": "On",
       "trading_activity_off": "Off",
@@ -1780,7 +1800,6 @@
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
-      "show_trading_activity_subtitle": "Public and available to copy",
       "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
       "trading_activity_info": "More information about trading activity",
       "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
@@ -2345,6 +2364,7 @@
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
+      "fees_taker_maker": "Taker {{taker}}% / Maker {{maker}}%",
       "estimated_points": "Est. points",
       "market": "Market",
       "limit": "Limit",
@@ -3697,7 +3717,7 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcome": "Outcome"
+      "outcomes": "Outcomes"
     },
     "search": {
       "placeholder": "Search markets",
@@ -3872,7 +3892,8 @@
       "line_unavailable": "line unavailable",
       "price_unavailable": "price unavailable",
       "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
-      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
+      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}",
+      "choice_accessibility_label": "{{option}}, {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",
@@ -4531,6 +4552,9 @@
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
+    "search_tokens": "Search tokens",
+    "no_tokens_match_search": "No tokens match your search",
+    "clear_search": "Clear search",
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
@@ -4571,8 +4595,14 @@
     "current_network": "Current network",
     "popular_networks": "Popular networks",
     "all_networks": "All networks",
-    "declining_balance": "Declining balance ({{currency}} high-low)",
-    "alphabetically": "Alphabetically (A-Z)",
+    "sort_balance": "Balance",
+    "sort_name": "Name",
+    "sort_high_to_low": "High to low",
+    "sort_low_to_high": "Low to high",
+    "sort_a_to_z": "A to Z",
+    "sort_z_to_a": "Z to A",
+    "sort_apply": "Apply",
+    "sort_reset": "Reset",
     "add_to_get_started": "Add crypto to get started",
     "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
     "fund_your_wallet": "Fund your wallet",
@@ -4712,6 +4742,7 @@
       "all": "All types",
       "transactions": "Transactions",
       "buy_sell": "Buy/Sell",
+      "limit_orders": "Limit orders",
       "perps": "Perps",
       "predictions": "Predictions",
       "metamask_card": "Card"
@@ -4754,6 +4785,10 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
+      },
+      "limit_orders": {
+        "description": "Your filled limit orders will show up here.",
+        "action": "Swap tokens"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",
@@ -5127,7 +5162,7 @@
     "card_update_badge": "Update",
     "settings": "Settings",
     "networks": "Networks",
-    "log_out": "Log out",
+    "log_out": "Lock",
     "notifications": "Notifications",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Join MetaMask Orange",
@@ -5167,7 +5202,7 @@
     "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
     "x_account_disconnect_body": "Disconnecting removes your X handle from your MetaMask profile. You can reconnect at any time.",
     "x_account_disconnect_sheet_title": "Disconnect X account?",
-    "x_account_disconnect_sheet_body": "{{handle}} will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_sheet_body": "{{handle}} on X will no longer be connected to your MetaMask profile. Your username, posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
@@ -5698,7 +5733,9 @@
         "title": "Social Leaderboard",
         "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
         "onboarding_seen": "Onboarding seen: {{seen}}",
-        "reset_onboarding": "Reset onboarding"
+        "reset_onboarding": "Reset onboarding",
+        "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
+        "reset_terms": "Reset Social Terms of Use"
       },
       "new_wallet": {
         "title": "New wallet",
@@ -8648,7 +8685,6 @@
       "resend": "Resend code",
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
-      "paste": "Paste",
       "verifying": "Verifying code",
       "get_new_code": "Get new code"
     },
@@ -9717,6 +9753,9 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
+      "microdeposit": "Test Deposit",
+      "microdeposit_from": "From {{name}}",
+      "microdeposit_from_bank": "From your bank",
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
@@ -13161,6 +13200,8 @@
     "membership_label": "Pro",
     "membership_status": {
       "active": "Active",
+      "processing": "Processing",
+      "free_trial": "Free trial",
       "overdue": "Overdue",
       "deactivated": "Deactivated",
       "cancelled": "Cancelled",
@@ -13375,8 +13416,17 @@
         "description": "Get priority customer support from a real human—anytime, any day."
       }
     },
+    "payment": {
+      "processing_title": "Processing payment",
+      "processing_body": "This may take a few minutes.",
+      "active_title": "Your membership is active",
+      "view_membership": "View membership",
+      "failed_title": "Payment failed",
+      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "try_again": "Try again"
+    },
     "success": {
-      "title": "You just leveled up, {{name}}",
+      "title": "You just leveled up",
       "description": "Time to start earning.",
       "cta": "Continue"
     }

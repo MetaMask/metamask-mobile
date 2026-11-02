@@ -23,6 +23,7 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { usePredictWithdrawGasFeeToken } from '../../../hooks/gas/usePredictWithdrawGasFeeToken';
 
 export function CustomAmountConfirmButton({
   isDisabled,
@@ -39,6 +40,10 @@ export function CustomAmountConfirmButton({
     useConfirmationContext();
   const { onConfirm } = useConfirmActions();
   const isPayLoading = useIsTransactionPayLoading();
+  // Keep confirm disabled, without an alert, until the Predict withdraw gas
+  // fee token check settles, so the insufficient balance alert doesn't flash.
+  const { isPending: isPredictWithdrawGasFeeTokenPending } =
+    usePredictWithdrawGasFeeToken();
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
@@ -57,6 +62,7 @@ export function CustomAmountConfirmButton({
     stage !== CustomAmountStage.ShowTotals ||
     hasBlockingAlerts ||
     isPayLoading ||
+    isPredictWithdrawGasFeeTokenPending ||
     isHeadlessBuyInProgress;
 
   const buttonLabel = useButtonLabel();

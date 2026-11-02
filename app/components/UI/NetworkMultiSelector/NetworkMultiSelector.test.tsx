@@ -116,6 +116,11 @@ jest.mock('../../../util/networks/customNetworks', () => ({
   PopularList: [],
 }));
 
+const mockTrackFiltering = jest.fn();
+jest.mock('../Tokens/hooks/useTokenListFilteringEvent', () => ({
+  useTokenListFilteringEvent: () => mockTrackFiltering,
+}));
+
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
@@ -1336,6 +1341,7 @@ describe('NetworkMultiSelector', () => {
         'mock-network-multi-selector-list',
       ).props.onSelectNetwork('eip155:8453');
 
+      expect(mockTrackFiltering).not.toHaveBeenCalled();
       const trackEventCall = mockTrackEvent.mock.calls[0][0];
       expect(trackEventCall.properties).toMatchObject({
         chain_id: '8453',
@@ -1618,6 +1624,7 @@ describe('NetworkMultiSelector', () => {
         <NetworkMultiSelector
           openModal={mockOpenModal}
           dismissModal={jest.fn()}
+          searchQuery="eth"
         />,
       );
 
@@ -1635,6 +1642,11 @@ describe('NetworkMultiSelector', () => {
           }),
         }),
       );
+
+      expect(mockTrackFiltering).toHaveBeenCalledWith('network_switched', {
+        searchQuery: 'eth',
+        networkFilter: 'eip155:1',
+      });
     });
 
     it('tracks NETWORK_SWITCHED event when switching from a specific network to All Networks', async () => {
@@ -1695,6 +1707,7 @@ describe('NetworkMultiSelector', () => {
         <NetworkMultiSelector
           openModal={mockOpenModal}
           dismissModal={jest.fn()}
+          searchQuery=""
         />,
       );
 
@@ -1712,6 +1725,11 @@ describe('NetworkMultiSelector', () => {
           }),
         }),
       );
+
+      expect(mockTrackFiltering).toHaveBeenCalledWith('network_switched', {
+        searchQuery: '',
+        networkFilter: undefined,
+      });
     });
 
     it('does not track NETWORK_SWITCHED event when selecting the same network', async () => {
