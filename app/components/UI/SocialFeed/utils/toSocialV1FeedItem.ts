@@ -91,13 +91,6 @@ export const deriveExitPrice = (core: Position): number | null => {
       latest = trade;
     }
   }
-  const lastExit = exitFills.reduce(
-    (latest, trade) =>
-      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
-        ? trade
-        : latest,
-    exitFills[0],
-  );
 
   return toUnitPrice(latest);
 };
