@@ -37,7 +37,10 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
-import { useMoneyNavigation , useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import {
+  useMoneyNavigation,
+  useMoneyDepositNavigation,
+} from '../../hooks/useMoneyNavigation';
 import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
