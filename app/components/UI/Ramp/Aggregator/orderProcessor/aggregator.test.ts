@@ -746,11 +746,11 @@ describe('processAggregatorOrder', () => {
       data: { ...mockOrder.data, status: 'PENDING' },
     } as FiatOrder;
 
-    it('marks the order final from statusReason alone and keeps its stored data', async () => {
+    it('marks an UNKNOWN order final when statusReason is PROVIDER_REMOVED and keeps its stored data', async () => {
       jest.spyOn(Date, 'now').mockReturnValue(1673886669700);
       mockGetOrder.mockImplementation(() => ({
         id: 'test-id',
-        status: 'PENDING',
+        status: 'UNKNOWN',
         statusReason: 'PROVIDER_REMOVED',
         statusDescription: description,
         fiatAmount: 1,
@@ -806,6 +806,29 @@ describe('processAggregatorOrder', () => {
 
       expect(updatedOrder.providerRemoved).toBe(true);
       expect(updatedOrder.forceUpdate).toBe(false);
+    });
+
+    it('keeps polling a PENDING order that also carries PROVIDER_REMOVED', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(2_000_000);
+      mockGetOrder.mockImplementation(() => ({
+        ...mockOrder.data,
+        status: 'PENDING',
+        statusReason: 'PROVIDER_REMOVED',
+        statusDescription: description,
+      }));
+
+      const first = await processAggregatorOrder(pendingOrder);
+
+      expect(first.providerRemoved).toBeUndefined();
+      expect(first.statusDescription).toBeUndefined();
+      expect(mockGetOrder).toHaveBeenCalledTimes(1);
+
+      jest.spyOn(Date, 'now').mockReturnValue(2_000_000 + POLLING_FREQUENCY);
+      const second = await processAggregatorOrder(first);
+
+      expect(mockGetOrder).toHaveBeenCalledTimes(2);
+      expect(second.providerRemoved).toBeUndefined();
+      expect(second.state).toBe('PENDING');
     });
 
     it('does not fetch a provider-removed order, even when forced', async () => {

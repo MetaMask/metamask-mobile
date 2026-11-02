@@ -133,8 +133,9 @@ export async function processUnifiedOrder(
     }
 
     if (
+      updatedOrder.status === 'UNKNOWN' &&
       (updatedOrder as RampsOrder & { statusReason?: string }).statusReason ===
-      PROVIDER_REMOVED_STATUS_REASON
+        PROVIDER_REMOVED_STATUS_REASON
     ) {
       return {
         ...order,

@@ -3,6 +3,7 @@ import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
 import {
   orderStatusToFiatOrderState,
   processUnifiedOrder,
+  POLLING_FREQUENCY,
   POLLING_FREQUENCY_IN_SECONDS,
   MAX_ERROR_COUNT,
 } from './unifiedOrderProcessor';
@@ -596,10 +597,10 @@ describe('processUnifiedOrder', () => {
   describe('provider removed', () => {
     const description = 'This provider is no longer available in MetaMask.';
 
-    it('marks the order final from statusReason alone and keeps its stored data', async () => {
+    it('marks an UNKNOWN order final when statusReason is PROVIDER_REMOVED and keeps its stored data', async () => {
       mockGetOrder.mockResolvedValue({
         ...mockRampsOrder,
-        status: RampsOrderStatus.Completed,
+        status: RampsOrderStatus.Unknown,
         statusReason: 'PROVIDER_REMOVED',
         statusDescription: description,
         fiatAmount: 1,
@@ -652,6 +653,29 @@ describe('processUnifiedOrder', () => {
 
       expect(result.providerRemoved).toBe(true);
       expect(result.forceUpdate).toBe(false);
+    });
+
+    it('keeps polling a PENDING order that also carries PROVIDER_REMOVED', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(2_000_000);
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Pending,
+        statusReason: 'PROVIDER_REMOVED',
+        statusDescription: description,
+      });
+
+      const first = await processUnifiedOrder(mockOrder);
+
+      expect(first.providerRemoved).toBeUndefined();
+      expect(first.statusDescription).toBeUndefined();
+      expect(mockGetOrder).toHaveBeenCalledTimes(1);
+
+      jest.spyOn(Date, 'now').mockReturnValue(2_000_000 + POLLING_FREQUENCY);
+      const second = await processUnifiedOrder(first);
+
+      expect(mockGetOrder).toHaveBeenCalledTimes(2);
+      expect(second.providerRemoved).toBeUndefined();
+      expect(second.state).toBe(FIAT_ORDER_STATES.PENDING);
     });
 
     it('does not fetch a provider-removed order, even when forced', async () => {

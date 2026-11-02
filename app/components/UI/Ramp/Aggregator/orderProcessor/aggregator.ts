@@ -126,6 +126,7 @@ export async function processAggregatorOrder(
     }
 
     if (
+      updatedOrder.status === OrderStatusEnum.Unknown &&
       (updatedOrder as typeof updatedOrder & { statusReason?: string })
         .statusReason === PROVIDER_REMOVED_STATUS_REASON
     ) {
