@@ -13,9 +13,10 @@ import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
 import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 import { mapAutorampTransactionToNeobankActivity } from '../utils/neobankActivity';
 import { selectMoneyVbaPendingActivityEnabled } from '../selectors/featureFlags';
-
-const POLL_INTERVAL_MS = 10_000;
-const LOW_SLOW_POLL_INTERVAL_MS = 60_000;
+import {
+  MONEY_POLL_INTERVAL_MS,
+  MONEY_SLOW_POLL_INTERVAL_MS,
+} from '../constants/polling';
 
 const EMPTY_AUTORAMPS: AutorampAccount[] = [];
 const EMPTY_ACTIVITY: NeobankBankTransferActivity[] = [];
@@ -264,8 +265,8 @@ export function useNeobankAutorampActivity(
   });
 
   const intervalMs = lowSlowNetwork
-    ? LOW_SLOW_POLL_INTERVAL_MS
-    : POLL_INTERVAL_MS;
+    ? MONEY_SLOW_POLL_INTERVAL_MS
+    : MONEY_POLL_INTERVAL_MS;
   const pollKey = `${walletKey}:${autoramp?.id ?? ''}`;
 
   useEffect(() => {

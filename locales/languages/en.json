@@ -9748,6 +9748,9 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
+      "microdeposit": "Test Deposit",
+      "microdeposit_from": "From {{name}}",
+      "microdeposit_from_bank": "From your bank",
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
