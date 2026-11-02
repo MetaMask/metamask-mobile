@@ -525,3 +525,18 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
 } as const;
 /** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;
+
+/** Perps home Live trades tab. */
+export const PERPS_LIVE_TRADES_CONFIG = {
+  MaxTrades: 5,
+  /** Only trades from traders above this win rate are shown. */
+  MinWinRatePercent: 50,
+  /** Win rates at or above this are highlighted. */
+  HighlightWinRatePercent: 70,
+  /** At most one new trade is added per interval. */
+  RevealIntervalMs: 1_000,
+  /** Live updates start this far before the section scrolls into view. */
+  NearViewportMarginPx: 200,
+  AvatarSize: 40,
+  AnimationDurationMs: 250,
+} as const;

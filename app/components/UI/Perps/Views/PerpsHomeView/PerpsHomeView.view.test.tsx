@@ -34,6 +34,7 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  getPerpsLiveTradeRowSelector,
   getPerpsMarketRowItemSelector,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
@@ -43,7 +44,9 @@ import { clearExploreSessionTab } from '../../components/PerpsExploreSection/exp
 import { EXPLORE_WATCHLIST_TAB_ID } from '../../components/PerpsExploreSection/PerpsExploreSection.types';
 import {
   PERPS_HOME_EXPLORE_AB_TEST_KEY,
+  PERPS_LIVE_TRADES_AB_TEST_KEY,
   PerpsHomeExploreVariant,
+  PerpsLiveTradesVariant,
 } from '../../abTestConfig';
 import { PerpsHomeSectionTestIds } from '../../components/PerpsHomeSection/PerpsHomeSection.testIds';
 import { PerpsOutreachBannerSelectorsIDs } from '../../components/PerpsOutreachBanner';
@@ -762,6 +765,193 @@ describe('PerpsHomeView', () => {
         'SocialService:fetchLeaderboard',
         expect.anything(),
       );
+    });
+
+    it('does not offer Live trades outside the Live trades test', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      await findSection();
+      expect(
+        screen.queryByTestId(
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST),
+      ).not.toBeOnTheScreen();
+    });
+
+    describe('Live trades test', () => {
+      const liveTradesOverrides = {
+        engine: {
+          backgroundState: {
+            ...socialOverrides.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                ...socialOverrides.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                [PERPS_LIVE_TRADES_AB_TEST_KEY]:
+                  PerpsLiveTradesVariant.Treatment,
+              },
+            },
+          },
+        },
+      };
+      const buildLiveTrade = (id: string, name: string, winRate30d: number) =>
+        mockPerpFeedItem({
+          positionId: `live-${id}`,
+          timestamp: 1_700_000_600,
+          lastTradeAt: 1_700_000_600,
+          actor: {
+            profileId: `live-trader-${id}`,
+            address: '0x3333333333333333333333333333333333333333',
+            name,
+            imageUrl: null,
+            winRate30d,
+          },
+        });
+      const highWinRateTrade = buildLiveTrade('high', 'MoonMochi', 0.72);
+      const lowWinRateTrade = buildLiveTrade('low', 'LowRate', 0.4);
+      const rowIdOf = (item: typeof highWinRateTrade) =>
+        getPerpsLiveTradeRowSelector(`${item.positionId}-${item.timestamp}`);
+
+      it('shows Live trades first and selected, with perp trades from traders above 50% win rate', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade, lowWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        const highRow = await screen.findByTestId(
+          rowIdOf(highWinRateTrade),
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+        expect(within(highRow).getByText('MoonMochi')).toBeOnTheScreen();
+        expect(within(highRow).getByText('72%')).toBeOnTheScreen();
+        expect(
+          within(highRow).getByText(strings('perps.home.win_rate')),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(rowIdOf(lowWinRateTrade)),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByText(strings('perps.home.live_trades_subtitle')),
+        ).toBeOnTheScreen();
+
+        const pillIds = [
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL,
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TRENDING_PILL,
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL,
+        ];
+        const orderedPillIds = screen.UNSAFE_root.findAll((node) =>
+          pillIds.includes(node.props.testID),
+        ).map((node) => node.props.testID);
+        expect([...new Set(orderedPillIds)]).toEqual(pillIds);
+
+        expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+          'SocialService:fetchFeed',
+          expect.objectContaining({
+            scope: 'all',
+            chains: ['eip155:999'],
+          }),
+        );
+      });
+
+      it('shows the error state and recovers on retry', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade],
+          feedFailuresBeforeSuccess: 1,
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(
+            SOCIAL_FEED_RETRY_TEST_ID,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        );
+
+        expect(
+          await screen.findByTestId(
+            rowIdOf(highWinRateTrade),
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      it('shows the empty state when no trader is above the win rate threshold', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [lowWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        expect(
+          await screen.findByTestId(
+            SOCIAL_FEED_EMPTY_TEST_ID,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('switches from Live trades to Trending', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade, ...feedItems],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST,
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TRENDING_PILL,
+          ),
+        );
+
+        expect(
+          screen.queryByTestId(PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST),
+        ).not.toBeOnTheScreen();
+        expect(
+          await screen.findByTestId(
+            `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${trendingPostIds[0]}`,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('shows the top 5 perps traders after switching to Top traders', async () => {
