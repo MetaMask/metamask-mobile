@@ -322,12 +322,12 @@ describe('PerpsClosePositionRouter', () => {
       expect(await findPnlRow()).toHaveTextContent('+$100 (+12.00%)');
     });
 
-    it('keeps a minus sign on a limit RoE that rounds to zero from below', async () => {
+    it('keeps a minus sign on a long limit RoE that rounds to zero from below', async () => {
       // Entry 2500, 1x leverage, limit at the live price 2499.9: the RoE at
       // that price is -0.004%, which rounds to -0.00%, and the minus sign
       // must survive the rounding so the percentage agrees with the -$0.10
       // limit P&L rendered beside it.
-      const longResult = renderTreatmentSheet(
+      renderTreatmentSheet(
         createLongPositionForViews({
           leverage: { type: 'isolated', value: 1 },
         }),
@@ -337,13 +337,13 @@ describe('PerpsClosePositionRouter', () => {
       await selectLimitAtMidPrice();
 
       expect(await findPnlRow()).toHaveTextContent('-$0.10 (-0.00%)');
+    });
 
-      // A short position with the limit just above the entry price rounds
-      // to zero from below the same way: limit 2500.1 gives -$0.10 (-0.00%).
-      longResult.unmount();
-      // The sheet remembers the last order type across mounts; reset so the
-      // second render opens in market mode like the first.
-      resetLastCloseOrderType();
+    it('keeps a minus sign on a short limit RoE that rounds to zero from below', async () => {
+      // Short 1 ETH, entry 2500, 1x leverage, limit at the live price 2500.1:
+      // the RoE at that price is -0.004%, which rounds to -0.00% the same
+      // way, and the minus sign must survive the rounding so the percentage
+      // agrees with the -$0.10 limit P&L rendered beside it.
       renderTreatmentSheet(
         createLongPositionForViews({
           size: '-1',
@@ -355,6 +355,20 @@ describe('PerpsClosePositionRouter', () => {
       await selectLimitAtMidPrice();
 
       expect(await findPnlRow()).toHaveTextContent('-$0.10 (-0.00%)');
+    });
+
+    it('keeps the plain percentage for a market RoE of exactly zero', async () => {
+      // A market close with a $P&L of exactly 0 and a returnOnEquity of
+      // -0.0: the minus-sign handling above requires a negative $P&L, so
+      // this row keeps the plain "+0.00%" instead of "-0.00%".
+      renderTreatmentSheet(
+        createLongPositionForViews({
+          unrealizedPnl: '0',
+          returnOnEquity: '-0.0',
+        }),
+      );
+
+      expect(await findPnlRow()).toHaveTextContent('+$0 (+0.00%)');
     });
 
     it('keeps the RoE at the limit price when the live price moves after it is set', async () => {
