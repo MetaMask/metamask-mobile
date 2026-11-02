@@ -30,3 +30,7 @@ export const FORMATTED_NETWORK_NAMES = {
 } as const;
 
 export const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+// On-ramp API `statusReason` for orders whose provider was removed. Final on
+// the client, whatever `status` or `canBeUpdated` say.
+export const PROVIDER_REMOVED_STATUS_REASON = 'PROVIDER_REMOVED';

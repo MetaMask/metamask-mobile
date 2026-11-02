@@ -306,6 +306,7 @@ describe('processUnifiedOrder', () => {
         ...mockOrder,
         errorCount: 1,
         lastTimeFetched: now,
+        fetchErrorCount: 1,
       });
       expect(Logger.error).toHaveBeenCalled();
     });
@@ -322,6 +323,7 @@ describe('processUnifiedOrder', () => {
         ...mockOrder,
         errorCount: 1,
         lastTimeFetched: now,
+        fetchErrorCount: 1,
       });
       expect(Logger.error).toHaveBeenCalled();
     });
@@ -344,6 +346,7 @@ describe('processUnifiedOrder', () => {
         ...badOrder,
         errorCount: 1,
         lastTimeFetched: now,
+        fetchErrorCount: 1,
       });
       expect(Logger.error).toHaveBeenCalled();
     });
@@ -517,6 +520,7 @@ describe('processUnifiedOrder', () => {
       });
 
       expect(result.errorCount).toBe(1);
+      expect(result.fetchErrorCount).toBe(1);
       expect(result.lastTimeFetched).toBe(now);
     });
 
@@ -540,6 +544,109 @@ describe('processUnifiedOrder', () => {
       }
 
       expect(order.errorCount).toBe(MAX_ERROR_COUNT);
+      expect(order.fetchErrorCount).toBe(MAX_ERROR_COUNT);
+    });
+  });
+
+  describe('stop at MAX_ERROR_COUNT', () => {
+    it('does not fetch once fetchErrorCount reaches MAX_ERROR_COUNT', async () => {
+      const order = { ...mockOrder, fetchErrorCount: MAX_ERROR_COUNT };
+
+      const result = await processUnifiedOrder(order);
+
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(result).toBe(order);
+    });
+
+    it('fetches at MAX_ERROR_COUNT when forced', async () => {
+      await processUnifiedOrder(
+        { ...mockOrder, fetchErrorCount: MAX_ERROR_COUNT },
+        { forced: true },
+      );
+
+      expect(mockGetOrder).toHaveBeenCalledWith('transak', 'abc-123', '0xabc');
+    });
+
+    it('keeps polling a plain UNKNOWN order at errorCount MAX_ERROR_COUNT', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Unknown,
+      });
+
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        errorCount: MAX_ERROR_COUNT,
+        fetchErrorCount: 0,
+      });
+
+      expect(mockGetOrder).toHaveBeenCalledWith('transak', 'abc-123', '0xabc');
+      expect(result.errorCount).toBe(MAX_ERROR_COUNT);
+    });
+
+    it('resets fetchErrorCount on a successful reply', async () => {
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        fetchErrorCount: MAX_ERROR_COUNT - 1,
+      });
+
+      expect(result.fetchErrorCount).toBe(0);
+    });
+  });
+
+  describe('provider removed', () => {
+    const description = 'This provider is no longer available in MetaMask.';
+
+    it('marks the order final from statusReason alone and keeps its stored data', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Completed,
+        statusReason: 'PROVIDER_REMOVED',
+        statusDescription: description,
+        fiatAmount: 1,
+        cryptoCurrency: { symbol: 'XYZ', decimals: 6, chainId: 'eip155:10' },
+      });
+
+      const result = await processUnifiedOrder(mockOrder);
+
+      expect(result).toEqual({
+        ...mockOrder,
+        lastTimeFetched: now,
+        fetchErrorCount: 0,
+        providerRemoved: true,
+        statusDescription: description,
+      });
+    });
+
+    it('marks the order final on a forced fetch that returns PROVIDER_REMOVED', async () => {
+      mockGetOrder.mockResolvedValue({
+        id: 'blockchaindotcom/orders/o-2',
+        status: RampsOrderStatus.Unknown,
+        statusReason: 'PROVIDER_REMOVED',
+        statusDescription: description,
+      });
+
+      const result = await processUnifiedOrder(mockOrder, { forced: true });
+
+      expect(result).toMatchObject({
+        providerRemoved: true,
+        state: mockOrder.state,
+        amount: mockOrder.amount,
+        cryptocurrency: mockOrder.cryptocurrency,
+        data: mockOrder.data,
+      });
+    });
+
+    it('does not fetch a provider-removed order, even when forced', async () => {
+      const finalOrder = {
+        ...mockOrder,
+        providerRemoved: true,
+        statusDescription: description,
+      };
+
+      const result = await processUnifiedOrder(finalOrder, { forced: true });
+
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(result).toBe(finalOrder);
     });
   });
 });

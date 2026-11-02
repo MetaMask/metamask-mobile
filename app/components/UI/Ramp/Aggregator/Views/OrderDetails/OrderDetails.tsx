@@ -44,6 +44,7 @@ import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
+import { AggregatorOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 export interface OrderDetailsParams {
   orderId?: string;
@@ -272,6 +273,7 @@ const OrderDetails = () => {
         onBack={() => navigation.goBack()}
       />
       <ScrollView
+        testID={AggregatorOrderDetailsSelectorsIDs.SCROLL_VIEW}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}

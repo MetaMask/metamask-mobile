@@ -2,6 +2,7 @@ import { type RampsOrder } from '@metamask/ramps-controller';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
+  PROVIDER_REMOVED_STATUS_REASON,
 } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
@@ -73,6 +74,18 @@ export async function processUnifiedOrder(
 ): Promise<FiatOrder> {
   const now = Date.now();
 
+  // Forced refreshes included: the order is final and keeps its stored data.
+  if (order.providerRemoved) {
+    return order;
+  }
+
+  if (
+    options?.forced !== true &&
+    (order.fetchErrorCount ?? 0) >= MAX_ERROR_COUNT
+  ) {
+    return order;
+  }
+
   // Exponential backoff on errors
   if (
     options?.forced !== true &&
@@ -119,6 +132,19 @@ export async function processUnifiedOrder(
       throw new Error('Order not found');
     }
 
+    if (
+      (updatedOrder as RampsOrder & { statusReason?: string }).statusReason ===
+      PROVIDER_REMOVED_STATUS_REASON
+    ) {
+      return {
+        ...order,
+        lastTimeFetched: now,
+        fetchErrorCount: 0,
+        providerRemoved: true,
+        statusDescription: updatedOrder.statusDescription,
+      };
+    }
+
     // Handle unknown status: increment error count and wait for retry.
     // Cap at MAX_ERROR_COUNT to prevent the exponential backoff from growing
     // indefinitely and making the order unresponsive.
@@ -127,6 +153,7 @@ export async function processUnifiedOrder(
         ...order,
         lastTimeFetched: Date.now(),
         errorCount: Math.min((order.errorCount || 0) + 1, MAX_ERROR_COUNT),
+        fetchErrorCount: 0,
       };
     }
 
@@ -146,6 +173,7 @@ export async function processUnifiedOrder(
       account: order.account || transformedOrder.account,
       lastTimeFetched: now,
       errorCount: 0,
+      fetchErrorCount: 0,
       forceUpdate: isTerminalState ? false : order.forceUpdate,
     };
   } catch (error) {
@@ -157,6 +185,10 @@ export async function processUnifiedOrder(
       ...order,
       lastTimeFetched: now,
       errorCount: Math.min((order.errorCount || 0) + 1, MAX_ERROR_COUNT),
+      fetchErrorCount: Math.min(
+        (order.fetchErrorCount ?? 0) + 1,
+        MAX_ERROR_COUNT,
+      ),
     };
   }
 }

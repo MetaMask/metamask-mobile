@@ -3,6 +3,7 @@ import { SDK } from '../sdk';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
+  PROVIDER_REMOVED_STATUS_REASON,
 } from '../../../../../constants/on-ramp';
 import Logger from '../../../../../util/Logger';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
@@ -76,6 +77,18 @@ export async function processAggregatorOrder(
 ): Promise<FiatOrder> {
   const now = Date.now();
 
+  // Forced refreshes included: the order is final and keeps its stored data.
+  if ((order as FiatOrder).providerRemoved) {
+    return order as FiatOrder;
+  }
+
+  if (
+    options?.forced !== true &&
+    ((order as FiatOrder).fetchErrorCount ?? 0) >= MAX_ERROR_COUNT
+  ) {
+    return order as FiatOrder;
+  }
+
   /**
    * If the order had errors, we don't fetch it unless
    * POLLING_FRECUENCY ^ (errorCount + 1) seconds has passed
@@ -113,6 +126,19 @@ export async function processAggregatorOrder(
     }
 
     if (
+      (updatedOrder as typeof updatedOrder & { statusReason?: string })
+        .statusReason === PROVIDER_REMOVED_STATUS_REASON
+    ) {
+      return {
+        ...order,
+        lastTimeFetched: now,
+        fetchErrorCount: 0,
+        providerRemoved: true,
+        statusDescription: updatedOrder.statusDescription,
+      } as FiatOrder;
+    }
+
+    if (
       options?.forced !== true &&
       updatedOrder.status === OrderStatusEnum.Unknown
     ) {
@@ -120,6 +146,7 @@ export async function processAggregatorOrder(
         ...order,
         lastTimeFetched: Date.now(),
         errorCount: (order.errorCount || 0) + 1,
+        fetchErrorCount: 0,
       };
     }
 
@@ -133,6 +160,7 @@ export async function processAggregatorOrder(
       account: order.account || transformedOrder.account,
       lastTimeFetched: now,
       errorCount: 0,
+      fetchErrorCount: 0,
     };
   } catch (error) {
     Logger.error(error as Error, {
@@ -147,6 +175,10 @@ export async function processAggregatorOrder(
       ...order,
       lastTimeFetched: now,
       errorCount: Math.min((order.errorCount || 0) + 1, MAX_ERROR_COUNT),
+      fetchErrorCount: Math.min(
+        ((order as FiatOrder).fetchErrorCount ?? 0) + 1,
+        MAX_ERROR_COUNT,
+      ),
     } as FiatOrder;
   }
 }

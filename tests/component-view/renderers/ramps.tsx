@@ -20,6 +20,8 @@ import {
 } from '../../../app/components/UI/Ramp/Aggregator/sdk';
 import BuildQuote from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote';
 import Quotes from '../../../app/components/UI/Ramp/Aggregator/Views/Quotes/Quotes';
+import AggregatorOrderDetails from '../../../app/components/UI/Ramp/Aggregator/Views/OrderDetails/OrderDetails';
+import type { FiatOrder } from '../../../app/reducers/fiatOrders';
 import V2BuildQuote from '../../../app/components/UI/Ramp/Views/BuildQuote/BuildQuote';
 import V2TokenSelection from '../../../app/components/UI/Ramp/Views/TokenSelection/TokenSelection';
 import V2SettingsModal from '../../../app/components/UI/Ramp/Views/Modals/SettingsModal/SettingsModal';
@@ -284,6 +286,41 @@ export function renderBuildQuoteView(
     { name: Routes.RAMP.BUILD_QUOTE },
     { state },
     initialParams,
+  );
+}
+
+interface RenderAggregatorOrderDetailsViewOptions {
+  /** Orders stored in `fiatOrders.orders`. */
+  orders: FiatOrder[];
+  /** Order shown on the screen (route param). */
+  orderId: string;
+}
+
+/**
+ * Renders the Aggregator order details screen, which shows every Redux
+ * FiatOrder (AGGREGATOR and RAMPS_V2) and refreshes it with a forced
+ * `processFiatOrder` on pull-to-refresh.
+ *
+ * Requires setupRampSdkApiMock() in beforeEach when the refresh reaches the
+ * Aggregator SDK.
+ */
+export function renderAggregatorOrderDetailsView({
+  orders,
+  orderId,
+}: RenderAggregatorOrderDetailsViewOptions): ReturnType<
+  typeof renderComponentViewScreen
+> {
+  const state = initialStateRamps()
+    .withOverrides({
+      fiatOrders: { orders },
+    } as unknown as DeepPartial<RootState>)
+    .build();
+
+  return renderComponentViewScreen(
+    AggregatorOrderDetails,
+    { name: Routes.RAMP.ORDER_DETAILS },
+    { state },
+    { orderId },
   );
 }
 

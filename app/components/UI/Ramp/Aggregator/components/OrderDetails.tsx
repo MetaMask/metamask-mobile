@@ -40,6 +40,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from './ListItemColumnEnd';
+import { AggregatorOrderDetailsSelectorsIDs } from '../Views/OrderDetails/OrderDetails.testIds';
 
 /* eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
@@ -110,6 +111,35 @@ const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const orderData = order.data as Order;
+
+  if (order.providerRemoved) {
+    return (
+      <View style={styles.stage}>
+        <Feather name="alert-circle" size={32} color={colors.warning.default} />
+        <Group>
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            style={styles.textCenter}
+            testID={AggregatorOrderDetailsSelectorsIDs.PROVIDER_REMOVED_TITLE}
+          >
+            {strings('fiat_on_ramp_aggregator.order_details.provider_removed')}
+          </Text>
+          {order.statusDescription ? (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.textCenter}
+              testID={
+                AggregatorOrderDetailsSelectorsIDs.PROVIDER_REMOVED_DESCRIPTION
+              }
+            >
+              {order.statusDescription}
+            </Text>
+          ) : null}
+        </Group>
+      </View>
+    );
+  }
 
   switch (order.state) {
     case FIAT_ORDER_STATES.COMPLETED: {

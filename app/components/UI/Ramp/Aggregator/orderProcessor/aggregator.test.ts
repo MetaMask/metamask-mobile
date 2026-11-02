@@ -360,6 +360,7 @@ describe('processAggregatorOrder', () => {
       ...mockOrder,
       state: 'FAILED',
       lastTimeFetched: 1673886669600,
+      fetchErrorCount: 0,
       data: { ...mockOrder.data, status: 'FAILED' },
     });
   });
@@ -386,6 +387,7 @@ describe('processAggregatorOrder', () => {
       ...sellOrder,
       state: 'FAILED',
       lastTimeFetched: 1673886669600,
+      fetchErrorCount: 0,
       data: { ...sellOrder.data, status: 'FAILED' },
     });
   });
@@ -401,6 +403,7 @@ describe('processAggregatorOrder', () => {
       ...mockOrder,
       errorCount: 1,
       lastTimeFetched: 1673886669600,
+      fetchErrorCount: 1,
     });
   });
 
@@ -416,6 +419,7 @@ describe('processAggregatorOrder', () => {
       ...mockOrder,
       errorCount: 1,
       lastTimeFetched: 1673886669600,
+      fetchErrorCount: 1,
     });
   });
 
@@ -460,6 +464,7 @@ describe('processAggregatorOrder', () => {
       ...orderWithErrors,
       errorCount: 0,
       lastTimeFetched: now,
+      fetchErrorCount: 0,
     });
   });
 
@@ -485,6 +490,7 @@ describe('processAggregatorOrder', () => {
       ...orderWithErrors,
       errorCount: 0,
       lastTimeFetched: now,
+      fetchErrorCount: 0,
     });
   });
 
@@ -536,6 +542,7 @@ describe('processAggregatorOrder', () => {
       ...orderWithPollingSecondsMinimum,
       errorCount: 0,
       lastTimeFetched: now,
+      fetchErrorCount: 0,
     });
   });
 
@@ -568,6 +575,7 @@ describe('processAggregatorOrder', () => {
       ...orderWithPollingSecondsMinimum,
       errorCount: 0,
       lastTimeFetched: now,
+      fetchErrorCount: 0,
     });
   });
 
@@ -586,6 +594,7 @@ describe('processAggregatorOrder', () => {
       });
 
       expect(updatedOrder.errorCount).toBe(1);
+      expect(updatedOrder.fetchErrorCount).toBe(1);
       expect(updatedOrder.lastTimeFetched).toBe(fetchedAt);
     });
 
@@ -611,6 +620,7 @@ describe('processAggregatorOrder', () => {
       }
 
       expect(order.errorCount).toBe(MAX_ERROR_COUNT);
+      expect(order.fetchErrorCount).toBe(MAX_ERROR_COUNT);
     });
 
     it('delays the next order fetch until the error backoff elapses', async () => {
@@ -676,6 +686,123 @@ describe('processAggregatorOrder', () => {
         Date.now = frozenDateNow;
         mockGetOrder.mockReset();
       }
+    });
+  });
+
+  describe('stop at MAX_ERROR_COUNT', () => {
+    it('does not fetch once fetchErrorCount reaches MAX_ERROR_COUNT', async () => {
+      const order = { ...mockOrder, fetchErrorCount: MAX_ERROR_COUNT };
+
+      const updatedOrder = await processAggregatorOrder(order);
+
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(updatedOrder).toBe(order);
+    });
+
+    it('fetches at MAX_ERROR_COUNT when forced', async () => {
+      mockGetOrder.mockImplementation(() => ({ ...mockOrder.data }));
+
+      await processAggregatorOrder(
+        { ...mockOrder, fetchErrorCount: MAX_ERROR_COUNT },
+        { forced: true },
+      );
+
+      expect(mockGetOrder).toHaveBeenCalledWith('test-id', '0x1234');
+    });
+
+    it('keeps polling a plain UNKNOWN order at errorCount MAX_ERROR_COUNT', async () => {
+      mockGetOrder.mockImplementation(() => ({
+        ...mockOrder.data,
+        status: 'UNKNOWN',
+      }));
+
+      await processAggregatorOrder({
+        ...mockOrder,
+        errorCount: MAX_ERROR_COUNT,
+        fetchErrorCount: 0,
+        lastTimeFetched: 0,
+      });
+
+      expect(mockGetOrder).toHaveBeenCalledWith('test-id', '0x1234');
+    });
+
+    it('resets fetchErrorCount on a successful reply', async () => {
+      mockGetOrder.mockImplementation(() => ({ ...mockOrder.data }));
+
+      const updatedOrder = await processAggregatorOrder({
+        ...mockOrder,
+        fetchErrorCount: MAX_ERROR_COUNT - 1,
+      });
+
+      expect(updatedOrder.fetchErrorCount).toBe(0);
+    });
+  });
+
+  describe('provider removed', () => {
+    const description = 'This provider is no longer available in MetaMask.';
+    const pendingOrder = {
+      ...mockOrder,
+      state: 'PENDING',
+      data: { ...mockOrder.data, status: 'PENDING' },
+    } as FiatOrder;
+
+    it('marks the order final from statusReason alone and keeps its stored data', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1673886669700);
+      mockGetOrder.mockImplementation(() => ({
+        id: 'test-id',
+        status: 'PENDING',
+        statusReason: 'PROVIDER_REMOVED',
+        statusDescription: description,
+        fiatAmount: 1,
+        cryptoCurrency: { symbol: 'XYZ' },
+        provider: { id: '/providers/other' },
+      }));
+
+      const updatedOrder = await processAggregatorOrder(pendingOrder);
+
+      expect(updatedOrder).toEqual({
+        ...pendingOrder,
+        lastTimeFetched: 1673886669700,
+        fetchErrorCount: 0,
+        providerRemoved: true,
+        statusDescription: description,
+      });
+    });
+
+    it('marks the order final on a forced fetch that returns PROVIDER_REMOVED', async () => {
+      mockGetOrder.mockImplementation(() => ({
+        id: 'test-id',
+        status: 'UNKNOWN',
+        statusReason: 'PROVIDER_REMOVED',
+        statusDescription: description,
+      }));
+
+      const updatedOrder = await processAggregatorOrder(pendingOrder, {
+        forced: true,
+      });
+
+      expect(updatedOrder).toMatchObject({
+        providerRemoved: true,
+        state: pendingOrder.state,
+        amount: pendingOrder.amount,
+        cryptocurrency: pendingOrder.cryptocurrency,
+        data: pendingOrder.data,
+      });
+    });
+
+    it('does not fetch a provider-removed order, even when forced', async () => {
+      const finalOrder = {
+        ...pendingOrder,
+        providerRemoved: true,
+        statusDescription: description,
+      };
+
+      const updatedOrder = await processAggregatorOrder(finalOrder, {
+        forced: true,
+      });
+
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(updatedOrder).toBe(finalOrder);
     });
   });
 });

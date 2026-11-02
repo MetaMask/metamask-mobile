@@ -69,6 +69,9 @@ export interface FiatOrder {
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
   forceUpdate?: boolean; // Force update when processing
+  fetchErrorCount?: number; // Consecutive failed fetches; polling stops at MAX_ERROR_COUNT
+  providerRemoved?: boolean; // API reported the provider as removed: final, never fetched again
+  statusDescription?: string; // Status text from the API (set for provider-removed orders)
   data: Order | WyreOrder | DepositOrder | RampsOrder; // Original provider data
 }
 

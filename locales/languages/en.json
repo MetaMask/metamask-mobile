@@ -8244,6 +8244,7 @@
       "failed": "Order failed",
       "cancelled": "Order canceled",
       "pending": "Order pending",
+      "provider_removed": "Order status unavailable",
       "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Try again or use another provider.",
       "continue_order_description": "To continue your order, you'll need to select the button at the bottom of this page.",
       "the_provider": "the provider",
