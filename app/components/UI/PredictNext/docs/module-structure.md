@@ -27,6 +27,11 @@ PredictNext/
     internal/
       legacy/                  # Legacy list hook, mapper and details templates, moved as-is
       next/                    # Canonical Activity mapper, list hook, details lookup and templates
+  portfolio/
+    index.ts                   # Portfolio value projection for the wallet balance breakdown
+    usePredictPortfolioValue.ts
+    internal/
+      legacy/                  # usePredictPortfolio pass-through, unchanged
   events/
     cards/
       index.ts                 # Supported Event-card API
