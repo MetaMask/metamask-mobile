@@ -1,4 +1,6 @@
 import {
+  isSpotPostTradeShareEligible,
+  MIN_SPOT_POST_TRADE_SHARE_USD,
   POST_TRADE_SHARE_SHEET_LIMIT,
   resolvePostTradePrompt,
   type ResolvePostTradePromptInput,
@@ -15,6 +17,30 @@ const input = (
   shareSheetCount: 0,
   hasSeenClaimSheet: false,
   ...overrides,
+});
+
+describe('isSpotPostTradeShareEligible', () => {
+  it('returns false at the minimum postable trade value', () => {
+    const amountUsd = MIN_SPOT_POST_TRADE_SHARE_USD;
+
+    const result = isSpotPostTradeShareEligible(amountUsd);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true above the minimum postable trade value', () => {
+    const amountUsd = MIN_SPOT_POST_TRADE_SHARE_USD + 0.5;
+
+    const result = isSpotPostTradeShareEligible(amountUsd);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for non-finite amounts', () => {
+    const result = isSpotPostTradeShareEligible(Number.NaN);
+
+    expect(result).toBe(false);
+  });
 });
 
 describe('resolvePostTradePrompt', () => {

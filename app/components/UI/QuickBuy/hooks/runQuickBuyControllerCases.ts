@@ -3741,10 +3741,18 @@ export const runQuickBuyControllerCases = ({
       });
 
       describe('stay-on-screen swap toasts', () => {
-        const mockUsableQuote = () => {
+        const mockUsableQuote = (amount = '20') => {
           setupQuoteSourceMock(
             createQuoteState({
-              activeQuote: createActiveQuote(),
+              activeQuote: createActiveQuote({
+                quote: {
+                  src: {
+                    amount: BigNumber.from(amount)
+                      .mul('1000000000000000')
+                      .toString(),
+                  },
+                },
+              }),
               destTokenAmount: '1',
             }),
           );
@@ -3817,6 +3825,9 @@ export const runQuickBuyControllerCases = ({
             true,
           );
 
+          act(() => {
+            result.current.handleAmountChange('20');
+          });
           await act(async () => {
             await result.current.handleConfirm();
           });
@@ -3856,6 +3867,9 @@ export const runQuickBuyControllerCases = ({
             'social-v1-feed',
           );
 
+          act(() => {
+            result.current.handleAmountChange('20');
+          });
           await act(async () => {
             await result.current.handleConfirm();
           });
@@ -3927,8 +3941,8 @@ export const runQuickBuyControllerCases = ({
         });
 
         describe('post-trade prompt', () => {
-          const submit = async (postTradeShare?: boolean) => {
-            mockUsableQuote();
+          const submit = async (postTradeShare?: boolean, amount = '20') => {
+            mockUsableQuote(amount);
             (
               Engine.context.BridgeStatusController.submitTx as jest.Mock
             ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
@@ -3940,6 +3954,9 @@ export const runQuickBuyControllerCases = ({
               'buy',
               postTradeShare,
             );
+            act(() => {
+              result.current.handleAmountChange(amount);
+            });
             await act(async () => {
               await result.current.handleConfirm();
             });
@@ -4013,6 +4030,90 @@ export const runQuickBuyControllerCases = ({
                   tradeInFlightChain: 'ethereum',
                   preview: expect.objectContaining({ side: 'buy' }),
                 }),
+              }),
+            );
+          });
+
+          it('uses normal toasts for share trades at the minimum amount', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'share_sheet',
+              countKey: { address: '0xlinked', product: 'swap' },
+            });
+
+            await submit(false, '10');
+
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: false,
+                postTradePrompt: undefined,
+              }),
+            );
+          });
+
+          it('uses normal toasts for share trades below the minimum amount', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'share_sheet',
+              countKey: { address: '0xlinked', product: 'swap' },
+            });
+
+            await submit(false, '5');
+
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: false,
+                postTradePrompt: undefined,
+              }),
+            );
+          });
+
+          it('keeps the create profile sheet below the minimum amount', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+            await submit(false, '5');
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                product: 'spot',
+                status: 'pending',
+                variant: 'create_profile',
+              }),
+            );
+            expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+          });
+
+          it('uses normal toasts for copy-trades below the minimum amount', async () => {
+            await submit(true, '5');
+
+            expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: false,
+                postTradePrompt: undefined,
+              }),
+            );
+          });
+
+          it('uses normal toasts without the post-to-feed link below the minimum amount', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'post_to_feed_toast',
+            });
+
+            await submit(false, '5');
+
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradePrompt: undefined,
               }),
             );
           });
