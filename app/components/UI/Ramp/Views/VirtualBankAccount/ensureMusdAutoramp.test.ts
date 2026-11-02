@@ -6,12 +6,15 @@ import {
   findUsableAutoramp,
   resetMusdAutorampSetupGuard,
 } from './ensureMusdAutoramp';
+import Logger from '../../../../../util/Logger';
 import { TraceName } from '../../../../../util/trace';
 import { endVbaCufChildTrace, startVbaCufChildTrace } from './vbaCufTrace';
 
 const mockHydrate = jest.fn();
 const mockRegister = jest.fn();
 const mockCreate = jest.fn();
+const mockRefreshCustomerAbilities = jest.fn();
+const mockRailReadiness = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -20,9 +23,24 @@ jest.mock('../../../../../core/Engine', () => ({
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
       registerMoneyAccountWallet: (...args: unknown[]) => mockRegister(...args),
       createAutoramp: (...args: unknown[]) => mockCreate(...args),
+      refreshCustomerAbilities: (...args: unknown[]) =>
+        mockRefreshCustomerAbilities(...args),
     },
   },
 }));
+
+jest.mock('@metamask/ramps-controller', () => ({
+  ...jest.requireActual('@metamask/ramps-controller'),
+  getMusdAutorampDepositRailReadiness: (...args: unknown[]) =>
+    mockRailReadiness(...args),
+}));
+
+const ABILITIES = {
+  fiat_deposit: {},
+  fiat_payout: {},
+  currencies: [],
+  blocking_abilities: {},
+};
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -59,6 +77,8 @@ describe('ensureMusdAutoramp', () => {
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
     mockRegister.mockResolvedValue({ type: 'alreadyRegistered' });
     mockCreate.mockResolvedValue({ id: 'ar-new', status: 'Created' });
+    mockRefreshCustomerAbilities.mockResolvedValue(ABILITIES);
+    mockRailReadiness.mockReturnValue('active');
   });
 
   it('waits for MoonPay after KYC, then registers and creates once', async () => {
@@ -293,6 +313,82 @@ describe('ensureMusdAutoramp', () => {
         result: { kind: 'http', status: 500 },
       }),
     );
+  });
+
+  describe('deposit rail check', () => {
+    it('reads the rail from the refreshed abilities before creating', async () => {
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+
+      expect(mockRefreshCustomerAbilities).toHaveBeenCalledTimes(1);
+      expect(mockRailReadiness).toHaveBeenCalledWith(ABILITIES, 'USD');
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits instead of creating while the rail is pending', async () => {
+      mockRailReadiness.mockReturnValue('pending');
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
+        'awaiting_provider',
+      );
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it('creates once the rail turns active', async () => {
+      mockRailReadiness
+        .mockReturnValueOnce('pending')
+        .mockReturnValueOnce('active');
+
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+        'awaiting_provider',
+      );
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks the rail before creating a second fiat', async () => {
+      setAutoramps([
+        {
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+      mockHydrate.mockResolvedValue({ autorampStatus: 'ready' });
+      mockRailReadiness.mockReturnValue('pending');
+
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+        'awaiting_provider',
+      );
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it('surfaces a 422 account-creation error without creating when the rail is blocked', async () => {
+      mockRailReadiness.mockReturnValue('blocked');
+
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).rejects.toEqual(
+        expect.objectContaining({
+          result: { kind: 'http', status: 422 },
+        }),
+      );
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it('creates as before when the abilities refresh fails', async () => {
+      mockRefreshCustomerAbilities.mockRejectedValue(new Error('404'));
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
+      expect(mockRailReadiness).not.toHaveBeenCalled();
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: {
+            name: 'getRailReadiness',
+            data: { sourceCurrency: 'BRL' },
+          },
+        }),
+      );
+    });
   });
 
   it.each(['RegistrationFailed', 'AuthorizationFailed'] as const)(
