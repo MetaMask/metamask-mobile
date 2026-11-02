@@ -17,8 +17,6 @@ import { initialStateDeeplinks } from '../../../tests/component-view/presets/dee
 import Engine from '../Engine';
 import { installDeeplinkCaseBoundary } from '../../../tests/component-view/api-mocking/deeplinkSwapToken';
 import Routes from '../../constants/navigation/Routes';
-import { strings } from '../../../locales/i18n';
-import { NotificationSettingsViewSelectorsIDs } from '../../components/Views/Settings/NotificationsSettings/NotificationSettingsView.testIds';
 import parseDeeplink from './utils/parseDeeplink';
 import { executeStartupDeeplinkIntent } from './utils/executeDeeplinkIntent';
 import type { DeeplinkManager } from './DeeplinkManager';
@@ -41,6 +39,10 @@ import { splitVolatileParams } from './__fixtures__/splitVolatileParams';
  * Engine and native modules only (the shared CV mocks). The tree is a reduced,
  * hand-registered test tree — see tests/component-view/renderers/deeplinks.tsx
  * for what that does and does not prove.
+ *
+ * Matrix rows drive normal + startup navigation. One Back and one prepare
+ * exemplar show those patterns; feature teams add more when their action needs
+ * them (see docs/readme/deeplinking.md).
  */
 
 // `itEach` takes string-keyed rows; the fixtures are interfaces.
@@ -50,50 +52,6 @@ const CASES = DEEPLINK_URI_CASES as readonly CaseRow[];
 // The universal-link path only touches the manager for legacy actions
 // (send/wc) that are outside this suite.
 const deeplinkManager = {} as unknown as DeeplinkManager;
-
-const GET_NOTIFICATION_PREFERENCES_ACTION =
-  'AuthenticatedUserStorageService:getNotificationPreferences';
-
-const NOTIFICATION_PREFERENCES = {
-  walletActivity: {
-    inAppNotificationsEnabled: true,
-    pushNotificationsEnabled: true,
-    accounts: [],
-  },
-  perps: { inAppNotificationsEnabled: true, pushNotificationsEnabled: true },
-  agenticCli: {
-    inAppNotificationsEnabled: true,
-    pushNotificationsEnabled: true,
-  },
-  socialAI: {
-    inAppNotificationsEnabled: true,
-    pushNotificationsEnabled: true,
-    txAmountLimit: 100,
-    mutedTraderProfileIds: [],
-  },
-  marketing: {
-    inAppNotificationsEnabled: false,
-    pushNotificationsEnabled: false,
-  },
-  priceAlerts: {
-    inAppNotificationsEnabled: true,
-    pushNotificationsEnabled: true,
-  },
-};
-
-/** Serves the AUS preferences the real notification screens read via Engine. */
-const mockNotificationPreferences = () => {
-  const controllerMessengerCall = Engine.controllerMessenger.call.bind(
-    Engine.controllerMessenger,
-  ) as (action: string, ...args: unknown[]) => unknown;
-
-  return jest
-    .spyOn(Engine.controllerMessenger, 'call')
-    .mockImplementation(((action: string, ...args: unknown[]) =>
-      action === GET_NOTIFICATION_PREFERENCES_ACTION
-        ? Promise.resolve(NOTIFICATION_PREFERENCES)
-        : controllerMessengerCall(action, ...args)) as never);
-};
 
 /**
  * NavigationService defers navigate/reset with requestAnimationFrame. Frames
@@ -144,7 +102,6 @@ const startTabFor = (testCase: DeeplinkUriCase): DeeplinkStart => {
 
 describeForPlatforms('Deeplink URI navigation', () => {
   let rendered: RenderedDeeplinkNavigation | undefined;
-  let notificationPreferencesSpy: jest.SpyInstance | undefined;
   let teardownBoundary: (() => void) | undefined;
 
   const openNormal = (url: string, origin = ORIGIN_EXTERNAL_DEEPLINK) =>
@@ -175,16 +132,11 @@ describeForPlatforms('Deeplink URI navigation', () => {
       container.goBack();
     });
 
-  beforeEach(() => {
-    notificationPreferencesSpy = mockNotificationPreferences();
-  });
-
   afterEach(() => {
     rendered?.cleanup();
     rendered = undefined;
     teardownBoundary?.();
     teardownBoundary = undefined;
-    notificationPreferencesSpy?.mockRestore();
     jest.restoreAllMocks();
   });
 
@@ -232,17 +184,8 @@ describeForPlatforms('Deeplink URI navigation', () => {
     );
   });
 
-  describe('Back', () => {
+  describe('Back (exemplar)', () => {
     const PERPS_HOME_URL = 'https://link.metamask.io/perps?screen=home';
-    const STOCKS_URL = 'https://link.metamask.io/trending?screen=stocks';
-    const REWARDS_URL = 'https://link.metamask.io/rewards';
-
-    const WALLET_TAB_PATH = [
-      Routes.ONBOARDING.HOME_NAV,
-      Routes.HOME_TABS,
-      Routes.WALLET.HOME,
-      Routes.WALLET_VIEW,
-    ];
     const EXPLORE_TAB_PATH = [
       Routes.ONBOARDING.HOME_NAV,
       Routes.HOME_TABS,
@@ -266,83 +209,11 @@ describeForPlatforms('Deeplink URI navigation', () => {
         );
       });
     });
-
-    it('startup: a default main-stack target returns to Wallet', async () => {
-      rendered = await renderDeeplinkNavigation({ start: 'before-home-nav' });
-      await openStartup(PERPS_HOME_URL);
-      await waitForFocusedRouteNames(rendered.container, [
-        { name: Routes.ONBOARDING.HOME_NAV },
-        { name: Routes.PERPS.ROOT },
-        { name: Routes.PERPS.PERPS_HOME },
-      ]);
-
-      await goBack(rendered.container);
-
-      await waitFor(() => {
-        expect(namesOf(rendered?.getFocusedPath() ?? [])).toEqual(
-          WALLET_TAB_PATH,
-        );
-      });
-    });
-
-    it('normal: trending?screen=stocks returns to Explore, not the tab the user came from', async () => {
-      rendered = await renderDeeplinkNavigation({ start: { tab: 'wallet' } });
-      await openNormal(STOCKS_URL);
-      await waitForFocusedRouteNames(rendered.container, [
-        { name: Routes.ONBOARDING.HOME_NAV },
-        { name: Routes.WALLET.RWA_TOKENS_FULL_VIEW },
-      ]);
-
-      await goBack(rendered.container);
-
-      await waitFor(() => {
-        expect(namesOf(rendered?.getFocusedPath() ?? [])).toEqual(
-          EXPLORE_TAB_PATH,
-        );
-      });
-    });
-
-    it('startup: trending?screen=stocks returns to Explore', async () => {
-      rendered = await renderDeeplinkNavigation({ start: 'before-home-nav' });
-      await openStartup(STOCKS_URL);
-      await waitForFocusedRouteNames(rendered.container, [
-        { name: Routes.ONBOARDING.HOME_NAV },
-        { name: Routes.WALLET.RWA_TOKENS_FULL_VIEW },
-      ]);
-
-      await goBack(rendered.container);
-
-      await waitFor(() => {
-        expect(namesOf(rendered?.getFocusedPath() ?? [])).toEqual(
-          EXPLORE_TAB_PATH,
-        );
-      });
-    });
-
-    it('startup: a non-Wallet home tab keeps Wallet in history', async () => {
-      rendered = await renderDeeplinkNavigation({ start: 'before-home-nav' });
-      await openStartup(REWARDS_URL);
-      await waitForFocusedRouteNames(rendered.container, [
-        { name: Routes.ONBOARDING.HOME_NAV },
-        { name: Routes.HOME_TABS },
-        { name: Routes.REWARDS_VIEW },
-      ]);
-
-      await goBack(rendered.container);
-
-      await waitFor(() => {
-        expect(namesOf(rendered?.getFocusedPath() ?? [])).toEqual(
-          WALLET_TAB_PATH,
-        );
-      });
-    });
   });
 
-  describe('prepare effects on the renderer store', () => {
+  describe('prepare effects (exemplar)', () => {
     const REWARDS_WITH_REFERRAL =
       'https://link.metamask.io/rewards?referral=TESTCODE&page=benefits';
-    const REWARDS_BARE = 'https://link.metamask.io/rewards';
-    const SWAP_URL = 'https://link.metamask.io/swap';
 
     it('normal: rewards stores the referral code and pending page', async () => {
       rendered = await renderDeeplinkNavigation();
@@ -366,88 +237,6 @@ describeForPlatforms('Deeplink URI navigation', () => {
       });
     });
 
-    it('startup: rewards stores the referral code and pending page', async () => {
-      rendered = await renderDeeplinkNavigation({ start: 'before-home-nav' });
-
-      await openStartup(REWARDS_WITH_REFERRAL);
-      await waitForFocusedRouteNames(rendered.container, [
-        { name: Routes.ONBOARDING.HOME_NAV },
-        { name: Routes.HOME_TABS },
-        { name: Routes.REWARDS_VIEW },
-      ]);
-
-      await waitFor(() => {
-        const { rewards } = rendered?.store.getState() ?? {};
-        expect(rewards?.onboardingReferralCode).toBe('TESTCODE');
-        expect(rewards?.pendingDeeplink).toEqual({
-          page: 'benefits',
-          campaign: undefined,
-        });
-      });
-    });
-
-    it('normal: a bare rewards link clears stale referral and pending values', async () => {
-      rendered = await renderDeeplinkNavigation({
-        state: initialStateDeeplinks('rewards-stale'),
-      });
-      expect(rendered.store.getState().rewards.onboardingReferralCode).toBe(
-        'STALE_REFERRAL',
-      );
-
-      await openNormal(REWARDS_BARE);
-      await waitForFocusedRouteNames(rendered.container, [
-        { name: Routes.ONBOARDING.HOME_NAV },
-        { name: Routes.HOME_TABS },
-        { name: Routes.REWARDS_VIEW },
-      ]);
-
-      await waitFor(() => {
-        const { rewards } = rendered?.store.getState() ?? {};
-        expect(rewards?.onboardingReferralCode).toBeNull();
-        expect(rewards?.pendingDeeplink).toBeNull();
-      });
-    });
-
-    it('normal: swap resets the pre-seeded bridge session', async () => {
-      rendered = await renderDeeplinkNavigation({
-        state: initialStateDeeplinks('swap-session-seeded'),
-      });
-      expect(rendered.store.getState().bridge.sourceAmount).toBe('42');
-
-      await openNormal(SWAP_URL);
-      await waitForFocusedRouteNames(rendered.container, [
-        { name: Routes.ONBOARDING.HOME_NAV },
-        { name: Routes.BRIDGE.ROOT },
-        { name: Routes.BRIDGE.BRIDGE_VIEW },
-      ]);
-
-      await waitFor(() => {
-        const { bridge } = rendered?.store.getState() ?? {};
-        expect(bridge?.sourceAmount).toBeUndefined();
-        expect(bridge?.isMaxSourceAmount).toBe(false);
-      });
-    });
-
-    it('startup: swap resets the pre-seeded bridge session', async () => {
-      rendered = await renderDeeplinkNavigation({
-        state: initialStateDeeplinks('swap-session-seeded'),
-        start: 'before-home-nav',
-      });
-
-      await openStartup(SWAP_URL);
-      await waitForFocusedRouteNames(rendered.container, [
-        { name: Routes.ONBOARDING.HOME_NAV },
-        { name: Routes.BRIDGE.ROOT },
-        { name: Routes.BRIDGE.BRIDGE_VIEW },
-      ]);
-
-      await waitFor(() => {
-        const { bridge } = rendered?.store.getState() ?? {};
-        expect(bridge?.sourceAmount).toBeUndefined();
-        expect(bridge?.isMaxSourceAmount).toBe(false);
-      });
-    });
-
     it('binds every case to its own store', async () => {
       const first = await renderDeeplinkNavigation();
       const firstStore = first.store;
@@ -456,68 +245,6 @@ describeForPlatforms('Deeplink URI navigation', () => {
       rendered = await renderDeeplinkNavigation();
 
       expect(rendered.store).not.toBe(firstStore);
-    });
-  });
-
-  describe('real notification-settings destinations', () => {
-    it('normal: the main page shows its toggle after the URI executes', async () => {
-      rendered = await renderDeeplinkNavigation({ start: { tab: 'explore' } });
-
-      await openNormal('https://link.metamask.io/notifications-settings');
-
-      expect(
-        await rendered.findByTestId(
-          NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE,
-        ),
-      ).toBeOnTheScreen();
-      expect(namesOf(rendered.getFocusedPath())).toEqual([
-        Routes.ONBOARDING.HOME_NAV,
-        Routes.SETTINGS_VIEW,
-        Routes.SETTINGS.NOTIFICATIONS,
-      ]);
-    });
-
-    it('normal: section=price-alerts shows the section content', async () => {
-      rendered = await renderDeeplinkNavigation({ start: { tab: 'explore' } });
-
-      await openNormal(
-        'https://link.metamask.io/notifications-settings?section=price-alerts',
-      );
-
-      expect(
-        await rendered.findByTestId(
-          NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        await rendered.findByText(
-          strings('app_settings.notifications_opts.price_alerts_desc'),
-        ),
-      ).toBeOnTheScreen();
-      expect(namesOf(rendered.getFocusedPath())).toEqual([
-        Routes.ONBOARDING.HOME_NAV,
-        Routes.SETTINGS_VIEW,
-        Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-      ]);
-    });
-
-    it('startup: section=wallet-activity shows the section content', async () => {
-      rendered = await renderDeeplinkNavigation({ start: 'before-home-nav' });
-
-      await openStartup(
-        'https://link.metamask.io/notifications-settings?section=wallet-activity',
-      );
-
-      expect(
-        await rendered.findByTestId(
-          NotificationSettingsViewSelectorsIDs.WALLET_ACTIVITY_LIST,
-        ),
-      ).toBeOnTheScreen();
-      expect(namesOf(rendered.getFocusedPath())).toEqual([
-        Routes.ONBOARDING.HOME_NAV,
-        Routes.SETTINGS_VIEW,
-        Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-      ]);
     });
   });
 

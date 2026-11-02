@@ -1,9 +1,10 @@
 /**
- * Independent URI fixtures for the deeplink contract suites.
+ * Shared URI fixtures for the deeplink contract suites.
  *
- * Data only: no imports that initialize services or install mocks. Expected
- * outcomes are authored from the documented deeplink contract and the app's
- * navigator hierarchy — never derived by calling the parser or handlers.
+ * Platform owns types, authoring helpers, and a small set of exemplars that
+ * exercise each harness concern. Feature teams (and their agents) append rows
+ * for their actions — expectations authored from the contract, never by calling
+ * the parser or handlers.
  *
  * Consumers:
  * - `utils/parseDeeplink.routes.test.ts` (unit, resolve-mode contract)
@@ -88,11 +89,10 @@ const METAMASK_BASE = 'metamask://';
 
 const HOME = Routes.ONBOARDING.HOME_NAV;
 const TABS = Routes.HOME_TABS;
-const WALLET_TAB = Routes.WALLET.HOME;
 const EXPLORE_TAB = Routes.TRENDING_VIEW;
 
 /** Focused chain for a home-tab destination whose tab stack has no nested leaf. */
-const homeTabFocus = (
+export const homeTabFocus = (
   tabName: string,
   leaf: ExpectedFocusedRoute[],
   tabParams?: Record<string, unknown>,
@@ -104,7 +104,7 @@ const homeTabFocus = (
 ];
 
 /** Focused chain for a main-stack destination. */
-const mainStackFocus = (
+export const mainStackFocus = (
   rest: ExpectedFocusedRoute[],
 ): ExpectedFocusedRoute[] => [{ name: HOME }, ...rest];
 
@@ -119,7 +119,8 @@ interface PathSpec {
   expected: DeeplinkExpectation;
 }
 
-const toCases = (spec: PathSpec): DeeplinkUriCase[] => [
+/** Duplicate a logical case across https and metamask://. */
+export const toCases = (spec: PathSpec): DeeplinkUriCase[] => [
   {
     id: `${spec.id} (https)`,
     action: spec.action,
@@ -142,7 +143,7 @@ const toCases = (spec: PathSpec): DeeplinkUriCase[] => [
   },
 ];
 
-const mainStackIntent = (
+export const mainStackIntent = (
   target: Omit<ExpectedTarget, 'type'>,
   navigation: ExpectedNavigation,
   volatile?: VolatileParam[],
@@ -154,7 +155,7 @@ const mainStackIntent = (
   hasPrepare,
 });
 
-const homeTabIntent = (
+export const homeTabIntent = (
   target: Omit<ExpectedTarget, 'type'>,
   navigation: ExpectedNavigation,
   volatile?: VolatileParam[],
@@ -165,29 +166,6 @@ const homeTabIntent = (
   volatile,
   hasPrepare,
 });
-
-const BTC_MARKET = {
-  symbol: 'BTC',
-  name: 'BTC',
-  price: '0',
-  change24h: '0',
-  change24hPercent: '0',
-  volume24h: '0',
-  volume: '0',
-  fundingRate: 0,
-  openInterest: '0',
-  maxLeverage: '100',
-  logoUrl: '',
-  nextFundingTime: 0,
-  fundingIntervalHours: 8,
-};
-
-const TSLA_HIP3_MARKET = {
-  ...BTC_MARKET,
-  symbol: 'xyz:TSLA',
-  name: 'TSLA',
-  marketSource: 'xyz',
-};
 
 const DAPP_URL = 'https://example.org/path?value=hello%20world';
 const DAPP_PARAMS = { newTabUrl: DAPP_URL, linkType: 'external-link' };
@@ -209,181 +187,25 @@ const dappExpectation = homeTabIntent(
   DAPP_VOLATILE,
 );
 
-const swapView = (
-  params: Record<string, unknown>,
-  extraVolatile: VolatileParam[] = [],
-): DeeplinkExpectation =>
-  mainStackIntent(
-    {
-      routeName: Routes.BRIDGE.ROOT,
-      params: { screen: Routes.BRIDGE.BRIDGE_VIEW, params },
-    },
-    {
-      focusedPath: mainStackFocus([
-        { name: Routes.BRIDGE.ROOT },
-        { name: Routes.BRIDGE.BRIDGE_VIEW, params },
-      ]),
-      volatile: [{ path: 'swapViewTraceId', type: 'string' }, ...extraVolatile],
-    },
-    [
-      { path: 'params.swapViewTraceId', type: 'string' },
-      ...extraVolatile.map(({ path, type }) => ({
-        path: `params.${path}`,
-        type,
-      })),
-    ],
-    true,
-  );
-
 const SWAP_BASE_PARAMS = {
   sourcePage: 'deeplink',
   bridgeViewMode: 'Unified',
   location: 'Main View',
 };
 
-const perpsHome = (): DeeplinkExpectation =>
-  mainStackIntent(
-    {
-      routeName: Routes.PERPS.ROOT,
-      params: {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'deeplink' },
-      },
-    },
-    {
-      focusedPath: mainStackFocus([
-        { name: Routes.PERPS.ROOT },
-        { name: Routes.PERPS.PERPS_HOME, params: { source: 'deeplink' } },
-      ]),
-    },
-  );
-
-const perpsWalletTab = (): DeeplinkExpectation =>
-  homeTabIntent(
-    {
-      routeName: WALLET_TAB,
-      params: { initialTab: 'perps', shouldSelectPerpsTab: true },
-    },
-    {
-      focusedPath: homeTabFocus(WALLET_TAB, [{ name: Routes.WALLET_VIEW }], {
-        initialTab: 'perps',
-        shouldSelectPerpsTab: true,
-      }),
-    },
-  );
-
-const perpsAsset = (market: Record<string, unknown>): DeeplinkExpectation =>
-  mainStackIntent(
-    {
-      routeName: Routes.PERPS.ROOT,
-      params: {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: { source: 'deeplink', market },
-      },
-    },
-    {
-      focusedPath: mainStackFocus([
-        { name: Routes.PERPS.ROOT },
-        {
-          name: Routes.PERPS.MARKET_DETAILS,
-          params: { source: 'deeplink', market },
-        },
-      ]),
-    },
-  );
-
-const predictMarketList = (entryPoint: string): DeeplinkExpectation =>
-  mainStackIntent(
-    {
-      routeName: Routes.PREDICT.ROOT,
-      params: { screen: Routes.PREDICT.MARKET_LIST, params: { entryPoint } },
-    },
-    {
-      focusedPath: mainStackFocus([
-        { name: Routes.PREDICT.ROOT },
-        { name: Routes.PREDICT.MARKET_LIST, params: { entryPoint } },
-      ]),
-    },
-  );
-
-const predictMarketDetails = (entryPoint: string): DeeplinkExpectation =>
-  mainStackIntent(
-    {
-      routeName: Routes.PREDICT.ROOT,
-      params: {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: { marketId: 'TEST_MARKET', entryPoint },
-      },
-    },
-    {
-      focusedPath: mainStackFocus([
-        { name: Routes.PREDICT.ROOT },
-        {
-          name: Routes.PREDICT.MARKET_DETAILS,
-          params: { marketId: 'TEST_MARKET', entryPoint },
-        },
-      ]),
-    },
-  );
-
-const notificationsMain = (): DeeplinkExpectation =>
-  mainStackIntent(
-    {
-      routeName: Routes.SETTINGS_VIEW,
-      params: { screen: Routes.SETTINGS.NOTIFICATIONS },
-    },
-    {
-      focusedPath: mainStackFocus([
-        { name: Routes.SETTINGS_VIEW },
-        { name: Routes.SETTINGS.NOTIFICATIONS },
-      ]),
-    },
-  );
-
-const notificationsSection = (
-  type: 'walletActivity' | 'priceAlerts',
-): DeeplinkExpectation =>
-  mainStackIntent(
-    {
-      routeName: Routes.SETTINGS_VIEW,
-      params: {
-        screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-        params: { type },
-      },
-    },
-    {
-      focusedPath: mainStackFocus([
-        { name: Routes.SETTINGS_VIEW },
-        {
-          name: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-          params: { type },
-        },
-      ]),
-    },
-  );
-
-const rewardsDestination = (): DeeplinkExpectation =>
-  homeTabIntent(
-    { routeName: Routes.REWARDS_VIEW },
-    { focusedPath: homeTabFocus(Routes.REWARDS_VIEW, []) },
-    undefined,
-    true,
-  );
-
-const trendingTab = (): DeeplinkExpectation =>
-  homeTabIntent(
-    { routeName: EXPLORE_TAB },
-    { focusedPath: homeTabFocus(EXPLORE_TAB, []) },
-  );
-
+/**
+ * Exemplars only — one row (or scheme pair) per harness concern.
+ * Feature teams append their own PathSpecs / rows below these.
+ */
 export const DEEPLINK_URI_CASES: readonly DeeplinkUriCase[] = [
-  // dapp
+  // home-tab + volatile params + https/metamask pair via toCases
   ...toCases({
     id: 'dapp with path and encoded query',
     action: 'dapp',
     path: 'dapp/example.org/path?value=hello%20world',
     expected: dappExpectation,
   }),
+  // alternate scheme (dapp://)
   {
     id: 'dapp protocol (dapp)',
     action: 'dapp',
@@ -394,191 +216,113 @@ export const DEEPLINK_URI_CASES: readonly DeeplinkUriCase[] = [
     expected: dappExpectation,
   },
 
-  // rewards
-  ...toCases({
-    id: 'rewards with referral and page',
-    action: 'rewards',
-    path: 'rewards?referral=TESTCODE&page=benefits',
-    expected: rewardsDestination(),
-  }),
-  ...toCases({
-    id: 'rewards bare over stale stored values',
-    action: 'rewards',
-    path: 'rewards',
-    state: 'rewards-stale',
-    expected: rewardsDestination(),
-  }),
-
-  // perps
-  ...toCases({
-    id: 'perps bare',
+  // main-stack nested destination (https only — schemes already shown above)
+  {
+    id: 'perps screen=home (https)',
     action: 'perps',
-    path: 'perps',
-    expected: perpsWalletTab(),
-  }),
-  ...toCases({
-    id: 'perps screen=home',
-    action: 'perps',
-    path: 'perps?screen=home',
-    expected: perpsHome(),
-  }),
-  ...toCases({
-    id: 'perps screen=markets',
-    action: 'perps',
-    path: 'perps?screen=markets',
-    expected: perpsHome(),
-  }),
-  ...toCases({
-    id: 'perps-markets alias (selects Wallet perps tab, not Perps root)',
-    action: 'perps-markets',
-    path: 'perps-markets',
-    expected: perpsWalletTab(),
-  }),
-  ...toCases({
-    id: 'perps-asset lowercase symbol',
-    action: 'perps-asset',
-    path: 'perps-asset?symbol=btc',
-    expected: perpsAsset(BTC_MARKET),
-  }),
-  ...toCases({
-    id: 'perps-asset HIP-3 encoded symbol',
-    action: 'perps-asset',
-    path: 'perps-asset?symbol=xyz%3Atsla',
-    expected: perpsAsset(TSLA_HIP3_MARKET),
-  }),
-  ...toCases({
-    id: 'perps-asset missing symbol falls back to Perps home',
-    action: 'perps-asset',
-    path: 'perps-asset?symbol=',
-    expected: perpsHome(),
-  }),
-  ...toCases({
-    id: 'perps-asset first-time user goes to tutorial',
-    action: 'perps-asset',
-    path: 'perps-asset?symbol=BTC',
-    state: 'perps-first-time',
+    scheme: 'https',
+    url: `${HTTPS_BASE}perps?screen=home`,
+    state: 'baseline',
+    origin: ORIGIN_EXTERNAL_DEEPLINK,
     expected: mainStackIntent(
       {
-        routeName: Routes.PERPS.TUTORIAL,
-        params: { isFromDeeplink: true },
-      },
-      {
-        focusedPath: mainStackFocus([
-          { name: Routes.PERPS.TUTORIAL, params: { isFromDeeplink: true } },
-        ]),
-      },
-    ),
-  }),
-  ...toCases({
-    id: 'perps-outreach',
-    action: 'perps-outreach',
-    path: 'perps-outreach',
-    expected: mainStackIntent(
-      {
-        routeName: Routes.PERPS.MODALS.ROOT,
-        params: { screen: Routes.PERPS.MODALS.OUTREACH_DETAILS },
-      },
-      {
-        focusedPath: mainStackFocus([
-          { name: Routes.PERPS.MODALS.ROOT },
-          { name: Routes.PERPS.MODALS.OUTREACH_DETAILS },
-        ]),
-      },
-    ),
-  }),
-
-  // swap
-  ...toCases({
-    id: 'swap bare',
-    action: 'swap',
-    path: 'swap',
-    state: 'swap-session-seeded',
-    expected: swapView(SWAP_BASE_PARAMS),
-  }),
-  ...toCases({
-    id: 'swap tab=limit',
-    action: 'swap',
-    path: 'swap?tab=limit',
-    expected: swapView({ ...SWAP_BASE_PARAMS, initialTab: 'limit' }),
-  }),
-
-  ...toCases({
-    id: 'swap with source token and atomic amount',
-    action: 'swap',
-    path: 'swap?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&amount=1500000',
-    boundary: 'swap-source-token',
-    expected: swapView(
-      {
-        ...SWAP_BASE_PARAMS,
-        sourceToken: {
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-          chainId: '0x1',
+        routeName: Routes.PERPS.ROOT,
+        params: {
+          screen: Routes.PERPS.PERPS_HOME,
+          params: { source: 'deeplink' },
         },
-        sourceAmount: '1.5',
       },
-      [{ path: 'sourceToken.image', type: 'string' }],
+      {
+        focusedPath: mainStackFocus([
+          { name: Routes.PERPS.ROOT },
+          { name: Routes.PERPS.PERPS_HOME, params: { source: 'deeplink' } },
+        ]),
+      },
     ),
-  }),
+  },
 
-  // predict
-  ...toCases({
-    id: 'predict bare',
-    action: 'predict',
-    path: 'predict',
-    expected: predictMarketList('deeplink'),
-  }),
-  ...toCases({
-    id: 'predict market',
-    action: 'predict',
-    path: 'predict?market=TEST_MARKET',
-    expected: predictMarketDetails('deeplink'),
-  }),
-  ...toCases({
-    id: 'predict bare from carousel origin',
-    action: 'predict',
-    path: 'predict',
-    origin: ORIGIN_CAROUSEL,
-    expected: predictMarketList('carousel'),
-  }),
-  ...toCases({
-    id: 'predict market from carousel origin',
-    action: 'predict',
-    path: 'predict?market=TEST_MARKET',
-    origin: ORIGIN_CAROUSEL,
-    expected: predictMarketDetails('carousel'),
-  }),
-
-  // trending
-  ...toCases({
-    id: 'trending bare',
-    action: 'trending',
-    path: 'trending',
-    expected: trendingTab(),
-  }),
-  ...toCases({
-    id: 'trending tab=crypto',
-    action: 'trending',
-    path: 'trending?tab=crypto',
+  // prepare() side effect
+  {
+    id: 'rewards with referral and page (https)',
+    action: 'rewards',
+    scheme: 'https',
+    url: `${HTTPS_BASE}rewards?referral=TESTCODE&page=benefits`,
+    state: 'baseline',
+    origin: ORIGIN_EXTERNAL_DEEPLINK,
     expected: homeTabIntent(
-      {
-        routeName: EXPLORE_TAB,
-        params: { initialTab: 3, source: 'deeplink' },
-      },
-      {
-        focusedPath: homeTabFocus(EXPLORE_TAB, [], {
-          initialTab: 3,
-          source: 'deeplink',
-        }),
-      },
+      { routeName: Routes.REWARDS_VIEW },
+      { focusedPath: homeTabFocus(Routes.REWARDS_VIEW, []) },
+      undefined,
+      true,
     ),
-  }),
-  ...toCases({
-    id: 'trending screen=stocks',
+  },
+
+  // boundary (HTTP + Engine) + prepare + volatile leaf field
+  {
+    id: 'swap with source token and atomic amount (https)',
+    action: 'swap',
+    scheme: 'https',
+    url: `${HTTPS_BASE}swap?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&amount=1500000`,
+    state: 'baseline',
+    origin: ORIGIN_EXTERNAL_DEEPLINK,
+    boundary: 'swap-source-token',
+    expected: mainStackIntent(
+      {
+        routeName: Routes.BRIDGE.ROOT,
+        params: {
+          screen: Routes.BRIDGE.BRIDGE_VIEW,
+          params: {
+            ...SWAP_BASE_PARAMS,
+            sourceToken: {
+              address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+              chainId: '0x1',
+            },
+            sourceAmount: '1.5',
+          },
+        },
+      },
+      {
+        focusedPath: mainStackFocus([
+          { name: Routes.BRIDGE.ROOT },
+          {
+            name: Routes.BRIDGE.BRIDGE_VIEW,
+            params: {
+              ...SWAP_BASE_PARAMS,
+              sourceToken: {
+                address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                symbol: 'USDC',
+                name: 'USD Coin',
+                decimals: 6,
+                chainId: '0x1',
+              },
+              sourceAmount: '1.5',
+            },
+          },
+        ]),
+        volatile: [
+          { path: 'swapViewTraceId', type: 'string' },
+          { path: 'sourceToken.image', type: 'string' },
+        ],
+      },
+      [
+        { path: 'params.swapViewTraceId', type: 'string' },
+        { path: 'params.sourceToken.image', type: 'string' },
+      ],
+      true,
+    ),
+  },
+
+  // explicit backTab on main-stack
+  {
+    id: 'trending screen=stocks (https)',
     action: 'trending',
-    path: 'trending?screen=stocks',
+    scheme: 'https',
+    url: `${HTTPS_BASE}trending?screen=stocks`,
+    state: 'baseline',
+    origin: ORIGIN_EXTERNAL_DEEPLINK,
     expected: {
       hasPrepare: false,
       target: {
@@ -592,55 +336,7 @@ export const DEEPLINK_URI_CASES: readonly DeeplinkUriCase[] = [
         ]),
       },
     },
-  }),
-  ...toCases({
-    id: 'trending screen=search with encoded query',
-    action: 'trending',
-    path: 'trending?screen=search&q=hello%20world',
-    expected: {
-      hasPrepare: false,
-      target: {
-        type: 'main-stack',
-        routeName: Routes.EXPLORE_SEARCH,
-        params: { initialQuery: 'hello world', entryPoint: 'deeplink' },
-        backTab: EXPLORE_TAB,
-      },
-      navigation: {
-        focusedPath: mainStackFocus([
-          {
-            name: Routes.EXPLORE_SEARCH,
-            params: { initialQuery: 'hello world', entryPoint: 'deeplink' },
-          },
-        ]),
-      },
-    },
-  }),
-
-  // notifications-settings
-  ...toCases({
-    id: 'notifications-settings main page',
-    action: 'notifications-settings',
-    path: 'notifications-settings',
-    expected: notificationsMain(),
-  }),
-  ...toCases({
-    id: 'notifications-settings section=wallet-activity',
-    action: 'notifications-settings',
-    path: 'notifications-settings?section=wallet-activity',
-    expected: notificationsSection('walletActivity'),
-  }),
-  ...toCases({
-    id: 'notifications-settings section=price-alerts',
-    action: 'notifications-settings',
-    path: 'notifications-settings?section=price-alerts',
-    expected: notificationsSection('priceAlerts'),
-  }),
-  ...toCases({
-    id: 'notifications-settings unknown section falls back to main page',
-    action: 'notifications-settings',
-    path: 'notifications-settings?section=unknown',
-    expected: notificationsMain(),
-  }),
+  },
 ];
 
 export const NON_NAVIGATION_CASES: readonly {

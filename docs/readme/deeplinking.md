@@ -446,15 +446,17 @@ A focused handler test like this one stays useful for the handler's own branches
 
 ## Deeplink regression coverage
 
-Real URIs are tested end to end through the real parser, universal-link dispatch, intent handlers, executors, `NavigationService` and React Navigation, without Appium. Two layers share one set of independently authored URI fixtures:
+Real URIs are tested end to end through the real parser, universal-link dispatch, intent handlers, executors, `NavigationService` and React Navigation, without Appium. The **platform** owns the harness and a small set of **exemplars**. **Feature teams** (and their agents) own the scenario rows for their actions.
 
-| Layer                          | What it proves                                                                                                                                                                                                                                                                | Where                                                                                                                                                                                                                                                                          |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| URI fixtures                   | Typed data only: real URIs, explicit state, and expected intents/focused routes. Expectations are authored from the contract, never produced by calling the code under test.                                                                                                  | [`deeplinkUriCases.ts`](../../app/core/DeeplinkManager/__fixtures__/deeplinkUriCases.ts)                                                                                                                                                                                       |
-| Unit contract (`resolve` mode) | Each URI resolves to the expected intent (target type, route, nested params, back tab, prepare presence) or to the non-navigation outcome. Resolve neither navigates nor applies prepare effects.                                                                             | [`parseDeeplink.routes.test.ts`](../../app/core/DeeplinkManager/utils/parseDeeplink.routes.test.ts)                                                                                                                                                                            |
-| Component view (CV) navigation | Normal execution (`execute` mode) and the startup reset (`resolve` mode + `executeStartupDeeplinkIntent`) land on the expected focused route chain with the expected params. Also covers Back, real `prepare()` effects on the store, and real notification-settings screens. | [`DeeplinkManager.navigation.view.test.tsx`](../../app/core/DeeplinkManager/DeeplinkManager.navigation.view.test.tsx), renderer [`deeplinks.tsx`](../../tests/component-view/renderers/deeplinks.tsx), state [`deeplinks.ts`](../../tests/component-view/presets/deeplinks.ts) |
+Two layers share one independently authored fixture list:
 
-The existing isolated suites (`parseDeeplink.test.ts`, per-handler tests, `executeDeeplinkIntent.test.ts`, `resetToHomeNav.test.ts`) stay as they are.
+| Layer                          | What it proves                                                                                                                                                    | Where                                                                                                                                                                                                                                                                          |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| URI fixtures                   | Typed data: real URIs, explicit state, expected intents and focused routes. Expectations come from the contract — never from calling the code under test.         | [`deeplinkUriCases.ts`](../../app/core/DeeplinkManager/__fixtures__/deeplinkUriCases.ts)                                                                                                                                                                                       |
+| Unit contract (`resolve` mode) | Each URI resolves to the expected intent (or non-navigation outcome). Resolve neither navigates nor applies prepare effects.                                      | [`parseDeeplink.routes.test.ts`](../../app/core/DeeplinkManager/utils/parseDeeplink.routes.test.ts)                                                                                                                                                                            |
+| Component view (CV) navigation | Normal `execute` and startup (`resolve` + `executeStartupDeeplinkIntent`) land on the expected focused path. Exemplars cover Back and a `prepare()` store effect. | [`DeeplinkManager.navigation.view.test.tsx`](../../app/core/DeeplinkManager/DeeplinkManager.navigation.view.test.tsx), renderer [`deeplinks.tsx`](../../tests/component-view/renderers/deeplinks.tsx), state [`deeplinks.ts`](../../tests/component-view/presets/deeplinks.ts) |
+
+The checked-in matrix is **exemplars only** (home-tab + volatile, alternate scheme, main-stack nesting, prepare, HTTP/Engine boundary, explicit `backTab`, non-navigation). It is not a catalogue of every deeplink. Isolated suites (`parseDeeplink.test.ts`, per-handler tests, `executeDeeplinkIntent.test.ts`, `resetToHomeNav.test.ts`) stay as they are.
 
 ### Run
 
@@ -466,30 +468,26 @@ TEST_OS=android yarn jest -c jest.config.view.js app/core/DeeplinkManager/Deepli
 
 CV tests need `jest.config.view.js`; the default config does not apply the CV rules. CI runs the unit suite in the existing unit job and the CV suite in the existing component-view job (`TEST_OS=ios`). Run both platforms locally before marking a deeplink change complete.
 
-### When to update coverage
+### Add a scenario (feature team / agent)
 
-Update the suites in the **same change** whenever you add, change, deprecate or remove any of the following, including when the edited code is outside `app/core/DeeplinkManager/` (route constants, navigator registrations, destination screens that consume the params):
+Update coverage in the **same change** as the deeplink contract change (including route constants, navigator registrations, or destination screens outside `DeeplinkManager/`):
 
-- a deeplink action, alias, supported scheme or host, or query contract
-- a fallback or rejection
-- a state- or flag-dependent destination
-- a `prepare()` effect
-- nested route or params, a back tab, or startup reset behavior
+1. **Append a row** to `DEEPLINK_URI_CASES` in [`deeplinkUriCases.ts`](../../app/core/DeeplinkManager/__fixtures__/deeplinkUriCases.ts). Prefer `toCases({ path, expected, … })` when both `https` and `metamask://` matter; otherwise one scheme is enough. Author `expected.target` and `expected.navigation.focusedPath` independently (helpers: `homeTabFocus`, `mainStackFocus`, `homeTabIntent`, `mainStackIntent`). Set `state`, `origin`, `volatile`, `hasPrepare`, and `boundary` only when the case needs them.
+2. **State variant.** If the destination depends on Redux not covered by `baseline`, add a `DeeplinkFixtureState` value and a matching override in [`presets/deeplinks.ts`](../../tests/component-view/presets/deeplinks.ts).
+3. **External data.** If the handler needs HTTP or Engine data, extend `boundary` and [`installDeeplinkCaseBoundary`](../../tests/component-view/api-mocking/deeplinkSwapToken.ts) (copy the `swap-source-token` pattern).
+4. **CV tree.** If the destination route is missing from [`renderers/deeplinks.tsx`](../../tests/component-view/renderers/deeplinks.tsx), register a probe (or a real screen when UI proof matters). Never register a route because the parser returned it.
+5. **Pickup.** The unit `describe.each` and the CV normal + startup `itEach` tables pick new rows up with no test-file edits. Add a focused Back or prepare `it(...)` only when that behavior is part of your contract (copy the exemplars in the CV file).
+6. **Verify.** Run the unit suite and the CV suite on both platforms. Record harness gaps in the PR.
 
-Then:
-
-1. **New intent-capable action.** Add real URI input and independently authored expected results to the shared matrix (`DEEPLINK_URI_CASES`). Cover each supported equivalent scheme, meaningful params and fallbacks, and the fixture state they depend on. The unit table and the normal and startup CV navigation tables pick the new rows up; add focused Back, prepare or real-screen cases when the action needs them. Keep the real parser, handler, executor and navigation chain, and the existing CV mock boundaries.
-2. **Changed contract.** Add or update the affected rows and the relevant navigation, Back, prepare or screen assertions. Keep compatibility rows unless support is intentionally withdrawn. For a retired link, keep an assertion for the intended fallback or rejection instead of deleting the only URI coverage.
-3. **Route hierarchy or registration change.** Update the reduced CV tree in `renderers/deeplinks.tsx` and review the affected startup and Back cases against the production navigators (`app/components/Nav/App/App.tsx`, `app/components/Nav/Main/MainNavigator.tsx`). Keep expected routes independent from parser output. Never register the returned target dynamically to make a test pass.
-4. **Verify.** Run the affected unit and CV suites (both CV platforms) before marking the change complete. Record any boundary the harness cannot cover, and the layer you chose and why, in the PR.
+For a **changed or retired** link: update or keep a fallback/rejection row; do not delete the only coverage of a still-supported URI. For a **route hierarchy** change: update the CV tree and review startup/Back against production navigators (`App.tsx`, `MainNavigator.tsx`).
 
 ### Scope and limits
 
-- The matrix covers dapp (including `dapp://`), rewards, perps, perps-markets, perps-asset, perps-outreach, swap, predict, trending and notifications-settings, over `https://link.metamask.io/` and `metamask://`, plus the unsupported-scheme and malformed-URL outcomes. This is a baseline, not an allowlist: future intent-capable actions must join it.
-- Legacy switch-only actions (buy, sell, home, asset, send, create-account and others), SDK, WalletConnect and MWP paths stay outside this harness and keep their existing tests. Do not force them into the intent harness, and do not add Appium for them automatically.
-- The fixtures use one explicit baseline state (unlocked existing account, mainnet, returning Perps user with Pro mode off, Predict home redesign off, Rewards-tab layout, notifications enabled) plus named variants. Other tab layouts and feature-flag configurations are not covered.
+- Platform exemplars teach the harness. Feature teams own full coverage of their actions (params, fallbacks, schemes, state variants).
+- Legacy switch-only actions (buy, sell, home, asset, send, create-account and others), SDK, WalletConnect and MWP paths stay outside this harness. Do not force them in, and do not add Appium for them automatically.
+- Fixture states: `baseline` plus named variants in the preset. Other tab layouts and feature-flag configurations are not covered unless a team adds a state.
 - CV runs on a hand-registered test tree. It proves navigation within that tree, not production route registration, every feature-flag layout, native OS dispatch, unlock, or process lifecycle. "Startup" means navigation-state construction only.
-- Nothing enforces that a new action was added to the matrix. These instructions are the control; existing CI cases passing does not prove coverage of a new action.
+- Nothing enforces that a new action was added to the matrix. These instructions are the control; green CI on exemplars does not prove coverage of a new action.
 
 ## Signature Verification
 
