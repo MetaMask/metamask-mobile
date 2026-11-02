@@ -27,6 +27,9 @@ jest.mock('../../../../core/Engine', () => ({
         checkMoneyAccountBalance: jest.fn(),
       },
     },
+    controllerMessenger: {
+      call: jest.fn(),
+    },
   },
 }));
 
@@ -46,6 +49,22 @@ const mockUpdatePaymentMethod = Engine.context.SubscriptionController
   .updatePaymentMethod as jest.Mock;
 const mockCheckMoneyAccountBalance = Engine.context
   .SubscriptionDelegationService.checkMoneyAccountBalance as jest.Mock;
+const mockMessengerCall = Engine.controllerMessenger.call as jest.Mock;
+
+const insufficientBalance = {
+  hasSufficientBalance: false,
+  balance: '1000',
+  requiredBalance: '5000000',
+};
+
+const mockFreshTotalBalance = (totalBalance: string) => {
+  mockMessengerCall.mockImplementation(async (method: string) => {
+    if (method === 'MoneyAccountBalanceService:fetchBalanceWithFallback') {
+      return { totalBalance };
+    }
+    return undefined;
+  });
+};
 
 const createCryptoSubscription = (
   overrides: Partial<Subscription> = {},
@@ -217,6 +236,11 @@ describe('retryPlusChargeAfterDeposit', () => {
       requiredBalance: '5000000',
     });
     mockUpdatePaymentMethod.mockResolvedValue([]);
+    mockFreshTotalBalance('10000000');
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('skips the API when the subscription is not retryable', async () => {
@@ -241,22 +265,60 @@ describe('retryPlusChargeAfterDeposit', () => {
     expect(mockUpdatePaymentMethod).not.toHaveBeenCalled();
   });
 
-  it('skips updatePaymentMethod when the Money Account balance is insufficient', async () => {
-    mockCheckMoneyAccountBalance.mockResolvedValue({
-      hasSufficientBalance: false,
-      balance: '1000',
-      requiredBalance: '5000000',
-    });
+  it('skips updatePaymentMethod when the Money Account balance stays insufficient', async () => {
+    jest.useFakeTimers();
+    mockCheckMoneyAccountBalance.mockResolvedValue(insufficientBalance);
+    mockFreshTotalBalance('1000');
     const subscription = createCryptoSubscription();
 
-    await retryPlusChargeAfterDeposit(subscription, MONEY_ACCOUNT_ADDRESS);
+    const pending = retryPlusChargeAfterDeposit(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+    );
+    await jest.runAllTimersAsync();
+    await pending;
 
     expect(mockCheckMoneyAccountBalance).toHaveBeenCalledWith({
       product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
       recurringInterval: RECURRING_INTERVALS.month,
       payerAddress: MONEY_ACCOUNT_ADDRESS,
     });
+    expect(mockMessengerCall).toHaveBeenCalledWith(
+      'MoneyAccountBalanceService:fetchBalanceWithFallback',
+      MONEY_ACCOUNT_ADDRESS,
+      { fresh: true },
+    );
     expect(mockUpdatePaymentMethod).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('charges once a later fresh balance covers the plan', async () => {
+    jest.useFakeTimers();
+    mockCheckMoneyAccountBalance.mockResolvedValue(insufficientBalance);
+    let freshReads = 0;
+    mockMessengerCall.mockImplementation(async (method: string) => {
+      if (method === 'MoneyAccountBalanceService:fetchBalanceWithFallback') {
+        freshReads += 1;
+        return { totalBalance: freshReads === 1 ? '1000' : '10000000' };
+      }
+      return undefined;
+    });
+    const subscription = createCryptoSubscription();
+
+    const pending = retryPlusChargeAfterDeposit(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+      16,
+    );
+    await jest.runAllTimersAsync();
+    await pending;
+
+    expect(mockUpdatePaymentMethod).toHaveBeenCalledTimes(1);
+    expect(mockMessengerCall).toHaveBeenCalledWith(
+      'MoneyAccountBalanceService:fetchBalanceWithFallback',
+      MONEY_ACCOUNT_ADDRESS,
+      { fresh: true, minBlock: 16 },
+    );
   });
 
   it('sends a credential-less updatePaymentMethod for a retryable subscription', async () => {

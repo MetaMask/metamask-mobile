@@ -121,12 +121,15 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
   });
 
   it('retries the Plus charge for a confirmed membership top-up', async () => {
-    await handleTransactionConfirmedForPlusChargeRetry(makeTx());
+    await handleTransactionConfirmedForPlusChargeRetry(
+      makeTx({ blockNumber: '0x10' }),
+    );
 
     expect(ReduxService.store.getState).toHaveBeenCalled();
     expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledWith(
       subscription,
       MONEY_ACCOUNT_ADDRESS,
+      16,
     );
   });
 
@@ -138,6 +141,7 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
     expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledWith(
       subscription,
       MONEY_ACCOUNT_ADDRESS,
+      undefined,
     );
   });
 

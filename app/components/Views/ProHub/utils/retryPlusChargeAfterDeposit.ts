@@ -7,9 +7,27 @@ import {
   type SubscriptionCryptoPaymentMethod,
   type SubscriptionPaymentMethod,
 } from '@metamask/subscription-controller';
+import type { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
+import {
+  MoneyAccountApiDataServiceQueryKeys,
+  MoneyAccountBalanceServiceQueryKeys,
+} from '../../../UI/Money/queryKeys';
 import { ensureError } from '../../../../util/errorUtils';
+import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 import Logger from '../../../../util/Logger';
+
+/**
+ * Same budget as the post-confirm Money balance refresh. The first read can
+ * still be the pre-deposit balance: the RPC query is cached for a minute, and
+ * `checkMoneyAccountBalance` does not ask for a fresh read.
+ */
+const MAX_BALANCE_READ_ATTEMPTS = 4;
+const BALANCE_RETRY_BASE_DELAY_MS = 500;
+const BALANCE_RETRY_MAX_DELAY_MS = 4000;
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const LOG_OPTIONS = {
   tags: {
@@ -84,19 +102,146 @@ export function isPlusChargeRetryable(
 }
 
 /**
+ * Drops the cached Money balance so the next read hits the chain or API.
+ * `fetchBalanceWithFallback` without options can serve the RPC query for up
+ * to a minute after it was filled.
+ *
+ * @param address - Money Account address, in the casing the balance query uses.
+ */
+async function bustMoneyBalanceSourceCaches(address: string): Promise<void> {
+  await Promise.all([
+    Engine.controllerMessenger.call(
+      'MoneyAccountBalanceService:invalidateQueries',
+      {
+        queryKey: [
+          MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+          address,
+        ],
+      },
+    ),
+    Engine.controllerMessenger.call(
+      'MoneyAccountApiDataService:invalidateQueries',
+      {
+        queryKey: [
+          MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
+          address.toLowerCase(),
+        ],
+      },
+    ),
+  ]);
+}
+
+/**
+ * Reads the Money Account total in mUSD base units, bypassing the cached
+ * balance. `minBlock` makes an API result that is still behind the confirmed
+ * deposit fall back to RPC.
+ *
+ * @param payerAddress - Money Account that pays the Plus charge.
+ * @param minBlock - Confirmed deposit block, when the transaction has one.
+ * @returns Total balance in mUSD base units.
+ */
+async function readFreshMoneyAccountTotalBalance(
+  payerAddress: Hex,
+  minBlock: number | undefined,
+): Promise<bigint> {
+  await bustMoneyBalanceSourceCaches(payerAddress);
+  const balance = await Engine.controllerMessenger.call(
+    'MoneyAccountBalanceService:fetchBalanceWithFallback',
+    payerAddress,
+    {
+      fresh: true,
+      ...(minBlock !== undefined && { minBlock }),
+    },
+  );
+  return BigInt(balance.totalBalance);
+}
+
+/**
+ * Whether the Money Account can cover the Plus charge.
+ *
+ * Trusts `checkMoneyAccountBalance` when it already reports enough funds.
+ * An insufficient result is not final: the confirm event can beat the
+ * balance cache, so this re-reads with cache bypass until the deposit shows
+ * up or the retry budget runs out. A balance that is still short after that
+ * is a real shortfall and returns false. A read that keeps failing throws.
+ *
+ * @param balanceRequest - Product, interval, and payer for the balance check.
+ * @param balanceRequest.product - Plus product the charge is for.
+ * @param balanceRequest.recurringInterval - Billing interval of the subscription.
+ * @param balanceRequest.payerAddress - Money Account that pays the charge.
+ * @param minBlock - Confirmed deposit block, when the transaction has one.
+ * @returns Whether the fresh balance covers the charge.
+ */
+async function waitForSufficientPlusBalance(
+  balanceRequest: {
+    product: typeof PRODUCT_TYPES.MONEY_ACCOUNT_PLUS;
+    recurringInterval: Subscription['interval'];
+    payerAddress: Hex;
+  },
+  minBlock: number | undefined,
+): Promise<boolean> {
+  let requiredBalance: bigint | undefined;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < MAX_BALANCE_READ_ATTEMPTS; attempt++) {
+    if (attempt > 0) {
+      await sleep(
+        calculateExponentialRetryDelay(
+          attempt - 1,
+          BALANCE_RETRY_BASE_DELAY_MS,
+          BALANCE_RETRY_MAX_DELAY_MS,
+        ),
+      );
+    }
+
+    try {
+      if (requiredBalance === undefined) {
+        const snapshot =
+          await Engine.context.SubscriptionDelegationService.checkMoneyAccountBalance(
+            balanceRequest,
+          );
+        requiredBalance = BigInt(snapshot.requiredBalance);
+        if (snapshot.hasSufficientBalance) {
+          return true;
+        }
+      }
+
+      const totalBalance = await readFreshMoneyAccountTotalBalance(
+        balanceRequest.payerAddress,
+        minBlock,
+      );
+      lastError = undefined;
+      if (totalBalance >= requiredBalance) {
+        return true;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+
+  return false;
+}
+
+/**
  * Retries the Plus crypto charge after a Money deposit confirms.
  *
  * Sends a credential-less `updatePaymentMethod` so the API reuses the stored
  * delegation. Does nothing when the subscription is not retryable, billing
- * cycles are missing, or the Money Account balance is still insufficient.
- * Logs API failures and does not throw.
+ * cycles are missing, or the Money Account balance is still insufficient
+ * after the post-confirm balance reads. Logs API failures and does not throw.
  *
  * @param subscription - Current Money Account Plus subscription.
  * @param moneyAccountAddress - Primary Money Account address.
+ * @param minBlock - Confirmed deposit block, when the transaction has one.
  */
 export async function retryPlusChargeAfterDeposit(
   subscription: Subscription,
   moneyAccountAddress: string,
+  minBlock?: number,
 ): Promise<void> {
   if (!isPlusChargeRetryable(subscription, moneyAccountAddress)) {
     return;
@@ -110,14 +255,14 @@ export async function retryPlusChargeAfterDeposit(
   const { payerAddress, chainId, tokenSymbol } = paymentMethod.crypto;
 
   try {
-    const { hasSufficientBalance } =
-      await Engine.context.SubscriptionDelegationService.checkMoneyAccountBalance(
-        {
-          product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-          recurringInterval: subscription.interval,
-          payerAddress,
-        },
-      );
+    const hasSufficientBalance = await waitForSufficientPlusBalance(
+      {
+        product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+        recurringInterval: subscription.interval,
+        payerAddress,
+      },
+      minBlock,
+    );
 
     if (!hasSufficientBalance) {
       return;

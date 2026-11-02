@@ -4,6 +4,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { hexToNumber, isStrictHexString } from '@metamask/utils';
 import ReduxService from '../../../../redux';
 import { selectIsSignedIn } from '../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
@@ -32,6 +33,22 @@ let isRetrying = false;
  * @param transactionMeta - Confirmed transaction from TransactionController.
  * @returns Whether this confirmation can fund a Plus charge retry.
  */
+/**
+ * Confirmed receipts store `blockNumber` as a 0x-prefixed hex quantity. A
+ * missing or non-hex value omits `minBlock` so the balance re-read still runs.
+ *
+ * @param blockNumber - Block number from the confirmed transaction meta.
+ * @returns The block as a number, or undefined when it cannot be used.
+ */
+function toConfirmedMinBlock(
+  blockNumber: string | undefined,
+): number | undefined {
+  if (!blockNumber || !isStrictHexString(blockNumber)) {
+    return undefined;
+  }
+  return hexToNumber(blockNumber);
+}
+
 function isDepositEligibleForPlusRetry(
   transactionMeta: TransactionMeta,
 ): boolean {
@@ -79,7 +96,11 @@ export async function handleTransactionConfirmedForPlusChargeRetry(
     const moneyAccountAddress = selectPrimaryMoneyAccount(state)?.address;
 
     if (subscription && moneyAccountAddress) {
-      await retryPlusChargeAfterDeposit(subscription, moneyAccountAddress);
+      await retryPlusChargeAfterDeposit(
+        subscription,
+        moneyAccountAddress,
+        toConfirmedMinBlock(transactionMeta.blockNumber),
+      );
     }
   } catch (error) {
     Logger.error(
