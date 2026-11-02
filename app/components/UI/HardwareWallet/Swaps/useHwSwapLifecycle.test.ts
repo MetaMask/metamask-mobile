@@ -370,6 +370,18 @@ describe('useHwSwapLifecycle Quick Buy entry point', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('goes back on done instead of opening activity', () => {
+    mockUseSelector.mockReturnValue(initialHardwareWalletsSwapsState);
+    const { result } = renderQuickBuyLifecycle();
+
+    act(() => {
+      result.current.handleDone();
+    });
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('resets the bridge slice on unmount', () => {
     mockUseSelector.mockReturnValue(initialHardwareWalletsSwapsState);
     const { unmount } = renderQuickBuyLifecycle();

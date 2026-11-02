@@ -489,8 +489,12 @@ export function useHwSwapLifecycle({
   const handleDone = useCallback(() => {
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
+    if (strategy.isQuickBuy) {
+      navigation.goBack();
+      return;
+    }
     navigation.navigate(Routes.TRANSACTIONS_VIEW, undefined, { pop: true });
-  }, [dispatch, navigation, clearCachedSubmission]);
+  }, [dispatch, navigation, clearCachedSubmission, strategy.isQuickBuy]);
 
   return {
     isRetrying,
