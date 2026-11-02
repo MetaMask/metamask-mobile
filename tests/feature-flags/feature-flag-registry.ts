@@ -5133,6 +5133,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  glassHeaders: {
+    name: 'glassHeaders',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsCompetitionBannerEnabled: {
     name: 'perpsCompetitionBannerEnabled',
     type: FeatureFlagType.Remote,
