@@ -99,7 +99,6 @@ const profile: UseMyProfileResult['profile'] = {
   connectedToX: true,
   followerCount: 0,
   followingCount: 0,
-  shareUrl: 'https://metamask.io/social/giga-whale',
   linkedAccountAddress: MOCK_ADDRESS_2,
   shareTradingActivity: true,
 };
@@ -163,7 +162,7 @@ describe('ManageProfileView', () => {
     ).toHaveTextContent(/@giga-whale\.metamask/);
     expect(
       screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
-    ).toHaveTextContent(/X @giga-whale/);
+    ).toHaveTextContent(/@giga-whale/);
   });
 
   it('shows live trading activity as On when sharing is public', () => {
@@ -210,7 +209,25 @@ describe('ManageProfileView', () => {
     );
   });
 
-  it('navigates to the handle editor', () => {
+  it('does not open the handle editor once the handle is set', () => {
+    renderWithProvider(<ManageProfileView />, { state });
+
+    const row = screen.getByTestId(ManageProfileViewSelectorsIDs.HANDLE_ROW);
+    fireEvent.press(row);
+
+    expect(row.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the handle editor while no handle is set', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: { ...profile, handle: '' },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
     renderWithProvider(<ManageProfileView />, { state });
 
     fireEvent.press(
@@ -412,7 +429,7 @@ describe('ManageProfileView', () => {
 
       expect(
         screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
-      ).toHaveTextContent(/X @fresh-handle/);
+      ).toHaveTextContent(/@fresh-handle/);
     });
   });
 

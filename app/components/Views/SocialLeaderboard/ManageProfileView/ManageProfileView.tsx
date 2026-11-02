@@ -132,7 +132,7 @@ const ManageProfileView: React.FC = () => {
   const xHandle = xProfile?.username || profile?.xHandle;
   let socials = '';
   if (xHandle) {
-    socials = `X @${xHandle}`;
+    socials = `@${xHandle}`;
   } else if (isConnectedToX) {
     socials = 'X';
   }
@@ -190,7 +190,8 @@ const ManageProfileView: React.FC = () => {
           <ManageProfileNavRow
             label={strings('social_leaderboard.manage_profile.handle')}
             value={handle}
-            disabled={editorsDisabled}
+            // v1: the handle is permanent once the profile is set up.
+            disabled={editorsDisabled || Boolean(profile?.handle)}
             onPress={() => handleOpenTextEditor('handle')}
             showTopBorder
             testID={ManageProfileViewSelectorsIDs.HANDLE_ROW}
@@ -204,7 +205,7 @@ const ManageProfileView: React.FC = () => {
             testID={ManageProfileViewSelectorsIDs.BIO_ROW}
           />
           <ManageProfileNavRow
-            label={strings('social_leaderboard.manage_profile.socials')}
+            label={strings('social_leaderboard.manage_profile.x_account')}
             value={socials}
             disabled={socialsDisabled}
             onPress={() => {

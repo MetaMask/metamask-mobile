@@ -50,7 +50,7 @@ describe('SocialFeedPostSkeleton', () => {
         return;
       }
       const style = flatStyle(node.props?.style);
-      if (style.flexDirection === 'row' && style.gap === 8) {
+      if (style.flexDirection === 'row' && style.gap === 12) {
         rows.push(node);
       }
       node.children?.forEach(visit);

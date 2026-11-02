@@ -9,8 +9,22 @@ PredictNext/
   index.ts                     # Curated external entry point
   implementation/
     index.ts                   # Legacy/next switch and Active Venue resolution
+    resolveActiveVenue.ts      # The pure resolution order (docs/active-venue.md)
+    activeVenue.ts             # selectActiveVenue, the one resolver, and useActiveVenue
+    PredictVenueController.ts  # Persisted preference and history, session default
     PredictImplementationSwitch.tsx
     usePredictImplementation.ts
+    NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
+  availability/
+    index.ts                   # Venue-aware selectPredictAvailability / usePredictAvailability
+  activity/
+    index.ts                   # Activity projections for the shared Activity list and details
+    usePredictActivityItems.ts # Activity as shared ActivityListItems
+    usePredictActivityDetailsItem.ts
+    PredictActivityDetails.tsx # Details template for prediction* kinds
+    internal/
+      legacy/                  # Legacy list hook, mapper and details templates, moved as-is
+      next/                    # Canonical Activity mapper, list hook, details lookup and templates
   events/
     cards/
       index.ts                 # Supported Event-card API
@@ -22,16 +36,19 @@ PredictNext/
       createGamePresentation.ts
       findGameSelectionQuote.ts
       findWinnerMarketQuotes.ts
+      useGameTeamColors.ts     # Team colors with the theme fallback
     markets/
       index.ts                 # Supported Market-card and list API
       MarketList.tsx           # Card-agnostic detail-list composition
       MarketFooterCard.tsx     # Public Game winner footer composition
       MarketStandardCard.tsx   # Public standard Market composition
+      MoneylineMarketGroupCard.tsx # Public moneyline choice-group composition
       SpreadMarketGroupCard.tsx # Public spread Market-group composition
       TotalMarketGroupCard.tsx  # Public total Market-group composition
       internal/                # Private Market-card parts
     shared/
       formatting/              # Price and Volume formatting shared by Event UI
+      ui/                      # Outcome row and Team logo shared by Event and Market cards
 
   views/                       # Screen compositions and private view helpers
     PredictEvent/
@@ -112,7 +129,7 @@ Code outside Predict uses the PredictNext public API described in [the public AP
 
 Code outside PredictNext imports only from `app/components/UI/PredictNext/index.ts`. That file names each public export explicitly and grows only when a ticket migrates a real caller. Do not use `export *`. Named composition wiring (Engine service initialization and messengers, navigator registration) is the allowlisted exception. Inside PredictNext, modules keep importing each other through their module-root `index.ts` files.
 
-Every public API chooses its branch through `implementation/`: `usePredictImplementation()` resolves the Active Venue to `legacy` or `next` with its `venueId`, and `<PredictImplementationSwitch legacy next resolving />` mounts only the active branch. That module holds the single Venue-to-implementation map. Put each public API's legacy pass-through under its owning module, for example `portfolio/internal/legacy/`. The public API contract describes the switch pattern for components and hooks. Predict-specific code that currently lives in shared surfaces, such as Homepage Predictions, moves into legacy `Predict/` unchanged, and the PredictNext wrapper renders it. Keep dependencies one-way: legacy code never imports PredictNext public wrappers.
+Every public API chooses its branch through `implementation/`: `usePredictImplementation()` resolves the Active Venue to `legacy` or `next` with its `venueId`, and `<PredictImplementationSwitch legacy next resolving />` mounts only the active branch. That module holds the single Venue-to-implementation map. The `next` branch reads its Venue with `useNextVenueId()`; screens below the entry screen take `venueId` from route params or an Order intent, never from a Venue constant. Put each public API's legacy pass-through under its owning module, for example `portfolio/internal/legacy/`. The public API contract describes the switch pattern for components and hooks. Predict-specific code that currently lives in shared surfaces, such as Homepage Predictions, moves into legacy `Predict/` unchanged, and the PredictNext wrapper renders it. Keep dependencies one-way: legacy code never imports PredictNext public wrappers.
 
 ## Adding or moving a module
 

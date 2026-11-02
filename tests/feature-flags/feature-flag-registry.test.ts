@@ -239,7 +239,6 @@ describe('Feature Flag Registry', () => {
         'earnMoneyBalanceAnimationEnabled',
         'earnMoneyCardFlipAnimationEnabled',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
-        'musd1313AbtestEarnSectionOnHomepage',
       ];
 
       for (const flagName of addedFlagNames) {
@@ -256,9 +255,8 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('pins Earn homepage and token-details A/B flags to control', () => {
+    it('pins Earn token-details A/B flags to control', () => {
       const abTestFlags = [
-        'musd1313AbtestEarnSectionOnHomepage',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
       ];
 
@@ -414,8 +412,7 @@ describe('Feature Flag Registry', () => {
 
     it('keeps Social AI comment translation off until the flag is enabled', () => {
       expect(
-        getRegistryEntry('aiSocialCommentTranslationEnabled')
-          ?.productionDefault,
+        getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
       ).toEqual({
         enabled: false,
         minimumVersion: '8.19.0',

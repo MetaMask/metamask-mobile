@@ -22,7 +22,8 @@ jest.mock('../../selectors/predictConfig', () => ({
 
 jest.mock('../PredictNextStack', () => {
   const { Text } = jest.requireActual('react-native');
-  return () => <Text testID="predict-next-stack" />;
+  const { useNextVenueId } = jest.requireActual('../../implementation');
+  return () => <Text testID="predict-next-stack">{useNextVenueId()}</Text>;
 });
 
 jest.mock('../../../Predict/routes', () => {
@@ -51,12 +52,14 @@ describe('PredictRoot', () => {
 
     render(<PredictRoot />);
 
-    expect(screen.getByTestId('predict-next-stack')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-next-stack')).toHaveTextContent(
+      'kalshi',
+    );
     expect(screen.queryByTestId('legacy-predict-stack')).not.toBeOnTheScreen();
   });
 
-  it('renders the legacy stack while Polymarket is enabled', () => {
-    mockConfig = config(true, true);
+  it('renders the legacy stack for a Polymarket-only rollout', () => {
+    mockConfig = config(true, false);
     givenRoute();
 
     render(<PredictRoot />);

@@ -14,6 +14,7 @@ import {
   SocialV1Variant,
 } from '../SocialV1View/abTestConfig';
 import type { SocialShellTab } from '../shell/types';
+import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
@@ -100,6 +101,9 @@ export const pushSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
+  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+    return;
+  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(Routes.SOCIAL.ONBOARDING);
     return;
@@ -125,6 +129,9 @@ export const navigateToSocialLeaderboard = (
     pushSocialLeaderboard(navigate, params);
     return;
   }
+  if (!ensureSocialTermsAccepted(navigate)) {
+    return;
+  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(Routes.SOCIAL.ONBOARDING, { returnToTab: true });
     return;
@@ -146,6 +153,9 @@ export const navigateToSocialTab = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
+  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+    return;
+  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(
       Routes.SOCIAL.ONBOARDING,

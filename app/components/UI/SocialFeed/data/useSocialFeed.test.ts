@@ -363,6 +363,19 @@ describe('useSocialFeed', () => {
         expect.objectContaining({ realtimeScope: null }),
       );
     });
+
+    it('keeps the pages fresh for the staleTime it is given', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+      const { client, wrapper } = createWrapper();
+
+      renderHook(() => useSocialFeed(trendingQuery, { staleTime: Infinity }), {
+        wrapper,
+      });
+      await waitFor(() => expect(mockCall).toHaveBeenCalled());
+
+      const observer = client.getQueryCache().getAll()[0]?.observers[0];
+      expect(observer?.options.staleTime).toBe(Infinity);
+    });
   });
 
   it('sorts the global feed newest first', async () => {

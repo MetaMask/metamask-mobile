@@ -2,15 +2,16 @@ import React, { type ReactNode } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
 } from 'react-native';
 import {
   Box,
-  FontWeight,
   HelpText,
   HelpTextSeverity,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -25,7 +26,8 @@ import type {
   MfaReason,
 } from '../../../../../util/identity/mfa/engine/types';
 import shieldImage from '../../../../../images/mfa-shield.png';
-import { getErrorMessage } from '../../labels';
+import { strings } from '../../../../../../locales/i18n';
+import { getErrorLink, getErrorMessage } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 
 /**
@@ -45,6 +47,8 @@ interface StepLayoutProps {
   top?: ReactNode;
   children?: ReactNode;
   footer?: ReactNode;
+  /** Centers the content vertically, as on result screens. */
+  isVerticallyCentered?: boolean;
 }
 
 /** The 2-step verification shield, above the title of the intro and picker. */
@@ -65,15 +69,30 @@ export const StepError = ({
 }: {
   code: MfaFlowErrorCode;
   method?: MfaMethod;
-}) => (
-  <HelpText
-    severity={HelpTextSeverity.Danger}
-    fontWeight={FontWeight.Medium}
-    testID={MfaFlowSelectorsIDs.ERROR}
-  >
-    {getErrorMessage(code, method)}
-  </HelpText>
-);
+}) => {
+  const link = getErrorLink(code);
+  return (
+    <HelpText
+      severity={HelpTextSeverity.Danger}
+      accessibilityRole="alert"
+      testID={MfaFlowSelectorsIDs.ERROR}
+    >
+      {getErrorMessage(code, method)}
+      {link ? (
+        <>
+          {' '}
+          <TextButton
+            variant={TextVariant.BodySm}
+            onPress={() => Linking.openURL(link)}
+            testID={MfaFlowSelectorsIDs.ERROR_LINK}
+          >
+            {strings('mfa.errors.learn_more')}
+          </TextButton>
+        </>
+      ) : null}
+    </HelpText>
+  );
+};
 
 /**
  * The step's title and description, centred under an image (the intro and
@@ -117,6 +136,7 @@ const StepLayout = ({
   top,
   children,
   footer,
+  isVerticallyCentered = false,
 }: StepLayoutProps) => {
   const tw = useTailwind();
   const { bottom } = useSafeAreaInsets();
@@ -129,7 +149,10 @@ const StepLayout = ({
       keyboardVerticalOffset={16 - bottom}
     >
       <ScrollView
-        contentContainerStyle={tw.style('px-4 pt-4 pb-6 gap-4')}
+        contentContainerStyle={tw.style(
+          'px-4 pt-4 pb-6 gap-4',
+          isVerticallyCentered && 'flex-grow justify-center',
+        )}
         keyboardShouldPersistTaps="handled"
       >
         {top}

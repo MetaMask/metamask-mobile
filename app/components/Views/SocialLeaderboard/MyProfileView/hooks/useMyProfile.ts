@@ -32,7 +32,6 @@ export interface MySocialProfile {
   connectedToX?: boolean;
   followerCount?: number | null;
   followingCount?: number | null;
-  shareUrl: string;
   /** Whole-percent win rate (e.g. 60). Swap for profile-endpoint stats later. */
   winRatePercent?: number | null;
   /** Realized P&L in USD. */

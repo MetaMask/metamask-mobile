@@ -2,7 +2,6 @@ import type { Profile, XProfile } from '@metamask/profile-controller';
 import { getLinkedEvmAddress } from '../../../../../selectors/profileController';
 import { parseFoxiconAvatarUrl } from '../avatarPresets';
 import type { MySocialProfile } from '../hooks/useMyProfile';
-import { profileUrlForHandle } from '../../ProfileOnboarding/profileOnboardingDraft';
 
 /**
  * Older local profiles stored the preset beside the controller profile.
@@ -48,7 +47,6 @@ export const profileControllerToMySocialProfile = (
     connectedToX: profile.connectedToX,
     followerCount: null,
     followingCount: null,
-    shareUrl: profileUrlForHandle(profile.username),
     winRatePercent: null,
     pnlUsd: null,
     linkedAccountAddress: getLinkedEvmAddress(profile.linkedAddresses),

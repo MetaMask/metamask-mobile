@@ -113,11 +113,11 @@ describe('useSocialV1Feed', () => {
       expect(result.current.posts[0].item.author.winRatePercent).toBeNull();
     });
 
-    it('reads the leaderboard scope on Trending', () => {
+    it('reads the trending scope on Trending', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
       expect(mockUseSocialFeed).toHaveBeenCalledWith(
-        { scope: 'leaderboard' },
+        { scope: 'trending' },
         {
           performance: { tab: 'trending' },
         },
@@ -142,7 +142,7 @@ describe('useSocialV1Feed', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
       expect(mockUseSocialFeed).toHaveBeenCalledWith(
-        { scope: 'leaderboard' },
+        { scope: 'trending' },
         { performance: undefined },
       );
     });
