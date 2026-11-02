@@ -3264,6 +3264,48 @@ export const runQuickBuyControllerCases = ({
           );
         });
 
+        it('opens the share sheet only after the HW session submits', async () => {
+          mockResolvePostTradePrompt.mockReturnValue({
+            kind: 'share_sheet',
+            countKey: { address: '0xlinked', product: 'swap' },
+          });
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          expect(getPostTradeShareSession()).toBeNull();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, {
+              status: 'submitted',
+              transaction: { id: 'tx-1', hash: '0xhash' } as TransactionMeta,
+            });
+            await confirmPromise;
+          });
+
+          expect(getPostTradeShareSession()).toEqual(
+            expect.objectContaining({
+              status: 'pending',
+              variant: 'share',
+              transactionHash: '0xhash',
+            }),
+          );
+          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
+        it('never opens the share sheet when the HW session ends without submitting', async () => {
+          mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, { status: 'failed' });
+            await confirmPromise;
+          });
+
+          expect(getPostTradeShareSession()).toBeNull();
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+        });
+
         it('posts the copy-trade intent before signing', async () => {
           await startHardwareWalletConfirm({
             commentId: '7f1a9c2e-5b8d-4e3f-9a6c-1d2e3f4a5b6c',

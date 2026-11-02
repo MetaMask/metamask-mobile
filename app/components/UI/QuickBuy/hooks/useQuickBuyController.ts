@@ -1770,28 +1770,33 @@ export function useQuickBuyController(
       ((shouldForcePostTradeShare ||
         trackedPostTradePrompt?.kind === 'share_sheet') &&
         Boolean(tradeInFlightChain));
-    const postTradeShareSessionId = shouldPostTradeShare
-      ? beginPostTradeShareSession({
-          variant: isCreateProfilePrompt ? 'create_profile' : 'share',
-          target,
-          tradeMode,
-          pairLabel:
-            sourceToken?.symbol && destToken?.symbol
-              ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
-              : undefined,
-          tradeInFlightChain,
-          copyTradeOrigin,
-          owner: postTradeShareOwner,
-          preview: sharePreview,
-        })
-      : undefined;
+    const beginShareSession = () =>
+      shouldPostTradeShare
+        ? beginPostTradeShareSession({
+            variant: isCreateProfilePrompt ? 'create_profile' : 'share',
+            target,
+            tradeMode,
+            pairLabel:
+              sourceToken?.symbol && destToken?.symbol
+                ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
+                : undefined,
+            tradeInFlightChain,
+            copyTradeOrigin,
+            owner: postTradeShareOwner,
+            preview: sharePreview,
+          })
+        : undefined;
+    // HW: the share sheet would cover the signing screen and the pending toast
+    // would time out during on-device signing, so both wait until the signing
+    // screen hands back.
+    let postTradeShareSessionId = isHardwareAddress
+      ? undefined
+      : beginShareSession();
     const showPendingToast = () =>
       toastRef?.current?.showToast(
         buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
       );
     onClose();
-    // HW: the pending toast would time out during on-device signing, so it is
-    // shown once the signing screen hands back instead.
     if (!shouldPostTradeShare && !isHardwareAddress) {
       showPendingToast();
     }
@@ -1850,8 +1855,11 @@ export function useQuickBuyController(
               inputPrimaryDenomination: 'token_amount',
               migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
             });
-      if (isHardwareAddress && !shouldPostTradeShare) {
-        showPendingToast();
+      if (isHardwareAddress) {
+        postTradeShareSessionId = beginShareSession();
+        if (!shouldPostTradeShare) {
+          showPendingToast();
+        }
       }
       if (isSocialTradeSource(analyticsContext.source)) {
         recordSocialTrade();
