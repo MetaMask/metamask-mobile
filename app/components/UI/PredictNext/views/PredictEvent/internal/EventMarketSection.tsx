@@ -60,10 +60,13 @@ export const EventMarketSection = ({
         testID={EventMarketSectionTestIds.HEADER}
         twClassName="py-3.5"
         endAccessory={
+          // SectionHeader's title box doesn't grow, so push the volume and
+          // chevron to the trailing edge, 8px from the title at minimum.
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
+            twClassName="ml-auto pl-1"
           >
             {volume ? (
               <Text
