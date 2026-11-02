@@ -51,6 +51,8 @@ const PREDICT_NEXT_DIR = 'app/components/UI/PredictNext';
  */
 const predictCompositionFiles = [
   'app/components/Nav/App/App.tsx',
+  // Legacy stack, modal stack and preview-sheet provider only; routes, route
+  // types and availability come from the PredictNext entry point.
   'app/components/Nav/Main/MainNavigator.tsx',
   'app/core/Engine/controllers/predict-controller/index.test.ts',
   'app/core/Engine/controllers/predict-controller/index.ts',
@@ -168,7 +170,6 @@ const predictImportBurndownFiles = [
   'app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts',
   'app/core/Engine/controllers/ui-slots-controller/UiSlotsController.test.ts',
   'app/core/Engine/controllers/ui-slots-controller/contracts/v1.test.ts',
-  'app/core/NavigationService/types.ts',
   'app/selectors/featureFlagController/mocks.ts',
 ];
 
