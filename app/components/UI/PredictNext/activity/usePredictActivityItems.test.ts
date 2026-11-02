@@ -170,7 +170,7 @@ describe('usePredictActivityItems', () => {
 
   describe('while the next implementation is active', () => {
     beforeEach(() => {
-      givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+      givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
       mockGetCanonicalActivity.mockImplementation(
         (_venueId: string, _params: unknown, cursor?: string) =>
           Promise.resolve(cursor === 'page-2' ? secondPage : firstPage),
@@ -312,7 +312,11 @@ describe('usePredictActivityItems', () => {
         ...firstPage,
         nextCursor: undefined,
       });
-      givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+      givenActiveVenue({
+        status: 'ready',
+        venue: 'polymarket',
+        source: 'rollout',
+      });
       const { result, rerender } = renderHook(
         () => usePredictActivityItems({ enabled: true }),
         { wrapper: createWrapper() },
@@ -324,7 +328,7 @@ describe('usePredictActivityItems', () => {
       );
       expect(mockGetCanonicalActivity).not.toHaveBeenCalled();
 
-      givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+      givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
       rerender(undefined);
 
       expect(
@@ -338,7 +342,11 @@ describe('usePredictActivityItems', () => {
       ).toBe(true);
       expect(result.current.isInactiveVenueItem(polymarketDeposit)).toBe(true);
 
-      givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+      givenActiveVenue({
+        status: 'ready',
+        venue: 'polymarket',
+        source: 'rollout',
+      });
       rerender(undefined);
 
       expect(result.current.items.map(({ hash }) => hash)).toEqual([
@@ -350,7 +358,11 @@ describe('usePredictActivityItems', () => {
 
   describe('while the legacy implementation is active', () => {
     beforeEach(() => {
-      givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+      givenActiveVenue({
+        status: 'ready',
+        venue: 'polymarket',
+        source: 'rollout',
+      });
     });
 
     it('passes legacy Activity through on Polygon in USDC, and reads no canonical Activity', async () => {
