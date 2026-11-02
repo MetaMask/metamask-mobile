@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import type { GestureResponderEvent } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -87,10 +86,12 @@ const getDisplayedLinks = (
 const InlineLink = ({
   url,
   testID,
+  accessibilityLabel,
   children,
 }: {
   url: string;
   testID: string;
+  accessibilityLabel?: string;
   children: string;
 }) => {
   const openLink = useCallback(() => openExternalUrl(url), [url]);
@@ -100,6 +101,7 @@ const InlineLink = ({
       variant={TextVariant.BodyMd}
       onPress={openLink}
       accessibilityRole="link"
+      accessibilityLabel={accessibilityLabel}
       accessibilityHint={strings(
         'virtual_bank_account.verify_identity.opens_in_browser_hint',
       )}
@@ -164,11 +166,13 @@ const VbaProviderTermsSheet = ({
   const sheetRef = useRef<BottomSheetRef>(null);
   const [hasBiometricConsent, setHasBiometricConsent] = useState(false);
 
-  // Stop the press reaching the Checkbox so opening the notice doesn't tick it.
-  const openIdosPrivacyNotice = useCallback((event?: GestureResponderEvent) => {
-    event?.stopPropagation?.();
-    openExternalUrl(IDOS_PRIVACY_NOTICE_URL);
-  }, []);
+  const consentSentence = [
+    'biometric_consent_label',
+    'biometric_consent_link',
+    'biometric_consent_label_end',
+  ]
+    .map((key) => strings(`virtual_bank_account.verify_identity.${key}`))
+    .join('');
 
   useScreenPerformance({
     config: KYC_SCREEN_PERFORMANCE_CONFIG,
@@ -253,43 +257,31 @@ const VbaProviderTermsSheet = ({
             </InlineLink>
           </Text>
         </Box>
-        <Box twClassName="px-4">
+        <Box twClassName="gap-2 px-4">
           <Checkbox
             isSelected={hasBiometricConsent}
             onChange={setHasBiometricConsent}
-            accessibilityLabel={`${strings(
-              'virtual_bank_account.verify_identity.biometric_consent_label',
-            )}${strings(
-              'virtual_bank_account.verify_identity.biometric_consent_link',
-            )}${strings(
-              'virtual_bank_account.verify_identity.biometric_consent_label_end',
-            )}`}
+            accessibilityLabel={consentSentence}
             testID={VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX}
             label={
               <Box twClassName="ml-3 flex-1">
-                <Text variant={TextVariant.BodyMd}>
-                  {strings(
-                    'virtual_bank_account.verify_identity.biometric_consent_label',
-                  )}
-                  <TextButton
-                    variant={TextVariant.BodyMd}
-                    onPress={openIdosPrivacyNotice}
-                    accessibilityRole="link"
-                    testID={
-                      VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK
-                    }
-                  >
-                    {strings(
-                      'virtual_bank_account.verify_identity.biometric_consent_link',
-                    )}
-                  </TextButton>
-                  {strings(
-                    'virtual_bank_account.verify_identity.biometric_consent_label_end',
-                  )}
-                </Text>
+                <Text variant={TextVariant.BodyMd}>{consentSentence}</Text>
               </Box>
             }
           />
+          <InlineLink
+            url={IDOS_PRIVACY_NOTICE_URL}
+            testID={VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK}
+            accessibilityLabel={`${strings(
+              'virtual_bank_account.verify_identity.biometric_consent_link',
+            )}, ${strings(
+              'virtual_bank_account.verify_identity.opens_in_browser_hint',
+            )}`}
+          >
+            {strings(
+              'virtual_bank_account.verify_identity.biometric_consent_link',
+            )}
+          </InlineLink>
         </Box>
       </Box>
       <BottomSheetFooter

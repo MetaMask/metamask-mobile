@@ -502,6 +502,7 @@ describe('VbaVerifyIdentity', () => {
     "idOS Transparency Document",
     "I acknowledge that my personal data will be processed as described in the Sumsub Notice of Personal Data Processing. Applicable to US residents only: I confirm that I have read the Privacy Notice and give my consent to the processing of my biometric information and biometric identifiers as described in the Sumsub Biometrics Processing Consent",
     "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in idOS Privacy Notice.",
+    "idOS Privacy Notice",
     "Agree",
   ],
 }
@@ -619,16 +620,21 @@ describe('VbaVerifyIdentity', () => {
     ).toBeDisabled();
   });
 
-  it('opens the idOS Privacy Notice from the biometric consent', () => {
+  it('opens the idOS Privacy Notice from a link outside the consent checkbox', () => {
     const openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
-    const { getByTestId } = renderScreen();
+    const { getByRole, getByTestId } = renderScreen();
     openTermsSheet(getByTestId);
 
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK),
+    const checkbox = getByTestId(
+      VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX,
     );
+    expect(checkbox.props.accessibilityLabel).toBe(
+      'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in idOS Privacy Notice.',
+    );
+    expect(within(checkbox).queryByRole('link')).not.toBeOnTheScreen();
+    fireEvent.press(getByRole('link', { name: /idOS Privacy Notice/ }));
 
     expect(openUrlSpy).toHaveBeenCalledWith(IDOS_PRIVACY_NOTICE_URL);
   });

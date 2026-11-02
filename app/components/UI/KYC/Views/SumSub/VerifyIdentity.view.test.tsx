@@ -2,7 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Linking } from 'react-native';
 import type { KycController } from '@metamask/kyc-controller';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import ReduxService, { type ReduxStore } from '../../../../../core/redux';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -174,7 +174,21 @@ describeForPlatforms('VbaVerifyIdentity view', () => {
   });
 
   it('keeps Agree disabled until the biometric consent is ticked', async () => {
-    const { getByTestId, getAllByRole } = await openDataAndPrivacySheet();
+    const { getByRole, getByTestId, getAllByRole } =
+      await openDataAndPrivacySheet();
+    const checkbox = getByTestId(
+      VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX,
+    );
+    expect(checkbox.props.accessibilityLabel).toBe(
+      `${verifyIdentityKey('biometric_consent_label')}${verifyIdentityKey(
+        'biometric_consent_link',
+      )}${verifyIdentityKey('biometric_consent_label_end')}`,
+    );
+    expect(within(checkbox).queryByRole('link')).not.toBeOnTheScreen();
+    fireEvent.press(getByRole('link', { name: /idOS Privacy Notice/ }));
+    expect(jest.mocked(Linking.openURL)).toHaveBeenCalledWith(
+      'https://www.idos.network/legal/privacy-notice',
+    );
 
     expect(getAllByRole('checkbox')).toHaveLength(1);
     expect(
