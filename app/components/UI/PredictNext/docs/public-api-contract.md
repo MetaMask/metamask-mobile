@@ -37,6 +37,10 @@ Code outside PredictNext imports only from one curated entry point, `app/compone
 
 The entry point's first export is `PredictRoot`, the root router that `MainNavigator` registers for the `Predict` route (PRED-1375). It is a permanent, Venue-neutral component: after PRED-1356 it renders only the PredictNext stack, so that import does not change. `MainNavigator`'s legacy imports (`PredictModalStack`, `PredictPreviewSheetProvider`) stay named composition wiring.
 
+Wallet reset is named composition wiring. It calls
+`PredictDeviceAuthService:reset` through the Engine messenger; Authentication
+does not import PredictNext key or session internals.
+
 Names are proposals. The implementing ticket finalizes each name and adds its export only when it migrates a real caller. Do not create empty modules.
 
 | Proposed API                                                                                                                         | Polymarket branch (transition)                                                     | Kalshi branch                                            | After PRED-1356                            |
