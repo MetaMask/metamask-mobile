@@ -76,7 +76,7 @@ const SocialAccountDisabledBanner: React.FC<
         actionButtonOnPress={handleContactSupport}
         testID={SocialAccountDisabledBannerSelectorsIDs.BANNER}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
           {strings(
             'social_leaderboard.account_disabled.contact_support_description',
             { email: SOCIAL_SUPPORT_EMAIL },

@@ -70,8 +70,6 @@ import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSaf
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
-import SocialAccountDisabledBanner from '../../../UI/SocialFeed/components/SocialAccountDisabledBanner';
-import { useSocialModerationStatus } from '../../../UI/SocialFeed/hooks/useSocialModerationStatus';
 import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
 import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
 import {
@@ -288,11 +286,9 @@ const SocialPostComposerView: React.FC = () => {
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
   const isOverCharacterLimit = text.length > COMPOSER_COMMENT_MAX_LENGTH;
-  const { isBanned } = useSocialModerationStatus();
   const canSubmit =
     (selectedPosition != null || isTradeInFlightLocked) &&
-    !isOverCharacterLimit &&
-    !isBanned;
+    !isOverCharacterLimit;
 
   const handleClose = useCallback(() => {
     trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
@@ -613,7 +609,6 @@ const SocialPostComposerView: React.FC = () => {
             }
             testID={SocialPostComposerViewSelectorsIDs.SCROLL}
           >
-            <SocialAccountDisabledBanner twClassName="mb-4" />
             <Box gap={3} twClassName="w-full">
               <ProfileAvatar
                 imageUrl={profile?.imageUrl}

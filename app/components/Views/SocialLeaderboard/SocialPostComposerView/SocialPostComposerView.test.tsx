@@ -16,7 +16,6 @@ import {
 } from '../pendingPosts/pendingPostsStore';
 import { isComposerCommentValid } from './commentValidation';
 import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
-import { SocialAccountDisabledBannerSelectorsIDs } from '../../../UI/SocialFeed/components/SocialAccountDisabledBanner.testIds';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
@@ -178,12 +177,7 @@ jest.mock('./createSwapCommentApi', () => ({
   createSwapComment: (...args: unknown[]) => mockCreateSwapComment(...args),
 }));
 
-const mockUseSocialModerationStatus = jest.fn();
 const mockInvalidateModerationStatus = jest.fn().mockResolvedValue(undefined);
-
-jest.mock('../../../UI/SocialFeed/hooks/useSocialModerationStatus', () => ({
-  useSocialModerationStatus: () => mockUseSocialModerationStatus(),
-}));
 
 jest.mock('../../../UI/SocialFeed/moderationApi', () => ({
   ...jest.requireActual('../../../UI/SocialFeed/moderationApi'),
@@ -209,10 +203,6 @@ describe('SocialPostComposerView', () => {
       isLoading: false,
       error: null,
       refresh: jest.fn(),
-    });
-    mockUseSocialModerationStatus.mockReturnValue({
-      isBanned: false,
-      reason: null,
     });
     jest.useFakeTimers();
     resetPendingPosts();
@@ -555,28 +545,6 @@ describe('SocialPostComposerView', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
     expect(getPendingPostsSnapshot()).toHaveLength(0);
-  });
-
-  it('shows the account-disabled banner and blocks posting while the viewer is banned', () => {
-    mockUseSocialModerationStatus.mockReturnValue({
-      isBanned: true,
-      reason: 'Spam',
-    });
-    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
-
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.changeText(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'this is alpha',
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
-
-    expect(
-      screen.getByTestId(SocialAccountDisabledBannerSelectorsIDs.BANNER),
-    ).toBeOnTheScreen();
-    expect(mockCreateSwapComment).not.toHaveBeenCalled();
   });
 
   it('refetches the moderation status when the post is refused with a 403', async () => {
