@@ -2,7 +2,7 @@ import type {
   SocialV1FeedAuthor,
   SocialV1FeedItem,
 } from '../../../UI/SocialFeed/types';
-import { COMPOSER_FEED_AUTHOR } from './mapPositionToFeedItem';
+import { COMPOSER_FEED_AUTHOR, commentGifField } from './mapPositionToFeedItem';
 import type { SocialPostTradePreview } from './SocialPostComposerView.types';
 
 export type TradeInFlightPreview = SocialPostTradePreview;
@@ -14,11 +14,17 @@ export type TradeInFlightPreview = SocialPostTradePreview;
 export const mapTradeInFlightToFeedItem = (
   preview: TradeInFlightPreview,
   comment: string,
-  options?: { author?: SocialV1FeedAuthor; timestamp?: number },
+  options?: {
+    author?: SocialV1FeedAuthor;
+    timestamp?: number;
+    /** KLIPY GIF attached to the caption, carried so a GIF-only post still reads as commented. */
+    commentGifUrl?: string;
+  },
 ): SocialV1FeedItem => {
   const author = options?.author ?? COMPOSER_FEED_AUTHOR;
   const timestamp = options?.timestamp ?? Date.now();
   const id = `composer-in-flight-${preview.chain}-${preview.tokenAddress}`;
+  const gif = commentGifField(options?.commentGifUrl);
 
   return {
     id,
@@ -26,6 +32,7 @@ export const mapTradeInFlightToFeedItem = (
     timestamp,
     variant: 'spotShare',
     comment,
+    ...gif,
     asset: {
       symbol: preview.tokenSymbol,
       avatar: {

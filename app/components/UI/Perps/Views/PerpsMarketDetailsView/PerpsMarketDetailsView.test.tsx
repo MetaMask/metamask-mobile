@@ -496,8 +496,18 @@ const mockUsePerpsMarketsImpl = jest.fn<
 }));
 
 jest.mock('../../hooks/usePerpsSharePosition', () => ({
-  usePerpsSharePosition: () => ({ sharePosition: jest.fn() }),
+  usePerpsSharePosition: () => ({
+    sharePosition: jest.fn(),
+    findSocialPosition: () => undefined,
+  }),
 }));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
 
 // Mock the direct import path for usePerpsMarkets
 jest.mock('../../hooks/usePerpsMarkets', () => ({

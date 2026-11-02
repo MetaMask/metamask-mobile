@@ -36,7 +36,9 @@ const { Interaction, Screen, Source } = SocialEvent;
 const ProfilesToFollowView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+  });
   const {
     traders,
     isLoading,

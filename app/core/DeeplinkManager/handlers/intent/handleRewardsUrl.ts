@@ -56,8 +56,8 @@ const parseRewardsNavigationParams = (
 
 /**
  * True when a route is already registered somewhere in the navigation tree.
- * Either Rewards home stays mounted after the Rewards tab is opened, including
- * while the user is on another tab.
+ * Either Rewards home stays mounted on the root stack, or in the Rewards tab
+ * on the control nav arm, including while the user is on another screen.
  */
 const navigationStateContainsRoute = (
   state: NavigationStateLike | undefined,
@@ -140,7 +140,7 @@ export const createRewardsDeeplinkIntent = ({
   rewardsPath,
 }: HandleRewardsUrlParams): DeeplinkIntent => ({
   target: {
-    type: 'home-tab',
+    type: 'main-stack',
     routeName: Routes.REWARDS_VIEW,
   },
   prepare: () => prepareRewardsDeeplink(rewardsPath),

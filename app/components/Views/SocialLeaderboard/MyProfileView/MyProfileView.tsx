@@ -133,7 +133,9 @@ const MyProfileView: React.FC = () => {
     isFollowing,
     toggleFollow,
   } = liveProfile;
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+  });
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
@@ -774,6 +776,7 @@ const MyProfileView: React.FC = () => {
                     onFilterChange={handleAssetFilterChange}
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
+                    showFlaggedState={!isOwner}
                   />
                 ) : showInitialPostSkeletons ? (
                   <ProfilePostsLoadingState />
@@ -819,7 +822,9 @@ const MyProfileView: React.FC = () => {
                     <SocialV1FeedPostList
                       posts={posts}
                       dividerKeyPrefix="my-profile"
-                      renderPost={(post) => <SocialFeedPostShell post={post} />}
+                      renderPost={(post) => (
+                        <SocialFeedPostShell post={post} requireSocialTerms />
+                      )}
                     />
                   </Box>
                 )}
