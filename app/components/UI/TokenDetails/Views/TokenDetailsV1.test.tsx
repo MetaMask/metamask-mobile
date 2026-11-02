@@ -605,6 +605,7 @@ describe('TokenDetailsV1', () => {
       expect(headerProps.scrollY?.value).toBe(0);
       expect(headerProps.onLayout).toEqual(expect.any(Function));
       expect(mockTabBarProps[0].topInset).toBeGreaterThan(0);
+      expect(mockTabBarProps[0].scrollY).toBe(headerProps.scrollY);
 
       const layoutEvent = {
         nativeEvent: { layout: { height: 120 } },

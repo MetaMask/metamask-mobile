@@ -11,6 +11,7 @@ import type { TabItem } from '../../../../component-library/components-temp/Tabs
 import TokenDetailsV1TabBar, {
   TOKEN_DETAILS_V1_TABS,
   TOKEN_DETAILS_V1_TAB_BAR_TEST_ID,
+  getTokenDetailsV1TabBarInset,
   resolveSwipeTargetTab,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
@@ -138,9 +139,16 @@ describe('TokenDetailsV1TabBar', () => {
       />,
     );
 
-    expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toHaveStyle({
+    fireEvent(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID), 'layout', {
+      nativeEvent: { layout: { y: 350 } },
+    });
+
+    expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).not.toHaveStyle({
       paddingTop: 120,
     });
+
+    expect(getTokenDetailsV1TabBarInset(0, 350, 120)).toBe(0);
+    expect(getTokenDetailsV1TabBarInset(350, 350, 120)).toBe(120);
   });
 
   it('forwards onLayout to the tab bar container', () => {
