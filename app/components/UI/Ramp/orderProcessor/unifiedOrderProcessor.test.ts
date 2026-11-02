@@ -614,6 +614,7 @@ describe('processUnifiedOrder', () => {
         fetchErrorCount: 0,
         providerRemoved: true,
         statusDescription: description,
+        forceUpdate: false,
       });
     });
 
@@ -634,6 +635,23 @@ describe('processUnifiedOrder', () => {
         cryptocurrency: mockOrder.cryptocurrency,
         data: mockOrder.data,
       });
+    });
+
+    it('clears forceUpdate when the order is flagged providerRemoved', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...mockRampsOrder,
+        status: RampsOrderStatus.Unknown,
+        statusReason: 'PROVIDER_REMOVED',
+        statusDescription: description,
+      });
+
+      const result = await processUnifiedOrder({
+        ...mockOrder,
+        forceUpdate: true,
+      });
+
+      expect(result.providerRemoved).toBe(true);
+      expect(result.forceUpdate).toBe(false);
     });
 
     it('does not fetch a provider-removed order, even when forced', async () => {

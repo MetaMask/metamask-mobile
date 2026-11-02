@@ -135,6 +135,7 @@ export async function processAggregatorOrder(
         fetchErrorCount: 0,
         providerRemoved: true,
         statusDescription: updatedOrder.statusDescription,
+        forceUpdate: false,
       } as FiatOrder;
     }
 

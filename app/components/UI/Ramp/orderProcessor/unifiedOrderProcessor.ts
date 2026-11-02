@@ -142,6 +142,7 @@ export async function processUnifiedOrder(
         fetchErrorCount: 0,
         providerRemoved: true,
         statusDescription: updatedOrder.statusDescription,
+        forceUpdate: false,
       };
     }
 

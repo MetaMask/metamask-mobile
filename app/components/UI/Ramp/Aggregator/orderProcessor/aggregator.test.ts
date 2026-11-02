@@ -766,6 +766,7 @@ describe('processAggregatorOrder', () => {
         fetchErrorCount: 0,
         providerRemoved: true,
         statusDescription: description,
+        forceUpdate: false,
       });
     });
 
@@ -788,6 +789,23 @@ describe('processAggregatorOrder', () => {
         cryptocurrency: pendingOrder.cryptocurrency,
         data: pendingOrder.data,
       });
+    });
+
+    it('clears forceUpdate when the order is flagged providerRemoved', async () => {
+      mockGetOrder.mockImplementation(() => ({
+        id: 'test-id',
+        status: 'UNKNOWN',
+        statusReason: 'PROVIDER_REMOVED',
+        statusDescription: description,
+      }));
+
+      const updatedOrder = await processAggregatorOrder({
+        ...pendingOrder,
+        forceUpdate: true,
+      });
+
+      expect(updatedOrder.providerRemoved).toBe(true);
+      expect(updatedOrder.forceUpdate).toBe(false);
     });
 
     it('does not fetch a provider-removed order, even when forced', async () => {
