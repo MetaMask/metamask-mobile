@@ -84,13 +84,16 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockBuild).toHaveBeenCalled();
   });
 
-  it('does not open the fallback when the Social terms are not accepted', () => {
+  it('opens the Social home fallback when the Social terms are not accepted', () => {
     mockIsSocialV1Treatment.mockReturnValue(true);
     jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
 
     handleSocialTraderPositionUrl({ actionPath: '?traderId=trader-1' });
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('SocialV0View', undefined, {
+      pop: true,
+    });
   });
 
   it('navigates to TraderPositionView with positionId and forwards notificationSubtype', () => {

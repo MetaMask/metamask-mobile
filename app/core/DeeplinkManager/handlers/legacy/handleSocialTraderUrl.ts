@@ -20,12 +20,6 @@ const parseTraderId = (actionPath: string): string | undefined => {
 };
 
 const navigateToFallback = () => {
-  if (
-    isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
-  ) {
-    return;
-  }
   NavigationService.navigation.navigate(
     getFollowTradingHomeRoute(),
     undefined,

@@ -15,8 +15,11 @@ import {
   resetSocialLeaderboardOnboardingSeen,
   shouldShowSocialLeaderboardOnboarding,
 } from './socialLeaderboardOnboardingNavigation';
+import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
 
-jest.mock('../terms/socialTermsAcceptance');
+jest.mock('../terms/socialTermsAcceptance', () => ({
+  ensureSocialTermsAccepted: jest.fn(() => true),
+}));
 jest.mock('../../../../core/redux', () => ({
   __esModule: true,
   default: { store: { getState: jest.fn() } },
@@ -297,6 +300,55 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       );
     });
   });
+  describe('Social terms for the TSA-1122 treatment', () => {
+    beforeEach(() => {
+      mockOnboardingEnabled.mockReturnValue(false);
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
+    });
+
+    it('selects the Social tab from the navbar without the Social terms', () => {
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB, {
+        source: 'nav_tab',
+      });
+    });
+
+    it('opens the Social tab from the home Top traders without the Social terms', () => {
+      const navigate = jest.fn();
+
+      navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
+
+      expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { source: 'home_carousel' } },
+        { pop: true },
+      );
+    });
+
+    it('pushes Social V1 without the Social terms', () => {
+      const navigate = jest.fn();
+
+      pushSocialLeaderboard(navigate, { source: 'perps_home' });
+
+      expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
+        source: 'perps_home',
+      });
+    });
+  });
+
   describe('getFollowTradingHomeRoute', () => {
     it('returns the legacy home route for control', () => {
       expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL.V0);

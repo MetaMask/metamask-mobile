@@ -43,12 +43,6 @@ const parseSocialTraderPositionNavigationParams = (
 };
 
 const navigateToFallback = () => {
-  if (
-    isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
-  ) {
-    return;
-  }
   NavigationService.navigation.navigate(
     getFollowTradingHomeRoute(),
     undefined,
