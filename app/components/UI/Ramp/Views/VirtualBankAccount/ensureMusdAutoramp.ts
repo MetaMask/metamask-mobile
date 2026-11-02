@@ -189,35 +189,32 @@ const createAutoramp = async (
 };
 
 /**
- * Logs how many autoramps the customer has, without wallet addresses or other
- * identifiers. Status, currency, and whether any row belongs to another wallet
- * are enough to tell a missing route from a route on a different account.
+ * Logs the customer autoramp cursor after a conflict re-list, without
+ * addresses. That cursor is every row from the customer list, so
+ * `hasOtherWallet` is whether any stored row pays a different wallet.
  */
 const logAutorampConflict = (
   walletAddress: string,
   sourceCurrency: VbaSourceCurrency,
 ): void => {
   const autoramps = readAutoramps();
-  Logger.error(
-    new Error('VBA autoramp exists for this customer but not this wallet'),
-    {
-      tags: { feature: 'vba-onboarding' },
-      context: {
-        name: 'ensureMusdAutoramp',
-        data: {
-          sourceCurrency,
-          rowCount: autoramps.length,
-          statuses: autoramps.map((autoramp) => autoramp.status),
-          hasOtherWallet: autoramps.some(
-            (autoramp) => !isForWallet(autoramp, walletAddress),
-          ),
-          currencies: autoramps.map(
-            (autoramp) => knownCurrency(autoramp) ?? 'unknown',
-          ),
-        },
+  Logger.error(new Error('VBA autoramp already exists for this customer'), {
+    tags: { feature: 'vba-onboarding' },
+    context: {
+      name: 'ensureMusdAutoramp',
+      data: {
+        sourceCurrency,
+        rowCount: autoramps.length,
+        statuses: autoramps.map((autoramp) => autoramp.status),
+        hasOtherWallet: autoramps.some(
+          (autoramp) => !isForWallet(autoramp, walletAddress),
+        ),
+        currencies: autoramps.map(
+          (autoramp) => knownCurrency(autoramp) ?? 'unknown',
+        ),
       },
     },
-  );
+  });
 };
 
 /**
