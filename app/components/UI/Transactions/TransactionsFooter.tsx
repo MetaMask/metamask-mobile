@@ -2,11 +2,12 @@ import React from 'react';
 import { View, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import {
   getBlockExplorerName,
@@ -127,12 +128,13 @@ const TransactionsFooter = ({
         <View style={styles.viewMoreWrapper}>
           <Button
             testID="transactions-footer-view-explorer"
-            variant={ButtonVariants.Link}
-            size={ButtonSize.Lg}
-            label={blockExplorerText}
+            variant={ButtonVariant.Tertiary}
+            accessibilityRole="link"
             style={styles.viewMoreButton}
             onPress={onViewBlockExplorer}
-          />
+          >
+            {blockExplorerText}
+          </Button>
         </View>
       )}
       {showDisclaimer && (

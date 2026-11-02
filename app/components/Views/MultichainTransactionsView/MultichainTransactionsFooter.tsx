@@ -2,11 +2,12 @@ import React from 'react';
 import { View, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { getBlockExplorerName } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 
@@ -71,14 +72,15 @@ const MultichainTransactionsFooter = ({
       {hasTransactions && showExplorerLink && (
         <View style={styles.viewMoreWrapper}>
           <Button
-            variant={ButtonVariants.Link}
-            size={ButtonSize.Lg}
-            label={`${strings(
-              'transactions.view_full_history_on',
-            )} ${getBlockExplorerName(url)}`}
+            variant={ButtonVariant.Tertiary}
+            accessibilityRole="link"
             style={styles.viewMoreButton}
             onPress={onViewMore}
-          />
+          >
+            {`${strings(
+              'transactions.view_full_history_on',
+            )} ${getBlockExplorerName(url)}`}
+          </Button>
         </View>
       )}
       {showDisclaimer && (
