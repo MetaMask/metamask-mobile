@@ -50,7 +50,7 @@ const EXPECTED_DURATION_MS: Record<TimePeriod, number | null> = {
   all: null,
 };
 
-const MIN_COVERAGE_RATIO = 0.2;
+const MIN_COVERAGE_RATIO = 0.1;
 
 export function hasInsufficientTimeCoverage(
   prices: TokenPrice[],

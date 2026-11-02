@@ -258,6 +258,125 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
   });
 
+  describe('Fee Display Format A/B test', () => {
+    const withFeeDisplayVariant = (variant: 'control' | 'treatment') => ({
+      engine: {
+        backgroundState: {
+          ...eligibleOverrides.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsTAT4046AbtestFeeDisplayFormat: variant,
+            },
+          },
+        },
+      },
+    });
+
+    it('keeps the $ fee row and requests a single quote for control', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      calculateFees.mockResolvedValue({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.00005,
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: withFeeDisplayVariant('control'),
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+        ).toHaveTextContent('$0.06');
+      });
+      expect(calculateFees).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_TAKER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("requests the opposite side as a limit execution (not this market order's own type) and renders both rates for treatment", async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      // Distinct taker/maker quotes, keyed on `isMaker`. A real HyperLiquid
+      // market order is always charged taker regardless of the `isMaker`
+      // flag it is sent — so if the opposite-side request kept `orderType:
+      // 'market'`, it would get this same taker quote back a second time,
+      // and the maker rate below would never be reachable from a market
+      // order. Keying the mock on `isMaker` (not `orderType`) reproduces
+      // that real provider behavior and proves the fix actually asks for
+      // `orderType: 'limit'` to reach the maker quote.
+      calculateFees.mockImplementation(
+        ({ isMaker }: { isMaker: boolean }) =>
+          Promise.resolve(
+            isMaker
+              ? { protocolFeeRate: 0.0009, metamaskFeeRate: 0.00024 } // maker: 0.114%
+              : { protocolFeeRate: 0.00118, metamaskFeeRate: 0.00025 }, // taker: 0.143%
+          ) as Promise<Record<string, unknown>>,
+      );
+      const { stream } = renderPerpsOrderView({
+        overrides: withFeeDisplayVariant('treatment'),
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_TAKER),
+        ).toHaveTextContent('Taker 0.143% /');
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_MAKER),
+        ).toHaveTextContent('Maker 0.114%');
+      });
+      expect(calculateFees).toHaveBeenNthCalledWith(1, {
+        orderType: 'market',
+        isMaker: false,
+        amount: '120',
+        symbol: 'ETH',
+      });
+      expect(calculateFees).toHaveBeenNthCalledWith(2, {
+        orderType: 'limit',
+        isMaker: true,
+        amount: '120',
+        symbol: 'ETH',
+      });
+      // The base FEES_VALUE id stays mounted (on the row container) so an
+      // E2E readiness wait keyed on it still resolves under treatment.
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('shows promotional pricing when Core returns a grant fee quote', async () => {
     const calculateFees = Engine.context.PerpsController
       .calculateFees as jest.Mock;
