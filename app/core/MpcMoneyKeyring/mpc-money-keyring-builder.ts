@@ -106,6 +106,12 @@ export interface RealMpcMoneyKeyringBuilderOptions {
    * signatures that need 2FA use the profile token.
    */
   getTwoFactorApproval?: (hash: Uint8Array) => Promise<string>;
+  /**
+   * Returns a profile token verified with 2FA, for calls that need 2FA
+   * without a signature hash, such as restoring the key on a new device.
+   * Without it, those calls use the profile token.
+   */
+  getTwoFactorToken?: () => Promise<string>;
 }
 
 let twoFactorTokenProvider: (() => Promise<string>) | undefined;
@@ -143,11 +149,13 @@ const getProfileId = (token: string): string => {
  * @param options - Builder options.
  * @param options.getBearerToken - Returns the profile access token.
  * @param options.getTwoFactorApproval - Returns a 2FA approval for a hash.
+ * @param options.getTwoFactorToken - Returns a 2FA-verified profile token.
  * @returns The real Money MPC keyring builder.
  */
 export function buildRealMpcMoneyKeyringBuilder({
   getBearerToken,
   getTwoFactorApproval,
+  getTwoFactorToken,
 }: RealMpcMoneyKeyringBuilderOptions): KeyringBuilder {
   const builder: KeyringBuilder = () => {
     // Loaded lazily so builds without the real keyring never load the native
@@ -168,6 +176,9 @@ export function buildRealMpcMoneyKeyringBuilder({
         }
         if (options?.twoFactor && options.challenge && getTwoFactorApproval) {
           return getTwoFactorApproval(options.challenge);
+        }
+        if (options?.twoFactor && !options.challenge && getTwoFactorToken) {
+          return getTwoFactorToken();
         }
         return getBearerToken();
       },

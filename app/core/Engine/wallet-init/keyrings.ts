@@ -74,9 +74,12 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
  * @returns The keyring builders to register with the `KeyringController`.
  */
 /**
- * Prompts for 2-step verification before a Money MPC signature.
+ * Prompts for 2-step verification before a Money MPC call that needs it.
+ *
+ * @param operation - The operation shown in the verification reason.
+ * @returns The 2FA-verified profile token.
  */
-async function verifyMoneyMpcSignature(): Promise<void> {
+async function verifyMoneyMpc(operation: string): Promise<string> {
   // Loaded lazily: the MFA flow pulls in UI and store modules that import the Engine.
   /* eslint-disable @typescript-eslint/no-require-imports */
   const { verifyOrEnroll } = require('../../../util/identity/mfa/useMfa');
@@ -87,13 +90,14 @@ async function verifyMoneyMpcSignature(): Promise<void> {
   const { token } = await verifyOrEnroll({
     methods: MONEY_MFA_METHODS,
     verifyWith: MONEY_MFA_METHODS,
-    // Every transfer needs its own verification; never reuse a session.
+    // Every transfer and restore needs its own verification; never reuse a session.
     maxSessionAgeMs: 0,
-    reason: { operation: 'money.mpcSign' },
+    reason: { operation },
   });
   if (!token) {
-    throw new Error('Money MPC signature needs 2-step verification');
+    throw new Error('Money MPC needs 2-step verification');
   }
+  return token.accessToken;
 }
 
 export function getKeyringBuilders(
@@ -197,9 +201,12 @@ export function getKeyringBuilders(
                       'AuthenticationController:requestMfaApproval',
                       request,
                     ),
-                  verify: verifyMoneyMpcSignature,
+                  verify: async () => {
+                    await verifyMoneyMpc('money.mpcSign');
+                  },
                 })
               : undefined,
+            getTwoFactorToken: () => verifyMoneyMpc('money.mpcRestore'),
           })
         : buildMpcMoneyKeyringBuilder(),
     );
