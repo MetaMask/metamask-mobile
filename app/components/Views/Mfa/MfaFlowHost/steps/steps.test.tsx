@@ -503,6 +503,16 @@ describe('CodeStep', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
+  it('hides the wrong-code error once the user types again', () => {
+    const { getByTestId, queryByTestId } = renderCode(otp(true), {
+      error: 'invalid_code',
+    });
+
+    expect(getByTestId(MfaFlowSelectorsIDs.ERROR)).toBeOnTheScreen();
+    fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), '1');
+    expect(queryByTestId(MfaFlowSelectorsIDs.ERROR)).toBeNull();
+  });
+
   it('counts down instead of showing the cooldown error', () => {
     const { onAction, getByText, getByTestId, queryByTestId } = renderCode(
       otp(true),
@@ -545,11 +555,13 @@ describe('CodeStep', () => {
     ).toBeOnTheScreen();
   });
 
-  it('pastes a copied code and submits it', async () => {
+  it('pastes a copied code on a long press and submits it', async () => {
     jest.spyOn(Clipboard, 'getString').mockResolvedValue('Code: 123456');
     const { onAction, getByTestId } = renderCode(otp(true));
 
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON));
+    const tapArea = getByTestId(MfaFlowSelectorsIDs.CODE_TAP_AREA);
+    fireEvent(tapArea, 'longPress');
+    fireEvent(tapArea, 'pressOut', { nativeEvent: {} });
 
     await waitFor(() =>
       expect(onAction).toHaveBeenCalledWith({
@@ -755,7 +767,7 @@ describe('FailureStep', () => {
       <FailureStep
         {...buildState({
           name: 'failure',
-          code: 'max_identifiers_reached',
+          code: 'max_passkeys_reached',
           canRetry: false,
         })}
         reason={reason}
@@ -772,32 +784,33 @@ describe('FailureStep', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
   });
 
-  it('sends an error only support can fix to support', () => {
-    const onAction = jest.fn();
-    const { getByTestId, getByText } = render(
-      <FailureStep
-        {...buildState({
-          name: 'failure',
-          code: 'multi_primary_srp',
-          canRetry: false,
-        })}
-        reason={reason}
-        onAction={onAction}
-      />,
-    );
+  it.each(['multi_primary_srp', 'max_identifiers_reached'] as const)(
+    'sends %s to support',
+    (code) => {
+      const onAction = jest.fn();
+      const { getByTestId, getByText } = render(
+        <FailureStep
+          {...buildState({
+            name: 'failure',
+            code,
+            canRetry: false,
+          })}
+          reason={reason}
+          onAction={onAction}
+        />,
+      );
 
-    expect(getByText("We couldn't verify your details")).toBeOnTheScreen();
-    expect(getByText('Contact support to continue.')).toBeOnTheScreen();
+      expect(getByText("We couldn't verify your details")).toBeOnTheScreen();
+      expect(getByText('Contact support to continue.')).toBeOnTheScreen();
 
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
-    const [, url] = mockOpenSupportWithConsent.mock.calls[0];
-    expect(new URL(url).searchParams.get('mfa_error')).toBe(
-      'multi_primary_srp',
-    );
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+      const [, url] = mockOpenSupportWithConsent.mock.lastCall ?? [];
+      expect(new URL(url).searchParams.get('mfa_error')).toBe(code);
 
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
-    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
-  });
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
+      expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
+    },
+  );
 });
 
 describe('TotpSetupStep', () => {

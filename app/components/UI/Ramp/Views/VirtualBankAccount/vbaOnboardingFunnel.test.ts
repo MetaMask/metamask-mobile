@@ -149,6 +149,16 @@ describe('getVbaDestinationForSnapshot', () => {
           autorampStatus: 'ready',
         }),
       ],
+      [
+        'usable account after reinstall wiped local onboarding',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: false,
+          sessionDisclaimersComplete: false,
+          kycStatus: 'approved',
+          autorampStatus: 'ready',
+        }),
+      ],
       ['kyc rejected', snapshot({ kycStatus: 'rejected' })],
       ['kyc retry', snapshot({ kycStatus: 'retry' })],
       [
@@ -190,9 +200,36 @@ describe('getVbaDestinationForSnapshot', () => {
         "sumsub submitted and account ready": "complete",
         "sumsub submitted before review": "kycPending",
         "sumsub submitted but kyc retry": "identityVerification",
+        "usable account after reinstall wiped local onboarding": "complete",
         "vendor terms done": "email",
       }
     `);
+  });
+
+  it('opens the completed account when a usable autoramp remains after reinstall', () => {
+    const facts = snapshot({
+      sessionExists: false,
+      vendorTermsAcceptedLocally: false,
+      vendorDisclaimersComplete: false,
+      sessionDisclaimersComplete: false,
+      kycStatus: 'approved',
+      autorampStatus: 'ready',
+    });
+
+    const destination = getVbaDestinationForSnapshot(facts);
+
+    expect(destination).toBe('complete');
+  });
+
+  it('keeps a rejected applicant on the failure screen when an autoramp is ready', () => {
+    const facts = snapshot({
+      kycStatus: 'rejected',
+      autorampStatus: 'ready',
+    });
+
+    const destination = getVbaDestinationForSnapshot(facts);
+
+    expect(destination).toBe('kycRejected');
   });
 
   it('routes a missing snapshot to the recoverable error screen', () => {
