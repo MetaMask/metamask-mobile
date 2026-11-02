@@ -30,11 +30,14 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   ActivityIndicator,
+  findNodeHandle,
   RefreshControl,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type View,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -84,6 +87,7 @@ import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 
 import { useMyProfile, useMyProfileAddress, useMyProfilePosts } from './hooks';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
+import { resolveUncountedNoteTarget } from './utils/partitionUncountedPositions';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
 import type { ProfileAssetFilter } from './utils/splitPositionsByType';
@@ -200,13 +204,22 @@ const MyProfileView: React.FC = () => {
     ],
     [],
   );
-  const handleProfileTabPress = useCallback((index: number) => {
-    const nextTab = PROFILE_CONTENT_TABS[index];
-    if (nextTab) {
+  const pendingUncountedScrollRef = useRef(false);
+  const handleProfileTabPress = useCallback(
+    (index: number) => {
+      const nextTab = PROFILE_CONTENT_TABS[index];
+      if (!nextTab || nextTab === activeTab) {
+        return;
+      }
+      // A later layout must not scroll for a note press the user has left.
+      pendingUncountedScrollRef.current = false;
       setActiveTab(nextTab);
-    }
-  }, []);
+    },
+    [activeTab],
+  );
   const scrollRef = useRef<Animated.ScrollView>(null);
+  const uncountedSectionRef = useRef<View>(null);
+  const uncountedHeaderRef = useRef<View>(null);
   useFocusEffect(
     useCallback(() => {
       // Every new post lands here, pinned at the top of the Posts tab.
@@ -240,6 +253,52 @@ const MyProfileView: React.FC = () => {
     refetchInterval: isBlocked ? undefined : 30_000,
   });
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
+  const uncountedTarget = useMemo(
+    () =>
+      resolveUncountedNoteTarget({
+        activeTab,
+        filter: assetFilter,
+        openPositions,
+        closedPositions,
+      }),
+    [activeTab, assetFilter, closedPositions, openPositions],
+  );
+  const scrollToUncountedSection = useCallback(() => {
+    const scrollView = scrollRef.current;
+    const section = uncountedSectionRef.current;
+    const scrollHost = scrollView?.getNativeScrollRef();
+    if (!scrollView || !section || !scrollHost) {
+      return;
+    }
+    section.measureLayout(
+      scrollHost,
+      (_x, y) => {
+        scrollView.scrollTo({ y, animated: true });
+        // The P&L label and value are separate text nodes, so focus the
+        // section header instead of repeating that value.
+        const headerTag = findNodeHandle(uncountedHeaderRef.current);
+        if (headerTag != null) {
+          AccessibilityInfo.setAccessibilityFocus(headerTag);
+        }
+      },
+      () => undefined,
+    );
+  }, []);
+  const handleUncountedSectionLayout = useCallback(() => {
+    if (!pendingUncountedScrollRef.current) {
+      return;
+    }
+    pendingUncountedScrollRef.current = false;
+    scrollToUncountedSection();
+  }, [scrollToUncountedSection]);
+  const handleUncountedNotePress = useCallback(() => {
+    if (activeTab !== uncountedTarget.tab) {
+      pendingUncountedScrollRef.current = true;
+      setActiveTab(uncountedTarget.tab);
+      return;
+    }
+    scrollToUncountedSection();
+  }, [activeTab, scrollToUncountedSection, uncountedTarget.tab]);
   const overlayedStats = useMemo(
     () =>
       displayProfile
@@ -438,6 +497,8 @@ const MyProfileView: React.FC = () => {
       if (nextFilter === assetFilter) {
         return;
       }
+      // A later layout must not scroll for a note press the user has left.
+      pendingUncountedScrollRef.current = false;
       trackInteraction(Interaction.FILTER_APPLIED, {
         filter_name: Filter.PROFILE_ASSET_TYPE,
         previous_filter_value: assetFilter,
@@ -756,6 +817,8 @@ const MyProfileView: React.FC = () => {
               <>
                 <MyProfilePerformanceStats
                   cells={overlayedStats.performanceCells}
+                  uncountedCount={uncountedTarget.count}
+                  onUncountedPress={handleUncountedNotePress}
                 />
 
                 <Box twClassName="bg-default mt-5">
@@ -785,6 +848,9 @@ const MyProfileView: React.FC = () => {
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
                     showFlaggedState={!isOwner}
+                    uncountedSectionRef={uncountedSectionRef}
+                    uncountedHeaderRef={uncountedHeaderRef}
+                    onUncountedSectionLayout={handleUncountedSectionLayout}
                     onUncountedHeaderPress={handleOpenUncountedSheet}
                   />
                 ) : showInitialPostSkeletons ? (
