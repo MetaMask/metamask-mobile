@@ -21,7 +21,6 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks/usePerpsMarkets';
 import { PerpsConnectionContext } from '../../../UI/Perps/providers/PerpsConnectionProvider';
-import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { usePerpsSorting } from '../../../UI/Perps/hooks/usePerpsSorting';
 import { useNowOnScreenFocus } from '../../../UI/Perps/hooks/useNowOnScreenFocus';
@@ -82,15 +81,11 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
-  // Device capability (see app/util/deviceCapability/README.md): skip the
-  // leaderboard fetch and profile prefetch with no network, or on low-end
-  // hardware over slow cellular. `null` (unknown) keeps the default.
-  const [hardwareTier] = useState(() => getHardwareTier());
+  // Device capability (see app/util/deviceCapability/README.md): with no
+  // network, skip the leaderboard fetch and profile prefetch. Kept on slow
+  // cellular; `null` (unknown) keeps the default.
   const networkTier = useNetworkTier();
-  const showTopTraders =
-    isTopTradersEnabled &&
-    networkTier !== 'NONE' &&
-    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
+  const showTopTraders = isTopTradersEnabled && networkTier !== 'NONE';
   const [isSortSheetVisible, setIsSortSheetVisible] = useState(false);
   const floatingTabBarInset = useFloatingTabBarInset();
   const contentContainerStyle = useMemo(

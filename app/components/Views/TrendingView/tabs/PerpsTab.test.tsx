@@ -193,10 +193,6 @@ jest.mock('../../../../util/theme', () => ({
   }),
 }));
 
-const mockGetHardwareTier = jest.fn();
-jest.mock('../../../../util/deviceCapability', () => ({
-  getHardwareTier: () => mockGetHardwareTier(),
-}));
 const mockUseNetworkTier = jest.fn();
 jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockUseNetworkTier(),
@@ -250,7 +246,6 @@ describe('PerpsTab', () => {
       markets: mockMarkets,
       isLoading: false,
     });
-    mockGetHardwareTier.mockReturnValue(null);
     mockUseNetworkTier.mockReturnValue(null);
   });
 
@@ -397,18 +392,8 @@ describe('PerpsTab', () => {
     expect(queryByTestId('top-traders-section')).toBeNull();
   });
 
-  it('hides top traders on low-end hardware over slow cellular', () => {
-    mockGetHardwareTier.mockReturnValue('LOW');
+  it('keeps top traders on slow cellular', () => {
     mockUseNetworkTier.mockReturnValue('SLOW_CELLULAR');
-
-    const { queryByTestId } = renderPerpsTab();
-
-    expect(queryByTestId('top-traders-section')).toBeNull();
-  });
-
-  it('keeps top traders on low-end hardware with a fast connection', () => {
-    mockGetHardwareTier.mockReturnValue('LOW');
-    mockUseNetworkTier.mockReturnValue('WIFI');
 
     const { getByTestId } = renderPerpsTab();
 
