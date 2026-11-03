@@ -381,8 +381,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
     <Box twClassName="w-full flex-1">
       <Box twClassName="items-center pt-8 pb-6">
         <BadgeWrapper
-          twClassName="self-center"
+          // AvatarToken Lg is h-10 w-10. BadgeWrapper places the badge with
+          // percentage insets, and Yoga resolves an inset against the stretched
+          // parent when this shrink-wrapped row has no definite size on that
+          // axis. In this column that sends BottomRight to the left.
+          twClassName="h-10 w-10 self-center"
           position={BadgeWrapperPosition.BottomRight}
+          testID="ramp-order-token-avatar"
+          badgeContainerProps={{ testID: 'ramp-order-token-network-badge' }}
           badge={
             networkImageSource ? (
               <BadgeNetwork name={networkName} src={networkImageSource} />

@@ -146,7 +146,15 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           </Box>
           {cryptoToken ? (
             <BadgeWrapper
+              // Same definite box as AvatarToken Lg. Percentage insets on
+              // BadgeWrapper follow the ancestor when the wrapper's size on
+              // that axis is indefinite, which puts BottomRight on the left.
+              twClassName="h-10 w-10"
               position={BadgeWrapperPosition.BottomRight}
+              testID="deposit-order-token-avatar"
+              badgeContainerProps={{
+                testID: 'deposit-order-token-network-badge',
+              }}
               badge={
                 networkImageSource ? (
                   <BadgeNetwork name={networkName} src={networkImageSource} />

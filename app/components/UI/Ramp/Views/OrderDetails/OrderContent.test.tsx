@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import OrderContent from './OrderContent';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -388,6 +389,35 @@ describe('OrderContent', () => {
         },
       });
     }
+
+    it('anchors the network badge to the bottom right of the token avatar', () => {
+      renderOrder(mockOrder);
+
+      // BadgeWrapper insets are percentages of this box. A shrink-wrapped
+      // wrapper in the centered column resolves `right` against the screen
+      // and paints the badge on the left.
+      const avatar = StyleSheet.flatten(
+        screen.getByTestId('ramp-order-token-avatar').props.style,
+      );
+      const badge = StyleSheet.flatten(
+        screen.getByTestId('ramp-order-token-network-badge').props.style,
+      );
+
+      expect(avatar).toEqual(
+        expect.objectContaining({
+          width: 40,
+          height: 40,
+          alignSelf: 'center',
+        }),
+      );
+      expect(badge).toEqual(
+        expect.objectContaining({
+          right: '7%',
+          bottom: '7%',
+        }),
+      );
+      expect(badge.left).toBeUndefined();
+    });
 
     it('resolves the network badge from the network object', () => {
       renderChainOrder({ chainId: '0x89', name: 'Polygon' }, OPTIMISM_CAIP);
