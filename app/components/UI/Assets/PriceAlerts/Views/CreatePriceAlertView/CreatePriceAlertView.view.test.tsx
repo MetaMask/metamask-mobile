@@ -64,7 +64,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
     expect(
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     ).toBeOnTheScreen();
-    expect(getByText('Create ETH price alert')).toBeOnTheScreen();
+    expect(getByText('ETH alert')).toBeOnTheScreen();
     // Form pre-fills currentPrice so the button is enabled on mount
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
@@ -100,7 +100,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
         },
       });
 
-    expect(getByText('Edit ETH price alert')).toBeOnTheScreen();
+    expect(getByText('Edit ETH alert')).toBeOnTheScreen();
     // threshold 3000 is pre-filled as "$3000"
     expect(getByRole('text', { name: '$3000' })).toBeOnTheScreen();
     // Update button is shown (not "Set price alert")
@@ -333,7 +333,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
       const { getByTestId, getByText, queryByTestId } =
         renderCreatePriceAlertViewWithRoutes();
 
-      fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE));
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT));
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE));
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H));
 
@@ -432,12 +432,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
         false,
       );
 
-      expect(
-        getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET),
-      ).toBeDisabled();
-      expect(
-        getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE),
-      ).toBeDisabled();
+      expect(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT)).toBeDisabled();
       expect(
         getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
       ).not.toBeDisabled();

@@ -93,7 +93,7 @@ describeForPlatforms('ManagePriceAlertsView', () => {
 
     await findByTestId(CreatePriceAlertTestIds.CONTAINER);
 
-    expect(getByText('Edit ETH price alert')).toBeOnTheScreen();
+    expect(getByText('Edit ETH alert')).toBeOnTheScreen();
     expect(getByRole('text', { name: '$3000' })).toBeOnTheScreen();
   });
 

@@ -5850,8 +5850,8 @@
     "sell_description": "Sell crypto for cash"
   },
   "price_alerts": {
-    "create_title": "Create {{ticker}} price alert",
-    "edit_title": "Edit {{ticker}} price alert",
+    "create_title": "{{ticker}} alert",
+    "edit_title": "Edit {{ticker}} alert",
     "price_target": "Price target",
     "price_change": "Price change",
     "approx_percent": "≈ {{percent}}%",

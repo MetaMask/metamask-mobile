@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Text } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import I18n from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -147,9 +147,7 @@ describe('CreatePriceAlertView', () => {
     expect(screen.getByTestId('mock-absolute-form')).toBeOnTheScreen();
     expect(screen.queryByTestId('mock-percent-form')).not.toBeOnTheScreen();
 
-    fireEvent.press(
-      screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE),
-    );
+    fireEvent.press(screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT));
 
     expect(screen.getByTestId('mock-percent-form')).toBeOnTheScreen();
     expect(screen.queryByTestId('mock-absolute-form')).not.toBeOnTheScreen();
@@ -176,10 +174,7 @@ describe('CreatePriceAlertView', () => {
 
       expect(screen.getByTestId(expectedFormTestId)).toBeOnTheScreen();
       expect(
-        screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET),
-      ).toBeDisabled();
-      expect(
-        screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE),
+        screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT),
       ).toBeDisabled();
     },
   );
@@ -298,7 +293,7 @@ describe('CreatePriceAlertView', () => {
   it('renders the create title and current price subtitle', () => {
     const screen = render(<CreatePriceAlertView />);
 
-    expect(screen.getByText('Create ETH price alert')).toBeOnTheScreen();
+    expect(screen.getByText('ETH alert')).toBeOnTheScreen();
     expect(screen.getByText('$1,201.98')).toBeOnTheScreen();
   });
 
@@ -307,26 +302,19 @@ describe('CreatePriceAlertView', () => {
 
     const screen = render(<CreatePriceAlertView />);
 
-    expect(screen.getByText('Edit ETH price alert')).toBeOnTheScreen();
+    expect(screen.getByText('Edit ETH alert')).toBeOnTheScreen();
     expect(screen.getByText('$1,201.98')).toBeOnTheScreen();
   });
 
-  it('centers the header title and subtitle text', () => {
+  it('returns to the previous screen from the back button', () => {
     const screen = render(<CreatePriceAlertView />);
 
-    expect(
-      StyleSheet.flatten(
-        screen.getByTestId(CreatePriceAlertTestIds.HEADER_TITLE).props.style,
-      ),
-    ).toEqual(expect.objectContaining({ textAlign: 'center' }));
-    expect(
-      StyleSheet.flatten(
-        screen.getByTestId(CreatePriceAlertTestIds.HEADER_SUBTITLE).props.style,
-      ),
-    ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+    fireEvent.press(screen.getByTestId(CreatePriceAlertTestIds.HEADER_BACK));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('centers the longest localized title when it wraps', () => {
+  it('renders a long localized title in the header', () => {
     const originalLocale = I18n.locale;
     I18n.locale = 'el';
 
@@ -336,11 +324,6 @@ describe('CreatePriceAlertView', () => {
       expect(
         screen.getByText('Δημιουργία ειδοποίησης τιμής για ETH'),
       ).toBeOnTheScreen();
-      expect(
-        StyleSheet.flatten(
-          screen.getByTestId(CreatePriceAlertTestIds.HEADER_TITLE).props.style,
-        ),
-      ).toEqual(expect.objectContaining({ textAlign: 'center' }));
     } finally {
       I18n.locale = originalLocale;
     }
@@ -375,9 +358,7 @@ describe('CreatePriceAlertView', () => {
     };
     const screen = render(<CreatePriceAlertView />);
 
-    fireEvent.press(
-      screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE),
-    );
+    fireEvent.press(screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT));
 
     expect(mockPercentForm).toHaveBeenCalledWith(
       expect.objectContaining({

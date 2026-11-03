@@ -12,7 +12,14 @@ import {
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonIcon,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -173,6 +180,11 @@ const CreatePriceAlertView: React.FC = () => {
     editingAlert?.type === 'percent_change' ? editingAlert : undefined;
   const canUsePercentChange =
     !isPerpsMode || isPerpsPercentChangeEnabled || Boolean(editingPercentAlert);
+  const showTypeToggle = !isPerpsMode || isPerpsPercentChangeEnabled;
+  const headerTitle = strings(
+    isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
+    { ticker: displayTicker },
+  );
 
   return (
     <SafeAreaView
@@ -180,38 +192,46 @@ const CreatePriceAlertView: React.FC = () => {
       testID={CreatePriceAlertTestIds.CONTAINER}
     >
       <Box twClassName="flex-1 bg-default">
-        {/* The header centers the title block but not the text inside it, so
-            longer translations wrap with their trailing line pushed left. */}
-        <HeaderStandard
-          title={strings(
-            isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
-            { ticker: displayTicker },
-          )}
-          titleProps={{
-            twClassName: 'text-center',
-            testID: CreatePriceAlertTestIds.HEADER_TITLE,
-          }}
-          subtitle={formattedCurrentPrice}
-          subtitleProps={{
-            twClassName: 'text-center',
-            testID: CreatePriceAlertTestIds.HEADER_SUBTITLE,
-          }}
-          onBack={handleBack}
-        />
+        <Box twClassName="flex-row items-center gap-3 px-4 py-2">
+          <ButtonIcon
+            iconName={IconName.ArrowLeft}
+            onPress={handleBack}
+            accessibilityLabel={strings('navigation.back')}
+            testID={CreatePriceAlertTestIds.HEADER_BACK}
+          />
+          <Box twClassName="min-w-0 flex-1">
+            <Text
+              variant={TextVariant.HeadingSm}
+              numberOfLines={2}
+              testID={CreatePriceAlertTestIds.HEADER_TITLE}
+            >
+              {headerTitle}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+              testID={CreatePriceAlertTestIds.HEADER_SUBTITLE}
+            >
+              {formattedCurrentPrice}
+            </Text>
+          </Box>
+          {showTypeToggle ? (
+            <Box twClassName="shrink-0">
+              <AlertTypeToggle
+                value={alertType}
+                onChange={setAlertType}
+                isDisabled={isEditing}
+              />
+            </Box>
+          ) : null}
+        </Box>
 
         {isPerpsMode && shouldUseLivePrice ? (
           <PerpsStreamProvider>
             <PerpsAlertLivePrice symbol={assetId} onPrice={setLivePrice} />
           </PerpsStreamProvider>
         ) : null}
-
-        {(!isPerpsMode || isPerpsPercentChangeEnabled) && (
-          <AlertTypeToggle
-            value={alertType}
-            onChange={setAlertType}
-            isDisabled={isEditing}
-          />
-        )}
 
         {alertType === 'percent_change' && canUsePercentChange ? (
           <PercentChangeAlertForm
