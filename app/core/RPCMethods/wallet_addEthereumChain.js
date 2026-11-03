@@ -171,11 +171,18 @@ export const wallet_addEthereumChain = async ({
         (endpoint) => endpoint.url === firstValidRPCUrl,
       );
 
-      const blockExplorerResult = addOrUpdateIndex(
-        existingNetworkConfiguration.blockExplorerUrls,
-        firstValidBlockExplorerUrl,
-        (url) => url === firstValidBlockExplorerUrl,
-      );
+      // A request without a valid explorer must leave the existing explorers alone
+      // instead of appending `null` and pointing the default index at it.
+      const blockExplorerResult = firstValidBlockExplorerUrl
+        ? addOrUpdateIndex(
+            existingNetworkConfiguration.blockExplorerUrls,
+            firstValidBlockExplorerUrl,
+            (url) => url === firstValidBlockExplorerUrl,
+          )
+        : {
+            updatedArray: existingNetworkConfiguration.blockExplorerUrls,
+            index: existingNetworkConfiguration.defaultBlockExplorerUrlIndex,
+          };
 
       const clonedNetworkConfiguration = {
         ...existingNetworkConfiguration,
@@ -216,9 +223,13 @@ export const wallet_addEthereumChain = async ({
     } else {
       updatedNetworkConfiguration = NetworkController.addNetwork({
         chainId,
-        blockExplorerUrls: [firstValidBlockExplorerUrl],
+        blockExplorerUrls: firstValidBlockExplorerUrl
+          ? [firstValidBlockExplorerUrl]
+          : [],
         defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: 0,
+        defaultBlockExplorerUrlIndex: firstValidBlockExplorerUrl
+          ? 0
+          : undefined,
         name: chainName,
         nativeCurrency: ticker,
         rpcEndpoints: [
