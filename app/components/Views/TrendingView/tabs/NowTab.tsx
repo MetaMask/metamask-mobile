@@ -15,7 +15,7 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import { selectPredictAvailability } from '../../../UI/PredictNext';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -222,7 +222,7 @@ const NowTabContent: React.FC<TabProps> = ({
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isEarnSectionVisible = useSelector(selectIsExploreEarnSectionVisible);
 

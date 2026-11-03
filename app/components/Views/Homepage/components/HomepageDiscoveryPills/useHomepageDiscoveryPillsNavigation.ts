@@ -5,7 +5,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import { PredictEventValues } from '../../../../UI/PredictNext';
 import {
   toPerpsNavigatorScreenParams,
   useGetPerpsHomeNavigationTarget,

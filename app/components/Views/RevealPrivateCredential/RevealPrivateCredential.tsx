@@ -20,7 +20,6 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -56,6 +55,8 @@ import {
   RevealPrivateCredentialRouteProp,
   RevealSrpStage,
 } from './types';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 // Locales such as Greek wrap this title onto a second line, which defaults to
 // left alignment inside the centered header column.
@@ -68,6 +69,7 @@ const RevealPrivateCredential = ({
   cancel,
   showCancelButton,
 }: IRevealPrivateCredentialProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RevealPrivateCredentialRouteProp>();
   const tabBarHeight = useContext(BottomTabBarHeightContext);
@@ -390,7 +392,9 @@ const RevealPrivateCredential = ({
       style={{ paddingBottom: bottomSpacing }}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('reveal_credential.seed_phrase_title')}
         titleProps={HEADER_TITLE_PROPS}
         onBack={headerNavigationBack}
