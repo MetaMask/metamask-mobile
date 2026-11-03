@@ -6,7 +6,7 @@
 
 Social rehydration Figma (“Wallet recovery / Verify it’s you”) needs to **list enrolled MFA factors before vault password**. Today `refreshEnrolledCredentials()` / kit verify go through AuthController paths that **assert wallet unlock** (HD seed → SRP profile session).
 
-Himanshu’s note: a **profile session can also come from the W3A / social access token**.
+A **profile session can also come from the W3A / social access token**.
 
 ## What AuthController already has
 
