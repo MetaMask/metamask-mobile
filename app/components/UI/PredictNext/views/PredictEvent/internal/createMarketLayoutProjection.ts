@@ -1,6 +1,10 @@
 import BigNumber from 'bignumber.js';
 import { parsePredictDecimal } from '../../../events/shared/formatting';
-import type { PredictMarket, PredictMarketType } from '../../../types';
+import type {
+  PredictMarket,
+  PredictMarketLayout,
+  PredictMarketType,
+} from '../../../types';
 import {
   hasConsistentLines,
   isMarketSelectorMarket,
@@ -26,7 +30,10 @@ export interface MarketLayoutPeriod {
 export interface MarketLayoutSection {
   key: string;
   order: number;
-  /** Decimal string, unformatted. Absent when no Market has a volume. */
+  /**
+   * Contracts traded across the section's Markets (`PredictMarket.volume`),
+   * as an unformatted decimal string. Absent when no Market has a volume.
+   */
   volume?: string;
   periods: readonly MarketLayoutPeriod[];
 }
@@ -86,9 +93,8 @@ const compareLevels = (
   right: Level<unknown, unknown>,
 ): number => left.order - right.order || left.firstIndex - right.firstIndex;
 
-const comparePeriods = (left: PeriodLevel, right: PeriodLevel): number =>
-  Number(left.key !== undefined) - Number(right.key !== undefined) ||
-  compareLevels(left, right);
+/** Like the API, a Market without a subgroup sorts as subgroup order -1. */
+const UNGROUPED_PERIOD_ORDER = -1;
 
 const compareByDisplayOrder = (
   left: IndexedMarket,
@@ -177,7 +183,7 @@ function sumVolume(periods: readonly PeriodLevel[]): string | undefined {
 }
 
 function toSection(section: SectionLevel): MarketLayoutSection {
-  const periods = [...section.children.values()].sort(comparePeriods);
+  const periods = [...section.children.values()].sort(compareLevels);
   const volume = sumVolume(periods);
   return {
     key: section.key,
@@ -191,20 +197,53 @@ function toSection(section: SectionLevel): MarketLayoutSection {
   };
 }
 
+const groupKeyOf = (market: PredictMarket): string | undefined => {
+  const key = market.group?.key.trim();
+  return key === undefined || key.length === 0 ? undefined : key;
+};
+
+/**
+ * The first layout seen for each group key, so a group member that lost its
+ * own layout still joins its group instead of splitting it.
+ */
+function getGroupLayouts(
+  markets: readonly PredictMarket[],
+): Map<string, PredictMarketLayout> {
+  const layouts = new Map<string, PredictMarketLayout>();
+  for (const market of markets) {
+    const groupKey = groupKeyOf(market);
+    if (
+      market.layout !== undefined &&
+      groupKey !== undefined &&
+      !layouts.has(groupKey)
+    ) {
+      layouts.set(groupKey, market.layout);
+    }
+  }
+  return layouts;
+}
+
 /**
  * Projects an Event's laid-out Markets into tabs › sections › periods › cards.
  * Every key the API sends is kept; the card type follows the group's shape:
- * a `choice` group, a `marketSelector` line picker, or a standard card for a
- * Market without a group or in a group that can't make one card.
+ * a `choice` group, a `marketSelector` line picker (any `marketType`), or a
+ * standard card for a Market without a group or in a group that can't make
+ * one card. Which sections and market types to render is the caller's call.
+ * A Market without layout joins its group's layout when another member has
+ * one; otherwise it goes to `remainingMarkets`.
  */
 export function createMarketLayoutProjection(
   markets: readonly PredictMarket[],
 ): MarketLayoutProjection {
   const tabs = new Map<string, TabLevel>();
   const remainingMarkets: PredictMarket[] = [];
+  const groupLayouts = getGroupLayouts(markets);
 
   markets.forEach((market, index) => {
-    const layout = market.layout;
+    const groupKey = groupKeyOf(market);
+    const layout =
+      market.layout ??
+      (groupKey === undefined ? undefined : groupLayouts.get(groupKey));
     if (layout === undefined) {
       remainingMarkets.push(market);
       return;
@@ -227,13 +266,12 @@ export function createMarketLayoutProjection(
     const period = getLevel(
       section.children,
       layout.subgroup?.key,
-      layout.subgroup?.order ?? 0,
+      layout.subgroup?.order ?? UNGROUPED_PERIOD_ORDER,
       index,
       (): PeriodMarkets => ({ groups: new Map(), ungrouped: [] }),
     );
 
-    const groupKey = market.group?.key.trim();
-    if (groupKey === undefined || groupKey.length === 0) {
+    if (groupKey === undefined) {
       period.children.ungrouped.push({ market, index });
       return;
     }

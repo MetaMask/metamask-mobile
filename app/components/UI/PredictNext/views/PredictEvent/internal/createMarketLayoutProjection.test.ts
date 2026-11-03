@@ -350,6 +350,75 @@ describe('createMarketLayoutProjection', () => {
     ]);
   });
 
+  it('shows a group of an unknown group type as standard cards', () => {
+    const layout = layoutOf('props', 4, FULL_GAME);
+    const ladder = (displayOrder: number): PredictMarketGroup => ({
+      key: 'ladder',
+      groupType: 'ladder',
+      displayOrder,
+    });
+    const markets = [
+      createMarket('rung-1', { group: ladder(0), layout }),
+      createMarket('rung-2', { group: ladder(1), layout }),
+    ];
+
+    expect(sectionsOf(markets)?.[0].periods[0].cards).toEqual([
+      { type: 'standard', key: 'market:rung-1', markets: ['rung-1'] },
+      { type: 'standard', key: 'market:rung-2', markets: ['rung-2'] },
+    ]);
+  });
+
+  it('keeps a line picker of an unknown market type, for the caller to render', () => {
+    const layout = layoutOf('player_points', 4, FULL_GAME);
+    const markets = [
+      createMarket('points-25', {
+        group: line('player-a', 'player_points', 25, 0),
+        layout,
+      }),
+      createMarket('points-30', {
+        group: line('player-a', 'player_points', 30, 1),
+        layout,
+      }),
+    ];
+
+    expect(sectionsOf(markets)?.[0].periods[0].cards).toEqual([
+      {
+        type: 'marketSelector',
+        key: 'player-a',
+        marketType: 'player_points',
+        markets: ['points-25', 'points-30'],
+      },
+    ]);
+  });
+
+  it('keeps a group whole when one member has no layout', () => {
+    const firstHalfMoneyline = composedGame.markets.filter(
+      (market) =>
+        market.layout?.section.key === 'moneyline' &&
+        market.layout.subgroup?.key === 'first_half',
+    );
+    const [chicago, tie, seattle] = firstHalfMoneyline;
+    const markets = [chicago, { ...tie, layout: undefined }, seattle];
+
+    const projection = describeProjection(
+      createMarketLayoutProjection(markets),
+    );
+
+    expect(projection.remainingMarkets).toEqual([]);
+    expect(projection.tabs[0].sections[0].periods).toEqual([
+      {
+        key: 'first_half',
+        cards: [
+          {
+            type: 'choice',
+            key: chicago.group?.key,
+            markets: [chicago.id, tie.id, seattle.id],
+          },
+        ],
+      },
+    ]);
+  });
+
   it('returns Markets without layout in response order and leaves them out of tabs', () => {
     const markets = [
       createMarket('flat-1'),
@@ -425,6 +494,21 @@ describe('createMarketLayoutProjection', () => {
         ],
       ],
       ['player_props', [['passing', [undefined]]]],
+    ]);
+  });
+
+  it('keeps the first order seen when one key arrives with different orders', () => {
+    const markets = [
+      createMarket('spread', { layout: layoutOf('spread', 1, FULL_GAME) }),
+      createMarket('total', { layout: layoutOf('total_points', 2, FULL_GAME) }),
+      createMarket('late-spread', {
+        layout: layoutOf('spread', 3, FULL_GAME),
+      }),
+    ];
+
+    expect(sectionsOf(markets)?.map(({ key }) => key)).toEqual([
+      'spread',
+      'total_points',
     ]);
   });
 
