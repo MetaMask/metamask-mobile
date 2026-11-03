@@ -14,20 +14,22 @@ import {
   tokenDetailsV1ClosedHolder,
   tokenDetailsV1OpenHolders,
 } from '../../../../../tests/component-view/api-mocking/tokenDetailsV1';
+import { strings } from '../../../../../locales/i18n';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import { OVERVIEW_TAB_DESCRIPTION_TEST_ID } from '../components/tabs/OverviewTab';
-import { OVERVIEW_TAB_PERFORMANCE_TEST_ID } from '../components/sections/PerformanceSection';
-import { TokenHolderRowSelectorsIDs } from '../components/tabs/holders/TokenHolderRow';
-import { getTokenDetailsV1TabTestId } from '../components/TokenDetailsV1TabBar';
+import { OVERVIEW_TAB_DESCRIPTION_TEST_ID } from '../components/tabs/OverviewTab.testIds';
+import { OVERVIEW_TAB_PERFORMANCE_TEST_ID } from '../components/sections/PerformanceSection.testIds';
+import { TokenHolderRowSelectorsIDs } from '../components/tabs/holders/TokenHolderRow.testIds';
+import { getTokenDetailsV1TabTestId } from '../components/TokenDetailsV1TabBar.testIds';
+import { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip.testIds';
 import {
-  TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID,
   TOKEN_DETAILS_V1_TEST_ID,
-  TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID,
-} from './TokenDetailsV1';
-import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending';
+  tokenDetailsV1TabPageTestId,
+} from './TokenDetailsV1.testIds';
+import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending.testIds';
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
-import { TokenStatKey } from '../constants/tokenStats';
+import { STAT_EXPLAINER_KEYS, TokenStatKey } from '../constants/tokenStats';
+import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
 import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.testIds';
@@ -54,20 +56,22 @@ const STAT_VALUES: [TokenStatKey, string][] = [
   [TokenStatKey.CirculatingSupply, '420.0M'],
 ];
 
-const CHECK_VALUES: [ContractCheckKey, string][] = [
-  [ContractCheckKey.NoHoneypot, 'Honeypot not detected'],
-  [ContractCheckKey.ContractVerified, 'Yes'],
-  [ContractCheckKey.Renounced, 'Renounced'],
-  [ContractCheckKey.NoBlacklist, 'Control detected'],
-  [ContractCheckKey.IsMintable, 'Yes'],
+const CHECK_VALUES: [ContractCheckKey, 'pass' | 'fail'][] = [
+  [ContractCheckKey.NoHoneypot, 'pass'],
+  [ContractCheckKey.ContractVerified, 'pass'],
+  [ContractCheckKey.Renounced, 'pass'],
+  [ContractCheckKey.NoBlacklist, 'fail'],
+  [ContractCheckKey.IsMintable, 'pass'],
 ];
 
 const expectCheckValues = (
   getByTestId: (testId: string) => unknown,
   rowValue: (key: ContractCheckKey) => string,
 ) => {
-  CHECK_VALUES.forEach(([key, text]) => {
-    expect(getByTestId(rowValue(key))).toHaveTextContent(text);
+  CHECK_VALUES.forEach(([key, outcome]) => {
+    expect(getByTestId(rowValue(key))).toHaveTextContent(
+      strings(`token_details_v1.security_tab.check_values.${key}.${outcome}`),
+    );
   });
 };
 
@@ -107,7 +111,7 @@ describeForPlatforms('TokenDetailsV1', () => {
       ),
     ).toBeOnTheScreen();
     expect(getByTestId(SecurityPillSelectors.VERDICT)).toHaveTextContent(
-      'Screened',
+      strings('token_details_v1.security_pill.screened'),
     );
     STAT_VALUES.forEach(([key, text]) => {
       expect(getByTestId(StatBarSelectors.value(key))).toHaveTextContent(text);
@@ -148,27 +152,31 @@ describeForPlatforms('TokenDetailsV1', () => {
       await findByTestId(SecurityTabSelectors.TAB, {}, FIND_TIMEOUT),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`),
+      queryByTestId(tokenDetailsV1TabPageTestId('overview')),
     ).not.toBeOnTheScreen();
     expectCheckValues(getByTestId, SecurityTabSelectors.rowValue);
     expect(getByTestId(SecurityTabSelectors.RISK_BANNER)).toHaveTextContent(
-      'We found 1 risk',
+      strings('token_details_v1.security_tab.risk_banner', { count: 1 }),
     );
     expect(getByTestId(SecurityTabSelectors.LEGEND_TOP_TEN)).toHaveTextContent(
-      'Top 10 18.4%',
+      `${strings('token_details_v1.security_tab.holders.top_ten')} 18.4%`,
     );
     expect(
       getByTestId(SecurityTabSelectors.LEGEND_REMAINING),
-    ).toHaveTextContent('Remaining holders 81.6%');
+    ).toHaveTextContent(
+      `${strings('token_details_v1.security_tab.holders.remaining')} 81.6%`,
+    );
     expect(
       getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.PrimaryPool)),
     ).toHaveTextContent('Uniswap · PEPE/WETH');
     expect(
       getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.VolumeFlags)),
-    ).toHaveTextContent('None detected');
+    ).toHaveTextContent(
+      strings('token_details_v1.security_tab.values.none_detected'),
+    );
     expect(
       getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.ListedOnExchange)),
-    ).toHaveTextContent('Yes');
+    ).toHaveTextContent(strings('token_details_v1.security_tab.values.yes'));
     expect(
       getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.LpBurnedLocked)),
     ).toHaveTextContent('40.0%');
@@ -185,10 +193,14 @@ describeForPlatforms('TokenDetailsV1', () => {
 
     expect(
       await findByTestId(TokenExplainerSheetSelectors.TITLE),
-    ).toHaveTextContent('No honeypot');
+    ).toHaveTextContent(
+      strings(EXPLAINER_KEYS_BY_ROW[ContractCheckKey.NoHoneypot].title),
+    );
     expect(
       getByTestId(TokenExplainerSheetSelectors.DESCRIPTION),
-    ).toHaveTextContent('Whether the token can be sold.');
+    ).toHaveTextContent(
+      strings(EXPLAINER_KEYS_BY_ROW[ContractCheckKey.NoHoneypot].description),
+    );
 
     await userEvent.press(
       getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON),
@@ -211,12 +223,10 @@ describeForPlatforms('TokenDetailsV1', () => {
 
     expect(
       await findByTestId(TokenExplainerSheetSelectors.TITLE),
-    ).toHaveTextContent('Token age');
+    ).toHaveTextContent(strings('token_details_v1.age.explainer.title'));
     expect(
       getByTestId(TokenExplainerSheetSelectors.DESCRIPTION),
-    ).toHaveTextContent(
-      'Time since token creation. Seconds, minutes, hours, then days.',
-    );
+    ).toHaveTextContent(strings('token_details_v1.age.explainer.description'));
 
     await userEvent.press(
       getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON),
@@ -234,7 +244,9 @@ describeForPlatforms('TokenDetailsV1', () => {
 
     expect(
       await findByTestId(TokenExplainerSheetSelectors.TITLE),
-    ).toHaveTextContent('Market capitalization');
+    ).toHaveTextContent(
+      strings(STAT_EXPLAINER_KEYS[TokenStatKey.MarketCap].title),
+    );
 
     await userEvent.press(
       getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON),
@@ -262,12 +274,14 @@ describeForPlatforms('TokenDetailsV1', () => {
       await findByTestId(ContractSecuritySelectors.SCREEN, {}, FIND_TIMEOUT),
     ).toBeOnTheScreen();
     expect(getByTestId(ContractSecuritySelectors.TITLE)).toHaveTextContent(
-      'Contract security',
+      strings('token_details_v1.contract_security.title'),
     );
     expectCheckValues(getByTestId, ContractSecuritySelectors.rowValue);
     expect(
       getByTestId(ContractSecuritySelectors.riskTitle('low_liquidity_risk')),
-    ).toHaveTextContent('Low liquidity risk');
+    ).toHaveTextContent(
+      strings('token_details_v1.security_tab.risks.low_liquidity_risk.title'),
+    );
 
     await userEvent.press(getByTestId(ContractSecuritySelectors.BACK_BUTTON));
 
@@ -311,7 +325,7 @@ describeForPlatforms('TokenDetailsV1', () => {
 
     await waitFor(() => {
       expect(getByTestId(SecurityPillSelectors.VERDICT)).toHaveTextContent(
-        'Screened',
+        strings('token_details_v1.security_pill.screened'),
       );
     }, FIND_TIMEOUT);
 
@@ -331,7 +345,7 @@ describeForPlatforms('TokenDetailsV1', () => {
       getByTestId(getTokenDetailsV1TabTestId('overview')),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`),
+      getByTestId(tokenDetailsV1TabPageTestId('overview')),
     ).toBeOnTheScreen();
   });
 
@@ -409,7 +423,7 @@ describeForPlatforms('TokenDetailsV1', () => {
 
     await waitFor(() => {
       expect(getByTestId(SecurityPillSelectors.VERDICT)).toHaveTextContent(
-        'Screened',
+        strings('token_details_v1.security_pill.screened'),
       );
     }, FIND_TIMEOUT);
 
@@ -425,7 +439,7 @@ describeForPlatforms('TokenDetailsV1', () => {
       queryByTestId(getTokenDetailsV1TabTestId('feed')),
     ).not.toBeOnTheScreen();
     expect(
-      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`),
+      getByTestId(tokenDetailsV1TabPageTestId('overview')),
     ).toBeOnTheScreen();
   });
 });

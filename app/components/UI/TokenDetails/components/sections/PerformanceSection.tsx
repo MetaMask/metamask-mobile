@@ -10,9 +10,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import type { TokenPerformance } from '../../hooks/useTokenPerformance';
+import { OVERVIEW_TAB_PERFORMANCE_TEST_ID } from './PerformanceSection.testIds';
 
-export const OVERVIEW_TAB_PERFORMANCE_TEST_ID =
-  'token-details-overview-tab-performance';
+export { OVERVIEW_TAB_PERFORMANCE_TEST_ID };
 
 const MISSING_VALUE_LABEL = '—';
 

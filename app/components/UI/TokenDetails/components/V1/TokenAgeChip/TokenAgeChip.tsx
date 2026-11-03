@@ -5,8 +5,9 @@ import { Tag, TagSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useElapsedTime } from '../../../hooks/useElapsedTime';
 import { formatTokenAge } from '../../../utils/formatTokenAge';
+import { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from './TokenAgeChip.testIds';
 
-export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
+export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID };
 
 interface TokenAgeChipProps {
   launchedAtSeconds: number | null | undefined;

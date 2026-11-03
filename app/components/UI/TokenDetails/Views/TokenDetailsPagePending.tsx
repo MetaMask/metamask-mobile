@@ -15,8 +15,9 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending.testIds';
 
-export const TOKEN_DETAILS_PAGE_PENDING_TEST_ID = 'token-details-page-pending';
+export { TOKEN_DETAILS_PAGE_PENDING_TEST_ID };
 
 /**
  * Shown while `/v2/assets` is still deciding the new page versus the legacy

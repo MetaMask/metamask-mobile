@@ -24,19 +24,23 @@ import PerformanceSection from '../sections/PerformanceSection';
 import ActivitySection, {
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID,
 } from '../sections/ActivitySection';
+import {
+  OVERVIEW_SECTION_RULE_TEST_ID,
+  OVERVIEW_TAB_BALANCE_TEST_ID,
+  OVERVIEW_TAB_DESCRIPTION_TEST_ID,
+  OVERVIEW_TAB_TEST_ID,
+  OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID,
+} from './OverviewTab.testIds';
 
-export const OVERVIEW_TAB_TEST_ID = 'token-details-overview-tab';
-export const OVERVIEW_TAB_DESCRIPTION_TEST_ID =
-  'token-details-overview-tab-description';
-export const OVERVIEW_TAB_BALANCE_TEST_ID =
-  'token-details-overview-tab-balance';
-export const OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID =
-  'token-details-overview-tab-token-details';
+export {
+  OVERVIEW_SECTION_RULE_TEST_ID,
+  OVERVIEW_TAB_BALANCE_TEST_ID,
+  OVERVIEW_TAB_DESCRIPTION_TEST_ID,
+  OVERVIEW_TAB_TEST_ID,
+  OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID,
+};
 export const OVERVIEW_TAB_ACTIVITY_TEST_ID =
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID;
-
-export const OVERVIEW_SECTION_RULE_TEST_ID =
-  'token-details-overview-section-rule';
 
 const SECTION_RULE = 'mt-6 border-t border-muted pt-6';
 

@@ -15,17 +15,12 @@ import {
   formatFollowerCountLabel,
   formatPercent,
 } from '../../../../SocialFeed/utils/formatters';
+import { TokenHolderRowSelectorsIDs } from './TokenHolderRow.testIds';
 
 /** Matches the avatar size on the Social V1 feed's identity row. */
 const AVATAR_SIZE = 32;
 
-export const TokenHolderRowSelectorsIDs = {
-  CONTAINER: 'token-holder-row',
-  NAME: 'token-holder-row-name',
-  FOLLOWERS: 'token-holder-row-followers',
-  POSITION_VALUE: 'token-holder-row-position-value',
-  PNL_PERCENT: 'token-holder-row-pnl-percent',
-} as const;
+export { TokenHolderRowSelectorsIDs };
 
 export interface TokenHolderRowProps {
   row: TraderFeedRow;

@@ -23,10 +23,13 @@ import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
+import {
+  getTokenDetailsV1TabTestId,
+  TOKEN_DETAILS_V1_TAB_BAR_TEST_ID,
+} from './TokenDetailsV1TabBar.testIds';
 
 export { TOKEN_DETAILS_V1_TABS } from '../constants/constants';
-
-export const TOKEN_DETAILS_V1_TAB_BAR_TEST_ID = 'token-details-v1-tab-bar';
+export { TOKEN_DETAILS_V1_TAB_BAR_TEST_ID };
 
 const AnimatedBox = Animated.createAnimatedComponent(Box);
 
@@ -251,9 +254,6 @@ export interface TokenDetailsV1TabBarProps {
 
 const getTabLabel = (tab: TokenDetailsV1TabKey): string =>
   strings(`token_details_v1.tabs.${tab}`);
-
-export const getTokenDetailsV1TabTestId = (tab: TokenDetailsV1TabKey): string =>
-  `token-details-v1-tab-${tab}`;
 
 const TokenDetailsV1TabBar = memo(
   ({
