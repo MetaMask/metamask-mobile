@@ -174,7 +174,6 @@ These burndown paths did not match any owner line in `.github/CODEOWNERS` at the
 - `app/components/hooks/useAddressBalance/useAddressBalance.ts`
 - `app/components/hooks/useGetFormattedTokensPerChain.tsx`
 - `app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx`
-- `app/core/GasPolling/GasPolling.ts`
 - `app/core/NotificationManager.js`
 - `app/selectors/multichain/evm.ts`
 
