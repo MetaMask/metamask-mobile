@@ -610,6 +610,7 @@
           }
         },
         "QrSyncController": {
+          "accountsReview": null,
           "connectionStatus": "disconnected",
           "error": null,
           "otp": null,
