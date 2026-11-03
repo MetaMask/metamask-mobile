@@ -356,6 +356,14 @@ describe('WalletHeader', () => {
       expect(mockWalletHeaderProfileAvatar).toHaveBeenCalledWith({
         diameter: 40,
       });
+      // Social tab header tests lock the same row: 56px tall, 12px inset.
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+      ).toHaveStyle({
+        height: 56,
+        paddingLeft: 12,
+        paddingRight: 12,
+      });
 
       fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
 

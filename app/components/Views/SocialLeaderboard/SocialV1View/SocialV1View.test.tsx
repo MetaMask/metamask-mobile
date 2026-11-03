@@ -858,14 +858,41 @@ describe('SocialV1View', () => {
     ).toBeOnTheScreen();
   });
 
-  it('insets the header avatar so it shares the 16px tab padding', () => {
-    renderWithProvider(<SocialV1View />);
+  it('lines the header row up with the Home tab header', () => {
+    const safeArea = jest.requireMock('react-native-safe-area-context') as {
+      useSafeAreaInsets: () => { top: number };
+    };
+    const insets = safeArea.useSafeAreaInsets();
+    const previousTop = insets.top;
+    insets.top = 59;
 
+    try {
+      renderWithProvider(<SocialV1View />);
+
+      const header = screen.getByTestId(SocialV1ViewSelectorsIDs.HEADER);
+      // Home's social row is h-14 (56) with px-3 (12) and a 40px avatar.
+      // HeaderStandard's own px-2 must not keep the 8px inset, and the safe
+      // area sits on the wrapper (paddingTop), not as margin on this row.
+      expect(header).toHaveStyle({
+        height: 56,
+        paddingLeft: 12,
+        paddingRight: 12,
+      });
+      expect(StyleSheet.flatten(header.props.style).marginTop ?? 0).toBe(0);
+      expect(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.HEADER_INSET),
+      ).toHaveStyle({ paddingTop: 59 });
+    } finally {
+      insets.top = previousTop;
+    }
+
+    const avatarButtonStyle = StyleSheet.flatten(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON).props.style,
+    );
+    expect(avatarButtonStyle?.marginLeft ?? 0).toBe(0);
     expect(
-      StyleSheet.flatten(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON).props.style,
-      ).marginLeft,
-    ).toBe(8);
+      screen.getByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toHaveStyle({ width: 40, height: 40 });
   });
 
   it('uses the profile image URL for the header avatar when available', () => {

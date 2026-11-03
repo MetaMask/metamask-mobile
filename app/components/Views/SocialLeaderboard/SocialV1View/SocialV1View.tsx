@@ -35,7 +35,10 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import PagerView from 'react-native-pager-view';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
@@ -180,6 +183,7 @@ const SOCIAL_EVENT_TAB_CONTEXT = {
  */
 const SocialV1ViewContent: React.FC = () => {
   const tw = useTailwind();
+  const safeAreaInsets = useSafeAreaInsets();
   const livePrices = useSocialLivePrices();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route =
@@ -680,78 +684,86 @@ const SocialV1ViewContent: React.FC = () => {
 
   return (
     // Top and bottom edges are deliberately off — see
-    // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
-    // `includesTopInset` (JS `marginTop` off the already resolved provider).
+    // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset is padding on the
+    // wrapper, matching Home's floating header (`paddingTop: insets.top`
+    // outside the 56px row) instead of a margin on the row itself.
     <SocialEntryOptionsProvider>
       <SafeAreaView
         edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
         style={tw.style('flex-1 bg-default')}
         testID={SocialV1ViewSelectorsIDs.CONTAINER}
       >
-        <HeaderStandardAnimated
-          includesTopInset
-          scrollY={scrollY}
-          titleSectionHeight={titleHeightSv}
-          title={title}
-          titleProps={{
-            testID: SocialV1ViewSelectorsIDs.HEADER_TITLE,
-          }}
-          startAccessory={
-            <Pressable
-              onPress={handleOpenMyProfile}
-              testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
-              accessibilityRole="button"
-              accessibilityLabel={strings(
-                'social_leaderboard.my_profile.open_profile',
-              )}
-              // Header chrome is inset 8px. The feed tabs use 16px, so the
-              // avatar needs the other 8px to share that left edge.
-              style={tw.style('ml-2')}
-            >
-              <SocialHeaderGlassSurface twClassName="w-10 justify-center">
-                {myProfile ? (
-                  <ProfileAvatar
-                    imageUrl={myProfile.imageUrl}
-                    avatarPresetId={myProfile.avatarPresetId}
-                    avatarBackgroundId={myProfile.avatarBackgroundId}
-                    size="sm"
-                  />
-                ) : (
-                  <AvatarAccount
-                    address={accountAddress ?? ''}
-                    variant={getAvatarAccountVariant(avatarAccountType)}
-                    size={AvatarAccountSize.Sm}
-                    testID={SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR}
-                  />
-                )}
-              </SocialHeaderGlassSurface>
-            </Pressable>
-          }
-          endAccessory={
-            <SocialHeaderGlassSurface twClassName="gap-2 px-2">
-              <ButtonIcon
-                iconName={IconName.Gift}
-                iconProps={{ color: IconColor.IconDefault }}
-                size={ButtonIconSize.Md}
-                onPress={handleOpenRewards}
+        <View
+          style={{ paddingTop: safeAreaInsets.top }}
+          testID={SocialV1ViewSelectorsIDs.HEADER_INSET}
+        >
+          <HeaderStandardAnimated
+            scrollY={scrollY}
+            titleSectionHeight={titleHeightSv}
+            title={title}
+            titleProps={{
+              testID: SocialV1ViewSelectorsIDs.HEADER_TITLE,
+            }}
+            // Home's social header row is `h-14 px-3` (56px, 12px inset) with a
+            // 40px avatar. HeaderStandard already draws `h-14` but insets `px-2`
+            // (8px). An extra `ml-2` on the avatar made that 16px on the left
+            // and left the action pill at 8px, so the row jumped against Home.
+            // This style is applied after those classes, so spacing 3 wins.
+            style={tw.style('px-3')}
+            startAccessory={
+              <Pressable
+                onPress={handleOpenMyProfile}
+                testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
+                accessibilityRole="button"
                 accessibilityLabel={strings(
-                  'wallet.rewards_accessibility_label',
+                  'social_leaderboard.my_profile.open_profile',
                 )}
-                testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
-                twClassName="bg-transparent"
-              />
-              <ButtonIcon
-                iconName={IconName.FeedPost}
-                iconProps={{ color: IconColor.IconDefault }}
-                size={ButtonIconSize.Md}
-                onPress={handleOpenComposer}
-                testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
-                twClassName="bg-transparent"
-              />
-            </SocialHeaderGlassSurface>
-          }
-          testID={SocialV1ViewSelectorsIDs.HEADER}
-        />
+              >
+                <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+                  {myProfile ? (
+                    <ProfileAvatar
+                      imageUrl={myProfile.imageUrl}
+                      avatarPresetId={myProfile.avatarPresetId}
+                      avatarBackgroundId={myProfile.avatarBackgroundId}
+                      size="sm"
+                    />
+                  ) : (
+                    <AvatarAccount
+                      address={accountAddress ?? ''}
+                      variant={getAvatarAccountVariant(avatarAccountType)}
+                      size={AvatarAccountSize.Lg}
+                      testID={SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR}
+                    />
+                  )}
+                </SocialHeaderGlassSurface>
+              </Pressable>
+            }
+            endAccessory={
+              <SocialHeaderGlassSurface twClassName="gap-2 px-2">
+                <ButtonIcon
+                  iconName={IconName.Gift}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleOpenRewards}
+                  accessibilityLabel={strings(
+                    'wallet.rewards_accessibility_label',
+                  )}
+                  testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
+                  twClassName="bg-transparent"
+                />
+                <ButtonIcon
+                  iconName={IconName.FeedPost}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleOpenComposer}
+                  testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
+                  twClassName="bg-transparent"
+                />
+              </SocialHeaderGlassSurface>
+            }
+            testID={SocialV1ViewSelectorsIDs.HEADER}
+          />
+        </View>
 
         {showNotificationsBanner && (
           <Box twClassName="px-4 pt-2">
