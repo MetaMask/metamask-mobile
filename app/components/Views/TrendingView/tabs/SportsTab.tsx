@@ -91,6 +91,7 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
       {showSportsPredictions ? <SectionDivider /> : null}
       <SectionHeader
         title={strings('trending.all_sports')}
+        contentTopInset={3}
         testID="section-header-view-all-all_sports"
       />
       <PillRow

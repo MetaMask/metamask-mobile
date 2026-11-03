@@ -24,6 +24,8 @@ export interface SectionHeaderProps {
   sectionName?: ExploreSectionName;
   /** Extra Tailwind classes for the title row (e.g. bottom padding overrides). */
   titleTwClassName?: string;
+  /** Top inset already supplied by the following content, in spacing tokens. */
+  contentTopInset?: 0 | 2 | 3;
   /** Extra Tailwind classes for the optional subtitle. */
   subtitleTwClassName?: string;
 }
@@ -36,6 +38,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   tabName,
   sectionName,
   titleTwClassName,
+  contentTopInset = 0,
   subtitleTwClassName,
 }) => {
   const handleViewAll = useCallback(() => {
@@ -45,10 +48,18 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
     onViewAll?.();
   }, [onViewAll, tabName, sectionName]);
 
+  // Match the homepage token icon gap: 8px header + 12px row inset.
+  // Subtract padding owned by the following content rather than stacking it.
+  const contentGapClassName = {
+    0: 'pb-5',
+    2: 'pb-3',
+    3: 'pb-2',
+  }[contentTopInset];
   const resolvedTitleTwClassName =
-    titleTwClassName ?? (subtitle ? 'pb-1' : undefined);
+    titleTwClassName ?? (subtitle ? 'pb-1' : contentGapClassName);
   const resolvedSubtitleTwClassName =
-    subtitleTwClassName ?? (subtitle ? 'mb-3 px-4' : undefined);
+    subtitleTwClassName ??
+    (subtitle ? `${contentGapClassName} px-4` : undefined);
 
   return (
     <Box>
