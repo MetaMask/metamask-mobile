@@ -44,6 +44,7 @@ import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
+import GlassDepthPrototype from '../../Views/GlassDepthPrototype';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
@@ -662,6 +663,12 @@ const SettingsFlow = () => {
         <NativeStack.Screen
           name={Routes.SETTINGS.DEVELOPER_OPTIONS}
           component={DeveloperOptions}
+        />
+      )}
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <NativeStack.Screen
+          name={Routes.SETTINGS.GLASS_DEPTH_PROTOTYPE}
+          component={GlassDepthPrototype}
         />
       )}
       <NativeStack.Screen name="ContactsSettings" component={Contacts} />

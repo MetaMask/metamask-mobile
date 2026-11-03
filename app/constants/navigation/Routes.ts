@@ -246,6 +246,7 @@ const Routes = {
     CHANGE_PASSWORD: 'ResetPassword',
     CONTACT_FORM: 'ContactForm',
     DEVELOPER_OPTIONS: 'DeveloperOptions',
+    GLASS_DEPTH_PROTOTYPE: 'GlassDepthPrototype',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
     NOTIFICATION_SETTINGS_SECTION: 'NotificationSettingsSection',

@@ -32,6 +32,7 @@ import NotificationsDeveloperOptionsSection from '../../../UI/Notification/Devel
 import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import NewWalletDeveloperOptionsSection from './NewWalletDeveloperOptionsSection';
+import GlassDepthPrototypeSection from './GlassDepthPrototypeSection';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
@@ -108,6 +109,7 @@ const DeveloperOptions = () => {
           <SocialLeaderboardDeveloperOptionsSection />
         )}
         <HapticsDeveloperOptionsSection />
+        <GlassDepthPrototypeSection />
         <NewWalletDeveloperOptionsSection />
       </ScrollView>
     </SafeAreaView>

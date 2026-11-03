@@ -784,6 +784,7 @@ export type RootStackParamList = {
   ResetPassword: undefined;
   ContactForm: ContactFormParams | undefined;
   DeveloperOptions: undefined;
+  GlassDepthPrototype: undefined;
   ExperimentalSettings: undefined;
   AesCryptoTestForm: undefined;
   WalletRecovery: undefined;
