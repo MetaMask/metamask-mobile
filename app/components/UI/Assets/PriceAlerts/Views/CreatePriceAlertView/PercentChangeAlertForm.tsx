@@ -226,18 +226,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
       }
     >
       <Box alignItems={BoxAlignItems.Center}>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          twClassName="mb-3"
-        >
-          {strings(
-            direction === 'up'
-              ? 'price_alerts.moves_up'
-              : 'price_alerts.moves_down',
-          )}
-        </Text>
-
         <AlertAmountInput
           text={percentAmount}
           hasInput={hasInput}
@@ -245,6 +233,18 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
           suffix={percentSuffix}
           testID={CreatePriceAlertTestIds.PERCENT_INPUT}
         />
+
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="mt-3"
+        >
+          {strings(
+            direction === 'up'
+              ? 'price_alerts.moves_up'
+              : 'price_alerts.moves_down',
+          )}
+        </Text>
 
         <Box twClassName="mt-4 w-full" alignItems={BoxAlignItems.Center}>
           <AlertPeriodToggle
