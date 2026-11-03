@@ -161,10 +161,8 @@ const mockUseTraderPositionPnl = jest.fn(
     _args?: unknown,
   ): {
     traderPositionPnl: Record<string, unknown> | undefined;
-    isLoading: boolean;
   } => ({
     traderPositionPnl: undefined,
-    isLoading: false,
   }),
 );
 jest.mock('../TraderPositionPnl/useTraderPositionPnl', () => ({
@@ -541,7 +539,6 @@ describe('TokenDetails', () => {
     // stop a per-test position from leaking into later suites.
     mockUseTraderPositionPnl.mockReturnValue({
       traderPositionPnl: undefined,
-      isLoading: false,
     });
     mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
@@ -651,51 +648,47 @@ describe('TokenDetails', () => {
       });
     };
 
-    it('does not show the position line and disables the fetch when the flag is off', () => {
+    it('never mounts the position hook when the flag is off', () => {
       applySelectorsWithMemeFlag(false);
-      mockUseTraderPositionPnl.mockReturnValue({
-        traderPositionPnl: undefined,
-        isLoading: false,
-      });
 
       const { queryByTestId } = render(<TokenDetails />);
 
-      expect(mockUseTraderPositionPnl).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
-      );
+      // Flag off renders the plain footer, so the trader-position machinery
+      // (open position, profile, share-to-feed) is never mounted.
+      expect(mockUseTraderPositionPnl).not.toHaveBeenCalled();
       expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
     });
 
-    it('shows the position line and enables the fetch when the flag is on', () => {
+    it('mounts the position hook and shows the line when the flag is on', () => {
       applySelectorsWithMemeFlag(true);
       mockUseTraderPositionPnl.mockReturnValue({
         traderPositionPnl: {
           positionValue: '$103.31',
           pnl: { amount: '+$15.01', percentage: '+16.99%', isProfit: true },
         },
-        isLoading: false,
       });
 
       const { getByTestId } = render(<TokenDetails />);
 
       expect(mockUseTraderPositionPnl).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({ tokenKey: expect.any(String) }),
       );
       expect(
         getByTestId('token-details-trader-position-pnl'),
       ).toBeOnTheScreen();
     });
 
-    it('hides the whole footer while the position is still loading', () => {
+    it('still shows the footer buttons and omits the line until the position resolves', () => {
       applySelectorsWithMemeFlag(true);
       mockUseTraderPositionPnl.mockReturnValue({
         traderPositionPnl: undefined,
-        isLoading: true,
       });
 
       const { queryByTestId } = render(<TokenDetails />);
 
-      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+      // Append-when-loaded: the footer buttons render immediately, only the
+      // position line waits for the position to resolve.
+      expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
     });
   });

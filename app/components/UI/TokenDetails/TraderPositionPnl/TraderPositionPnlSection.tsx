@@ -32,8 +32,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   });
   const { balance } = useTokenBalance(token);
   const hasTokenBalance = balance !== undefined && Number(balance) > 0;
-  const { traderPositionPnl, isLoading: isTraderPositionLoading } =
-    useTraderPositionPnl({ token, tokenKey });
+  const { traderPositionPnl } = useTraderPositionPnl({ token, tokenKey });
 
   return (
     <>
@@ -48,7 +47,6 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
         quickBuyEntrypointLayout="buy_sell"
         onOpenQuickBuy={openQuickBuy}
         traderPositionPnl={traderPositionPnl}
-        traderPositionPnlLoading={isTraderPositionLoading}
         onFooterLayout={onFooterLayout}
       />
       {quickBuySheet}

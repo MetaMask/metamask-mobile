@@ -66,10 +66,8 @@ const expandedDetails = {
   holdTime: '12 days',
 };
 
-const renderPnl = (enabled?: boolean) =>
-  renderHook(() =>
-    useTraderPositionPnl({ token, tokenKey: '0x1:0xabc', enabled }),
-  );
+const renderPnl = () =>
+  renderHook(() => useTraderPositionPnl({ token, tokenKey: '0x1:0xabc' }));
 
 describe('useTraderPositionPnl', () => {
   beforeEach(() => {
@@ -111,75 +109,6 @@ describe('useTraderPositionPnl', () => {
     const { result } = renderPnl();
 
     expect(result.current.traderPositionPnl).toBeUndefined();
-  });
-
-  it('reports loading while the open-position request is in flight', () => {
-    mockUseOpenPositionHeader.mockReturnValue({
-      sharePosition: null,
-      isLoading: false,
-      isPositionLoading: true,
-    });
-
-    const { result } = renderPnl();
-
-    expect(result.current.isLoading).toBe(true);
-  });
-
-  it('reports not loading once the open-position request settles', () => {
-    mockUseOpenPositionHeader.mockReturnValue({
-      positionValue: '$150.00',
-      sharePosition: null,
-      isLoading: false,
-      isPositionLoading: false,
-    });
-
-    const { result } = renderPnl();
-
-    expect(result.current.isLoading).toBe(false);
-  });
-
-  it('defaults to enabled when no flag is passed', () => {
-    mockUseOpenPositionHeader.mockReturnValue({
-      sharePosition: null,
-      isLoading: false,
-      isPositionLoading: false,
-    });
-
-    renderPnl();
-
-    expect(mockUseOpenPositionHeader).toHaveBeenCalledWith(token, {
-      enabled: true,
-    });
-  });
-
-  it('passes enabled: false down to the header so no request is made', () => {
-    mockUseOpenPositionHeader.mockReturnValue({
-      sharePosition: null,
-      isLoading: false,
-      isPositionLoading: false,
-    });
-
-    renderPnl(false);
-
-    expect(mockUseOpenPositionHeader).toHaveBeenCalledWith(token, {
-      enabled: false,
-    });
-  });
-
-  it('hides the line when disabled even if the wallet balance resolves a value', () => {
-    // The balance-derived position value survives a disabled Social request, so
-    // the flag-off page must still render nothing.
-    mockUseOpenPositionHeader.mockReturnValue({
-      positionValue: '$150.00',
-      sharePosition: null,
-      isLoading: false,
-      isPositionLoading: false,
-    });
-
-    const { result } = renderPnl(false);
-
-    expect(result.current.traderPositionPnl).toBeUndefined();
-    expect(result.current.isLoading).toBe(false);
   });
 
   it('attaches Share to feed when a sharable position and social are enabled', () => {

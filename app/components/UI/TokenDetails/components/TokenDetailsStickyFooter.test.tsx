@@ -197,15 +197,6 @@ describe('TokenDetailsStickyFooter', () => {
       );
     });
 
-    it('renders nothing while the trader position is still loading', () => {
-      const { queryByTestId } = render(
-        <TokenDetailsStickyFooter {...defaultProps} traderPositionPnlLoading />,
-      );
-
-      expect(queryByTestId('bottomsheetfooter')).toBeNull();
-      expect(queryByTestId('token-details-sticky-footer')).toBeNull();
-    });
-
     it('renders the trader position header above the footer actions', () => {
       const { getByTestId, queryByTestId } = render(
         <TokenDetailsStickyFooter

@@ -82,6 +82,7 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
 import { useTraderPositionPnl } from '../TraderPositionPnl/useTraderPositionPnl';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
 import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
@@ -224,6 +225,40 @@ const ShareTokenBottomSheetController = forwardRef<
 ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
 
 /**
+ * Legacy-TDP sticky footer that also mounts the trader-position P&L line.
+ *
+ * The trader-position machinery (open position, profile, share-to-feed) is
+ * isolated in its own component so it only runs when the legacy page actually
+ * renders this variant — i.e. when the memecoin flag is on. A flag-off page
+ * renders the plain {@link TokenDetailsStickyFooter} and never mounts these
+ * hooks, so it fires no Social/profile/open-position requests and shows no
+ * position line (today's footer). The line is appended once it resolves; the
+ * action buttons render immediately either way.
+ */
+const TokenDetailsStickyFooterWithTraderPosition: React.FC<
+  Omit<
+    React.ComponentProps<typeof TokenDetailsStickyFooter>,
+    'traderPositionPnl'
+  > & {
+    /** Identity of the token on screen; resets the expanded state when it changes. */
+    tokenKey: string;
+  }
+> = ({ tokenKey, ...footerProps }) => {
+  const { traderPositionPnl } = useTraderPositionPnl({
+    token: footerProps.token,
+    tokenKey,
+  });
+
+  return (
+    <TokenDetailsStickyFooter
+      {...footerProps}
+      reserveTraderPositionLayout
+      traderPositionPnl={traderPositionPnl}
+    />
+  );
+};
+
+/**
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
  */
@@ -275,13 +310,11 @@ const TokenDetails: React.FC<{
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
-  // Trader position P&L line ported from the memecoin V1 footer.
+  // Port the memecoin TDP V1 position line to the legacy page, gated on the
+  // same flag. Flag off renders the plain footer, so the position machinery
+  // (Social/profile/open-position) is never mounted — today's footer.
+  const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
   const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
-  const { traderPositionPnl, isLoading: isTraderPositionLoading } =
-    useTraderPositionPnl({
-      token,
-      tokenKey: traderPositionTokenKey,
-    });
 
   const shareUrl = useMemo(
     () =>
@@ -791,26 +824,46 @@ const TokenDetails: React.FC<{
         )}
       </View>
       {/* Outside the isolated content, so its sheets open above the glass header. */}
-      <TokenDetailsStickyFooter
-        token={token}
-        securityData={securityData}
-        balanceFiatUsd={balanceFiatUsd}
-        networkName={networkName}
-        currentTokenBalance={balance}
-        hasTokenBalance={hasBalanceValue}
-        moneyDepositCta={moneyDepositCta}
-        onStickyButtonsResolved={onStickyButtonsResolved}
-        sourcePage="TokenDetailsView"
-        useAmbientColor={useAmbientColor}
-        onSwapPress={onCtaClicked}
-        onBuyPress={onCtaClicked}
-        onQuickBuyPress={onQuickBuyPress}
-        quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
-        quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
-        onOpenQuickBuy={openQuickBuy}
-        traderPositionPnl={traderPositionPnl}
-        traderPositionPnlLoading={isTraderPositionLoading}
-      />
+      {isMemecoinTdpEnabled ? (
+        <TokenDetailsStickyFooterWithTraderPosition
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyDepositCta={moneyDepositCta}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          useAmbientColor={useAmbientColor}
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+          quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+          onOpenQuickBuy={openQuickBuy}
+          tokenKey={traderPositionTokenKey}
+        />
+      ) : (
+        <TokenDetailsStickyFooter
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyDepositCta={moneyDepositCta}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          useAmbientColor={useAmbientColor}
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+          quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+          onOpenQuickBuy={openQuickBuy}
+        />
+      )}
 
       {shareUrl && (
         <ShareTokenBottomSheetController

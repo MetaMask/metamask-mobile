@@ -23,12 +23,6 @@ interface UseTraderPositionPnlOptions {
 interface UseTraderPositionPnlResult {
   /** Ready to spread onto `TokenDetailsStickyFooter`; `undefined` hides the line. */
   traderPositionPnl: TraderPositionPnlProps | undefined;
-  /**
-   * True while the open-position request has not settled. The footer holds back
-   * its first render until this is false so it appears once in its final shape
-   * instead of flipping container types.
-   */
-  isLoading: boolean;
 }
 
 /**
@@ -98,8 +92,5 @@ export const useTraderPositionPnl = ({
         }
       : undefined;
 
-  return {
-    traderPositionPnl,
-    isLoading: header.isPositionLoading,
-  };
+  return { traderPositionPnl };
 };
