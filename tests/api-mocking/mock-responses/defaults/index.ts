@@ -41,6 +41,7 @@ import { NFT_API_MOCKS } from './nft-api.ts';
 import { SOCIAL_API_MOCKS } from './social-api.ts';
 import { GEOLOCATION_API_MOCKS } from './geolocation-api.ts';
 import { CONFIG_REGISTRY_API_MOCKS } from './config-registry-api.ts';
+import { SUBSCRIPTION_API_MOCKS } from './subscription-api.ts';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -75,6 +76,7 @@ export const DEFAULT_MOCKS = {
     ...(NFT_API_MOCKS.GET || []),
     ...(SOCIAL_API_MOCKS.GET || []),
     ...(GEOLOCATION_API_MOCKS.GET || []),
+    ...(SUBSCRIPTION_API_MOCKS.GET || []),
     ...(PERPS_HYPERLIQUID_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
