@@ -9,7 +9,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -18,12 +17,15 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import { navigateToVbaOnboardingDestination } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import VbaIllustration, {
   VbaIllustrationSource,
 } from '../../components/Illustration';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaIdentityVerifiedSelectorsIDs = {
   CONTAINER: 'vba-identity-verified-container',
@@ -38,6 +40,8 @@ export const VbaIdentityVerifiedSelectorsIDs = {
  * Back goes to Money home.
  */
 const VbaIdentityVerified = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  useTrackKycResultViewed('approved');
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
@@ -64,7 +68,9 @@ const VbaIdentityVerified = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: VbaIdentityVerifiedSelectorsIDs.BACK_BUTTON,
