@@ -111,14 +111,14 @@ const MoneyVbaHomeCard = ({
     if (hasPendingCtaOpenRef.current) {
       return;
     }
-    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
-    hasPendingCtaOpenRef.current = true;
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: config.buttonIntent,
       label_key: `${config.i18nPrefix}.cta`,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
+    hasPendingCtaOpenRef.current = true;
 
     // The pending card is itself derived from current KYC state, so its
     // destination is already known. Re-hydrating here only makes the card
