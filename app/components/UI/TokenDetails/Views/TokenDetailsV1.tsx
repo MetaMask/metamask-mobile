@@ -8,23 +8,23 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import {
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Theme } from '@metamask/design-tokens';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -46,6 +46,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
 import {
@@ -68,6 +69,9 @@ import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
+import TokenAgeChip, {
+  TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID,
+} from '../components/V1/TokenAgeChip/TokenAgeChip';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
@@ -87,24 +91,31 @@ import TokenDetailsV1TabBar, {
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
-  TOKEN_DETAILS_V1_TABS,
   TokenDetailsSource,
   type TokenDetailsRouteParams,
   type TokenDetailsVariant,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
+import {
+  selectMemecoinTdpV1TabConfigOrder,
+  selectMemecoinTdpV1TokenApiBaseUrl,
+} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
-import { useElapsedMinutes } from '../hooks/useElapsedMinutes';
+import { useElapsedTime } from '../hooks/useElapsedTime';
 import { useSecurityFacts } from '../hooks/useSecurityFacts';
 import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
+import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+import { formatTokenAge } from '../utils/formatTokenAge';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
-export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
+export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip';
 export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
   'token-details-v1-scroll-view';
 export const TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX =
@@ -119,12 +130,6 @@ export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
  * tab content scroll under it.
  */
 export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
-
-/**
- * TODO(ASSETS-4016): replace with the token's real age once the API platform
- * exposes it. Change locally to preview other labels ("5h", "3w", …).
- */
-const MOCK_TOKEN_AGE_LABEL = '3d';
 
 const AGE_EXPLAINER_COPY: ExplainerCopy = {
   title: 'token_details_v1.age.explainer.title',
@@ -186,6 +191,9 @@ const TokenDetailsV1TabPlaceholder = ({
  * scroll range to lift it clear, so the page reads as unscrollable.
  */
 const STICKY_FOOTER_RESERVED_HEIGHT = 190;
+
+/** Shown when the remote tab config and the runtime gates between them leave nothing. */
+const FALLBACK_TAB: TokenDetailsV1TabKey = 'overview';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -278,6 +286,15 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
+  // Shared with the Overview tab and the variant check, so the three land on
+  // one react-query entry rather than fetching `/v2/assets` once each.
+  const tokenApiBaseUrl = useSelector(selectMemecoinTdpV1TokenApiBaseUrl);
+  const { asset: tokenAsset } = useTokenAssetDetails(
+    caip19AssetId,
+    tokenApiBaseUrl,
+  );
+  const launchedAt = tokenAsset?.launchpadData?.launchedAt;
+
   const shareUrl = useMemo(
     () =>
       caip19AssetId
@@ -336,12 +353,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     useTokenMarketData(caip19AssetId);
   const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
-  // Feeds both the stat bar and the Security tab. Ten of these figures appear
-  // on both, and deriving them once is what stops the two disagreeing.
   const tokenStats = useTokenStats({
     marketData,
     isMarketDataLoading,
     securityData,
+    tokenApiHoldersCount: tokenAsset?.holders?.count,
     currentCurrency: selectedCurrency,
   });
 
@@ -424,13 +440,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   // read this page's instead of measuring their own footer on a timer.
   const pageScroll = useTokenDetailsScroll();
   const { onScroll: onPageScroll } = pageScroll;
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      const scrollOffset = event.nativeEvent.contentOffset.y;
+      headerScrollY.set(scrollOffset);
+      onScrollOffset(scrollOffset);
       onPageScroll(event);
     },
-    [onPageScroll, onScrollOffset],
+    [headerScrollY, onPageScroll, onScrollOffset],
   );
 
   const {
@@ -441,7 +465,40 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     scrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
+  // A tab shorter than the space under the docked tab bar cannot hold the
+  // page at that offset, so switching to one (an empty or still-loading feed,
+  // a short holders list) would snap the scroll back up toward the top. The
+  // tab area is kept at least that tall so a switch only ever scrolls as far
+  // as the clamp asks.
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [tabBarHeight, setTabBarHeight] = useState(0);
+  const { onLayout: onPageScrollLayout } = pageScroll;
+  const handleScrollViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setViewportHeight(event.nativeEvent.layout.height);
+      onPageScrollLayout(event);
+    },
+    [onPageScrollLayout],
+  );
+  const handleTabBarContainerLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTabBarHeight(event.nativeEvent.layout.height);
+      handleTabBarLayout(event);
+    },
+    [handleTabBarLayout],
+  );
+  const tabContentStyle = useMemo(() => {
+    const minHeight =
+      viewportHeight - tabBarHeight - STICKY_FOOTER_RESERVED_HEIGHT;
+    return {
+      minHeight: Number.isFinite(minHeight) ? Math.max(0, minHeight) : 0,
+    };
+  }, [viewportHeight, tabBarHeight]);
+
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const isTechnicalIndicatorsEnabled = useSelector(
+    selectTokenDetailsTechnicalIndicatorsEnabled,
+  );
   const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
 
   const [copyTrade, setCopyTrade] = useState<{
@@ -490,22 +547,31 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     showSocialTabs &&
     (isHoldersLoading || Boolean(holdersError) || holderRows.length > 0);
 
-  const visibleTabs = useMemo(
-    () =>
-      TOKEN_DETAILS_V1_TABS.filter((tab) => {
-        if (tab === 'feed') {
-          return showSocialTabs;
-        }
-        if (tab === 'holders') {
-          return showHoldersTab;
-        }
-        return true;
-      }),
-    [showHoldersTab, showSocialTabs],
-  );
-  // Feed is first, so it is the landing tab while social tabs are shown. An
-  // empty feed still keeps its tab; an empty holders list does not.
-  const landingTab = visibleTabs[0] ?? 'overview';
+  // Order and membership come from the remote config, which lets the tab
+  // layout be reshuffled without a release. It only ever takes tabs away: a
+  // tab it lists still has to clear the two gates above.
+  const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
+
+  const visibleTabs = useMemo<TokenDetailsV1TabKey[]>(() => {
+    const tabs = tabConfigOrder.filter((tab) => {
+      if (tab === 'feed') {
+        return showSocialTabs;
+      }
+      if (tab === 'holders') {
+        return showHoldersTab;
+      }
+      return true;
+    });
+
+    // A config naming only gated tabs can leave nothing at all, which would
+    // strand the reader on an empty tab strip with no panel under it. Overview
+    // is the backstop because it is the one tab no gate can take away.
+    return tabs.length > 0 ? tabs : [FALLBACK_TAB];
+  }, [tabConfigOrder, showHoldersTab, showSocialTabs]);
+  // Whichever tab survives first is where the page lands, so reordering the
+  // config moves the landing tab with it. An empty feed still keeps its tab;
+  // an empty holders list does not.
+  const landingTab = visibleTabs[0];
   const userPickedTabRef = useRef(false);
   const applyingLandingTabRef = useRef(false);
   const handleTabChange = useCallback(() => {
@@ -520,11 +586,50 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       onTabChange: handleTabChange,
       tabs: visibleTabs,
     });
+  // An empty feed has its own 48px padding. The short-tab spacer and the
+  // sticky-footer reservation exist for interactive tab content, and they
+  // leave a blank scroll under this state. A position footer is taller than
+  // Buy alone, so its measured height is added to that 48px gap.
+  const [feedIsEmpty, setFeedIsEmpty] = useState(false);
+  const handleFeedEmptyChange = useCallback((isEmpty: boolean) => {
+    setFeedIsEmpty((current) => (current === isEmpty ? current : isEmpty));
+  }, []);
+  const isEmptyFeed = activeTab === 'feed' && feedIsEmpty;
+  const [balanceFooterHeight, setBalanceFooterHeight] = useState(0);
+  const handleBalanceFooterLayout = useCallback((height: number) => {
+    setBalanceFooterHeight((current) =>
+      current === height ? current : height,
+    );
+  }, []);
+  const emptyFeedBottomPadding = hasBalanceValue
+    ? balanceFooterHeight + 48
+    : 48;
+  const scrollContentStyle = useMemo(() => {
+    if (!isGlassHeader) {
+      return isEmptyFeed
+        ? [styles.scrollContent, { paddingBottom: emptyFeedBottomPadding }]
+        : styles.scrollContent;
+    }
+
+    return [
+      styles.scrollContent,
+      {
+        paddingTop: headerInset,
+        ...(isEmptyFeed ? { paddingBottom: emptyFeedBottomPadding } : {}),
+      },
+    ];
+  }, [
+    emptyFeedBottomPadding,
+    headerInset,
+    isGlassHeader,
+    isEmptyFeed,
+    styles.scrollContent,
+  ]);
 
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
       applyingLandingTabRef.current = true;
-      activateTab(visibleTabs[0] ?? 'overview');
+      activateTab(visibleTabs[0]);
       applyingLandingTabRef.current = false;
       return;
     }
@@ -559,11 +664,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     error: securityDataError,
   });
 
-  // Gated on the tab because tabs stay mounted once visited, so an ungated
-  // clock would keep ticking behind Overview for a line nobody is looking at.
-  const securityFetchedMinutesAgo = useElapsedMinutes({
+  const securityFetchedMinutesAgo = useElapsedTime({
     since: securityDataUpdatedAt,
-    enabled: activeTab === 'security',
   });
 
   /**
@@ -573,6 +675,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
    * Selecting the tab alone would leave the reader looking at the price hero
    * while the thing they asked for sat a chart's height below the fold, so the
    * verdict pill scrolls the page as well as switching tabs.
+   *
+   * Withheld when the config leaves the Security tab out, which renders the
+   * pill as static text. The verdict still reads, it just stops offering a
+   * destination the page no longer has.
    */
   const handleSecurityPress = useCallback(() => {
     trackEvent(
@@ -620,7 +726,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           <OverviewTab
             token={token}
             assetId={caip19AssetId}
-            currentCurrency={currentCurrency}
             securityData={securityData}
             marketData={marketData}
           />
@@ -638,16 +743,19 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           />
         );
       }
-      if (tab === 'feed' && socialEnabled && caip19AssetId) {
+      if (tab === 'feed' && showSocialTabs && caip19AssetId) {
         return (
           <TokenDetailsFeedTab
             assetId={caip19AssetId}
+            token={token}
             isActive={isActive}
             onCopyTrade={handleFeedCopyTrade}
+            hasBalance={hasBalanceValue}
+            onEmptyChange={handleFeedEmptyChange}
           />
         );
       }
-      if (tab === 'holders' && socialEnabled && caip19AssetId) {
+      if (tab === 'holders' && showSocialTabs && caip19AssetId) {
         return (
           <TokenDetailsHoldersTab assetId={caip19AssetId} isActive={isActive} />
         );
@@ -658,7 +766,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       mountedTabs,
       token,
       caip19AssetId,
-      currentCurrency,
       securityData,
       marketData,
       securityFacts,
@@ -667,7 +774,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       handleRowExplain,
       handleAttributionPress,
       handleOpenContractSecurity,
-      socialEnabled,
+      showSocialTabs,
+      hasBalanceValue,
+      handleFeedEmptyChange,
       handleFeedCopyTrade,
     ],
   );
@@ -726,23 +835,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           }
           description={headerDescription}
           titleEndAccessory={
-            <Pressable
-              onPress={handleAgePress}
-              accessibilityRole="button"
-              accessibilityLabel={strings(
-                'token_details_v1.age.accessibility_label',
-                { age: MOCK_TOKEN_AGE_LABEL },
-              )}
-              testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
-            >
-              <Tag
-                severity={TagSeverity.Neutral}
-                twClassName="self-center shrink-0"
-              >
-                {MOCK_TOKEN_AGE_LABEL}
-              </Tag>
-            </Pressable>
+            formatTokenAge(launchedAt) != null ? (
+              <TokenAgeChip
+                launchedAtSeconds={launchedAt}
+                onPress={handleAgePress}
+              />
+            ) : undefined
           }
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          scrollY={headerScrollY}
         />
         {/* The tab bar is a direct ScrollView child registered in
             `stickyHeaderIndices`, so it docks right below the nav header
@@ -752,12 +854,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             <ScrollView
               ref={scrollViewRef}
               style={styles.scroll}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={scrollContentStyle}
               stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
               onScroll={onScrollViewScroll}
               scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
-              onLayout={pageScroll.onLayout}
+              onLayout={handleScrollViewLayout}
               onContentSizeChange={pageScroll.onContentSizeChange}
               testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
             >
@@ -781,10 +883,19 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     securityRiskCount={securityFacts.risks.length}
                     externalLinks={securityData?.metadata?.externalLinks}
                     contractAddress={token.isNative ? null : token.address}
-                    onSecurityPress={handleSecurityPress}
+                    onSecurityPress={
+                      visibleTabs.includes('security')
+                        ? handleSecurityPress
+                        : undefined
+                    }
                   />
                 </Box>
-                <Box twClassName="py-4">
+                {/* The interval bar above the chart adds 8px of its own top padding. */}
+                <Box
+                  twClassName={
+                    isTechnicalIndicatorsEnabled ? 'pt-4 pb-2' : 'py-4'
+                  }
+                >
                   <StatBar
                     variant={variant}
                     stats={tokenStats}
@@ -792,7 +903,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   />
                 </Box>
 
-                <Price.Chart />
+                <Price.Chart uniformSpacing />
               </Price.Provider>
 
               <TokenDetailsActionsSection
@@ -805,13 +916,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               <TokenDetailsV1TabBar
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
-                onLayout={handleTabBarLayout}
+                onLayout={handleTabBarContainerLayout}
+                topInset={isGlassHeader ? headerInset : 0}
+                scrollY={headerScrollY}
                 tabs={visibleTabs}
               />
 
               <GestureDetector gesture={swipeGesture}>
                 <View
                   collapsable={false}
+                  style={isEmptyFeed ? undefined : tabContentStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
                   <TokenDetailsScrollProvider value={pageScroll.value}>
@@ -840,6 +954,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           token={token}
           tokenKey={traderPositionTokenKey}
           securityData={securityData}
+          // Measured on the first layout. Attaching this only after the feed
+          // is known empty misses that layout, leaves the height at 0, and the
+          // create-post button stays under the position bar.
+          onFooterLayout={handleBalanceFooterLayout}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design

@@ -24,6 +24,11 @@ import {
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+} from '../../kycScreenPerformance';
 
 interface TermsLink {
   id: string;
@@ -40,7 +45,6 @@ const TermsLinkRow = ({ link }: { link: TermsLink }) => {
       isInteractive
       variant={ContentVariant.OneLine}
       title={link.title}
-      titleProps={{ twClassName: 'underline' }}
       endAccessory={
         <Icon
           name={IconName.Arrow2UpRight}
@@ -73,6 +77,12 @@ const VbaProviderTermsSheet = ({
   onClose,
 }: VbaProviderTermsSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+
+  useScreenPerformance({
+    config: KYC_SCREEN_PERFORMANCE_CONFIG,
+    screenId: KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
+    contentReady: true,
+  });
 
   const handleAgree = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onAgree);

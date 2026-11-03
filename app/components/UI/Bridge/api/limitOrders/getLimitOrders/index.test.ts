@@ -132,6 +132,7 @@ describe('getLimitOrders', () => {
       walletAddress: WALLET_ADDRESS,
       states: OPEN_STATES,
       chainId: 'eip155:56',
+      assetId: 'eip155:56/slip44:60',
       limit: 20,
     });
 
@@ -143,6 +144,7 @@ describe('getLimitOrders', () => {
       accountAddress: `eip155:1:${WALLET_ADDRESS}`,
       states: 'OPEN',
       chainIds: 'eip155:56',
+      assetId: 'eip155:56/slip44:60',
       limit: '20',
     });
     expect(globalFetchSpy.mock.calls[0][1]).toMatchObject({
@@ -330,13 +332,14 @@ describe('getLimitOrders', () => {
         );
 
       const hook = renderHook(
-        () =>
+        ({ enabled }: { enabled: boolean }) =>
           useLimitOrders({
             walletAddress: WALLET_ADDRESS,
             states: OPEN_STATES,
+            enabled,
             refetchInterval,
           }),
-        { wrapper },
+        { wrapper, initialProps: { enabled: true } },
       );
 
       return {
@@ -423,6 +426,76 @@ describe('getLimitOrders', () => {
       }
     });
 
+    it('reloads the orders from the API on refetch', async () => {
+      globalFetchSpy
+        .mockResolvedValueOnce(
+          createPageResponse({
+            orders: [createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        )
+        .mockResolvedValueOnce(
+          createPageResponse({
+            orders: [createApiOrder('order-2'), createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        );
+      const { result, tearDown } = setUp();
+
+      try {
+        await waitFor(() => expect(result.current.orders).toHaveLength(1));
+
+        await act(async () => {
+          await result.current.refetch();
+        });
+
+        expect(globalFetchSpy).toHaveBeenCalledTimes(2);
+        await waitFor(() =>
+          expect(result.current.orders.map(({ id }) => id)).toStrictEqual([
+            'order-2',
+            'order-1',
+          ]),
+        );
+      } finally {
+        tearDown();
+      }
+    });
+
+    // What a switch away from the orders tab and back to it does.
+    it('reloads the orders from the API once the query is enabled again', async () => {
+      globalFetchSpy
+        .mockResolvedValueOnce(
+          createPageResponse({
+            orders: [createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        )
+        .mockResolvedValueOnce(
+          createPageResponse({
+            orders: [createApiOrder('order-2'), createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        );
+      const { result, rerender, tearDown } = setUp();
+
+      try {
+        await waitFor(() => expect(result.current.orders).toHaveLength(1));
+
+        rerender({ enabled: false });
+        rerender({ enabled: true });
+
+        await waitFor(() =>
+          expect(result.current.orders.map(({ id }) => id)).toStrictEqual([
+            'order-2',
+            'order-1',
+          ]),
+        );
+        expect(globalFetchSpy).toHaveBeenCalledTimes(2);
+      } finally {
+        tearDown();
+      }
+    });
+
     it('refetches the open orders from the API once they are invalidated', async () => {
       globalFetchSpy
         .mockResolvedValueOnce(
@@ -441,12 +514,6 @@ describe('getLimitOrders', () => {
 
       try {
         await waitFor(() => expect(result.current.orders).toHaveLength(1));
-
-        // Left alone, a refetch is answered from the data service cache.
-        await act(async () => {
-          await result.current.refetch();
-        });
-        expect(globalFetchSpy).toHaveBeenCalledTimes(1);
 
         await act(async () => {
           await queryClient.invalidateQueries({

@@ -135,6 +135,7 @@ app/core/SnapKeyring                                        @MetaMask/accounts-e
 app/components/UI/KYC/                                 @MetaMask/universal-kyc @MetaMask/money-movement
 app/components/UI/HardwareWallet                            @MetaMask/accounts-engineers
 app/components/Views/Mfa                                    @MetaMask/accounts-engineers
+app/components/Views/SocialProfile                          @MetaMask/accounts-engineers
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
@@ -172,6 +173,10 @@ app/core/NotificationsManager.test.ts @MetaMask/engagement
 **/engagement/** @MetaMask/engagement
 app/constants/engagement.ts @MetaMask/engagement
 app/core/DeeplinkManager/handlers/ @MetaMask/engagement
+# Social sub-route classifier. Later Social handler rules replace engagement
+# on those files (last match wins). This path stays with engagement so the
+# next Social sub-route PR is reviewed for its Branch LinkHub entry.
+app/core/DeeplinkManager/util/deeplinks/socialDeeplinkPath.ts @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -261,7 +266,11 @@ app/core/Engine/messengers/social-service-messenger*                 @MetaMask/s
 app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
 app/core/Engine/messengers/ai-digest-controller-messenger*           @MetaMask/social-ai
 app/core/DeeplinkManager/handlers/legacy/handleSocialLeaderboardUrl.ts    @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/handleSocialTraderUrl.ts         @MetaMask/social-ai
 app/core/DeeplinkManager/handlers/legacy/handleSocialTraderPositionUrl.ts @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/__tests__/handleSocialLeaderboardUrl.test.ts    @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/__tests__/handleSocialTraderUrl.test.ts         @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/__tests__/handleSocialTraderPositionUrl.test.ts @MetaMask/social-ai
 app/selectors/featureFlagController/socialLeaderboard/               @MetaMask/social-ai
 app/selectors/featureFlagController/marketInsights/                  @MetaMask/social-ai
 app/selectors/featureFlagController/whatsHappening/                  @MetaMask/social-ai
@@ -269,6 +278,7 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
+app/components/Views/SocialLeaderboard/ManageProfileView         @MetaMask/accounts-engineers
 
 # Predict Team
 app/components/UI/Predict/                                              @MetaMask/predict
@@ -461,6 +471,25 @@ app/core/Engine/wallet-init/instance-options/gas-fee-controller* @MetaMask/confi
 app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accounts-engineers @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/mobile-platform @MetaMask/core-platform
+
+# Activity
+# Core Activity code owned by mobile-core-ux.
+# Feature-specific subfolders (Perps, Ramps, etc.) are co-owned by their respective
+# feature teams and mobile-core-ux. This block must stay below feature-team pattern
+# rules (**/Perps/**, **/Ramps/**, etc.) and above **/*.snap (last-match-wins).
+app/components/Views/ActivityList/                          @MetaMask/mobile-core-ux
+app/components/Views/ActivityDetails/                       @MetaMask/mobile-core-ux
+app/components/Views/ActivityScreen/                        @MetaMask/mobile-core-ux
+app/components/Views/ActivityView/                          @MetaMask/mobile-core-ux
+app/components/UI/ActivityListItemRow/                      @MetaMask/mobile-core-ux
+app/util/activity-adapters/                                 @MetaMask/mobile-core-ux
+app/util/activity/                                          @MetaMask/mobile-core-ux
+app/core/Analytics/events/activity/                         @MetaMask/mobile-core-ux
+# Feature-specific Activity templates (co-owned)
+app/components/Views/ActivityDetails/templates/Perps/       @MetaMask/perps @MetaMask/mobile-core-ux
+app/components/Views/ActivityDetails/templates/Ramps/       @MetaMask/money-movement @MetaMask/mobile-core-ux
+app/components/Views/ActivityDetails/templates/Earn/        @MetaMask/earn @MetaMask/mobile-core-ux
+app/util/activity-adapters/adapters/earn/                   @MetaMask/earn @MetaMask/mobile-core-ux
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

@@ -5,7 +5,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Spinner,
   Text,
   TextColor,
@@ -32,7 +31,7 @@ import type {
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
 import { formatAddress } from '../../../../util/address';
@@ -48,7 +47,11 @@ import {
   useTraderFollowing,
   type FollowerConnection,
 } from './hooks';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
+const { Interaction, Screen } = SocialEvent;
 const addressesMatch = (
   left: string | undefined,
   right: string | undefined,
@@ -79,6 +82,7 @@ const tabIndexFor = (
 };
 
 const FollowConnectionsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'FollowConnectionsView'>>();
@@ -140,8 +144,21 @@ const FollowConnectionsView: React.FC = () => {
     ? traderFollowing.refresh
     : myFollowing.refresh;
   const { isFollowing, toggleFollow } = useFollowToggleMany();
-  const { profileId: viewerProfileId } = useSessionProfileId();
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const viewerAddress = useSelector(selectSelectedInternalAccountAddress);
+  const [activeLoading, activeError, activeCount] =
+    activeIndex === 1
+      ? [isFollowingLoading, followingError, following.length]
+      : activeIndex === 2
+        ? [
+            mutualFollowers.isLoading,
+            mutualFollowers.error,
+            mutualFollowers.followers.length,
+          ]
+        : [isFollowersLoading, followersError, followers.length];
+  const trackInteraction = useSocialScreenAnalytics(Screen.FOLLOW_CONNECTIONS, {
+    state: [activeLoading, Boolean(activeError), activeCount > 0],
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -190,6 +207,7 @@ const FollowConnectionsView: React.FC = () => {
       address: string;
       avatarUri?: string;
     }) => {
+      trackInteraction(Interaction.TAP);
       const isSelf = isViewerConnection(
         connection,
         viewerProfileId,
@@ -215,7 +233,7 @@ const FollowConnectionsView: React.FC = () => {
         traderAvatarUri: connection.avatarUri,
       });
     },
-    [navigation, viewerAddress, viewerProfileId],
+    [navigation, trackInteraction, viewerAddress, viewerProfileId],
   );
 
   const handleFollowingRowPress = useCallback(
@@ -531,14 +549,15 @@ const FollowConnectionsView: React.FC = () => {
       : activeIndex === 2
         ? mutualsContent
         : followersContent;
-
   return (
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
       style={tw.style('flex-1 bg-default')}
       testID={FollowConnectionsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title=""
         onBack={handleBack}

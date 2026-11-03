@@ -9,6 +9,8 @@ import VbaIdentityVerificationModule, {
 import { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
 import { VbaIdentityVerificationRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import Engine from '../../../../../core/Engine';
+import I18n from '../../../../../../locales/i18n';
+import { toSumSubLocale } from '../../utils/toSumSubLocale';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -30,6 +32,11 @@ jest.mock('../../../../../util/Logger', () => ({
     log: jest.fn(),
     error: jest.fn(),
   },
+}));
+
+jest.mock('../../../../../hooks/useScreenPerformance', () => ({
+  useScreenPerformance: jest.fn(),
+  withScreenPerformance: (Component: React.ComponentType) => Component,
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
@@ -120,7 +127,9 @@ describe('VbaIdentityVerificationModule', () => {
     );
 
     await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        locale: toSumSubLocale(I18n.locale),
+      });
     });
     expect(queryByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
@@ -134,7 +143,9 @@ describe('VbaIdentityVerificationModule', () => {
     );
 
     await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        locale: toSumSubLocale(I18n.locale),
+      });
     });
     expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });

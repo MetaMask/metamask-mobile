@@ -29,6 +29,7 @@ import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
+import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -53,6 +54,7 @@ jest.mock('./useTokenContractAlert');
 jest.mock('./useAddressPoisoningAlert');
 jest.mock('./useAccountNoFundsAlert');
 jest.mock('./useMMPayHardwareAccountAlert');
+jest.mock('./useSuggestedGasFeeHighAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -225,6 +227,7 @@ describe('useConfirmationAlerts', () => {
     (useAddressPoisoningAlert as jest.Mock).mockReturnValue([]);
     (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
     (useMMPayHardwareAccountAlert as jest.Mock).mockReturnValue([]);
+    (useSuggestedGasFeeHighAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -247,6 +250,23 @@ describe('useConfirmationAlerts', () => {
     const { result } = renderHookWithProvider(() => useConfirmationAlerts());
 
     expect(result.current).toEqual(mockGasLimitBelowMinimumAlert);
+  });
+
+  it('returns suggested gas fee high alerts', () => {
+    const mockSuggestedGasFeeHighAlert: Alert[] = [
+      {
+        key: 'suggestedGasFeeHigh',
+        title: 'High site fee',
+        message: ALERT_MESSAGE_MOCK,
+        severity: Severity.Warning,
+      },
+    ];
+    (useSuggestedGasFeeHighAlert as jest.Mock).mockReturnValue(
+      mockSuggestedGasFeeHighAlert,
+    );
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockSuggestedGasFeeHighAlert);
   });
 
   it('returns domain mismatch alerts', () => {

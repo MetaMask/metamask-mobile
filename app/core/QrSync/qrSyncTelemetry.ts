@@ -46,6 +46,7 @@ export type QrSyncOperation =
 export const QrSyncTelemetrySources = {
   QR_SCANNER_ADD_DEVICE: 'QRScanner.addDevice',
   ADD_DEVICE_ON_SCAN_SUCCESS: 'AddDeviceToWallet.onScanSuccess',
+  ADD_DEVICE_MANUAL_SUBMIT: 'AddDeviceToWallet.manualSubmit',
   QR_TAB_SWITCHER_ADD_DEVICE_SCAN: 'QRTabSwitcher.addDeviceScan',
   FINISH_EXISTING_USER_WITHOUT_MNEMONIC:
     'finishExistingUserSyncWithoutMnemonic',

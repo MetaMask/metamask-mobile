@@ -9,6 +9,7 @@ import PerpsFlipPositionConfirmSheet from './PerpsFlipPositionConfirmSheet';
 import { type Position } from '@metamask/perps-controller';
 import { usePerpsOrderFees } from '../../hooks';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
@@ -76,6 +77,13 @@ jest.mock('../../hooks', () => ({
     bonusBips: 0,
   }),
   usePerpsMeasurement: jest.fn(),
+}));
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
 }));
 
 jest.mock('../../hooks/usePerpsFlipPosition', () => ({
@@ -234,6 +242,18 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
 
     expect(screen.getByText('Fees')).toBeOnTheScreen();
+  });
+
+  it('renders the rebate banner with flip metadata', () => {
+    render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+    expect(mockPerpsRebateBanner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        coin: 'ETH',
+        containerTwClassName: 'px-4 mb-3',
+        direction: 'short',
+      }),
+    );
   });
 
   it('renders cancel button', () => {

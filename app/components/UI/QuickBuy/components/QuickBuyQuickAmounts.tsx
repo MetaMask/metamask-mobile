@@ -36,14 +36,13 @@ const QUICK_AMOUNT_PILL_TEXT_PROPS = {
 
 /**
  * Shared quick-amount chrome.
- * ButtonSize.Md (40px) matches the Figma height. `rounded-xl` is 12px, matching
- * the keypad keys, and overrides ButtonBase's pill radius. px-2 overrides the
- * default 16px horizontal padding so all four labels fit on one row without
- * clipping.
+ * ButtonSize.Lg is 48px. `rounded-xl` is 12px, matching the keypad keys, and
+ * overrides ButtonBase's pill radius. px-2 overrides the default 16px
+ * horizontal padding so all four labels fit on one row without clipping.
  */
 const QUICK_AMOUNT_PILL_PROPS = {
   variant: ButtonVariant.Secondary,
-  size: ButtonSize.Md,
+  size: ButtonSize.Lg,
   textProps: QUICK_AMOUNT_PILL_TEXT_PROPS,
 } as const;
 
@@ -110,7 +109,7 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
     showDone && onDonePress ? (
       <Button
         variant={ButtonVariant.Primary}
-        size={ButtonSize.Md}
+        size={ButtonSize.Lg}
         onPress={onDonePress}
         twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
         textProps={QUICK_AMOUNT_PILL_TEXT_PROPS}
@@ -121,7 +120,7 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
     ) : null;
 
   return (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
+    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
       {percentAmounts.map((option) => (
         <Button
           key={option.percent}

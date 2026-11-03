@@ -179,6 +179,40 @@ describe('ControllerCardAdapter', () => {
       });
     });
 
+    it('maps a provider network error to NETWORK_ERROR', async () => {
+      mockCreateApplePay.mockRejectedValue(
+        new CardProviderError(CardProviderErrorCode.Network, 'offline'),
+      );
+
+      await expect(
+        adapter.getApplePayEncryptedPayload(
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
+        ),
+      ).rejects.toMatchObject({
+        code: ProvisioningErrorCode.NETWORK_ERROR,
+        message: 'card.push_provisioning.error_network',
+      });
+    });
+
+    it('maps a provider timeout to TIMEOUT', async () => {
+      mockCreateApplePay.mockRejectedValue(
+        new CardProviderError(CardProviderErrorCode.Timeout, 'timed out'),
+      );
+
+      await expect(
+        adapter.getApplePayEncryptedPayload(
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
+        ),
+      ).rejects.toMatchObject({
+        code: ProvisioningErrorCode.TIMEOUT,
+        message: 'card.push_provisioning.error_timeout',
+      });
+    });
+
     it('maps a provider server error to PROVIDER_UNAVAILABLE', async () => {
       mockCreateApplePay.mockRejectedValue(
         new CardProviderError(
@@ -195,6 +229,23 @@ describe('ControllerCardAdapter', () => {
         ),
       ).rejects.toMatchObject({
         code: ProvisioningErrorCode.PROVIDER_UNAVAILABLE,
+      });
+    });
+
+    it('maps an unknown provider error to ENCRYPTION_FAILED', async () => {
+      mockCreateApplePay.mockRejectedValue(
+        new CardProviderError(CardProviderErrorCode.Unknown, 'unexpected'),
+      );
+
+      await expect(
+        adapter.getApplePayEncryptedPayload(
+          mockNonceBase64,
+          mockNonceSignatureBase64,
+          mockCertificatesBase64,
+        ),
+      ).rejects.toMatchObject({
+        code: ProvisioningErrorCode.ENCRYPTION_FAILED,
+        message: 'card.push_provisioning.error_encryption_failed',
       });
     });
 

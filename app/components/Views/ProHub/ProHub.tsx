@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,8 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
+  FontWeight,
   HeaderBase,
   Icon,
   IconColor,
@@ -22,7 +24,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -33,11 +34,16 @@ import AlsoIncludedRow from './components/AlsoIncludedRow';
 import MembershipBanner from './components/MembershipBanner';
 import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
 import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
+import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
+import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
+import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
+import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
+import { formatCombinedSinceInceptionInterest } from '../../UI/Money/utils/formatCombinedSinceInceptionInterest';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
@@ -110,21 +116,53 @@ const ProHub = () => {
   const tw = useTailwind();
   const { model: membershipBanner } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
+  const hasMembership = useHasProMembership();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
-  const showHubContent = proAccess === MoneyAccountPlusAccess.Subscriber;
+  const { sinceInceptionQuery: premiumSinceInceptionQuery } =
+    useMoneyPremiumAccountInterest();
+  const baseSinceInceptionQuery = useMoneyAccountSinceInceptionInterest();
+  const { ratePercentFormatted } = useMoneyPremiumVaultRate();
+  const totalInterest = useMemo(
+    () =>
+      formatCombinedSinceInceptionInterest({
+        premium: {
+          usd: premiumSinceInceptionQuery.data?.interest_earned_usd,
+          failed: premiumSinceInceptionQuery.isError,
+        },
+        base: {
+          usd: baseSinceInceptionQuery.data?.interest_earned_usd,
+          failed: baseSinceInceptionQuery.isError,
+        },
+      }),
+    [
+      baseSinceInceptionQuery.data?.interest_earned_usd,
+      baseSinceInceptionQuery.isError,
+      premiumSinceInceptionQuery.data?.interest_earned_usd,
+      premiumSinceInceptionQuery.isError,
+    ],
+  );
+  const moneyBalanceApy = ratePercentFormatted ?? '—';
+  // A cached membership is enough to render the hub. Access stays Unknown
+  // for past-due, awaiting-funds, and unpaid plans until the subscriptions
+  // query settles, and a failed refresh would otherwise leave only the header.
+  const showHubContent =
+    hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // Subscriber access stays, including a paused plan. Unknown access waits for
-  // the first fetch. A cached last plan does not keep an eligible user here.
+  // Statuses the hub banner can show stay. Unknown access waits for the
+  // first fetch. A canceled, incomplete, or missing plan leaves.
   useEffect(() => {
-    if (proAccess === MoneyAccountPlusAccess.Unknown || showHubContent) {
+    if (
+      proAccess === MoneyAccountPlusAccess.Unknown ||
+      (hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)
+    ) {
       return;
     }
     navigation.goBack();
-  }, [navigation, proAccess, showHubContent]);
+  }, [hasMembership, navigation, proAccess]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
@@ -208,10 +246,11 @@ const ProHub = () => {
                   {strings('pro_hub.lifetime_earnings')}
                 </Text>
                 <Text
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
+                  fontFamily={FontFamily.Hero}
                   color={TextColor.TextDefault}
                 >
-                  {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+                  {totalInterest}
                 </Text>
               </Box>
 
@@ -219,9 +258,9 @@ const ProHub = () => {
                 <StatRow
                   iconName={IconName.TrendUp}
                   label={strings('pro_hub.money_balance', {
-                    apy: formatPercent(MOCK_PRO_HUB_STATS.moneyBalanceApy),
+                    apy: moneyBalanceApy,
                   })}
-                  value={MOCK_PRO_HUB_STATS.moneyBalance}
+                  value={totalInterest}
                   testID={ProHubTestIds.MONEY_BALANCE_ROW}
                 />
                 <StatRow

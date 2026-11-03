@@ -284,6 +284,93 @@ describe('useOHLCVRealtime', () => {
     expect(result.current.latestBar).toBeNull();
   });
 
+  it('does not report the previous asset bar on the render the asset changes', async () => {
+    const latestBarsByAssetId: [string, unknown][] = [];
+    const { rerender } = renderHook(
+      (props) => {
+        const { latestBar } = useOHLCVRealtime(props);
+        latestBarsByAssetId.push([props.assetId, latestBar]);
+        return latestBar;
+      },
+      { initialProps: arrangeDefaultOptions() },
+    );
+
+    const barUpdatedHandler = mockSubscribe.mock.calls.find(
+      (call) => call[0] === 'OHLCVService:barUpdated',
+    )?.[1];
+
+    await act(async () => {
+      barUpdatedHandler({
+        channel:
+          'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+        bar: {
+          timestamp: 1700000000,
+          open: 1,
+          high: 1,
+          low: 1,
+          close: 1,
+          volume: 5000,
+        },
+      });
+    });
+
+    const nextAssetId = 'eip155:1/slip44:60';
+    rerender({ ...arrangeDefaultOptions(), assetId: nextAssetId });
+
+    const nextAssetBars = latestBarsByAssetId
+      .filter(([assetId]) => assetId === nextAssetId)
+      .map(([, latestBar]) => latestBar);
+    expect(nextAssetBars.length).toBeGreaterThan(0);
+    expect(nextAssetBars.every((latestBar) => latestBar === null)).toBe(true);
+  });
+
+  describe('/latest host', () => {
+    const pollOnce = async (
+      options: Parameters<typeof useOHLCVRealtime>[0],
+    ) => {
+      mockFetch.mockResolvedValue(
+        makeFetchResponse({
+          timestamp: 1700000000000,
+          open: 100,
+          high: 110,
+          low: 95,
+          close: 108,
+          volume: 9000,
+        }),
+      );
+
+      renderHook(() => useOHLCVRealtime(options));
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      return mockFetch.mock.calls[0][0] as string;
+    };
+
+    // Bridge's live rate and the legacy chart both reach this hook without a
+    // provider, so prod is what it must ask for.
+    it('requests prod outside a PriceApiHostProvider', async () => {
+      const url = await pollOnce(arrangeDefaultOptions());
+
+      expect(url).toContain('https://price.api.cx.metamask.io/v3/ohlcv/');
+      expect(url).toContain('/latest');
+    });
+
+    // The fallback has to ask the host that holds the history the chart is
+    // already drawing, or the in-progress candle never arrives for a token
+    // the prod stream does not carry.
+    it('requests the given host instead of prod', async () => {
+      const url = await pollOnce({
+        ...arrangeDefaultOptions(),
+        baseUrl: 'https://price.dev-api.cx.metamask.io',
+      });
+
+      expect(url).toContain('https://price.dev-api.cx.metamask.io/v3/ohlcv/');
+      expect(url).toContain('/latest');
+    });
+  });
+
   describe('staleness fallback', () => {
     it('polls REST API after 30s of no WS messages', async () => {
       mockFetch.mockResolvedValue(

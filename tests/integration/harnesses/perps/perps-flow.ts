@@ -68,6 +68,7 @@
 let mockDelegateController: Record<string, unknown> | null = null;
 const mockRewardsController = {
   getPerpsDiscountForAccount: jest.fn().mockResolvedValue(undefined),
+  getPerpsTradingFeeGrant: jest.fn().mockResolvedValue(null),
   estimatePoints: jest.fn().mockResolvedValue({
     pointsEstimate: 0,
     bonusBips: 0,
@@ -346,6 +347,14 @@ export function buildPerpsFlowHarness(
         params,
         context: buildServiceContext('closePosition'),
         reportOrderToDataLake,
+      }),
+    closePositions: (
+      params: Parameters<typeof harness.provider.closePositions>[0],
+    ) =>
+      tradingService.closePositions({
+        provider: harness.provider,
+        params,
+        context: buildServiceContext('closePositions'),
       }),
     flipPosition: (params: FlipPositionParams) =>
       tradingService.flipPosition({

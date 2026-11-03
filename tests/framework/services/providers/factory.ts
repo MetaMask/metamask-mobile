@@ -12,7 +12,10 @@ export type ProviderType = 'emulator' | 'browserstack' | 'testmu';
 
 /**
  * Factory function to create the appropriate service provider
- * based on the project configuration
+ * based on the project configuration.
+ *
+ * Performance runs use TestMu. Nightly system tests still create sessions
+ * through BrowserStack.
  */
 export function createServiceProvider(project: ProjectConfig): ServiceProvider {
   const provider = project.use.device?.provider;

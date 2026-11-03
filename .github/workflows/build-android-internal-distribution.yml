@@ -35,6 +35,9 @@ permissions:
   contents: read
   actions: read
 
+# Builds from this workflow can be signed with the RC signer, so they must not restore caches.
+cache-mode: none
+
 jobs:
   build:
     name: Build Android (main-rc)

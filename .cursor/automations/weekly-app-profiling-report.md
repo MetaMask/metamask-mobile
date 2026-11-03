@@ -2,7 +2,7 @@
 
 Scheduled automation prompt for MetaMask Mobile. Runs weekly, analyzes the
 **last 7 days** of merged PRs that executed performance tests, aggregates
-BrowserStack app-profiling averages for the top scenarios, then produces an
+TestMu app-profiling averages for the top scenarios, then produces an
 **AI investigation insights** section and DMs the report on Slack.
 
 ## Suggested schedule
@@ -23,7 +23,7 @@ BrowserStack app-profiling averages for the top scenarios, then produces an
 You are running the weekly MetaMask Mobile app-profiling report.
 
 ## Goal
-Analyze performance / BrowserStack app-profiling data from PRs merged to `main`
+Analyze performance / TestMu app-profiling data from PRs merged to `main`
 in the **last 7 days**, then send a Slack DM to **Javier Vera**
 (`javier.vera@consensys.net`, Slack user id `UEYQL2PEV`) with:
 1) profiling averages for the top executed scenarios
@@ -63,7 +63,7 @@ If `gh` auth is missing, fix auth first. Do not invent metrics.
    - Group the executive summary by team.
    - Start every executive-summary bullet with the relevant Slack team tag(s).
    - For each profiling lead (and any risk bullet that cites a peak/outlier), append the
-     BrowserStack recording URL from `peakRecordings` / lead `recordingUrl` using Slack
+     TestMu recording URL from `peakRecordings` / lead `recordingUrl` using Slack
      mrkdwn: `<url|Recording (peak memMax 1114.65 MB)>` or
      `<url|Recording (peak slow frames 39.94%)>`.
    - Prefer the peak sample for the metric you cite (memMax → `peakRecordings.memMax`,
@@ -116,7 +116,7 @@ Slow frames: [value] · Issues: [value] · App size: [value]
 
 _Profiling leads_
 
-[No more than 3 concise profiling-based leads, each ending with a BrowserStack recording link for the peak/outlier sample when available.]
+[No more than 3 concise profiling-based leads, each ending with a TestMu recording link for the peak/outlier sample when available.]
 
 _AI insights to investigate_
 
@@ -128,7 +128,7 @@ _Priority actions_
 2. [Action based only on profiling data]
 3. [Action based only on profiling data]
 
-_Setup:_ Weekly BrowserStack app-profiling rollup (last 7 days)
+_Setup:_ Weekly TestMu app-profiling rollup (last 7 days)
 
 _Disclaimer:_ This report is for TESTING purposes only and should not be treated as a production alert.
 

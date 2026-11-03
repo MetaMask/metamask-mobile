@@ -40,7 +40,7 @@ const MoneyActionButtonRow = ({
 }: MoneyActionButtonRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    twClassName="px-4 pt-4 pb-2 gap-2"
+    twClassName="px-4 pt-8 pb-2 gap-2"
     testID={MoneyActionButtonRowTestIds.CONTAINER}
   >
     <MainActionButtonGlass

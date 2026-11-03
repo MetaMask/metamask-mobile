@@ -2,10 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
-import {
-  AutorampStatus,
-  type AutorampAccount,
-  type MoneyAccountWalletRegistration,
+import type {
+  AutorampAccount,
+  MoneyAccountWalletRegistration,
 } from '@metamask/ramps-controller';
 import type {
   KycProviderFlowStatus,
@@ -21,8 +20,10 @@ import {
 import {
   selectRampsControllerState,
   selectSelectedVbaWalletAddress,
+  selectUsableVbaAutoramp,
 } from '../../../../../../selectors/rampsController';
 import { useVbaEligibility } from './useVbaEligibility';
+import { hasVbaWalletEvidence } from '../vbaWalletEvidence';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 
@@ -37,12 +38,11 @@ export type VbaHomeCard =
   | { type: 'none' }
   /** GET_STARTED — Figma node 2267-17522. */
   | { type: 'get_started' }
-  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved with a usable autoramp. */
+  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved. */
   | { type: 'account_is_ready' }
   /**
-   * KYC_PENDING — Figma node 2254-13372. Vendor still processing, flow
-   * submitted, or approved but provisioning has not produced a usable
-   * autoramp yet.
+   * KYC_PENDING — Figma node 2254-13372. Vendor still processing, or flow
+   * submitted.
    */
   | { type: 'kyc_pending' }
   /** FINISH_VERIFICATION — Figma node 2267-18364. */
@@ -75,6 +75,8 @@ export interface VbaHomeCardInputs {
   autoramps: readonly AutorampAccount[];
   /** RampsController Money Account wallet registrations. */
   walletRegistrations: readonly MoneyAccountWalletRegistration[];
+  /** The Money account already has a usable autoramp (`selectUsableVbaAutoramp`). */
+  hasUsableAutoramp: boolean;
 }
 
 /**
@@ -94,63 +96,16 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
   [];
 
 /**
- * Case-insensitive wallet match, mirroring how `RampsController` scopes
- * autoramps and registrations to a wallet (`walletAddress.trim().toLowerCase()`).
- */
-const matchesWallet = (walletAddress: string, candidate: string): boolean =>
-  candidate.toLowerCase() === walletAddress.trim().toLowerCase();
-
-/**
- * Whether the wallet has an autoramp that is not `Rejected` or `Cancelled`.
- * Mirrors `RampsController`'s private `#hasUsableAutorampForWallet`.
- */
-const hasUsableAutorampForWallet = (
-  walletAddress: string,
-  autoramps: readonly AutorampAccount[],
-): boolean =>
-  autoramps.some(
-    (autoramp) =>
-      matchesWallet(walletAddress, autoramp.walletAddress) &&
-      autoramp.status !== AutorampStatus.Rejected &&
-      autoramp.status !== AutorampStatus.Cancelled,
-  );
-
-/** Whether the wallet has any autoramp row, including dead routes. */
-const hasAnyAutorampForWallet = (
-  walletAddress: string,
-  autoramps: readonly AutorampAccount[],
-): boolean =>
-  autoramps.some((autoramp) =>
-    matchesWallet(walletAddress, autoramp.walletAddress),
-  );
-
-/**
- * Whether the wallet has a Money Account registration row. A `disabled` row
- * still counts as registration evidence.
- */
-const hasWalletRegistration = (
-  walletAddress: string,
-  walletRegistrations: readonly MoneyAccountWalletRegistration[],
-): boolean =>
-  walletRegistrations.some((registration) =>
-    matchesWallet(walletAddress, registration.walletAddress),
-  );
-
-/**
- * Pure decision resolving the single VBA status card for Money home. For the
- * approved states it mirrors the onboarding funnel's own destination logic
- * (`getVbaDestinationForSnapshot`: approved + ready route → complete,
- * approved + route missing → still provisioning) and the controller's
- * `#hasUsableAutorampForWallet` semantics — do not reinvent them here.
- *
- * TRAM-4079: the original TRAM-4099 order returned `none` whenever a usable
- * autoramp existed and showed `account_is_ready` only while it was still
- * missing — the exact inverse of the card's copy ("You're all set", view the
- * Pix details) and of the funnel. Rule 3 now keys the card off the usable
- * autoramp.
+ * Pure decision resolving the single VBA status card for Money home. An
+ * approved session always gets `account_is_ready`: the onboarding funnel
+ * (`getVbaDestinationForSnapshot`) opens details when a usable autoramp
+ * exists and Identity verified when it does not, and details creates it.
  *
  * The approved check is `finalStatus === 'approved' || kycStatus === 'approved'`
  * (relay approval counts while the vendor `finalStatus` is still pending).
+ *
+ * A usable autoramp renders `account_is_ready` right after rule 1, ahead of
+ * every session rule, whatever the eligibility gate says.
  *
  * Rules 1–2 (none and get_started) short-circuit before the session rules, so
  * an approved session always reaches rule 3 and a fresh user without any
@@ -170,9 +125,11 @@ export function getVbaHomeCard({
   hasAcceptedVendorTerms,
   autoramps,
   walletRegistrations,
+  hasUsableAutoramp,
 }: VbaHomeCardInputs): VbaHomeCard {
-  // Not eligible, or the geo lookup has not resolved yet — hold.
-  if (!isEligible || isEligibilityLoading) {
+  // Not eligible, or the geo lookup has not resolved yet: hold, unless an
+  // account already exists.
+  if (!hasUsableAutoramp && (!isEligible || isEligibilityLoading)) {
     return { type: 'none' };
   }
 
@@ -181,12 +138,16 @@ export function getVbaHomeCard({
     return { type: 'none' };
   }
 
+  // A stale session must not hide an existing account.
+  if (hasUsableAutoramp) {
+    return { type: 'account_is_ready' };
+  }
+
   // 2. Brand-new user: nothing started and no evidence of prior setup.
   if (
     !hasAcceptedVendorTerms &&
     !sessionStatus &&
-    !hasAnyAutorampForWallet(walletAddress, autoramps) &&
-    !hasWalletRegistration(walletAddress, walletRegistrations)
+    !hasVbaWalletEvidence(walletAddress, autoramps, walletRegistrations)
   ) {
     return { type: 'get_started' };
   }
@@ -195,15 +156,12 @@ export function getVbaHomeCard({
     sessionStatus?.finalStatus === 'approved' ||
     sessionStatus?.kycStatus === 'approved';
 
-  // 3. KYC approved. A usable autoramp means the virtual account details are
-  // ready — show the account_is_ready card ("You're all set" / view the Pix
-  // details). Without one, provisioning is still running: kyc_pending,
-  // mirroring the onboarding funnel's `kycPending` destination for an approved
-  // session whose route is not ready yet.
+  // 3. KYC approved. Identity is no longer being verified, so show
+  // account_is_ready with or without a usable autoramp. Its CTA opens
+  // onboarding, which sends a user without one through Identity verified to
+  // the details screen, where the autoramp is created.
   if (isApproved) {
-    return hasUsableAutorampForWallet(walletAddress, autoramps)
-      ? { type: 'account_is_ready' }
-      : { type: 'kyc_pending' };
+    return { type: 'account_is_ready' };
   }
 
   // 4. KYC rejected or retry — no card exists in Figma yet (design question
@@ -292,6 +250,7 @@ const readVendorTermsAcceptance = (
 export const useVbaHomeCard = (): VbaHomeCard => {
   const { isEligible, isLoading: isEligibilityLoading } = useVbaEligibility();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const hasUsableAutoramp = Boolean(useSelector(selectUsableVbaAutoramp));
   const sessionStatus = useSelector(selectKycSessionStatus);
   const providerFlowStatus = useSelector(selectKycProviderFlowStatus);
   // Dev-only demo override: honor MM_MONEY_VBA_KYC_STATUS_OVERRIDE for the
@@ -355,6 +314,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
         hasAcceptedVendorTerms,
         autoramps,
         walletRegistrations,
+        hasUsableAutoramp,
       }),
     [
       isEligible,
@@ -365,6 +325,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
       hasAcceptedVendorTerms,
       autoramps,
       walletRegistrations,
+      hasUsableAutoramp,
     ],
   );
 };

@@ -18,6 +18,7 @@ import Logger from '../../../../../../util/Logger';
 import {
   selectRampsControllerState,
   selectSelectedVbaWalletAddress,
+  selectUsableVbaAutoramp,
 } from '../../../../../../selectors/rampsController';
 import {
   selectKycProviderFlowStatus,
@@ -74,6 +75,7 @@ const mockSelectSelectedVbaWalletAddress = jest.mocked(
   selectSelectedVbaWalletAddress,
 );
 const mockSelectRampsControllerState = jest.mocked(selectRampsControllerState);
+const mockSelectUsableVbaAutoramp = jest.mocked(selectUsableVbaAutoramp);
 const mockSelectKycSessionStatus = jest.mocked(selectKycSessionStatus);
 const mockSelectKycProviderFlowStatus = jest.mocked(
   selectKycProviderFlowStatus,
@@ -156,6 +158,7 @@ const baseInputs: VbaHomeCardInputs = {
   hasAcceptedVendorTerms: false,
   autoramps: [],
   walletRegistrations: [],
+  hasUsableAutoramp: false,
 };
 
 describe('getVbaHomeCard', () => {
@@ -272,7 +275,7 @@ describe('getVbaHomeCard', () => {
     expect(active).toEqual({ type: 'none' });
   });
 
-  it('renders kyc_pending for an approved session while no usable autoramp exists (decision rule 3 mirrors the funnel)', () => {
+  it('renders account_is_ready for an approved session while no usable autoramp exists (decision rule 3)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -281,11 +284,11 @@ describe('getVbaHomeCard', () => {
       }),
     });
 
-    expect(card).toEqual({ type: 'kyc_pending' });
+    expect(card).toEqual({ type: 'account_is_ready' });
   });
 
   it.each([AutorampStatus.Rejected, AutorampStatus.Cancelled])(
-    'renders kyc_pending for an approved session whose only autoramp is %s (decision rule 3)',
+    'renders account_is_ready for an approved session whose only autoramp is %s (decision rule 3)',
     (status) => {
       const card = getVbaHomeCard({
         ...baseInputs,
@@ -296,9 +299,7 @@ describe('getVbaHomeCard', () => {
         autoramps: [makeAutoramp({ status })],
       });
 
-      // A dead autoramp route is not usable, so the account details are not
-      // ready yet and the card must not claim "You're all set".
-      expect(card).toEqual({ type: 'kyc_pending' });
+      expect(card).toEqual({ type: 'account_is_ready' });
     },
   );
 
@@ -439,6 +440,57 @@ describe('getVbaHomeCard', () => {
 
     expect(card).toEqual({ type: 'none' });
   });
+
+  it('bypasses the eligibility guard when a usable autoramp exists', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      isEligible: false,
+      isEligibilityLoading: true,
+      hasUsableAutoramp: true,
+      sessionStatus: makeSession({
+        finalStatus: 'approved',
+        kycStatus: 'approved',
+      }),
+    });
+
+    expect(card).toEqual({ type: 'account_is_ready' });
+  });
+
+  it.each(['rejected', 'retry'] as const)(
+    'renders account_is_ready over a stale %s session when a usable autoramp exists',
+    (finalStatus) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        hasUsableAutoramp: true,
+        hasAcceptedVendorTerms: true,
+        sessionStatus: makeSession({ finalStatus, kycStatus: finalStatus }),
+      });
+
+      expect(card).toEqual({ type: 'account_is_ready' });
+    },
+  );
+
+  it('renders account_is_ready via the grandfather rule when every session-based rule fails', () => {
+    // No session, terms, or registration (rules 2 and 6 fail), but a usable
+    // autoramp exists on the Money account.
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      hasUsableAutoramp: true,
+      autoramps: [makeAutoramp({ status: AutorampStatus.Rejected })],
+    });
+
+    expect(card).toEqual({ type: 'account_is_ready' });
+  });
+
+  it('still renders no card when there is no usable autoramp and no rule matches', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      hasUsableAutoramp: false,
+      autoramps: [makeAutoramp({ status: AutorampStatus.Rejected })],
+    });
+
+    expect(card).toEqual({ type: 'none' });
+  });
 });
 
 describe('shouldRefreshKycSessionOnFocus', () => {
@@ -469,6 +521,7 @@ describe('useVbaHomeCard', () => {
     providerFlowStatus = 'not_started',
     autoramps = [],
     walletRegistrations = [],
+    hasUsableAutoramp = false,
   }: {
     eligibility?: Partial<VbaEligibility>;
     walletAddress?: string | null;
@@ -476,6 +529,7 @@ describe('useVbaHomeCard', () => {
     providerFlowStatus?: KycProviderFlowStatus;
     autoramps?: AutorampAccount[];
     walletRegistrations?: MoneyAccountWalletRegistration[];
+    hasUsableAutoramp?: boolean;
   } = {}) => {
     mockUseVbaEligibility.mockReturnValue(makeEligibility(eligibility));
     mockSelectSelectedVbaWalletAddress.mockReturnValue(walletAddress);
@@ -485,6 +539,9 @@ describe('useVbaHomeCard', () => {
       autoramps,
       moneyAccountWalletRegistrations: walletRegistrations,
     } as RampsControllerState);
+    mockSelectUsableVbaAutoramp.mockReturnValue(
+      hasUsableAutoramp ? makeAutoramp() : undefined,
+    );
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
   };
 

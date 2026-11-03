@@ -1,6 +1,9 @@
 import {
+  getLinkedEvmAddress,
   selectProfileControllerState,
   selectProfileControllerProfile,
+  selectProfileControllerLinkedEvmAddress,
+  selectIsProfileTradingActivityPrivate,
   selectProfileControllerXProfile,
   selectIsConnectedToX,
 } from './profileController';
@@ -70,6 +73,75 @@ describe('profileController selectors', () => {
         profile: { ...COMPLETE_PROFILE, profileId: '' },
       });
       expect(selectProfileControllerProfile(state)).toBeUndefined();
+    });
+  });
+
+  describe('getLinkedEvmAddress', () => {
+    it('returns the first EVM address among linked accounts', () => {
+      const result = getLinkedEvmAddress([
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv',
+        'eip155:1:0x1111111111111111111111111111111111111111',
+      ]);
+
+      expect(result).toBe('0x1111111111111111111111111111111111111111');
+    });
+
+    it('returns null when no EVM account is linked', () => {
+      const result = getLinkedEvmAddress([
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv',
+      ]);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectProfileControllerLinkedEvmAddress', () => {
+    it('returns the linked EVM address of the profile', () => {
+      const state = buildState({
+        profile: {
+          ...COMPLETE_PROFILE,
+          linkedAddresses: [
+            'eip155:1:0x1111111111111111111111111111111111111111',
+          ],
+        },
+      });
+
+      expect(selectProfileControllerLinkedEvmAddress(state)).toBe(
+        '0x1111111111111111111111111111111111111111',
+      );
+    });
+
+    it('returns null when the profile has no linked addresses', () => {
+      const state = buildState({ profile: COMPLETE_PROFILE });
+
+      expect(selectProfileControllerLinkedEvmAddress(state)).toBeNull();
+    });
+
+    it('returns null when no profile has been created', () => {
+      expect(
+        selectProfileControllerLinkedEvmAddress(buildState(null)),
+      ).toBeNull();
+    });
+  });
+
+  describe('selectIsProfileTradingActivityPrivate', () => {
+    it('returns true for an existing private profile', () => {
+      const state = buildState({
+        profile: { ...COMPLETE_PROFILE, tradingPrivacy: 'private' },
+      });
+
+      expect(selectIsProfileTradingActivityPrivate(state)).toBe(true);
+    });
+
+    it('returns false for a public or missing profile', () => {
+      expect(
+        selectIsProfileTradingActivityPrivate(
+          buildState({ profile: COMPLETE_PROFILE }),
+        ),
+      ).toBe(false);
+      expect(selectIsProfileTradingActivityPrivate(buildState(null))).toBe(
+        false,
+      );
     });
   });
 

@@ -32,7 +32,7 @@ import SecurityAttribution, {
   SECURITY_ATTRIBUTION_EXPLAINER,
 } from '../SecurityAttribution/SecurityAttribution';
 import TokenExplainerSheet from '../TokenExplainerSheet/TokenExplainerSheet';
-import { useElapsedMinutes } from '../../../hooks/useElapsedMinutes';
+import { useElapsedTime } from '../../../hooks/useElapsedTime';
 import { useTokenCaipAssetId } from '../../../hooks/useTokenCaipAssetId';
 import { useTokenSecurityQuery } from '../../../../Tokens/hooks/useTokenSecurityQuery';
 import type { SecurityRisk } from '../../../utils/securityFacts';
@@ -264,9 +264,8 @@ export const ContractSecurityScreen: React.FC = () => {
 
   // This screen is always the foreground route while mounted, so the clock
   // needs no gate beyond the hook's own AppState check.
-  const fetchedMinutesAgo = useElapsedMinutes({
+  const fetchedMinutesAgo = useElapsedTime({
     since: dataUpdatedAt,
-    enabled: true,
   });
 
   const scrollContentStyle = React.useMemo(

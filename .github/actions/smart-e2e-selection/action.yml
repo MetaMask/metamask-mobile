@@ -45,7 +45,7 @@ outputs:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
   ai_performance_test_tags:
-    description: 'Performance tags from Smart E2E Selection. ["ALL"] runs every performance test. ["@Tag",...] runs those tags. [] , a blank value, or a selection error runs none.'
+    description: 'Always []. Performance tests are not part of Smart E2E Selection. PR performance runs only from the run-performance-tests labels.'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
   ai_performance_test_reasoning:
     description: 'Reasoning for the performance test selection'
@@ -174,7 +174,11 @@ runs:
         ADD_LABEL: 'false'
         PR_NUMBER: ${{ inputs.pr-number }}
         RESULT_JSON: ${{ steps.run-analysis.outputs.result_json }}
-      run: node "$ACTION_PATH/scripts/post-results.mjs"
+      run: |
+        # Empty selected_tags is omitted by the analyzer comment renderer.
+        # Show that sentence on the comment only; CI still uses the original JSON.
+        export RESULT_JSON="$(node .github/actions/smart-e2e-selection/prepare-smart-e2e-comment.mjs)"
+        node "$ACTION_PATH/scripts/post-results.mjs"
 
     - name: Set skip outputs
       id: skip-outputs

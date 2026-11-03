@@ -1,8 +1,9 @@
 /**
  * KLIPY GIF client for the social post composer.
  *
- * The app key is `MM_KLIPY_API_KEY` in `.js.env`. Metro inlines it at bundle
- * time, so restart the watcher after changing it.
+ * The app key is `MM_KLIPY_API_KEY`. Locally it comes from `.js.env`. CI
+ * injects the same name from the `builds.yml` secrets map. Metro inlines it
+ * at bundle time, so restart the watcher after changing it.
  *
  * @see https://docs.klipy.com/getting-started
  * @see https://docs.klipy.com/gifs-api/gifs-search-api

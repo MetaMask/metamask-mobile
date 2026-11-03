@@ -50,6 +50,15 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
 - **Use cases:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration
 
+### Perps Fee Resolution — [`perps.ts`](perps.ts)
+
+- **Shape:** focused Shape D — real controller fee preview built on the Shape A I/O mocks
+- **Real:** `PerpsController`, `RewardsIntegrationService`, `MarketDataService`, and `HyperLiquidProvider.calculateFees`
+- **Mocked:** Shape A SDK/wallet/subscription I/O and the Mobile Rewards callbacks
+- **Factory:** `buildPerpsFeeResolutionHarness(grant)`
+- **Returns:** `{ controller, getPerpsTradingFeeGrant }`
+- **Use when:** a Mobile fee source must be proven through Core’s resolver and provider pricing
+
 ### Perps Flow — [`perps-flow.ts`](perps-flow.ts)
 
 - **Shape:** B — hook-flow harness built on Shape A

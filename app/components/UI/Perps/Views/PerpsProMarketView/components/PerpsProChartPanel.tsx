@@ -29,12 +29,13 @@ import React, {
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { LayoutChangeEvent } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { selectPerpsPriceAlertsEnabledFlag } from '../../../selectors/featureFlags';
-import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import ChartCandleSkeleton from '../../../../Charts/ChartCandleSkeleton';
 import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
@@ -105,6 +106,8 @@ interface PerpsProChartPanelProps {
     contextKey: string,
   ) => void;
   onFreshDelivery?: () => void;
+  /** Measured height of the summary row, used as the header crossfade threshold. */
+  onSummaryLayout?: (event: LayoutChangeEvent) => void;
 }
 
 /**
@@ -126,6 +129,7 @@ const PerpsProChartPanel = ({
   onResolvedStateChange,
   onFreshDelivery,
   marketId: marketIdProp,
+  onSummaryLayout,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
@@ -348,9 +352,8 @@ const PerpsProChartPanel = ({
   ]);
 
   let chartContent: React.ReactNode = (
-    <Skeleton
+    <ChartCandleSkeleton
       height={PRO_CHART_HEIGHT}
-      width="100%"
       testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
     />
   );
@@ -410,6 +413,7 @@ const PerpsProChartPanel = ({
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
         testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
         testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
+        onLayout={onSummaryLayout}
         endAccessory={
           <Box
             flexDirection={BoxFlexDirection.Row}

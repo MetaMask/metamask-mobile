@@ -6,14 +6,17 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { Position } from '@metamask/social-controllers';
-import PerpBadges from '../../components/PerpBadges';
+import { strings } from '../../../../../../locales/i18n';
 import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
+import { getPositionFlagLabelKey } from '../utils/positionFlags';
 import {
   EM_DASH,
   formatPercent,
@@ -36,6 +39,11 @@ export interface PositionRowProps {
    */
   isClosed?: boolean;
   showTradeDate?: boolean;
+  /**
+   * When true, positions with server flags render greyed out, show an
+   * exclusion label, and ignore `onPress`.
+   */
+  showFlaggedState?: boolean;
 }
 
 const PositionRowComponent: React.FC<PositionRowProps> = ({
@@ -43,6 +51,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   onPress,
   isClosed: isClosedProp,
   showTradeDate,
+  showFlaggedState,
 }) => {
   // Honor main's spot closed-detection; the explicit prop (from the profile's
   // Open/Closed tab) overrides it, which perps rely on.
@@ -70,14 +79,21 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
       : (position.pnlValueUsd ?? displayPnlPercent ?? null);
   const isPnlZero = pnlSignSource === 0;
   const isPnlPositive = pnlSignSource != null && pnlSignSource > 0;
+
+  const testID = `position-row-${position.tokenSymbol}`;
+  const flagLabelKey = showFlaggedState
+    ? getPositionFlagLabelKey(position)
+    : null;
+  const isFlagged = flagLabelKey != null;
+  const isPressable = Boolean(onPress) && !isFlagged;
+  // Flagged rows drop success/error so the signed % and closed PnL look
+  // disabled, not just faded green/red under opacity-50.
   const pnlColorClass =
-    pnlSignSource == null || isPnlZero
+    isFlagged || pnlSignSource == null || isPnlZero
       ? undefined
       : isPnlPositive
         ? 'text-success-default'
         : 'text-error-default';
-
-  const testID = `position-row-${position.tokenSymbol}`;
 
   // Strip the HIP-3 provider prefix for display (`xyz:SPCX` → `SPCX`);
   // non-HIP-3 symbols pass through unchanged. testIDs keep the raw symbol.
@@ -142,8 +158,8 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4 py-3"
-      testID={onPress ? undefined : testID}
+      twClassName={isFlagged ? 'px-4 py-3 opacity-50' : 'px-4 py-3'}
+      testID={isPressable ? undefined : testID}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -169,11 +185,26 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
               {displaySymbol}
             </Text>
             {perpDirection ? (
-              <PerpBadges
-                direction={perpDirection}
-                leverage={position.perpLeverage}
-                testID={`position-row-perp-badges-${position.tokenSymbol}`}
-              />
+              <Tag
+                severity={
+                  perpDirection === 'long'
+                    ? TagSeverity.Success
+                    : TagSeverity.Danger
+                }
+                twClassName="shrink-0"
+                testID={`position-row-perp-tag-${position.tokenSymbol}`}
+              >
+                {[
+                  position.perpLeverage ? `${position.perpLeverage}x` : null,
+                  strings(
+                    perpDirection === 'long'
+                      ? 'social_leaderboard.trader_position.long'
+                      : 'social_leaderboard.trader_position.short',
+                  ),
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              </Tag>
             ) : null}
           </Box>
           <Text
@@ -192,6 +223,16 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
                     : position.positionAmount,
                 )} ${displaySymbol}`}
           </Text>
+          {flagLabelKey ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+              testID={`position-row-flag-label-${position.tokenSymbol}`}
+            >
+              {strings(flagLabelKey)}
+            </Text>
+          ) : null}
         </Box>
       </Box>
 
@@ -202,7 +243,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
     </Box>
   );
 
-  if (onPress) {
+  if (isPressable) {
     return (
       <TouchableOpacity onPress={handlePress} testID={testID}>
         {content}

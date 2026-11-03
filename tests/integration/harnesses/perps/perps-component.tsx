@@ -57,6 +57,7 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('react-native-device-info', () => ({
   __esModule: true,
   getVersion: () => '99.0.0',
+  getTotalMemorySync: () => 4 * 1024 ** 3,
 }));
 jest.mock('react-native-performance', () => ({
   now: jest.fn(() => Date.now()),

@@ -8,6 +8,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   ButtonIconVariant,
   ToastVariants,
+  type ToastLinkButtonOptions,
   type ToastOptions,
 } from '../../../component-library/components/Toast/Toast.types';
 import ToastService from '../../../core/ToastService';
@@ -20,6 +21,8 @@ export type QuickBuyToastKind = 'pending' | 'complete' | 'failed';
 interface BuildQuickBuyToastParams {
   trade: TrackedQuickBuyTrade;
   theme: Theme;
+  /** Only rendered on the complete toast. */
+  linkButtonOptions?: ToastLinkButtonOptions;
 }
 
 const closeButtonOptions = {
@@ -36,7 +39,7 @@ const closeButtonOptions = {
  */
 export function buildQuickBuyToastOptions(
   kind: QuickBuyToastKind,
-  { trade, theme }: BuildQuickBuyToastParams,
+  { trade, theme, linkButtonOptions }: BuildQuickBuyToastParams,
 ): ToastOptions {
   const title = strings(
     `social_leaderboard.quick_buy.toast_${kind}_${trade.tradeMode}`,
@@ -62,6 +65,7 @@ export function buildQuickBuyToastOptions(
         labelOptions: [{ label: title, isBold: true }],
         descriptionOptions,
         closeButtonOptions,
+        ...(linkButtonOptions ? { linkButtonOptions } : {}),
       };
     case 'failed':
       return {

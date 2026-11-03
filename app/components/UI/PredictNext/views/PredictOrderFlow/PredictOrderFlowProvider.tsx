@@ -1,6 +1,16 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 import Engine from '../../../../../core/Engine';
+import {
+  canPerformVenueAction,
+  useVenueCapabilities,
+} from '../../capabilities';
 
 import {
   PredictOrderFlowSheet,
@@ -10,12 +20,50 @@ import {
 export type { PredictOrderFlowIntent };
 
 interface OpenOrderFlow {
+  /** Distinguishes each opening, so support is checked per intent. */
+  id: number;
   intent: PredictOrderFlowIntent;
 }
 
 interface PredictOrderFlowContextValue {
   openOrderFlow: (intent: PredictOrderFlowIntent) => void;
 }
+
+/**
+ * Opens the sheet only for an action the intent's Venue supports. Unknown,
+ * missing, or malformed capabilities close the flow instead. Support is
+ * checked when the sheet opens and then held, so a catalog refresh cannot
+ * tear down an Order mid-commit; the backend authorizes the Commit anyway.
+ */
+const SupportedOrderFlowSheet = ({
+  intent,
+  onClose,
+}: {
+  intent: PredictOrderFlowIntent;
+  onClose: () => void;
+}) => {
+  const capabilities = useVenueCapabilities(intent.venueId);
+  const supported = canPerformVenueAction(capabilities, intent.action);
+  const [admitted, setAdmitted] = useState(supported);
+  if (supported && !admitted) {
+    setAdmitted(true);
+  }
+  const rejected = !admitted && capabilities.status !== 'loading';
+
+  useEffect(() => {
+    if (rejected) {
+      onClose();
+    }
+  }, [onClose, rejected]);
+
+  return admitted ? (
+    <PredictOrderFlowSheet
+      intent={intent}
+      service={Engine.context.PredictOrderService}
+      onClose={onClose}
+    />
+  ) : null;
+};
 
 const PredictOrderFlowContext =
   createContext<PredictOrderFlowContextValue | null>(null);
@@ -35,7 +83,7 @@ export const PredictOrderFlowProvider = ({
   const [open, setOpen] = useState<OpenOrderFlow | null>(null);
 
   const openOrderFlow = useCallback((intent: OpenOrderFlow['intent']) => {
-    setOpen({ intent });
+    setOpen((current) => ({ id: (current?.id ?? 0) + 1, intent }));
   }, []);
   const closeOrderFlow = useCallback(() => setOpen(null), []);
 
@@ -48,9 +96,9 @@ export const PredictOrderFlowProvider = ({
     <PredictOrderFlowContext.Provider value={contextValue}>
       {children}
       {open ? (
-        <PredictOrderFlowSheet
+        <SupportedOrderFlowSheet
+          key={open.id}
           intent={open.intent}
-          service={Engine.context.PredictOrderService}
           onClose={closeOrderFlow}
         />
       ) : null}

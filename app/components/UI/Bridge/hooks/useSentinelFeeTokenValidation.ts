@@ -21,7 +21,13 @@ export type SentinelFeeTokenValidationResult =
     }
   | {
       isValid: false;
-      reason: SentinelFeeTokenValidationReason;
+      reason: Exclude<SentinelFeeTokenValidationReason, 'unsupported-pair'>;
+      retry: () => void;
+    }
+  | {
+      isValid: false;
+      reason: 'unsupported-pair';
+      supportedTokenSymbols: string[];
       retry: () => void;
     };
 
@@ -29,6 +35,7 @@ interface UseSentinelFeeTokenValidationParams {
   chainId?: CaipChainId;
   sourceAssetId?: CaipAssetType;
   destinationAssetId?: CaipAssetType;
+  enabled?: boolean;
 }
 
 /**
@@ -41,11 +48,12 @@ export function useSentinelFeeTokenValidation({
   chainId,
   sourceAssetId,
   destinationAssetId,
+  enabled = true,
 }: UseSentinelFeeTokenValidationParams): SentinelFeeTokenValidationResult {
   const cacheTtlMs = useSelector(selectSentinelFeeTokensCacheTtlMs);
   const descriptor = sentinelFeeTokensQueries.getSentinelFeeTokens(cacheTtlMs);
   const hasCompleteInputs = Boolean(
-    chainId && sourceAssetId && destinationAssetId,
+    enabled && chainId && sourceAssetId && destinationAssetId,
   );
   const { data, isError, refetch } = useQuery<SentinelFeeTokensByChain>({
     queryKey: descriptor.queryKey,
@@ -79,6 +87,15 @@ export function useSentinelFeeTokenValidation({
   }
 
   if (data) {
+    const supportedTokens = data[chainId] ?? [];
+    if (supportedTokens.length === 0) {
+      return {
+        isValid: false,
+        reason: 'unavailable',
+        retry,
+      };
+    }
+
     const isValid = validateSentinelFeeTokenPair({
       sentinelFeeTokens: data,
       chainId,
@@ -88,7 +105,14 @@ export function useSentinelFeeTokenValidation({
 
     return isValid
       ? { isValid: true, retry }
-      : { isValid: false, reason: 'unsupported-pair', retry };
+      : {
+          isValid: false,
+          reason: 'unsupported-pair',
+          supportedTokenSymbols: [
+            ...new Set(supportedTokens.map(({ symbol }) => symbol)),
+          ],
+          retry,
+        };
   }
 
   if (isError) {
