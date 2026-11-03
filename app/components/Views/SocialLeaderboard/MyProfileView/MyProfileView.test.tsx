@@ -725,6 +725,7 @@ describe('MyProfileView', () => {
       right: 12,
     });
     expect(shareSpy).toHaveBeenCalledWith({
+      message: 'https://link.metamask.io/social/profile?traderId=current-user',
       url: 'https://link.metamask.io/social/profile?traderId=current-user',
     });
   });
@@ -1050,6 +1051,7 @@ describe('MyProfileView', () => {
     );
 
     expect(shareSpy).toHaveBeenCalledWith({
+      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
       url: 'https://link.metamask.io/social/profile?traderId=trader-1',
     });
   });
