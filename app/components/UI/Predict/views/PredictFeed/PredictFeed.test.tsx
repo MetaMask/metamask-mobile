@@ -119,6 +119,27 @@ let mockWimbledonTabFlag = {
 let mockIsFeaturedCarouselEnabled = false;
 let mockIsUpDownEnabled = false;
 let mockIsPredictPortfolioEnabled = false;
+let mockIsPredictBrandRefreshEnabled = false;
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/predictBrandRefresh',
+  () => ({
+    selectPredictBrandRefreshEnabled: 'selectPredictBrandRefreshEnabled',
+  }),
+);
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
 
 jest.mock('react-redux', () => {
   const actualReactRedux = jest.requireActual('react-redux');
@@ -348,8 +369,11 @@ describe('PredictFeed', () => {
     mockIsFeaturedCarouselEnabled = false;
     mockIsUpDownEnabled = false;
     mockIsPredictPortfolioEnabled = false;
+    mockIsPredictBrandRefreshEnabled = false;
     mockUseSelector.mockImplementation((selector: string) => {
       switch (selector) {
+        case 'selectPredictBrandRefreshEnabled':
+          return mockIsPredictBrandRefreshEnabled;
         case 'selectPredictFeaturedCarouselEnabledFlag':
           return mockIsFeaturedCarouselEnabled;
         case 'selectPredictHotTabFlag':
@@ -510,6 +534,22 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
 
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('renders header buttons without glass capsules when the brand refresh is off', () => {
+      const { queryByTestId } = render(<PredictFeed />);
+
+      expect(queryByTestId('capsule')).toBeNull();
+    });
+
+    it('renders back and search in glass capsules when the brand refresh is on', () => {
+      mockIsPredictBrandRefreshEnabled = true;
+
+      const { getAllByTestId, getByTestId } = render(<PredictFeed />);
+      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+
+      expect(getAllByTestId('capsule')).toHaveLength(2);
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
   });

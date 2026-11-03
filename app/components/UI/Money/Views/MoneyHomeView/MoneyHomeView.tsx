@@ -48,6 +48,7 @@ import {
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
@@ -64,6 +65,7 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
   deriveMoneyMetaMaskCardMode,
@@ -206,13 +208,18 @@ const MoneyHomeView = () => {
   // refresh is the one-shot KYC session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
+  // One-shot autoramp transaction read per focus and app resume. The
+  // controller owns the last-seen-status record, so repeated reads do not
+  // emit duplicate Money VBA Transaction Updated events.
+  useVbaTransactionRefresh();
   // The Details button is live for every VBA-eligible user (flag + IP region,
-  // the same eligibility gate the home cards use). Like the cards, it opens the
-  // loading screen immediately; that screen hydrates and forwards to the PIX
-  // details screen for a complete account, or the first incomplete module.
+  // the same eligibility gate the home cards use) and for an existing account.
+  // An approved account opens its details directly; otherwise the loading
+  // screen hydrates and forwards to the first incomplete module.
   const { isEligible: isVbaEligible } = useVbaEligibility();
+  const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
   const hasPendingDetailsOpenRef = useRef(false);
-  const showVbaDetailsButton = isVbaEligible;
+  const showVbaDetailsButton = isVbaEligible || Boolean(usableVbaAutoramp);
   const actionButtonRowCount = showVbaDetailsButton
     ? ACTION_BUTTON_ROW_BASE_COUNT + 1
     : ACTION_BUTTON_ROW_BASE_COUNT;

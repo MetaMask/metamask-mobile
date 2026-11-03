@@ -46,6 +46,7 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyVaultState from '../../hooks/useMoneyVaultState';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import {
   type MoneyHomeSegment,
   useMoneyHomePerformance,
@@ -224,6 +225,14 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyMicrodeposits', () => ({
+  useMoneyMicrodeposits: jest.fn(() => ({
+    microdeposits: [],
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
 }));
@@ -381,6 +390,16 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+const mockSelectUsableVbaAutoramp = jest.fn(
+  (): { id: string } | undefined => undefined,
+);
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.createMockFromModule<
+    typeof import('../../../../../selectors/rampsController')
+  >('../../../../../selectors/rampsController'),
+  selectUsableVbaAutoramp: () => mockSelectUsableVbaAutoramp(),
+}));
+
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
   useMoneyAccountCardLinkage: jest.fn(() => ({
@@ -472,6 +491,7 @@ const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
+const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard',
   () => ({
@@ -479,6 +499,10 @@ jest.mock(
     useVbaHomeCardRefresh: jest.fn(),
   }),
 );
+
+jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
+  useVbaTransactionRefresh: jest.fn(),
+}));
 
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
 jest.mock(
@@ -836,6 +860,7 @@ describe('MoneyHomeView', () => {
     // Default to no VBA card so variant tests cannot leak into others.
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+    mockSelectUsableVbaAutoramp.mockReturnValue(undefined);
     mockOpenVbaEntry.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
@@ -1065,6 +1090,16 @@ describe('MoneyHomeView', () => {
       expect(mockUseVbaHomeCardRefresh).toHaveBeenCalledTimes(1);
     });
 
+    it('wires the VBA autoramp transaction refresh on mount', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'none',
+      } as VbaHomeCard);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseVbaTransactionRefresh).toHaveBeenCalledTimes(1);
+    });
+
     it('remounts the card with fresh dismiss state when the variant changes', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_decision',
@@ -1129,6 +1164,20 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
       ).toBeNull();
+    });
+
+    it('renders the Details button for a usable autoramp even when not VBA eligible', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockSelectUsableVbaAutoramp.mockReturnValue({ id: 'ar-1' });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('tracks and routes straight to the loading screen on press', () => {

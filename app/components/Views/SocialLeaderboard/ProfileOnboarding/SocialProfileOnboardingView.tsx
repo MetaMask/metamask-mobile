@@ -6,7 +6,6 @@ import {
   Button,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -94,6 +93,9 @@ import {
   acceptSocialTerms,
   hasAcceptedSocialTerms,
 } from '../terms/socialTermsAcceptance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const { Interaction, Outcome, Screen, Step } = SocialEvent;
 // Future live source: https://metamask.com/terms-of-use
@@ -301,6 +303,7 @@ const ReadyCardFallback: React.FC<{
 );
 
 const SocialProfileOnboardingView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
@@ -976,7 +979,9 @@ const SocialProfileOnboardingView: React.FC = () => {
           topInset={insets.top}
         />
       )}
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}

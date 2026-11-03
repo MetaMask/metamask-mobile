@@ -103,6 +103,13 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyBrandRefresh',
+  () => ({
+    selectMoneyBrandRefreshEnabled: () => false,
+  }),
+);
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));

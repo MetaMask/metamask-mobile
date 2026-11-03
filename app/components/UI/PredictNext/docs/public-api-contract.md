@@ -37,11 +37,15 @@ Code outside PredictNext imports only from one curated entry point, `app/compone
 
 The entry point's first export is `PredictRoot`, the root router that `MainNavigator` registers for the `Predict` route (PRED-1375). It is a permanent, Venue-neutral component: after PRED-1356 it renders only the PredictNext stack, so that import does not change. `MainNavigator`'s legacy imports (`PredictModalStack`, `PredictPreviewSheetProvider`) stay named composition wiring.
 
+Wallet reset is named composition wiring. It calls
+`PredictDeviceAuthService:reset` through the Engine messenger; Authentication
+does not import PredictNext key or session internals.
+
 Names are proposals. The implementing ticket finalizes each name and adds its export only when it migrates a real caller. Do not create empty modules.
 
 | Proposed API                                                                                                                         | Polymarket branch (transition)                                                     | Kalshi branch                                            | After PRED-1356                            |
 | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------ |
-| `selectPredictAvailability` / `usePredictAvailability()`                                                                             | Existing legacy flag and eligibility logic                                         | Kalshi flags, eligibility, kill switch                   | Venue availability from the API service    |
+| `selectPredictAvailability` / `usePredictAvailability()` (venue-aware since PRED-1377, see [Active Venue](./active-venue.md))        | Existing legacy flag and eligibility logic                                         | Kalshi flags, eligibility, kill switch                   | Venue availability from the API service    |
 | `openPredict(intent)`, `usePredictEntryActions()`                                                                                    | Legacy `usePredictNavigation` and routes                                           | PredictNext routes                                       | PredictNext routes                         |
 | `PredictHomeSection`, `PredictTrendingFeed`, slot widgets, autocomplete results                                                      | Existing Homepage/Trending/Browser Predict code, moved as-is                       | New Kalshi UI                                            | PredictNext UI                             |
 | `usePredictPortfolioValue()`                                                                                                         | `usePredictPortfolio().portfolioValue`                                             | Kalshi Portfolio Summary `totalValue`                    | PredictNext Portfolio Summary `totalValue` |
@@ -52,7 +56,7 @@ Public inputs are intents, consumer-owned types, and callbacks with Venue-neutra
 
 ## Rules for the Venue switch
 
-- Each public API resolves the Active Venue internally. Callers do not pass, read, or branch on a Venue. Under PRED-1340, a known US location defaults to Kalshi, a known non-US location defaults to Polymarket, and a valid explicit Venue Selection Preference takes precedence. PRED-1377 owns that resolution. The Active Venue can therefore change during a session.
+- Each public API resolves the Active Venue internally. Callers do not pass, read, or branch on a Venue. Under PRED-1340, a known US location defaults to Kalshi, a known non-US location defaults to Polymarket, and a valid explicit Venue Selection Preference takes precedence. PRED-1377 implements that resolution as `selectActiveVenue`; see [Active Venue and availability](./active-venue.md). The Active Venue can change during a session, but only when the preference or the rollout config changes.
 - On an Active Venue change, the public API remounts the newly active branch. Kalshi cancels its own unsubmitted previews. Legacy Polymarket keeps its existing behavior, including toast registration and observation of submitted operations, which stay mounted regardless of Active Venue.
 - A surface whose action has no implementation for the Active Venue hides that action. For example, while Kalshi is active, Money and pay-with must not offer the Polymarket deposit or add-funds flow. That is an availability gate, not a wrapper around legacy execution.
 - Every public API resolves its branch through `implementation/`. `usePredictImplementation()` returns `{ status: 'resolving' }`, `{ status: 'ready', implementation: 'legacy' }`, or `{ status: 'ready', implementation: 'next', venueId }`. One internal map sends each Venue to an implementation (`polymarket → legacy`, `kalshi → next`); PRED-1356 changes only that map.
@@ -74,8 +78,7 @@ Public inputs are intents, consumer-owned types, and callbacks with Venue-neutra
 
 The Homepage Predictions section becomes a Predict-owned component, `PredictHomeSection`, exported from the PredictNext entry point. Homepage renders it the way it already renders other feature sections. The case for this:
 
-- **Predict already owns the code.** CODEOWNERS assigns `app/components/Views/Homepage/Sections/Predictions/` to `@MetaMask/predict`. `@MetaMask/mobile-core-ux` owns `Homepage.tsx`, the composition. Moving the section changes its location, not its ownership. Perps and Earn already own their Homepage sections the same way.
-- **There is an established pattern.** `Sections/EarnSection/HomepageEarnSection.tsx` is a 50-line Homepage wrapper that renders the Earn-owned `UI/Earn/components/EarnSection`.
+- **Predict already owns the code.** CODEOWNERS assigns `app/components/Views/Homepage/Sections/Predictions/` to `@MetaMask/predict`. `@MetaMask/mobile-core-ux` owns `Homepage.tsx`, the composition. Moving the section changes its location, not its ownership. Perps already owns its Homepage sections the same way.
 - **The interface already exists.** Today's `PredictionsSection` takes `sectionIndex`, `totalSectionsLoaded`, and `mode`, and exposes a `SectionRefreshHandle` through its ref. `PredictHomeSection` keeps exactly that contract, so `Homepage.tsx` changes one import.
 - **Every alternative is worse.** The section is 28 non-test files, about 2,600 lines, that import legacy types, hooks, queries, Polymarket endpoints, and account utilities. To show Kalshi there without moving it, Homepage would either branch on Venue, which PRED-1340 forbids, or need canonical data hooks for both Venues, which requires the client-side Polymarket adapter that ADR-0002 rejects.
 - **The Homepage team gains.** Prediction-market changes, PRED-1356, and Predict regressions stop touching Homepage files, and Homepage keeps full control of placement, ordering, visibility, and refresh.
