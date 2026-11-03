@@ -44,12 +44,14 @@ const snapMethodMiddlewareBuilder = (
       },
       getAllowedKeyringMethods: keyringSnapPermissionsBuilder(origin),
       // Website origins are full dapp URLs, and Sentry tags skip URL scrubbing.
-      trackError: (error: Error) =>
-        subjectType === SubjectType.Snap
-          ? captureException(error, {
-              tags: { feature: 'snaps', snap_id: origin },
-            })
-          : captureException(error),
+      trackError: (error: Error) => {
+        if (subjectType !== SubjectType.Snap) {
+          return captureException(error);
+        }
+        return captureException(error, {
+          tags: { feature: 'snaps', snap_id: origin },
+        });
+      },
       trackEvent: trackSnapEvent,
       getIsActive: () =>
         AppState.currentState === 'active' &&
