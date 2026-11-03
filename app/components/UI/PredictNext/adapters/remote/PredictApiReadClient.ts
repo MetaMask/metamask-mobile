@@ -181,13 +181,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     { status, ...params }: FetchPositionsParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    // Positions are the user's own Kalshi positions, so they are device-signed.
     return this.#get(
       ['v1', 'venues', venueId, 'positions'],
       // The route takes the status filter as a comma-separated list.
       { ...params, status: status?.length ? status.join(',') : undefined },
       options,
-      { operations: ['positions'] },
     );
   }
 
@@ -207,11 +205,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    // Settlements and the archive check are read from the user's own Kalshi
-    // account, so they are device-signed.
-    return this.#get(['v1', 'venues', venueId, 'activity'], params, options, {
-      operations: ['settlements', 'historical_positions'],
-    });
+    return this.#get(['v1', 'venues', venueId, 'activity'], params, options);
   }
 
   fetchFeed(

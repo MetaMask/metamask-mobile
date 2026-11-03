@@ -59,9 +59,6 @@ const check = (intent: VenueSigningIntent, requests: SigningInstruction[]) =>
 /** The intent the phone holds for each predict-api golden request. */
 const FIXTURE_INTENTS: Record<string, VenueSigningIntent> = {
   balance: { operations: ['balance'] },
-  'positions page': { operations: ['positions'] },
-  'settlements page': { operations: ['settlements'] },
-  'historical positions': { operations: ['historical_positions'] },
   'enrollment current': { operations: ['enrollment_current'] },
   'enrollment intent': {
     operations: ['enrollment_intent'],
@@ -228,43 +225,6 @@ describe('checkVenueSigningRequest', () => {
 
   it('refuses an empty request list', () => {
     expect(check(linkIntent, [])).toStrictEqual({ ok: false, rule: 'count' });
-  });
-
-  describe('a read with a query', () => {
-    const positions = fixtureRequest('positions page');
-    const signPositions = (query: string) =>
-      check({ operations: ['positions'] }, [
-        instructionFor({ ...positions, query }),
-      ]);
-
-    it('accepts listed keys, each once, with an encoded cursor', () => {
-      expect(
-        signPositions('count_filter=position&limit=20&cursor=next+page%3D'),
-      ).toMatchObject({ ok: true });
-      expect(signPositions('')).toMatchObject({ ok: true });
-    });
-
-    it.each([
-      ['a key the profile does not list', 'count_filter=position&ticker=X'],
-      ['a repeated key', 'limit=1&limit=2'],
-      ['a pair without a value separator', 'limit'],
-      ['an encoded ampersand smuggled in raw', 'limit=1&&cursor=a'],
-      ['a space', 'limit=1 2'],
-      ['a fragment', 'limit=1#x'],
-      ['an uppercase key', 'Limit=1'],
-    ])('refuses %s', (_name, query) => {
-      expect(signPositions(query)).toStrictEqual({ ok: false, rule: 'route' });
-    });
-
-    it('still refuses a query on a read that lists no keys', () => {
-      const balance = fixtureRequest('balance');
-
-      const result = check({ operations: ['balance'] }, [
-        instructionFor({ ...balance, query: 'limit=1' }),
-      ]);
-
-      expect(result).toStrictEqual({ ok: false, rule: 'route' });
-    });
   });
 
   it('refuses a fixture request the profile does not define', () => {

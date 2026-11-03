@@ -53,24 +53,6 @@
       "method": "GET",
       "path": "/trade-api/v2/portfolio/balance"
     },
-    "positions": {
-      "class": "read",
-      "method": "GET",
-      "path": "/trade-api/v2/portfolio/positions",
-      "queryKeys": ["count_filter", "limit", "cursor"]
-    },
-    "settlements": {
-      "class": "read",
-      "method": "GET",
-      "path": "/trade-api/v2/portfolio/settlements",
-      "queryKeys": ["limit", "max_ts", "cursor"]
-    },
-    "historical_positions": {
-      "class": "read",
-      "method": "GET",
-      "path": "/trade-api/v2/historical/positions",
-      "queryKeys": ["limit"]
-    },
     "enrollment_current": {
       "class": "read",
       "method": "GET",
@@ -123,26 +105,6 @@
         "method": "GET",
         "path": "/trade-api/v2/portfolio/positions",
         "query": "count_filter=position&limit=20"
-      }
-    },
-    {
-      "name": "settlements page",
-      "accept": true,
-      "request": {
-        "ref": "settlements",
-        "method": "GET",
-        "path": "/trade-api/v2/portfolio/settlements",
-        "query": "limit=200&max_ts=1700000001"
-      }
-    },
-    {
-      "name": "historical positions",
-      "accept": true,
-      "request": {
-        "ref": "historical_positions",
-        "method": "GET",
-        "path": "/trade-api/v2/historical/positions",
-        "query": "limit=1"
       }
     },
     {

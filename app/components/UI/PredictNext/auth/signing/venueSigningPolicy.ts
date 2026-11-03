@@ -96,33 +96,6 @@ const bodyMatches = (
   });
 };
 
-const QUERY_PAIR = /^([a-z_]+)=([A-Za-z0-9._~%+-]*)$/u;
-
-/**
- * A read's query must be empty unless its rule lists query keys. Then it is
- * `key=value` pairs joined by `&`, with only listed keys, each at most once,
- * and values in the URL-safe set. That leaves no way to add a parameter the
- * profile does not name or to smuggle one in through an encoding quirk.
- */
-const queryAllowed = (query: string, rule: VenueOperationRule): boolean => {
-  if (query === '') {
-    return true;
-  }
-  if (rule.class !== 'read' || !rule.queryKeys) {
-    return false;
-  }
-  const seen = new Set<string>();
-  return query.split('&').every((pair) => {
-    const match = QUERY_PAIR.exec(pair);
-    const key = match?.[1];
-    if (!key || !rule.queryKeys?.includes(key) || seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
-};
-
 const checkInstruction = (
   profile: VenueSigningProfile,
   intent: VenueSigningIntent,
@@ -132,7 +105,7 @@ const checkInstruction = (
   if (
     instruction.method !== rule.method ||
     instruction.path !== rule.path ||
-    !queryAllowed(instruction.query, rule)
+    instruction.query !== ''
   ) {
     return 'route';
   }

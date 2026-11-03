@@ -43,12 +43,6 @@ export type VenueOperationRule =
       readonly class: 'read';
       readonly method: 'GET';
       readonly path: string;
-      /**
-       * Query keys this read may carry, each at most once. Absent means the
-       * read takes no query. The phone never signs a key outside this list,
-       * and the values are restricted to URL-safe characters.
-       */
-      readonly queryKeys?: readonly string[];
     }
   | {
       readonly class: 'mutation';
@@ -90,24 +84,6 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
       class: 'read',
       method: 'GET',
       path: `${TRADE_API}/portfolio/balance`,
-    },
-    positions: {
-      class: 'read',
-      method: 'GET',
-      path: `${TRADE_API}/portfolio/positions`,
-      queryKeys: ['count_filter', 'limit', 'cursor'],
-    },
-    settlements: {
-      class: 'read',
-      method: 'GET',
-      path: `${TRADE_API}/portfolio/settlements`,
-      queryKeys: ['limit', 'max_ts', 'cursor'],
-    },
-    historical_positions: {
-      class: 'read',
-      method: 'GET',
-      path: `${TRADE_API}/historical/positions`,
-      queryKeys: ['limit'],
     },
     enrollment_current: {
       class: 'read',
