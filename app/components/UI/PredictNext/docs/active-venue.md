@@ -100,4 +100,4 @@ A canonical Commit failure code proves that no operation exists. A Preview with 
 
 **Relaunch.** Nothing about an Order is persisted. After process death no operation is observed or notified again, and the new process cannot commit a Preview quoted by the old one. The outcome of a pending operation surfaces through the Balance, Positions and Activity reads.
 
-**Legacy Polymarket.** Unchanged. Its toast registration and observation of submitted operations stay mounted whatever the Active Venue, and the Polymarket withdraw source balance (`get-balance-callback.ts`) never reads the Active Venue. Tests pin both.
+**Legacy Polymarket.** Unchanged. Its toast registration and observation of submitted operations stay mounted whatever the Active Venue, and the Polymarket withdraw source balance (`get-balance-callback.ts`) never reads the Active Venue. A component-view test pins the toast registration across a switch to Kalshi.
