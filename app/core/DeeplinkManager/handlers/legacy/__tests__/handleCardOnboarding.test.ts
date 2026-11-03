@@ -55,6 +55,7 @@ describe('handleCardOnboarding', () => {
   const mockLoggerError = Logger.error as jest.Mock;
 
   const mockCardholderAddress = '0x1234567890abcdef1234567890abcdef12345678';
+  const mockCardholderCaipId = `eip155:0:${mockCardholderAddress}`;
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -94,7 +95,7 @@ describe('handleCardOnboarding', () => {
           true,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderAddress,
+          mockCardholderCaipId,
         ]);
       });
 
@@ -167,7 +168,7 @@ describe('handleCardOnboarding', () => {
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderAddress,
+          mockCardholderCaipId,
         ]);
       });
 
@@ -232,8 +233,8 @@ describe('handleCardOnboarding', () => {
 
       beforeEach(() => {
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderAddress,
-          secondCardholderAddress,
+          mockCardholderCaipId,
+          `eip155:0:${secondCardholderAddress}`,
         ]);
       });
 
@@ -375,7 +376,7 @@ describe('handleCardOnboarding', () => {
 
       beforeEach(() => {
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderAddress,
+          mockCardholderCaipId,
         ]);
         (Engine.setSelectedAddress as jest.Mock).mockImplementation(() => {
           throw switchError;

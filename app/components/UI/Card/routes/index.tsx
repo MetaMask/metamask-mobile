@@ -17,7 +17,7 @@ import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsCardAuthenticated,
-  selectIsCardholder,
+  selectCardEntryRouting,
 } from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
@@ -83,12 +83,14 @@ const spendingLimitScreenOptions = ({
 
 const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
-  const isCardholder = useSelector(selectIsCardholder);
+  const cardEntryRouting = useSelector(selectCardEntryRouting);
 
   const initialRouteName = useMemo(
     () =>
-      isAuthenticated || isCardholder ? Routes.CARD.HOME : Routes.CARD.WELCOME,
-    [isAuthenticated, isCardholder],
+      isAuthenticated || cardEntryRouting.hasCard
+        ? Routes.CARD.HOME
+        : Routes.CARD.WELCOME,
+    [isAuthenticated, cardEntryRouting.hasCard],
   );
 
   return (

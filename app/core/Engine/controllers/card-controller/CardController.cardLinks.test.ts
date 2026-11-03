@@ -66,6 +66,7 @@ interface Setup {
   state?: Partial<CardControllerState>;
   getBearerToken?: jest.Mock;
   provider?: Partial<ICardProvider>;
+  remoteFeatureFlags?: Record<string, unknown>;
 }
 
 function setup({
@@ -74,6 +75,7 @@ function setup({
   state = {},
   getBearerToken = jest.fn().mockResolvedValue('token-1'),
   provider = {},
+  remoteFeatureFlags = {},
 }: Setup = {}) {
   const subscriptions: Record<string, (...args: unknown[]) => void> = {};
   const selectors: Record<string, (state: unknown) => unknown> = {};
@@ -94,6 +96,7 @@ function setup({
           return {
             remoteFeatureFlags: {
               cardLinkApi: { enabled: flagEnabled, minimumVersion: '0.0.0' },
+              ...remoteFeatureFlags,
             },
           };
         case 'AuthenticationController:getBearerToken':
@@ -1358,15 +1361,30 @@ describe('CardController card links', () => {
   });
 
   describe('resolveSignIn with a card link', () => {
-    const resolve = (controller: CardController) =>
+    const immersveForGb = {
+      cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+      cardImmersveCountries: ['GB'],
+    };
+    const ukSignInRouting = {
+      cardUkMigrationSignInRouting: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    };
+
+    const resolve = (
+      controller: CardController,
+      country = 'US',
+    ) =>
       controller.resolveSignIn({
-        country: 'US',
+        country,
         candidateAddresses: [SELECTED_ADDRESS],
         deviceAddresses: [SELECTED_ADDRESS],
       });
 
     it('resolves an Immersve link to SIWE for the linked account', async () => {
       const { controller } = setup({
+        remoteFeatureFlags: immersveForGb,
         state: {
           cardLinks: [
             link({ provider: 'baanx', status: 'closed' }),
@@ -1378,7 +1396,7 @@ describe('CardController card links', () => {
         },
       });
 
-      expect(await resolve(controller)).toStrictEqual({
+      expect(await resolve(controller, 'GB')).toStrictEqual({
         kind: 'wallet',
         option: { providerId: 'immersve', method: 'siwe' },
         address: SELECTED_ADDRESS,
@@ -1386,8 +1404,11 @@ describe('CardController card links', () => {
       });
     });
 
-    it('offers only the linked provider when its account is not on this device', async () => {
+    it('looks up candidate accounts when the linked account is not on this device', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
       const { controller } = setup({
+        remoteFeatureFlags: { ...immersveForGb, ...ukSignInRouting },
+        provider: { lookupAccount },
         state: {
           cardLinks: [
             link({
@@ -1398,10 +1419,56 @@ describe('CardController card links', () => {
         },
       });
 
+      expect(await resolve(controller, 'GB')).toStrictEqual({
+        kind: 'wallet',
+        option: { providerId: 'immersve', method: 'siwe' },
+        address: SELECTED_ADDRESS,
+        source: 'lookup',
+      });
+      expect(lookupAccount).toHaveBeenCalledWith(SELECTED_ADDRESS);
+    });
+
+    it('ignores a link for a provider the country does not offer', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
       expect(await resolve(controller)).toStrictEqual({
-        kind: 'unresolved',
-        options: [{ providerId: 'immersve', method: 'siwe' }],
-        reason: 'no_match',
+        kind: 'email',
+        option: { providerId: 'baanx', method: 'email_password' },
+      });
+    });
+
+    it('keeps a local sign-in record ahead of the stored link', async () => {
+      const { controller } = setup({
+        remoteFeatureFlags: { ...immersveForGb, ...ukSignInRouting },
+        state: {
+          signInLink: {
+            providerId: 'immersve',
+            status: 'linked',
+            address: SELECTED_ADDRESS,
+            updatedAt: Date.now(),
+          },
+          cardLinks: [
+            link({
+              provider: 'baanx',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller, 'GB')).toMatchObject({
+        kind: 'wallet',
+        source: 'record',
+        address: SELECTED_ADDRESS,
       });
     });
 
@@ -1484,6 +1551,34 @@ describe('CardController card links', () => {
       await loginBaanx({ cardLinks: [link()] });
 
       expect(missedEvents()).toHaveLength(0);
+    });
+
+    it('tracks an Immersve SIWE login when the read returned no links', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller } = setup({
+        provider: { submitCredentials },
+        state: { cardLinks: [], activeProviderId: 'immersve' },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'siwe' },
+        _metadata: { address: SELECTED_ADDRESS },
+      };
+      await controller.submitCredentials({ type: 'siwe', signature: 'sig' });
+      await flush();
+
+      expect(missedEvents()).toHaveLength(1);
+      expect(missedEvents()[0][0].properties).toStrictEqual({
+        provider: 'immersve',
+      });
     });
   });
 

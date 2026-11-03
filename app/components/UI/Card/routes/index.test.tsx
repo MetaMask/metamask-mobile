@@ -208,8 +208,12 @@ jest.mock('../../../../selectors/cardController', () => ({
   selectIsCardAuthenticated: (state: {
     card: { isAuthenticatedCard: boolean };
   }) => state.card.isAuthenticatedCard,
-  selectIsCardholder: (state: { card: { isCardholder: boolean } }) =>
-    state.card.isCardholder,
+  selectCardEntryRouting: (state: { card: { isCardholder: boolean } }) => ({
+    hasCard: state.card.isCardholder,
+    provider: state.card.isCardholder ? 'immersve' : null,
+    source: state.card.isCardholder ? 'card_links' : 'legacy',
+    disagreesWithLegacy: false,
+  }),
 }));
 
 jest.mock('../../../../constants/navigation/Routes', () => ({

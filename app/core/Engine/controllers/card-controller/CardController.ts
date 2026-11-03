@@ -976,7 +976,7 @@ export class CardController extends BaseController<
     const address = await this.findLinkedAccountAddress(deviceAddresses);
     return address
       ? { kind: 'wallet', option, address, source: 'card_link' }
-      : { kind: 'unresolved', options: [option], reason: 'no_match' };
+      : null;
   }
 
   async recordProviderOnboardingStarted({
@@ -1726,13 +1726,16 @@ export class CardController extends BaseController<
     }
 
     const linkedProviderId = this.#getLinkedCardProviderId();
-    const linkedResolution = linkedProviderId
-      ? await this.#resolveSignInForLinkedProvider(
-          linkedProviderId,
-          deviceAddresses,
-        )
-      : null;
-    if (linkedResolution) return linkedResolution;
+    if (
+      linkedProviderId &&
+      options.some((option) => option.providerId === linkedProviderId)
+    ) {
+      const linkedResolution = await this.#resolveSignInForLinkedProvider(
+        linkedProviderId,
+        deviceAddresses,
+      );
+      if (linkedResolution) return linkedResolution;
+    }
 
     if (options.length === 1 && emailOption) {
       return { kind: 'email', option: emailOption };
@@ -2101,18 +2104,15 @@ export class CardController extends BaseController<
         this.#linkWalletSignInIfMissing(pid, linkAddress, tokenSet);
       }
 
+      if (
+        this.#isCardLinkApiEnabled() &&
+        this.state.cardLinks?.length === 0
+      ) {
+        this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_MISSED_AT_LOGIN, {
+          provider: pid,
+        });
+      }
       if (pid === CardProviderIds.Baanx) {
-        if (
-          this.#isCardLinkApiEnabled() &&
-          this.state.cardLinks?.length === 0
-        ) {
-          this.#trackCardLinkEvent(
-            MetaMetricsEvents.CARD_LINK_MISSED_AT_LOGIN,
-            {
-              provider: pid,
-            },
-          );
-        }
         this.#recordProviderLoginWithLogging(pid, 'active');
       }
 

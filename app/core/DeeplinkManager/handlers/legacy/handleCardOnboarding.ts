@@ -11,6 +11,7 @@ import {
 } from '../../../../selectors/cardController';
 import { trackCardLinkRoutingDisagreement } from '../../../../components/UI/Card/util/trackCardLinkRoutingDisagreement';
 import { switchToLinkedCardAccount } from './switchToLinkedCardAccount';
+import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 
 /**
  * Card onboarding deeplink handler
@@ -48,17 +49,23 @@ export const handleCardOnboarding = () => {
     if (isAuthenticated || hasCardLinkedAccount) {
       if (hasCardLinkedAccount && routing.source === 'legacy') {
         // Switch to the first account that has a linked card
-        const firstCardholderAddress = cardholderAccounts[0];
+        const firstCardholderAddress = cardholderAccounts
+          .map((id) =>
+            isCaipAccountId(id) ? parseCaipAccountId(id).address : null,
+          )
+          .find(Boolean);
         DevLogger.log(
           '[handleCardOnboarding] Switching to first cardholder account:',
           firstCardholderAddress,
         );
 
         try {
-          Engine.setSelectedAddress(firstCardholderAddress);
-          DevLogger.log(
-            '[handleCardOnboarding] Successfully switched to cardholder account',
-          );
+          if (firstCardholderAddress) {
+            Engine.setSelectedAddress(firstCardholderAddress);
+            DevLogger.log(
+              '[handleCardOnboarding] Successfully switched to cardholder account',
+            );
+          }
         } catch (switchError) {
           // Log error but continue with navigation to Card Home
           DevLogger.log(
