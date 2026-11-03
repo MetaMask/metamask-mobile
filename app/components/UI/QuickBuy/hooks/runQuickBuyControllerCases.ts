@@ -3178,6 +3178,9 @@ export const runQuickBuyControllerCases = ({
             undefined,
             copyTradeOrigin,
           );
+          act(() => {
+            result.current.handleAmountChange('20');
+          });
 
           let confirmPromise: Promise<void> = Promise.resolve();
           await act(async () => {
