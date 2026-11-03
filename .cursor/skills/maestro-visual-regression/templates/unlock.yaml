@@ -1,0 +1,28 @@
+# Unlock MetaMask on every skill run. Password is passed at runtime
+# (`maestro test -e WALLET_PASSWORD=...`). Never hardcode it. Never screenshot.
+#
+# Copy to maestro/unlock.yaml and replace {{APP_ID}}.
+# Run this after consent, and again after each branch checkout / app relaunch.
+
+appId: "{{APP_ID}}"
+---
+- launchApp:
+    clearState: false
+
+- extendedWaitUntil:
+    visible:
+      id: "login-password-input"
+    timeout: 30000
+
+- tapOn:
+    id: "login-password-input"
+
+- inputText: ${WALLET_PASSWORD}
+
+- tapOn:
+    id: "log-in-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "wallet-screen"
+    timeout: 30000
