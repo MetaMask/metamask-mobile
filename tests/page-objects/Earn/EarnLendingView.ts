@@ -86,14 +86,11 @@ class EarnLendingView {
    * Wait until the deposit-step Confirm label is shown after allowance confirms.
    */
   async waitForConfirmLabel(timeout = 120000): Promise<void> {
-    await Assertions.expectTextDisplayed(
-      EarnLendingViewSelectorsText.CONFIRM,
-      {
-        timeout,
-        description:
-          'lending deposit Confirm label should appear after approve confirms',
-      },
-    );
+    await Assertions.expectTextDisplayed(EarnLendingViewSelectorsText.CONFIRM, {
+      timeout,
+      description:
+        'lending deposit Confirm label should appear after approve confirms',
+    });
   }
 
   async tapConfirmByLabel(timeout?: number): Promise<void> {
