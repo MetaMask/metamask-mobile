@@ -76,6 +76,39 @@ describe('MembershipBanner', () => {
     ).toBeNull();
   });
 
+  it('renders Active with the cancelled alert while a period-end cancel can be resumed', () => {
+    const onAction = jest.fn();
+    const { getByTestId } = renderBanner(
+      createSubscription({
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: '2099-01-15T12:00:00.000Z',
+      }),
+      onAction,
+    );
+
+    expect(
+      getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
+    ).toHaveTextContent(strings('pro_hub.membership_status.active'));
+    expect(
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Active),
+      ),
+    ).toHaveTextContent(
+      strings('pro_hub.membership_alert.cancelled.description', {
+        date: 'Jan 15, 2099',
+      }),
+      { exact: false },
+    );
+
+    fireEvent.press(
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Active),
+      ),
+    );
+
+    expect(onAction).toHaveBeenCalledWith(MembershipAlertAction.Renew);
+  });
+
   it('renders Overdue with the payment-failed alert', () => {
     const onAction = jest.fn();
     const { getByTestId } = renderBanner(

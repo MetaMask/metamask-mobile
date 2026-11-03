@@ -253,6 +253,44 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(result.current.items).toEqual([]);
   });
 
+  it.each([SUBSCRIPTION_STATUSES.paused, SUBSCRIPTION_STATUSES.unpaid])(
+    'shows cached trade allowances for a %s membership',
+    (subscriptionStatus) => {
+      const { result } = renderBenefits(
+        createState({
+          benefits: BENEFITS,
+          subscriptionStatus,
+        }),
+      );
+
+      expect(mockGetBenefits).not.toHaveBeenCalled();
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+      expect(result.current.items).toHaveLength(3);
+    },
+  );
+
+  it('fetches benefits for a paused membership when no snapshot is stored', async () => {
+    renderBenefits(
+      createState({ subscriptionStatus: SUBSCRIPTION_STATUSES.paused }),
+    );
+
+    await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(1));
+  });
+
+  it('shows cached trade allowances for an unpaid membership that is not a hub subscriber', () => {
+    mockAccess(MoneyAccountPlusAccess.Eligible);
+
+    const { result } = renderBenefits(
+      createState({
+        benefits: BENEFITS,
+        subscriptionStatus: SUBSCRIPTION_STATUSES.unpaid,
+      }),
+    );
+
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+    expect(result.current.items).toHaveLength(3);
+  });
+
   it('hides the section for an entitled past_due subscriber even before subscriptions settle', () => {
     mockAccess(MoneyAccountPlusAccess.Subscriber, false);
 

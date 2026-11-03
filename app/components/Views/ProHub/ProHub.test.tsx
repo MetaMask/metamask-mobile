@@ -728,7 +728,9 @@ describe('ProHub', () => {
 
       fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV, {
+        screen: Routes.CARD.ROOT,
+      });
     });
 
     it('shows unlock copy and does not navigate when the banner is pressed during a free trial', () => {

@@ -168,8 +168,12 @@ const ProHub = () => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
   }, [navigation]);
 
+  // Card is inside Home. Naming it here keeps the accounts menu, which is
+  // still the Home screen under Pro Hub, from appearing before the card.
   const handleGetCard = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
+    navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
+      screen: Routes.CARD.ROOT,
+    });
   }, [navigation]);
 
   const handleMembershipAlertAction = useCallback(

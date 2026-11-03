@@ -11,7 +11,10 @@ import {
   ACTIVE_SUBSCRIPTION_STATUSES,
   isMoneyAccountPlusFreeTrial,
 } from '../../../../../selectors/subscriptionController';
-import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+import {
+  canResumeMembership,
+  formatSubscriptionPeriodEnd,
+} from '../../ProHub.utils';
 
 export const MembershipStatusKind = {
   Active: 'active',
@@ -150,16 +153,33 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
 };
 
 /**
+ * Active status plus the cancelled alert while a period-end cancel can still
+ * be reversed. The membership has not ended, so the label stays Active.
+ */
+const pendingCancellationModel = (
+  subscription: Subscription,
+): MembershipBannerModel => ({
+  ...ACTIVE_MODEL,
+  iconColor: IconColor.WarningDefault,
+  alert: cancelledAlert(
+    subscription.currentPeriodEnd || subscription.canceledAt,
+  ),
+});
+
+/**
  * Maps a Money Account Plus subscription onto the Pro Hub status labels.
  *
- * `trialing` shows Free trial. A `provisional` plan shows Free trial only
- * while `trialPeriodDays` is greater than zero, because a free trial stays
- * provisional until CHOMP moves it to `trialing`. A provisional plan with no
- * trial shows Active, as do `active` and `awaiting_funds`. A plan waiting
- * for funds, or an active plan whose latest invoice failed, also shows the
- * existing add-funds or renewal-failed alert. `past_due` shows Overdue.
- * `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
- * A missing plan, or a status this screen does not map, shows Unavailable.
+ * A period-end cancellation keeps the label Active and shows the cancelled
+ * alert while `cancelAtPeriodEnd` is set and `currentPeriodEnd` is still in
+ * the future, the same window as Resume membership. `trialing` shows Free
+ * trial. A `provisional` plan shows Free trial only while `trialPeriodDays`
+ * is greater than zero, because a free trial stays provisional until CHOMP
+ * moves it to `trialing`. A provisional plan with no trial shows Active, as
+ * do `active` and `awaiting_funds`. A plan waiting for funds, or an active
+ * plan whose latest invoice failed, also shows the existing add-funds or
+ * renewal-failed alert. `past_due` shows Overdue. `paused` and `unpaid` show
+ * Deactivated. `canceled` shows Cancelled. A missing plan, or a status this
+ * screen does not map, shows Unavailable.
  *
  * @param subscription - The displayed Plus subscription. Current wins over the last one.
  * @returns The status label, icon color, and alert for that status.
@@ -169,6 +189,10 @@ export const getMembershipBannerModel = (
 ): MembershipBannerModel => {
   if (!subscription) {
     return UNAVAILABLE_MODEL;
+  }
+
+  if (canResumeMembership(subscription)) {
+    return pendingCancellationModel(subscription);
   }
 
   if (isMoneyAccountPlusFreeTrial(subscription)) {

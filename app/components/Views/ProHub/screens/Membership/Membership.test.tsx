@@ -255,6 +255,9 @@ describe('Membership', () => {
       const { getByTestId } = renderMembership();
 
       expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.renews_on')),
+      );
+      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
         toRegex('Jul 20, 2027'),
       );
     });
@@ -367,6 +370,14 @@ describe('Membership', () => {
       );
     });
 
+    it('shows Ends on while a period-end cancellation is scheduled', () => {
+      const { getByTestId } = renderMembership(pendingCancellation);
+
+      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.ends_on')),
+      );
+    });
+
     it('shows resume and uncancels the subscription when the period end is still ahead', async () => {
       const { getByTestId, queryByTestId } =
         renderMembership(pendingCancellation);
@@ -427,13 +438,16 @@ describe('Membership', () => {
     });
 
     it('hides the membership action when the period end has passed', () => {
-      const { queryByTestId } = renderMembership({
+      const { getByTestId, queryByTestId } = renderMembership({
         ...pendingCancellation,
         currentPeriodEnd: '2020-01-01T00:00:00.000Z',
       });
 
       expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
       expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
+      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.renews_on')),
+      );
     });
 
     it('shows the resume error and does not navigate when uncancel fails', async () => {

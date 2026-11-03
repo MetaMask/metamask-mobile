@@ -360,9 +360,12 @@ const Membership = () => {
               </Box>
             </Box>
 
-            {/* Renews on */}
             <InfoRow
-              label={strings('pro_hub.membership.renews_on')}
+              label={
+                manageAction === MembershipManageAction.Resume
+                  ? strings('pro_hub.membership.ends_on')
+                  : strings('pro_hub.membership.renews_on')
+              }
               value={membershipDetails.renewsOn}
               testID={MembershipTestIds.RENEWS_ON_ROW}
             />
@@ -388,11 +391,6 @@ const Membership = () => {
             label={strings('pro_hub.membership.invoices')}
             onPress={handleInvoices}
             testID={MembershipTestIds.INVOICES_ROW}
-          />
-          <ManageRow
-            label={strings('pro_hub.membership.contact_support')}
-            onPress={handleContactSupport}
-            testID={MembershipTestIds.CONTACT_SUPPORT_ROW}
           />
           <MembershipActionRow
             action={manageAction}

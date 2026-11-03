@@ -63,8 +63,10 @@ export interface MoneyAccountPlusBenefits {
  *
  * getSubscriptions() already fetches benefits for active subscribers and
  * clears state.benefits for any other status (past_due, etc). This hook only
- * fetches when that refresh left no snapshot. Non-active subscribers get
- * Empty so we don't render a snapshot core is about to delete. A provisional
+ * fetches when that refresh left no snapshot. `past_due` gets Empty so we
+ * don't render a snapshot core is about to delete. `paused` and `unpaid`
+ * stay visible: Pro Hub shows those as Deactivated, and member pricing
+ * remains on the page. A provisional
  * subscriber whose benefits response is not eligible, or fails validation
  * because usage fields are omitted, gets Pending. An active or trialing
  * subscriber whose response is still not eligible gets Unavailable.
@@ -83,7 +85,11 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   const queryClient = useQueryClient();
 
   const isHubSubscriber = access === MoneyAccountPlusAccess.Subscriber;
-  const canFetch = isActiveSubscriber && isSignedIn && isUnlocked;
+  const isDeactivatedMembership =
+    plusSubscription?.status === SUBSCRIPTION_STATUSES.paused ||
+    plusSubscription?.status === SUBSCRIPTION_STATUSES.unpaid;
+  const canLoadBenefits = isActiveSubscriber || isDeactivatedMembership;
+  const canFetch = canLoadBenefits && isSignedIn && isUnlocked;
   const hasCache = benefits !== undefined;
 
   const { isPending, isFetching, isError, error, refetch } = useQuery({
@@ -151,7 +157,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     plusSubscription?.currentPeriodEnd,
   );
 
-  if (!isHubSubscriber) {
+  if (!isHubSubscriber && !isDeactivatedMembership) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
@@ -160,8 +166,9 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     };
   }
 
-  // past_due etc: core wipes benefits on the subscriptions refresh
-  if (!isActiveSubscriber) {
+  // past_due etc: core wipes benefits on the subscriptions refresh.
+  // Deactivated (paused, unpaid) keeps the member-pricing section.
+  if (!canLoadBenefits) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Empty,
       items: [],
