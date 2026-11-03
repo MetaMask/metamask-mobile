@@ -13,10 +13,14 @@
 #
 # Repository variable GA_MODE:
 #   unset or test — post only to vars.RELEASE_SUMMARY_TEST_CHANNEL, no PR write
-#   live          — real release channels, and PR body writes when not a dry run
+#   live          — real release channels when test-channel is empty, and
+#                   allow-pr-write when the run is not a dry run
 # Any other value is treated as test. A non-live run with no test channel
 # dry-runs and posts nothing, so an empty channel cannot fall through to
-# the real release channels or PR bodies.
+# the real release channels.
+# test-channel does not turn the PR rewrite off (github-tools#306 deviation 3).
+# The rewrite still requires GA_MODE=live and dry-run false. The action then
+# rewrites only for release-validation.
 #
 ################################################################################
 
@@ -126,10 +130,12 @@ jobs:
             dry_run=true
           fi
 
-          # The action rewrites the release PR body only when this is true and dry-run is false.
-          # A test channel never arms that write.
+          # github-tools#306 deviation 3: test-channel does not turn the PR rewrite off.
+          # The action rewrites only for release-validation, and only when
+          # allow-pr-write is true and dry-run is false. This caller arms the
+          # write only for GA_MODE=live.
           allow_pr_write=false
-          if [[ "$live" == "true" && "$dry_run" == "false" && -z "$test_channel" ]]; then
+          if [[ "$live" == "true" && "$dry_run" == "false" ]]; then
             allow_pr_write=true
           fi
 
@@ -181,14 +187,13 @@ jobs:
           permissions: |
             contents: read
 
-      # TODO(MCRM-155): placeholder ref. Replace TODO-mcrm-155-release-slack-summaries
-      # with the merged github-tools tag or commit SHA once
-      # MetaMask/github-tools/.github/actions/release-slack-summaries lands.
-      # This step cannot succeed until that ref exists. Do not point it at a
-      # floating branch such as main, and do not set GA_MODE=live until the
-      # replacement ref is reviewed.
+      # TODO(MCRM-155): pin this uses ref to a commit SHA or tag after
+      # https://github.com/MetaMask/github-tools/pull/306 merges. Until then
+      # it tracks the draft branch. Do not set GA_MODE=live on that branch.
+      # github-tools-repository and github-tools-ref are left at the action
+      # defaults so the inner checkout follows this uses ref.
       - name: Post release Slack summary
-        uses: MetaMask/github-tools/.github/actions/release-slack-summaries@TODO-mcrm-155-release-slack-summaries
+        uses: MetaMask/github-tools/.github/actions/release-slack-summaries@cursor/release-slack-summaries-a324
         with:
           mode: ${{ steps.caller.outputs.mode }}
           platform: mobile
@@ -198,10 +203,16 @@ jobs:
           jira-base-url: https://consensyssoftware.atlassian.net
           jira-email: ${{ secrets.JIRA_EMAIL }}
           jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
-          # jira-release-blocker-jql is omitted. The filter does not exist yet;
-          # the action's empty default skips the blocker section and logs that.
+          # Empty until the MetaMask Release Blockers filter exists.
+          # The action logs OPEN and skips the blocker section.
+          jira-release-blocker-jql: ''
+          # Empty uses the v10 proposal default and logs OPEN (github-tools#306 deviation 1).
+          jira-regression-jql: ''
+          # PROPOSED topology.json field, array or string (github-tools#306 deviation 1).
+          topology-jira-project-field: jiraProject
           # Empty means unset: the action uses the real release channels.
-          # The resolver only leaves this empty for GA_MODE=live or a dry run.
+          # Non-live runs set this from RELEASE_SUMMARY_TEST_CHANNEL unless
+          # workflow_dispatch passes its own channel.
           test-channel: ${{ steps.caller.outputs.test-channel }}
           dry-run: ${{ steps.caller.outputs.dry-run }}
           allow-pr-write: ${{ steps.caller.outputs.allow-pr-write }}
