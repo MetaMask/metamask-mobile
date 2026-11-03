@@ -1234,7 +1234,6 @@ export const MOCK_NETWORK_CONTROLLER_STATE = {
       nativeCurrency: 'SepoliaETH',
       rpcEndpoints: [
         {
-          failoverUrls: [],
           networkClientId: 'sepolia',
           type: 'infura',
           url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
@@ -1250,7 +1249,6 @@ export const MOCK_NETWORK_CONTROLLER_STATE = {
       nativeCurrency: 'MegaETH',
       rpcEndpoints: [
         {
-          failoverUrls: [],
           networkClientId: 'megaeth-testnet-v2',
           type: 'custom',
           url: 'https://carrot.megaeth.com/rpc',
