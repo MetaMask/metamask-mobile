@@ -253,6 +253,29 @@ describe('CardController card links', () => {
       expect(controller.state.cardLinks).toBeNull();
     });
 
+    it('refreshes the session when a 401 retries the same bearer token', async () => {
+      const getBearerToken = jest
+        .fn()
+        .mockResolvedValueOnce('stale-token')
+        .mockResolvedValueOnce('stale-token')
+        .mockResolvedValueOnce('fresh-token');
+      const { controller, cardService, messenger } = setup({ getBearerToken });
+      cardService.getCardLinks
+        .mockRejectedValueOnce(apiError(401))
+        .mockResolvedValueOnce([link()]);
+
+      await controller.fetchCardLinks();
+
+      expect(messenger.call).toHaveBeenCalledWith(
+        'AuthenticationController:refreshCanonicalProfileId',
+      );
+      expect(cardService.getCardLinks).toHaveBeenNthCalledWith(
+        2,
+        'fresh-token',
+      );
+      expect(controller.state.cardLinks).toStrictEqual([link()]);
+    });
+
     it('re-authenticates and retries the same call once on 401', async () => {
       const getBearerToken = jest
         .fn()
@@ -492,6 +515,15 @@ describe('CardController card links', () => {
 
       expect(cardService.putCardLink).not.toHaveBeenCalled();
       expect(controller.state.cardLinks).toBeNull();
+    });
+
+    it('fetches again when the profile signs in', async () => {
+      const { cardService, subscriptions } = setup();
+
+      subscriptions['AuthenticationController:profileSignIn']();
+      await flush();
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
     });
 
     it('fetches on wallet unlock', async () => {
@@ -826,6 +858,89 @@ describe('CardController card links', () => {
       expect(cardService.putCardLink).toHaveBeenCalledWith(
         'immersve',
         { status: 'active' },
+        'token-1',
+      );
+    });
+
+    it('records a passwordless Baanx login as active when it completes', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: '',
+        otpCode: '123456',
+      });
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', linkedAccountRef: refFor(SELECTED_ADDRESS) },
+        'token-1',
+      );
+    });
+
+    it('writes an active Baanx link after a verified external session', async () => {
+      const { controller, cardService } = setup({
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
+      });
+      jest.spyOn(controller, 'validateAndRefreshSession').mockResolvedValue({
+        isAuthenticated: true,
+      });
+      jest.spyOn(controller, 'fetchCardHomeData').mockImplementation(async () => {
+        (
+          controller as unknown as {
+            update: (fn: (state: { cardHomeData: unknown }) => void) => void;
+          }
+        ).update((state) => {
+          state.cardHomeData = {
+            account: { verificationStatus: 'VERIFIED' },
+          };
+        });
+      });
+
+      await controller.syncSessionAfterExternalAuth();
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', linkedAccountRef: refFor(SELECTED_ADDRESS) },
+        'token-1',
+      );
+    });
+
+    it('writes a Baanx onboarding link after an unverified external session', async () => {
+      const { controller, cardService } = setup({
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
+      });
+      jest.spyOn(controller, 'validateAndRefreshSession').mockResolvedValue({
+        isAuthenticated: true,
+      });
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue(undefined);
+
+      await controller.syncSessionAfterExternalAuth();
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'onboarding', linkedAccountRef: refFor(SELECTED_ADDRESS) },
         'token-1',
       );
     });

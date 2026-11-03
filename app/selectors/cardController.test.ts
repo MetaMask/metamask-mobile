@@ -349,6 +349,15 @@ describe('card link selectors', () => {
     flags: Record<string, unknown> = flagOn,
   ) => createMockRootState({ cardLinks, ...overrides }, undefined, flags);
 
+  it('returns null links when basic functionality is off', () => {
+    const state = withLinks([row('immersve', 'active')]);
+    (state as { settings?: { basicFunctionalityEnabled: boolean } }).settings =
+      { basicFunctionalityEnabled: false };
+
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasLinkedCard(state)).toBe(false);
+  });
+
   it('returns null links before the first fetch', () => {
     const state = withLinks(null);
     expect(selectCardLinks(state)).toBeNull();

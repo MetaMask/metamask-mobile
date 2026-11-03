@@ -425,6 +425,11 @@ export class CardController extends BaseController<
   }
 
   #subscribeToEvents(): void {
+    this.messenger.subscribe('AuthenticationController:profileSignIn', () => {
+      if (this.resetInProgress) return;
+      this.#fetchCardLinksWithLogging('#onProfileSignIn/fetchCardLinks');
+    });
+
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
       this.#triggerCardholderCheck();
@@ -716,13 +721,23 @@ export class CardController extends BaseController<
     // No argument: an entropy-source ID returns another profile's token.
     const getToken = () =>
       this.messenger.call('AuthenticationController:getBearerToken');
+    const token = await getToken();
     try {
-      return await call(await getToken());
+      return await call(token);
     } catch (error) {
-      if (error instanceof CardApiError && error.statusCode === 401) {
-        return await call(await getToken());
+      if (!(error instanceof CardApiError) || error.statusCode !== 401) {
+        throw error;
       }
-      throw error;
+      // getBearerToken returns the cached session until it is near expiry, so a
+      // rejected token comes back unchanged unless the session is invalidated.
+      let next = await getToken();
+      if (next === token) {
+        await this.messenger.call(
+          'AuthenticationController:refreshCanonicalProfileId',
+        );
+        next = await getToken();
+      }
+      return await call(next);
     }
   }
 
@@ -2299,6 +2314,13 @@ export class CardController extends BaseController<
     if (!isAuthenticated) return;
     this.#invalidateAndClear();
     await this.fetchCardHomeData({ force: true });
+    const home = this.state.cardHomeData as {
+      account?: { verificationStatus?: string };
+    } | null;
+    this.#recordProviderLoginWithLogging(
+      CardProviderIds.Baanx,
+      home?.account?.verificationStatus === 'VERIFIED' ? 'active' : 'onboarding',
+    );
   }
 
   // -- Token helpers --
