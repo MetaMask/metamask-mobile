@@ -34,6 +34,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  AccessibilityInfo,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -316,6 +317,16 @@ const SocialPostComposerView: React.FC = () => {
   const isTradeInFlightLocked = tradeInFlightParams != null;
   const isOverCharacterLimit = text.length > COMPOSER_COMMENT_MAX_LENGTH;
   const captionContainsUrl = commentContainsUrl(text);
+  // TalkBack reads the polite live region. VoiceOver stays in the field, so
+  // announce only when a link first appears, not on later keystrokes.
+  useEffect(() => {
+    if (Platform.OS !== 'ios' || !captionContainsUrl) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('social_leaderboard.composer.links_not_allowed'),
+    );
+  }, [captionContainsUrl]);
   const canSubmit =
     (selectedPosition != null || isTradeInFlightLocked) &&
     isComposerCommentValid(text);
@@ -676,6 +687,7 @@ const SocialPostComposerView: React.FC = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
+                  accessibilityLiveRegion="polite"
                   testID={SocialPostComposerViewSelectorsIDs.URL_ERROR}
                 >
                   {strings('social_leaderboard.composer.links_not_allowed')}
