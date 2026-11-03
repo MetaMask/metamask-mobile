@@ -123,7 +123,7 @@ const ManageProfileView: React.FC = () => {
 
     const linked = await connectX();
     const avatarUrl = linked?.avatarUrl;
-    if (avatarUrl && avatarUrl !== profile?.imageUrl) {
+    if (avatarUrl) {
       try {
         await updateProfile({ avatar_url: avatarUrl });
       } catch {
@@ -136,7 +136,6 @@ const ManageProfileView: React.FC = () => {
     isConnectingX,
     isControllerBacked,
     navigation,
-    profile?.imageUrl,
     updateProfile,
   ]);
 

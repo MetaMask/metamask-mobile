@@ -308,19 +308,13 @@ describe('ManageProfileView', () => {
       });
     });
 
-    it('skips the avatar write when the profile avatar already matches', async () => {
+    it('does not write the avatar when connect resolves undefined', async () => {
       mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
-      mockUseMyProfile.mockReturnValue({
-        profile: { ...profile, imageUrl: xProfile.avatarUrl },
-        isLoading: false,
-        error: null,
-        refresh: jest.fn().mockResolvedValue(undefined),
-      });
       const updateProfile = jest.fn().mockResolvedValue(undefined);
       mockUseProfileController.mockReturnValue(
         controllerResult({ updateProfile }),
       );
-      mockConnect.mockResolvedValue(xProfile);
+      mockConnect.mockResolvedValue(undefined);
 
       renderWithProvider(<ManageProfileView />, { state });
 
