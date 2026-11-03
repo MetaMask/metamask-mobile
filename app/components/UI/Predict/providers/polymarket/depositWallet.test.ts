@@ -1,5 +1,6 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { query } from '@metamask/controller-utils';
+import type { Hex } from '@metamask/utils';
 import type { Signer } from '../types';
 import {
   DEPOSIT_WALLET_FACTORY_ADDRESS,
@@ -126,7 +127,7 @@ describe('depositWallet', () => {
 
   it('resolves UUPS wallet when factory beacon is unavailable', async () => {
     const readFactoryBeacon = jest.fn().mockResolvedValue(undefined);
-    const isWalletDeployed = jest.fn();
+    const isWalletDeployed = jest.fn().mockResolvedValue(false);
 
     const result = await resolveDepositWalletAddress({
       ownerAddress,
@@ -136,7 +137,109 @@ describe('depositWallet', () => {
 
     expect(result).toBe(uupsWalletAddress);
     expect(readFactoryBeacon).toHaveBeenCalledTimes(1);
-    expect(isWalletDeployed).not.toHaveBeenCalled();
+    expect(isWalletDeployed).toHaveBeenCalledWith(uupsWalletAddress);
+  });
+
+  it('starts the UUPS deployment check before the factory beacon resolves', async () => {
+    let resolveBeacon: (value: Hex | undefined) => void = () => undefined;
+    let resolveDeployed: (value: boolean) => void = () => undefined;
+    const readFactoryBeacon = jest.fn(
+      () =>
+        new Promise<Hex | undefined>((resolve) => {
+          resolveBeacon = resolve;
+        }),
+    );
+    const isWalletDeployed = jest.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveDeployed = resolve;
+        }),
+    );
+
+    const pending = resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    });
+
+    expect(readFactoryBeacon).toHaveBeenCalledTimes(1);
+    expect(isWalletDeployed).toHaveBeenCalledWith(uupsWalletAddress);
+
+    resolveBeacon(beaconAddress);
+    resolveDeployed(false);
+
+    await expect(pending).resolves.toBe(beaconWalletAddress);
+  });
+
+  it('returns the UUPS address before the deployment check settles when the beacon is missing', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(undefined);
+    let resolveDeployed: (value: boolean) => void = () => undefined;
+    const isWalletDeployed = jest.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveDeployed = resolve;
+        }),
+    );
+    let settled = false;
+
+    const pending = resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    }).then((address) => {
+      settled = true;
+      return address;
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(settled).toBe(true);
+    expect(isWalletDeployed).toHaveBeenCalledWith(uupsWalletAddress);
+
+    resolveDeployed(false);
+    await expect(pending).resolves.toBe(uupsWalletAddress);
+  });
+
+  it('returns the UUPS address when the beacon is missing and the deployment check fails', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(undefined);
+    const isWalletDeployed = jest.fn().mockRejectedValue(new Error('rpc down'));
+
+    const result = await resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    });
+
+    expect(result).toBe(uupsWalletAddress);
+  });
+
+  it('throws the deployment check error when the factory beacon is present', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(beaconAddress);
+    const isWalletDeployed = jest.fn().mockRejectedValue(new Error('rpc down'));
+
+    await expect(
+      resolveDepositWalletAddress({
+        ownerAddress,
+        readFactoryBeacon,
+        isWalletDeployed,
+      }),
+    ).rejects.toThrow('rpc down');
+  });
+
+  it('throws the beacon error when the beacon read and the deployment check both fail', async () => {
+    const readFactoryBeacon = jest
+      .fn()
+      .mockRejectedValue(new Error('beacon down'));
+    const isWalletDeployed = jest
+      .fn()
+      .mockRejectedValue(new Error('code down'));
+
+    await expect(
+      resolveDepositWalletAddress({
+        ownerAddress,
+        readFactoryBeacon,
+        isWalletDeployed,
+      }),
+    ).rejects.toThrow('beacon down');
   });
 
   it('resolves deployed UUPS wallet when factory exposes beacon', async () => {

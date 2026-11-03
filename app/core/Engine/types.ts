@@ -384,6 +384,12 @@ import {
   type PredictDeviceAuthServiceActions,
 } from '../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import {
+  PredictVenueController,
+  type PredictVenueControllerActions,
+  type PredictVenueControllerEvents,
+  type PredictVenueControllerState,
+} from '../../components/UI/PredictNext/implementation/PredictVenueController';
+import {
   RecurringOrdersDataService,
   type RecurringOrdersDataServiceActions,
   type RecurringOrdersDataServiceEvents,
@@ -733,6 +739,7 @@ export type GlobalActions =
   | PredictPortfolioServiceActions
   | PredictOrderServiceActions
   | PredictDeviceAuthServiceActions
+  | PredictVenueControllerActions
   | RecurringOrdersDataServiceActions
   | LimitOrdersDataServiceActions
   | SentinelFeeTokensDataServiceActions
@@ -855,6 +862,7 @@ export type GlobalEvents =
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
   | PredictOrderServiceEvents
+  | PredictVenueControllerEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
   | SentinelFeeTokensDataServiceEvents
@@ -1016,6 +1024,7 @@ export type MessengerClients = {
   PredictPortfolioService: PredictPortfolioService;
   PredictOrderService: PredictOrderService;
   PredictDeviceAuthService: PredictDeviceAuthService;
+  PredictVenueController: PredictVenueController;
   RecurringOrdersDataService: RecurringOrdersDataService;
   LimitOrdersDataService: LimitOrdersDataService;
   SentinelFeeTokensDataService: SentinelFeeTokensDataService;
@@ -1119,6 +1128,7 @@ export type EngineState = {
   GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
+  PredictVenueController: PredictVenueControllerState;
   CardController: CardControllerState;
   UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
@@ -1220,6 +1230,7 @@ export type MessengerClientsToInitialize =
   | 'PredictPortfolioService'
   | 'PredictOrderService'
   | 'PredictDeviceAuthService'
+  | 'PredictVenueController'
   | 'RecurringOrdersDataService'
   | 'LimitOrdersDataService'
   | 'SentinelFeeTokensDataService'
