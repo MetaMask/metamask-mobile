@@ -65,7 +65,30 @@ const UnknownLineCards = ({
   return <StandardCards {...props} />;
 };
 
-/** Renders one projected card with the component for its group's shape. */
+/**
+ * A team total is titled with its Team: the one its yes Outcome backs.
+ * Without a Game or a Team, it reads "Team total".
+ */
+const getTeamTotalTitle = (
+  markets: readonly PredictMarket[],
+  game?: PredictGame,
+): string => {
+  const selection = markets[0]?.outcomes.find(
+    (outcome) => outcome.side === 'yes',
+  )?.gameSelection;
+  const team =
+    selection === 'home'
+      ? game?.homeTeam
+      : selection === 'away'
+        ? game?.awayTeam
+        : undefined;
+  return team?.name ?? strings('predict_next.event.market_layout.team_total');
+};
+
+/**
+ * Renders one projected card with the component for its group's shape. Line
+ * pickers have no title or rules button: the section header names them.
+ */
 export const EventMarketLayoutCard = ({
   card,
   game,
@@ -111,7 +134,6 @@ export const EventMarketLayoutCard = ({
     onSelectMarket: (marketId: PredictMarket['id']) =>
       onSelectMarket(card.key, marketId),
     onOrder,
-    onRulesPress,
   };
 
   switch (card.marketType) {
@@ -123,7 +145,7 @@ export const EventMarketLayoutCard = ({
       return (
         <TotalMarketGroupCard
           {...groupProps}
-          title={strings('predict_next.event.market_layout.team_total')}
+          title={getTeamTotalTitle(card.markets, game)}
         />
       );
     default:

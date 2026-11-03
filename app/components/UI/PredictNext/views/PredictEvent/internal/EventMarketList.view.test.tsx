@@ -21,6 +21,7 @@ import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../../__mocks__/@react-native-community/netinfo';
 import { strings } from '../../../../../../../locales/i18n';
 import { MarketStandardCardTestIds } from '../../../events/markets/MarketStandardCard.testIds';
+import { MarketListTestIds } from '../../../events/markets/MarketList.testIds';
 import { MarketGroupCardTestIds } from '../../../events/markets/MarketGroupCard.testIds';
 import { MoneylineMarketGroupCardTestIds } from '../../../events/markets/MoneylineMarketGroupCard.testIds';
 import { portfolioQueries } from '../../../queries/portfolioQueries';
@@ -1687,6 +1688,11 @@ describe('EventMarketList', () => {
               key: 'team-total-ne',
               marketType: 'team_total',
             },
+            outcomes: market.outcomes.map((outcome) =>
+              outcome.side === 'yes'
+                ? { ...outcome, gameSelection: 'away' as const }
+                : outcome,
+            ),
           })),
           ...spreads.map((market) =>
             withSection(market, { key: 'alt_spread', order: 4 }),
@@ -1718,9 +1724,10 @@ describe('EventMarketList', () => {
 
       expect(
         view.getByTestId(MarketGroupCardTestIds.title('team-total-ne')),
-      ).toHaveTextContent(
-        strings('predict_next.event.market_layout.team_total'),
-      );
+      ).toHaveTextContent('New England');
+      expect(
+        view.queryByTestId(MarketGroupCardTestIds.title('nfl-total-points')),
+      ).not.toBeOnTheScreen();
     });
 
     it('shows the summed section volume in dollars and hides a missing one', async () => {
@@ -1748,7 +1755,7 @@ describe('EventMarketList', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('lists Markets without layout after the first tab sections', async () => {
+    it('lists Markets without layout after the first tab sections, with sections flush and a gap before the Markets', async () => {
       const event = makePredictNextLaidOutGameEvent();
       const [flat] = makePredictNextMultiMarketEvent().markets;
       const { view } = renderLaidOut({
@@ -1766,6 +1773,7 @@ describe('EventMarketList', () => {
         expect.stringMatching(/^markets:section:/),
         expect.stringMatching(/^markets:section:/),
       ]);
+      expect(view.getAllByTestId(MarketListTestIds.SEPARATOR)).toHaveLength(1);
     });
   });
 });

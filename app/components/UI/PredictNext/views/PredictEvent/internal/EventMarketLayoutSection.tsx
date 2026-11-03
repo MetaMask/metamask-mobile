@@ -92,7 +92,7 @@ export const EventMarketLayoutSection = React.memo(
           initialOpen={initialOpen}
           onToggle={handleToggle}
         >
-          <Box twClassName="gap-3 px-4 pb-3">
+          <Box twClassName="gap-3 px-4">
             {periods.length > 1 && selectedPeriod ? (
               <EventMarketPeriodChips
                 items={periods}

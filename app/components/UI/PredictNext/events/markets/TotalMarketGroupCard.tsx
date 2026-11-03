@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PredictMarket, PredictOutcome } from '../../types';
 import { formatMarketGroupOption } from '../shared/formatting';
@@ -10,11 +9,8 @@ import {
 
 export type TotalMarketGroupCardProps = Omit<
   MarketGroupCardProps,
-  'title' | 'describeOutcome' | 'orderSides'
-> & {
-  /** Defaults to "Total points". */
-  title?: string;
-};
+  'describeOutcome' | 'orderSides'
+>;
 
 const OVER_FIRST = ['yes', 'no'] as const;
 const orderSides = () => OVER_FIRST;
@@ -28,7 +24,7 @@ const linePrefix = (outcome: PredictOutcome): string =>
  * (`O 228.5`, `U 228.5`), in the success and error colors.
  */
 export const TotalMarketGroupCard = React.memo(
-  ({ title, ...props }: TotalMarketGroupCardProps): React.JSX.Element => {
+  (props: TotalMarketGroupCardProps): React.JSX.Element => {
     const { colors } = useTheme();
     const describeOutcome = useCallback(
       (market: PredictMarket, outcome: PredictOutcome) => ({
@@ -46,7 +42,6 @@ export const TotalMarketGroupCard = React.memo(
     return (
       <MarketGroupCard
         {...props}
-        title={title ?? strings('predict.market_groups.total_points')}
         describeOutcome={describeOutcome}
         orderSides={orderSides}
       />

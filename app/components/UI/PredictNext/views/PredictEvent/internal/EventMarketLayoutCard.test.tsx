@@ -70,14 +70,18 @@ const moneyline: MarketLayoutCard = {
   ],
 };
 
-const lines = (key: string, marketType: string): MarketLayoutCard => ({
+const lines = (
+  key: string,
+  marketType: string,
+  gameSelection?: PredictGameSelection,
+): MarketLayoutCard => ({
   type: 'marketSelector',
   key,
   marketType,
   markets: [
-    createMarket('over', line(key, marketType, 20.5)),
-    createMarket('over-2', line(key, marketType, 23.5)),
-  ],
+    createMarket('over', line(key, marketType, 20.5), gameSelection),
+    createMarket('over-2', line(key, marketType, 23.5), gameSelection),
+  ].map((market) => ({ ...market, rules: 'Resolves on the final score.' })),
 });
 
 const renderCard = (
@@ -129,23 +133,52 @@ describe('EventMarketLayoutCard', () => {
   });
 
   it.each([
-    ['spread', 'spreads', strings('predict.market_groups.spread')],
-    ['total', 'totals', strings('predict.market_groups.total_points')],
-    [
-      'team_total',
-      'team-total-chi',
-      strings('predict_next.event.market_layout.team_total'),
-    ],
+    ['spread', 'spreads'],
+    ['total', 'totals'],
   ])(
-    'renders a %s line picker titled for its market type',
-    (type, key, title) => {
+    'renders a %s line picker without a title or rules button',
+    (type, key) => {
       renderCard(lines(key, type));
 
       expect(
-        screen.getByTestId(MarketGroupCardTestIds.title(key)),
-      ).toHaveTextContent(title);
+        screen.getByTestId(MarketGroupCardTestIds.card(key)),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MarketGroupCardTestIds.title(key)),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MarketGroupCardTestIds.rulesButton(key)),
+      ).not.toBeOnTheScreen();
     },
   );
+
+  it.each([
+    ['away', game.awayTeam.name],
+    ['home', game.homeTeam.name],
+  ] as const)(
+    'titles a team total with the %s Team its yes Outcome backs',
+    (selection, title) => {
+      renderCard(lines('team-total', 'team_total', selection));
+
+      expect(
+        screen.getByTestId(MarketGroupCardTestIds.title('team-total')),
+      ).toHaveTextContent(title);
+      expect(
+        screen.queryByTestId(MarketGroupCardTestIds.rulesButton('team-total')),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  it.each([
+    ['without a Team', lines('team-total', 'team_total'), true],
+    ['without a Game', lines('team-total', 'team_total', 'away'), false],
+  ])('titles a team total "Team total" %s', (_, card, withGame) => {
+    renderCard(card, { withGame });
+
+    expect(
+      screen.getByTestId(MarketGroupCardTestIds.title('team-total')),
+    ).toHaveTextContent(strings('predict_next.event.market_layout.team_total'));
+  });
 
   it('shows the selected line and reports a new one with the group key', () => {
     const { onSelectMarket } = renderCard(lines('totals', 'total'), {

@@ -77,6 +77,10 @@ type MarketRow =
     };
 type ContentRow = MarketRow | { type: 'position'; position: PredictPosition };
 
+/** Sections bring their own divider, so two in a row sit flush. */
+const isSeparated = (leadingRow: ContentRow, trailingRow: ContentRow) =>
+  !(leadingRow.type === 'section' && trailingRow.type === 'section');
+
 interface MarketTab {
   key: string;
   label: string;
@@ -298,9 +302,16 @@ const EventMarketListContent = ({
       };
 
       return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
-        <TotalMarketGroupCard {...groupProps} />
+        <TotalMarketGroupCard
+          {...groupProps}
+          title={strings('predict.market_groups.total_points')}
+        />
       ) : (
-        <SpreadMarketGroupCard {...groupProps} game={game} />
+        <SpreadMarketGroupCard
+          {...groupProps}
+          title={strings('predict.market_groups.spread')}
+          game={game}
+        />
       );
     },
     [
@@ -346,6 +357,7 @@ const EventMarketListContent = ({
       keyExtractor={getRowKey}
       renderItem={renderRow}
       contentContainerStyle={contentContainerStyle}
+      isSeparated={isSeparated}
       ListHeaderComponent={
         <Box>
           {children}

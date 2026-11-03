@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
@@ -51,16 +50,17 @@ describe('TotalMarketGroupCard', () => {
     );
   });
 
-  it('titles the card Total points by default', () => {
-    expect(screen.getByTestId(TestIds.title(GROUP))).toHaveTextContent(
-      strings('predict.market_groups.total_points'),
-    );
+  it('has no header without a title or rules', () => {
+    expect(screen.queryByTestId(TestIds.title(GROUP))).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TestIds.rulesButton(GROUP)),
+    ).not.toBeOnTheScreen();
   });
 
-  it('shows a given title instead', () => {
+  it('shows a given title', () => {
     screen.rerender(
       <TotalMarketGroupCard
-        title="Team total"
+        title="Total points"
         groupKey={GROUP}
         markets={[market]}
         selectedMarket={market}
@@ -70,8 +70,38 @@ describe('TotalMarketGroupCard', () => {
     );
 
     expect(screen.getByTestId(TestIds.title(GROUP))).toHaveTextContent(
-      'Team total',
+      'Total points',
     );
+  });
+
+  it('shows the rules button only when the line has rules and a handler', () => {
+    const withRules = { ...market, rules: 'Resolves on the final score.' };
+    const onRulesPress = jest.fn();
+    screen.rerender(
+      <TotalMarketGroupCard
+        groupKey={GROUP}
+        markets={[withRules]}
+        selectedMarket={withRules}
+        onSelectMarket={jest.fn()}
+        onRulesPress={onRulesPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(TestIds.rulesButton(GROUP)));
+    expect(onRulesPress).toHaveBeenCalledWith(withRules);
+
+    screen.rerender(
+      <TotalMarketGroupCard
+        groupKey={GROUP}
+        markets={[withRules]}
+        selectedMarket={withRules}
+        onSelectMarket={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(TestIds.rulesButton(GROUP)),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows Over and Under with the prefixed line', () => {
