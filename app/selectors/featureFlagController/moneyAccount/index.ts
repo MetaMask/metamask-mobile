@@ -201,12 +201,17 @@ function readNeobankMarket(
   ) {
     return undefined;
   }
-  return { currency, regions: normalizeVbaRegionCodes(payload.regions) };
+  const regions = normalizeVbaRegionCodes(payload.regions);
+  if (regions.length === 0) {
+    return undefined;
+  }
+  return { currency, regions };
 }
 
 /**
  * Open per-currency markets, one LaunchDarkly flag per currency. A flag is
- * open when it passes the version gate and its `currency` matches its key.
+ * open when it passes the version gate, its `currency` matches its key, and it
+ * lists at least one country.
  * Each key is read through its literal constant because the feature flag
  * registry check only resolves plain identifiers.
  *

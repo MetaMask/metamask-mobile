@@ -4747,36 +4747,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Threshold-array flags; `productionDefault` is the off group's value.
-  // `layout` is carried for a later release and not read yet.
-  moneyMovementNeobankBrl: {
-    name: 'moneyMovementNeobankBrl',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.19.0',
-      currency: 'BRL',
-      regions: ['BR'],
-      layout: 'Pix',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyMovementNeobankUsd: {
-    name: 'moneyMovementNeobankUsd',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.19.0',
-      currency: 'USD',
-      regions: ['US'],
-      layout: 'UsBank',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   moneyAccountGeoBlockedCountries: {
     name: 'moneyAccountGeoBlockedCountries',
     type: FeatureFlagType.Remote,

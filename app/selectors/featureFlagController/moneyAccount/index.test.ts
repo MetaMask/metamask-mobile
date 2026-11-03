@@ -317,6 +317,9 @@ describe('Money Account feature flag selectors', () => {
         'an invalid minimumVersion placeholder',
         { ...brlFlagOn, minimumVersion: '<release>' },
       ],
+      ['without regions', { ...brlFlagOn, regions: [] }],
+      ['with only invalid regions', { ...brlFlagOn, regions: [' ', 1] }],
+      ['with no regions field', { ...brlFlagOn, regions: undefined }],
       [
         'an unresolved threshold array',
         [
