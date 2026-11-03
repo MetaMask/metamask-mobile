@@ -54,7 +54,9 @@ describe('useFollowWithNotificationSetup', () => {
     const openSetupIfNeeded = setGate(true);
     const performFollow = jest.fn();
 
-    const { result } = renderHook(() => useFollowWithNotificationSetup());
+    const { result } = renderHook(() =>
+      useFollowWithNotificationSetup({ requireSocialProfile: true }),
+    );
     await result.current.followWithSetup(false, performFollow);
 
     expect(performFollow).not.toHaveBeenCalled();
@@ -66,11 +68,25 @@ describe('useFollowWithNotificationSetup', () => {
     const openSetupIfNeeded = setGate(true);
     const performFollow = jest.fn();
 
-    const { result } = renderHook(() => useFollowWithNotificationSetup());
+    const { result } = renderHook(() =>
+      useFollowWithNotificationSetup({ requireSocialProfile: true }),
+    );
     await result.current.followWithSetup(true, performFollow);
 
     expect(performFollow).not.toHaveBeenCalled();
     expect(openSetupIfNeeded).not.toHaveBeenCalled();
+  });
+
+  it('follows without a linked wallet when the profile gate is off', async () => {
+    mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+    const openSetupIfNeeded = setGate(false);
+    const performFollow = jest.fn();
+
+    const { result } = renderHook(() => useFollowWithNotificationSetup());
+    await result.current.followWithSetup(false, performFollow);
+
+    expect(performFollow).toHaveBeenCalledTimes(1);
+    expect(openSetupIfNeeded).toHaveBeenCalledWith();
   });
 
   it('follows directly when setup is not needed', async () => {

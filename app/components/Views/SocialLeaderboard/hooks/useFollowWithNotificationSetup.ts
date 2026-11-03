@@ -8,6 +8,11 @@ type PerformFollow = () => void | Promise<void>;
 
 export interface UseFollowWithNotificationSetupOptions {
   requireSocialTerms?: boolean;
+  /**
+   * Gates Follow behind a linked social wallet. Social V1 hosts pass this;
+   * Social V0 and other embeds leave it off.
+   */
+  requireSocialProfile?: boolean;
 }
 
 export interface UseFollowWithNotificationSetupResult {
@@ -42,6 +47,7 @@ export interface UseFollowWithNotificationSetupResult {
  */
 export const useFollowWithNotificationSetup = ({
   requireSocialTerms = false,
+  requireSocialProfile = false,
 }: UseFollowWithNotificationSetupOptions = {}): UseFollowWithNotificationSetupResult => {
   const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
@@ -52,7 +58,7 @@ export const useFollowWithNotificationSetup = ({
       if (requireSocialTerms && !ensureSocialTermsAccepted()) {
         return;
       }
-      if (!ensureSocialProfileOnboarding()) {
+      if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
         return;
       }
       await performFollow();
@@ -66,6 +72,7 @@ export const useFollowWithNotificationSetup = ({
       ensureSocialProfileOnboarding,
       ensureSocialTermsAccepted,
       openSetupIfNeeded,
+      requireSocialProfile,
       requireSocialTerms,
     ],
   );
