@@ -130,7 +130,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
     supportAccountSelection,
   }) => {
-    const { headlessBuyError } = useConfirmationContext();
+    const { headlessBuyError, setPendingFiatAmount } = useConfirmationContext();
     const transactionMeta = useTransactionMetadataRequest();
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
@@ -229,6 +229,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
     const { toastRef } = useContext(ToastContext);
+
+    // Publish the amount being typed so confirmation-level alerts (and the
+    // alert metrics that read them) can react to an over-cap amount the user
+    // never commits — Done is disabled while the cap blocks the keypad.
+    useEffect(() => {
+      setPendingFiatAmount(amountFiatDebounced);
+    }, [amountFiatDebounced, setPendingFiatAmount]);
+
+    useEffect(
+      () => () => {
+        setPendingFiatAmount(undefined);
+      },
+      [setPendingFiatAmount],
+    );
 
     const { alertContent, alertMessage: alertMessageBase } =
       useTransactionCustomAmountAlerts({
