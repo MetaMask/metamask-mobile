@@ -3,6 +3,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import { useEffect, useRef } from 'react';
@@ -18,7 +19,10 @@ import { store } from '../../../../store';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
-import { renderShortAddress } from '../../../../util/address';
+import {
+  areAddressesEqual,
+  renderShortAddress,
+} from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   TOAST_TRACKING_CLEANUP_DELAY_MS,
@@ -44,6 +48,12 @@ import {
 } from '../utils/hardwareDepositSigning';
 import { isTransactionStatusSignedOrLater } from '../../../Views/confirmations/utils/batch-signing';
 import { subscribeMusdRescueSetupFailures } from '../utils/musdRescueInFlight';
+import {
+  getActiveMfaFlow,
+  subscribeToActiveMfaFlow,
+} from '../../../../util/identity/mfa/engine/activeFlow';
+import type { MfaFlow } from '../../../../util/identity/mfa/engine/types';
+import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -131,6 +141,27 @@ function isAwaitingHardwareSignature(
   );
 }
 
+// An MPC Money account signs only after 2-step verification, which the user
+// can still cancel; the toast waits until verification succeeds.
+function isFromMpcMoneyAccount(transactionMeta: TransactionMeta): boolean {
+  const from = transactionMeta.txParams?.from;
+  return Boolean(
+    from &&
+      Engine.context.KeyringController.state.keyrings.some(
+        ({ type, accounts }) =>
+          type === KeyringTypes.mpcMoney &&
+          accounts.some((account) => areAddressesEqual(account, from)),
+      ),
+  );
+}
+
+function isAwaitingMpcSignature(transactionMeta: TransactionMeta): boolean {
+  return (
+    transactionMeta.status === TransactionStatus.approved &&
+    isFromMpcMoneyAccount(transactionMeta)
+  );
+}
+
 // The Redux copy of TransactionController state trails these messenger events
 // behind EngineService's update batcher. Activity rows would visibly lag the
 // toasts under a busy JS thread, and the hardware signing check would judge a
@@ -161,8 +192,10 @@ export const useMoneyTransactionStatus = () => {
   useEffect(() => {
     const pendingInProgress = pendingInProgressRef.current;
     const pendingCleanups = pendingCleanupsRef.current;
+    const awaitingMpcSignature = new Set<string>();
 
     const cancelPendingInProgress = (transactionId: string) => {
+      awaitingMpcSignature.delete(transactionId);
       const timeoutId = pendingInProgress.get(transactionId);
       if (timeoutId !== undefined) {
         clearTimeout(timeoutId);
@@ -192,7 +225,10 @@ export const useMoneyTransactionStatus = () => {
       getMoneyAccountDepositIntent(transactionMeta.batchId) ??
       resolveMoneyDepositIntent(transactionMeta);
 
-    const showInProgressFor = (transactionMeta: TransactionMeta) => {
+    const showInProgressFor = (
+      transactionMeta: TransactionMeta,
+      { isVerified = false } = {},
+    ) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       const isRescue = isMusdRescueSendTx(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isRescue) return;
@@ -202,6 +238,10 @@ export const useMoneyTransactionStatus = () => {
       // Not reserved yet: a later `signed` event retries via
       // `showInProgressForSignedDeposits`.
       if (isAwaitingHardwareSignature(transactionMeta)) return;
+      if (!isVerified && isAwaitingMpcSignature(transactionMeta)) {
+        awaitingMpcSignature.add(transactionMeta.id);
+        return;
+      }
       if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
       if (pendingInProgress.has(transactionMeta.id)) return;
       const onPress = () =>
@@ -238,6 +278,9 @@ export const useMoneyTransactionStatus = () => {
       const isRescue = isMusdRescueSendTx(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isRescue) return;
       cancelPendingInProgress(transactionMeta.id);
+      // Declining 2-step verification fails the transaction, but the user
+      // chose not to proceed.
+      if (isUserRejectedError(transactionMeta.error, '')) return;
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
       const onPress = () =>
         navigateToMoneyTransactionDetails(transactionMeta.id);
@@ -410,6 +453,10 @@ export const useMoneyTransactionStatus = () => {
           break;
         default:
           showInProgressForSignedDeposits(transactionMeta);
+          // Whitelisted signatures skip verification and reach `submitted`.
+          if (awaitingMpcSignature.delete(transactionMeta.id)) {
+            showInProgressFor(transactionMeta);
+          }
           break;
       }
     };
@@ -435,6 +482,27 @@ export const useMoneyTransactionStatus = () => {
       },
     );
 
+    // A relayed transaction is signed and submitted in one step, so
+    // `submitted` arrives just before `confirmed`; a successful verification
+    // is the earliest sign that the transaction will go out.
+    let watchedFlow: MfaFlow | undefined;
+    const unsubscribeMfaFlows = subscribeToActiveMfaFlow(() => {
+      const flow = getActiveMfaFlow();
+      if (!flow || flow === watchedFlow) return;
+      watchedFlow = flow;
+      flow.result.then(
+        () =>
+          awaitingMpcSignature.forEach((transactionId) => {
+            awaitingMpcSignature.delete(transactionId);
+            const transactionMeta = latestTransactionMeta(transactionId);
+            if (transactionMeta?.status === TransactionStatus.approved) {
+              showInProgressFor(transactionMeta, { isVerified: true });
+            }
+          }),
+        () => undefined,
+      );
+    });
+
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       handleTransactionStatusUpdated,
@@ -446,6 +514,7 @@ export const useMoneyTransactionStatus = () => {
 
     return () => {
       unsubscribeSetupFailures();
+      unsubscribeMfaFlows();
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
         handleTransactionStatusUpdated,

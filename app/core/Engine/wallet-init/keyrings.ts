@@ -1,4 +1,5 @@
 import { RootMessenger } from '../types';
+import { providerErrors } from '@metamask/rpc-errors';
 import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
@@ -49,6 +50,7 @@ import {
   isRealMpcMoneyKeyringBuildEnabled,
 } from '../../../constants/featureFlags';
 import { createMpcTwoFactorApproval } from '../../MpcMoneyKeyring/mpc-two-factor-approval';
+import { MfaFlowError } from '../../../util/identity/mfa/engine/errors';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -95,12 +97,21 @@ async function verifyMoneyMpc(
     MONEY_MFA_METHODS,
   } = require('../../../components/UI/Money/hooks/useMoneyMfa');
   /* eslint-enable @typescript-eslint/no-require-imports */
-  const { token } = await verifyOrEnroll({
-    methods: MONEY_MFA_METHODS,
-    verifyWith: MONEY_MFA_METHODS,
-    maxSessionAgeMs,
-    reason: { operation },
-  });
+  let token: { accessToken: string } | undefined;
+  try {
+    ({ token } = await verifyOrEnroll({
+      methods: MONEY_MFA_METHODS,
+      verifyWith: MONEY_MFA_METHODS,
+      maxSessionAgeMs,
+      reason: { operation },
+    }));
+  } catch (error) {
+    // Closing the prompt declines the request, like rejecting a confirmation.
+    if (error instanceof MfaFlowError && error.mfaCode === 'flow_cancelled') {
+      throw providerErrors.userRejectedRequest();
+    }
+    throw error;
+  }
   if (!token) {
     throw new Error('Money MPC needs 2-step verification');
   }

@@ -253,8 +253,10 @@ export function useMoneyAccountDeposit() {
             MoneyToastOptions.deposit.failed({ intent: options?.intent }),
           );
         }
-        Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
-        showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
+        if (!isUserRejectedError(error, errorObj.message)) {
+          Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
+          showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
+        }
         // Rethrow so the caller can log the failed initiation.
         throw error;
       }
@@ -348,8 +350,10 @@ export function useMoneyAccountWithdrawal() {
         }
         showToast(MoneyToastOptions.withdraw.failed());
       }
-      Logger.error(errorObj, `${LOG_TAG} Withdrawal transaction failed`);
-      showDevErrorAlert(`${LOG_TAG} Withdrawal transaction failed`, errorObj);
+      if (!isUserRejectedError(error, errorObj.message)) {
+        Logger.error(errorObj, `${LOG_TAG} Withdrawal transaction failed`);
+        showDevErrorAlert(`${LOG_TAG} Withdrawal transaction failed`, errorObj);
+      }
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }
