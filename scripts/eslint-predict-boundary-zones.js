@@ -9,8 +9,9 @@
 // - `predictCompositionFiles` is PERMANENT. It names the composition wiring
 //   that has to reach inside Predict: Engine controller and service init,
 //   messengers and Engine types, transaction-pay Polymarket callbacks, the
-//   transaction-controller messenger, App toast registration and
-//   MainNavigator registration (plus the colocated tests of those files).
+//   transaction-controller messenger, App toast registration,
+//   MainNavigator registration and the UI Slots widget and contract
+//   registries (plus the colocated tests of those files).
 //   Keep it small; add to it only for new wiring of the same kind.
 //
 // - `predictImportBurndownFiles` is TEMPORARY. Those files are allowed by
@@ -54,6 +55,12 @@ const predictCompositionFiles = [
   // Legacy stack, modal stack and preview-sheet provider only; routes, route
   // types and availability come from the PredictNext entry point.
   'app/components/Nav/Main/MainNavigator.tsx',
+  // Engine init loads it, so it cannot import the PredictNext entry point:
+  // that would pull the Predict UI into Engine init and load in a cycle.
+  'app/components/UI/UiSlots/contractRegistry.ts',
+  // The Predictions section renders a UI Slot, so the entry point loads this
+  // registry while it loads; importing the entry point back forms a cycle.
+  'app/components/UI/UiSlots/registry.ts',
   'app/core/Engine/controllers/predict-controller/index.test.ts',
   'app/core/Engine/controllers/predict-controller/index.ts',
   'app/core/Engine/controllers/predict-device-auth-service-init.test.ts',
@@ -95,35 +102,8 @@ const predictImportBurndownFiles = [
   'app/components/UI/Rewards/components/Campaigns/PredictThePitchCampaignCTA.tsx',
   'app/components/UI/Rewards/components/Campaigns/PredictThePitchPositionRows.test.tsx',
   'app/components/UI/Rewards/components/Campaigns/PredictThePitchPositionRows.tsx',
-  'app/components/UI/UiSlots/contractRegistry.ts',
-  'app/components/UI/UiSlots/registry.ts',
   'app/components/UI/UrlAutocomplete/index.tsx',
   'app/components/Views/ActivityDetails/ActivityDetails.predict.view.test.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/PredictionsSection.test.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/PredictionsSection.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery/BtcLiveRow.test.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery/BtcLiveRow.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery/ChampionshipRow.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery/index.test.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery/index.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictPositions.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictTrendingCarousel.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictTrendingMarkets.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/PredictMarketCard.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/components/PredictPositionRow.tsx',
-  'app/components/Views/Homepage/Sections/Predictions/constants/homepagePredictMarketSlots.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/useHomepagePredictMarketSlots.test.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/useHomepagePredictMarketSlots.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/useHomepagePredictWorldCupMarkets.test.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/useHomepagePredictWorldCupMarkets.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/usePredictMarketsForHomepage.test.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/usePredictMarketsForHomepage.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/usePredictPositionsForHomepage.test.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/usePredictPositionsForHomepage.ts',
-  'app/components/Views/Homepage/Sections/Predictions/hooks/usePredictionsSectionNavigation.ts',
-  'app/components/Views/Homepage/Sections/Predictions/utils/getPredictHomepageUnrealizedPnlRowState.ts',
-  'app/components/Views/Homepage/Sections/Predictions/utils/marketResolvers.test.ts',
-  'app/components/Views/Homepage/Sections/Predictions/utils/marketResolvers.ts',
   'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.test.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionsCarouselSection.tsx',

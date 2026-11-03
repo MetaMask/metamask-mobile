@@ -34,7 +34,7 @@ const RecurringDelegationFeeInfoSheet = ({
           testID: RecurringDelegationFeeInfoSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
-        {strings('bridge.recurring.delegation_fee_info_title')}
+        {strings('bridge.recurring.account_upgrade_fee_info_title')}
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingBottom={4}>
         <Text
@@ -43,7 +43,7 @@ const RecurringDelegationFeeInfoSheet = ({
           twClassName="text-center"
           testID={RecurringDelegationFeeInfoSheetSelectorsIDs.BODY}
         >
-          {strings('bridge.recurring.delegation_fee_info_body')}
+          {strings('bridge.recurring.account_upgrade_fee_info_body')}
         </Text>
       </Box>
       <BottomSheetFooter
