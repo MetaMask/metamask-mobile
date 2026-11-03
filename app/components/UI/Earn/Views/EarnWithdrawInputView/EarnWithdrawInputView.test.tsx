@@ -1081,7 +1081,7 @@ describe('EarnWithdrawInputView', () => {
 
       // Reveal the TRON unstake preview, which renders the "Unstake" button.
       await act(async () => {
-        fireEvent.press(screen.getByText('Done'));
+        fireEvent.press(screen.getByText('Review'));
       });
 
       await waitFor(() => {
@@ -1089,7 +1089,7 @@ describe('EarnWithdrawInputView', () => {
       });
     });
 
-    it('replaces Max button with Done when non-zero amount is entered', async () => {
+    it('replaces quick amounts with Review when a non-zero amount is entered', async () => {
       const tronToken: TokenI = {
         name: 'Tron',
         symbol: 'TRX',
@@ -1115,8 +1115,35 @@ describe('EarnWithdrawInputView', () => {
 
       await waitFor(() => {
         expect(queryByText('Max')).not.toBeOnTheScreen();
-        expect(getByText('Done')).toBeOnTheScreen();
+        expect(queryByText('25%')).not.toBeOnTheScreen();
+        expect(getByText('Review')).toBeOnTheScreen();
       });
+    });
+
+    it('disables the button when the amount exceeds the staked TRX balance', async () => {
+      const tronToken: TokenI = {
+        name: 'Tron',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        balance: '0.5',
+        balanceFiat: '$100',
+        isNative: true,
+      } as unknown as TokenI;
+
+      const { getByRole, getByText } = render(EarnWithdrawInputView, tronToken);
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', {
+          name: strings('stake.not_enough_token', { ticker: 'TRX' }),
+        }),
+      ).toBeDisabled();
     });
 
     it('tracks TRX staking quick amount with TRX_STAKING experience', async () => {
