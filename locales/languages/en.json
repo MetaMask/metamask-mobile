@@ -695,7 +695,7 @@
     "import_wallet_from_extension": "import from the MetaMask extension",
     "import_menu_title": "Import",
     "import_from_srp_qr": "Import from Secret Recovery Phrase QR Code",
-    "import_from_extension_menu": "Import from the MetaMask extension",
+    "import_from_extension_menu": "Import from MetaMask extension",
     "metamask_password": "MetaMask password",
     "metamask_password_description": "Unlocks MetaMask on this device only.",
     "seed_phrase_required": "Secret Recovery Phrase is required",
@@ -1252,7 +1252,8 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
+      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure_link": "Learn more",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Add money by bank transfer",
@@ -1521,7 +1522,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Apply",
         "apply": "Apply",
         "reset": "Reset",
@@ -1802,6 +1803,8 @@
       "linked_social_account": "Linked social account",
       "save": "Save",
       "save_error": "Couldn't save changes. Check your connection and try again.",
+      "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
+      "display_name_unavailable": "This name isn’t available. Try something different.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_too_short": "Use at least {{min}} characters.",
       "username_too_long": "Use at most {{max}} characters.",
@@ -3718,6 +3721,14 @@
     },
     "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
+    "venue_selector": {
+      "button_label": "Choose a prediction market",
+      "title": "Prediction market",
+      "venues": {
+        "polymarket": "Polymarket",
+        "kalshi": "Kalshi"
+      }
+    },
     "home_sections": {
       "error": "Markets couldn’t be loaded.",
       "retry": "Retry",
@@ -3726,7 +3737,20 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcomes": "Outcomes"
+      "outcomes": "Outcomes",
+      "market_layout": {
+        "moneyline": "Moneyline",
+        "spread": "Spread",
+        "total_points": "Total points",
+        "team_total": "Team total",
+        "full_game": "Full game",
+        "first_half": "1st half",
+        "second_half": "2nd half",
+        "q1": "1st quarter",
+        "q2": "2nd quarter",
+        "q3": "3rd quarter",
+        "q4": "4th quarter"
+      }
     },
     "search": {
       "placeholder": "Search markets",
@@ -10504,9 +10528,9 @@
       "expires_after": "Expires after",
       "slippage_all_orders": "Slippage (all orders)",
       "est_network_fee_per_order": "Est. network fee (per order)",
-      "delegation_fee_one_time": "Delegation fee (one time)",
-      "delegation_fee_info_title": "Delegation fee",
-      "delegation_fee_info_body": "placeholder",
+      "account_upgrade_fee": "Account upgrade fee",
+      "account_upgrade_fee_info_title": "Account upgrade fee",
+      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.",
       "got_it": "Got it",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
@@ -10514,6 +10538,7 @@
       "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",
+        "input_label": "Price range (optional)",
         "not_set": "Not set",
         "token": "Token",
         "price": "Price",
