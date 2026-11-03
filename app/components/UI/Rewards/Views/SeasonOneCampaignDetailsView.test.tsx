@@ -9,6 +9,11 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 
 const mockGoBack = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
   useRoute: () => ({ params: { campaignId: 'campaign-1' } }),

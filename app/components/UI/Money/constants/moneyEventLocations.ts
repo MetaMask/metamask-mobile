@@ -134,7 +134,6 @@ export enum COMPONENT_NAMES {
   FAQ_ITEM = 'money_faq_item',
 
   // — EarnSection —
-  HOMEPAGE_EARN_SECTION = 'homepage_earn_section',
   EXPLORE_EARN_SECTION = 'explore_earn_section',
   EARN_SECTION_MONEY_CARD = 'earn_section_money_card',
 

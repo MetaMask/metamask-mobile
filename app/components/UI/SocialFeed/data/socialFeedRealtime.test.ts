@@ -1,4 +1,5 @@
 import type {
+  AuthorComment,
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
 } from '@metamask/social-controllers';
@@ -58,6 +59,13 @@ const buildSocketRow = (event: SocialFeedEvent): SocialFeedRow => {
   return row;
 };
 
+const buildCall = (uid: string): AuthorComment => ({
+  uid,
+  text: 'this is alpha',
+  timestamp: 1_700_000_000,
+  engagement: { reactions: [], userReaction: null },
+});
+
 describe('socialFeedRealtime', () => {
   it('keeps the buffer below the page size so a catch-up covers evictions', () => {
     expect(SOCIAL_FEED_REALTIME_BUFFER_SIZE).toBeLessThan(FEED_PAGE_LIMIT);
@@ -95,6 +103,38 @@ describe('socialFeedRealtime', () => {
         eventId: 'event-2',
         revision: 2,
       });
+    });
+
+    it('clears the rest authorComment when the realtime copy carries a null authorComment', () => {
+      const restCall = buildCall('call-rest');
+      const current = mockSpotFeedItem({ authorComment: restCall });
+      const event = buildEvent({ data: { authorComment: null } });
+
+      const merged = mergeRealtimeFeedItem(current, event);
+
+      expect(merged.authorComment).toBeNull();
+    });
+
+    it('keeps the rest authorComment when the realtime copy omits authorComment', () => {
+      const restCall = buildCall('call-rest');
+      const current = mockSpotFeedItem({ authorComment: restCall });
+      const event = buildEvent();
+
+      const merged = mergeRealtimeFeedItem(current, event);
+
+      expect(event.data).not.toHaveProperty('authorComment');
+      expect(merged.authorComment).toEqual(restCall);
+    });
+
+    it('takes the realtime authorComment when it carries a Call', () => {
+      const restCall = buildCall('call-rest');
+      const realtimeCall = buildCall('call-realtime');
+      const current = mockSpotFeedItem({ authorComment: restCall });
+      const event = buildEvent({ data: { authorComment: realtimeCall } });
+
+      const merged = mergeRealtimeFeedItem(current, event);
+
+      expect(merged.authorComment).toEqual(realtimeCall);
     });
   });
 
@@ -217,7 +257,53 @@ describe('socialFeedRealtime', () => {
       );
 
       expect(folded.socketRows).toEqual([]);
-      expect(folded.revisedRows.get('pos-a')).toBe(socketRow);
+      expect(folded.revisedRows.get('pos-a')).toEqual(socketRow);
+    });
+
+    it('clears the rest authorComment when a promoted socket copy carries a null authorComment', () => {
+      const restCall = buildCall('call-rest');
+      const socketRow = buildSocketRow(
+        buildEvent({
+          feedItemId: 'pos-a',
+          revision: 3,
+          data: { authorComment: null },
+        }),
+      );
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: restCall,
+      });
+
+      const folded = foldRealtimeRows(
+        [socketRow],
+        new Map(),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(folded.revisedRows.get('pos-a')?.core.authorComment).toBeNull();
+    });
+
+    it('keeps the rest authorComment when a promoted socket copy omits authorComment', () => {
+      const restCall = buildCall('call-rest');
+      const socketRow = buildSocketRow(
+        buildEvent({ feedItemId: 'pos-a', revision: 3 }),
+      );
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: restCall,
+      });
+
+      const folded = foldRealtimeRows(
+        [socketRow],
+        new Map(),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(folded.revisedRows.get('pos-a')?.core.authorComment).toEqual(
+        restCall,
+      );
     });
 
     it('forgets revisions the server caught up with or no longer loads', () => {

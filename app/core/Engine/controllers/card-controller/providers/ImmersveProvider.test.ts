@@ -1541,6 +1541,42 @@ describe('ImmersveProvider', () => {
       expect(data.walletProvisioning?.cardholderName).toBe("José O'Brien");
     });
 
+    it('copies regionCode onto the provisioning country', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'nz' }] },
+          cardDetail: { ...activeCardDetail, regionCode: 'nz' },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.walletProvisioning).toEqual(
+        expect.objectContaining({ countryCode: 'NZ' }),
+      );
+      expect(data.walletProvisioning).not.toHaveProperty('cardProcessor');
+    });
+
+    it('uses the list regionCode when card detail omits it', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'AU' }] },
+          cardDetail: { ...activeCardDetail, regionCode: undefined },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card?.regionCode).toBe('AU');
+      expect(data.walletProvisioning).toEqual(
+        expect.objectContaining({ countryCode: 'AU' }),
+      );
+    });
+
     it('maps regionCode from Immersve card detail onto CardHomeData.card', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(

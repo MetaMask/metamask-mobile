@@ -17,8 +17,19 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+import {
+  REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
+  REACTION_EMOJI_BURST_TEST_ID,
+} from './ReactionEmojiBurst';
 
 jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
+
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: 'viewer-profile-id',
+    isLoading: false,
+  }),
+}));
 
 jest.mock('react-native-device-info', () => ({
   getModel: () => Promise.resolve('iPhone 12'),
@@ -407,12 +418,42 @@ describe('SocialFeedPostShell', () => {
     expect(screen.queryByText('0')).toBeNull();
   });
 
-  it('shows the add-reaction button when the post has no Call id', () => {
+  it('hides reaction controls on a trade-only card and keeps the copy count', () => {
+    renderShell(
+      basePost({
+        commentId: undefined,
+        reactions: [{ emotion: '🔥', count: 12 }],
+        copyCount: 3,
+      }),
+    );
+
+    expect(
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.COPIES}-post-1`),
+    ).toHaveTextContent('3');
+  });
+
+  it('omits the footer when a trade-only card has no copy count', () => {
     renderShell(basePost({ commentId: undefined, reactions: [] }));
 
     expect(
-      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.COPIES}-post-1`),
+    ).toBeNull();
   });
 
   it('keeps the add-reaction button next to existing chips', () => {
@@ -447,7 +488,11 @@ describe('SocialFeedPostShell', () => {
     });
 
     it('adds the reader to a chip when it is pressed', async () => {
-      renderShell(basePost({ commentId: undefined }));
+      jest.mocked(reactToComment).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 13 }],
+        userReaction: '🔥',
+      });
+      renderShell(basePost());
 
       fireEvent.press(screen.getByTestId(chipTestId));
 
@@ -457,12 +502,24 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByTestId(chipTestId)).toHaveProp('accessibilityState', {
         selected: true,
       });
+      await waitFor(() => {
+        const particles = screen.getAllByTestId(
+          REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
+          { includeHiddenElements: true },
+        );
+        expect(particles.length).toBeGreaterThanOrEqual(4);
+        expect(particles.length).toBeLessThanOrEqual(7);
+        expect(particles[0]).toHaveTextContent('🔥');
+      });
     });
 
     it('removes the reader from their own chip when it is pressed', async () => {
+      jest.mocked(removeCommentReaction).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 1 }],
+        userReaction: null,
+      });
       renderShell(
         basePost({
-          commentId: undefined,
           reactions: [{ emotion: '🔥', count: 2 }],
           userReaction: '🔥',
         }),
@@ -473,6 +530,7 @@ describe('SocialFeedPostShell', () => {
       await waitFor(() => {
         expect(screen.getByTestId(chipTestId)).toHaveTextContent('🔥1');
       });
+      expect(screen.queryByTestId(REACTION_EMOJI_BURST_TEST_ID)).toBeNull();
     });
   });
 
