@@ -293,12 +293,29 @@ interface PredictFeed {
   signed value or define a second ordering rule.
 - A missing or unsupported group falls back to the standard Market
   presentation. Malformed known group fields fail runtime validation.
-- `marketType: 'team_total'` is a `marketSelector` line picker per Team. It
-  parses but has no supported composition yet.
+- `marketType: 'team_total'` is a `marketSelector` line picker per Team: one
+  group per Team, each with its Over/Under lines. The layout projection makes
+  one line-picker card per Team.
 - `Market.layout` is optional. The backend places a Market on the Event screen
   as tab › section › optional subgroup, each a key and an `order` among its
   siblings. Unknown keys are valid. A malformed `layout` is dropped and the
   Market still parses, because layout is presentation only.
+- The Event screen projects laid-out Markets into tabs › sections › periods ›
+  cards (`createMarketLayoutProjection`):
+  - Every tab, section and subgroup key is projected; mobile keeps no
+    allowlist. The renderer shows every section, titled from its key.
+  - The card type follows the group's shape: a `choice` group of two or more
+    Markets, a `marketSelector` line picker of any `marketType`, or one
+    standard card per Market. A Market without a group, a group of an unknown
+    `groupType`, or a group with inconsistent lines becomes standard cards in
+    its period. Laid-out Markets are never dropped.
+  - A line picker of a `marketType` the renderer has no card for renders its
+    lines as standard cards, with a development warning.
+  - A Market without `layout` joins its group's layout when another member of
+    the group has one, so a group never splits. Other Markets without layout
+    keep the flat presentation.
+  - Levels sort by `order`, then first appearance; a Market without a subgroup
+    sorts as subgroup order -1, as the API does.
 - Game winner UI (cards, live subscriptions, header and chart) reads the Game's
   full-game moneyline: the `choice` Markets laid out under `moneyline` ›
   `full_game`, then their unique `gameSelection` quotes. Period moneylines share
