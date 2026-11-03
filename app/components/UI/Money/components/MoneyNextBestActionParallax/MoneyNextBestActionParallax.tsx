@@ -12,14 +12,16 @@ import LinearGradient from 'react-native-linear-gradient';
 import {
   Fit,
   RiveView,
+  useRive,
   useRiveFile,
   type RiveError,
 } from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
-import { useReduceMotion } from '../../hooks/useReduceMotion';
+import { useReduceMotionState } from '../../hooks/useReduceMotion';
 import { useRiveParallaxTilt } from '../../hooks/useRiveParallaxTilt';
 import { shapeParallaxTilt, smoothParallaxTilt } from '../../utils/parallax';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
 import NextBestActionParallaxAnimation from '../../../../../animations/next_best_action_module_v1.riv';
 import styles from './MoneyNextBestActionParallax.styles';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
@@ -38,6 +40,13 @@ const PARALLAX_BACKGROUND_COLORS = [
   'rgb(57, 93, 191)',
 ];
 
+/**
+ * Bounds how long the card may be withheld while the file, view model or
+ * native view loads. Past this, the static image is shown for the rest of the
+ * mount: a card that never appears is worse than one that does not animate.
+ */
+const RIVE_LOAD_TIMEOUT_MS = 1500;
+
 interface MoneyNextBestActionParallaxProps {
   /** Rive artboard to render (see PARALLAX_ARTBOARD_* constants). */
   artboardName: string;
@@ -54,15 +63,32 @@ const MoneyNextBestActionParallax = ({
   testID,
 }: MoneyNextBestActionParallaxProps) => {
   const flagEnabled = useSelector(selectMoneyParallaxAnimationEnabledFlag);
-  const reduceMotion = useReduceMotion();
+  const reduceMotionState = useReduceMotionState();
+  const hardwareTier = getHardwareTier();
   const [erroredArtboard, setErroredArtboard] = useState<string | null>(null);
+  // Latched once the file, view model or native view has been pending too
+  // long, so a slow or failed load settles on the static image.
+  const [hasRiveLoadTimedOut, setHasRiveLoadTimedOut] = useState(false);
   const hasRiveError = erroredArtboard === artboardName;
   // Last values shaped for the artboard, in tilt units (0 = at rest). Kept
   // here rather than in state so smoothing costs no re-renders.
   const smoothedTilt = useRef({ x: 0, y: 0 });
 
-  const { riveFile } = useRiveFile(NextBestActionParallaxAnimation);
-  const animate = flagEnabled && !reduceMotion && !hasRiveError;
+  const { riveFile, error: riveFileError } = useRiveFile(
+    NextBestActionParallaxAnimation,
+  );
+  const { riveViewRef, setHybridRef } = useRive();
+
+  // `null` (reduce-motion still resolving) must not be treated as "reduce
+  // motion on": the animation decision is withheld until it resolves.
+  const willAnimate =
+    flagEnabled &&
+    !hasRiveError &&
+    !riveFileError &&
+    !hasRiveLoadTimedOut &&
+    hardwareTier !== 'LOW';
+  const reduceMotionPending = willAnimate && reduceMotionState === null;
+  const animate = willAnimate && reduceMotionState === false;
 
   // The Rive view is remounted per artboard and whenever animation resumes,
   // and a fresh one starts at the artboard's rest pose. Carrying the previous
@@ -85,6 +111,21 @@ const MoneyNextBestActionParallax = ({
     shapeTilt,
   });
 
+  // Nothing is painted until the file, the view model and the native view are
+  // all ready: the gradient and the Rive card are revealed together, so the
+  // card never appears statically (or as a bare gradient) first.
+  const isRivePending = animate && !(riveFile && instance && riveViewRef);
+
+  useEffect(() => {
+    if (!isRivePending) return undefined;
+
+    const timeout = setTimeout(
+      () => setHasRiveLoadTimedOut(true),
+      RIVE_LOAD_TIMEOUT_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [isRivePending]);
+
   const handleError = useCallback(
     (riveError: RiveError) => {
       log(`Rive error: ${riveError.message}`);
@@ -94,7 +135,11 @@ const MoneyNextBestActionParallax = ({
   );
 
   let content: React.ReactNode;
-  if (animate) {
+  if (reduceMotionPending) {
+    // Withheld until the reduce-motion setting resolves, so the card is never
+    // shown statically and then replaced by the Rive view.
+    content = null;
+  } else if (animate) {
     content = (
       <>
         <LinearGradient
@@ -108,6 +153,7 @@ const MoneyNextBestActionParallax = ({
             // the artboard but leaves data binding pointing at the previous
             // one.
             key={artboardName}
+            hybridRef={setHybridRef}
             file={riveFile}
             artboardName={artboardName}
             dataBind={instance}
@@ -133,7 +179,7 @@ const MoneyNextBestActionParallax = ({
 
   return (
     <Box
-      style={style}
+      style={[style, isRivePending ? styles.hidden : undefined]}
       twClassName={
         animate
           ? 'w-full aspect-video overflow-hidden rounded-2xl'
