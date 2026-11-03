@@ -47,11 +47,12 @@ describe('describeOnboardingFailure', () => {
     ['onboarding_unavailable', 'generic', 'retry'],
     ['venue_auth_rejected', 'generic', 'retry'],
     ['onboarding_venue_error', 'generic', 'retry'],
-    ['venue_auth_invalid', 'generic', 'retry'],
+    ['venue_authorization_invalid', 'generic', 'retry'],
+    ['venue_signature_expired', 'generic', 'retry'],
     ['onboarding_not_ready', 'generic', 'status'],
     ['onboarding_not_found', 'demo_unavailable', 'close'],
-    ['venue_signature_required', 'generic', 'close'],
-    ['venue_auth_malformed', 'generic', 'close'],
+    ['venue_authorization_required', 'generic', 'close'],
+    ['venue_authorization_malformed', 'generic', 'close'],
     ['onboarding_bad_request', 'generic', 'close'],
   ])('maps %s to %s / %s', (code, message, next) => {
     expect(describeOnboardingFailure(http(409, code))).toMatchObject({

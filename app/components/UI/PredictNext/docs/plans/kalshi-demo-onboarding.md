@@ -1,5 +1,7 @@
 # Kalshi demo onboarding (temporary): mobile plan
 
+> **Superseded in part by [ADR-0004](../adr/0004-venue-request-templates.md) (2026-11-03).** The `428 venue_signature_required` exchange, the `Kalshi-Device-Auth` header and the signing policy that checked a 428 are gone. The phone renders each venue request from its signing profile and sends it, signed, on the first call in a `Venue-Authorization` header. The onboarding flow and its states still apply.
+
 - **Status:** Proposed
 - **Date:** 2026-10-26
 - **Scope:** Kalshi **demo** only. Unblocks balance and trading work until KYC designs and the real onboarding flow exist. Delete it then (§11).

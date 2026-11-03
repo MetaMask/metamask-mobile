@@ -1,5 +1,7 @@
 # Kalshi request signing on the phone: implementation plan
 
+> **Superseded in part by [ADR-0004](../adr/0004-venue-request-templates.md) (2026-11-03).** The `428 venue_signature_required` exchange, the `Kalshi-Device-Auth` header and the signing policy that checked a 428 are gone. The phone renders each venue request from its signing profile and sends it, signed, on the first call in a `Venue-Authorization` header. The signer, the allowlist idea and the phone-owned fields still apply.
+
 - **Status:** Proposed
 - **Date:** 2026-10-26
 - **Server plan:** `va-mmcx-predict-api/docs/KALSHI_DEVICE_SIGNING_PLAN.md`. Read §3 there for the wire types `VenueRequest`, the `Kalshi-Device-Auth` envelope and the `428 venue_signature_required` contract.

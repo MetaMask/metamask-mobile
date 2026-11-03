@@ -4,7 +4,7 @@ The signing profile holds a template for every venue request the phone may sign.
 
 Nothing asks "what do I sign?", so no route needs an error status for that. The profile is data that names allowlisted implementations shipped with the app, so client code stays venue-agnostic. The profile is bundled in the app today. Later it moves to a backend that is not the Predict API.
 
-Status: proposed, 2026-11-03. This replaces the `428 venue_signature_required` exchange and amends [ADR-0003](0003-backend-driven-venue-authentication.md). ADR-0003's trust model is kept: the phone signs only what its pinned profile allows, and it owns identity and freshness.
+Status: accepted. Phase 1 (framework, onboarding and balance) is implemented as of 2026-11-03. This replaces the `428 venue_signature_required` exchange and amends [ADR-0003](0003-backend-driven-venue-authentication.md). ADR-0003's trust model is kept: the phone signs only what its pinned profile allows, and it owns identity and freshness.
 
 ## Context
 
@@ -125,7 +125,7 @@ Every value comes from a closed set of sources implemented in the app:
 | `map`                    | `{ map: { inputs: ['action', 'outcome'], table: { 'buy:yes': 'bid', 'buy:no': 'ask', 'sell:yes': 'ask', 'sell:no': 'bid' } } }` | The table entry for those inputs            |
 | `value`                  | `{ value: 'cursor', shape: { opaque: { maxLength: 512 } } }`                                                                    | A named server value, after its shape check |
 
-Shapes are `uuid-v4`, `int { min, max }`, `decimal { scale, min, max }`, `opaque { maxLength }`, `oneOf [...]`, `array { of }` and `time { unit, after, before }`. A time window may be anchored to phone state (the moment an intent was pinned) or to the phone clock.
+Shapes are written as `{ kind, ... }`: `uuid-v4`, `int { min, max }`, `decimal { scale, min, max }` (a decimal string), `opaque { maxLength }` (a non-empty string), `oneOf { values }`, `array { of, maxItems }` and `time { unit, maxAgeSec, maxAheadSec }`. A time window is anchored to the phone clock. An `input` source takes a `transform` (`trim`, `decimal-fixed-2`, `decimal-fixed-4`) and an optional `shape`, and the shape describes the rendered value, after the transform. An optional query key is left out only when its input or value is absent. A value that is present and refused is always an error.
 
 Rendering follows these rules:
 
@@ -201,7 +201,7 @@ The phone takes these steps:
 
 A refusal signs nothing and throws the rule id. The client shows a generic error and logs only the rule.
 
-The envelope is `{ v, signingProfileId, step, credential, signatures }`. For `device-p256-rfc9421-v1`, `credential` is `{ a2t, deviceKey, salt }`. The signatures are listed in the order the step's requests were rendered. The header name is the same for every venue.
+The envelope is `{ v, signingProfileId, step, credential, signatures }`. For `device-p256-rfc9421-v1`, `credential` is `{ a2t, deviceKey, salt }`, and each signature is `{ requestId, signatureInput, signature }`. A signature does not repeat the method, path, query, digest or idempotency key: predict-api renders the requests itself and pairs signature _n_ with request _n_, in the order the step's requests were rendered. The header name, `Venue-Authorization`, is the same for every venue.
 
 The route then:
 
@@ -258,12 +258,14 @@ Each signed route declares its canonical operation and a step resolver:
 ```ts
 @VenueOperation('portfolio.balance')
 @Get('balance')
-balance(@VenueCalls() calls: VenueCalls) { ... }
+balance(@VenueCalls() calls: VenueCallSet) {
+  const [balance] = calls.prepare(); // renders, verifies, and returns the calls
+}
 ```
 
 - The guard resolves the step (`default`, unless the resolver reads one from durable state or a continuation token).
-- The guard collects the route's inputs and server values, renders the step from the profile, and verifies the envelope.
-- The handler can relay only the rendered requests, through `VenueCalls`.
+- The guard parses the envelope and verifies the A2T. A guard runs before body validation, so the handler passes its validated inputs and its server values to `calls.prepare({ inputs, values, step })`. That renders the step from the profile and verifies each signature against the rendered request.
+- The handler can relay only what `prepare` returns, with the headers it returns. A template the profile cannot render from the validated inputs answers `400 venue_authorization_malformed`.
 - Step resolvers read durable state only, never in-memory caches, so a step the server issued is the step it verifies.
 
 ### Adding an operation
@@ -409,7 +411,7 @@ What remains uncovered is the same as in ADR-0003: a forged catalog mapping, and
 - The profile is the single description of the venue wire format, and both repos render from it. Venue request builders for user-scoped calls leave the Predict API.
 - A Kalshi wire change is a profile change. While profiles are bundled, that means an app release.
 - Multi-step operations take one call per step. Order observation needs a larger bound on its loop (`MAX_COMMIT_OBSERVATIONS`).
-- `KALSHI_HARDCODED_USER`, the `api-key` venue auth variant and the admin-key portfolio reads are removed once every operation uses templates.
+- The `api-key` venue auth variant and the admin-key portfolio reads are removed once every operation uses templates. `KALSHI_HARDCODED_USER` and `KALSHI_DEVICE_AUTHORITY` were removed in Phase 1: no route reads the first, and the authority is part of the profile.
 
 ## Rollout
 
@@ -423,7 +425,7 @@ During a phase, routes that haven't moved keep working as they do today. A route
 | 1. Framework, onboarding and balance | The profile format and renderers, `signOperation`, `Venue-Authorization`, and the onboarding and balance operations (details below)                                                                                                                                                                                                                   | A new demo user onboards and reads their balance with no 428 and no shared account          |
 | 2. Orders                            | Preview takes the phone's idempotency key, stores `client_order_id`, `price` and `count`, and returns them. Commit uses the `order_create` template and `binary-limit-order-v1`. Observation is stepped: the scan cursor and absence state are stored, and re-arming is split from resubmitting. The approved-intent ledger is added                  | A buy and a sell place, and an ambiguous submit reconciles, on the user's own account       |
 | 3. Portfolio reads                   | Positions, Summary and Activity become multi-step operations with `continuation`. Prerequisite: Kalshi confirms that the device lane serves `/portfolio/settlements`, `/portfolio/fills` and `/historical/positions` (ISV §8 lists only orders, positions and balance), and how to tell "not enrolled" from "route not served" in `permission_denied` | Every portfolio screen reads the user's own account, including multi-page traversals        |
-| 4. Cleanup                           | Remove `KALSHI_HARDCODED_USER`, the `api-key` venue auth variant, `VenueAuthException.required`, the admin-key portfolio helpers and every remaining 428 in code, docs and fixtures. Market data keeps the admin key                                                                                                                                  | Nothing reads a user account with the admin key                                             |
+| 4. Cleanup                           | Remove the admin-key portfolio helpers and the admin-key balance read order preview and commit still use. Market data keeps the admin key                                                                                                                                                                                                             | Nothing reads a user account with the admin key                                             |
 | Later                                | Funding, withdrawals, compliance and anything else that is added, as their flows are decided. That includes how the user authorizes admin-key-only calls                                                                                                                                                                                              | —                                                                                           |
 
 ### Phase 0: revert to a working baseline
@@ -450,7 +452,7 @@ During a phase, routes that haven't moved keep working as they do today. A route
 
 - Add the v2 format: implementation id and parameters, operations with steps, request templates, sources, shapes, and invariants (none needed yet).
 - Add the Kalshi demo entries for `portfolio.balance` and the five onboarding operations.
-- The document lives in the shared fixture. The app bundles it and the Predict API loads it.
+- The document is a TypeScript constant in each repo (`auth/venueSigningProfiles.ts` here, `venue-signing/signing-profile.ts` in the Predict API). Each repo has a test that keeps its constant equal to `profile` in the shared fixture `venue-signing-v2.json`, so the two cannot drift apart.
 
 **Mobile.**
 
@@ -461,9 +463,9 @@ During a phase, routes that haven't moved keep working as they do today. A route
 
 **Predict API.**
 
-- Add the profile loader and the renderer.
-- Add the `VenueOperation` guard, which renders, verifies, and gives the handler `VenueCalls`.
+- Add the profile and the renderer (`apps/api/src/venue-signing/`). The renderer file is a byte-for-byte twin of the phone's `venueTemplates.ts`.
+- Add the `VenueOperation` guard, which parses the envelope and verifies the A2T, and `VenueCallSet.prepare`, which renders, verifies, and gives the handler the calls to relay.
 - Move the balance and onboarding routes to the guard, dropping their 428 paths and the onboarding request builders.
 - Define the `continuation` and `next` response shapes and the HMAC continuation token, even though nothing uses them until Phase 2.
 
-**Shared fixture.** For each operation: inputs, values, the expected rendered requests, the signing bases and the verdicts. Both renderers are tested against it.
+**Shared fixture.** `venue-signing-v2.json` holds the profile, a case for each operation (inputs, values, the expected rendered requests, their digests and signing bases), the inputs the renderer must refuse, and one real signature vector. Both repos test against it, and a real device signature made on the phone side verifies on the server side.

@@ -81,7 +81,7 @@ const mapError = (error: unknown): never => {
     }
     // Venue authentication failures are 403s too, but they are about the
     // user's Kalshi account or device signature, not their region.
-    if (error.bodyCode === 'venue_auth_invalid') {
+    if (error.bodyCode === 'venue_authorization_invalid') {
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
     }
     if (error.bodyCode === 'venue_account_not_enabled') {

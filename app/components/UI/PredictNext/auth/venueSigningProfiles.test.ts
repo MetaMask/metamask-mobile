@@ -1,4 +1,4 @@
-import fixture from '../contracts/v1/fixtures/kalshi-signing-v1.json';
+import fixture from '../contracts/v1/fixtures/venue-signing-v2.json';
 import { KALSHI_AUTHENTICATION_PROFILE } from './venueAuthProfiles';
 import {
   coveredComponents,
@@ -7,8 +7,10 @@ import {
 } from './venueSigningProfiles';
 
 describe('venueSigningProfiles', () => {
-  it('pins the same operations predict-api builds from', () => {
-    expect(KALSHI_DEMO_SIGNING_PROFILE.operations).toEqual(fixture.operations);
+  it('is the profile document predict-api renders from', () => {
+    expect(JSON.parse(JSON.stringify(KALSHI_DEMO_SIGNING_PROFILE))).toEqual(
+      fixture.profile,
+    );
   });
 
   it('covers the components predict-api verifies', () => {
@@ -18,6 +20,12 @@ describe('venueSigningProfiles', () => {
     expect(coveredComponents(KALSHI_DEMO_SIGNING_PROFILE, 'POST')).toEqual(
       fixture.mutationComponents,
     );
+  });
+
+  it('keeps the envelope bound within what predict-api accepts', () => {
+    expect(
+      KALSHI_DEMO_SIGNING_PROFILE.implementation.params.maxSignatures,
+    ).toBeLessThanOrEqual(8);
   });
 
   it('resolves the Kalshi signing profile from the authentication profile', () => {

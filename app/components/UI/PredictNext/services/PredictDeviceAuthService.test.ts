@@ -5,16 +5,13 @@ import {
 } from './PredictDeviceAuthService';
 import { A2tSession } from '../auth/a2tSession';
 import { createP256DeviceKey } from '../auth/p256DeviceKey';
-import { VenueSigningPolicyError } from '../auth/signing/venueSigningPolicy';
+import { TemplateError } from '../auth/signing/venueTemplates';
 import {
   KALSHI_AUTHENTICATION_PROFILE,
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
-import {
-  coveredComponents,
-  KALSHI_DEMO_SIGNING_PROFILE,
-} from '../auth/venueSigningProfiles';
+import { KALSHI_DEMO_SIGNING_PROFILE } from '../auth/venueSigningProfiles';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -129,7 +126,7 @@ describe('PredictDeviceAuthService', () => {
     expect(registerActionHandler.mock.calls.map(([type]) => type)).toEqual([
       'PredictDeviceAuthService:ensureDeviceKey',
       'PredictDeviceAuthService:getA2t',
-      'PredictDeviceAuthService:signVenueRequests',
+      'PredictDeviceAuthService:signOperation',
       'PredictDeviceAuthService:prefetch',
       'PredictDeviceAuthService:clear',
       'PredictDeviceAuthService:reset',
@@ -145,77 +142,83 @@ describe('PredictDeviceAuthService', () => {
     expect(mockGetA2t).toHaveBeenCalledTimes(1);
   });
 
-  describe('signVenueRequests', () => {
-    const balanceInstruction = {
-      ref: 'balance',
-      method: 'GET' as const,
-      path: '/trade-api/v2/portfolio/balance',
-      query: '',
-      components: [...coveredComponents(KALSHI_DEMO_SIGNING_PROFILE, 'GET')],
-    };
-    const required = {
-      authority: KALSHI_DEMO_SIGNING_PROFILE.authority,
-      requests: [balanceInstruction],
-    };
-    const intent = { operations: ['balance'] };
+  describe('signOperation', () => {
+    const KEY = 'a1b2c3d4-1111-4222-8333-444455556666';
 
     const decodeHeader = (value: string) =>
       JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as {
-        a2t: string;
-        deviceKey: string;
-        salt: string;
-        signatures: { method: string; path: string }[];
+        v: number;
+        signingProfileId: string;
+        step: string;
+        credential: { a2t: string; deviceKey: string; salt: string };
+        signatures: { requestId: string; signatureInput: string }[];
       };
 
-    it('signs requests the profile accepts and returns the device-auth header', async () => {
+    it('renders and signs the operation and returns the Venue-Authorization header', async () => {
       const { service } = createService();
 
-      const header = await service.signVenueRequests(intent, required);
+      const header = await service.signOperation('portfolio.balance');
 
-      expect(header?.name).toBe('Kalshi-Device-Auth');
+      expect(header?.name).toBe('Venue-Authorization');
       expect(decodeHeader(header?.value as string)).toMatchObject({
-        a2t: 'opaque-a2t',
-        deviceKey: 'public-key',
-        salt: 'salt',
-        signatures: [
-          { method: 'GET', path: '/trade-api/v2/portfolio/balance' },
-        ],
+        v: 2,
+        signingProfileId: KALSHI_DEMO_SIGNING_PROFILE.id,
+        step: 'default',
+        credential: {
+          a2t: 'opaque-a2t',
+          deviceKey: 'public-key',
+          salt: 'salt',
+        },
+        signatures: [{ signatureInput: expect.stringContaining('kalshi=(') }],
       });
       expect(mockSignDeviceBytes).toHaveBeenCalledTimes(1);
     });
 
-    it('throws the policy rule and signs nothing for a request the profile refuses', async () => {
+    it('signs one signature per rendered request, in render order', async () => {
+      const { service } = createService();
+
+      const header = await service.signOperation('onboarding.status');
+
+      expect(decodeHeader(header?.value as string).signatures).toHaveLength(2);
+      expect(mockSignDeviceBytes).toHaveBeenCalledTimes(2);
+    });
+
+    it('signs a mutation from the user inputs', async () => {
+      const { service } = createService();
+
+      const header = await service.signOperation('onboarding.link', {
+        inputs: { email: 'user@example.com', idempotencyKey: KEY },
+      });
+
+      expect(decodeHeader(header?.value as string).signatures).toHaveLength(1);
+      const signed = new TextDecoder().decode(
+        mockSignDeviceBytes.mock.calls[0][0],
+      );
+      expect(signed).toContain('"@authority": demo-api.kalshi.co');
+      expect(signed).toContain(`"idempotency-key": ${KEY}`);
+    });
+
+    it('throws the template rule and signs nothing for a request the profile refuses', async () => {
       const { service } = createService();
 
       await expect(
-        service.signVenueRequests(intent, {
-          ...required,
-          requests: [{ ...balanceInstruction, path: '/trade-api/v2/orders' }],
+        service.signOperation('onboarding.link', {
+          inputs: { idempotencyKey: KEY },
         }),
-      ).rejects.toMatchObject({
-        name: 'VenueSigningPolicyError',
-        rule: 'route',
-      });
+      ).rejects.toMatchObject({ name: 'TemplateError', rule: 'input' });
+      await expect(
+        service.signOperation('portfolio.balance', { step: 'scan' }),
+      ).rejects.toBeInstanceOf(TemplateError);
 
       expect(mockSignDeviceBytes).not.toHaveBeenCalled();
       expect(mockGetA2t).not.toHaveBeenCalled();
-    });
-
-    it('refuses an operation the call did not allow', async () => {
-      const { service } = createService();
-
-      await expect(
-        service.signVenueRequests({ operations: ['link'] }, required),
-      ).rejects.toBeInstanceOf(VenueSigningPolicyError);
-
-      expect(mockSignDeviceBytes).not.toHaveBeenCalled();
     });
 
     it('returns undefined and signs nothing when disabled', async () => {
       const { service } = createService({ enabled: false });
 
       await expect(
-        service.signVenueRequests(intent, required),
+        service.signOperation('portfolio.balance'),
       ).resolves.toBeUndefined();
 
       expect(mockSignDeviceBytes).not.toHaveBeenCalled();
@@ -225,7 +228,7 @@ describe('PredictDeviceAuthService', () => {
       const { service } = createService({ signedIn: false });
 
       await expect(
-        service.signVenueRequests(intent, required),
+        service.signOperation('portfolio.balance'),
       ).resolves.toBeUndefined();
 
       expect(mockSignDeviceBytes).not.toHaveBeenCalled();
@@ -238,7 +241,7 @@ describe('PredictDeviceAuthService', () => {
       });
 
       await expect(
-        service.signVenueRequests(intent, required),
+        service.signOperation('portfolio.balance'),
       ).resolves.toBeUndefined();
 
       expect(mockSignDeviceBytes).not.toHaveBeenCalled();

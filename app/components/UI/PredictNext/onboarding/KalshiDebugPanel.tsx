@@ -1,11 +1,17 @@
 import React, { useCallback, useState } from 'react';
 import { Modal, ScrollView } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -34,14 +40,44 @@ interface DebugSnapshot {
   lastEmail?: string;
 }
 
-const Row = ({ label, value }: { label: string; value?: string }) => (
+export const KalshiDebugTestIds = {
+  OPEN: 'kalshi-debug-open',
+  COPY_PROFILE_ID: 'kalshi-debug-copy-profile-id',
+} as const;
+
+const Row = ({
+  label,
+  value,
+  onCopy,
+  copyTestID,
+}: {
+  label: string;
+  value?: string;
+  onCopy?: () => void;
+  copyTestID?: string;
+}) => (
   <Box twClassName="gap-0.5">
     <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
       {label}
     </Text>
-    <Text variant={TextVariant.BodySm} selectable>
-      {value ?? '—'}
-    </Text>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+    >
+      <Text variant={TextVariant.BodySm} selectable twClassName="flex-1">
+        {value ?? '—'}
+      </Text>
+      {onCopy && value ? (
+        <ButtonIcon
+          iconName={IconName.Copy}
+          size={ButtonIconSize.Sm}
+          onPress={onCopy}
+          accessibilityLabel={`Copy ${label}`}
+          testID={copyTestID}
+        />
+      ) : null}
+    </Box>
   </Box>
 );
 
@@ -117,21 +153,27 @@ export const KalshiDebugPanel = ({
     setTimeout(requestKalshiRelink, 600);
   }, []);
 
+  const copyProfileId = useCallback(() => {
+    const profileId = snapshot?.a2t.sub;
+    if (profileId) {
+      Clipboard.setString(profileId);
+    }
+  }, [snapshot?.a2t.sub]);
+
   if (!isKalshiDemoOnboardingEnabled()) {
     return null;
   }
 
   return (
-    <>
-      <Box twClassName="self-start">
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          onPress={open}
-        >
-          Kalshi debug
-        </Button>
-      </Box>
+    <Box>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Sm}
+        onPress={open}
+        testID={KalshiDebugTestIds.OPEN}
+      >
+        Kalshi debug
+      </Button>
       <Modal
         visible={visible}
         animationType="slide"
@@ -162,7 +204,12 @@ export const KalshiDebugPanel = ({
                 : undefined
             }
           />
-          <Row label="Profile ID (A2T sub)" value={snapshot?.a2t.sub} />
+          <Row
+            label="Profile ID (A2T sub)"
+            value={snapshot?.a2t.sub}
+            onCopy={copyProfileId}
+            copyTestID={KalshiDebugTestIds.COPY_PROFILE_ID}
+          />
           <Row label="A2T audience" value={snapshot?.a2t.aud} />
           <Row label="A2T expires" value={snapshot?.a2t.expiresAt} />
           <Row
@@ -206,6 +253,6 @@ export const KalshiDebugPanel = ({
           </Box>
         </ScrollView>
       </Modal>
-    </>
+    </Box>
   );
 };

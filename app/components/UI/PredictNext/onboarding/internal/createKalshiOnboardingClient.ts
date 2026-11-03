@@ -8,11 +8,11 @@ export const createKalshiOnboardingClient = (): KalshiOnboardingClient =>
     clientVersion: packageJSON.version,
     getBearerToken: () =>
       Engine.context.AuthenticationController.getBearerToken(),
-    signRequests: (intent, required) =>
+    signOperation: (operation, input) =>
       Engine.controllerMessenger.call(
-        'PredictDeviceAuthService:signVenueRequests',
-        intent,
-        required,
+        'PredictDeviceAuthService:signOperation',
+        operation,
+        input,
       ),
     invalidateSigningSession: () =>
       Engine.controllerMessenger.call('PredictDeviceAuthService:clear'),

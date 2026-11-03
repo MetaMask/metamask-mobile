@@ -194,14 +194,15 @@ const NEW_ACCOUNT_CODES = new Set([
 const RETRY_CODES = new Set([
   'onboarding_unavailable',
   'venue_auth_rejected',
-  'venue_auth_invalid',
+  'venue_authorization_invalid',
+  'venue_signature_expired',
   'onboarding_venue_error',
   'venue_account_not_enabled',
 ]);
 
 const BUG_CODES = new Set([
-  'venue_signature_required',
-  'venue_auth_malformed',
+  'venue_authorization_required',
+  'venue_authorization_malformed',
   'onboarding_bad_request',
 ]);
 

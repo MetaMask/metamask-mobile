@@ -10,22 +10,27 @@ import {
   type P256DeviceKey,
   type P256DevicePublicMaterial,
 } from '../auth/p256DeviceKey';
-import { buildDeviceAuthEnvelope } from '../auth/signing/deviceAuthEnvelope';
 import {
   signDeviceRequest,
   type DeviceSigningContext,
 } from '../auth/signing/deviceRequestSigner';
-import type { SignatureRequired } from '../auth/signing/venueRequest';
-import {
-  checkVenueSigningRequest,
-  VenueSigningPolicyError,
-  type VenueSigningIntent,
-} from '../auth/signing/venueSigningPolicy';
+import { buildVenueAuthorization } from '../auth/signing/venueAuthorization';
+import type {
+  DeviceAuthHeader,
+  SignOperationInput,
+} from '../auth/signing/signOperationTypes';
+import { renderStep } from '../auth/signing/venueTemplates';
 import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
-import { resolveBundledSigningProfile } from '../auth/venueSigningProfiles';
+import {
+  resolveBundledSigningProfile,
+  VENUE_AUTHORIZATION_HEADER,
+  type VenueOperationName,
+} from '../auth/venueSigningProfiles';
+
+export type { DeviceAuthHeader, SignOperationInput };
 
 export const PREDICT_DEVICE_AUTH_SERVICE_NAME =
   'PredictDeviceAuthService' as const;
@@ -40,17 +45,11 @@ export interface PredictDeviceAuthServiceGetA2tAction {
   handler: () => Promise<string | undefined>;
 }
 
-/** A device-auth header to attach to the predict-api retry. */
-export interface DeviceAuthHeader {
-  name: string;
-  value: string;
-}
-
-export interface PredictDeviceAuthServiceSignVenueRequestsAction {
-  type: 'PredictDeviceAuthService:signVenueRequests';
+export interface PredictDeviceAuthServiceSignOperationAction {
+  type: 'PredictDeviceAuthService:signOperation';
   handler: (
-    intent: VenueSigningIntent,
-    required: SignatureRequired,
+    operation: VenueOperationName,
+    input?: SignOperationInput,
   ) => Promise<DeviceAuthHeader | undefined>;
 }
 
@@ -72,7 +71,7 @@ export interface PredictDeviceAuthServiceResetAction {
 export type PredictDeviceAuthServiceActions =
   | PredictDeviceAuthServiceEnsureDeviceKeyAction
   | PredictDeviceAuthServiceGetA2tAction
-  | PredictDeviceAuthServiceSignVenueRequestsAction
+  | PredictDeviceAuthServiceSignOperationAction
   | PredictDeviceAuthServicePrefetchAction
   | PredictDeviceAuthServiceClearAction
   | PredictDeviceAuthServiceResetAction;
@@ -138,8 +137,8 @@ export class PredictDeviceAuthService {
       this.getA2t.bind(this),
     );
     messenger.registerActionHandler(
-      'PredictDeviceAuthService:signVenueRequests',
-      this.signVenueRequests.bind(this),
+      'PredictDeviceAuthService:signOperation',
+      this.signOperation.bind(this),
     );
     messenger.registerActionHandler(
       'PredictDeviceAuthService:prefetch',
@@ -177,17 +176,18 @@ export class PredictDeviceAuthService {
   }
 
   /**
-   * Checks a `428 venue_signature_required` against the bundled signing
-   * profile of the active authentication profile (ADR-0003 L1 and L2), then
-   * signs the accepted requests and returns the device-auth header. The
-   * authority, lifetime and covered components come from the profile, never
-   * from the 428. Throws `VenueSigningPolicyError` and signs nothing when the
-   * check fails. Returns undefined when signing is not available (disabled,
-   * locked, signed out, no signing profile, or no A2T).
+   * Renders the operation's requests from the bundled signing profile of the
+   * active authentication profile, the caller's inputs and the server values,
+   * then signs them and returns the `Venue-Authorization` header (ADR-0004).
+   * The authority, lifetime and covered components come from the profile and
+   * the device, never from predict-api. Throws `TemplateError` and signs
+   * nothing when the profile does not allow the request. Returns undefined
+   * when signing is not available (disabled, locked, signed out, no signing
+   * profile, or no A2T).
    */
-  async signVenueRequests(
-    intent: VenueSigningIntent,
-    required: SignatureRequired,
+  async signOperation(
+    operation: VenueOperationName,
+    input: SignOperationInput = {},
   ): Promise<DeviceAuthHeader | undefined> {
     const enabled = this.#deps.isEnabled();
     const unlocked = this.#deps.isUnlocked();
@@ -198,9 +198,15 @@ export class PredictDeviceAuthService {
     if (!binding || !profile) {
       return undefined;
     }
-    const policy = checkVenueSigningRequest(profile, intent, required);
-    if (!policy.ok) {
-      throw new VenueSigningPolicyError(policy.rule);
+    const step = input.step ?? 'default';
+    const requests = renderStep(profile, operation, step, {
+      inputs: input.inputs,
+      values: input.values,
+      nowMs: this.#deps.nowMs(),
+    });
+    const { maxSignatures } = profile.implementation.params;
+    if (requests.length > maxSignatures) {
+      return undefined;
     }
     const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
     if (this.#stoppedDuringKeyLoad(binding, key) || !key) {
@@ -220,7 +226,7 @@ export class PredictDeviceAuthService {
       salt: key.salt,
     };
     const signatures = await Promise.all(
-      policy.requests.map((request) =>
+      requests.map((request) =>
         signDeviceRequest(profile, request, context, {
           sign: binding.deviceKey.sign,
           requestId: () => uuidv4(),
@@ -229,8 +235,14 @@ export class PredictDeviceAuthService {
       ),
     );
     return {
-      name: profile.envelopeHeader,
-      value: buildDeviceAuthEnvelope(context, signatures),
+      name: VENUE_AUTHORIZATION_HEADER,
+      value: buildVenueAuthorization({
+        signingProfileId: profile.id,
+        step,
+        context,
+        signatures,
+        maxSignatures,
+      }),
     };
   }
 

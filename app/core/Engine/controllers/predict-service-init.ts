@@ -84,11 +84,11 @@ export const predictPortfolioServiceInit: MessengerClientInitFunction<
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
       // The balance is read as the user, so it is device-signed.
-      signRequests: (intent, required) =>
+      signOperation: (operation, input) =>
         initMessenger.call(
-          'PredictDeviceAuthService:signVenueRequests',
-          intent,
-          required,
+          'PredictDeviceAuthService:signOperation',
+          operation,
+          input,
         ),
       invalidateSigningSession: () =>
         initMessenger.call('PredictDeviceAuthService:clear'),

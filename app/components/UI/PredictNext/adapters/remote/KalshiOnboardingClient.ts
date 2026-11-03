@@ -1,14 +1,8 @@
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
-import {
-  parseSignatureRequired,
-  type SignatureRequired,
-} from '../../auth/signing/venueRequest';
-import {
-  VenueSigningPolicyError,
-  type VenueSigningIntent,
-  type VenueSigningPolicyRule,
-} from '../../auth/signing/venueSigningPolicy';
+import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
+import type { TemplateRule } from '../../auth/signing/venueTemplates';
+import type { VenueOperationName } from '../../auth/venueSigningProfiles';
 import {
   parseKalshiActivate,
   parseKalshiDemoKyc,
@@ -18,6 +12,12 @@ import {
   type KalshiOnboardingState,
   type KalshiOnboardingStatus,
 } from '../../contracts/v1/onboarding';
+import {
+  sendSigned,
+  VenueSigningRefusedError,
+  VenueSigningUnavailableError,
+  type SignOperation,
+} from './signedVenueCall';
 
 const ONBOARDING_SEGMENTS = ['v1', 'venues', 'kalshi', 'onboarding'] as const;
 
@@ -38,9 +38,9 @@ export class KalshiOnboardingHttpError extends Error {
 
 /** The phone refused to sign. Nothing was sent with a signature. */
 export class KalshiOnboardingPolicyError extends Error {
-  readonly rule: VenueSigningPolicyRule | 'signing_unavailable';
+  readonly rule: TemplateRule | 'signing_unavailable';
 
-  constructor(rule: VenueSigningPolicyRule | 'signing_unavailable') {
+  constructor(rule: TemplateRule | 'signing_unavailable') {
     super(`Kalshi onboarding request was not signed: ${rule}.`);
     this.name = 'KalshiOnboardingPolicyError';
     this.rule = rule;
@@ -53,16 +53,14 @@ export interface KalshiOnboardingClientOptions {
   fetch?: typeof fetch;
   getBearerToken: () => Promise<string | undefined>;
   /**
-   * Checks a 428 against the bundled signing profile in the Engine, signs
-   * what it accepts, and returns the device-auth header. Undefined when
-   * signing is unavailable. Throws `VenueSigningPolicyError` on a refusal.
-   * The key, the A2T and the profile never reach this client.
+   * Renders and signs a canonical operation in the Engine from the bundled
+   * signing profile, and returns the `Venue-Authorization` header. The key,
+   * the A2T and the profile never reach this client. Throws `TemplateError`
+   * when the profile does not allow the request, and returns undefined when
+   * signing is unavailable.
    */
-  signRequests: (
-    intent: VenueSigningIntent,
-    required: SignatureRequired,
-  ) => Promise<{ name: string; value: string } | undefined>;
-  /** Drops the cached A2T after `venue_auth_invalid`. */
+  signOperation: SignOperation;
+  /** Drops the cached A2T after `venue_authorization_invalid`. */
   invalidateSigningSession: () => void;
 }
 
@@ -96,12 +94,11 @@ const toHttpError = (response: RawResponse): KalshiOnboardingHttpError =>
   );
 
 /**
- * predict-api Kalshi onboarding routes. A device-signed route is called
- * first without a device signature. predict-api answers 428 with the exact
- * venue calls it plans to send. This client knows none of their paths or
- * bodies. It names the operations each route may need and the inputs the
- * user gave, and the Engine signs only what its bundled signing profile
- * accepts (ADR-0003). It then retries once. A second 428 is an error.
+ * predict-api Kalshi onboarding routes. A device-signed route is called once,
+ * with a `Venue-Authorization` header the Engine renders and signs from its
+ * bundled signing profile and the inputs the user gave (ADR-0004). This client
+ * knows no venue path or body. When predict-api says the signature or the
+ * A2T is stale, it signs again and retries once.
  */
 export class KalshiOnboardingClient {
   readonly #options: KalshiOnboardingClientOptions;
@@ -113,9 +110,12 @@ export class KalshiOnboardingClient {
   }
 
   async getStatus(): Promise<KalshiOnboardingStatus> {
-    const value = await this.#signedCall('GET', ['status'], undefined, {
-      operations: ['balance', 'enrollment_current'],
-    });
+    const value = await this.#signedCall(
+      'GET',
+      ['status'],
+      undefined,
+      'onboarding.status',
+    );
     const status = parseKalshiOnboardingStatus(value);
     Logger.log('PredictNext: Kalshi onboarding status', {
       state: status.state,
@@ -130,7 +130,8 @@ export class KalshiOnboardingClient {
       'POST',
       ['intents'],
       { idempotencyKey },
-      { operations: ['enrollment_intent'], idempotencyKey },
+      'onboarding.start',
+      { inputs: { idempotencyKey } },
     );
     const intent = parseKalshiEnrollmentIntent(value);
     Logger.log('PredictNext: Kalshi onboarding intent', {
@@ -146,7 +147,8 @@ export class KalshiOnboardingClient {
       'POST',
       ['link'],
       { email, idempotencyKey },
-      { operations: ['link'], inputs: { email }, idempotencyKey },
+      'onboarding.link',
+      { inputs: { email, idempotencyKey } },
     );
   }
 
@@ -155,7 +157,8 @@ export class KalshiOnboardingClient {
       'POST',
       ['link', 'verify'],
       { code, idempotencyKey },
-      { operations: ['link_verify'], inputs: { code }, idempotencyKey },
+      'onboarding.verify',
+      { inputs: { code, idempotencyKey } },
     );
     return parseKalshiLinkVerify(value);
   }
@@ -179,11 +182,8 @@ export class KalshiOnboardingClient {
       'POST',
       ['activate'],
       { walletAddress, network, idempotencyKey },
-      {
-        operations: ['wallet_register'],
-        inputs: { walletAddress, network },
-        idempotencyKey,
-      },
+      'onboarding.activate',
+      { inputs: { walletAddress, network, idempotencyKey } },
     );
     return parseKalshiActivate(value);
   }
@@ -192,56 +192,31 @@ export class KalshiOnboardingClient {
     method: 'GET' | 'POST',
     route: readonly string[],
     body: Record<string, string> | undefined,
-    intent: VenueSigningIntent,
+    operation: VenueOperationName,
+    input?: SignOperationInput,
   ): Promise<unknown> {
-    const unsigned = await this.#send(method, route, body);
-    if (unsigned.status !== 428) {
-      return this.#accept(unsigned);
-    }
-
-    const required = parseSignatureRequired(unsigned.body);
-    if (!required) {
-      throw toHttpError(unsigned);
-    }
-
-    const attempt = async (retried: boolean): Promise<unknown> => {
-      const header = await this.#deviceAuth(intent, required);
-      const signed = await this.#send(method, route, body, header);
-      if (
-        !retried &&
-        signed.status === 403 &&
-        bodyCode(signed.body) === 'venue_auth_invalid'
-      ) {
-        this.#options.invalidateSigningSession();
-        return attempt(true);
-      }
-      if (signed.status === 428) {
-        throw toHttpError(signed);
-      }
-      return this.#accept(signed);
-    };
-
-    return attempt(false);
-  }
-
-  async #deviceAuth(
-    intent: VenueSigningIntent,
-    required: SignatureRequired,
-  ): Promise<{ name: string; value: string }> {
-    let header: { name: string; value: string } | undefined;
+    let response: RawResponse;
     try {
-      header = await this.#options.signRequests(intent, required);
+      response = await sendSigned(
+        {
+          signOperation: this.#options.signOperation,
+          invalidateSigningSession: this.#options.invalidateSigningSession,
+        },
+        operation,
+        input,
+        (header) => this.#send(method, route, body, header),
+        (raw) => ({ status: raw.status, code: bodyCode(raw.body) }),
+      );
     } catch (error) {
-      if (error instanceof VenueSigningPolicyError) {
-        Logger.log('PredictNext: Kalshi onboarding policy refused', error.rule);
+      if (error instanceof VenueSigningRefusedError) {
         throw new KalshiOnboardingPolicyError(error.rule);
+      }
+      if (error instanceof VenueSigningUnavailableError) {
+        throw new KalshiOnboardingPolicyError('signing_unavailable');
       }
       throw error;
     }
-    if (!header) {
-      throw new KalshiOnboardingPolicyError('signing_unavailable');
-    }
-    return header;
+    return this.#accept(response);
   }
 
   #accept(response: RawResponse): unknown {

@@ -1,0 +1,507 @@
+{
+  "version": 2,
+  "profile": {
+    "id": "kalshi-demo-signing-v2",
+    "authenticationProfileId": "kalshi-a2t-v1",
+    "implementation": {
+      "id": "device-p256-rfc9421-v1",
+      "params": {
+        "authority": "demo-api.kalshi.co",
+        "label": "kalshi",
+        "tag": "kalshi-device-request-v1",
+        "lifetimeSec": 60,
+        "tokenScheme": "Kalshi-A2T",
+        "headers": {
+          "requestId": "kalshi-device-request-id",
+          "key": "kalshi-device-key",
+          "salt": "kalshi-device-key-salt"
+        },
+        "maxSignatures": 4
+      }
+    },
+    "operations": {
+      "portfolio.balance": {
+        "class": "read",
+        "steps": {
+          "default": [
+            {
+              "request": "balance"
+            }
+          ]
+        }
+      },
+      "onboarding.status": {
+        "class": "read",
+        "steps": {
+          "default": [
+            {
+              "request": "balance"
+            },
+            {
+              "request": "enrollment_current"
+            }
+          ]
+        }
+      },
+      "onboarding.start": {
+        "class": "mutation",
+        "steps": {
+          "default": [
+            {
+              "request": "enrollment_intent"
+            }
+          ]
+        }
+      },
+      "onboarding.link": {
+        "class": "mutation",
+        "steps": {
+          "default": [
+            {
+              "request": "link"
+            }
+          ]
+        }
+      },
+      "onboarding.verify": {
+        "class": "mutation",
+        "steps": {
+          "default": [
+            {
+              "request": "link_verify"
+            }
+          ]
+        }
+      },
+      "onboarding.activate": {
+        "class": "mutation",
+        "confirmation": "per-intent",
+        "steps": {
+          "default": [
+            {
+              "request": "wallet_register"
+            }
+          ]
+        }
+      }
+    },
+    "requests": {
+      "balance": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/portfolio/balance"
+      },
+      "enrollment_current": {
+        "class": "read",
+        "method": "GET",
+        "path": "/trade-api/v2/isv/enrollment/intents/current"
+      },
+      "enrollment_intent": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/isv/enrollment/intents",
+        "body": "empty",
+        "idempotencyKey": {
+          "input": "idempotencyKey"
+        }
+      },
+      "link": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/isv/users/link",
+        "body": {
+          "json": [
+            {
+              "key": "email",
+              "value": {
+                "input": "email",
+                "transform": "trim",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 320
+                }
+              }
+            }
+          ],
+          "maxBytes": 512
+        },
+        "idempotencyKey": {
+          "input": "idempotencyKey"
+        }
+      },
+      "link_verify": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/isv/users/link/verify",
+        "body": {
+          "json": [
+            {
+              "key": "code",
+              "value": {
+                "input": "code",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 32
+                }
+              }
+            }
+          ],
+          "maxBytes": 128
+        },
+        "idempotencyKey": {
+          "input": "idempotencyKey"
+        }
+      },
+      "wallet_register": {
+        "class": "mutation",
+        "method": "POST",
+        "path": "/trade-api/v2/isv/wallet/register",
+        "body": {
+          "json": [
+            {
+              "key": "wallet_address",
+              "value": {
+                "input": "walletAddress",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 128
+                }
+              }
+            },
+            {
+              "key": "network",
+              "value": {
+                "input": "network",
+                "shape": {
+                  "kind": "opaque",
+                  "maxLength": 32
+                }
+              }
+            }
+          ],
+          "maxBytes": 512
+        },
+        "idempotencyKey": {
+          "input": "idempotencyKey"
+        }
+      }
+    }
+  },
+  "readComponents": [
+    "@method",
+    "@authority",
+    "@path",
+    "@query",
+    "authorization",
+    "kalshi-device-request-id",
+    "kalshi-device-key",
+    "kalshi-device-key-salt"
+  ],
+  "mutationComponents": [
+    "@method",
+    "@authority",
+    "@path",
+    "@query",
+    "authorization",
+    "kalshi-device-request-id",
+    "kalshi-device-key",
+    "kalshi-device-key-salt",
+    "content-digest",
+    "content-type",
+    "idempotency-key"
+  ],
+  "cases": [
+    {
+      "name": "balance",
+      "operation": "portfolio.balance",
+      "step": "default",
+      "inputs": {},
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "balance",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/balance",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/balance\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding status",
+      "operation": "onboarding.status",
+      "step": "default",
+      "inputs": {},
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "balance",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/balance",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/balance\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        },
+        {
+          "name": "enrollment_current",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/isv/enrollment/intents/current",
+          "query": "",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/enrollment/intents/current\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding start",
+      "operation": "onboarding.start",
+      "step": "default",
+      "inputs": {
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "enrollment_intent",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/enrollment/intents",
+          "query": "",
+          "body": "",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/enrollment/intents\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding link",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "User+Tag@Example.com",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "link",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/users/link",
+          "query": "",
+          "body": "{\"email\":\"User+Tag@Example.com\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:2lEc5WplzmIlKtFjPwefk7sAGabl3IB36fKw0uM3dec=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/users/link\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:2lEc5WplzmIlKtFjPwefk7sAGabl3IB36fKw0uM3dec=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding link trims the email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "  user@example.com \n",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "link",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/users/link",
+          "query": "",
+          "body": "{\"email\":\"user@example.com\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:p8W2nSiyrdmtuSb49YHusp+pXM3er/ZiwRThsUgvua8=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/users/link\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:p8W2nSiyrdmtuSb49YHusp+pXM3er/ZiwRThsUgvua8=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding verify",
+      "operation": "onboarding.verify",
+      "step": "default",
+      "inputs": {
+        "code": "888888",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "link_verify",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/users/link/verify",
+          "query": "",
+          "body": "{\"code\":\"888888\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:kPo2XBATxMc1ERY+FzFbaRYLN5ptMTmUmsqNskVDTRo=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/users/link/verify\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:kPo2XBATxMc1ERY+FzFbaRYLN5ptMTmUmsqNskVDTRo=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "onboarding activate",
+      "operation": "onboarding.activate",
+      "step": "default",
+      "inputs": {
+        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+        "network": "base",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "wallet_register",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/isv/wallet/register",
+          "query": "",
+          "body": "{\"wallet_address\":\"0x1234567890abcdef1234567890abcdef12345678\",\"network\":\"base\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:WQDTcaFaMJzL+eZitA7emKSNGWH1r/Z9bKJsZK6q3SI=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/wallet/register\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:WQDTcaFaMJzL+eZitA7emKSNGWH1r/Z9bKJsZK6q3SI=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    }
+  ],
+  "refusals": [
+    {
+      "name": "unknown operation",
+      "operation": "portfolio.positions",
+      "step": "default",
+      "inputs": {},
+      "values": {},
+      "rule": "operation"
+    },
+    {
+      "name": "unknown step",
+      "operation": "portfolio.balance",
+      "step": "scan",
+      "inputs": {},
+      "values": {},
+      "rule": "step"
+    },
+    {
+      "name": "link without email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "input"
+    },
+    {
+      "name": "link with empty email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "shape"
+    },
+    {
+      "name": "link with oversized email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "shape"
+    },
+    {
+      "name": "link with a blank email",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "   ",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "shape"
+    },
+    {
+      "name": "link without idempotency key",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "a@b.co"
+      },
+      "values": {},
+      "rule": "input"
+    },
+    {
+      "name": "link with a numeric idempotency key",
+      "operation": "onboarding.link",
+      "step": "default",
+      "inputs": {
+        "email": "a@b.co",
+        "idempotencyKey": 5
+      },
+      "values": {},
+      "rule": "idempotency_key"
+    },
+    {
+      "name": "verify with a numeric code",
+      "operation": "onboarding.verify",
+      "step": "default",
+      "inputs": {
+        "code": 888888,
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+      },
+      "values": {},
+      "rule": "shape"
+    }
+  ],
+  "vector": {
+    "nowMs": 1700000000000,
+    "authority": "demo-api.kalshi.co",
+    "profileId": "profile-1",
+    "audience": "kalshi-demo-example",
+    "issuerPublicJwk": {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "KNTGSSCembqxW5vI_ngMPfFrezlmepo0NMbzF9fTnCA",
+      "y": "X70NsGIrPrgRH_92l7pyMAGC4xPfMqYAAyOeCHWVi34"
+    },
+    "a2t": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg",
+    "deviceKey": "BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8",
+    "salt": "BwcHBwcHBwcHBwcHBwcHBw",
+    "request": {
+      "name": "balance",
+      "class": "read",
+      "method": "GET",
+      "path": "/trade-api/v2/portfolio/balance",
+      "query": "",
+      "body": ""
+    },
+    "signature": {
+      "method": "GET",
+      "path": "/trade-api/v2/portfolio/balance",
+      "query": "",
+      "requestId": "a1b2c3d4-1111-4222-8333-444455556666",
+      "signatureInput": "kalshi=(\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\"",
+      "signature": "kalshi=:PQHmdPEGw833c0sZd5uSmq6g3fmkJVkYO5TSW4l3h6IgYjlN+u2GVfalxKsDr4sxAWwO5uu5UH5k0kHj9G8Qbw==:"
+    },
+    "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/balance\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+  }
+}

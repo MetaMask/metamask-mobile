@@ -1,13 +1,14 @@
 import { p256 } from '@noble/curves/nist';
 
-import fixture from '../../contracts/v1/fixtures/kalshi-signing-v1.json';
+import fixture from '../../contracts/v1/fixtures/venue-signing-v2.json';
 import { KALSHI_DEMO_SIGNING_PROFILE } from '../venueSigningProfiles';
 import {
+  contentDigest,
   deviceSigningBase,
   signDeviceRequest,
   type DeviceSigningContext,
 } from './deviceRequestSigner';
-import type { VenueRequest } from './venueRequest';
+import type { RenderedRequest } from './venueTemplates';
 
 const { vector } = fixture;
 const KEY = 'a1b2c3d4-1111-4222-8333-444455556666';
@@ -31,21 +32,23 @@ const vectorContext: DeviceSigningContext = {
   salt: vector.salt,
 };
 
-const fixtureRequest = (name: string): VenueRequest => {
-  const entry = fixture.requests.find((row) => row.name === name);
+const fixtureRequest = (operation: string, index = 0): RenderedRequest => {
+  const entry = fixture.cases.find((row) => row.operation === operation);
   if (!entry) {
-    throw new Error(`no fixture row ${name}`);
+    throw new Error(`no fixture case ${operation}`);
   }
-  return entry.request as VenueRequest;
+  return entry.requests[index] as RenderedRequest;
 };
 
 describe('deviceSigningBase', () => {
   it('matches the shared fixture vector byte for byte', () => {
-    expect(vector.authority).toBe(KALSHI_DEMO_SIGNING_PROFILE.authority);
+    expect(vector.authority).toBe(
+      KALSHI_DEMO_SIGNING_PROFILE.implementation.params.authority,
+    );
 
     const base = deviceSigningBase({
       profile: KALSHI_DEMO_SIGNING_PROFILE,
-      request: vector.request as VenueRequest,
+      request: vector.request as RenderedRequest,
       context: vectorContext,
       requestId: vector.signature.requestId,
       signatureParams: vector.signature.signatureInput.slice('kalshi='.length),
@@ -64,6 +67,42 @@ describe('deviceSigningBase', () => {
 
     expect(valid).toBe(true);
   });
+
+  it.each(fixture.cases.flatMap((row) => row.requests))(
+    'builds the fixture signing base for $name',
+    (request) => {
+      const params = `(${(request.method === 'GET'
+        ? fixture.readComponents
+        : fixture.mutationComponents
+      )
+        .map((component) => `"${component}"`)
+        .join(
+          ' ',
+        )});created=1700000000;expires=1700000060;nonce="${KEY}";tag="kalshi-device-request-v1"`;
+
+      expect(
+        deviceSigningBase({
+          profile: KALSHI_DEMO_SIGNING_PROFILE,
+          request: request as RenderedRequest,
+          context: vectorContext,
+          requestId: KEY,
+          signatureParams: params,
+        }),
+      ).toBe(request.signingBase);
+    },
+  );
+});
+
+describe('contentDigest', () => {
+  it('matches the digest in the shared fixture', () => {
+    for (const row of fixture.cases) {
+      for (const request of row.requests) {
+        if ('digest' in request) {
+          expect(contentDigest(request.body)).toBe(request.digest);
+        }
+      }
+    }
+  });
 });
 
 describe('signDeviceRequest', () => {
@@ -79,7 +118,7 @@ describe('signDeviceRequest', () => {
   };
 
   it('signs a mutation with the profile authority, body digest and idempotency key', async () => {
-    const request = fixtureRequest('link');
+    const request = fixtureRequest('onboarding.link');
 
     const signature = await signDeviceRequest(
       KALSHI_DEMO_SIGNING_PROFILE,
@@ -89,16 +128,10 @@ describe('signDeviceRequest', () => {
     );
 
     expect(signature).toStrictEqual({
-      method: 'POST',
-      path: '/trade-api/v2/isv/users/link',
-      query: '',
       requestId: KEY,
       signatureInput:
         'kalshi=("@method" "@authority" "@path" "@query" "authorization" "kalshi-device-request-id" "kalshi-device-key" "kalshi-device-key-salt" "content-digest" "content-type" "idempotency-key");created=1700000000;expires=1700000060;nonce="a1b2c3d4-1111-4222-8333-444455556666";tag="kalshi-device-request-v1"',
       signature: expect.stringMatching(/^kalshi=:[A-Za-z0-9+/]+={0,2}:$/u),
-      contentDigest: fixture.requests.find((entry) => entry.name === 'link')
-        ?.digest,
-      idempotencyKey: KEY,
     });
     const base = deviceSigningBase({
       profile: KALSHI_DEMO_SIGNING_PROFILE,
@@ -108,6 +141,7 @@ describe('signDeviceRequest', () => {
       signatureParams: signature.signatureInput.slice('kalshi='.length),
     });
     expect(base).toContain('"@authority": demo-api.kalshi.co');
+    expect(base).toContain(`"idempotency-key": ${KEY}`);
     expect(
       p256.verify(
         signatureBytes(signature.signature),
@@ -118,16 +152,14 @@ describe('signDeviceRequest', () => {
     ).toBe(true);
   });
 
-  it('leaves the body fields off a read', async () => {
+  it('signs a read without body components', async () => {
     const signature = await signDeviceRequest(
       KALSHI_DEMO_SIGNING_PROFILE,
-      vector.request as VenueRequest,
+      vector.request as RenderedRequest,
       vectorContext,
       deps,
     );
 
-    expect(signature).not.toHaveProperty('contentDigest');
-    expect(signature).not.toHaveProperty('idempotencyKey');
     expect(signature.signatureInput).toBe(vector.signature.signatureInput);
   });
 });

@@ -4,6 +4,9 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   HeaderStandardAnimated,
   IconName,
   Text,
@@ -231,24 +234,29 @@ const PredictHomeView = ({
         scrollEventThrottle={16}
       >
         <Box twClassName="gap-6 px-4 pb-8" onLayout={onContentLayout}>
-          <Text
-            variant={TextVariant.HeadingLg}
+          <Box
             testID={PredictHomeTestIds.TITLE_SECTION}
             onLayout={handleTitleLayout}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            gap={2}
           >
-            {homeTitle}
-          </Text>
+            <Text variant={TextVariant.HeadingLg} twClassName="shrink">
+              {homeTitle}
+            </Text>
+            {/* TEMPORARY: Kalshi demo debug. Same line as the title, so it
+                does not add a row. Self-gates on the demo build flag. */}
+            <KalshiDebugPanel
+              balance={balanceQuery.data}
+              balanceError={balanceQuery.error}
+            />
+          </Box>
           <BalanceSummary
             balance={balanceQuery.data}
             isLoading={balanceQuery.isPending}
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
-          />
-          {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on the demo
-              build flag. Remove with the demo onboarding. */}
-          <KalshiDebugPanel
-            balance={balanceQuery.data}
-            balanceError={balanceQuery.error}
           />
           {/* Funding actions appear when PRED-1162 ships them and the
               Venue descriptor lists deposit or withdraw. */}

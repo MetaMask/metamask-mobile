@@ -43,7 +43,7 @@ export const getPredictPortfolioServiceInitMessenger = (
   rootMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken',
-      'PredictDeviceAuthService:signVenueRequests',
+      'PredictDeviceAuthService:signOperation',
       'PredictDeviceAuthService:clear',
     ],
     events: [],
