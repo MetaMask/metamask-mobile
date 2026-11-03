@@ -1,0 +1,88 @@
+diff --git a/dist/ws/ohlcv/OHLCVService.js b/dist/ws/ohlcv/OHLCVService.js
+--- a/dist/ws/ohlcv/OHLCVService.js
++++ b/dist/ws/ohlcv/OHLCVService.js
+@@ -16,8 +16,7 @@
+ const SERVICE_NAME = 'OHLCVService';
+ const log = createModuleLogger(projectLogger, SERVICE_NAME);
+ const MESSENGER_EXPOSED_METHODS = ['subscribe', 'unsubscribe'];
+-const SUBSCRIPTION_NAMESPACE = 'market-data.v1';
+-const SYSTEM_NOTIFICATIONS_CHANNEL = `system-notifications.v1.${SUBSCRIPTION_NAMESPACE}`;
++const DEFAULT_SUBSCRIPTION_NAMESPACE = 'ohlcv.v1';
+ /** Delay before actually unsubscribing from a channel after refCount reaches 0. */
+ const GRACE_PERIOD_MS = 3_000;
+ /** Backoff delays between failed WebSocket unsubscribe attempts. */
+@@ -63,6 +62,7 @@
+ export class OHLCVService {
+     name = SERVICE_NAME;
+     #messenger;
++    #subscriptionNamespace;
+     #trace;
+     #channels = new Map();
+     #mutex = new Mutex();
+@@ -72,6 +72,8 @@
+     // =============================================================================
+     constructor(options) {
+         this.#messenger = options.messenger;
++        this.#subscriptionNamespace =
++            options.subscriptionNamespace ?? DEFAULT_SUBSCRIPTION_NAMESPACE;
+         this.#trace =
+             options.traceFn ??
+                 ((_request, fn) => fn?.());
+@@ -86,7 +88,7 @@
+     init() {
+         log('OHLCV-WS: Initializing — registering system-notifications callback');
+         this.#messenger.call('BackendWebSocketService:addChannelCallback', {
+-            channelName: SYSTEM_NOTIFICATIONS_CHANNEL,
++            channelName: `system-notifications.v1.${this.#subscriptionNamespace}`,
+             callback: (notification) => this.#handleSystemNotification(notification),
+         });
+     }
+@@ -161,7 +163,7 @@
+             }
+             await this.#messenger.call('BackendWebSocketService:subscribe', {
+                 channels: [channel],
+-                channelType: SUBSCRIPTION_NAMESPACE,
++                channelType: this.#subscriptionNamespace,
+                 callback: (notification) => {
+                     this.#handleBarUpdate(channel, notification);
+                 },
+@@ -367,7 +369,7 @@
+                     }
+                     await this.#messenger.call('BackendWebSocketService:subscribe', {
+                         channels: [channel],
+-                        channelType: SUBSCRIPTION_NAMESPACE,
++                        channelType: this.#subscriptionNamespace,
+                         callback: (notification) => {
+                             this.#handleBarUpdate(channel, notification);
+                         },
+@@ -451,7 +453,7 @@
+     // Private — Utility
+     // =============================================================================
+     #buildChannel(options) {
+-        return `${SUBSCRIPTION_NAMESPACE}.${options.assetId}.${options.interval}.${options.currency}`;
++        return `${this.#subscriptionNamespace}.${options.assetId}.${options.interval}.${options.currency}`;
+     }
+     // =============================================================================
+     // Public — Cleanup
+@@ -465,7 +467,7 @@
+         }
+         this.#channels.clear();
+         this.#chainsUp.clear();
+-        this.#messenger.call('BackendWebSocketService:removeChannelCallback', SYSTEM_NOTIFICATIONS_CHANNEL);
++        this.#messenger.call('BackendWebSocketService:removeChannelCallback', `system-notifications.v1.${this.#subscriptionNamespace}`);
+     }
+ }
+ //# sourceMappingURL=OHLCVService.js.map
+\ No newline at end of file
+diff --git a/dist/ws/ohlcv/OHLCVService.d.ts b/dist/ws/ohlcv/OHLCVService.d.ts
+--- a/dist/ws/ohlcv/OHLCVService.d.ts
++++ b/dist/ws/ohlcv/OHLCVService.d.ts
+@@ -25,6 +25,8 @@
+  * Configuration options for the OHLCV service.
+  */
+ export type OHLCVServiceOptions = {
++    /** Channel namespace for OHLCV subscriptions (default: 'ohlcv.v1'). */
++    subscriptionNamespace?: string;
+     /** Optional callback to trace performance of OHLCV operations (default: no-op) */
+     traceFn?: TraceCallback;
+ };

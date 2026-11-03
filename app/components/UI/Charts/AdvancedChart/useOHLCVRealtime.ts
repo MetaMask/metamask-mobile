@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { OHLCVBar as WSOHLCVBar } from '@metamask/core-backend';
+import { buildOhlcvChannel } from '../../../../constants/ohlcv';
 import Engine from '../../../../core/Engine';
 import { usePriceApiHost } from '../../TokenDetails/context/PriceApiHostContext';
 
@@ -156,7 +157,7 @@ export function useOHLCVRealtime({
   const pollingAbortRef = useRef<AbortController | null>(null);
 
   const buildChannel = useCallback(
-    () => `market-data.v1.${assetId}.${interval}.${currency}`,
+    () => buildOhlcvChannel(assetId, interval, currency),
     [assetId, interval, currency],
   );
 
