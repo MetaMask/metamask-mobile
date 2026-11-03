@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectHasMoneyAccountPremiumApyEntitlement } from '../../../../selectors/subscriptionController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
@@ -43,12 +44,15 @@ const DEFAULT_QUERY: QueryState = {
   isError: false,
 };
 
+const PREMIUM_VAULT = '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7';
+
 const setup = ({
   remoteApyConfig = DEFAULT_REMOTE_APY_CONFIG,
   query = DEFAULT_QUERY,
   isEntitled = false,
   premiumRate = undefined as string | undefined,
   premiumRateLoading = false,
+  premiumVaultAddress = undefined as string | undefined,
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyVaultApyRemoteConfig) {
@@ -56,6 +60,11 @@ const setup = ({
     }
     if (selector === selectHasMoneyAccountPremiumApyEntitlement) {
       return isEntitled;
+    }
+    if (selector === selectMoneyAccountPremiumVaultConfig) {
+      return premiumVaultAddress
+        ? { boringVault: premiumVaultAddress }
+        : undefined;
     }
     return undefined;
   });
@@ -279,5 +288,22 @@ describe('useMoneyVaultApy', () => {
     expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
       enabled: false,
     });
+  });
+
+  it('returns the premium APY for an entitled user whose payment method has no vault address', () => {
+    setup({
+      isEntitled: true,
+      premiumRate: '0.08',
+      premiumVaultAddress: PREMIUM_VAULT,
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
+      enabled: true,
+      vaultAddress: PREMIUM_VAULT,
+    });
+    expect(result.current.apyDecimal).toBe(0.08);
+    expect(result.current.apyPercentFormatted).toBe('8%');
   });
 });

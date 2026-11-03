@@ -3,6 +3,7 @@ import { useQuery } from '@metamask/react-data-query';
 import type { NormalizedVaultApyResponse } from '@metamask/money-account-balance-service';
 import type { PositionResponse } from '@metamask/money-account-api-data-service';
 import type { UseQueryResult } from '@tanstack/react-query';
+import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectHasMoneyAccountPremiumApyEntitlement } from '../../../../selectors/subscriptionController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
@@ -58,6 +59,7 @@ const useMoneyVaultApy = ({
     selectMoneyVaultApyRemoteConfig,
   );
   const isEntitled = useSelector(selectHasMoneyAccountPremiumApyEntitlement);
+  const premiumVaultConfig = useSelector(selectMoneyAccountPremiumVaultConfig);
 
   const baseVaultApyQuery = useQuery({
     queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
@@ -83,6 +85,7 @@ const useMoneyVaultApy = ({
 
   const { rate, vaultRateQuery } = useMoneyPremiumVaultRate({
     enabled: enabled && isEntitled,
+    vaultAddress: premiumVaultConfig?.boringVault,
   });
   // Entitled users never fall back to the base APY (including while the
   // premium rate is loading), so the base rate does not flash after subscribe.
