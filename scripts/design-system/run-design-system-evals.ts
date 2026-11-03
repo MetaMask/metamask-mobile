@@ -15,7 +15,6 @@ export const EVAL_RULES: Record<string, Rule.RuleModule> = {
 };
 
 const PARSER_ID = 'design-system-evals-typescript';
-const BASE_SHA = /^[0-9a-f]{40}$/i;
 const APP_SOURCE = /^app\/.+\.(?:ts|tsx|js|jsx)$/;
 const OUT_OF_SCOPE = /\.(?:test|spec|stories)\.(?:ts|tsx|js|jsx)$/;
 
@@ -137,23 +136,25 @@ function linterConfig(): Linter.Config {
 }
 
 function main(): void {
-  const base = process.env.DS_EVALS_BASE_SHA ?? '';
-  if (!BASE_SHA.test(base)) {
-    throw new Error(
-      'DS_EVALS_BASE_SHA must be the 40-character pull request base commit SHA.',
-    );
-  }
-
+  // pull_request checkout is the merge commit. Its first parent is the base tip.
+  const diffStarted = Date.now();
+  const diff = execFileSync(
+    'git',
+    ['diff', '-U0', 'HEAD^1', 'HEAD', '--', 'app/'],
+    { encoding: 'utf8' },
+  );
+  const diffMs = Date.now() - diffStarted;
+  const lintStarted = Date.now();
   const code = runEvals({
-    readDiff: () =>
-      execFileSync('git', ['diff', '-U0', `${base}...HEAD`], {
-        encoding: 'utf8',
-      }),
+    readDiff: () => diff,
     lintFiles: lintRepoFiles,
     write: (line) => {
       process.stdout.write(`${line}\n`);
     },
   });
+  process.stderr.write(
+    `design-system-evals timing diff_ms=${diffMs} lint_ms=${Date.now() - lintStarted}\n`,
+  );
   process.exitCode = code;
 }
 

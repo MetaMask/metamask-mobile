@@ -230,5 +230,24 @@ describe('design-system-evals workflow', () => {
     expect(workflow).not.toContain('secrets.');
     expect(workflow).toContain('contents: read');
     expect(workflow).toContain('name: Design system evals');
+    expect(workflow).toContain('fetch-depth: 2');
+    expect(workflow).not.toContain('fetch-depth: 0');
+    expect(workflow).not.toContain('DS_EVALS_BASE_SHA');
+    expect(workflow).toContain('namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0');
+    expect(workflow).toContain('yarn install --immutable');
+  });
+});
+
+describe('design-system evals entrypoint', () => {
+  const source = readFileSync(
+    path.join(__dirname, 'run-design-system-evals.ts'),
+    'utf8',
+  );
+
+  it('diffs the pull request merge commit against its first parent, and only app/', () => {
+    expect(source).toContain(
+      "['diff', '-U0', 'HEAD^1', 'HEAD', '--', 'app/']",
+    );
+    expect(source).not.toContain('DS_EVALS_BASE_SHA');
   });
 });

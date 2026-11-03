@@ -25,11 +25,7 @@ export const SPACING_RULE_ID = 'design-system/no-hardcoded-spacing';
 const HARDCODED_MESSAGE =
   'Hard-coded spacing value "{{value}}" on "{{key}}". Use a Box spacing prop (1 unit = 4px, for example marginRight={2}) or twClassName. Intentional exception: add "// ds-exception: <reason>" on this line.';
 
-interface ObjectProperty extends Rule.Node {
-  computed: boolean;
-  key: Rule.Node & { name?: string; value?: unknown };
-  value: Rule.Node;
-}
+type SpacingProperty = Parameters<NonNullable<Rule.NodeListener['Property']>>[0];
 
 /**
  * Report numeric spacing literals other than 0 on the pilot keys.
@@ -51,8 +47,8 @@ export const spacingRule: Rule.RuleModule = {
     const sourceCode = context.sourceCode;
 
     return {
-      Property(node: Rule.Node) {
-        if (!isObjectProperty(node) || node.parent?.type !== 'ObjectExpression') {
+      Property(node: SpacingProperty) {
+        if (node.parent?.type !== 'ObjectExpression') {
           return;
         }
 
@@ -61,7 +57,8 @@ export const spacingRule: Rule.RuleModule = {
           return;
         }
 
-        const literal = spacingLiteral(unwrapExpression(node.value));
+        // Property.value is an ESLint node. Its ESTree type omits parent.
+        const literal = spacingLiteral(unwrapExpression(node.value as Rule.Node));
         if (!literal?.loc) {
           return;
         }
@@ -83,11 +80,7 @@ export const spacingRule: Rule.RuleModule = {
   },
 };
 
-function isObjectProperty(node: Rule.Node): node is ObjectProperty {
-  return node.type === 'Property';
-}
-
-function propertyName(property: ObjectProperty): string | undefined {
+function propertyName(property: SpacingProperty): string | undefined {
   if (property.computed && property.key.type !== 'Literal') {
     return undefined;
   }
@@ -105,13 +98,15 @@ function propertyName(property: ObjectProperty): string | undefined {
 
 function unwrapExpression(node: Rule.Node): Rule.Node {
   let current = node;
+  // ESTree's node types omit TSAsExpression and the other TS wrappers.
+  let type: string = current.type;
   while (
-    current.type === 'TSAsExpression' ||
-    current.type === 'TSTypeAssertion' ||
-    current.type === 'TSSatisfiesExpression' ||
-    current.type === 'ParenthesizedExpression'
+    type === 'TSAsExpression' ||
+    type === 'TSTypeAssertion' ||
+    type === 'TSSatisfiesExpression'
   ) {
     current = (current as Rule.Node & { expression: Rule.Node }).expression;
+    type = current.type;
   }
   return current;
 }
