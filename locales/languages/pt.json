@@ -1195,7 +1195,8 @@
       "button": "Continuar"
     },
     "creating_account": {
-      "title": "Criando sua conta bancária",
+      "title": "Criando sua conta",
+      "description": "A maioria das contas é criada instantaneamente.",
       "awaiting_provider": "Aguardando a aprovação da sua conta pela MoonPay"
     },
     "kyc_rejected": {

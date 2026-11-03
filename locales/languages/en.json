@@ -1195,7 +1195,7 @@
       "button": "Continue"
     },
     "creating_account": {
-      "title": "Creating your account...",
+      "title": "Creating your account",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
