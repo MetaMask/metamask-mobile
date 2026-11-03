@@ -67,6 +67,8 @@ interface AccountGroupDetailsRouteParams {
   accountGroup: AccountGroupObject;
 }
 
+const HEADER_BASE_TITLE_TEST_ID = 'header-title';
+
 export const AccountGroupDetails = () => {
   const route =
     useRoute<RouteProp<{ params: AccountGroupDetailsRouteParams }, 'params'>>();
@@ -199,7 +201,15 @@ export const AccountGroupDetails = () => {
           onPress: () => navigation.goBack(),
         }}
       >
-        {groupName}
+        <Text
+          variant={TextVariant.HeadingSm}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          twClassName="w-full min-w-0 shrink text-center"
+          testID={HEADER_BASE_TITLE_TEST_ID}
+        >
+          {groupName}
+        </Text>
       </HeaderBaseGlass>
       <ScrollView
         style={styles.container}
@@ -208,7 +218,9 @@ export const AccountGroupDetails = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Center}
+          twClassName="w-full"
           marginBottom={8}
+          testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR_CONTAINER}
         >
           <AvatarAccount
             variant={accountAvatarVariant}

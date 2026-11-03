@@ -288,7 +288,8 @@ const QRTabSwitcher = () => {
         isGlass={isGlassHeader}
         isFloating
         backdrop="none"
-        style={[styles.overlay, styles.header]}
+        containerStyle={isGlassHeader ? styles.overlay : undefined}
+        style={isGlassHeader ? styles.header : [styles.overlay, styles.header]}
         endButtonIconProps={[
           {
             iconName: IconName.Close,

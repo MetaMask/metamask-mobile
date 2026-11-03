@@ -18,8 +18,8 @@ import {
   getCancelReasonTestId,
 } from './CancelMembership.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { RootState } from '../../../../../reducers';
 import configureStore from '../../../../../util/test/configureStore';
+import initialRootState from '../../../../../util/test/initial-root-state';
 import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 const renderScreen = () =>
   render(
-    <Provider store={configureStore({} as RootState)}>
+    <Provider store={configureStore(initialRootState)}>
       <CancelMembership />
     </Provider>,
   );

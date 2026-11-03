@@ -4,13 +4,18 @@ import {
   type HeaderBaseProps,
 } from '@metamask/design-system-react-native';
 
-import HeaderGlass, { type HeaderGlassOptions } from '../HeaderGlass';
+import HeaderGlass, {
+  type HeaderGlassOptions,
+  type HeaderGlassProps,
+} from '../HeaderGlass';
 import {
   resolveEndAccessoryGlass,
   resolveStartAccessoryGlass,
 } from '../HeaderGlass/headerGlassAccessories';
 
-export type HeaderBaseGlassProps = HeaderBaseProps & HeaderGlassOptions;
+export type HeaderBaseGlassProps = HeaderBaseProps &
+  HeaderGlassOptions &
+  Pick<HeaderGlassProps, 'containerStyle'>;
 
 /**
  * MMDS `HeaderBase` with optional glass treatment.
@@ -23,6 +28,7 @@ const HeaderBaseGlass = ({
   isGlass = true,
   backdrop,
   fadeInDistance,
+  containerStyle,
   isFloating,
   onLayout,
   ...props
@@ -34,6 +40,7 @@ const HeaderBaseGlass = ({
   return (
     <HeaderGlass
       onLayout={onLayout}
+      containerStyle={containerStyle}
       backdrop={backdrop}
       fadeInDistance={fadeInDistance}
       isFloating={isFloating}
