@@ -38,7 +38,10 @@ export type SocialEndpoint =
   | 'unfollow'
   | 'moderation_block'
   | 'blocked_profiles'
-  | 'blocked_content';
+  | 'block'
+  | 'unblock'
+  | 'blocked_content'
+  | 'moderation_status';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.

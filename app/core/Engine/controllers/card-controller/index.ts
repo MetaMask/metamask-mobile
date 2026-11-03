@@ -20,6 +20,7 @@ import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/U
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
   readCardFeatureFlag,
+  readCardImmersveMfaEnabled,
   readCardProviderConfig,
   type CardFeatureFlag,
   type ImmersveProgramConfig,
@@ -81,6 +82,7 @@ export const cardControllerInit: MessengerClientInitFunction<
     getSelectedCountry: () => readSelectedCountry(),
     getMoneyAccountConfig: () =>
       getImmersveMoneyAccountConfig(getImmersveConfig(), readSelectedCountry()),
+    isMfaEnabled: () => readCardImmersveMfaEnabled(getRemoteFeatureFlags()),
   });
 
   const cardService = new CardService({

@@ -178,6 +178,7 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
   constants: {
     accountsApiUrl: 'https://accounts.api.cx.metamask.io',
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
+    applePayLearnMoreUrl: 'https://metamask.io/card',
   },
 };
 

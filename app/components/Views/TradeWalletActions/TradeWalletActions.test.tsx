@@ -2,7 +2,6 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { BackHandler, Platform, StyleSheet } from 'react-native';
 import type { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -29,7 +28,10 @@ import {
   selectIsFirstTimePerpsUser,
   selectPerpsMode,
 } from '../../UI/Perps/selectors/perpsController';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../UI/PredictNext';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNativeTabBarEnabled } from '../../../selectors/featureFlagController/nativeTabBar';
 import TradeWalletActions, {
@@ -164,8 +166,16 @@ jest.mock('../../UI/Perps/utils/perpsModeSelectionStorage', () => ({
   hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
 }));
 
-jest.mock('../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(),
+// The PredictNext entry point's PredictRoot loads the whole Predict stack,
+// which this suite's navigation mocks cannot satisfy.
+jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../../UI/PredictNext', () => ({
+  ...jest.requireActual('../../UI/PredictNext'),
+  selectPredictAvailability: jest.fn(),
 }));
 
 jest.mock('../../UI/Earn/selectors/eligibility', () => ({
@@ -379,25 +389,30 @@ jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
 }));
 
+// AppConstants is a default export, so the override must keep the module's
+// default; spreading the module itself hides every real constant.
 jest.mock('../../../core/AppConstants', () => {
-  const actual = jest.requireActual('../../../core/AppConstants');
+  const actual = jest.requireActual('../../../core/AppConstants').default;
 
   return {
-    ...actual,
-    SWAPS: {
-      ACTIVE: true,
-    },
-    BUNDLE_IDS: {
-      ANDROID: 'io.metamask',
-      IOS: '1438144202',
-    },
-    MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
-    WALLET_CONNECT: {
-      PROJECT_ID: 'test-project-id',
-    },
-    BRIDGE: {
-      ACTIVE: true,
-      URL: 'https://bridge.metamask.io',
+    __esModule: true,
+    default: {
+      ...actual,
+      SWAPS: {
+        ACTIVE: true,
+      },
+      BUNDLE_IDS: {
+        ANDROID: 'io.metamask',
+        IOS: '1438144202',
+      },
+      MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+      WALLET_CONNECT: {
+        PROJECT_ID: 'test-project-id',
+      },
+      BRIDGE: {
+        ACTIVE: true,
+        URL: 'https://bridge.metamask.io',
+      },
     },
   };
 });
@@ -1213,8 +1228,8 @@ describe('TradeWalletActions', () => {
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
     (
-      selectPredictEnabledFlag as jest.MockedFunction<
-        typeof selectPredictEnabledFlag
+      selectPredictAvailability as jest.MockedFunction<
+        typeof selectPredictAvailability
       >
     ).mockReturnValue(true);
 
@@ -1299,8 +1314,8 @@ describe('TradeWalletActions', () => {
       >
     ).mockReturnValue(true);
     (
-      selectPredictEnabledFlag as jest.MockedFunction<
-        typeof selectPredictEnabledFlag
+      selectPredictAvailability as jest.MockedFunction<
+        typeof selectPredictAvailability
       >
     ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
@@ -1366,8 +1381,8 @@ describe('TradeWalletActions', () => {
 
   it('should show Predict button on non-EVM networks', () => {
     (
-      selectPredictEnabledFlag as jest.MockedFunction<
-        typeof selectPredictEnabledFlag
+      selectPredictAvailability as jest.MockedFunction<
+        typeof selectPredictAvailability
       >
     ).mockReturnValue(true);
     (
@@ -1595,8 +1610,8 @@ describe('TradeWalletActions', () => {
 
     it('navigates to Predict markets after dismissing RootModalFlow', async () => {
       (
-        selectPredictEnabledFlag as jest.MockedFunction<
-          typeof selectPredictEnabledFlag
+        selectPredictAvailability as jest.MockedFunction<
+          typeof selectPredictAvailability
         >
       ).mockReturnValue(true);
 

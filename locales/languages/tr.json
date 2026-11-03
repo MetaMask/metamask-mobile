@@ -5106,7 +5106,7 @@
     "card_update_badge": "Güncelle",
     "settings": "Ayarlar",
     "networks": "Ağlar",
-    "log_out": "Oturumu kapat",
+    "log_out": "Kilitle",
     "notifications": "Bildirimler",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orange'a katıl",
@@ -10124,7 +10124,6 @@
       "perps_withdraw": "Çek",
       "predict_deposit": "Tahmin fonu ekle",
       "predict_withdraw": "Çek",
-      "money_account_add_money": "Bakiye ekleyin",
       "money_account_send": "Gönder"
     },
     "sub_title": {

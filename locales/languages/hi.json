@@ -5106,7 +5106,7 @@
     "card_update_badge": "अपडेट करें",
     "settings": "सेटिंग्स",
     "networks": "नेटवर्क",
-    "log_out": "लॉग आउट करें",
+    "log_out": "लॉक",
     "notifications": "अपने वॉलेट का उपयोग करना",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orange जॉइन करें",
@@ -10124,7 +10124,6 @@
       "perps_withdraw": "निकालें",
       "predict_deposit": "प्रिडिक्शन फ़ंड जोड़ें",
       "predict_withdraw": "निकालें",
-      "money_account_add_money": "फंड जोड़ें",
       "money_account_send": "भेजें"
     },
     "sub_title": {
