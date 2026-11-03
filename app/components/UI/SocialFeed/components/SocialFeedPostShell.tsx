@@ -56,6 +56,11 @@ export interface SocialFeedPostShellProps {
   onPositionPress?: (post: SocialV1FeedPost) => void;
   /** Gates interactions when the post is rendered on a Social V1 surface. */
   requireSocialTerms?: boolean;
+  /**
+   * Set `false` to hide Copy trade on an open card. The owner's profile posts
+   * pass this so they cannot copy their own trade.
+   */
+  showCopyTrade?: boolean;
   /** Clock for the relative timestamp. Defaults to `Date.now()`. */
   now?: number;
 }
@@ -69,6 +74,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   onAuthorPress,
   onPositionPress,
   requireSocialTerms = false,
+  showCopyTrade = true,
   now,
 }) => {
   const tracked = useSocialFeedTracking();
@@ -319,10 +325,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
               <PositionCardBody
                 item={post.item}
                 onCopyTrade={copyTradeHandler}
+                showCopyTrade={showCopyTrade}
               />
             </Pressable>
           ) : (
-            <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+            <PositionCardBody
+              item={post.item}
+              onCopyTrade={copyTradeHandler}
+              showCopyTrade={showCopyTrade}
+            />
           )}
 
           {post.gifUri ? (

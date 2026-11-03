@@ -918,7 +918,11 @@ const MyProfileView: React.FC = () => {
                       posts={visiblePosts}
                       dividerKeyPrefix="my-profile"
                       renderPost={(post) => (
-                        <SocialFeedPostShell post={post} requireSocialTerms />
+                        <SocialFeedPostShell
+                          post={post}
+                          requireSocialTerms
+                          showCopyTrade={!isOwner}
+                        />
                       )}
                     />
                   </Box>
