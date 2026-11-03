@@ -39,6 +39,7 @@ import {
 } from '../vbaDevOverrides';
 import { findUsableAutoramp } from '../ensureMusdAutoramp';
 import { VBA_KYC_VENDOR } from '../constants';
+import { isMissingVerifiedEmailError } from '../kycSessionErrors';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 import { TraceName } from '../../../../../../util/trace';
 import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
@@ -312,14 +313,17 @@ const isMissingAal2TokenError = (error: unknown): boolean =>
  * shown the create-account screen. The latest vendor session is reattached
  * here, without an AAL2 token, before that read. A missing latest session is
  * a first-time user and must not fail onboarding.
+ *
+ * @returns True when the profile has no verified email, so the session can
+ * only be opened from the email step.
  */
-const resumePersistedKycSession = async (): Promise<void> => {
+const resumePersistedKycSession = async (): Promise<boolean> => {
   const kycController = Engine.context.KycController;
   if (!kycController.readSessionStatus()) {
     const existingSession =
       await kycController.getSessionStatusForVendor(VBA_KYC_VENDOR);
     if (!existingSession) {
-      return;
+      return false;
     }
   }
 
@@ -327,15 +331,21 @@ const resumePersistedKycSession = async (): Promise<void> => {
     await kycController.startSession({
       vendor: VBA_KYC_VENDOR,
     });
+    return false;
   } catch (error) {
     Alert.alert(
       'resumePersistedKycSession',
       error instanceof Error ? error.message : String(error),
     );
+    // The profile has no verified email (for example, another profile owns
+    // it). Email OTP on the email screen verifies one or reports the conflict.
+    if (isMissingVerifiedEmailError(error)) {
+      return true;
+    }
     // The latest session can disappear between the lookup and start. Creating
     // one still belongs on the email screen.
     if (!kycController.readSessionStatus() && isMissingAal2TokenError(error)) {
-      return;
+      return false;
     }
     throw error;
   }
@@ -384,7 +394,7 @@ export const resolveVbaOnboarding = async (
       return { status: 'error' };
     }
 
-    await resumePersistedKycSession();
+    const isEmailRequired = await resumePersistedKycSession();
 
     const accountSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({
@@ -423,7 +433,15 @@ export const resolveVbaOnboarding = async (
     };
     recordVbaOnboardingSnapshot(snapshot);
     endVbaCufChildTrace(hydrateTraceId, true);
-    const funnelDestination = getVbaDestinationForSnapshot(snapshot);
+    const snapshotDestination = getVbaDestinationForSnapshot(snapshot);
+    // A persisted session still needs a verified email to resume, which only
+    // the email step can provide.
+    const funnelDestination: VbaOnboardingDestinationId =
+      isEmailRequired &&
+      snapshotDestination !== 'vendorTerms' &&
+      snapshotDestination !== 'complete'
+        ? 'email'
+        : snapshotDestination;
     // An existing autoramp opens the account only when the funnel would send
     // the user back to vendor terms or email, as it does with no KYC session.
     const hasExistingAccount =
