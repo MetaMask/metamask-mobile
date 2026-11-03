@@ -232,12 +232,12 @@ describe('getVbaDestinationForSnapshot', () => {
     expect(destination).toBe('kycRejected');
   });
 
-  it('routes a provider-pending KYC snapshot to the pending screen', () => {
+  it('routes a reattached provider-pending session to the pending screen after reinstall', () => {
     const facts = snapshot({
       sessionExists: true,
       vendorDisclaimersComplete: true,
       sessionDisclaimersComplete: true,
-      providerFlowStatus: 'submitted',
+      providerFlowStatus: 'not_started',
       kycStatus: 'pending',
     });
 

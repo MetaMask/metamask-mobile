@@ -1101,6 +1101,29 @@ describe('resolveVbaOnboarding', () => {
     expect(calls).toEqual(['start', 'hydrate']);
   });
 
+  it('keeps a reattached provider-pending session out of SumSub after reinstall', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'pending',
+    });
+
+    await expect(resolveVbaOnboarding('money-home-card')).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'kycPending',
+      }),
+    );
+    expect(mockGetSessionStatusForVendor).toHaveBeenCalledWith(VBA_KYC_VENDOR);
+    expect(mockStartSession).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+    });
+  });
+
   it('continues as a new user when the discovered session is gone before start', async () => {
     mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
     mockStartSession.mockRejectedValue(
