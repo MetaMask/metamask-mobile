@@ -489,6 +489,7 @@ builds:
       MM_MONEY_MFA_ENABLED: 'true'
       MM_MONEY_MPC_KEYRING_ENABLED: 'true'
       MM_MONEY_MPC_REAL_KEYRING: 'true'
+      MM_MONEY_MPC_2FA_APPROVAL: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
@@ -506,6 +507,7 @@ builds:
       MM_MONEY_MFA_ENABLED: 'true'
       MM_MONEY_MPC_KEYRING_ENABLED: 'true'
       MM_MONEY_MPC_REAL_KEYRING: 'true'
+      MM_MONEY_MPC_2FA_APPROVAL: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
