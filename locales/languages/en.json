@@ -130,6 +130,9 @@
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
     },
+    "money_account_no_funds": {
+      "message": "You don't have funds in your Money account to send yet. Add funds first."
+    },
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
