@@ -1,5 +1,7 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { FontWeight } from '@metamask/design-system-react-native';
 import FilterChipSection from './FilterChipSection';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -57,6 +59,64 @@ describe('FilterChipSection', () => {
     expect(screen.getByTestId('social-filters-type-controls')).toHaveStyle({
       marginTop: 8,
     });
+  });
+
+  it('keeps border, padding, height, and label weight when a chip is selected', () => {
+    const { rerender } = render(
+      <FilterChipSection
+        titleKey="social_leaderboard.shell.filters.section.asset"
+        options={options}
+        value="all"
+        onChange={jest.fn()}
+        testID="social-filters-type"
+      />,
+    );
+    const unselected = StyleSheet.flatten(
+      screen.getByTestId('social-filters-type-tokens').props.style,
+    );
+
+    rerender(
+      <FilterChipSection
+        titleKey="social_leaderboard.shell.filters.section.asset"
+        options={options}
+        value="tokens"
+        onChange={jest.fn()}
+        testID="social-filters-type"
+      />,
+    );
+    const selected = StyleSheet.flatten(
+      screen.getByTestId('social-filters-type-tokens').props.style,
+    );
+    const selectedLabel = screen.getByText(
+      'social_leaderboard.shell.filters.type.tokens',
+    );
+    const unselectedLabel = screen.getByText(
+      'social_leaderboard.shell.filters.type.all',
+    );
+
+    expect(selected).toEqual(
+      expect.objectContaining({
+        height: unselected.height,
+        paddingLeft: unselected.paddingLeft,
+        paddingRight: unselected.paddingRight,
+        borderWidth: unselected.borderWidth,
+      }),
+    );
+    expect(selected.borderWidth).toBe(1);
+    expect(selectedLabel).toBeOnTheScreen();
+    expect(unselectedLabel).toBeOnTheScreen();
+    expect(
+      screen.UNSAFE_getByProps({
+        children: 'social_leaderboard.shell.filters.type.tokens',
+        fontWeight: FontWeight.Medium,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.UNSAFE_getByProps({
+        children: 'social_leaderboard.shell.filters.type.all',
+        fontWeight: FontWeight.Medium,
+      }),
+    ).toBeTruthy();
   });
 
   it('reports the tapped option', () => {

@@ -262,7 +262,6 @@ const SocialV1ViewContent: React.FC = () => {
     closeSheet,
     updateDraft,
     applyFilters,
-    resetDraftToDefaults,
     clearAppliedFilters,
     setLeaderboardType,
   } = useSocialShellFilters();
@@ -855,7 +854,6 @@ const SocialV1ViewContent: React.FC = () => {
             draft={draft}
             onChange={updateDraft}
             onApply={handleApplyFilters}
-            onReset={resetDraftToDefaults}
             onClose={closeSheet}
           />
         ) : null}

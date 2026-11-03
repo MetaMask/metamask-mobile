@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
 import {
   Box,
-  FilterButton,
-  FilterButtonGroup,
-  FilterButtonSize,
-  FilterButtonVariant,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -12,6 +13,15 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { playSelection } from '../../../../../../util/haptics';
+
+/**
+ * Selected chips used to swap `Button` variants. Secondary draws a 1px border
+ * and Tertiary draws none, so every tap changed the chip's border box. The
+ * filters sheet is anchored to the bottom of the screen, and that extra pixel
+ * shifted every row upward. Both states keep this border so size, padding,
+ * and label position stay put. Color is the only selected-state change.
+ */
+const STABLE_CHIP_BORDER = { borderWidth: 1 };
 
 export interface FilterChipOption<T extends string> {
   id: T;
@@ -34,10 +44,10 @@ export interface FilterChipSectionProps<T extends string> {
 }
 
 /**
- * Section of single-select filter chips. Reuses MMDS `FilterButtonGroup` /
- * `FilterButton` with `FilterButtonVariant.Secondary` to match the Perps
- * order-book config sheet. Chips wrap to multiple rows when they exceed the
- * row width (the underlying `FilterButtonGroup` handles wrapping).
+ * Section of single-select filter chips. Every chip is the same `Button`
+ * secondary size in both states. A horizontal `FilterButtonGroup` swapped to
+ * a borderless tertiary button when unselected, which remeasured the row and
+ * the bottom-anchored sheet on each tap.
  */
 const FilterChipSection = <T extends string>({
   titleKey,
@@ -63,27 +73,34 @@ const FilterChipSection = <T extends string>({
       >
         {strings(titleKey)}
       </Text>
-      <Box twClassName="mt-2" testID={`${testID}-controls`}>
-        <FilterButtonGroup
-          value={value}
-          onChange={handleChange}
-          variant={FilterButtonVariant.Secondary}
-          twClassName="gap-2"
-        >
-          {options.map((option) => (
-            <FilterButton
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="mt-2 flex-wrap gap-2"
+        testID={`${testID}-controls`}
+      >
+        {options.map((option) => {
+          const isSelected = option.id === value;
+          return (
+            <Button
               key={option.id}
-              value={option.id}
-              size={FilterButtonSize.Sm}
-              isSelected={option.id === value}
+              size={ButtonSize.Sm}
+              variant={ButtonVariant.Secondary}
+              style={STABLE_CHIP_BORDER}
+              twClassName={isSelected ? 'bg-muted' : 'bg-transparent'}
+              textProps={
+                isSelected ? undefined : { color: TextColor.TextAlternative }
+              }
+              onPress={() => handleChange(option.id)}
+              accessibilityState={{ selected: isSelected }}
               testID={`${testID}-${option.id}`}
             >
               {option.leadingEmoji
                 ? `${option.leadingEmoji} ${strings(option.labelKey)}`
                 : strings(option.labelKey)}
-            </FilterButton>
-          ))}
-        </FilterButtonGroup>
+            </Button>
+          );
+        })}
       </Box>
     </Box>
   );
