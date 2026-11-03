@@ -5,12 +5,9 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import type { EvmAndMultichainNetworkConfigurationsWithCaipChainId } from '../../../selectors/networkController';
 
 /**
- * Converts the CAIP-keyed network configurations from the selector into the
- * hex-keyed `NetworkConfiguration` records that `NetworkController` expects.
- *
- * The selector adds a derived `caipChainId` to every entry. It is dropped here
- * because callers spread these configs into `NetworkController.updateNetwork`,
- * which persists unknown fields as-is.
+ * Converts CAIP-keyed network configurations into hex-keyed `NetworkConfiguration`
+ * records, dropping the derived `caipChainId` because `NetworkController.updateNetwork`
+ * persists unknown fields as-is.
  *
  * @param networkConfigurations - Network configurations keyed by CAIP chain ID.
  * @returns EVM network configurations keyed by hex chain ID.
