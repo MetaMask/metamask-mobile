@@ -107,12 +107,14 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
 
   const currencySymbol = CURRENCY_SYMBOLS[currentCurrency.toLowerCase()] ?? '';
   const isEmpty = targetAmount === KEYPAD_EMPTY;
-  const formattedTargetAmount = marketId
-    ? formatKeypadDisplay(targetAmount)
-    : targetAmount;
+  const formattedTargetAmount = formatKeypadDisplay(targetAmount);
   const displayText = isEmpty
     ? currencySymbol
     : `${currencySymbol}${formattedTargetAmount}`;
+  const formattedPercentDistance =
+    percentDiff.direction === 'none'
+      ? ''
+      : `${percentDiff.direction === 'above' ? '+' : '-'}${formatKeypadDisplay(String(percentDiff.rounded))}%`;
 
   // Always call both hooks; only one will be active depending on mode.
   const { submit: spotSubmit, isSubmitting: isSpotSubmitting } =
@@ -255,7 +257,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
                     : TextColor.ErrorDefault
                 }
               >
-                {`${percentDiff.direction === 'above' ? '+' : '-'}${percentDiff.rounded}%`}
+                {formattedPercentDistance}
               </Text>
               {` ${strings(
                 percentDiff.direction === 'above'
