@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -12,7 +13,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import {
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
@@ -21,20 +24,24 @@ import vbaCreatingAccount from './assets/vba-creating-account.png';
 
 export const VbaCreatingAccountSelectorsIDs = {
   CONTAINER: 'vba-creating-account-container',
+  BACK_BUTTON: 'vba-creating-account-back-button',
   ILLUSTRATION: 'vba-creating-account-illustration',
   TITLE: 'vba-creating-account-title',
   DESCRIPTION: 'vba-creating-account-description',
 } as const;
 
 interface VbaCreatingAccountProps {
+  onBack: () => void;
   /** KYC is approved, but the MoonPay customer is not Active yet. */
   awaitingProviderApproval?: boolean;
 }
 
 /** Shown while the autoramp is being created and until it is Approved. */
 const VbaCreatingAccount = ({
+  onBack,
   awaitingProviderApproval = false,
 }: VbaCreatingAccountProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   useScreenPerformance({
     config: VBA_SCREEN_PERFORMANCE_CONFIG,
@@ -49,9 +56,17 @@ const VbaCreatingAccount = ({
 
   return (
     <SafeAreaView
+      edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
       testID={VbaCreatingAccountSelectorsIDs.CONTAINER}
     >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        onBack={onBack}
+        backButtonProps={{ testID: VbaCreatingAccountSelectorsIDs.BACK_BUTTON }}
+        includesTopInset
+      />
       <Box
         gap={6}
         twClassName="flex-1 px-8"

@@ -806,7 +806,10 @@ const VbaDetails = () => {
 
   if (!isApproved) {
     return (
-      <VbaCreatingAccount awaitingProviderApproval={awaitingProviderApproval} />
+      <VbaCreatingAccount
+        onBack={handleBack}
+        awaitingProviderApproval={awaitingProviderApproval}
+      />
     );
   }
 

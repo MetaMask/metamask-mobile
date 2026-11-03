@@ -1001,6 +1001,9 @@ describe('VbaDetails', () => {
     ).toBeOnTheScreen();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(queryByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeNull();
+
+    fireEvent.press(getByTestId(VbaCreatingAccountSelectorsIDs.BACK_BUTTON));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('keeps loading when no usable autoramp exists and the customer is not active', async () => {

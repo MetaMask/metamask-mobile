@@ -494,7 +494,6 @@ import type {
   DelegationControllerEvents,
 } from '@metamask/delegation-controller';
 type DelegationControllerState = DelegationController['state'];
-import type { Patch } from 'immer';
 import { ControllerGetStateAction } from '@metamask/base-controller';
 import {
   ProfileMetricsController,
@@ -514,9 +513,16 @@ type NftDetectionControllerActions =
     >
   | NftDetectionControllerDetectNftsAction;
 
+/** Immer patch shape, inlined so this file does not depend on `immer`. */
+interface StateChangePatch {
+  op: 'replace' | 'remove' | 'add';
+  path: (string | number)[];
+  value?: unknown;
+}
+
 interface NftDetectionControllerEvents {
   type: 'NftDetectionController:stateChange';
-  payload: [NftDetectionController['state'], Patch[]];
+  payload: [NftDetectionController['state'], StateChangePatch[]];
 }
 import {
   TransactionPayController,
