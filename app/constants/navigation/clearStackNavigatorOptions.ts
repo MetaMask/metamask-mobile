@@ -55,7 +55,6 @@ export const addDeviceToWalletPageOptions: NativeStackNavigationOptions = {
   headerShown: false,
   animation: 'slide_from_right',
   presentation: 'card',
-  fullScreenGestureEnabled: true,
 };
 
 /**

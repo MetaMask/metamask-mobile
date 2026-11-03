@@ -386,6 +386,29 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
+    it('keeps QR sync secrets when the screen is removed for import', () => {
+      renderComponent({
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports,
+      });
+
+      mockBeforeRemoveListeners.forEach((listener) => listener());
+
+      expect(mockResetState).not.toHaveBeenCalled();
+    });
+
+    it('keeps provisioning metadata when the screen is removed during Phase C', () => {
+      renderComponent({
+        provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
+        provisioningMetadata: pendingSecretImports,
+        pendingSecretImports: null,
+      });
+
+      mockBeforeRemoveListeners.forEach((listener) => listener());
+
+      expect(mockResetState).not.toHaveBeenCalled();
+    });
+
     it('does not navigate to import when sync failed with stale secret data', async () => {
       renderComponent({
         phase: QrSyncPhases.FAILED,
