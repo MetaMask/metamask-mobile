@@ -91,9 +91,7 @@ const EntryProbe = () => {
 };
 
 const stateFor = (predictConfig: PredictConfig) =>
-  initialStatePredictNext()
-    .withRemoteFeatureFlags({ predictConfig })
-    .build();
+  initialStatePredictNext().withRemoteFeatureFlags({ predictConfig }).build();
 
 /** The entry probe with the Predict root and modal routes registered. */
 const renderWithRouteProbes = (predictConfig: PredictConfig) =>
