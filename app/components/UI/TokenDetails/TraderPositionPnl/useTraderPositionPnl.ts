@@ -18,23 +18,15 @@ interface UseTraderPositionPnlOptions {
   token: TokenDetailsRouteParams;
   /** Identity of the token on screen; resets the expanded state when it changes. */
   tokenKey: string;
-  /**
-   * Gates the open-position request and the resulting PnL. When `false` the
-   * hook makes no Social API call and returns `undefined`, so the footer
-   * renders exactly as it does without a position.
-   */
-  enabled?: boolean;
 }
 
 interface UseTraderPositionPnlResult {
   /** Ready to spread onto `TokenDetailsStickyFooter`; `undefined` hides the line. */
   traderPositionPnl: TraderPositionPnlProps | undefined;
   /**
-   * True while the open-position request for a position-capable page has not
-   * settled. The footer holds back its first render until this is false so it
-   * appears once in its final shape instead of flipping container types.
-   * Always `false` when the hook is disabled, so a page that is not
-   * position-capable never hides its footer on this signal.
+   * True while the open-position request has not settled. The footer holds back
+   * its first render until this is false so it appears once in its final shape
+   * instead of flipping container types.
    */
   isLoading: boolean;
 }
@@ -52,10 +44,9 @@ interface UseTraderPositionPnlResult {
 export const useTraderPositionPnl = ({
   token,
   tokenKey,
-  enabled = true,
 }: UseTraderPositionPnlOptions): UseTraderPositionPnlResult => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const header = useOpenPositionHeader(token, { enabled });
+  const header = useOpenPositionHeader(token);
   const { openComposer } = useOpenSocialPostComposer();
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
@@ -88,11 +79,8 @@ export const useTraderPositionPnl = ({
   }, [tokenKey]);
 
   const shareToFeed = canShareToFeed ? { onShare: shareToFeedPress } : {};
-  // `enabled` gates the whole line, not just the Social request: the wallet
-  // balance still resolves while disabled, so without this a flag-off page
-  // would render the value-only "Your position" row for any held token.
   const traderPositionPnl =
-    enabled && header.positionValue !== undefined
+    header.positionValue !== undefined
       ? {
           positionValue: header.positionValue,
           pnl: header.pnl,
@@ -110,10 +98,8 @@ export const useTraderPositionPnl = ({
         }
       : undefined;
 
-  // `isPositionLoading` already folds in the `enabled` flag (a disabled hook
-  // never starts the request), so this stays false on non-position pages.
   return {
     traderPositionPnl,
-    isLoading: enabled && header.isPositionLoading,
+    isLoading: header.isPositionLoading,
   };
 };

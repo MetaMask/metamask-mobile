@@ -82,7 +82,6 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
 import { useTraderPositionPnl } from '../TraderPositionPnl/useTraderPositionPnl';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
 import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
@@ -276,15 +275,12 @@ const TokenDetails: React.FC<{
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
-  // Port the memecoin TDP V1 position line to the legacy page, gated on the
-  // same flag: off => no Social API call and no line (today's footer).
-  const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
+  // Trader position P&L line ported from the memecoin V1 footer.
   const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
   const { traderPositionPnl, isLoading: isTraderPositionLoading } =
     useTraderPositionPnl({
       token,
       tokenKey: traderPositionTokenKey,
-      enabled: isMemecoinTdpEnabled,
     });
 
   const shareUrl = useMemo(
