@@ -99,6 +99,8 @@ import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnab
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectExploreBrandRefreshEnabled } from '../../../selectors/featureFlagController/exploreBrandRefresh';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../component-library/components-temp/HeaderGlass';
+import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -400,6 +402,23 @@ describe('TrendingView', () => {
     expect(
       getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps the header in flow, with no floating backdrop, when the Explore brand refresh is on', () => {
+    const defaultSelector = createMockSelectorImplementation();
+    mockUseSelector.mockImplementation((selector) =>
+      selector === selectExploreBrandRefreshEnabled
+        ? true
+        : defaultSelector(selector),
+    );
+
+    const { getByTestId, getByText, queryByTestId } = renderTrendingView();
+
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
+    ).toBeOnTheScreen();
+    expect(getByText(strings('trending.title'))).toBeOnTheScreen();
+    expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
   });
 
   it('renders search bar button', () => {

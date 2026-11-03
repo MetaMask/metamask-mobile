@@ -23,7 +23,7 @@ import {
   Icon,
   IconSize,
 } from '@metamask/design-system-react-native';
-import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
+import HeaderRootGlass from '../../../component-library/components-temp/HeaderRootGlass';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
 import {
   TabsListRef,
@@ -238,6 +238,7 @@ export const ExploreFeed: React.FC = () => {
   const isSearchGlass = useIsGlassSurfaceEnabled(
     selectExploreBrandRefreshEnabled,
   );
+  const isGlassHeader = useSelector(selectExploreBrandRefreshEnabled) === true;
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -327,7 +328,9 @@ export const ExploreFeed: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
-      <HeaderRoot
+      <HeaderRootGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title={strings('trending.title')}
         testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
