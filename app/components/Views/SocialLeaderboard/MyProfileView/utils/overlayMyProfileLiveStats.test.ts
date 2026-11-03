@@ -10,7 +10,6 @@ const localProfile: MySocialProfile = {
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
   followerCount: 4,

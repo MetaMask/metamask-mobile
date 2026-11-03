@@ -159,6 +159,8 @@ interface TokenStickyFooterProps {
   tdpVersion?: TdpVersion;
   /** Optional trader position header rendered above the footer actions. */
   traderPositionPnl?: TraderPositionPnlProps;
+  /** Reports the laid-out height of the sticky footer, including its safe-area inset. */
+  onFooterLayout?: (height: number) => void;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -184,6 +186,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   isTokenDetailsV1 = false,
   tdpVersion = 'v2',
   traderPositionPnl,
+  onFooterLayout,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
@@ -588,6 +591,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     </Button>
   ) : null;
 
+  const handleFooterLayout = (event: LayoutChangeEvent) => {
+    onFooterLayout?.(event.nativeEvent.layout.height);
+  };
+
   const positionContent = traderPositionPnl ? (
     <>
       <TraderPositionPnl {...traderPositionPnl} />
@@ -762,6 +769,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       testID="token-details-sticky-footer"
       isInteractable={false}
       style={bottomSheetStyle}
+      onLayout={handleFooterLayout}
     >
       <GestureDetector gesture={sheetGesture}>
         <View testID="token-details-sticky-footer-surface" style={footerStyle}>
@@ -779,7 +787,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       </GestureDetector>
     </BottomSheetDialog>
   ) : (
-    <View style={legacyFooterStyle}>{footerActions}</View>
+    <View onLayout={handleFooterLayout} style={legacyFooterStyle}>
+      {footerActions}
+    </View>
   );
 
   return (

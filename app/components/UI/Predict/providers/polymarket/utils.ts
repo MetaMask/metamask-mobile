@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { query } from '@metamask/controller-utils';
 import { hmacSha256 } from '@metamask/cryptography/hmac';
@@ -2271,31 +2270,6 @@ async function waiveFees({
   }
 }
 
-/**
- * Applies the client-side Predict fee policy to the MetaMask service fee only.
- * Provider fees and CLOB market fees remain unchanged.
- *
- * @param feeCollection - Feature-flagged fee configuration.
- * @param feePolicy - Current per-order Predict fee policy.
- * @returns Fee configuration with the effective MetaMask fee.
- */
-const getEffectiveFeeCollection = ({
-  feeCollection,
-  feePolicy,
-}: {
-  feeCollection?: PredictFeeCollection;
-  feePolicy?: PredictFeePolicy;
-}): PredictFeeCollection | undefined => {
-  if (!feeCollection || feePolicy?.discountType !== DiscountType.SUBSCRIPTION) {
-    return feeCollection;
-  }
-
-  return {
-    ...feeCollection,
-    metamaskFee: 0,
-  };
-};
-
 const isMarketFeeWaived = async ({
   marketId,
   feeCollection,
@@ -2317,20 +2291,27 @@ const calculateFeesForCollection = ({
   feeCollection,
   marketFeeWaived,
   userBetAmount,
+  waiveMetamaskServiceFee,
 }: {
   feeCollection?: PredictFeeCollection;
   marketFeeWaived: boolean;
   userBetAmount: number;
-}): PredictFees => {
+  waiveMetamaskServiceFee: boolean;
+}): {
+  fees: PredictFees;
+  originalFees?: PredictFees;
+} => {
   if (!feeCollection?.enabled || marketFeeWaived) {
     return {
-      metamaskFee: 0,
-      providerFee: 0,
-      totalFee: 0,
-      totalFeePercentage: 0,
-      collector: '0x0',
-      executors: [],
-      permit2Enabled: false,
+      fees: {
+        metamaskFee: 0,
+        providerFee: 0,
+        totalFee: 0,
+        totalFeePercentage: 0,
+        collector: '0x0',
+        executors: [],
+        permit2Enabled: false,
+      },
     };
   }
 
@@ -2342,22 +2323,41 @@ const calculateFeesForCollection = ({
     permit2Enabled,
   } = feeCollection;
 
-  const totalFeePercentage = (metamaskFeeRate + providerFeeRate) * 100;
-
-  const metamaskFee = userBetAmount * metamaskFeeRate;
+  const originalMetamaskFee = userBetAmount * metamaskFeeRate;
   const providerFee = userBetAmount * providerFeeRate;
+  let metamaskFee = originalMetamaskFee;
+  let totalFeePercentage = (metamaskFeeRate + providerFeeRate) * 100;
 
-  // Rounded to 6 decimals
-  const totalFee = Math.round((metamaskFee + providerFee) * 1000000) / 1000000;
+  if (waiveMetamaskServiceFee) {
+    metamaskFee = 0;
+    totalFeePercentage = providerFeeRate * 100;
+  }
 
-  return {
+  const fees: PredictFees = {
     metamaskFee,
     providerFee,
-    totalFee,
+    // Rounded to 6 decimals
+    totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
     totalFeePercentage,
     collector,
     executors: executors ?? [],
     permit2Enabled: permit2Enabled ?? false,
+  };
+
+  if (!waiveMetamaskServiceFee) {
+    return { fees };
+  }
+
+  return {
+    fees,
+    originalFees: {
+      ...fees,
+      metamaskFee: originalMetamaskFee,
+      // Rounded to 6 decimals
+      totalFee:
+        Math.round((originalMetamaskFee + providerFee) * 1000000) / 1000000,
+      totalFeePercentage: (metamaskFeeRate + providerFeeRate) * 100,
+    },
   };
 };
 
@@ -2387,32 +2387,17 @@ export async function calculateFees({
   /** Standard fees before the membership MetaMask fee waiver. */
   originalFees?: PredictFees;
 }> {
-  const effectiveFeeCollection = getEffectiveFeeCollection({
-    feeCollection,
-    feePolicy,
-  });
   const marketFeeWaived = await isMarketFeeWaived({
     marketId,
-    feeCollection: effectiveFeeCollection,
+    feeCollection,
   });
-  const fees = calculateFeesForCollection({
-    feeCollection: effectiveFeeCollection,
+
+  return calculateFeesForCollection({
+    feeCollection,
     marketFeeWaived,
     userBetAmount,
+    waiveMetamaskServiceFee: Boolean(feePolicy),
   });
-
-  if (feePolicy?.discountType !== DiscountType.SUBSCRIPTION) {
-    return { fees };
-  }
-
-  return {
-    fees,
-    originalFees: calculateFeesForCollection({
-      feeCollection,
-      marketFeeWaived,
-      userBetAmount,
-    }),
-  };
 }
 
 export const getAllowanceCalls = (params: { address: string }) => {
@@ -2683,7 +2668,7 @@ const matchSellOrder = ({
 }: {
   bids: OrderSummary[];
   shareAmount: number;
-}): { price: number; size: number } => {
+}): { price: number; size: number; worstPrice: number } => {
   if (!bids.length) {
     throw new Error('no order match');
   }
@@ -2692,6 +2677,8 @@ const matchSellOrder = ({
 
   let dollarAmount = 0;
   let sharesMatched = 0;
+  // Lowest bid level that contributed shares to the fill.
+  let worstPrice = sharePrice;
 
   for (let i = bids.length - 1; i >= 0; i--) {
     const e = bids[i];
@@ -2701,10 +2688,16 @@ const matchSellOrder = ({
     if (sharesMatched + entrySize <= shareAmount) {
       sharesMatched += entrySize;
       dollarAmount += entrySize * entryPrice;
+      if (entrySize > 0) {
+        worstPrice = entryPrice;
+      }
     } else {
       const remainingShares = shareAmount - sharesMatched;
       dollarAmount += remainingShares * entryPrice;
-      return { price: sharePrice, size: dollarAmount };
+      if (remainingShares > 0) {
+        worstPrice = entryPrice;
+      }
+      return { price: sharePrice, size: dollarAmount, worstPrice };
     }
   }
 
@@ -2712,6 +2705,7 @@ const matchSellOrder = ({
     return {
       price: sharePrice,
       size: dollarAmount,
+      worstPrice,
     };
   }
 
@@ -2910,7 +2904,11 @@ export const previewOrder = async (
   if (!bids || bids.length === 0) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
   }
-  const { price: bestPrice, size: dollarAmount } = matchSellOrder({
+  const {
+    price: bestPrice,
+    size: dollarAmount,
+    worstPrice: worstFillPrice,
+  } = matchSellOrder({
     bids,
     shareAmount: size,
   });
@@ -2928,6 +2926,7 @@ export const previewOrder = async (
     side: Side.SELL,
     positionId: params.positionId,
     sharePrice: bestPrice,
+    worstFillPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
     slippage: SLIPPAGE_SELL,
@@ -2957,10 +2956,7 @@ export const previewOrder = async (
     },
   };
 
-  if (
-    feePolicy?.discountType === DiscountType.SUBSCRIPTION &&
-    originalServiceFees
-  ) {
+  if (feePolicy && originalServiceFees) {
     orderPreview.originalFees = {
       ...originalServiceFees,
       marketFee,

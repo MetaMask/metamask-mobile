@@ -163,6 +163,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     acceptReferralCode,
     isLoading: isAccepting,
     errorMessage: registerError,
+    refusalReason,
     acceptBlockedUntil,
     clearError,
   } = useAcceptMoneyReferralCode();
@@ -248,25 +249,36 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       if (!hasTrackedOfferViewedRef.current) {
         return;
       }
+      const properties: {
+        referral_code: string;
+        interaction_type: 'accepted' | 'declined' | 'dismissed';
+        refusal_reason?: ReferralRefusalReason;
+      } = {
+        referral_code: referralCode,
+        interaction_type: interactionType,
+      };
+      if (
+        refusalReason &&
+        (interactionType === 'declined' || interactionType === 'dismissed')
+      ) {
+        properties.refusal_reason = refusalReason;
+      }
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
         )
-          .addProperties({
-            referral_code: referralCode,
-            interaction_type: interactionType,
-          })
+          .addProperties(properties)
           .build(),
       );
     },
-    [createEventBuilder, referralCode, trackEvent],
+    [createEventBuilder, referralCode, refusalReason, trackEvent],
   );
 
   // Failed Accept: the user tried to take the invite and the server turned
   // them away. Does not lock the one-answer guard, so a later answer or
   // another failed Accept can still fire.
   const trackRefused = useCallback(
-    (refusalReason: ReferralRefusalReason) => {
+    (reason: ReferralRefusalReason) => {
       if (!hasTrackedOfferViewedRef.current) {
         return;
       }
@@ -277,7 +289,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           .addProperties({
             referral_code: referralCode,
             interaction_type: 'refused',
-            refusal_reason: refusalReason,
+            refusal_reason: reason,
           })
           .build(),
       );

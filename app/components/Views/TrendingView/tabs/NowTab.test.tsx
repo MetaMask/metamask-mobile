@@ -255,10 +255,7 @@ const defaultTabProps = {
 };
 
 const predictSectionTestId = 'section-header-view-all-predictions';
-const cryptoMoversSectionTestId = 'section-header-view-all-crypto_movers';
-const perpsSectionTestId = 'section-header-view-all-perps';
 const whatsHappeningSectionTestId = 'whats-happening-carousel';
-const stocksSectionTestId = 'section-header-view-all-stocks';
 
 const createWhatsHappeningCarousel = () =>
   React.createElement('View', { testID: whatsHappeningSectionTestId });

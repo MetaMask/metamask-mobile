@@ -412,6 +412,15 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('keeps Social AI comment translation off until the flag is enabled', () => {
+      expect(
+        getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '8.19.0',
+      });
+    });
+
     it('enables the Social AI feed and leaderboard at 8.0.0+', () => {
       expect(
         getRegistryEntry('aiSocialFeedEnabled')?.productionDefault,

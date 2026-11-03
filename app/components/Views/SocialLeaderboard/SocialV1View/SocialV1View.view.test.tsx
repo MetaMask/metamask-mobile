@@ -13,6 +13,7 @@ import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
 import {
   act,
   fireEvent,
@@ -20,6 +21,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
@@ -57,6 +59,10 @@ import {
 } from '../PostTradeShareBottomSheet/postTradeShareSession';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../terms/socialTermsAcceptance';
 
 const OPEN_PERP_POSITION_ID = 'cv-open-perp';
 const OPEN_PERP_TIMESTAMP = 1_700_000_000;
@@ -68,6 +74,12 @@ const openPerpFeedItem = mockPerpFeedItem({
   isOpen: true,
   timestamp: OPEN_PERP_TIMESTAMP,
   lastTradeAt: OPEN_PERP_TIMESTAMP,
+  authorComment: {
+    uid: `${OPEN_PERP_POSITION_ID}-comment`,
+    text: 'Riding the trend',
+    timestamp: OPEN_PERP_TIMESTAMP,
+    engagement: { reactions: [], userReaction: null },
+  },
   currentValueUSD: 60000,
   realizedPnl: 0,
   trades: [
@@ -129,13 +141,33 @@ const installComplianceController = (blocked: boolean) => {
   });
 };
 
-const pressCopyTrade = async () => {
-  const trendingPage = within(
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+// The tab feeds only fetch online, and the NetInfo mock starts offline.
+beforeEach(() => {
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+});
+
+afterEach(() => {
+  netInfoMock.__resetMockNetInfo();
+});
+
+const findTrendingCopyTradeButton = () =>
+  within(
     screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
-  );
-  const button = await trendingPage.findByTestId(copyTradeButtonTestId);
-  fireEvent.press(button);
+  ).findByTestId(copyTradeButtonTestId);
+
+const pressCopyTrade = async () => {
+  fireEvent.press(await findTrendingCopyTradeButton());
 };
+
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
 
 describe('SocialV1View copy trade', () => {
   beforeEach(() => {
@@ -398,7 +430,7 @@ describe('SocialV1View post-trade Quick Buy reopen', () => {
 
   it('reopens Quick Buy over the feed when a failed post-trade share retries', async () => {
     renderFeedWithQuickBuyState();
-    await screen.findByTestId(copyTradeButtonTestId);
+    await findTrendingCopyTradeButton();
 
     requestFeedQuickBuyReopen();
 
@@ -417,7 +449,7 @@ describe('SocialV1View post-trade Quick Buy reopen', () => {
 
   it('reopens Quick Buy in sell mode when the failed trade was a sell', async () => {
     renderFeedWithQuickBuyState(quickBuySellableUsdcOverrides());
-    await screen.findByTestId(copyTradeButtonTestId);
+    await findTrendingCopyTradeButton();
 
     requestFeedQuickBuyReopen(DEFAULT_QUICK_BUY_TARGET, 'sell');
 
@@ -435,7 +467,7 @@ describe('SocialV1View post-trade Quick Buy reopen', () => {
           .build(),
       },
     );
-    await screen.findByTestId(copyTradeButtonTestId);
+    await findTrendingCopyTradeButton();
 
     requestFeedQuickBuyReopen();
 

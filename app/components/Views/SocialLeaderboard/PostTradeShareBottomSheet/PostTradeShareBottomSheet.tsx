@@ -26,12 +26,13 @@ import { Image } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import createProfileIllustration from '../../../../images/socialV1/post-trade-create-profile.png';
+import createProfileIllustration from '../../../../images/socialV1/megaphone.png';
 import PostTradeEarnIllustration from '../../../../images/socialV1/post-trade-earn.svg';
 import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomSheet.testIds';
 import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
+  hasPostTradeShareReopenOwner,
   requestPostTradeShareReopen,
   subscribePostTradeShareSession,
   type PostTradeShareSession,
@@ -133,7 +134,16 @@ const PostTradeShareBottomSheet: React.FC = () => {
     },
   );
   const isCreateProfile = session?.variant === 'create_profile';
-  const canRetry = session?.product === 'spot' && Boolean(session.owner);
+  const retryOwner = session?.product === 'spot' ? session.owner : undefined;
+  const getCanRetry = useCallback(
+    () => (retryOwner ? hasPostTradeShareReopenOwner(retryOwner) : false),
+    [retryOwner],
+  );
+  const canRetry = useSyncExternalStore(
+    subscribePostTradeShareSession,
+    getCanRetry,
+    getCanRetry,
+  );
   const canShare = Boolean(
     session?.status === 'complete' &&
       (session.product === 'perps'
@@ -261,51 +271,53 @@ const PostTradeShareBottomSheet: React.FC = () => {
           </Text>
         ) : null}
       </Box>
-      <Box twClassName="px-4 pt-4 pb-6">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 rounded-xl border border-muted bg-muted p-3"
-          testID={PostTradeShareBottomSheetSelectorsIDs.CARD}
-        >
-          {isCreateProfile ? (
-            <Image
-              source={createProfileIllustration}
-              resizeMode="contain"
-              style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
-            />
-          ) : (
-            <PostTradeEarnIllustration
-              name="post-trade-earn"
-              width={ILLUSTRATION_SIZE}
-              height={ILLUSTRATION_SIZE}
-            />
-          )}
-          <Box twClassName="flex-1">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              testID={PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE}
-            >
-              {strings(
-                isCreateProfile
-                  ? 'social_leaderboard.post_trade_share.create_profile_title'
-                  : 'social_leaderboard.post_trade_share.post_and_earn_title',
-              )}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings(
-                isCreateProfile
-                  ? 'social_leaderboard.post_trade_share.create_profile_body'
-                  : 'social_leaderboard.post_trade_share.post_and_earn_body',
-              )}
-            </Text>
+      {session.status !== 'failed' ? (
+        <Box twClassName="px-4 pt-4 pb-6">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2 rounded-xl border border-muted bg-muted p-3"
+            testID={PostTradeShareBottomSheetSelectorsIDs.CARD}
+          >
+            {isCreateProfile ? (
+              <Image
+                source={createProfileIllustration}
+                resizeMode="contain"
+                style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
+              />
+            ) : (
+              <PostTradeEarnIllustration
+                name="post-trade-earn"
+                width={ILLUSTRATION_SIZE}
+                height={ILLUSTRATION_SIZE}
+              />
+            )}
+            <Box twClassName="flex-1">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                testID={PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE}
+              >
+                {strings(
+                  isCreateProfile
+                    ? 'social_leaderboard.post_trade_share.create_profile_title'
+                    : 'social_leaderboard.post_trade_share.post_and_earn_title',
+                )}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings(
+                  isCreateProfile
+                    ? 'social_leaderboard.post_trade_share.create_profile_body'
+                    : 'social_leaderboard.post_trade_share.post_and_earn_body',
+                )}
+              </Text>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      ) : null}
       <Box twClassName="px-4 pb-6">
         <Button
           variant={ButtonVariant.Primary}

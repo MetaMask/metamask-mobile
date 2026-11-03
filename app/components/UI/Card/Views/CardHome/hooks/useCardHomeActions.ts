@@ -455,6 +455,12 @@ export function useCardHomeActions({
     });
   }, [navigation]);
 
+  const howToUseApplePayAction = useCallback(() => {
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.APPLE_PAY_USAGE,
+    });
+  }, [navigation]);
+
   const unlinkMoneyAccountAction = useCallback(
     (fundingSource?: string) => {
       trackEvent(
@@ -629,6 +635,7 @@ export function useCardHomeActions({
     manageSpendingLimitAction,
     contactDetailsAction,
     digitalWalletInstructionsAction,
+    howToUseApplePayAction,
     unlinkMoneyAccountAction,
     revokeAllowanceAction,
     logoutAction,

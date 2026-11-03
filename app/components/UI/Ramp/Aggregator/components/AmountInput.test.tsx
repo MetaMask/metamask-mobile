@@ -1,10 +1,19 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import AmountInput from './AmountInput';
-import { TouchableOpacity } from 'react-native';
+import AmountInput, { getAggregatorAmountFontSize } from './AmountInput';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
+
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => 'HIGH'),
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(() => 'WIFI'),
+}));
 
 const defaultState = {
   engine: {
@@ -19,12 +28,37 @@ const mockProps = {
   currencySymbol: '$',
 };
 
+const getAmountTextStyles = () =>
+  screen
+    .getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)
+    .findAll(
+      ({ props }) => StyleSheet.flatten(props.style)?.fontSize !== undefined,
+    )
+    .map(({ props }) => StyleSheet.flatten(props.style));
+
+describe('getAggregatorAmountFontSize', () => {
+  it('keeps short values at 24px', () => {
+    const result = getAggregatorAmountFontSize(8);
+
+    expect(result).toBe(24);
+  });
+
+  it('scales long values below 24px', () => {
+    const result = getAggregatorAmountFontSize(20);
+
+    expect(result).toBeLessThan(24);
+  });
+});
+
 describe('AmountInput', () => {
   it('renders correctly', () => {
     renderWithProvider(<AmountInput {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.getByText('$100.50')).toBeOnTheScreen();
+
+    expect(
+      screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+    ).toHaveTextContent('$100.50');
   });
 
   it('renders correctly with currency selector', () => {
@@ -43,7 +77,9 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} onPress={mockOnPress} />, {
       state: defaultState,
     });
-    fireEvent.press(screen.getByText('$100.50'));
+
+    fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
@@ -99,6 +135,57 @@ describe('AmountInput', () => {
     expect(
       screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
     ).not.toBeOnTheScreen();
+  });
+
+  it('keeps short animated amounts at 24px', () => {
+    renderWithProvider(<AmountInput {...mockProps} />, {
+      state: defaultState,
+    });
+
+    const amountTextStyles = getAmountTextStyles();
+
+    expect(amountTextStyles).not.toHaveLength(0);
+    expect(amountTextStyles.every(({ fontSize }) => fontSize === 24)).toBe(
+      true,
+    );
+  });
+
+  it('scales long animated amounts and its cursor', () => {
+    const amount = '12345678901234567.89';
+    renderWithProvider(
+      <AmountInput {...mockProps} amount={amount} highlighted />,
+      {
+        state: defaultState,
+      },
+    );
+
+    const amountTextStyles = getAmountTextStyles();
+    const expectedFontSize = getAggregatorAmountFontSize(`$${amount}`.length);
+
+    expect(amountTextStyles).not.toHaveLength(0);
+    expect(
+      amountTextStyles.every(({ fontSize }) => fontSize === expectedFontSize),
+    ).toBe(true);
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR).props.style,
+      ).height,
+    ).toBe(expectedFontSize);
+  });
+
+  it('uses the error color for animated amount glyphs', () => {
+    renderWithProvider(
+      <AmountInput {...mockProps} amount="9" highlightedError />,
+      {
+        state: defaultState,
+      },
+    );
+
+    const errorColorNodes = screen
+      .getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)
+      .findAll(({ props }) => props.color === TextColor.ErrorDefault);
+
+    expect(errorColorNodes.length).toBeGreaterThan(0);
   });
 
   it('does not call onPress when loading', () => {

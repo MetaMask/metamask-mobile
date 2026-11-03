@@ -20,8 +20,9 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -38,11 +39,15 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    openAsOnlyOnboardingRoute: jest.fn(),
+    openVbaEntry: jest.fn(),
   }),
 );
+jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  startVbaCufJourney: jest.fn(),
+}));
 
-const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
+const mockOpenVbaEntry = jest.mocked(openVbaEntry);
+const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -223,12 +228,11 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     // It is a standalone VBA screen, not part of the crypto deposit flow.
-    // Opening shows the loading screen before onboarding status is known.
+    // Opening routes through the VBA entry helper before status is known.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+    expect(mockOpenVbaEntry).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: mockNavigate }),
-      VbaOnboardingRoutes.LOADING,
     );
   });
 
@@ -306,9 +310,8 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     fireEvent.press(bankRow);
-    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+    expect(mockOpenVbaEntry).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: mockNavigate }),
-      VbaOnboardingRoutes.LOADING,
     );
   });
 
@@ -792,6 +795,9 @@ describe('MoneyAddMoneySheet', () => {
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
         redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
       });
+      expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+        VBA_CUF_ENTRY_SURFACE.ADD_MONEY_SHEET,
+      );
     });
 
     it('calls trackSurfaceClicked with CONVERT_CRYPTO component when "Convert crypto" row is pressed', () => {

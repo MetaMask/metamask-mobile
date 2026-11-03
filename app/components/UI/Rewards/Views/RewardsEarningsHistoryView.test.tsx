@@ -13,11 +13,10 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
-import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner';
-import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows';
-import RewardsEarningsHistoryView, {
-  REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS,
-} from './RewardsEarningsHistoryView';
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
+import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
+import RewardsEarningsHistoryView from './RewardsEarningsHistoryView';
+import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
 
 const mockNavigate = jest.fn();
 

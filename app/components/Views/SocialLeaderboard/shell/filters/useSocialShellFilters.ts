@@ -30,6 +30,11 @@ const tabFiltersEqual = (
   if ((tab !== 'leaderboard' && a.type !== b.type) || cohortA !== cohortB) {
     return false;
   }
+  // Positions is a Trending section. Other tabs keep the default and must
+  // not light their icon if a leftover value is still on the model.
+  if (tab === 'trending' && a.positionStatus !== b.positionStatus) {
+    return false;
+  }
   if (tab === 'leaderboard') {
     return a.timeframe === b.timeframe;
   }
@@ -58,6 +63,8 @@ export interface UseSocialShellFiltersResult {
   applyFilters: () => void;
   /** Resets sheet-owned fields to defaults. Apply still required to commit. */
   resetDraftToDefaults: () => void;
+  /** Clears a tab's applied filters. The leaderboard type chip is kept. */
+  clearAppliedFilters: (tab: SocialShellTab) => void;
   /** Updates the leaderboard asset type owned by the chip outside the sheet. */
   setLeaderboardType: (type: SocialShellFilters['type']) => void;
 }
@@ -127,6 +134,19 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     }));
   }, []);
 
+  const clearAppliedFilters = useCallback((tab: SocialShellTab) => {
+    setApplied((prev) => {
+      const resetFilters = cloneFilters(DEFAULT_FILTERS);
+      if (tab === 'leaderboard') {
+        resetFilters.type = prev.leaderboard.type;
+      }
+      return {
+        ...prev,
+        [tab]: resetFilters,
+      };
+    });
+  }, []);
+
   const applyFilters = useCallback(() => {
     if (!openTab) {
       return;
@@ -167,6 +187,7 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     updateDraft,
     applyFilters,
     resetDraftToDefaults,
+    clearAppliedFilters,
     setLeaderboardType,
   };
 }

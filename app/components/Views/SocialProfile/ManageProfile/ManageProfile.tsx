@@ -183,6 +183,8 @@ const ManageProfile = () => {
             showDivider
             title={strings('manage_profile.handle')}
             value={valueOrPlaceholder(profile.handle)}
+            // v1: the handle is permanent once the profile is set up.
+            disabled={Boolean(profile.handle)}
             testID={ManageProfileSelectorsIDs.HANDLE_ROW}
           />
           <ProfileRow

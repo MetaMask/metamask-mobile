@@ -14,6 +14,7 @@ import {
   PredictFailureStageValue,
   PredictOneTickDecisionValue,
   PredictPaymentMethodValue,
+  PredictPresubmitOutcomeValue,
   PredictRetryOutcomeValue,
   PredictRetryReasonValue,
   PredictShareStatusValue,
@@ -58,6 +59,14 @@ export interface TrackPredictOrderEventArgs {
   slippageBand?: string;
   /** Terminal outcome of a retry submission. */
   retryOutcome?: PredictRetryOutcomeValue;
+  /** What the Cash Out price check decided before submitting. */
+  presubmitOutcome?: PredictPresubmitOutcomeValue;
+  /** Price the Cash Out price check compared the fresh book against. */
+  approvedPrice?: number;
+  /** Lowest bid used to fill the full size in the fresh book. */
+  worstFillPrice?: number;
+  /** True when the check follows a confirmation of a moved price. */
+  reconfirmed?: boolean;
   activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -256,6 +265,10 @@ export class PredictAnalytics {
     oneTickDecision,
     slippageBand,
     retryOutcome,
+    presubmitOutcome,
+    approvedPrice,
+    worstFillPrice,
+    reconfirmed,
     activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
@@ -379,6 +392,18 @@ export class PredictAnalytics {
       }),
       ...(retryOutcome && {
         [PredictEventProperties.RETRY_OUTCOME]: retryOutcome,
+      }),
+      ...(presubmitOutcome && {
+        [PredictEventProperties.PRESUBMIT_OUTCOME]: presubmitOutcome,
+      }),
+      ...(approvedPrice !== undefined && {
+        [PredictEventProperties.APPROVED_PRICE]: approvedPrice,
+      }),
+      ...(worstFillPrice !== undefined && {
+        [PredictEventProperties.WORST_FILL_PRICE]: worstFillPrice,
+      }),
+      ...(reconfirmed !== undefined && {
+        [PredictEventProperties.RECONFIRMED]: reconfirmed,
       }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {

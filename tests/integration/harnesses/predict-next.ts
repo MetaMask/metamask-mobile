@@ -53,6 +53,35 @@ export type PredictFetchResponder = (
   init?: RequestInit,
 ) => Promise<PredictFetchResult> | PredictFetchResult;
 
+/**
+ * A Predict API route table keyed by URL pathname, for example
+ * `/v1/venues/kalshi/portfolio/summary`. A function route receives the parsed
+ * URL so it can answer by query parameters (cursor, status, sort).
+ */
+export type PredictApiRoutes = Record<
+  string,
+  PredictFetchResult | ((url: URL) => PredictFetchResult)
+>;
+
+/**
+ * Builds a responder that answers each request from `routes` by pathname and
+ * fails any unrouted request with 404, so a test cannot silently read a route
+ * it did not declare.
+ */
+export const routePredictApi =
+  (routes: PredictApiRoutes): PredictFetchResponder =>
+  (input) => {
+    const url = new URL(input);
+    const route = routes[url.pathname];
+    if (!route) {
+      return {
+        status: 404,
+        body: { code: 'not_found', message: url.pathname },
+      };
+    }
+    return typeof route === 'function' ? route(url) : route;
+  };
+
 type PredictNextRootActions =
   | PredictMarketDataServiceActions
   | PredictPortfolioServiceActions

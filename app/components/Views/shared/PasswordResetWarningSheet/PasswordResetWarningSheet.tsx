@@ -61,7 +61,7 @@ const PasswordResetWarningSheet = ({
       onClose={onDismiss}
       testID={PasswordResetWarningSheetSelectorsIDs.SHEET}
     >
-      <Box gap={6} twClassName="px-4 pb-2">
+      <Box gap={4} twClassName="px-4">
         <TitleAlert
           severity={IconAlertSeverity.Danger}
           title={strings('choose_password.password_warning_title')}
@@ -94,6 +94,7 @@ const PasswordResetWarningSheet = ({
           onPress: handleConfirm,
           size: ButtonSize.Lg,
           testID: PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON,
+          style: { marginTop: 0 },
         }}
         secondaryButtonProps={{
           children: strings('choose_password.password_warning_cancel'),
@@ -101,7 +102,7 @@ const PasswordResetWarningSheet = ({
           size: ButtonSize.Lg,
           testID: PasswordResetWarningSheetSelectorsIDs.CANCEL_BUTTON,
         }}
-        twClassName="flex-col-reverse gap-4"
+        twClassName="pt-6 flex-col-reverse gap-4"
       />
     </BottomSheet>
   );

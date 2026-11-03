@@ -12,18 +12,26 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Switch } from 'react-native';
+import { StyleSheet, Switch } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { useMyProfile } from '../../MyProfileView/hooks';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
-import { useManageProfileAnalytics } from '../../analytics';
+import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
+import TradingActivityBenefits from '../../shared/TradingActivityBenefits';
+
+// Box always applies `flex: 1`. Without this the toggle card grows to the
+// screen, the switch sits in that stretched row, and the benefit list plus
+// any save error render below the fold — a tap then looks like it did nothing.
+const styles = StyleSheet.create({
+  hug: {
+    flex: 0,
+  },
+});
 
 const ManageProfileTradingActivityView: React.FC = () => {
   const { brandColors, colors } = useTheme();
-  const { profile: localProfile } = useMyProfile();
   const { isControllerBacked, profile, updateProfile } = useProfileController();
   const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -32,9 +40,12 @@ const ManageProfileTradingActivityView: React.FC = () => {
   >();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Identity already lives on ProfileController. Calling useMyProfile here
+  // would start another getProfile, and that in-flight response lands after
+  // the toggle and writes the previous trading privacy back over the edit.
   const controllerTradingActivityPublic = isControllerBacked
     ? profile?.tradingPrivacy === 'public'
-    : (localProfile?.shareTradingActivity ?? true);
+    : true;
   const isTradingActivityPublic =
     optimisticTradingActivity ?? controllerTradingActivityPublic;
 
@@ -82,11 +93,12 @@ const ManageProfileTradingActivityView: React.FC = () => {
       backTestID={ManageProfileTradingActivitySelectorsIDs.BACK_BUTTON}
     >
       <Box twClassName="px-4 pt-2" gap={3}>
-        <Box twClassName="bg-muted rounded-2xl px-4 py-3">
+        <Box twClassName="bg-muted rounded-2xl px-4 py-3" style={styles.hug}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
+            style={styles.hug}
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -128,26 +140,25 @@ const ManageProfileTradingActivityView: React.FC = () => {
               testID={ManageProfileTradingActivitySelectorsIDs.SWITCH}
             />
           </Box>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="mt-1"
-          >
-            {strings(
-              'social_leaderboard.manage_profile.show_trading_activity_subtitle',
-            )}
-          </Text>
+          {errorMessage ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              twClassName="mt-2"
+            >
+              {errorMessage}
+            </Text>
+          ) : null}
         </Box>
+        <TradingActivityBenefits
+          isTradingActivityShown={isTradingActivityPublic}
+          testID={ManageProfileTradingActivitySelectorsIDs.BENEFITS}
+        />
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings(
             'social_leaderboard.manage_profile.trading_activity_footnote',
           )}
         </Text>
-        {errorMessage ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-            {errorMessage}
-          </Text>
-        ) : null}
       </Box>
     </ManageProfileScreenChrome>
   );

@@ -1,12 +1,16 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import {
+  getPerpsDexFromSymbol,
+  getPerpsDisplaySymbol,
   type PerpsMarketData,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import Engine from '../../../Engine';
 import ReduxService from '../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
+import { selectPerpsTerminalBackendEnabledFlag } from '../../../../components/UI/Perps/selectors/featureFlags';
 import {
   parsePerpsUtmFromPath,
   setPerpsUtmAttribution,
@@ -93,14 +97,74 @@ const parseHip3Symbol = (
 };
 
 /**
- * Build a minimal market object from a raw asset symbol.
- * Supports both standard crypto symbols (BTC, ETH) and HIP-3 format (xyz:TSLA).
+ * Deadline for the standalone market fetch. The startup deeplink awaits this
+ * intent after unlock, so a slow or stalled request must not hold navigation.
+ */
+const MARKET_FETCH_TIMEOUT_MS = 2_000;
+
+/**
+ * Resolve a deeplink symbol to its canonical market symbol. Market symbols are
+ * case-sensitive (e.g. 'kPEPE', 'kLUNC'), so match the market list
+ * case-insensitively: the preloaded list first, otherwise a standalone fetch
+ * that works before Perps is initialized (e.g. cold start). The fetch is
+ * skipped when the input already matches the normalized symbol (e.g. 'BTC').
+ * Falls back to the normalized symbol (lowercase dex, uppercase asset) when
+ * the fetch is skipped, fails, misses its deadline, or nothing matches;
+ * PerpsMarketDetailsView matches case-insensitively once its markets load.
+ * @param rawSymbol The asset symbol from the deeplink (may include a dex prefix for HIP-3)
+ */
+const resolvePerpsSymbol = async (rawSymbol: string): Promise<string> => {
+  const { marketSource, symbol } = parseHip3Symbol(rawSymbol);
+  const normalizedSymbol = marketSource ? `${marketSource}:${symbol}` : symbol;
+  const lowerSymbol = rawSymbol.toLowerCase();
+  const findSymbol = (marketSymbols: string[]) =>
+    marketSymbols.find(
+      (marketSymbol) => marketSymbol.toLowerCase() === lowerSymbol,
+    );
+
+  try {
+    const controller = Engine.context.PerpsController;
+    const cachedSymbol = findSymbol(
+      controller
+        .getCachedMarketDataForActiveProvider({ skipTTL: true })
+        ?.map((market) => market.symbol) ?? [],
+    );
+    if (cachedSymbol || rawSymbol === normalizedSymbol) {
+      return cachedSymbol ?? normalizedSymbol;
+    }
+
+    const markets = await Promise.race([
+      controller.getMarkets({
+        standalone: true,
+        useTerminalApi: selectPerpsTerminalBackendEnabledFlag(
+          ReduxService.store.getState(),
+        ),
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Market fetch timeout')),
+          MARKET_FETCH_TIMEOUT_MS,
+        ),
+      ),
+    ]);
+    return findSymbol(markets.map((market) => market.name)) ?? normalizedSymbol;
+    // Market discovery is best-effort: on failure, log and keep the legacy
+    // normalized symbol so the deeplink still opens the market page.
+  } catch (error) {
+    DevLogger.log('[handlePerpsUrl] Failed to resolve market symbol:', error);
+    return normalizedSymbol;
+  }
+};
+
+/**
+ * Build a minimal market object from a resolved market symbol.
+ * Supports both standard crypto symbols (BTC, kPEPE) and HIP-3 format (xyz:TSLA).
  * The PerpsMarketDetailsView fetches the full data; we only need the symbol
  * (and optional marketSource for HIP-3) to route.
- * @param rawSymbol The asset symbol (may include a dex prefix for HIP-3)
+ * @param symbol The market symbol (dex:symbol for HIP-3, matching the API format)
  */
-const buildPerpsMarket = (rawSymbol: string): PerpsMarketData => {
-  const { marketSource, symbol } = parseHip3Symbol(rawSymbol);
+const buildPerpsMarket = (symbol: string): PerpsMarketData => {
+  const marketSource = getPerpsDexFromSymbol(symbol);
 
   if (marketSource) {
     DevLogger.log('[handlePerpsUrl] Detected HIP-3 market:', {
@@ -109,10 +173,9 @@ const buildPerpsMarket = (rawSymbol: string): PerpsMarketData => {
     });
   }
 
-  // Use combined format (dex:symbol) for HIP-3 to match API format
   return {
-    symbol: marketSource ? `${marketSource}:${symbol}` : symbol,
-    name: symbol,
+    symbol,
+    name: getPerpsDisplaySymbol(symbol),
     price: '0',
     change24h: '0',
     change24hPercent: '0',
@@ -165,6 +228,7 @@ const perpsHomeTarget = (): DeeplinkIntent['target'] => {
  * - https://link.metamask.io/perps?screen=market-list&tab=crypto      → PerpsMarketListView (crypto only)
  * - https://link.metamask.io/perps?screen=market-list&tab=stocks      → PerpsMarketListView (HIP3 stocks)
  * - https://link.metamask.io/perps?screen=asset&symbol=BTC            → PerpsMarketDetailsView (crypto)
+ * - https://link.metamask.io/perps?screen=asset&symbol=kpepe          → PerpsMarketDetailsView (kPEPE, case-insensitive)
  * - https://link.metamask.io/perps?screen=asset&symbol=xyz:TSLA       → PerpsMarketDetailsView (HIP3)
  *
  * Navigation behavior:
@@ -181,9 +245,9 @@ const perpsHomeTarget = (): DeeplinkIntent['target'] => {
  * - Standard crypto: 'BTC', 'ETH'
  * - HIP-3 (dex:symbol): 'xyz:TSLA', 'xyz:xyz100' → marketSource='xyz'
  */
-const resolvePerpsTarget = ({
+const resolvePerpsTarget = async ({
   perpsPath,
-}: HandlePerpsUrlParams): DeeplinkIntent['target'] => {
+}: HandlePerpsUrlParams): Promise<DeeplinkIntent['target']> => {
   // Parse navigation parameters from URL
   const navParams = parsePerpsNavigationParams(perpsPath);
   DevLogger.log('[handlePerpsUrl] Parsed navigation parameters:', navParams);
@@ -243,7 +307,7 @@ const resolvePerpsTarget = ({
         return perpsHomeTarget();
       }
       return perpsScreenTarget(Routes.PERPS.MARKET_DETAILS, {
-        market: buildPerpsMarket(rawSymbol),
+        market: buildPerpsMarket(await resolvePerpsSymbol(rawSymbol)),
       });
     }
 
@@ -316,15 +380,15 @@ const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
   }
 };
 
-export const createPerpsDeeplinkIntent = ({
+export const createPerpsDeeplinkIntent = async ({
   perpsPath,
-}: HandlePerpsUrlParams): DeeplinkIntent => {
+}: HandlePerpsUrlParams): Promise<DeeplinkIntent> => {
   // Track notification-opened on every entry path:
   //  - Cold/startup path: called directly from handleUniversalLink (locked/killed app)
   //  - Warm path: called via handlePerpsUrl → executeDeeplinkIntent (app already running)
   trackPriceAlertNotificationIfApplicable(perpsPath);
   return {
-    target: resolvePerpsTarget({ perpsPath }),
+    target: await resolvePerpsTarget({ perpsPath }),
   };
 };
 
@@ -349,7 +413,7 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
   try {
     // createPerpsDeeplinkIntent calls trackPriceAlertNotificationIfApplicable
     // internally, covering both warm (here) and cold/startup paths consistently.
-    await executeDeeplinkIntent(createPerpsDeeplinkIntent({ perpsPath }));
+    await executeDeeplinkIntent(await createPerpsDeeplinkIntent({ perpsPath }));
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);
     // Fallback to markets list on error
