@@ -297,6 +297,31 @@ describe('useMoneyMfa', () => {
       });
     });
 
+    it('starts a new migration when the wallet was reset during the previous one', async () => {
+      deferMigration();
+      const { result } = arrange();
+      await act(async () => {
+        result.current.turnOn();
+      });
+      expect(mockStart).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        moneyAccountMigration.reset();
+      });
+      const finish = deferMigration();
+      let second: Promise<void> = Promise.resolve();
+      await act(async () => {
+        second = result.current.turnOn();
+      });
+
+      expect(mockStart).toHaveBeenCalledTimes(2);
+      await act(async () => {
+        finish(true);
+        await second;
+      });
+      expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(true);
+    });
+
     it('leaves 2FA off when the migration fails', async () => {
       const finish = deferMigration();
       const { result } = arrange();

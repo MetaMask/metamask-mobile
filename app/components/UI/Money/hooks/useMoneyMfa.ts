@@ -52,7 +52,12 @@ let activeMigration: Promise<void> | undefined;
  * result goes through the app-wide navigator.
  */
 const migrate = (): Promise<void> => {
-  activeMigration ??= (async () => {
+  // A wallet reset stops the status being `migrating`, so a run left over
+  // from the previous wallet is not reused.
+  if (activeMigration && moneyAccountMigration.getStatus() === 'migrating') {
+    return activeMigration;
+  }
+  const run: Promise<void> = (async () => {
     try {
       await moneyAccountMigration.start();
     } catch {
@@ -63,9 +68,12 @@ const migrate = (): Promise<void> => {
       screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
     });
   })().finally(() => {
-    activeMigration = undefined;
+    if (activeMigration === run) {
+      activeMigration = undefined;
+    }
   });
-  return activeMigration;
+  activeMigration = run;
+  return run;
 };
 
 /**
