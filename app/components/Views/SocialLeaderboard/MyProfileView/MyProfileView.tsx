@@ -119,8 +119,8 @@ const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
 
 const linkedAddressesMatch = (
-  traderAddress: string | undefined,
-  linkedAccountAddress: string | undefined,
+  traderAddress: string | null | undefined,
+  linkedAccountAddress: string | null | undefined,
 ): boolean =>
   Boolean(
     linkedAccountAddress &&
