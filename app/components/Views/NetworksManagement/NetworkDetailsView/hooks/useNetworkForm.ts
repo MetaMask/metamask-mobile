@@ -147,6 +147,11 @@ export const useNetworkForm = (
   // certain form changes (e.g. chainId change, rpc change).
   const requestValidation = useRef<(() => void) | null>(null);
 
+  /** The form is seeded exactly once. Re-running the seeding effect would discard the user's in-progress edits, and `params.prefill` is not guaranteed to keep its identity between renders. */
+  const hasSeededFormRef = useRef(false);
+  /** Marks the first render in which the seeded form reports add mode, so editing the chain ID later does not re-trigger the prefill validation pass. */
+  const hasHandledAddModeRef = useRef(false);
+
   const setValidationCallback = useCallback((cb: (() => void) | null) => {
     requestValidation.current = cb;
   }, []);
@@ -171,6 +176,9 @@ export const useNetworkForm = (
 
   // ---- Initialization (componentDidMount equivalent) -----------------------
   useEffect(() => {
+    if (hasSeededFormRef.current) return;
+    hasSeededFormRef.current = true;
+
     const networkTypeOrRpcUrl = params?.network;
 
     if (networkTypeOrRpcUrl) {
@@ -315,18 +323,18 @@ export const useNetworkForm = (
 
       setForm(newForm);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [networkConfigurations, params?.network, params?.prefill]);
 
   // After initial form set, compute enableAction + trigger validation for prefill
   useEffect(() => {
-    if (form.addMode && form.chainId) {
+    if (hasHandledAddModeRef.current || !form.addMode) return;
+    hasHandledAddModeRef.current = true;
+
+    if (form.chainId) {
       getCurrentState();
       requestValidation.current?.();
     }
-    // Only run once form is initialized with addMode
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.addMode]);
+  }, [form.addMode, form.chainId, getCurrentState]);
 
   // ---- Form field handlers ------------------------------------------------
   const onNicknameChange = useCallback(
