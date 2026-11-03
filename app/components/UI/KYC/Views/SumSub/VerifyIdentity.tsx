@@ -13,7 +13,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -48,6 +47,9 @@ import {
   KYC_SCREEN_PERFORMANCE_CONFIG,
   type KycScreenContentState,
 } from '../../kycScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const trackIdentityTerms = (status: 'viewed' | 'accepted' | 'failed') =>
   trackVbaEvent(MetaMetricsEvents.KYC_IDENTITY_TERMS_UPDATED, () => ({
@@ -89,6 +91,7 @@ interface VbaVerifyIdentityProps {
  * SumSub documents; agreeing there calls `onSuccess`.
  */
 const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
@@ -152,7 +155,9 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
         edges={['right', 'bottom', 'left']}
         style={tw.style('flex-1')}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           onBack={handleBack}
           backButtonProps={{
             testID: VbaVerifyIdentitySelectorsIDs.BACK_BUTTON,

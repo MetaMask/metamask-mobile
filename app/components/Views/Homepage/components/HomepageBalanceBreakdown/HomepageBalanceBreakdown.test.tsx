@@ -55,6 +55,13 @@ let mockIsMoneyAccountGeoEligible = true;
 const mockAccountGroupBalance = jest.fn();
 const originalLocale = I18n.locale;
 
+// The PredictNext entry point's PredictRoot loads the whole Predict stack,
+// which this suite's navigation mocks cannot satisfy.
+jest.mock('../../../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));

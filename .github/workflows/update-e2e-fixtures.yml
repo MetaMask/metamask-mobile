@@ -31,6 +31,8 @@ on:
           - namespace
         default: namespace
 
+permissions: {}
+
 jobs:
   # ── issue_comment dispatcher ──────────────────────────────────────────
   # Validates the comment, then re-dispatches this workflow on the PR branch.
@@ -83,6 +85,9 @@ jobs:
 
   is-fork-pull-request:
     name: Validate PR
+    permissions:
+      contents: read
+      pull-requests: read
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
@@ -101,6 +106,10 @@ jobs:
 
   prepare:
     name: Prepare build artifacts
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 10
     needs: is-fork-pull-request
@@ -389,6 +398,7 @@ jobs:
 
   check-status:
     name: Check whether the fixture update succeeded
+    permissions: {}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     if: ${{ always() && !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}

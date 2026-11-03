@@ -8,11 +8,11 @@ import {
   type Transaction as NonEvmTransaction,
 } from '@metamask/keyring-api';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
-import type { ActivityFee, ActivityListItem, TokenAmount } from '../types';
+import type { ActivityFee, ActivityListItem, TokenAmount } from '../../types';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
-} from './environment';
+} from '../environment';
 
 type StakingKind = 'stake' | 'unstake' | 'claim';
 

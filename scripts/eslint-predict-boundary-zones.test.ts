@@ -320,7 +320,10 @@ describe('Predict boundary fence', () => {
   });
 
   it.each([
-    ['burn-down Views file', 'app/components/Views/Homepage/Homepage.tsx'],
+    [
+      'burn-down Views file',
+      'app/components/Views/Homepage/Sections/Predictions/PredictionsSection.tsx',
+    ],
     [
       'burn-down non-Views file',
       'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.tsx',
