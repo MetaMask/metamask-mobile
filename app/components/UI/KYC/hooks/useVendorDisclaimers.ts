@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { KycDisclaimer } from '@metamask/kyc-controller';
-import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
-import { VBA_KYC_VENDOR } from '../constants';
+import type { KycDisclaimer, KycVendor } from '@metamask/kyc-controller';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 
 export type { KycDisclaimer };
 
-interface UseKycDisclaimersResult {
+interface UseVendorDisclaimersResult {
   disclaimers: KycDisclaimer[] | null;
   isLoading: boolean;
   isAccepting: boolean;
@@ -19,12 +18,11 @@ interface UseKycDisclaimersResult {
 const FETCH_TIMEOUT_MS = 10_000;
 
 /**
- * Loads Iron / MoonPay Enterprise legal disclaimers (Privacy Policy / T&Cs)
- * and stores the accepted document ids on the KYC controller's Iron entry,
- * marked not yet submitted.
+ * Loads a vendor's legal disclaimers (Privacy Policy / T&Cs) for the user's
+ * country and stores the accepted document ids on the KYC controller's entry
+ * for that vendor, marked not yet submitted.
  *
- * The email step submits that acceptance to Iron after creating the Iron
- * session. This lets product show vendor terms before email
+ * The KYC flow submits that acceptance to the vendor once a session exists. This lets product show vendor terms before email
  * even though the API requires an email/customer before remote acceptance.
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
@@ -38,7 +36,9 @@ const FETCH_TIMEOUT_MS = 10_000;
  *
  * @returns Disclaimer data, loading/acceptance state, and actions.
  */
-export const useKycDisclaimers = (): UseKycDisclaimersResult => {
+export const useVendorDisclaimers = (
+  vendor: KycVendor,
+): UseVendorDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<KycDisclaimer[] | null>(null);
   const [country, setCountry] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +56,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
     setError(null);
     try {
       Engine.context.KycController.acceptVendorDisclaimers({
-        vendor: VBA_KYC_VENDOR,
+        vendor,
         country,
         disclaimerIds: disclaimers.map(({ id }) => id),
       });
@@ -69,7 +69,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
     } finally {
       setIsAccepting(false);
     }
-  }, [country, disclaimers, isAccepting]);
+  }, [country, disclaimers, isAccepting, vendor]);
 
   useEffect(() => {
     let isMounted = true;
@@ -101,7 +101,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
         country: geoCountry,
         loadedDisclaimers:
           await Engine.context.KycController.fetchVendorDisclaimers({
-            vendor: VBA_KYC_VENDOR,
+            vendor,
             country: geoCountry,
           }),
       };
@@ -121,9 +121,9 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
           // The screen only renders a generic message, so record the geo the
           // vendor returned nothing for — the usual cause of an empty catalog.
           Logger.error(new Error('No KYC disclaimers returned'), {
-            tags: { feature: 'vba-kyc', provider: VBA_KYC_VENDOR },
+            tags: { feature: 'kyc', provider: vendor },
             context: {
-              name: 'useKycDisclaimers',
+              name: 'useVendorDisclaimers',
               data: { country: loadedCountry },
             },
           });
@@ -144,8 +144,8 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
           // underlying status/URL is only recoverable from here. Unmount aborts
           // land here too, but leave `isMounted` false and are not worth logging.
           Logger.error(err as Error, {
-            tags: { feature: 'vba-kyc', provider: VBA_KYC_VENDOR },
-            context: { name: 'useKycDisclaimers', data: { isTimeout } },
+            tags: { feature: 'kyc', provider: vendor },
+            context: { name: 'useVendorDisclaimers', data: { isTimeout } },
           });
           setDisclaimers(null);
           setError(
@@ -171,7 +171,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
       clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [retryCount]);
+  }, [retryCount, vendor]);
 
   return {
     disclaimers,

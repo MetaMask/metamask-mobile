@@ -13465,5 +13465,13 @@
       "description": "Time to start earning.",
       "cta": "Continue"
     }
+  },
+  "kyc_vendor_terms": {
+    "title": "Review the terms",
+    "description": "To verify your identity, our partners need you to agree to their terms. Tap a document to read it.",
+    "agreement": "By tapping Agree and continue, you confirm you have read and agree to the documents above.",
+    "button": "Agree and continue",
+    "error": "Couldn't load the terms and conditions.",
+    "retry": "Try again"
   }
 }
