@@ -5,7 +5,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Spinner,
   Text,
   TextColor,
@@ -49,6 +48,8 @@ import {
   type FollowerConnection,
 } from './hooks';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const { Interaction, Screen } = SocialEvent;
 const addressesMatch = (
@@ -81,6 +82,7 @@ const tabIndexFor = (
 };
 
 const FollowConnectionsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'FollowConnectionsView'>>();
@@ -553,7 +555,9 @@ const FollowConnectionsView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={FollowConnectionsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title=""
         onBack={handleBack}
