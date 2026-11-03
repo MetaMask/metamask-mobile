@@ -36,6 +36,17 @@ jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
 }));
 
 const mockFormHook = jest.fn();
+jest.mock('../../../../util/networks/customNetworks', () => ({
+  ...jest.requireActual('../../../../util/networks/customNetworks'),
+  getFailoverUrlsForEndpoint: (
+    chainId: string | undefined,
+    rpcUrl: string | undefined,
+  ) =>
+    (chainId === '0x89' || chainId === '0x2a') && rpcUrl?.endsWith('.infura.io')
+      ? ['https://failover.example.com']
+      : [],
+}));
+
 jest.mock('./hooks/useNetworkForm', () => ({
   useNetworkForm: (...args: unknown[]) => mockFormHook(...args),
 }));
@@ -89,7 +100,6 @@ jest.mock(
 const createMockFormHook = (overrides: Record<string, unknown> = {}) => ({
   form: {
     rpcUrl: undefined as string | undefined,
-    failoverRpcUrls: undefined as string[] | undefined,
     rpcName: undefined as string | undefined,
     rpcUrlForm: '',
     rpcNameForm: '',
@@ -379,12 +389,11 @@ describe('NetworkDetailsView', () => {
           nickname: 'Polygon',
           chainId: '0x89',
           ticker: 'MATIC',
-          rpcUrl: 'https://polygon-rpc.com',
+          rpcUrl: 'https://polygon-mainnet.infura.io',
           rpcName: 'Polygon RPC',
-          failoverRpcUrls: ['https://failover.polygon.com'],
           rpcUrls: [
             {
-              url: 'https://polygon-rpc.com',
+              url: 'https://polygon-mainnet.infura.io',
               name: 'Polygon RPC',
               type: 'custom',
             },
@@ -643,11 +652,10 @@ describe('NetworkDetailsView', () => {
           nickname: 'TestNet',
           chainId: '0x2a',
           ticker: 'TST',
-          rpcUrl: 'https://rpc.example.com',
+          rpcUrl: 'https://rpc.infura.io',
           rpcName: 'RPC',
-          failoverRpcUrls: ['https://failover.example.com'],
           rpcUrls: [
-            { url: 'https://rpc.example.com', name: 'RPC', type: 'custom' },
+            { url: 'https://rpc.infura.io', name: 'RPC', type: 'custom' },
           ],
           blockExplorerUrl: 'https://scan.example.com',
           blockExplorerUrls: ['https://scan.example.com'],

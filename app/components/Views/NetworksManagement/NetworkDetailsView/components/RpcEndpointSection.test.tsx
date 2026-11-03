@@ -52,7 +52,6 @@ const placeholderTextColor = mockTheme.colors.text.muted;
 
 const baseEditForm: NetworkFormState = {
   rpcUrl: 'https://rpc1.example.com',
-  failoverRpcUrls: undefined,
   rpcName: 'RPC One',
   rpcUrlForm: 'https://new-rpc.example.com',
   rpcNameForm: 'New RPC',
@@ -184,8 +183,18 @@ function createRpcValidation(
 }
 
 describe('RpcEndpointSection', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env = {
+      ...originalEnv,
+      QUICKNODE_MAINNET_URL: 'https://mainnet.quicknode.example',
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   it('renders inline RPC form fields in add mode', () => {
@@ -210,6 +219,33 @@ describe('RpcEndpointSection', () => {
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT),
     ).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['https://mainnet.infura.io/v3/key', true],
+    ['https://rpc1.example.com', false],
+  ])('shows the failover tag for %s: %s', (rpcUrl, expectTag) => {
+    const formHook = createRpcModalFormHook({
+      form: { rpcUrl, chainId: '0x1' },
+      showMultiRpcAddModal: false,
+      rpcModalShowForm: false,
+    });
+
+    const { queryByText } = render(
+      <RpcEndpointSection
+        formHook={formHook}
+        validation={createRpcValidation()}
+        onValidationSuccess={jest.fn()}
+        isRpcFailoverEnabled
+        styles={styles}
+        themeAppearance="light"
+        placeholderTextColor={placeholderTextColor}
+      />,
+    );
+
+    expect(Boolean(queryByText(strings('app_settings.failover')))).toBe(
+      expectTag,
+    );
   });
 
   it('renders RPC selector in edit mode', () => {
@@ -426,7 +462,6 @@ describe('RpcEndpointModals', () => {
     await waitFor(() => {
       expect(formHook.onRpcUrlChangeWithName).toHaveBeenCalledWith(
         'https://rpc2.example.com',
-        undefined,
         'RPC Two',
         RpcEndpointType.Custom,
       );
