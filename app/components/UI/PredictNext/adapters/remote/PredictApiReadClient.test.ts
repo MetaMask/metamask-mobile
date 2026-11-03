@@ -391,6 +391,40 @@ describe('PredictApiReadClient', () => {
       });
     });
 
+    it('signs the 428 for the positions operation and retries once', async () => {
+      const positionsRequired = {
+        ...signatureRequired,
+        requests: [
+          {
+            ...signatureRequired.requests[0],
+            ref: 'positions',
+            path: '/trade-api/v2/portfolio/positions',
+            query: 'count_filter=position&limit=20',
+          },
+        ],
+      };
+      fetchMock
+        .mockResolvedValueOnce(
+          createResponse({ status: 428, json: positionsRequired }),
+        )
+        .mockResolvedValueOnce(createResponse({ json: { positions: [] } }));
+
+      await expect(
+        client.fetchPositions(venueId, { limit: 20 }),
+      ).resolves.toEqual({ positions: [] });
+
+      expect(signRequests).toHaveBeenCalledWith(
+        { operations: ['positions'] },
+        {
+          authority: 'demo-api.kalshi.co',
+          requests: positionsRequired.requests,
+        },
+      );
+      const retryHeaders = (fetchMock.mock.calls[1][1] as RequestInit)
+        .headers as Record<string, string>;
+      expect(retryHeaders['Kalshi-Device-Auth']).toBe('envelope');
+    });
+
     it('signs the 428 for the balance operation and retries once', async () => {
       fetchMock
         .mockResolvedValueOnce(
