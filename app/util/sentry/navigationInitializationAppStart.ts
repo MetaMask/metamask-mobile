@@ -8,8 +8,7 @@ import {
   type Span,
 } from '@sentry/react-native';
 
-export const NAVIGATION_INITIALIZATION_SPAN_NAME =
-  'Navigation Initialization';
+export const NAVIGATION_INITIALIZATION_SPAN_NAME = 'Navigation Initialization';
 
 /**
  * Shape of the SDK's `AppRegistry` integration. Looked up by name instead of
