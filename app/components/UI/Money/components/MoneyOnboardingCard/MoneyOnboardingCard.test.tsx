@@ -25,7 +25,6 @@ import {
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 
 const mockTrackEvent = jest.fn();
@@ -104,7 +103,7 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
 }));
 jest.mock('../../../../../selectors/cardController', () => ({
-  selectIsCardholder: () => mockIsCardholder(),
+  selectHasLinkedCard: () => mockIsCardholder(),
   selectCardHomeDataStatus: () => mockCardHomeDataStatus(),
   selectIsCardStateResolved: () => mockIsCardStateResolved(),
   selectCardActiveProviderId: () => 'baanx',

@@ -12,7 +12,7 @@ import {
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardVerified,
-  selectIsCardholder,
+  selectHasLinkedCard,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
   selectIsCardResidencyBlocked,
@@ -252,7 +252,7 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectIsCardAuthenticated)
       return state.isCardAuthenticated;
     if (selector === selectIsCardVerified) return state.isCardVerified;
-    if (selector === selectIsCardholder) return state.isCardholder;
+    if (selector === selectHasLinkedCard) return state.isCardholder;
     if (selector === selectCardDelegationSettings)
       return state.delegationSettings;
     if (selector === selectCardHomeDataStatus) return state.cardHomeDataStatus;

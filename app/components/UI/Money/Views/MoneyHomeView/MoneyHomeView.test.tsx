@@ -51,7 +51,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
-  selectIsCardholder,
+  selectHasLinkedCard,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
@@ -338,7 +338,7 @@ jest.mock('../../../../../selectors/cardController', () => ({
   ...jest.createMockFromModule<
     typeof import('../../../../../selectors/cardController')
   >('../../../../../selectors/cardController'),
-  selectIsCardholder: jest.fn(),
+  selectHasLinkedCard: jest.fn(),
   selectHasMetalCard: jest.fn(),
   selectCardHomeDataStatus: jest.fn(() => 'idle'),
   selectIsCardStateResolved: jest.fn(() => true),
@@ -520,7 +520,7 @@ const VBA_ELIGIBILITY_ELIGIBLE: VbaEligibility = {
   location: 'BR',
 };
 
-const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
+const mockSelectIsCardholder = jest.mocked(selectHasLinkedCard);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
 const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
 const mockSelectIsCardStateResolved = jest.mocked(selectIsCardStateResolved);

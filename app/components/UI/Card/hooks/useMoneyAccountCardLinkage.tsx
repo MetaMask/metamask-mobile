@@ -34,7 +34,7 @@ import {
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardVerified,
-  selectIsCardholder,
+  selectHasLinkedCard,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
   selectIsCardResidencyBlocked,
@@ -192,7 +192,7 @@ export const useMoneyAccountCardLinkage =
     const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const isCardVerified = useSelector(selectIsCardVerified);
-    const isCardholder = useSelector(selectIsCardholder);
+    const isCardholder = useSelector(selectHasLinkedCard);
     const delegationSettings = useSelector(selectCardDelegationSettings);
     const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
     const cardFeatureFlag = useSelector(selectCardFeatureFlag);

@@ -28,7 +28,7 @@ import {
 } from '../../../Card/util/metrics';
 import { useSelector } from 'react-redux';
 import {
-  selectIsCardholder,
+  selectHasLinkedCard,
   selectCardHomeDataStatus,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
@@ -78,7 +78,7 @@ const MoneyOnboardingCard = ({ isGlass = false }: MoneyOnboardingCardProps) => {
     isLinking,
     isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
-  const isCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectHasLinkedCard);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
 

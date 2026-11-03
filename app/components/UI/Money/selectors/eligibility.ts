@@ -12,7 +12,7 @@ import { selectMoneyAccountGeoBlockedCountries } from './featureFlags';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import {
   selectIsCardAuthenticated,
-  selectHasCardholderAccounts,
+  selectHasLinkedCard,
 } from '../../../../selectors/cardController';
 
 const US_COUNTRY_CODE = 'US';
@@ -47,16 +47,15 @@ export const selectIsUserInUS = createSelector(
 
 /**
  * Whether the user is in the US, not authenticated with the card service, and
- * not a cardholder.
+ * has no routable card link.
  *
- * Cardholder status is evaluated wallet-wide (any account) rather than for the
- * currently selected account, so an existing card customer never matches this
- * condition after switching accounts.
+ * The stored link is profile-wide, so an existing card customer never matches
+ * this condition after switching accounts.
  */
 export const selectIsUsUnauthenticatedNonCardholder = createSelector(
   selectIsUserInUS,
   selectIsCardAuthenticated,
-  selectHasCardholderAccounts,
-  (isInUS, isCardAuthenticated, hasCardholderAccounts): boolean =>
-    isInUS && !isCardAuthenticated && !hasCardholderAccounts,
+  selectHasLinkedCard,
+  (isInUS, isCardAuthenticated, hasLinkedCard): boolean =>
+    isInUS && !isCardAuthenticated && !hasLinkedCard,
 );

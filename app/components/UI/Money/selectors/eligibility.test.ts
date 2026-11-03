@@ -5,19 +5,19 @@ import {
 } from './eligibility';
 import {
   selectIsCardAuthenticated,
-  selectHasCardholderAccounts,
+  selectHasLinkedCard,
 } from '../../../../selectors/cardController';
 import type { RootState } from '../../../../reducers';
 
 jest.mock('../../../../selectors/cardController', () => ({
   selectIsCardAuthenticated: jest.fn(),
-  selectHasCardholderAccounts: jest.fn(),
+  selectHasLinkedCard: jest.fn(),
 }));
 
 const mockSelectIsCardAuthenticated =
   selectIsCardAuthenticated as unknown as jest.MockedFunction<() => boolean>;
 const mockSelectHasCardholderAccounts =
-  selectHasCardholderAccounts as unknown as jest.MockedFunction<() => boolean>;
+  selectHasLinkedCard as unknown as jest.MockedFunction<() => boolean>;
 
 describe('selectIsMoneyAccountGeoEligible', () => {
   const createStateWithGeolocation = (
