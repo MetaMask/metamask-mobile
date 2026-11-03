@@ -174,10 +174,12 @@ const MoneyModalGateway = () => {
   if (!isMoneyAccountEnabled) {
     return (
       <MoneyDeeplinkModal
-        title={strings('money.deeplink_modal.money_account_disabled.title')}
-        description={strings(
-          'money.deeplink_modal.money_account_disabled.description',
-        )}
+        content={{
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        }}
         onDismiss={handleDismiss}
       />
     );

@@ -1,11 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { selectMoneyAccountAccessBlockReason } from '../selectors/visibility';
-import type { MoneyAccountAccessBlockReason } from '../utils/moneyAccountAccess';
+import {
+  assertMoneyAccountAccessibleFromReason,
+  type MoneyAccountAccessBlockReason,
+} from '../utils/moneyAccountAccess';
 
 export const navigateToMoneyAccountAccessNotice = (
   navigation: AppNavigationProp,
@@ -28,10 +31,15 @@ export const navigateToMoneyAccountAccessNotice = (
 
 export const useMoneyAccountAvailability = () => {
   const accessBlockReason = useSelector(selectMoneyAccountAccessBlockReason);
+  const assertMoneyAccountAccessible = useCallback(
+    () => assertMoneyAccountAccessibleFromReason(accessBlockReason),
+    [accessBlockReason],
+  );
 
   return {
     accessBlockReason,
     isMoneyAccountAccessible: accessBlockReason === undefined,
+    assertMoneyAccountAccessible,
   };
 };
 

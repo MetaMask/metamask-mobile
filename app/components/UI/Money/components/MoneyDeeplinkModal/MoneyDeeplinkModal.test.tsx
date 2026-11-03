@@ -108,7 +108,7 @@ describe('MoneyDeeplinkModal', () => {
       const description = 'Enable Money account access to continue.';
 
       const { getByTestId } = renderWithProvider(
-        <MoneyDeeplinkModal title={title} description={description} />,
+        <MoneyDeeplinkModal content={{ title, description }} />,
       );
 
       expect(getByTestId(MoneyDeeplinkModalTestIds.TITLE)).toHaveTextContent(
@@ -117,6 +117,18 @@ describe('MoneyDeeplinkModal', () => {
       expect(
         getByTestId(MoneyDeeplinkModalTestIds.DESCRIPTION),
       ).toHaveTextContent(description);
+    });
+
+    it('does not combine explicit content with route params', () => {
+      const title = 'Money account unavailable';
+
+      const { getByTestId } = renderWithProvider(
+        <MoneyDeeplinkModal content={{ title }} />,
+      );
+
+      expect(
+        getByTestId(MoneyDeeplinkModalTestIds.DESCRIPTION),
+      ).toHaveTextContent('');
     });
 
     it('renders an empty title when title param is undefined', () => {

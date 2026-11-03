@@ -163,6 +163,7 @@ const mockUseMoneyAccountDepositPrefillEnabled = jest.mocked(
 const mockUseMoneyAccountAvailability = jest.mocked(
   useMoneyAccountAvailability,
 );
+const mockAssertMoneyAccountAccessible = jest.fn();
 const mockIsDepositPrefillEnabled = jest.fn(
   (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
 );
@@ -274,9 +275,11 @@ describe('useMoneyAccountDeposit', () => {
       return 0;
     });
     setupSelectors();
+    mockAssertMoneyAccountAccessible.mockImplementation(() => undefined);
     mockUseMoneyAccountAvailability.mockReturnValue({
       accessBlockReason: undefined,
       isMoneyAccountAccessible: true,
+      assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
     });
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
@@ -329,9 +332,15 @@ describe('useMoneyAccountDeposit', () => {
   ] as const)(
     'rejects a deposit when Money is %s before navigation or submission',
     async (_label, reason) => {
+      mockAssertMoneyAccountAccessible.mockImplementation(() => {
+        throw Object.assign(new Error('Money account access blocked'), {
+          reason,
+        });
+      });
       mockUseMoneyAccountAvailability.mockReturnValue({
         accessBlockReason: reason,
         isMoneyAccountAccessible: false,
+        assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
       });
 
       const { result } = renderHook(() => useMoneyAccountDeposit());
@@ -973,9 +982,11 @@ describe('useMoneyAccountWithdrawal', () => {
       return 0;
     });
     setupSelectors();
+    mockAssertMoneyAccountAccessible.mockImplementation(() => undefined);
     mockUseMoneyAccountAvailability.mockReturnValue({
       accessBlockReason: undefined,
       isMoneyAccountAccessible: true,
+      assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
     });
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
@@ -1021,9 +1032,15 @@ describe('useMoneyAccountWithdrawal', () => {
   ] as const)(
     'rejects a withdrawal when Money is %s before navigation or submission',
     async (_label, reason) => {
+      mockAssertMoneyAccountAccessible.mockImplementation(() => {
+        throw Object.assign(new Error('Money account access blocked'), {
+          reason,
+        });
+      });
       mockUseMoneyAccountAvailability.mockReturnValue({
         accessBlockReason: reason,
         isMoneyAccountAccessible: false,
+        assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
       });
 
       const { result } = renderHook(() => useMoneyAccountWithdrawal());

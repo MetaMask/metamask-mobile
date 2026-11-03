@@ -11,7 +11,6 @@ import {
 } from '../../components/confirm/confirm-component';
 import Logger from '../../../../../util/Logger';
 import { useMoneyAccountAvailability } from '../../../../UI/Money/hooks/useMoneyAccountAvailability';
-import { assertMoneyAccountAccessible } from '../../../../UI/Money/utils/moneyAccountAccess';
 
 const LOG_TAG = '[MoneyPredictDeposit]';
 
@@ -21,10 +20,10 @@ export function useMoneyPredictDeposit() {
   );
   const { deposit: depositWithConfirmation } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const { accessBlockReason } = useMoneyAccountAvailability();
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
 
   const initiatePredictDeposit = useCallback(async () => {
-    assertMoneyAccountAccessible(accessBlockReason);
+    assertMoneyAccountAccessible();
 
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
@@ -40,7 +39,11 @@ export function useMoneyPredictDeposit() {
         `${LOG_TAG} Predict deposit initiation failed`,
       );
     }
-  }, [accessBlockReason, depositWithConfirmation, navigateToConfirmation]);
+  }, [
+    assertMoneyAccountAccessible,
+    depositWithConfirmation,
+    navigateToConfirmation,
+  ]);
 
   return {
     isEnabled: Boolean(

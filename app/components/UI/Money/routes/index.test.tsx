@@ -155,17 +155,18 @@ jest.mock('../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet', () => () => (
 jest.mock('../components/MoneyDeeplinkModal/MoneyDeeplinkModal', () => ({
   __esModule: true,
   default: ({
-    title,
-    description,
+    content,
     onDismiss,
   }: {
-    title?: string;
-    description?: string;
+    content?: {
+      title?: string;
+      description?: string;
+    };
     onDismiss?: () => void;
   }) => (
     <MockView testID="mock-money-deeplink-modal">
-      <MockText>{title}</MockText>
-      <MockText>{description}</MockText>
+      <MockText>{content?.title}</MockText>
+      <MockText>{content?.description}</MockText>
       <MockText testID="mock-money-deeplink-modal-close" onPress={onDismiss}>
         close
       </MockText>

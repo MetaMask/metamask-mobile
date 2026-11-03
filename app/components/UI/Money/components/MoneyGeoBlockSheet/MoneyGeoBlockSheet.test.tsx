@@ -144,7 +144,7 @@ describe('MoneyGeoBlockSheet', () => {
     ).toHaveTextContent(strings('money.geo_block.button'));
   });
 
-  it('closes the Money modal stack when continue is pressed', () => {
+  it('dismisses the Money modal gateway when continue is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
 
     fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON));
@@ -154,7 +154,7 @@ describe('MoneyGeoBlockSheet', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('closes the Money modal stack when the bottom sheet close callback runs', () => {
+  it('dismisses the Money modal gateway when the bottom sheet close callback runs', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
     const sheet = getByTestId(MoneyGeoBlockSheetTestIds.SHEET);
 
@@ -165,7 +165,7 @@ describe('MoneyGeoBlockSheet', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('closes the Money modal stack when the header close button is pressed', () => {
+  it('dismisses the Money modal gateway when the header close button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
 
     fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.CLOSE_BUTTON));

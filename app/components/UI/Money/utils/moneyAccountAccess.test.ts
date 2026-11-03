@@ -1,5 +1,5 @@
 import {
-  assertMoneyAccountAccessible,
+  assertMoneyAccountAccessibleFromReason,
   getMoneyAccountAccessBlockReason,
   MoneyAccountAccessBlockedError,
 } from './moneyAccountAccess';
@@ -42,13 +42,15 @@ describe('getMoneyAccountAccessBlockReason', () => {
   });
 });
 
-describe('assertMoneyAccountAccessible', () => {
+describe('assertMoneyAccountAccessibleFromReason', () => {
   it('does not throw when no access block reason exists', () => {
-    expect(() => assertMoneyAccountAccessible(undefined)).not.toThrow();
+    expect(() =>
+      assertMoneyAccountAccessibleFromReason(undefined),
+    ).not.toThrow();
   });
 
   it('throws a typed error containing the access block reason', () => {
-    expect(() => assertMoneyAccountAccessible('geo_blocked')).toThrow(
+    expect(() => assertMoneyAccountAccessibleFromReason('geo_blocked')).toThrow(
       expect.objectContaining<Partial<MoneyAccountAccessBlockedError>>({
         name: 'MoneyAccountAccessBlockedError',
         reason: 'geo_blocked',

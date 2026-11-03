@@ -1262,7 +1262,6 @@ const MainNavigator = () => {
           component={RWATokensFullView}
         />
       </NativeStack.Group>
-
       <NativeStack.Screen name="Webview" component={Webview} />
       <NativeStack.Screen
         name="Send"
@@ -1421,13 +1420,9 @@ const MainNavigator = () => {
           />
         </>
       )}
-      {/*
-       * Always register this gateway so external Money entry points resolve even
-       * when the feature is disabled. The gateway shows the unavailable notice
-       * without mounting MoneyModalStack.
-       *
-       * E.g. Clicking "Add funds" on the Card Home screen when the Money account feature is disabled.
-       */}
+      {/* Always register this gateway so Money sheets opened from other app
+          screens, such as Card Home, show the unavailable notice when the
+          feature is disabled. */}
       <NativeStack.Screen
         name={Routes.MONEY.MODALS.ROOT}
         component={MoneyModalGateway}

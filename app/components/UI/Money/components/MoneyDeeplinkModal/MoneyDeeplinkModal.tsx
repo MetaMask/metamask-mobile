@@ -25,13 +25,13 @@ export interface MoneyDeeplinkModalParams {
   description?: string;
 }
 
-interface MoneyDeeplinkModalProps extends MoneyDeeplinkModalParams {
+interface MoneyDeeplinkModalProps {
+  content?: MoneyDeeplinkModalParams;
   onDismiss?: () => void;
 }
 
 const MoneyDeeplinkModal = ({
-  title: titleOverride,
-  description: descriptionOverride,
+  content,
   onDismiss,
 }: MoneyDeeplinkModalProps = {}) => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -39,8 +39,7 @@ const MoneyDeeplinkModal = ({
   const route =
     useRoute<RouteProp<{ params: MoneyDeeplinkModalParams }, 'params'>>();
 
-  const title = titleOverride ?? route.params?.title;
-  const description = descriptionOverride ?? route.params?.description;
+  const { title, description } = content ?? route.params ?? {};
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 

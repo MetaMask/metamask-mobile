@@ -37,6 +37,7 @@ describe('useMoneyAccountAvailability', () => {
     expect(result.current).toStrictEqual({
       accessBlockReason: undefined,
       isMoneyAccountAccessible: true,
+      assertMoneyAccountAccessible: expect.any(Function),
     });
   });
 
@@ -48,7 +49,21 @@ describe('useMoneyAccountAvailability', () => {
     expect(result.current).toStrictEqual({
       accessBlockReason: 'geo_blocked',
       isMoneyAccountAccessible: false,
+      assertMoneyAccountAccessible: expect.any(Function),
     });
+  });
+
+  it('throws the block reason when asserting inaccessible state', () => {
+    mockAccessBlockReason = 'geo_blocked';
+    const { result } = renderHook(() => useMoneyAccountAvailability());
+
+    const assertAccess = () => result.current.assertMoneyAccountAccessible();
+
+    expect(assertAccess).toThrow(
+      expect.objectContaining({
+        reason: 'geo_blocked',
+      }),
+    );
   });
 });
 

@@ -12,6 +12,7 @@ const mockDepositWithConfirmation = jest
   .fn()
   .mockResolvedValue({ result: Promise.resolve('0xhash') });
 const mockNavigateToConfirmation = jest.fn();
+const mockAssertMoneyAccountAccessible = jest.fn();
 
 jest.mock('../../../../UI/Perps/hooks/usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(),
@@ -46,9 +47,11 @@ jest.mock('../../../../../util/Logger', () => ({
 describe('useMoneyPerpsDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAssertMoneyAccountAccessible.mockImplementation(() => undefined);
     (useMoneyAccountAvailability as jest.Mock).mockReturnValue({
       accessBlockReason: undefined,
       isMoneyAccountAccessible: true,
+      assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
     });
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
@@ -69,9 +72,15 @@ describe('useMoneyPerpsDeposit', () => {
   ] as const)(
     'rejects a deposit when Money is %s before navigation',
     async (_label, reason) => {
+      mockAssertMoneyAccountAccessible.mockImplementation(() => {
+        throw Object.assign(new Error('Money account access blocked'), {
+          reason,
+        });
+      });
       (useMoneyAccountAvailability as jest.Mock).mockReturnValue({
         accessBlockReason: reason,
         isMoneyAccountAccessible: false,
+        assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
       });
 
       const { result } = render();

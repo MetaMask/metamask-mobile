@@ -58,7 +58,11 @@ const MoneyGeoBlockSheet = () => {
           '[MoneyGeoBlockSheet] Cannot close without a parent navigator',
         );
       }
-
+      /**
+       * When an open Money sheet (such as Add money or Transfer) sends the user
+       * here, its route remains underneath this sheet. Close the whole Money
+       * modal flow so the user returns to where they started.
+       */
       parentNavigation.goBack();
     });
   }, [navigation]);

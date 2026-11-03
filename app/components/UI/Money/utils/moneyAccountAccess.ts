@@ -37,7 +37,7 @@ export const getMoneyAccountAccessBlockReason = ({
 /**
  * Throws when a Money account operation is blocked.
  */
-export const assertMoneyAccountAccessible = (
+export const assertMoneyAccountAccessibleFromReason = (
   reason: MoneyAccountAccessBlockReason | undefined,
 ): void => {
   if (reason) {

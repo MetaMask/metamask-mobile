@@ -29,7 +29,6 @@ import { calcTokenValue } from '../../../../util/transactions';
 import useMoneyToasts from './useMoneyToasts';
 import { useMoneyNavigation } from './useMoneyNavigation';
 import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
-import { assertMoneyAccountAccessible } from '../utils/moneyAccountAccess';
 
 const LOG_TAG = '[Money Account mUSD Rescue Send]';
 
@@ -98,7 +97,7 @@ export interface PreparedMusdRescueSend {
 export function useMoneyAccountMusdRescueSend() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const { accessBlockReason } = useMoneyAccountAvailability();
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
   const { navigateToMoneyHome } = useMoneyNavigation();
 
@@ -123,7 +122,7 @@ export function useMoneyAccountMusdRescueSend() {
       /** Lowercase-addressable list of eligible same-SRP recipient addresses. */
       sameSrpAddresses: string[];
     }): Promise<PreparedMusdRescueSend> => {
-      assertMoneyAccountAccessible(accessBlockReason);
+      assertMoneyAccountAccessible();
 
       const moneyAccountAddress = primaryMoneyAccount?.address;
       if (!moneyAccountAddress) {
@@ -233,7 +232,7 @@ export function useMoneyAccountMusdRescueSend() {
         amountRaw,
       };
     },
-    [accessBlockReason, primaryMoneyAccount, vaultConfig],
+    [assertMoneyAccountAccessible, primaryMoneyAccount, vaultConfig],
   );
 
   /**

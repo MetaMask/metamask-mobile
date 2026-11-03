@@ -81,6 +81,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseMoneyAccountAvailability = jest.mocked(
   useMoneyAccountAvailability,
 );
+const mockAssertMoneyAccountAccessible = jest.fn();
 const mockAddTransactionBatch = addTransactionBatch as jest.MockedFunction<
   typeof addTransactionBatch
 >;
@@ -167,9 +168,11 @@ beforeEach(() => {
     musdBalance: LIQUID_BALANCE_RAW,
     vmusdValueInMusd: '0',
   } as never);
+  mockAssertMoneyAccountAccessible.mockImplementation(() => undefined);
   mockUseMoneyAccountAvailability.mockReturnValue({
     accessBlockReason: undefined,
     isMoneyAccountAccessible: true,
+    assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
   });
   setupSelectors();
 });
@@ -189,9 +192,15 @@ describe('useMoneyAccountMusdRescueSend', () => {
   ] as const)(
     'rejects a rescue send when Money is %s before submission',
     async (_label, reason) => {
+      mockAssertMoneyAccountAccessible.mockImplementation(() => {
+        throw Object.assign(new Error('Money account access blocked'), {
+          reason,
+        });
+      });
       mockUseMoneyAccountAvailability.mockReturnValue({
         accessBlockReason: reason,
         isMoneyAccountAccessible: false,
+        assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
       });
 
       const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
