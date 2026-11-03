@@ -217,7 +217,6 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
           header.pnlValueLabel,
           header.isPnlPositive,
         )}
-        compact={mode === 'openCompact'}
       >
         <View ref={header.trackRef} collapsable={false}>
           <PositionCardHeader
@@ -260,8 +259,6 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   return (
     <PositionCardShell
       tone={cardTone(item.pnlLabel, item.valueLabel, item.isPnlPositive)}
-      emphasizeBorder
-      compact={mode === 'closedCompact'}
     >
       <PositionCardHeader
         layout="closed"
