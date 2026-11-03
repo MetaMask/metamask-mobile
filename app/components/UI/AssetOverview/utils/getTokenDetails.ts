@@ -47,6 +47,13 @@ export const getTokenDetails = (
 };
 
 export const resolveTokenContractAddress = (asset: TokenI): string | null => {
+  // `chainId` is optional on `TokenI`, and the formatter below reads it
+  // unconditionally. Without a chain there is nothing to tell an EVM address
+  // apart from a CAIP-19 asset id, so there is no address to resolve either.
+  if (!asset.chainId) {
+    return null;
+  }
+
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
   const tokenContractAddress = !isNonEvmAsset

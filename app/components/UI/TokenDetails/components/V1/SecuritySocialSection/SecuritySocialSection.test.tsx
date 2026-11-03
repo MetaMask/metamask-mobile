@@ -11,6 +11,7 @@ jest.mock('../../../hooks/useCopyTokenContractAddress', () => ({
 }));
 
 const PEPE_ADDRESS = '0x6982508145454Ce325dDbE47a25d4ec3d2311933';
+const SOLANA_MINT_ADDRESS = 'HsprHxBRgiVaQdRf3TnKNuZZtaX9JUSPgMFdAkk6pump';
 
 const EXTERNAL_LINKS = {
   homepage: 'https://pepe.vip',
@@ -145,11 +146,25 @@ describe('SecuritySocialSection', () => {
       />,
     );
 
-    expect(getByText('0x...1933')).toBeOnTheScreen();
+    expect(getByText('0x69825...11933')).toBeOnTheScreen();
   });
 
-  // The chip only ever shows four characters, so the full address has to stay
-  // reachable for anyone verifying the contract by ear.
+  // The chip reads the same as the header, which means the shortening has to
+  // follow the address it is given rather than assume a `0x` prefix: a Solana
+  // mint keeps five real characters at the front, not `Hs`.
+  it('shows a non-EVM address shortened without an assumed prefix', () => {
+    const { getByText } = render(
+      <SecuritySocialSection
+        securityVerdict="screened"
+        contractAddress={SOLANA_MINT_ADDRESS}
+      />,
+    );
+
+    expect(getByText('HsprH...6pump')).toBeOnTheScreen();
+  });
+
+  // The chip only ever shows the two ends of the address, so the full value
+  // has to stay reachable for anyone verifying the contract by ear.
   it('exposes the full address to screen readers', () => {
     const { getByLabelText } = render(
       <SecuritySocialSection

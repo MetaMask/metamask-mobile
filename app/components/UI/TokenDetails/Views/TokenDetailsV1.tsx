@@ -59,6 +59,7 @@ import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
+import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenDetails';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
@@ -396,6 +397,18 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   }, []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
+
+  /**
+   * `token.address` is a full CAIP-19 asset id on non-EVM chains, so it is
+   * resolved to the bare contract address here rather than handed to the chip
+   * raw: the same resolver the header uses, so the two agree, and the chip's
+   * clipboard value and accessibility label stay pasteable.
+   */
+  const contractAddress = useMemo(
+    () => (isNativeToken ? null : resolveTokenContractAddress(token)),
+    [token, isNativeToken],
+  );
+
   const hasBalanceValue = useMemo(() => {
     if (token.balance === undefined || token.balance === null) return false;
     return Number(token.balance) > 0;
@@ -882,7 +895,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     securityVerdict={securityFacts.verdict}
                     securityRiskCount={securityFacts.risks.length}
                     externalLinks={securityData?.metadata?.externalLinks}
-                    contractAddress={token.isNative ? null : token.address}
+                    contractAddress={contractAddress}
                     onSecurityPress={
                       visibleTabs.includes('security')
                         ? handleSecurityPress
