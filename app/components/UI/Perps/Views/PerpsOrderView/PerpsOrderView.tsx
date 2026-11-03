@@ -236,6 +236,7 @@ import {
   canPromptPerpsPostTrade,
   completePerpsPostTradeShare,
   failPerpsPostTradeShare,
+  isPerpsPostTradeShareEligible,
   openPerpsPostTradeShareSession,
 } from '../../utils/perpsPostTradeShare';
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
@@ -1453,6 +1454,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused || isLimitPriceFocused,
     originalUsdAmount: orderForm.amount,
+    maxLeverage: maxLeverage ?? undefined,
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -2052,7 +2054,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               leverage: orderForm.leverage,
               amountUsd: orderForm.amount,
             });
-        perpsPostTradePromptRef.current =
+        const resolvedPerpsPostTradePrompt =
           !perpsShareSessionIdRef.current &&
           !isPerpsProModeActive &&
           canPromptPerpsPostTrade({
@@ -2060,6 +2062,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             activeProvider: activePerpsProvider,
           })
             ? resolvePostTradePrompt('perps')
+            : undefined;
+        perpsPostTradePromptRef.current =
+          resolvedPerpsPostTradePrompt?.kind === 'claim_sheet' ||
+          isPerpsPostTradeShareEligible({
+            amountUsd: orderForm.amount,
+            leverage: orderForm.leverage,
+          })
+            ? resolvedPerpsPostTradePrompt
             : undefined;
         const promptKind = perpsPostTradePromptRef.current?.kind;
         if (promptKind === 'share_sheet' || promptKind === 'claim_sheet') {
