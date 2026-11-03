@@ -12,15 +12,14 @@ import {
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
 import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
+import {
+  useExploreSearchPerformance,
+  type ExploreSearchFeedId,
+} from './useExploreSearchPerformance';
+import type { SearchEntryPoint } from './analytics';
 
 /** Feeds that participate in the omni-search across the Explore page. */
-export type SearchFeedId =
-  | 'tokens'
-  | 'perps'
-  | 'earn'
-  | 'stocks'
-  | 'predictions'
-  | 'sites';
+export type SearchFeedId = ExploreSearchFeedId;
 
 const DEBOUNCE_MS = 200;
 
@@ -32,6 +31,7 @@ export interface SearchFeedSection<T = unknown> {
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
+  /** Server-reported total; it may be larger than the loaded item count. */
   total?: number;
 }
 
@@ -42,12 +42,13 @@ export interface ExploreSearchResult {
 export interface UseExploreSearchOptions {
   /** Forward fetchMore / hasMore / total on sections that support it. */
   exposePagination?: boolean;
+  entryPoint?: SearchEntryPoint;
 }
 export const useExploreSearch = (
   query: string,
   options: UseExploreSearchOptions = {},
 ): ExploreSearchResult => {
-  const { exposePagination = false } = options;
+  const { exposePagination = false, entryPoint } = options;
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -61,9 +62,34 @@ export const useExploreSearch = (
 
   const isDebouncing = query !== debouncedQuery;
 
-  const tokens = useTokensFeed({ query: debouncedQuery });
+  const enabledFeeds = useMemo<ExploreSearchFeedId[]>(
+    () => [
+      'tokens',
+      ...(isPerpsEnabled ? (['perps'] as const) : []),
+      ...(isExploreEarnEnabled ? (['earn'] as const) : []),
+      'stocks',
+      'predictions',
+      'sites',
+    ],
+    [isExploreEarnEnabled, isPerpsEnabled],
+  );
+  const searchPerformance = useExploreSearchPerformance({
+    query,
+    isDebouncing,
+    enabledFeeds,
+    configuredDebounceMs: DEBOUNCE_MS,
+    entryPoint,
+  });
+
+  const tokens = useTokensFeed({
+    query: debouncedQuery,
+    performance: debouncedQuery.trim() ? searchPerformance.tokens : undefined,
+  });
   const perps = usePerpsFeed({ query: debouncedQuery });
-  const stocks = useStocksFeed({ query: debouncedQuery });
+  const stocks = useStocksFeed({
+    query: debouncedQuery,
+    performance: debouncedQuery.trim() ? searchPerformance.stocks : undefined,
+  });
   const predictions = usePredictTrendingFeed({ query: debouncedQuery });
   const sites = useSitesFeed({ query: debouncedQuery });
   const earn = useEarnSearchFeed({
@@ -71,7 +97,7 @@ export const useExploreSearch = (
     enabled: isExploreEarnEnabled,
   });
 
-  return useMemo<ExploreSearchResult>(() => {
+  const result = useMemo<ExploreSearchResult>(() => {
     const sections: SearchFeedSection[] = [
       {
         feedId: 'tokens',
@@ -175,4 +201,16 @@ export const useExploreSearch = (
     earn.data,
     earn.isLoading,
   ]);
+
+  useEffect(() => {
+    result.sections.forEach((section) => {
+      searchPerformance.markFeedReady(
+        section.feedId,
+        !section.isLoading,
+        section.items.length,
+      );
+    });
+  }, [result.sections, searchPerformance]);
+
+  return result;
 };

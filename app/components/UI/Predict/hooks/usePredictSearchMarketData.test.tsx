@@ -141,6 +141,27 @@ describe('usePredictSearchMarketData', () => {
     expect(result.current.marketData).toEqual(mockMarketData);
   });
 
+  it('reports the initial search request outcome to the performance observer', async () => {
+    const requestEnd = jest.fn();
+    const performance = {
+      startRequest: jest.fn(() => ({ end: requestEnd })),
+    };
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(
+      () =>
+        usePredictSearchMarketData({
+          q: ' bitcoin ',
+          performance,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+    expect(performance.startRequest).toHaveBeenCalledWith('bitcoin');
+    expect(requestEnd).toHaveBeenCalledWith('success', mockMarketData.length);
+  });
+
   it('exposes totalResults from the first page', async () => {
     mockSearchMarkets.mockResolvedValue(makeSearchResult(mockMarketData, 232));
 

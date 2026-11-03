@@ -7,6 +7,10 @@ import {
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
 import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
+import type {
+  SearchRequestOutcome,
+  SearchRequestPerformance,
+} from '../searchPerformance';
 
 const RWA_PAGE_SIZE = 100;
 const DEFAULT_SORT_OPTION = PriceChangeOption.PriceChange;
@@ -72,6 +76,7 @@ export const useRwaTokens = (opts?: {
   chainIds?: CaipChainId[] | null;
   pageSize?: number;
   includeTokenSecurityData?: boolean;
+  performance?: SearchRequestPerformance;
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
@@ -82,6 +87,7 @@ export const useRwaTokens = (opts?: {
     chainIds,
     pageSize = RWA_PAGE_SIZE,
     includeTokenSecurityData = false,
+    performance,
     sortTrendingTokensOptions,
   } = opts ?? {};
   const { option = DEFAULT_SORT_OPTION, direction = DEFAULT_SORT_DIRECTION } =
@@ -121,8 +127,12 @@ export const useRwaTokens = (opts?: {
     const requestId = ++requestIdRef.current;
     isLoadingRef.current = true;
     setIsLoading(true);
+    const requestHandle = performance?.startRequest(searchQuery ?? '');
+    let outcome: SearchRequestOutcome = 'success';
+    let resultCount = 0;
     try {
       const response = await fetchPage();
+      resultCount = response.data.length;
       if (requestId === requestIdRef.current) {
         setData(response.data.map(normalizeRwaToken));
         setNextCursor(response.pageInfo.nextCursor || undefined);
@@ -130,6 +140,7 @@ export const useRwaTokens = (opts?: {
         setTotalCount(response.totalCount);
       }
     } catch {
+      outcome = 'error';
       if (requestId === requestIdRef.current) {
         setData([]);
         setNextCursor(undefined);
@@ -141,8 +152,12 @@ export const useRwaTokens = (opts?: {
         isLoadingRef.current = false;
         setIsLoading(false);
       }
+      requestHandle?.end(
+        requestId === requestIdRef.current ? outcome : 'superseded',
+        resultCount,
+      );
     }
-  }, [fetchPage]);
+  }, [fetchPage, performance, searchQuery]);
 
   const loadMore = useCallback(async () => {
     if (

@@ -313,6 +313,24 @@ describe('useRwaTokens', () => {
     expect(result.current.isLoading).toBe(true);
   });
 
+  it('reports the initial search result count to the performance observer', async () => {
+    const requestEnd = jest.fn();
+    const performance = {
+      startRequest: jest.fn(() => ({ end: requestEnd })),
+    };
+
+    const { result } = renderHookWithProvider(() =>
+      useRwaTokens({ searchQuery: 'eth', performance }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(performance.startRequest).toHaveBeenCalledWith('eth');
+    expect(requestEnd).toHaveBeenCalledWith('success', 1);
+  });
+
   it('returns empty data and stops loading on fetch error', async () => {
     arrangeMocks({ rejectWith: new Error('Network error') });
 

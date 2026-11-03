@@ -10,6 +10,7 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
+import type { SearchRequestPerformance } from '../../../../UI/Trending/hooks/searchPerformance';
 
 const SHOW_ROBINHOOD_RWA_FLAG_NAME = 'ASSETS4098ShowRobinhoodRwa';
 
@@ -30,6 +31,7 @@ export const STOCKS_FEED_PREVIEW_PAGE_SIZE = 3;
 
 interface UseStocksFeedOptions {
   query?: string;
+  performance?: SearchRequestPerformance;
   pageSize?: number;
   refresh?: RefreshConfig;
 }
@@ -58,6 +60,7 @@ export interface UseStocksFeedResult {
  */
 export const useStocksFeed = ({
   query,
+  performance,
   pageSize,
   refresh,
 }: UseStocksFeedOptions = {}): UseStocksFeedResult => {
@@ -101,6 +104,7 @@ export const useStocksFeed = ({
     searchQuery: hasQuery ? trimmedQuery : undefined,
     chainIds: hasQuery ? searchChainIds : stocksFeedChainIds,
     pageSize,
+    ...(hasQuery && performance ? { performance } : {}),
     includeTokenSecurityData: hasQuery && isBasicFunctionalityEnabled,
   });
 

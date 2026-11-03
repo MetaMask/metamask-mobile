@@ -24,6 +24,7 @@ const mockEarnData = [{ kind: 'money-account', id: 'money-account' }];
 const mockFetchMore = jest.fn();
 const mockTokensLoadMore = jest.fn();
 const mockStocksLoadMore = jest.fn();
+const mockMarkFeedReady = jest.fn();
 let mockIsExploreEarnSectionVisible = false;
 
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
@@ -101,6 +102,15 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../UI/Perps', () => ({
   selectPerpsEnabledFlag: (state: { perpsEnabled: boolean }) =>
     state.perpsEnabled,
+}));
+
+jest.mock('./useExploreSearchPerformance', () => ({
+  useExploreSearchPerformance: jest.fn(() => ({
+    tokens: { startRequest: jest.fn() },
+    stocks: { startRequest: jest.fn() },
+    predictions: { startRequest: jest.fn() },
+    markFeedReady: mockMarkFeedReady,
+  })),
 }));
 
 // ---------------------------------------------------------------------------
@@ -390,6 +400,22 @@ describe('useExploreSearch', () => {
         (s) => s.feedId === 'tokens',
       );
       expect(tokensSection?.total).toBe(2101);
+    });
+
+    it('measures loaded items instead of the server total', () => {
+      (useTokensFeed as jest.Mock).mockReturnValue({
+        data: mockTokensData,
+        isLoading: false,
+        totalCount: 2101,
+      });
+
+      renderExploreSearch();
+
+      expect(mockMarkFeedReady).toHaveBeenCalledWith(
+        'tokens',
+        true,
+        mockTokensData.length,
+      );
     });
 
     it('passes undefined total when the tokens feed has no totalCount', () => {

@@ -7,6 +7,10 @@ import {
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { useTrendingChainIds } from '../useTrendingChainIds/useTrendingChainIds';
+import type {
+  SearchRequestOutcome,
+  SearchRequestPerformance,
+} from '../searchPerformance';
 
 interface SearchResult {
   assetId: CaipChainId;
@@ -34,6 +38,7 @@ export const useSearchRequest = (options: {
   includeMarketData?: boolean;
   /** Whether to debounce the query (default: false). */
   enableDebounce?: boolean;
+  performance?: SearchRequestPerformance;
 }) => {
   const {
     chainIds: providedChainIds = [],
@@ -41,6 +46,7 @@ export const useSearchRequest = (options: {
     limit,
     includeMarketData,
     enableDebounce = false,
+    performance,
   } = options;
 
   // Use provided chainIds or default to trending networks
@@ -94,12 +100,19 @@ export const useSearchRequest = (options: {
     setHasNextPage(false);
     setTotalCount(undefined);
 
+    const requestHandle = performance?.startRequest(debouncedQuery);
+    let outcome: SearchRequestOutcome = 'success';
+    let resultCount = 0;
+
     try {
       const searchResults = await searchTokens(stableChainIds, debouncedQuery, {
         limit,
         includeMarketData,
         includeTokenSecurityData: true,
       });
+      resultCount = Array.isArray(searchResults?.data)
+        ? searchResults.data.length
+        : 0;
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setResults((searchResults?.data as SearchResult[]) || []);
@@ -111,10 +124,12 @@ export const useSearchRequest = (options: {
             : undefined,
         );
         if (searchResults?.error) {
+          outcome = 'error';
           setError({ message: searchResults.error, name: 'SearchError' });
         }
       }
     } catch (err) {
+      outcome = 'error';
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setError(err as Error);
@@ -125,8 +140,12 @@ export const useSearchRequest = (options: {
       if (currentRequestId === requestIdRef.current) {
         setIsFetching(false);
       }
+      requestHandle?.end(
+        currentRequestId === requestIdRef.current ? outcome : 'superseded',
+        resultCount,
+      );
     }
-  }, [stableChainIds, debouncedQuery, limit, includeMarketData]);
+  }, [stableChainIds, debouncedQuery, limit, includeMarketData, performance]);
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || !endCursor || isLoadingMoreRef.current || isFetching)

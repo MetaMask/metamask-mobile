@@ -13,6 +13,7 @@ import {
 import { selectExploreLaptopSearchApiRankingEnabled } from '../../selectors/featureFlags';
 import { usesTemporaryApiRanking } from '../../utils/usesTemporaryApiRanking';
 import { isEqual } from 'lodash';
+import type { SearchRequestPerformance } from '../searchPerformance';
 
 const useStableReference = <T>(value: T) => {
   const [stableValue, setStableValue] = useState(value);
@@ -44,6 +45,7 @@ export const useTrendingSearch = (opts?: {
   includeMarketData?: boolean;
   includeStocks?: boolean;
   filterLowQuality?: boolean;
+  performance?: SearchRequestPerformance;
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
@@ -58,6 +60,7 @@ export const useTrendingSearch = (opts?: {
     includeMarketData = true,
     includeStocks = false,
     filterLowQuality = false,
+    performance,
     sortTrendingTokensOptions = {
       option: PriceChangeOption.PriceChange,
       direction: SortDirection.Descending,
@@ -98,6 +101,7 @@ export const useTrendingSearch = (opts?: {
     limit: 20,
     chainIds: chainIds ?? undefined,
     includeMarketData,
+    performance,
   });
 
   const {

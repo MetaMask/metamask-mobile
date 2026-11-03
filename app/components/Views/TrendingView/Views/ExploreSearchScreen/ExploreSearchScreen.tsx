@@ -295,6 +295,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 interface ExploreSearchContentProps {
   searchQuery: string;
   redactSearchQuery: boolean;
+  entryPoint?: ExploreSearchRouteParams['entryPoint'];
 }
 
 /**
@@ -308,6 +309,7 @@ interface ExploreSearchContentProps {
 const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   searchQuery,
   redactSearchQuery,
+  entryPoint,
 }) => {
   const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
   const activePillRef = useRef(activePill);
@@ -317,6 +319,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   const { sections } = useExploreSearch(searchQuery, {
     exposePagination: true,
+    entryPoint,
   });
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
@@ -819,6 +822,7 @@ const ExploreSearchScreen: React.FC = () => {
               <ExploreSearchContent
                 searchQuery={searchQuery}
                 redactSearchQuery={isClipboardQuery}
+                entryPoint={routeParams?.entryPoint}
               />
             ) : (
               <ExploreSearchLoadingContent />

@@ -6,12 +6,17 @@ import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictMarket } from '../types';
 import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import { ensureError } from '../utils/predictErrorHandler';
+import type {
+  SearchRequestOutcome,
+  SearchRequestPerformance,
+} from '../../Trending/hooks/searchPerformance';
 
 export interface UsePredictSearchMarketDataOptions {
   q: string;
   pageSize?: number;
   refine?: (markets: PredictMarket[]) => PredictMarket[];
   enabled?: boolean;
+  performance?: SearchRequestPerformance;
 }
 
 export interface UsePredictSearchMarketDataResult {
@@ -35,6 +40,7 @@ export const usePredictSearchMarketData = ({
   pageSize = 20,
   refine,
   enabled = true,
+  performance,
 }: UsePredictSearchMarketDataOptions): UsePredictSearchMarketDataResult => {
   const trimmedQuery = q.trim();
 
@@ -51,20 +57,36 @@ export const usePredictSearchMarketData = ({
     enabled,
     initialPageParam: 1,
     queryFn: async ({ pageParam }) => {
+      const requestHandle =
+        pageParam === 1 ? performance?.startRequest(trimmedQuery) : undefined;
+      let outcome: SearchRequestOutcome = 'success';
+      let resultCount = 0;
+
       if (!Engine?.context) {
+        requestHandle?.end('error', resultCount);
         throw new Error('Engine not initialized');
       }
 
       const controller = Engine.context.PredictController;
       if (!controller) {
+        requestHandle?.end('error', resultCount);
         throw new Error('Predict controller not available');
       }
 
-      return controller.searchMarkets({
-        q: trimmedQuery,
-        limit: pageSize,
-        page: pageParam as number,
-      });
+      try {
+        const result = await controller.searchMarkets({
+          q: trimmedQuery,
+          limit: pageSize,
+          page: pageParam as number,
+        });
+        resultCount = result.markets.length;
+        return result;
+      } catch (requestError) {
+        outcome = 'error';
+        throw requestError;
+      } finally {
+        requestHandle?.end(outcome, resultCount);
+      }
     },
     getNextPageParam: (lastPage, allPages) => {
       // Compare pages fetched × pageSize against the server total rather than
@@ -74,6 +96,24 @@ export const usePredictSearchMarketData = ({
       return fetched < lastPage.totalResults ? allPages.length + 1 : undefined;
     },
   });
+
+  useEffect(() => {
+    if (
+      !performance?.markCachedResult ||
+      !enabled ||
+      !trimmedQuery ||
+      isFetching ||
+      !data
+    ) {
+      return;
+    }
+
+    const resultCount = data.pages.reduce(
+      (count, page) => count + page.markets.length,
+      0,
+    );
+    performance.markCachedResult(trimmedQuery, resultCount);
+  }, [data, enabled, isFetching, performance, trimmedQuery]);
 
   useEffect(() => {
     if (!error) return;

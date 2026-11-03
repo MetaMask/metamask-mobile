@@ -7,6 +7,7 @@ import { usesTemporaryApiRanking } from '../../../../UI/Trending/utils/usesTempo
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fuseSearch, TOKEN_FUSE_OPTIONS } from '../search-utils';
+import type { SearchRequestPerformance } from '../../../../UI/Trending/hooks/searchPerformance';
 import {
   mapTimeOptionToSortBy,
   PriceChangeOption,
@@ -17,6 +18,7 @@ import {
 interface UseTokensFeedOptions {
   /** Search query; results are sorted by market cap unless temporarily exempted. */
   query?: string;
+  performance?: SearchRequestPerformance;
   refresh?: RefreshConfig;
   /**
    * When true, only Verified and Benign tokens (or unscanned ones) are shown.
@@ -40,6 +42,7 @@ export interface UseTokensFeedResult {
 /** Trending tokens feed; same source for the home list, "crypto movers" pills, and search. */
 export const useTokensFeed = ({
   query,
+  performance,
   refresh,
   hideRiskyTokens = false,
   timeOption,
@@ -60,6 +63,7 @@ export const useTokensFeed = ({
   } = useTrendingSearch({
     searchQuery: query,
     enableDebounce: false,
+    ...(performance ? { performance } : {}),
     sortBy,
     filterLowQuality: true,
     sortTrendingTokensOptions: timeOption

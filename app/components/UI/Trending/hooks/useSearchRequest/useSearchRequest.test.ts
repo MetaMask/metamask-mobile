@@ -56,6 +56,32 @@ describe('useSearchRequest', () => {
     unmount();
   });
 
+  it('reports the initial search request outcome to the performance observer', async () => {
+    const requestEnd = jest.fn();
+    const performance = {
+      startRequest: jest.fn(() => ({ end: requestEnd })),
+    };
+    spySearchTokens.mockResolvedValue({ data: [] } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+        performance,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(performance.startRequest).toHaveBeenCalledWith('ETH');
+    expect(requestEnd).toHaveBeenCalledWith('success', 0);
+
+    unmount();
+  });
+
   it('sets error state and clears results when search fails', async () => {
     const mockError = new Error('Network error');
     spySearchTokens.mockRejectedValue(mockError);

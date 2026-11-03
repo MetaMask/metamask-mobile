@@ -13,7 +13,7 @@ export const navigateToExploreSearch = (
 ) => {
   if (!isSearchHeaderEnabled) {
     trackExploreSearchOpened('home');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
+    navigation.navigate(Routes.EXPLORE_SEARCH, { entryPoint: 'home' });
     return;
   }
 

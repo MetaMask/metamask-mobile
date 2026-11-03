@@ -6,6 +6,7 @@ import { useFeedRefresh } from '../../../Views/TrendingView/hooks/useFeedRefresh
 import type { RefreshConfig } from '../../../Views/TrendingView/hooks/useExploreRefresh';
 import { fuseSearch } from '../../../Views/TrendingView/feeds/fuseSearch';
 import { PREDICTIONS_FUSE_OPTIONS } from './predictionsFuseOptions';
+import type { SearchRequestPerformance } from '../../Trending/hooks/searchPerformance';
 
 export type PredictionsVariant = 'trending' | 'sports' | 'crypto' | 'politics';
 
@@ -15,6 +16,7 @@ interface UsePredictionsFeedOptions {
   query?: string;
   refresh?: RefreshConfig;
   enabled?: boolean;
+  performance?: SearchRequestPerformance;
 }
 
 export interface UsePredictionsFeedResult {
@@ -34,6 +36,7 @@ export const usePredictionsFeed = ({
   query,
   refresh,
   enabled = true,
+  performance,
 }: UsePredictionsFeedOptions = {}): UsePredictionsFeedResult => {
   const hasQuery = Boolean(query?.trim());
   const feed = usePredictMarketData({
@@ -43,6 +46,7 @@ export const usePredictionsFeed = ({
   const search = usePredictSearchMarketData({
     q: query ?? '',
     enabled: enabled && hasQuery,
+    ...(hasQuery && performance ? { performance } : {}),
   });
 
   const activeResult = hasQuery ? search : feed;
