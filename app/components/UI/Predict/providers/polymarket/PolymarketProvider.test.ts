@@ -3033,7 +3033,7 @@ describe('PolymarketProvider', () => {
         }
         throw new Error(`unexpected fetch ${requestUrl}`);
       });
-      global.fetch = fetchMock;
+      global.fetch = fetchMock as unknown as typeof fetch;
       mockParsePolymarketPositions.mockResolvedValue([
         createClaimPosition({ currentValue: 110, initialValue: 100 }),
       ]);
