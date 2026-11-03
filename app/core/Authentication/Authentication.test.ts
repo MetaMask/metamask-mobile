@@ -322,6 +322,12 @@ jest.mock('../SecureKeychain', () => ({
   getGenericPassword: jest.fn(),
   setGenericPassword: jest.fn(),
   resetGenericPassword: jest.fn(),
+  setSecureItem: jest.fn(),
+  getSecureItem: jest.fn(),
+  clearSecureScope: jest.fn(),
+  ACCESSIBLE: {
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
+  },
   TYPES: {
     BIOMETRICS: 'biometrics',
     PASSCODE: 'passcode',
@@ -5385,7 +5391,7 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController,
         'clearState',
       );
-      const resetRewardsSpy = jest.spyOn(Engine.controllerMessenger, 'call');
+      const engineCallSpy = jest.spyOn(Engine.controllerMessenger, 'call');
       const loggerSpy = jest.spyOn(Logger, 'log');
       const resetProviderTokenSpy = jest.mocked(depositResetProviderToken);
 
@@ -5406,10 +5412,11 @@ describe('Authentication', () => {
         (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
       );
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
-      expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
-      expect(resetRewardsSpy).toHaveBeenCalledWith(
-        'RewardsController:resetAll',
+      expect(engineCallSpy).toHaveBeenCalledTimes(2);
+      expect(engineCallSpy).toHaveBeenCalledWith(
+        'PredictDeviceAuthService:reset',
       );
+      expect(engineCallSpy).toHaveBeenCalledWith('RewardsController:resetAll');
       expect(Engine.context.CardController.resetAll).toHaveBeenCalledTimes(1);
       const setResetSpy = Engine.context.CardController
         .setResetInProgress as jest.Mock;
@@ -5424,6 +5431,17 @@ describe('Authentication', () => {
       expect(Authentication.lockApp).toHaveBeenCalledWith({
         navigateToLogin: false,
       });
+      const resetAuthOrder = engineCallSpy.mock.invocationCallOrder[0];
+      expect(resetAuthOrder).toBeGreaterThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
+      );
+      expect(resetAuthOrder).toBeLessThan(
+        (Engine.context.CardController.resetAll as jest.Mock).mock
+          .invocationCallOrder[0],
+      );
+      expect(resetAuthOrder).toBeLessThan(
+        (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
+      );
     });
 
     it('clears auth state after a later reset step throws', async () => {
@@ -5465,6 +5483,45 @@ describe('Authentication', () => {
         expect.any(Error),
         expect.stringContaining('Failed to createNewVaultAndKeychain'),
       );
+      expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+        'PredictDeviceAuthService:reset',
+      );
+    });
+
+    it('resets Predict device authentication before a later step throws', async () => {
+      jest
+        .mocked(Engine.context.CardController.resetAll)
+        .mockRejectedValueOnce(new Error('card reset failed'));
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'PredictDeviceAuthService:reset',
+      );
+    });
+
+    it('logs the wallet reset failure when Predict device authentication reset rejects', async () => {
+      jest
+        .mocked(Engine.controllerMessenger.call)
+        .mockRejectedValueOnce(new Error('auth reset failed'));
+      const loggerSpy = jest.spyOn(Logger, 'log');
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(Authentication.lockApp).not.toHaveBeenCalled();
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.stringContaining('Failed to createNewVaultAndKeychain'),
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
+      expect(
+        Engine.context.CardController.setResetInProgress,
+      ).toHaveBeenLastCalledWith(false);
     });
 
     it('dispatches cancelBulkLink action to cancel running bulk link saga', async () => {

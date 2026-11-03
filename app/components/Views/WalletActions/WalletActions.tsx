@@ -31,8 +31,10 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
-import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../UI/PredictNext';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
@@ -62,7 +64,7 @@ const WalletActions = () => {
     selectIsSwapsEnabled(state),
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({

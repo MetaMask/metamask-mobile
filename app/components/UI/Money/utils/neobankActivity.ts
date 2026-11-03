@@ -1,11 +1,10 @@
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
-import BigNumber from 'bignumber.js';
-import I18n, { strings } from '../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import { strings } from '../../../../../locales/i18n';
 import { MUSD_TOKEN } from '../../Earn/constants/musd';
 import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
+import { moneyFormatIncomingAmount } from './moneyFormatFiat';
 
 /** MoonPay autoramp transaction statuses that are no longer in flight. */
 export const NEOBANK_TERMINAL_STATUSES = new Set([
@@ -70,15 +69,10 @@ export function neobankActivityDisplayInfo(
   const failed = isNeobankFailedStatus(activity.status);
   // NeoBank rows are off-chain only. Even MoonPay `Completed` is still pending
   // from Money's POV until mUSD lands and Accounts API emits bank_transfer.
-  const amount = new BigNumber(activity.destinationAmount ?? 'NaN');
-  const hasValidAmount = amount.isFinite() && amount.isGreaterThan(0);
-  const primaryAmount = hasValidAmount
-    ? `+${getIntlNumberFormatter(I18n.locale, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-        useGrouping: true,
-      }).format(amount.toNumber())} ${MUSD_TOKEN.symbol}`
-    : '';
+  const primaryAmount = moneyFormatIncomingAmount(
+    activity.destinationAmount,
+    MUSD_TOKEN.symbol,
+  );
 
   return {
     description: strings('money.transaction.bank_transfer'),

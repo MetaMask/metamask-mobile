@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // External dependencies
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
-import { Label, HeaderStandard } from '@metamask/design-system-react-native';
+import { Label } from '@metamask/design-system-react-native';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import Button, {
   ButtonVariants,
@@ -23,6 +23,9 @@ import { regex } from '../../../../../../util/regex';
 
 // Internal dependencies
 import styles from './Settings.styles';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export const ACTIVATION_KEY_FORM_HEADER_TEST_ID = 'activation-key-form-header';
 export const ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID =
@@ -41,6 +44,7 @@ export const createActivationKeyFormNavDetails =
   );
 
 function ActivationKeyForm() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const {
     key,
@@ -74,7 +78,9 @@ function ActivationKeyForm() {
 
   return (
     <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID={ACTIVATION_KEY_FORM_HEADER_TEST_ID}
         title={title}
         onBack={handleBack}

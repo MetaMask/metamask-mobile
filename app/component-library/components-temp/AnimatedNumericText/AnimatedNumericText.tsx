@@ -13,6 +13,7 @@ import Animated, {
   ZoomOut,
 } from 'react-native-reanimated';
 import {
+  FontFamily,
   FontWeight,
   Text as DesignSystemText,
   TextColor,
@@ -119,6 +120,7 @@ const AnimatedNumericText = ({
     <DesignSystemText
       accessible={false}
       color={color}
+      fontFamily={FontFamily.Hero}
       fontWeight={fontWeight}
       style={style}
       variant={variant}
@@ -147,6 +149,7 @@ const AnimatedNumericText = ({
               color={color}
               entering={animateGlyphs ? GLYPH_ENTER_TRANSITION : undefined}
               exiting={animateGlyphs ? GLYPH_EXIT_TRANSITION : undefined}
+              fontFamily={FontFamily.Hero}
               fontWeight={fontWeight}
               key={key}
               layout={animateGlyphs ? GLYPH_LAYOUT_TRANSITION : undefined}

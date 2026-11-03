@@ -81,8 +81,10 @@ import { usePerpsHeaderEntryNavigation } from '../../UI/Perps/hooks/usePerpsHead
 import { toPerpsNavigatorScreenParams } from '../../UI/Perps/utils/perpsModeSwitch';
 import { openPerpsModeSelection } from '../../UI/Perps/utils/openPerpsModeSelection';
 import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
-import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../UI/PredictNext';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
@@ -298,7 +300,7 @@ function TradeWalletActions() {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
 
   const { getTarget } = usePerpsHeaderEntryNavigation();
 

@@ -9,9 +9,20 @@ PredictNext/
   index.ts                     # Curated external entry point
   implementation/
     index.ts                   # Legacy/next switch and Active Venue resolution
+    resolveActiveVenue.ts      # The pure resolution order (docs/active-venue.md)
+    activeVenue.ts             # selectActiveVenue, the one resolver, and useActiveVenue
+    PredictVenueController.ts  # Persisted preference and history, session default
     PredictImplementationSwitch.tsx
     usePredictImplementation.ts
     NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
+  availability/
+    index.ts                   # Venue-aware selectPredictAvailability / usePredictAvailability
+  venueSelection/
+    index.ts                   # Venue picker for the Predict home headers (PRED-1401)
+    PredictVenueSelectorButton.tsx
+    internal/                  # Picker sheet and the preference-writing hook
+  analytics/
+    index.ts                   # Analytics vocabulary, re-exported unchanged from legacy
   activity/
     index.ts                   # Activity projections for the shared Activity list and details
     usePredictActivityItems.ts # Activity as shared ActivityListItems
@@ -20,6 +31,11 @@ PredictNext/
     internal/
       legacy/                  # Legacy list hook, mapper and details templates, moved as-is
       next/                    # Canonical Activity mapper, list hook, details lookup and templates
+  portfolio/
+    index.ts                   # Portfolio value projection for the wallet balance breakdown
+    usePredictPortfolioValue.ts
+    internal/
+      legacy/                  # usePredictPortfolio pass-through, unchanged
   events/
     cards/
       index.ts                 # Supported Event-card API
@@ -31,16 +47,19 @@ PredictNext/
       createGamePresentation.ts
       findGameSelectionQuote.ts
       findWinnerMarketQuotes.ts
+      useGameTeamColors.ts     # Team colors with the theme fallback
     markets/
       index.ts                 # Supported Market-card and list API
       MarketList.tsx           # Card-agnostic detail-list composition
       MarketFooterCard.tsx     # Public Game winner footer composition
       MarketStandardCard.tsx   # Public standard Market composition
+      MoneylineMarketGroupCard.tsx # Public moneyline choice-group composition
       SpreadMarketGroupCard.tsx # Public spread Market-group composition
       TotalMarketGroupCard.tsx  # Public total Market-group composition
       internal/                # Private Market-card parts
     shared/
       formatting/              # Price and Volume formatting shared by Event UI
+      ui/                      # Outcome row and Team logo shared by Event and Market cards
 
   views/                       # Screen compositions and private view helpers
     PredictEvent/
@@ -52,13 +71,23 @@ PredictNext/
   navigation/
     root/                      # Predict root router (legacy or PredictNext stack)
 
+  auth/                        # Internal P-256, A2T, and bundled profile primitives
+    p256DeviceKey.ts           # Profile-bound P-256 implementation
+    p256DeviceKeyStorage.ts    # Versioned SecureKeychain persistence
+    a2tSession.ts
+    a2tIssuerUrl.ts
+    venueAuthProfiles.ts
+    PredictDeviceAuthBootstrap.tsx
+
   capabilities/
     index.ts                   # Venue descriptors, capability hooks and selectors
     surfaceFeedKeys.ts         # The surface section/tab to Feed key table
+
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
   queries/                     # Query descriptors and cache policy
-  services/                    # Product services
+  services/                    # Product and Engine-owned capability services
+    PredictDeviceAuthService.ts
   adapters/                    # Venue capability implementations
   config/
   selectors/
