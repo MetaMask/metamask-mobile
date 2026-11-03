@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { playImpact } from '../../../../../../util/haptics';
 import RangeSlider from './RangeSlider';
 
@@ -71,6 +71,12 @@ const defaultProps = {
 const layoutSlider = (testID = 'range-slider', width = 200) => {
   fireEvent(screen.getByTestId(testID), 'layout', {
     nativeEvent: { layout: { width, height: 40, x: 0, y: 0 } },
+  });
+};
+
+const flushScheduledUpdates = async () => {
+  await act(async () => {
+    await Promise.resolve();
   });
 };
 
@@ -155,7 +161,29 @@ describe('RangeSlider', () => {
     expect(screen.getByLabelText('Maximum market cap')).toBeOnTheScreen();
   });
 
-  it('emits onValueChange when the min thumb is dragged', () => {
+  it('steps a thumb when an accessibility increment is requested', () => {
+    const onValueChange = jest.fn();
+
+    render(
+      <RangeSlider
+        {...defaultProps}
+        value={{ min: 10, max: 80 }}
+        step={5}
+        onValueChange={onValueChange}
+        minThumbAccessibilityLabel="Minimum market cap"
+      />,
+    );
+
+    fireEvent(
+      screen.getByLabelText('Minimum market cap'),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'increment' } },
+    );
+
+    expect(onValueChange).toHaveBeenCalledWith({ min: 15, max: 80 });
+  });
+
+  it('emits onValueChange when the min thumb is dragged', async () => {
     const onValueChange = jest.fn();
 
     render(<RangeSlider {...defaultProps} onValueChange={onValueChange} />);
@@ -164,6 +192,7 @@ describe('RangeSlider', () => {
     const gesture = getPanGesture();
     gesture.onStart?.({ x: 10 });
     gesture.onUpdate?.({ x: 50 });
+    await flushScheduledUpdates();
 
     expect(onValueChange).toHaveBeenCalled();
     expect(onValueChange.mock.calls.at(-1)?.[0]).toEqual(
@@ -172,7 +201,7 @@ describe('RangeSlider', () => {
     expect(playImpact).toHaveBeenCalled();
   });
 
-  it('emits onValueChange when the max thumb is dragged', () => {
+  it('emits onValueChange when the max thumb is dragged', async () => {
     const onValueChange = jest.fn();
 
     render(
@@ -187,6 +216,7 @@ describe('RangeSlider', () => {
     const gesture = getPanGesture();
     gesture.onStart?.({ x: 190 });
     gesture.onUpdate?.({ x: 150 });
+    await flushScheduledUpdates();
 
     expect(onValueChange).toHaveBeenCalled();
     expect(onValueChange.mock.calls.at(-1)?.[0]).toEqual(
@@ -194,7 +224,7 @@ describe('RangeSlider', () => {
     );
   });
 
-  it('calls onDragEnd with the final range when the drag ends', () => {
+  it('calls onDragEnd with the final range when the drag ends', async () => {
     const onDragEnd = jest.fn();
 
     render(
@@ -211,6 +241,7 @@ describe('RangeSlider', () => {
     gesture.onUpdate?.({ x: 40 });
     gesture.onEnd?.();
     gesture.onFinalize?.();
+    await flushScheduledUpdates();
 
     expect(onDragEnd).toHaveBeenCalledWith(
       expect.objectContaining({ min: expect.any(Number), max: 100 }),
@@ -252,7 +283,7 @@ describe('RangeSlider', () => {
     expect(screen.getByTestId('range-slider-max-thumb')).toBeOnTheScreen();
   });
 
-  it('rounds emitted values to the configured step', () => {
+  it('rounds emitted values to the configured step', async () => {
     const onValueChange = jest.fn();
 
     render(
@@ -269,12 +300,13 @@ describe('RangeSlider', () => {
     const gesture = getPanGesture();
     gesture.onStart?.({ x: 10 });
     gesture.onUpdate?.({ x: 55 });
+    await flushScheduledUpdates();
 
     const lastCall = onValueChange.mock.calls.at(-1)?.[0];
     expect(lastCall?.min % 10).toBe(0);
   });
 
-  it('keeps the min thumb from crossing above the max thumb', () => {
+  it('keeps the min thumb from crossing above the max thumb', async () => {
     const onValueChange = jest.fn();
 
     render(
@@ -289,6 +321,7 @@ describe('RangeSlider', () => {
     const gesture = getPanGesture();
     gesture.onStart?.({ x: 40 });
     gesture.onUpdate?.({ x: 190 });
+    await flushScheduledUpdates();
 
     const lastCall = onValueChange.mock.calls.at(-1)?.[0];
     expect(lastCall?.min).toBeLessThanOrEqual(lastCall?.max);
