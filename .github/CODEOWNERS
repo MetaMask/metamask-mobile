@@ -136,6 +136,7 @@ app/components/UI/KYC/                                 @MetaMask/universal-kyc @
 app/components/UI/HardwareWallet                            @MetaMask/accounts-engineers
 app/components/Views/Mfa                                    @MetaMask/accounts-engineers
 app/components/Views/SocialProfile                          @MetaMask/accounts-engineers
+app/components/Views/SocialLeaderboard/ManageProfileView    @MetaMask/accounts-engineers
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
