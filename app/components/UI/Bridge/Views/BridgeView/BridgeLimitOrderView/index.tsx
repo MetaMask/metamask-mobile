@@ -31,8 +31,9 @@ import {
   setLimitOrderExpirationMinutes,
   setLimitOrderMarketComparison,
 } from '../../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../../selectors/bridge/featureFlags';
+import { EVM_SCOPE } from '../../../../Earn/constants/networks';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
 import {
@@ -134,9 +135,10 @@ const BridgeLimitOrderViewContent = ({
     setLimitOrdersTab = () => undefined,
   } = useBridgeSession();
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
-  const walletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const walletAddress = getSelectedAccountByScope(EVM_SCOPE)?.address;
   const ordersNetworkFilter = useSelector(selectOrdersNetworkFilter);
   const {
     destToken,
