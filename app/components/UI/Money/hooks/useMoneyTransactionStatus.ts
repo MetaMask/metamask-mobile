@@ -54,6 +54,7 @@ import {
 } from '../../../../util/identity/mfa/engine/activeFlow';
 import type { MfaFlow } from '../../../../util/identity/mfa/engine/types';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
+import { MONEY_MPC_SIGN_OPERATION } from '../../../../core/MpcMoneyKeyring/constants';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -269,7 +270,7 @@ export const useMoneyTransactionStatus = () => {
     ) => {
       if (!isTransactionStatusSignedOrLater(transactionMeta.status)) return;
       findDepositsAwaitingSignature(store.getState(), transactionMeta).forEach(
-        showInProgressFor,
+        (deposit) => showInProgressFor(deposit),
       );
     };
 
@@ -488,7 +489,13 @@ export const useMoneyTransactionStatus = () => {
     let watchedFlow: MfaFlow | undefined;
     const unsubscribeMfaFlows = subscribeToActiveMfaFlow(() => {
       const flow = getActiveMfaFlow();
-      if (!flow || flow === watchedFlow) return;
+      // Only a signing verification means the transaction will go out.
+      if (
+        !flow ||
+        flow === watchedFlow ||
+        flow.reason.operation !== MONEY_MPC_SIGN_OPERATION
+      )
+        return;
       watchedFlow = flow;
       flow.result.then(
         () =>

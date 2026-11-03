@@ -34,7 +34,9 @@ jest.mock(
   }),
 );
 
-let mockActiveMfaFlow: { result: Promise<unknown> } | undefined;
+let mockActiveMfaFlow:
+  | { result: Promise<unknown>; reason: { operation: string } }
+  | undefined;
 const mockMfaFlowListeners = new Set<() => void>();
 jest.mock('../../../../util/identity/mfa/engine/activeFlow', () => ({
   getActiveMfaFlow: () => mockActiveMfaFlow,
@@ -863,8 +865,11 @@ describe('useMoneyTransactionStatus', () => {
         txParams: { from: MPC_ADDRESS, data: '0x' },
       });
 
-    const startVerification = (result: Promise<unknown>) => {
-      mockActiveMfaFlow = { result };
+    const startVerification = (
+      result: Promise<unknown>,
+      operation = 'money.mpcSign',
+    ) => {
+      mockActiveMfaFlow = { result, reason: { operation } };
       mockMfaFlowListeners.forEach((listener) => listener());
     };
 
@@ -908,6 +913,20 @@ describe('useMoneyTransactionStatus', () => {
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
       expect(withdrawInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores verifications other than signing', async () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+      const approved = buildMpcWithdraw(TransactionStatus.approved);
+      mockControllerTransactions.push(approved);
+
+      statusUpdatedHandler({ transactionMeta: approved });
+      startVerification(Promise.resolve({}), 'money.mpcRestore');
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
     });
 
     it('does not show in-progress when verification is cancelled', async () => {

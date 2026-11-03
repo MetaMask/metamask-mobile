@@ -50,6 +50,7 @@ import {
   isRealMpcMoneyKeyringBuildEnabled,
 } from '../../../constants/featureFlags';
 import { createMpcTwoFactorApproval } from '../../MpcMoneyKeyring/mpc-two-factor-approval';
+import { MONEY_MPC_SIGN_OPERATION } from '../../MpcMoneyKeyring/constants';
 import { MfaFlowError } from '../../../util/identity/mfa/engine/errors';
 
 // This is initialized globally as it is used in lots of UI contexts.
@@ -221,7 +222,7 @@ export function getKeyringBuilders(
                     ),
                   verify: async () => {
                     // Every transfer needs its own verification.
-                    await verifyMoneyMpc('money.mpcSign', 0);
+                    await verifyMoneyMpc(MONEY_MPC_SIGN_OPERATION, 0);
                   },
                 })
               : undefined,
