@@ -100,7 +100,8 @@ import {
 } from '../../Money/components/MoneyAssetOverviewBalanceCta';
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../Earn/constants/networks';
 import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
@@ -324,9 +325,10 @@ const TokenDetails: React.FC<{
     [caip19AssetId],
   );
 
-  const walletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const walletAddress = getSelectedAccountByScope(EVM_SCOPE)?.address;
   const limitOrderFeatureFlags = useSelector(
     selectBridgeLimitOrderFeatureFlags,
   );

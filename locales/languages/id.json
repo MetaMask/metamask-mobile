@@ -1510,7 +1510,7 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Terapkan",
         "apply": "Terapkan",
         "reset": "Reset",

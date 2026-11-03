@@ -161,6 +161,21 @@ describe('toNativeTabOptions', () => {
     ).toBe(TAB_BAR_HIDDEN_STYLE);
   });
 
+  it('turns off native selection when the tab asks the listener to decide', () => {
+    const options = toNativeTabOptions({
+      ...homeTab,
+      tabBarSelectionEnabled: false,
+    });
+
+    expect(options.tabBarSelectionEnabled).toBe(false);
+  });
+
+  it('leaves native selection on when the tab does not opt out', () => {
+    const options = toNativeTabOptions(homeTab);
+
+    expect(options.tabBarSelectionEnabled).toBeUndefined();
+  });
+
   it('maps a new badge to the native tab icon', () => {
     const options = toNativeTabOptions(
       { ...homeTab, showNewBadge: true },

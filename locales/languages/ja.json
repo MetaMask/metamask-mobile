@@ -1510,7 +1510,7 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "適用",
         "apply": "適用",
         "reset": "リセット",
