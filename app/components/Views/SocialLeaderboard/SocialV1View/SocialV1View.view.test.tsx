@@ -109,7 +109,7 @@ const profileOnboardingRoute = {
   name: Routes.SOCIAL.PROFILE_ONBOARDING,
 };
 
-const noLinkedWalletOverrides = {
+const noLinkedWalletOverrides: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       PerpsController: { isEligible: true },
@@ -121,7 +121,7 @@ const noLinkedWalletOverrides = {
           bio: '',
           linkedAddresses: [],
           avatarUrl: '',
-          tradingPrivacy: 'public',
+          tradingPrivacy: 'public' as const,
           connectedToX: false,
           createdAt: '',
           updatedAt: '',

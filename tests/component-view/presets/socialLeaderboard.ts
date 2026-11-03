@@ -41,8 +41,12 @@ function makeVersionFlag(enabled: boolean) {
   return { enabled, minimumVersion: '0.0.1' };
 }
 
-/** Matches `withMinimalAccounts()` so copy-trade and Follow gates see a linked wallet. */
-const CV_SOCIAL_LINKED_ADDRESS = '0x0000000000000000000000000000000000000001';
+/**
+ * Linked EVM wallet for Social V1 copy-trade / Follow gates. Distinct from
+ * `withMinimalAccounts()` and the fixture traders (`0x…0001`–`0003`) so the
+ * homepage carousel does not treat the viewer as alpha.eth.
+ */
+const CV_SOCIAL_LINKED_ADDRESS = '0x00000000000000000000000000000000000000aa';
 
 /**
  * Returns a `StateFixtureBuilder` configured for Social Leaderboard CV tests.
@@ -100,9 +104,11 @@ export function initialStateSocialLeaderboard(
               username: 'cv_trader',
               displayName: 'cv_trader',
               bio: '',
-              linkedAddresses: [`eip155:1:${CV_SOCIAL_LINKED_ADDRESS}`],
+              linkedAddresses: [
+                `eip155:1:${CV_SOCIAL_LINKED_ADDRESS}` as const,
+              ],
               avatarUrl: '',
-              tradingPrivacy: 'public',
+              tradingPrivacy: 'public' as const,
               connectedToX: false,
               createdAt: '',
               updatedAt: '',
