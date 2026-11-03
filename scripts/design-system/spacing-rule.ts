@@ -1,4 +1,6 @@
-import type { Rule, SourceCode } from 'eslint';
+import type { Rule } from 'eslint';
+
+import { lineHasException } from './ds-exception';
 
 /**
  * Pilot key set. shortcut: horizontal, vertical, start, end, rowGap, and
@@ -141,15 +143,4 @@ function readNumeric(node: Rule.Node): number | undefined {
   }
 
   return undefined;
-}
-
-function lineHasException(sourceCode: SourceCode, line: number): boolean {
-  return sourceCode.getAllComments().some((comment) => {
-    if (comment.type !== 'Line' || comment.loc?.start.line !== line) {
-      return false;
-    }
-
-    const match = /^\s*ds-exception:\s*(.*)$/.exec(comment.value);
-    return match !== null && match[1].trim().length > 0;
-  });
 }
