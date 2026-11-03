@@ -57,6 +57,18 @@ describe('handleSocialTraderUrl', () => {
     expect(navigateToSocialV1Profile).not.toHaveBeenCalled();
   });
 
+  it('opens the Social home fallback without a traderId when the Social terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+
+    handleSocialTraderUrl({ actionPath: '' });
+
+    expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('SocialV0View', undefined, {
+      pop: true,
+    });
+  });
+
   it('opens the V0 trader profile when the Social V1 flag is control', () => {
     handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });
 

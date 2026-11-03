@@ -131,6 +131,37 @@ jest.mock(
   }),
 );
 
+const mockNavigateToSocialV1Profile = jest.fn();
+jest.mock(
+  '../../../SocialLeaderboard/navigation/navigateToSocialV1Profile',
+  () => ({
+    navigateToSocialV1Profile: (...args: unknown[]) =>
+      mockNavigateToSocialV1Profile(...args),
+  }),
+);
+
+const mockEnsureSocialTermsAccepted = jest.fn((_navigate?: unknown) => true);
+jest.mock('../../../SocialLeaderboard/terms/socialTermsAcceptance', () => ({
+  ensureSocialTermsAccepted: (navigate: unknown) =>
+    mockEnsureSocialTermsAccepted(navigate),
+}));
+
+const givenSocialV1Treatment = () =>
+  mockUseABTest.mockImplementation((flagKey, variants) => {
+    if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+      return {
+        variant: variants.treatment,
+        variantName: 'treatment',
+        isActive: true,
+      };
+    }
+    return {
+      variant: variants.control,
+      variantName: 'control',
+      isActive: false,
+    };
+  });
+
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
@@ -234,6 +265,7 @@ const channelsDisabledPreferences = {
 describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnsureSocialTermsAccepted.mockReturnValue(true);
     mockUseABTest.mockImplementation((flagKey, variants) => {
       if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
         return {
@@ -593,6 +625,73 @@ describe('TopTradersSection', () => {
       source: 'home_carousel',
       traderRank: 1,
     });
+    expect(mockNavigateToSocialV1Profile).not.toHaveBeenCalled();
+  });
+
+  it('opens the Social V1 profile when a card is tapped for the TSA-1122 treatment', () => {
+    givenSocialV1Treatment();
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
+
+    expect(mockNavigateToSocialV1Profile).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      {
+        traderId: 'trader-1',
+        traderName: 'alice',
+        traderAddress: '0x0000000000000000000000000000000000000001',
+        traderAvatarUri: undefined,
+        source: 'home_carousel',
+        traderRank: 1,
+      },
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE,
+      expect.anything(),
+    );
+  });
+
+  it('does not follow without the Social terms for the TSA-1122 treatment', async () => {
+    givenSocialV1Treatment();
+    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+  });
+
+  it('follows without checking the Social terms for control', async () => {
+    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
   });
 
   it('calls toggleFollow with the correct analytics context when the follow button is pressed', async () => {
