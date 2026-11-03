@@ -12,7 +12,7 @@ import {
   getAccountCreateResultFromResponse,
 } from './accountCreateError';
 import { endVbaCufChildTrace, startVbaCufChildTrace } from './vbaCufTrace';
-import { VBA_CUF_END_REASON } from './vbaCufTags';
+import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 
 /** Destination of every VBA autoramp: mUSD on Monad (CAIP-2 `eip155:143`). */
 const AUTORAMP_DESTINATION = {
@@ -46,6 +46,18 @@ interface AutorampCursor {
   status: string;
   depositRailsSummary?: { currency?: string };
 }
+
+/** Only `ready` means an autoramp exists, so every other outcome ends with a reason. */
+const SETUP_END_REASON = {
+  ready: undefined,
+  waiting: VBA_CUF_END_REASON.KYC_PENDING,
+  awaiting_provider: VBA_CUF_END_REASON.KYC_PENDING,
+  terminal: VBA_CUF_END_REASON.KYC_REJECTED,
+  failed: VBA_CUF_END_REASON.ERROR,
+} as const satisfies Record<
+  MusdAutorampSetupOutcome,
+  VbaCufEndReason | undefined
+>;
 
 const setupByWallet = new Map<string, Promise<MusdAutorampSetupOutcome>>();
 
@@ -281,8 +293,8 @@ export const ensureMusdAutoramp = (
     .then((outcome) => {
       endVbaCufChildTrace(
         setupTraceId,
-        outcome !== 'failed',
-        outcome === 'failed' ? VBA_CUF_END_REASON.ERROR : undefined,
+        outcome === 'ready',
+        SETUP_END_REASON[outcome],
       );
       return outcome;
     })
