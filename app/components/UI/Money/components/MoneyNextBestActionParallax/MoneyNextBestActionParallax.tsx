@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -15,6 +21,7 @@ import {
   useRive,
   useRiveFile,
   type RiveError,
+  type RiveViewRef,
 } from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
@@ -67,8 +74,10 @@ const MoneyNextBestActionParallax = ({
   const hardwareTier = getHardwareTier();
   const [erroredArtboard, setErroredArtboard] = useState<string | null>(null);
   // Latched once the file, view model or native view has been pending too
-  // long, so a slow or failed load settles on the static image.
-  const [hasRiveLoadTimedOut, setHasRiveLoadTimedOut] = useState(false);
+  // long, so a slow or failed load settles on the static image. Scoped to the
+  // artboard: a new artboard gets its own attempt.
+  const [timedOutArtboard, setTimedOutArtboard] = useState<string | null>(null);
+  const hasRiveLoadTimedOut = timedOutArtboard === artboardName;
   const hasRiveError = erroredArtboard === artboardName;
   // Last values shaped for the artboard, in tilt units (0 = at rest). Kept
   // here rather than in state so smoothing costs no re-renders.
@@ -78,6 +87,29 @@ const MoneyNextBestActionParallax = ({
     NextBestActionParallaxAnimation,
   );
   const { riveViewRef, setHybridRef } = useRive();
+  // The native view currently mounted, tagged with the artboard it renders.
+  // `riveViewRef` only updates once that view resolves `awaitViewReady` and it
+  // keeps the previous view's value across an artboard switch, so both the
+  // node and the artboard must match before the card can be revealed.
+  const [mountedView, setMountedView] = useState<{
+    artboardName: string;
+    node: RiveViewRef | null;
+  } | null>(null);
+  const setRiveHybridRef = setHybridRef.f;
+  const handleHybridRef = useCallback(
+    (node: RiveViewRef | null) => {
+      setMountedView({ artboardName, node });
+      setRiveHybridRef?.(node);
+    },
+    [artboardName, setRiveHybridRef],
+  );
+  // Stable ref object: a fresh one every render would look like a new ref to
+  // the native view.
+  const hybridRef = useMemo(() => ({ f: handleHybridRef }), [handleHybridRef]);
+  const isViewReady =
+    Boolean(riveViewRef) &&
+    mountedView?.artboardName === artboardName &&
+    mountedView?.node === riveViewRef;
 
   // `null` (reduce-motion still resolving) must not be treated as "reduce
   // motion on": the animation decision is withheld until it resolves.
@@ -114,17 +146,18 @@ const MoneyNextBestActionParallax = ({
   // Nothing is painted until the file, the view model and the native view are
   // all ready: the gradient and the Rive card are revealed together, so the
   // card never appears statically (or as a bare gradient) first.
-  const isRivePending = animate && !(riveFile && instance && riveViewRef);
+  const isRivePending = animate && !(riveFile && instance && isViewReady);
 
+  // A new artboard is a new attempt: let it wait out its own load.
   useEffect(() => {
     if (!isRivePending) return undefined;
 
     const timeout = setTimeout(
-      () => setHasRiveLoadTimedOut(true),
+      () => setTimedOutArtboard(artboardName),
       RIVE_LOAD_TIMEOUT_MS,
     );
     return () => clearTimeout(timeout);
-  }, [isRivePending]);
+  }, [isRivePending, artboardName]);
 
   const handleError = useCallback(
     (riveError: RiveError) => {
@@ -153,7 +186,7 @@ const MoneyNextBestActionParallax = ({
             // the artboard but leaves data binding pointing at the previous
             // one.
             key={artboardName}
-            hybridRef={setHybridRef}
+            hybridRef={hybridRef}
             file={riveFile}
             artboardName={artboardName}
             dataBind={instance}

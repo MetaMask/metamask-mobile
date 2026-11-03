@@ -30,6 +30,8 @@ const mockNumberProperty = jest.fn((path: string) => ({
 }));
 let mockInstanceReady = true;
 let mockViewReady = true;
+const mockRiveViewRefValue = { playIfNeeded: jest.fn() };
+const mockSetHybridRef = { f: jest.fn() };
 let mockRiveFileResult: {
   riveFile: unknown;
   isLoading: boolean;
@@ -44,6 +46,7 @@ const mockRiveViewProps: {
     testID?: string;
     artboardName?: string;
     onError?: (error: RiveError) => void;
+    hybridRef?: { f: (ref: unknown) => void };
   };
 } = {};
 const mockMountCount = { current: 0 };
@@ -55,10 +58,15 @@ jest.mock('@rive-app/react-native', () => {
     testID?: string;
     artboardName?: string;
     onError?: (error: RiveError) => void;
+    hybridRef?: { f: (ref: unknown) => void };
   }) => {
     ReactActual.useEffect(() => {
       mockMountCount.current += 1;
     }, []);
+    // Stand-in for the native view handing back its ref on mount.
+    ReactActual.useEffect(() => {
+      props.hybridRef?.f(mockRiveViewRefValue);
+    }, [props.hybridRef]);
     // Captured in a per-render effect (not during render) to keep the
     // react-compiler happy about external writes.
     ReactActual.useEffect(() => {
@@ -72,8 +80,8 @@ jest.mock('@rive-app/react-native', () => {
     useRiveFile: () => mockRiveFileResult,
     useRive: () => ({
       riveRef: { current: null },
-      riveViewRef: mockViewReady ? { playIfNeeded: jest.fn() } : null,
-      setHybridRef: { f: jest.fn() },
+      riveViewRef: mockViewReady ? mockRiveViewRefValue : undefined,
+      setHybridRef: mockSetHybridRef,
     }),
     useViewModelInstance: () => ({
       instance: mockInstanceReady
@@ -140,6 +148,10 @@ const expectSettledNear = (path: string, expected: number): void => {
 };
 
 describe('MoneyNextBestActionParallax', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     __resetRiveMocks();
@@ -194,6 +206,109 @@ describe('MoneyNextBestActionParallax', () => {
     ).toBeNull();
   });
 
+  it('reveals the card once the native view becomes ready', () => {
+    mockViewReady = false;
+
+    const { getByTestId, rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).toHaveStyle({ opacity: 0 });
+
+    mockViewReady = true;
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).not.toHaveStyle({ opacity: 0 });
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.RIVE),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.BACKGROUND),
+    ).toBeOnTheScreen();
+  });
+
+  it('wires the Rive view to the hook that reports readiness', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(mockSetHybridRef.f).toHaveBeenCalledWith(mockRiveViewRefValue);
+  });
+
+  it('does not fall back to the static image once the card is ready', () => {
+    jest.useFakeTimers();
+    mockViewReady = false;
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    mockViewReady = true;
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.RIVE),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeNull();
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).not.toHaveStyle({ opacity: 0 });
+  });
+
+  it('withholds the card again when the artboard changes', () => {
+    const { getByTestId, rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).not.toHaveStyle({ opacity: 0 });
+
+    mockViewReady = false;
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 2"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).toHaveStyle({ opacity: 0 });
+  });
+
   it('withholds the card while the Rive file is loading', () => {
     mockRiveFileResult = { riveFile: undefined, isLoading: true, error: null };
 
@@ -216,13 +331,16 @@ describe('MoneyNextBestActionParallax', () => {
   it('withholds the card while reduce motion is unresolved', () => {
     mockUseReduceMotionState.mockReturnValue(null);
 
-    const { queryByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <MoneyNextBestActionParallax
         artboardName="Parallax Block 1"
         fallbackImage={fallbackImage}
       />,
     );
 
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).toBeOnTheScreen();
     expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
     expect(
       queryByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
@@ -272,8 +390,6 @@ describe('MoneyNextBestActionParallax', () => {
       getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
     ).toBeOnTheScreen();
     expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
-
-    jest.useRealTimers();
   });
 
   it('renders the fallback image on a LOW hardware tier', () => {
