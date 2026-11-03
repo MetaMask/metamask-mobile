@@ -1,7 +1,7 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction } from '@metamask/keyring-api';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
   getBridgeExplorerSheetTx,
   getBridgeHistoryItem,

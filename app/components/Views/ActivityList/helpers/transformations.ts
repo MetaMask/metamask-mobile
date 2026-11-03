@@ -22,7 +22,7 @@ import {
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
-import { applyBridgeQuote } from './apply-bridge-quote';
+import { applyBridgeQuote } from '../bridge/apply-bridge-quote';
 
 export type { ActivityListItem };
 
