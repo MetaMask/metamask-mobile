@@ -200,6 +200,7 @@ const InputDisplay = ({
             </DesignText>
           }
           value={amountValue}
+          variant={DesignTextVariant.DisplayLg}
         />
       </View>
       <View>
