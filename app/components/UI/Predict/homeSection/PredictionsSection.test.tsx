@@ -167,20 +167,17 @@ jest.mock('../hooks/useLiveCryptoPrices', () => ({
   })),
 }));
 
-jest.mock(
-  '../hooks/useCurrentCryptoUpDownMarketData',
-  () => ({
-    useCurrentCryptoUpDownMarketData: jest.fn(() => ({
-      marketId: undefined,
-      market: undefined,
-      currentPrice: undefined,
-      priceToBeat: undefined,
-      countdown: '--:--',
-      isLoading: false,
-      isFetching: false,
-    })),
-  }),
-);
+jest.mock('../hooks/useCurrentCryptoUpDownMarketData', () => ({
+  useCurrentCryptoUpDownMarketData: jest.fn(() => ({
+    marketId: undefined,
+    market: undefined,
+    currentPrice: undefined,
+    priceToBeat: undefined,
+    countdown: '--:--',
+    isLoading: false,
+    isFetching: false,
+  })),
+}));
 
 jest.mock('../hooks/useUnrealizedPnL', () => ({
   useUnrealizedPnL: jest.fn(() => ({

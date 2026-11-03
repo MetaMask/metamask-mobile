@@ -1,8 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import {
-  Recurrence,
-  type PredictMarket,
-} from '../../types';
+import { Recurrence, type PredictMarket } from '../../types';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import {
   HOMEPAGE_PREDICT_MARKET_SLOTS,

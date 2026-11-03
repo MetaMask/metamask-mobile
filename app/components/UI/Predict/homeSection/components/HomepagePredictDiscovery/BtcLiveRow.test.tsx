@@ -15,16 +15,17 @@ jest.mock('react-redux', () => ({
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: jest.fn(() => ({})) }),
 }));
+jest.mock('../../../hooks/useCurrentCryptoUpDownMarketData');
 jest.mock(
-  '../../../hooks/useCurrentCryptoUpDownMarketData',
-);
-jest.mock('../../../../../Views/Homepage/hooks/useSectionViewportVisible', () => ({
-  __esModule: true,
-  default: () => ({
-    isVisible: mockIsRowVisible(),
-    onLayout: jest.fn(),
+  '../../../../../Views/Homepage/hooks/useSectionViewportVisible',
+  () => ({
+    __esModule: true,
+    default: () => ({
+      isVisible: mockIsRowVisible(),
+      onLayout: jest.fn(),
+    }),
   }),
-}));
+);
 jest.mock('./HomepagePredictDiscoveryMaterialGlyph', () => () => null);
 jest.mock('./HomepagePredictDiscoveryLivePill', () => () => null);
 

@@ -10,22 +10,16 @@ import { HOMEPAGE_PREDICT_MARKET_SLOTS } from '../../homeSection/constants/homep
 
 const mockHomepagePredictDiscovery = jest.fn((_props: unknown) => null);
 
-jest.mock(
-  '../../homeSection/components/HomepagePredictDiscovery',
-  () => ({
-    __esModule: true,
-    default: (props: unknown) => mockHomepagePredictDiscovery(props),
-  }),
-);
+jest.mock('../../homeSection/components/HomepagePredictDiscovery', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockHomepagePredictDiscovery(props),
+}));
 jest.mock('../../homeSection/hooks', () => ({
   useHomepagePredictMarketSlots: jest.fn(),
 }));
-jest.mock(
-  '../../homeSection/hooks/useTreatmentDiscoveryFeedsLoading',
-  () => ({
-    useTreatmentDiscoveryFeedsLoading: () => false,
-  }),
-);
+jest.mock('../../homeSection/hooks/useTreatmentDiscoveryFeedsLoading', () => ({
+  useTreatmentDiscoveryFeedsLoading: () => false,
+}));
 
 const reference: PredictHomepageMarketSlotReference = {
   id: 'markets',

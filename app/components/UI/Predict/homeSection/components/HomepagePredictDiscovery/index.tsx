@@ -19,10 +19,7 @@ import {
   type HomepagePredictMarketSlot,
   isHomepagePredictEventSlot,
 } from '../../constants/homepagePredictMarketSlots';
-import type {
-  PredictMarket,
-  PredictSeries,
-} from '../../../types';
+import type { PredictMarket, PredictSeries } from '../../../types';
 import type { UseHomepagePredictMarketSlotsResult } from '../../hooks/useHomepagePredictMarketSlots';
 import type { PredictionsTrendingHeaderTestId } from '../../predictionsSectionTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';

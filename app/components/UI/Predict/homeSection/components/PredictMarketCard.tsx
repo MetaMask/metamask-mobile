@@ -12,10 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import type {
-  PredictMarket,
-  PredictOutcome,
-} from '../../types';
+import type { PredictMarket, PredictOutcome } from '../../types';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 

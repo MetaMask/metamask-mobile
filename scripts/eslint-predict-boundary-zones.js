@@ -10,8 +10,8 @@
 //   that has to reach inside Predict: Engine controller and service init,
 //   messengers and Engine types, transaction-pay Polymarket callbacks, the
 //   transaction-controller messenger, App toast registration,
-//   MainNavigator registration and the UI Slots contract registry that
-//   UiSlotsController init loads (plus the colocated tests of those files).
+//   MainNavigator registration and the UI Slots widget and contract
+//   registries (plus the colocated tests of those files).
 //   Keep it small; add to it only for new wiring of the same kind.
 //
 // - `predictImportBurndownFiles` is TEMPORARY. Those files are allowed by
@@ -56,6 +56,9 @@ const predictCompositionFiles = [
   // Engine init loads it, so it cannot import the PredictNext entry point:
   // that would pull the Predict UI into Engine init and load in a cycle.
   'app/components/UI/UiSlots/contractRegistry.ts',
+  // The Predictions section renders a UI Slot, so the entry point loads this
+  // registry while it loads; importing the entry point back forms a cycle.
+  'app/components/UI/UiSlots/registry.ts',
   'app/core/Engine/controllers/predict-controller/index.test.ts',
   'app/core/Engine/controllers/predict-controller/index.ts',
   'app/core/Engine/controllers/predict-device-auth-service-init.test.ts',

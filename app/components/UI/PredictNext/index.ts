@@ -22,9 +22,6 @@ export {
   usePredictPortfolioValue,
   type PredictPortfolioValue,
 } from './portfolio';
-// Keep `uiSlots` above `homeSection`: the section reaches the UI Slots
-// registry, which reads the widget from this entry point while it loads.
-export { PredictDiscoveryListWidget } from './uiSlots';
 export {
   PredictHomeSection,
   type PredictHomeSectionProps,

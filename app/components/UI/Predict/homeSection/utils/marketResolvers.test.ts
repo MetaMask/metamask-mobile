@@ -1,8 +1,5 @@
 import Logger from '../../../../../util/Logger';
-import {
-  Recurrence,
-  type PredictMarket,
-} from '../../types';
+import { Recurrence, type PredictMarket } from '../../types';
 import {
   FIFA_WORLD_CUP_2026_WINNER_POLYMARKET_SLUG,
   pickLiveWorldCupGameMarket,

@@ -27,10 +27,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { formatPrice } from '../../../utils/format';
 import { useCurrentCryptoUpDownMarketData } from '../../../hooks/useCurrentCryptoUpDownMarketData';
 import { selectPredictEnabledFlag } from '../../../selectors/featureFlags';
-import type {
-  PredictMarket,
-  PredictSeries,
-} from '../../../types';
+import type { PredictMarket, PredictSeries } from '../../../types';
 import useSectionViewportVisible from '../../../../../Views/Homepage/hooks/useSectionViewportVisible';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
 import HomepagePredictDiscoveryLivePill from './HomepagePredictDiscoveryLivePill';

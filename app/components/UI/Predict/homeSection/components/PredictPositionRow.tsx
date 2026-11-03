@@ -19,10 +19,7 @@ import {
   TextColor as ComponentTextColor,
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
-import {
-  formatPercentage,
-  formatPrice,
-} from '../../utils/format';
+import { formatPercentage, formatPrice } from '../../utils/format';
 import {
   estimatePredictSellNetValue,
   getPredictPositionDisplay,
