@@ -4,6 +4,8 @@ import type {
   FeedScope,
   SocialFeedQuery,
 } from '../../../../../UI/SocialFeed/data/socialFeedSource';
+import { isViewerSocialAuthor } from '../../../../../UI/SocialFeed/utils/isViewerSocialAuthor';
+import { useMyProfile } from '../../../MyProfileView/hooks/useMyProfile';
 import { usePendingPostsOverlay } from '../../../pendingPosts/usePendingPostsOverlay';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 import { useSelector } from 'react-redux';
@@ -31,14 +33,16 @@ export interface UseSocialV1FeedOptions {
  *
  * Delegates fetching to `useSocialFeed`. Following shares its query key with
  * V0's Following feed (`useTraderFeed`), so either surface warms the cache for
- * the other. A just-written post is not pinned here; it shows when this feed
- * returns it. The local copy lives on the viewer's Posts tab.
+ * the other. A just-written post is not pinned here. Following also omits
+ * the viewer's own posts; those stay on their Posts tab.
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
   { isActive = true }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
+  const { profile } = useMyProfile();
+  const viewerProfileId = profile?.profileId;
   const query = useMemo(
     (): SocialFeedQuery => ({ scope: TAB_SCOPE[tab] }),
     [tab],
@@ -57,10 +61,19 @@ export const useSocialV1Feed = (
     performance: isSocialV1Treatment ? { tab: TAB_TRACE[tab] } : undefined,
   });
 
+  const feedPosts = useMemo(() => {
+    if (tab !== 'following' || !viewerProfileId) {
+      return livePosts;
+    }
+    return livePosts.filter(
+      (post) => !isViewerSocialAuthor(post.item.author.id, viewerProfileId),
+    );
+  }, [livePosts, tab, viewerProfileId]);
+
   const overlay = usePendingPostsOverlay({
     surface: 'following',
     ownerProfileId: undefined,
-    serverPosts: livePosts,
+    serverPosts: feedPosts,
     refetch,
     isActive,
   });

@@ -16,6 +16,13 @@ import { useSocialV1Feed } from './useSocialV1Feed';
 
 jest.mock('../../../../../UI/SocialFeed/data/useSocialFeed');
 
+let mockViewerProfileId: string | undefined = 'viewer-profile';
+jest.mock('../../../MyProfileView/hooks/useMyProfile', () => ({
+  useMyProfile: () => ({
+    profile: mockViewerProfileId ? { profileId: mockViewerProfileId } : null,
+  }),
+}));
+
 // Unlocked wallet, unknown network: the overlay's defaults.
 let mockIsSocialV1Treatment = true;
 jest.mock('react-redux', () => ({
@@ -72,6 +79,7 @@ describe('useSocialV1Feed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsSocialV1Treatment = true;
+    mockViewerProfileId = 'viewer-profile';
     jest.useFakeTimers();
     arrangeFeed([buildRow('pos-1'), buildRow('pos-2')]);
     act(() => {
@@ -123,6 +131,22 @@ describe('useSocialV1Feed', () => {
     });
 
     // Following must hit its own scope, or both tabs would render one list.
+    it('drops the viewer’s own posts from Following', () => {
+      mockViewerProfileId = 'profile-2';
+
+      const { result } = renderHook(() => useSocialV1Feed('following'));
+
+      expect(result.current.posts).toEqual([]);
+    });
+
+    it('keeps the viewer’s own posts on Trending', () => {
+      mockViewerProfileId = 'profile-2';
+
+      const { result } = renderHook(() => useSocialV1Feed('trending'));
+
+      expect(result.current.posts).toHaveLength(2);
+    });
+
     it('reads the following scope on Following', () => {
       renderHook(() => useSocialV1Feed('following'));
 
