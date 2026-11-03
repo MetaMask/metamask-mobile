@@ -362,6 +362,10 @@ opens its own destination; the code never changes routing.
 - No referral is created from the link. Only accepting the invite registers
   the user as a referee.
 - `DEEP_LINK_USED` reports the normalized code as `referral_code`.
+- Every `Rewards Money Referral Offer Interacted` event from an invite opened
+  by a link carries `entry_type`: `restored_context` in the first session after
+  installing from a Branch link (the same check as `was_app_installed` on
+  `DEEP_LINK_USED`), `deeplink` otherwise.
 
 #### Private Link (Signed)
 

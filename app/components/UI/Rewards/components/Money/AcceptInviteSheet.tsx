@@ -28,7 +28,10 @@ import type { ReferralLocalizedText } from '../../../../../core/Engine/controlle
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
+import type {
+  MoneyReferralEntryType,
+  RewardsMoneyInviteSheetParams,
+} from '../../types/navigation';
 import { selectSessionProfileId } from '../../../../../selectors/identity';
 import {
   useAcceptMoneyReferralCode,
@@ -112,6 +115,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialReferralCode = route.params?.referralCode ?? '';
+  const entryType = route.params?.entryType;
   const hasTrackedOfferViewedRef = useRef(false);
   const hasRespondedRef = useRef(false);
   const acceptInFlightRef = useRef(false);
@@ -249,10 +253,17 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           ...(initialReferralCode
             ? { referral_code: initialReferralCode }
             : {}),
+          entry_type: entryType,
         })
         .build(),
     );
-  }, [createEventBuilder, initialReferralCode, isOfferOnScreen, trackEvent]);
+  }, [
+    createEventBuilder,
+    entryType,
+    initialReferralCode,
+    isOfferOnScreen,
+    trackEvent,
+  ]);
 
   // One answer per sheet, and the first one recorded is the answer: a close
   // that follows Accept or Decline is the sheet acting on that press, not a
@@ -272,10 +283,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       const properties: {
         referral_code: string;
         interaction_type: 'accepted' | 'declined' | 'dismissed';
+        entry_type?: MoneyReferralEntryType;
         refusal_reason?: ReferralRefusalReason;
       } = {
         referral_code: referralCode,
         interaction_type: interactionType,
+        entry_type: entryType,
       };
       if (
         refusalReason &&
@@ -291,7 +304,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           .build(),
       );
     },
-    [createEventBuilder, referralCode, refusalReason, trackEvent],
+    [createEventBuilder, entryType, referralCode, refusalReason, trackEvent],
   );
 
   // Failed Accept: the user tried to take the invite and the server turned
@@ -310,11 +323,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
             referral_code: referralCode,
             interaction_type: 'refused',
             refusal_reason: reason,
+            entry_type: entryType,
           })
           .build(),
       );
     },
-    [createEventBuilder, referralCode, trackEvent],
+    [createEventBuilder, entryType, referralCode, trackEvent],
   );
 
   const handleChangeReferralCode = useCallback(

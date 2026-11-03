@@ -9,6 +9,7 @@ import {
   setPendingReferralCode,
   setReferralMe,
 } from '../../../../../reducers/rewardsMoney';
+import type { MoneyReferralEntryType } from '../../types/navigation';
 import { setGeoRewardsMetadata } from '../../../../../reducers/rewards';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -170,6 +171,7 @@ const renderSheetSync = (
     | {
         geoLocation?: string | null;
         sessionProfileId?: string;
+        entryType?: MoneyReferralEntryType;
       } = PROFILE_ID,
 ) => {
   const sessionProfileId =
@@ -180,6 +182,10 @@ const renderSheetSync = (
     typeof sessionOrOptions === 'string'
       ? null
       : (sessionOrOptions.geoLocation ?? null);
+  const entryType =
+    typeof sessionOrOptions === 'string'
+      ? undefined
+      : sessionOrOptions.entryType;
   const store = configureStore({
     engine: { backgroundState: sessionBackgroundState(sessionProfileId) },
     rewardsMoney: { referralMe: referralMeEntries },
@@ -187,7 +193,7 @@ const renderSheetSync = (
   });
   const view = render(
     <Provider store={store}>
-      <AcceptInviteSheet route={{ params: { referralCode } }} />
+      <AcceptInviteSheet route={{ params: { referralCode, entryType } }} />
     </Provider>,
   );
   return { ...view, store };
@@ -201,6 +207,7 @@ const renderSheet = async (
     | {
         geoLocation?: string | null;
         sessionProfileId?: string;
+        entryType?: MoneyReferralEntryType;
       },
 ) => {
   const view = renderSheetSync(referralCode, sessionOrOptions ?? PROFILE_ID);
@@ -871,6 +878,62 @@ describe('AcceptInviteSheet', () => {
         referral_code: 'KOL1',
       });
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('adds the referral link entry type to the viewed offer and its answer', async () => {
+      const { getByTestId } = await renderSheet('KOL1', {
+        entryType: 'restored_context',
+      });
+
+      fireEvent.press(getByTestId(TEST_IDS.DECLINE));
+
+      const [viewedBuilder, answerBuilder] = mockCreateEventBuilder.mock.results
+        .slice(-2)
+        .map((result) => result.value);
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
+        referral_code: 'KOL1',
+        entry_type: 'restored_context',
+      });
+      expect(answerBuilder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'declined',
+        entry_type: 'restored_context',
+      });
+    });
+
+    it('adds the referral link entry type to a refused accept', async () => {
+      mockAcceptReferralCode.mockResolvedValue({
+        accepted: false,
+        refusalReason: 'already_referred',
+      });
+      const { getByTestId } = await renderSheet('KOL1', {
+        entryType: 'deeplink',
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      });
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'refused',
+        refusal_reason: 'already_referred',
+        entry_type: 'deeplink',
+      });
+    });
+
+    it('sends no entry type when the sheet was not opened from a referral link', async () => {
+      const { getByTestId } = await renderSheet('KOL1');
+
+      fireEvent.press(getByTestId(TEST_IDS.DECLINE));
+
+      for (const { value: builder } of mockCreateEventBuilder.mock.results) {
+        expect(builder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({ entry_type: expect.anything() }),
+        );
+      }
     });
 
     it('tracks viewed without a code when none was prefilled', async () => {

@@ -24,6 +24,14 @@ const mockNavigate = jest.fn();
 const mockGetCurrentRoute = jest.fn();
 const mockFetchReferralMe = jest.fn();
 const mockCancelInteractions = jest.fn();
+const mockDetectAppInstallation = jest.fn();
+
+jest.mock(
+  '../../../../../core/DeeplinkManager/util/deeplinks/deepLinkAnalytics',
+  () => ({
+    detectAppInstallation: () => mockDetectAppInstallation(),
+  }),
+);
 
 jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
@@ -131,6 +139,7 @@ describe('PendingMoneyReferralInvite', () => {
       status: 'settled',
       profileId: PROFILE_ID,
     });
+    mockDetectAppInstallation.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -151,12 +160,25 @@ describe('PendingMoneyReferralInvite', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-        { referralCode: 'KOL1' },
+        { referralCode: 'KOL1', entryType: 'deeplink' },
       );
     });
     expect(useGeoRewardsMetadata).toHaveBeenCalledWith({ enabled: true });
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
     expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
+  });
+
+  it('opens the invite as restored context in the first session after a Branch install', async () => {
+    mockDetectAppInstallation.mockResolvedValue(false);
+
+    renderInvite();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL1', entryType: 'restored_context' },
+      );
+    });
   });
 
   it('waits for the referral link to be handled before reading', async () => {
@@ -171,7 +193,7 @@ describe('PendingMoneyReferralInvite', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-        { referralCode: 'KOL1' },
+        { referralCode: 'KOL1', entryType: 'deeplink' },
       );
     });
   });
@@ -335,7 +357,7 @@ describe('PendingMoneyReferralInvite', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenLastCalledWith(
         Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-        { referralCode: 'KOL2' },
+        { referralCode: 'KOL2', entryType: 'deeplink' },
       );
     });
   });

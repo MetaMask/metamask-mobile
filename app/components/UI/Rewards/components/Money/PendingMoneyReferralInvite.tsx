@@ -13,6 +13,7 @@ import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settin
 import { selectRewardsMoneyControllerEnabled } from '../../../../../selectors/featureFlagController/rewardsMoneyController';
 import NavigationService from '../../../../../core/NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
+import { detectAppInstallation } from '../../../../../core/DeeplinkManager/util/deeplinks/deepLinkAnalytics';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { runAfterInteractions } from '../../utils/runAfterInteractions';
@@ -30,9 +31,10 @@ interface PresenterProps {
 /**
  * Reads referral me fresh, then opens the invite sheet over whatever the
  * deeplink navigated to. The sheet reads the payload from the store, so it
- * opens with its copy instead of waiting on an empty one. A user who cannot
- * accept an invite, a confirmed excluded region, a failed read, or a read
- * slower than the load budget drops the code without a prompt.
+ * opens with its copy instead of waiting on an empty one. A first session
+ * after installing from a Branch link opens it as `restored_context`. A user
+ * who cannot accept an invite, a confirmed excluded region, a failed read, or
+ * a read slower than the load budget drops the code without a prompt.
  */
 const PendingMoneyReferralInvitePresenter = ({
   referralCode,
@@ -57,8 +59,11 @@ const PendingMoneyReferralInvitePresenter = ({
         return;
       }
       budgetTimer = setTimeout(dropCode, MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS);
-      fetchReferralMe({ forceFresh: true })
-        .then((result) => {
+      Promise.all([
+        fetchReferralMe({ forceFresh: true }),
+        detectAppInstallation(),
+      ])
+        .then(([result, wasAppInstalled]) => {
           if (cancelled) {
             return;
           }
@@ -85,7 +90,10 @@ const PendingMoneyReferralInvitePresenter = ({
           }
           NavigationService.navigation.navigate(
             Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-            { referralCode },
+            {
+              referralCode,
+              entryType: wasAppInstalled ? 'deeplink' : 'restored_context',
+            },
           );
         })
         .catch(dropCode);
