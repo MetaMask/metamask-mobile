@@ -191,7 +191,6 @@
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
-    "@metamask/core-backend@npm:^12.3.0": "patch:@metamask/core-backend@npm%3A12.3.0#~/.yarn/patches/@metamask-core-backend-npm-12.3.0-ohlcv.patch",
     "@metamask/network-controller": "^37.1.1",
     "@metamask/analytics-controller": "^3.2.0",
     "@metamask/geolocation-controller": "^2.0.0",

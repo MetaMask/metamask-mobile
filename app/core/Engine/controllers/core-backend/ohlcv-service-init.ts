@@ -1,5 +1,4 @@
 import { OHLCVService, OHLCVServiceMessenger } from '@metamask/core-backend';
-import { OHLCV_SUBSCRIPTION_NAMESPACE } from '../../../../constants/ohlcv';
 import { MessengerClientInitFunction } from '../../types';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
@@ -19,7 +18,6 @@ export const ohlcvServiceInit: MessengerClientInitFunction<
 
   const controller = new OHLCVService({
     messenger: controllerMessenger,
-    subscriptionNamespace: OHLCV_SUBSCRIPTION_NAMESPACE,
     // @ts-expect-error: Types of `TraceRequest` are not the same.
     traceFn: trace,
   });

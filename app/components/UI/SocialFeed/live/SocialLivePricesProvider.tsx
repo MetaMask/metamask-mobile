@@ -11,7 +11,6 @@ import React, {
 } from 'react';
 import { AppState, Dimensions, type View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { buildOhlcvChannel } from '../../../../constants/ohlcv';
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
@@ -55,7 +54,7 @@ interface Registration {
 }
 
 const ohlcvChannel = (assetId: string) =>
-  buildOhlcvChannel(assetId, OHLCV_INTERVAL, OHLCV_CURRENCY);
+  `ohlcv.v1.${assetId}.${OHLCV_INTERVAL}.${OHLCV_CURRENCY}`;
 
 const subscribeSpot = (assetId: string) =>
   Engine.controllerMessenger.call('OHLCVService:subscribe', {

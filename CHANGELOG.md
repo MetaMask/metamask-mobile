@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Candlestick streams now subscribe on the `ohlcv.v1` WebSocket namespace
 - Spam NFTs already in your wallet are now removed automatically when detected
 
 ## [8.17.0]
