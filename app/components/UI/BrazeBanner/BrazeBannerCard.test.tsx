@@ -162,15 +162,16 @@ describe('BrazeBannerCard', () => {
       ).toBeUndefined();
     });
 
-    it('draws the same content on an interactive glass surface', () => {
+    it('draws the same content on a section fill instead of the sheen', () => {
       const onDismiss = jest.fn();
-      const { getByTestId } = renderCard({ isGlass: true, onDismiss });
+      const { getByTestId, queryByTestId } = renderCard({
+        isGlass: true,
+        onDismiss,
+      });
 
-      expect(getByTestId(BRAZE_BANNER_TEST_IDS.CARD).props.isInteractive).toBe(
-        true,
-      );
+      expect(getByTestId(BRAZE_BANNER_TEST_IDS.CARD)).toBeOnTheScreen();
       expect(getByTestId(BRAZE_BANNER_TEST_IDS.BODY)).toBeOnTheScreen();
-      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
 
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 

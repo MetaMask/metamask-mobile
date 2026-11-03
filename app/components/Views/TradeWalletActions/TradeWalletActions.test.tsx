@@ -38,10 +38,7 @@ import TradeWalletActions, {
   TRADE_FOCUSED_BORDER_OPACITY,
 } from './TradeWalletActions';
 import { springboardEnter } from './TradeWalletActions.animations';
-import {
-  TRADE_TRAY_GLASS_FILL_OPACITY,
-  TRADE_TRAY_GLASS_RADIUS,
-} from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
+import { TRADE_TRAY_GLASS_RADIUS } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -814,7 +811,7 @@ describe('TradeWalletActions', () => {
       mockIsTradeFocusedArm = false;
     });
 
-    it('draws the plain sheet as glass in the app theme, with the tuned fill and hairline on continuous corners', () => {
+    it('draws the plain sheet as an opaque elevated surface instead of glass', () => {
       mockUseParams.mockReturnValue(nativeTrayParams);
 
       const { getByTestId } = renderScreen(
@@ -826,43 +823,17 @@ describe('TradeWalletActions', () => {
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
       ).toBeOnTheScreen();
-      expect(mockGlassView).toHaveBeenCalledWith(
-        expect.objectContaining({
-          glassEffectStyle: 'regular',
-          colorScheme: 'dark',
-        }),
-      );
-      const [glassProps] = mockGlassView.mock.calls[0];
-      expect(StyleSheet.flatten(glassProps.style)).toMatchObject({
-        borderRadius: TRADE_TRAY_GLASS_RADIUS,
-        borderCurve: 'continuous',
-      });
-      // The hairline must clip, or React Native draws its border with circular arcs.
+      expect(mockGlassView).not.toHaveBeenCalled();
       expect(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_GLASS_BORDER),
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
       ).toHaveStyle({
-        borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: TRADE_TRAY_GLASS_RADIUS,
         borderCurve: 'continuous',
         overflow: 'hidden',
       });
-      const fill = jest
-        .mocked(
-          getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
-        )
-        .children.find((child) => {
-          if (typeof child === 'string') {
-            return false;
-          }
-          const style = StyleSheet.flatten(child.props.style);
-          return (
-            style?.opacity === TRADE_TRAY_GLASS_FILL_OPACITY &&
-            style?.borderCurve === 'continuous'
-          );
-        });
-      expect(fill).toBeDefined();
     });
 
-    it('takes precedence over the blur sheet in the trade-focused arm', () => {
+    it('uses the elevated sheet instead of blur in the trade-focused arm', () => {
       mockIsTradeFocusedArm = true;
       mockUseParams.mockReturnValue(nativeTrayParams);
 
@@ -872,7 +843,7 @@ describe('TradeWalletActions', () => {
         { state: mockInitialState },
       );
 
-      expect(mockGlassView).toHaveBeenCalled();
+      expect(mockGlassView).not.toHaveBeenCalled();
       expect(mockBlurView).not.toHaveBeenCalled();
     });
 
@@ -1000,19 +971,13 @@ describe('TradeWalletActions', () => {
       });
     });
 
-    it('draws the rows on the glass surface rather than inside it', () => {
-      renderMorphTray();
+    it('draws the rows on an opaque elevated fill rather than on glass', () => {
+      const { getByTestId } = renderMorphTray();
 
-      expect(mockGlassView).toHaveBeenCalledWith(
-        expect.objectContaining({
-          glassEffectStyle: 'regular',
-          testID: WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER,
-        }),
-      );
-      const [glassProps] = mockGlassView.mock.calls[0];
-      expect(StyleSheet.flatten(glassProps.style)).toMatchObject(
-        StyleSheet.flatten(StyleSheet.absoluteFill),
-      );
+      expect(mockGlassView).not.toHaveBeenCalled();
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+      ).toHaveStyle(StyleSheet.absoluteFill);
     });
 
     it('collapses back into the button and then dismisses', async () => {

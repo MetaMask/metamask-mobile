@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
+  BoxBackgroundColor,
   ButtonSize,
   ButtonVariant,
   FontFamily,
@@ -133,11 +134,24 @@ const StepperCard = ({
     </>
   );
 
+  // The glass flag used to paint the sheen over this card. A promo card is a
+  // section, not chrome. The flag-off path keeps the previous opaque tile.
+  if (isGlass) {
+    return (
+      <Box
+        backgroundColor={BoxBackgroundColor.BackgroundSection}
+        twClassName="overflow-hidden rounded-3xl"
+        testID={getTestId('container')}
+      >
+        {content}
+      </Box>
+    );
+  }
+
   return (
     <BoxGlass
-      isGlass={isGlass}
+      isGlass={false}
       radiusClassName="rounded-3xl"
-      hasSheen
       style={tw.style('overflow-hidden')}
       testID={getTestId('container')}
     >

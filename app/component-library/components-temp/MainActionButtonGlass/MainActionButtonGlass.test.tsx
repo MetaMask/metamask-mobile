@@ -51,9 +51,9 @@ describe('MainActionButtonGlass', () => {
     expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
   });
 
-  it('draws the button on the glass sheen and keeps it pressable', () => {
+  it('keeps the muted control and stays pressable when the glass flag is set', () => {
     const onPress = jest.fn();
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <MainActionButtonGlass
         iconName={IconName.Add}
         label="Add"
@@ -63,8 +63,10 @@ describe('MainActionButtonGlass', () => {
       />,
     );
 
-    expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
-    expect(getByTestId('add')).toHaveStyle({ backgroundColor: 'transparent' });
+    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    expect(getByTestId('add')).not.toHaveStyle({
+      backgroundColor: 'transparent',
+    });
 
     fireEvent.press(getByTestId('add'));
 

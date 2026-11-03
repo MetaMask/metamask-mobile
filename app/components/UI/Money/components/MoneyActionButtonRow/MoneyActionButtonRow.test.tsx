@@ -159,16 +159,16 @@ describe('MoneyActionButtonRow', () => {
       expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
     });
 
-    it('draws every tile on glass when isGlass is set', () => {
-      const { getAllByTestId } = render(
+    it('keeps every tile on the muted control when isGlass is set', () => {
+      const { queryAllByTestId } = render(
         <MoneyActionButtonRow {...defaultProps} isGlass />,
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(3);
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
     });
 
-    it('draws the details tile on glass too', () => {
-      const { getAllByTestId } = render(
+    it('keeps the details tile on the muted control too', () => {
+      const { queryAllByTestId } = render(
         <MoneyActionButtonRow
           {...defaultProps}
           details={{ onPress: noop }}
@@ -176,7 +176,7 @@ describe('MoneyActionButtonRow', () => {
         />,
       );
 
-      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(4);
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
     });
   });
 });

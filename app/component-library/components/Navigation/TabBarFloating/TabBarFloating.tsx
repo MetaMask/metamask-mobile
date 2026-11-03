@@ -25,7 +25,6 @@ import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
 import TabBarFloatingSurface from './TabBarFloatingSurface';
 import TabBarFloatingTradeButton from './TabBarFloatingTradeButton';
-import { useBlurMaterial } from '../../../hooks/useBlurMaterial';
 import {
   FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
@@ -91,8 +90,6 @@ const TabBarFloating = ({
   );
 
   useEffect(() => () => onHeightChange?.(0), [onHeightChange]);
-
-  const { isBlurAvailable, colorScheme } = useBlurMaterial();
 
   const handleSearchPress = useCallback(() => {
     playImpact(ImpactMoment.TabChange);
@@ -204,8 +201,6 @@ const TabBarFloating = ({
     >
       <View style={ROW_STYLE}>
         <TabBarFloatingSurface
-          isBlurAvailable={isBlurAvailable}
-          colorScheme={colorScheme}
           twClassName="flex-1 flex-row items-center rounded-full p-1"
           style={{ height: TAB_BAR_FLOATING_HEIGHT }}
           testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
@@ -215,8 +210,7 @@ const TabBarFloating = ({
           )}
         </TabBarFloatingSurface>
         <TabBarFloatingSurface
-          isBlurAvailable={isBlurAvailable}
-          colorScheme={colorScheme}
+          isInteractive
           twClassName="items-center justify-center rounded-full"
           style={{
             height: TAB_BAR_FLOATING_HEIGHT,

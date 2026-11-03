@@ -4,6 +4,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
+  BoxBackgroundColor,
   BoxFlexDirection,
   FontWeight,
   Icon,
@@ -150,18 +151,12 @@ const BrazeBannerCard = ({
   isGlass = false,
 }: BrazeBannerCardProps) => {
   const tw = useTailwind();
-  return (
-    <BoxGlass
-      isGlass={isGlass}
-      testID={BRAZE_BANNER_TEST_IDS.CARD}
-      radiusClassName="rounded-xl"
-      isInteractive
-      hasSheen
-      style={[
-        tw.style('w-full flex-row items-center gap-4 pl-4 pr-3 py-3'),
-        { minHeight: BANNER_HEIGHT },
-      ]}
-    >
+  const layout = [
+    tw.style('w-full flex-row items-center gap-4 rounded-xl pl-4 pr-3 py-3'),
+    { minHeight: BANNER_HEIGHT },
+  ];
+  const content = (
+    <>
       {imageUrl && (
         <Box
           twClassName="overflow-hidden rounded-xl"
@@ -175,12 +170,34 @@ const BrazeBannerCard = ({
           />
         </Box>
       )}
-
       {title ? (
         <BannerWithTitle title={title} body={body} onDismiss={onDismiss} />
       ) : (
         <BannerWithCta body={body} ctaLabel={ctaLabel} onDismiss={onDismiss} />
       )}
+    </>
+  );
+  // The glass flag used to paint the sheen. A banner is a card, so it takes
+  // the section fill. The flag-off path keeps the previous opaque tile.
+  if (isGlass) {
+    return (
+      <Box
+        testID={BRAZE_BANNER_TEST_IDS.CARD}
+        backgroundColor={BoxBackgroundColor.BackgroundSection}
+        style={layout}
+      >
+        {content}
+      </Box>
+    );
+  }
+  return (
+    <BoxGlass
+      isGlass={false}
+      testID={BRAZE_BANNER_TEST_IDS.CARD}
+      radiusClassName="rounded-xl"
+      style={layout}
+    >
+      {content}
     </BoxGlass>
   );
 };
