@@ -1,5 +1,6 @@
 import Engine from '../../../core/Engine';
 import type { MfaControllerAdapter } from './engine/types';
+import { listEnrolledCredentialsWithSocialSession } from './socialProfileSession';
 
 export const mobileMfaControllerAdapter: MfaControllerAdapter = {
   refreshEnrolledCredentials: () =>
@@ -22,4 +23,6 @@ export const mobileMfaControllerAdapter: MfaControllerAdapter = {
     Engine.context.AuthenticationController.getVerificationToken(request),
   clearVerificationSession: async () =>
     Engine.context.AuthenticationController.clearVerificationSession(),
+  // Draft: W3A/social JWT → profile access token → list factors (pre-unlock).
+  listEnrolledCredentialsWithSocialSession,
 };

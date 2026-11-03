@@ -1,5 +1,6 @@
 import Engine from '../../../core/Engine';
 import { mobileMfaControllerAdapter } from './bindings';
+import { listEnrolledCredentialsWithSocialSession } from './socialProfileSession';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -15,7 +16,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('./socialProfileSession', () => ({
+  listEnrolledCredentialsWithSocialSession: jest.fn(),
+}));
+
 const controller = jest.mocked(Engine.context.AuthenticationController);
+const mockListWithSocialSession = jest.mocked(
+  listEnrolledCredentialsWithSocialSession,
+);
 const reason = { operation: 'test' };
 
 describe('mobileMfaControllerAdapter', () => {
@@ -86,5 +94,14 @@ describe('mobileMfaControllerAdapter', () => {
     await mobileMfaControllerAdapter.clearVerificationSession();
 
     expect(controller.clearVerificationSession).toHaveBeenCalled();
+  });
+
+  it('exposes listEnrolledCredentialsWithSocialSession', async () => {
+    mockListWithSocialSession.mockResolvedValue([]);
+
+    expect(
+      await mobileMfaControllerAdapter.listEnrolledCredentialsWithSocialSession?.(),
+    ).toStrictEqual([]);
+    expect(mockListWithSocialSession).toHaveBeenCalled();
   });
 });

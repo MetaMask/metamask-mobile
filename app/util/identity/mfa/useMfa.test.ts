@@ -4,6 +4,10 @@ import { mobileMfaControllerAdapter } from './bindings';
 import { startMfaFlow } from './engine/activeFlow';
 import Logger from '../../Logger';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
+import {
+  establishSocialProfileSession,
+  listEnrolledCredentialsWithSocialSession,
+} from './socialProfileSession';
 import { useMfa } from './useMfa';
 
 jest.mock('./engine/activeFlow', () => ({
@@ -16,6 +20,11 @@ jest.mock('./bindings', () => ({
 
 jest.mock('./passkeyAdapter', () => ({
   mobilePasskeyAdapter: {},
+}));
+
+jest.mock('./socialProfileSession', () => ({
+  establishSocialProfileSession: jest.fn(),
+  listEnrolledCredentialsWithSocialSession: jest.fn(),
 }));
 
 jest.mock('../../Logger', () => ({ error: jest.fn() }));
@@ -106,5 +115,16 @@ describe('useMfa', () => {
       },
       context: { name: 'mfa_flow', data: { step: 'otp' } },
     });
+  });
+
+  it('exposes social profile session helpers for pre-unlock listing', () => {
+    const kit = renderUseMfa();
+
+    expect(kit.establishSocialProfileSession).toBe(
+      establishSocialProfileSession,
+    );
+    expect(kit.listEnrolledCredentialsWithSocialSession).toBe(
+      listEnrolledCredentialsWithSocialSession,
+    );
   });
 });
