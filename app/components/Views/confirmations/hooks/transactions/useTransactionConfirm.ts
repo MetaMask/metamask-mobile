@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -31,6 +32,7 @@ import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { waitForMfaFlowSuccess } from '../../../../../util/identity/mfa/engine/activeFlow';
 import { MONEY_MPC_SIGN_OPERATION } from '../../../../../core/MpcMoneyKeyring/constants';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
@@ -81,13 +83,15 @@ export function useTransactionConfirm() {
 
   // A Money MPC account signs only after 2-step verification: the
   // confirmation stays open until the user passes it.
-  const isSignerMpcMoneyAccount = isMpcMoneyAccount(
-    transactionMetadata?.txParams?.from ?? '',
-  );
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isMpcMoneyAccountTransaction =
+    isMpcMoneyAccount(transactionMetadata?.txParams?.from ?? '') ||
+    (payWithOption === PayWithOption.MoneyAccount &&
+      isMpcMoneyAccount(primaryMoneyAccount?.address ?? ''));
 
   const waitForResult =
     isPayerHardwareWallet ||
-    isSignerMpcMoneyAccount ||
+    isMpcMoneyAccountTransaction ||
     (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
@@ -280,7 +284,7 @@ export function useTransactionConfirm() {
         }
       })();
 
-      if (isSignerMpcMoneyAccount) {
+      if (isMpcMoneyAccountTransaction) {
         // Leave once verification passes; the Money toasts report the rest.
         const verified = waitForMfaFlowSuccess(MONEY_MPC_SIGN_OPERATION);
         await Promise.race([confirmed, verified.promise]);
@@ -309,7 +313,7 @@ export function useTransactionConfirm() {
       transactionMetadata,
       waitForResult,
       isSignerHardwareWallet,
-      isSignerMpcMoneyAccount,
+      isMpcMoneyAccountTransaction,
     ],
   );
 

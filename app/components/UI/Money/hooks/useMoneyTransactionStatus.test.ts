@@ -46,6 +46,11 @@ jest.mock('../../../../util/identity/mfa/engine/activeFlow', () => ({
   },
 }));
 
+const mockSelectPrimaryMoneyAccount = jest.fn();
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: () => mockSelectPrimaryMoneyAccount(),
+}));
+
 jest.mock('./useMoneyAccount', () => ({
   __esModule: true,
   getMoneyAccountDepositIntent: jest.fn(),
@@ -307,6 +312,7 @@ describe('useMoneyTransactionStatus', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
     jest.useFakeTimers();
     mockControllerTransactions.length = 0;
     Object.keys(mockTransactionPayData).forEach((key) => {
@@ -968,6 +974,41 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawInProgressFn).not.toHaveBeenCalled();
       expect(withdrawFailedFn).not.toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('waits for verification when the Money account pays for a Predict deposit', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MPC_ADDRESS });
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+      const approved = buildTxMeta({
+        id: 'predict-tx-1',
+        type: TransactionType.predictDeposit,
+        status: TransactionStatus.approved,
+        metamaskPay: {
+          tokenAddress: MUSD_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+          targetFiat: '1',
+          totalFiat: '1.04',
+        },
+      } as unknown as Partial<TransactionMeta>);
+      mockControllerTransactions.push(approved);
+
+      statusUpdatedHandler({ transactionMeta: approved });
+      statusUpdatedHandler({
+        transactionMeta: { ...approved, status: TransactionStatus.signed },
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      expect(sendInProgressFn).not.toHaveBeenCalled();
+
+      mockControllerTransactions[0] = {
+        ...approved,
+        status: TransactionStatus.signed,
+      };
+      startVerification(Promise.resolve({}));
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(sendInProgressFn).toHaveBeenCalledTimes(1);
     });
 
     it('shows in-progress at submitted when no verification runs', () => {

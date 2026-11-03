@@ -19,6 +19,7 @@ import { store } from '../../../../store';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   areAddressesEqual,
   renderShortAddress,
@@ -144,15 +145,26 @@ function isAwaitingHardwareSignature(
 
 // An MPC Money account signs only after 2-step verification, which the user
 // can still cancel; the toast waits until verification succeeds.
-function isFromMpcMoneyAccount(transactionMeta: TransactionMeta): boolean {
-  const from = transactionMeta.txParams?.from;
+function isMpcMoneyAccountAddress(address: string | undefined): boolean {
   return Boolean(
-    from &&
+    address &&
       Engine.context.KeyringController.state.keyrings.some(
         ({ type, accounts }) =>
           type === KeyringTypes.mpcMoney &&
-          accounts.some((account) => areAddressesEqual(account, from)),
+          accounts.some((account) => areAddressesEqual(account, address)),
       ),
+  );
+}
+
+// The Money account signs the transaction, or pays for a Perps or Predict
+// deposit signed by the wallet account.
+function isFromMpcMoneyAccount(transactionMeta: TransactionMeta): boolean {
+  return (
+    isMpcMoneyAccountAddress(transactionMeta.txParams?.from) ||
+    (isPerpsPredictMoneyDeposit(transactionMeta) &&
+      isMpcMoneyAccountAddress(
+        selectPrimaryMoneyAccount(store.getState())?.address,
+      ))
   );
 }
 
@@ -455,7 +467,12 @@ export const useMoneyTransactionStatus = () => {
         default:
           showInProgressForSignedDeposits(transactionMeta);
           // Whitelisted signatures skip verification and reach `submitted`.
-          if (awaitingMpcSignature.delete(transactionMeta.id)) {
+          // A wallet-signed deposit the Money account pays for is `signed`
+          // before the Money account signs.
+          if (
+            transactionMeta.status === TransactionStatus.submitted &&
+            awaitingMpcSignature.delete(transactionMeta.id)
+          ) {
             showInProgressFor(transactionMeta);
           }
           break;
@@ -502,7 +519,10 @@ export const useMoneyTransactionStatus = () => {
           awaitingMpcSignature.forEach((transactionId) => {
             awaitingMpcSignature.delete(transactionId);
             const transactionMeta = latestTransactionMeta(transactionId);
-            if (transactionMeta?.status === TransactionStatus.approved) {
+            if (
+              transactionMeta?.status === TransactionStatus.approved ||
+              transactionMeta?.status === TransactionStatus.signed
+            ) {
               showInProgressFor(transactionMeta, { isVerified: true });
             }
           }),

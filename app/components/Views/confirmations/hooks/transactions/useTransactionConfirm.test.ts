@@ -94,6 +94,13 @@ const useTransactionMetadataRequestMock = jest.mocked(
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 const isMpcMoneyAccountMock = jest.mocked(isMpcMoneyAccount);
 const mockWaitForMfaFlowSuccess = jest.fn();
+const MPC_MONEY_ADDRESS = '0x3be95e6b8af3c8bb3bb24177a4721de27ef479c6';
+jest.mock('../../../../../selectors/moneyAccountController', () => ({
+  ...jest.requireActual('../../../../../selectors/moneyAccountController'),
+  selectPrimaryMoneyAccount: () => ({
+    address: '0x3be95e6b8af3c8bb3bb24177a4721de27ef479c6',
+  }),
+}));
 jest.mock('../../../../../util/identity/mfa/engine/activeFlow', () => ({
   waitForMfaFlowSuccess: (...args: unknown[]) =>
     mockWaitForMfaFlowSuccess(...args),
@@ -301,6 +308,31 @@ describe('useTransactionConfirm', () => {
       );
       expect(mockWaitForMfaFlowSuccess).toHaveBeenCalledWith('money.mpcSign');
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('waits for verification when the Money account pays', async () => {
+      isMpcMoneyAccountMock.mockImplementation(
+        (address: string) => address === MPC_MONEY_ADDRESS,
+      );
+      useParamsMock.mockReturnValue({
+        payWithOption: PayWithOption.MoneyAccount,
+      });
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: new Promise(() => undefined),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      act(() => {
+        result.current.onConfirm();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockWaitForMfaFlowSuccess).toHaveBeenCalledWith('money.mpcSign');
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('stays until verification succeeds', async () => {
