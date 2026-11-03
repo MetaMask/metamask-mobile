@@ -35,6 +35,13 @@ export interface SocialLeaderboardPresetOptions {
    * Default: true.
    */
   notificationsEnabled?: boolean;
+  /**
+   * Seeds an onboarding-linked social profile. Social V1 copy-trade / Follow
+   * gates need this. Leave off for homepage and V0 so the viewer is not a
+   * leaderboard trader and notification prefs stay on the old path.
+   * Default: false.
+   */
+  linkedSocialProfile?: boolean;
 }
 
 function makeVersionFlag(enabled: boolean) {
@@ -62,6 +69,7 @@ export function initialStateSocialLeaderboard(
     followingProfileIds = [],
     showAccountOnLeaderboard = true,
     notificationsEnabled = true,
+    linkedSocialProfile = false,
   } = options;
 
   return createStateFixture()
@@ -98,22 +106,26 @@ export function initialStateSocialLeaderboard(
           // SocialController.followingProfileIds drives isFollowing() in
           // useFollowToggleMany without any additional API calls.
           SocialController: { followingProfileIds },
-          ProfileController: {
-            profile: {
-              profileId: 'cv-social-profile',
-              username: 'cv_trader',
-              displayName: 'cv_trader',
-              bio: '',
-              linkedAddresses: [
-                `eip155:1:${CV_SOCIAL_LINKED_ADDRESS}` as const,
-              ],
-              avatarUrl: '',
-              tradingPrivacy: 'public' as const,
-              connectedToX: false,
-              createdAt: '',
-              updatedAt: '',
-            },
-          },
+          ...(linkedSocialProfile
+            ? {
+                ProfileController: {
+                  profile: {
+                    profileId: 'cv-social-profile',
+                    username: 'cv_trader',
+                    displayName: 'cv_trader',
+                    bio: '',
+                    linkedAddresses: [
+                      `eip155:1:${CV_SOCIAL_LINKED_ADDRESS}` as const,
+                    ],
+                    avatarUrl: '',
+                    tradingPrivacy: 'public' as const,
+                    connectedToX: false,
+                    createdAt: '',
+                    updatedAt: '',
+                  },
+                },
+              }
+            : {}),
         },
       },
       settings: {
