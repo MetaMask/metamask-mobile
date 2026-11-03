@@ -61,15 +61,6 @@ export async function authenticateSeedlessViaMfaIdentifier(
   const MfaRecoveryController = getMfaRecoveryController();
   const { SeedlessOnboardingController } = Engine.context;
 
-  // eslint-disable-next-line no-console -- temporary MFA password-path E2E signal
-  console.log('[MFA] password unlock via authenticateIdentifier', {
-    identifierType: identifier.type,
-    namespace: identifier.namespace,
-    hasPreknownProviderSubject: Boolean(identifier.value),
-    hasExpectedSeedlessUserId: Boolean(options.expectedSeedlessUserId),
-    requireSeedlessAuthData: true,
-  });
-
   const session = await MfaRecoveryController.authenticateIdentifier(
     identifier,
     { requireSeedlessAuthData: true },
@@ -90,14 +81,6 @@ export async function authenticateSeedlessViaMfaIdentifier(
 
   const { authConnection, ...seedlessAuthFields } = session.seedlessAuthData;
 
-  // eslint-disable-next-line no-console -- temporary MFA password-path E2E signal
-  console.log('[MFA] seedless authenticate from session.seedlessAuthData', {
-    authConnection,
-    authConnectionId: seedlessAuthFields.authConnectionId,
-    hasIdTokens: seedlessAuthFields.idTokens?.length > 0,
-    hasRefreshToken: Boolean(seedlessAuthFields.refreshToken),
-  });
-
   OAuthLoginService.updateLocalState({
     userId: seedlessAuthFields.userId,
     accountName: seedlessAuthFields.socialLoginEmail,
@@ -111,11 +94,6 @@ export async function authenticateSeedlessViaMfaIdentifier(
     authConnection: authConnection as SeedlessAuthConnection,
   });
 
-  // eslint-disable-next-line no-console -- temporary MFA password-path E2E signal
-  console.log('[MFA] seedless authenticate ok', {
-    isNewUser: result.isNewUser,
-    existingUser: !result.isNewUser,
-  });
   store.dispatch(
     setSeedlessOnboarding({
       clientId: seedlessAuthFields.authConnectionId,

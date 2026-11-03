@@ -1185,17 +1185,6 @@ const Onboarding = () => {
             hasMfaRecoveryController;
 
           try {
-            // eslint-disable-next-line no-console -- temporary MFA password-path E2E signal
-            console.log('[MFA] social unlock path decision', {
-              canUseMfaPasswordUnlock,
-              isMoneyMfaEnabledFlag,
-              createWallet,
-              provider,
-              hasSeedlessUserId: Boolean(seedlessState?.userId),
-              seedlessAuthConnection: seedlessState?.authConnection,
-              hasMfaRecoveryController,
-            });
-
             const result = canUseMfaPasswordUnlock
               ? await authenticateSeedlessViaMfaIdentifier(
                   // Provider OIDC subject is discovered from the ID token after
@@ -1232,13 +1221,6 @@ const Onboarding = () => {
               endSocialLoginLoading({ delayMs: 1000 });
             }
           } catch (error) {
-            // eslint-disable-next-line no-console -- temporary MFA password-path E2E signal
-            console.error('[MFA] social unlock failed', {
-              message: (error as Error)?.message,
-              name: (error as Error)?.name,
-              code: (error as { code?: string })?.code,
-              canUseMfaPasswordUnlock,
-            });
             endSocialLoginLoading();
             if (!shouldAttemptAndroidGoogleBrowserFallback(error, provider)) {
               finalizeOAuthLifecycle(
