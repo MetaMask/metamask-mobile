@@ -1756,7 +1756,7 @@ describe('EventMarketList', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('lists Markets without layout after the first tab sections, with sections flush and a gap before the Markets', async () => {
+    it('lists each section as a header row and a row per card, flush, then Markets without layout after a gap', async () => {
       const event = makePredictNextLaidOutGameEvent();
       const [flat] = makePredictNextMultiMarketEvent().markets;
       const { view } = renderLaidOut({
@@ -1768,12 +1768,34 @@ describe('EventMarketList', () => {
       const list = view.UNSAFE_getByType(FlatList);
       const keys = list.props.data.map(list.props.keyExtractor);
 
-      expect(keys.at(-1)).toBe(`markets:market:${flat.id}`);
-      expect(keys.slice(0, 3)).toEqual([
-        expect.stringMatching(/^markets:section:/),
-        expect.stringMatching(/^markets:section:/),
-        expect.stringMatching(/^markets:section:/),
+      const section = (key: string) =>
+        `markets:section:${JSON.stringify(['game_lines', key])}`;
+      const card = (sectionKey: string, cardKey: string) =>
+        `markets:card:${JSON.stringify(['game_lines', sectionKey])}:${cardKey}`;
+
+      expect(keys).toEqual([
+        section('moneyline'),
+        card('moneyline', FULL_GAME_MONEYLINE),
+        section('spread'),
+        card('spread', 'nfl-spreads'),
+        section('total_points'),
+        card('total_points', 'nfl-total-points'),
+        `markets:market:${flat.id}`,
       ]);
+      // The first card sits under the header, or 12px under period chips.
+      expect(
+        view.getByTestId(
+          EventMarketLayoutSectionTestIds.card(
+            'moneyline',
+            FULL_GAME_MONEYLINE,
+          ),
+        ),
+      ).toHaveStyle({ paddingTop: 12 });
+      expect(
+        view.getByTestId(
+          EventMarketLayoutSectionTestIds.card('spread', 'nfl-spreads'),
+        ),
+      ).not.toHaveStyle({ paddingTop: 12 });
       expect(view.getAllByTestId(MarketListTestIds.SEPARATOR)).toHaveLength(1);
     });
   });

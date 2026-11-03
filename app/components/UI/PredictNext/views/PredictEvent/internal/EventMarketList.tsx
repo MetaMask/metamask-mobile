@@ -28,9 +28,16 @@ import {
 } from './createMarketGroupProjection';
 import {
   createMarketLayoutProjection,
+  type MarketLayoutCard,
   type MarketLayoutSection,
 } from './createMarketLayoutProjection';
-import { EventMarketLayoutSection } from './EventMarketLayoutSection';
+import { EventMarketLayoutCard } from './EventMarketLayoutCard';
+import { EventMarketLayoutSectionTestIds } from './EventMarketLayoutSection.testIds';
+import {
+  EventMarketLayoutSectionHeader,
+  periodKeyOf,
+  UNKEYED_PERIOD,
+} from './EventMarketLayoutSectionHeader';
 import { getMarketLayoutTitle } from './marketLayoutTitles';
 import { EventMarketListTestIds } from './EventMarketList.testIds';
 import { useEventPositions } from './useEventPositions';
@@ -66,26 +73,52 @@ export interface EventMarketListProps {
   testID?: string;
 }
 
-type MarketRow =
-  | MarketGroupProjection
+/** A laid-out section of a tab, before its UI state is applied. */
+interface SectionEntry {
+  /** Unique across tabs; keys the section's UI state. */
+  stateKey: string;
+  section: MarketLayoutSection;
+  index: number;
+}
+
+type SectionRow =
   | {
-      type: 'section';
-      /** Unique across tabs; keys the section's UI state. */
+      type: 'sectionHeader';
       stateKey: string;
       section: MarketLayoutSection;
       index: number;
+      open: boolean;
+      selectedPeriodKey: string;
+    }
+  | {
+      type: 'sectionCard';
+      stateKey: string;
+      sectionKey: string;
+      card: MarketLayoutCard;
+      /** Space above the card: after another card, or below period chips. */
+      spaced: boolean;
     };
-type ContentRow = MarketRow | { type: 'position'; position: PredictPosition };
+type ContentRow =
+  | MarketGroupProjection
+  | SectionRow
+  | { type: 'position'; position: PredictPosition };
 
-/** Sections bring their own divider, so two in a row sit flush. */
+const isSectionRow = (row: ContentRow): row is SectionRow =>
+  row.type === 'sectionHeader' || row.type === 'sectionCard';
+
+/**
+ * Section rows space themselves: headers bring their divider and cards their
+ * gap, so only the rows around them get the list gap.
+ */
 const isSeparated = (leadingRow: ContentRow, trailingRow: ContentRow) =>
-  !(leadingRow.type === 'section' && trailingRow.type === 'section');
+  !(isSectionRow(leadingRow) && isSectionRow(trailingRow));
 
 interface MarketTab {
   key: string;
   label: string;
   testID: string;
-  rows: readonly MarketRow[];
+  sections: readonly SectionEntry[];
+  flatRows: readonly MarketGroupProjection[];
 }
 
 const getRowKey = (row: ContentRow): string => {
@@ -97,8 +130,11 @@ const getRowKey = (row: ContentRow): string => {
       row.position.side,
     ]);
   }
-  if (row.type === 'section') {
+  if (row.type === 'sectionHeader') {
     return `markets:section:${row.stateKey}`;
+  }
+  if (row.type === 'sectionCard') {
+    return `markets:card:${row.stateKey}:${row.card.key}`;
   }
   return row.type === 'group'
     ? `markets:group:${row.key}`
@@ -127,7 +163,8 @@ const toMarketTabs = (event: PredictEvent): MarketTab[] => {
                 : 'predict_next.event.outcomes',
             ),
             testID: EventMarketListTestIds.MARKETS_TAB,
-            rows: flatRows,
+            sections: [],
+            flatRows,
           },
         ];
   }
@@ -136,18 +173,51 @@ const toMarketTabs = (event: PredictEvent): MarketTab[] => {
     key: `layout:${tab.key}`,
     label: getMarketLayoutTitle(tab.key),
     testID: EventMarketListTestIds.layoutTab(tab.key),
-    rows: [
-      ...tab.sections.map(
-        (section, index): MarketRow => ({
-          type: 'section',
-          stateKey: JSON.stringify([tab.key, section.key]),
-          section,
-          index,
-        }),
-      ),
-      ...(tabIndex === 0 ? flatRows : []),
-    ],
+    sections: tab.sections.map((section, index) => ({
+      stateKey: JSON.stringify([tab.key, section.key]),
+      section,
+      index,
+    })),
+    flatRows: tabIndex === 0 ? flatRows : [],
   }));
+};
+
+/**
+ * A section's header row, then a row per card of its selected period while
+ * open, so the list only mounts the cards on screen.
+ */
+const toSectionRows = (
+  { stateKey, section, index }: SectionEntry,
+  openSections: Readonly<Record<string, boolean>>,
+  selectedPeriods: Readonly<Record<string, string>>,
+): SectionRow[] => {
+  const open = openSections[stateKey] ?? index < OPEN_SECTION_COUNT;
+  const period =
+    section.periods.find(
+      (candidate) => periodKeyOf(candidate) === selectedPeriods[stateKey],
+    ) ?? section.periods[0];
+  const hasChips = section.periods.length > 1;
+  const cards = open && period ? period.cards : [];
+
+  return [
+    {
+      type: 'sectionHeader',
+      stateKey,
+      section,
+      index,
+      open,
+      selectedPeriodKey: period ? periodKeyOf(period) : UNKEYED_PERIOD,
+    },
+    ...cards.map(
+      (card, cardIndex): SectionRow => ({
+        type: 'sectionCard',
+        stateKey,
+        sectionKey: section.key,
+        card,
+        spaced: cardIndex > 0 || hasChips,
+      }),
+    ),
+  ];
 };
 
 const EventMarketListContent = ({
@@ -195,13 +265,20 @@ const EventMarketListContent = ({
     setSelectedTab(activeTab);
   }
 
-  const rows = useMemo<readonly ContentRow[]>(
-    () =>
-      activeTab === POSITIONS_TAB
-        ? positions.map((position) => ({ type: 'position', position }))
-        : (marketTabs.find((tab) => tab.key === activeTab)?.rows ?? []),
-    [activeTab, marketTabs, positions],
-  );
+  const rows = useMemo<readonly ContentRow[]>(() => {
+    if (activeTab === POSITIONS_TAB) {
+      return positions.map((position) => ({ type: 'position', position }));
+    }
+    const tab = marketTabs.find((candidate) => candidate.key === activeTab);
+    return tab
+      ? [
+          ...tab.sections.flatMap((entry) =>
+            toSectionRows(entry, openSections, selectedPeriods),
+          ),
+          ...tab.flatRows,
+        ]
+      : [];
+  }, [activeTab, marketTabs, openSections, positions, selectedPeriods]);
   const tabs = [
     ...(positions.length > 0
       ? [
@@ -245,31 +322,45 @@ const EventMarketListContent = ({
     [],
   );
   const game = getEventGame(event);
-  const extraData = useMemo(
-    () => ({ selectedMarketIds, openSections, selectedPeriods }),
-    [openSections, selectedMarketIds, selectedPeriods],
-  );
   const renderMarket = useCallback(
-    (projection: MarketRow) => {
-      if (projection.type === 'section') {
+    (projection: Exclude<ContentRow, { type: 'position' }>) => {
+      if (projection.type === 'sectionHeader') {
         return (
-          <EventMarketLayoutSection
+          <EventMarketLayoutSectionHeader
             stateKey={projection.stateKey}
             section={projection.section}
             showDivider={projection.index > 0}
-            initialOpen={
-              openSections[projection.stateKey] ??
-              projection.index < OPEN_SECTION_COUNT
-            }
+            open={projection.open}
             onToggle={handleSectionToggle}
-            selectedPeriodKey={selectedPeriods[projection.stateKey]}
+            selectedPeriodKey={projection.selectedPeriodKey}
             onSelectPeriod={handlePeriodSelect}
-            selectedMarketIds={selectedMarketIds}
-            onSelectMarket={handleGroupMarketSelect}
-            game={game}
-            onOrder={onOrder}
-            onRulesPress={onRulesPress}
           />
+        );
+      }
+
+      if (projection.type === 'sectionCard') {
+        const { card } = projection;
+        return (
+          <Box
+            twClassName={projection.spaced ? 'pt-3' : undefined}
+            testID={EventMarketLayoutSectionTestIds.card(
+              projection.sectionKey,
+              card.key,
+            )}
+          >
+            <EventMarketLayoutCard
+              card={card}
+              game={game}
+              selectedMarketId={
+                card.type === 'standard'
+                  ? undefined
+                  : selectedMarketIds[card.key]
+              }
+              onSelectMarket={handleGroupMarketSelect}
+              onOrder={onOrder}
+              onRulesPress={onRulesPress}
+            />
+          </Box>
         );
       }
 
@@ -321,9 +412,7 @@ const EventMarketListContent = ({
       handleSectionToggle,
       onOrder,
       onRulesPress,
-      openSections,
       selectedMarketIds,
-      selectedPeriods,
     ],
   );
   const renderRow = useCallback(
@@ -353,7 +442,7 @@ const EventMarketListContent = ({
       {...listWindow}
       testID={testID}
       data={rows}
-      extraData={extraData}
+      extraData={selectedMarketIds}
       keyExtractor={getRowKey}
       renderItem={renderRow}
       contentContainerStyle={contentContainerStyle}
