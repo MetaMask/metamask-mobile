@@ -23,14 +23,13 @@ import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import {
   CHAIN_IDS,
   hasTransactionType,
-  TransactionType,
 } from '@metamask/transaction-controller';
 import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isHardwareAccount } from '../../../../../util/address';
-import { DUST_THRESHOLD } from '../../../../UI/Money/utils/moneyFormatFiat';
+import { useMoneyAccountNoFundsMessageKey } from './useMoneyAccountNoFundsMessageKey';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -72,6 +71,8 @@ export function useInsufficientPayTokenBalanceAlert({
   // on-chain units.
   const { balanceUsd: payBalanceUsd, balanceRaw } = useTransactionPayBalance();
   const balanceUsd = String(payBalanceUsd);
+  const insufficientBalanceMessageKey =
+    useMoneyAccountNoFundsMessageKey(balanceUsd);
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
@@ -156,12 +157,6 @@ export function useInsufficientPayTokenBalanceAlert({
     MM_PAY_TRANSACTION_TYPES,
   );
 
-  const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountWithdraw,
-  ]);
-  const isMoneyAccountBalanceEmpty =
-    isMoneyAccountWithdraw && new BigNumber(balanceUsd).lt(DUST_THRESHOLD);
-
   // For non-gasless source chains we still need to check the user has enough
   // native token to pay for gas on the source network (e.g., POL for Polygon).
   const isInsufficientForSourceNetwork = useMemo(
@@ -202,9 +197,8 @@ export function useInsufficientPayTokenBalanceAlert({
           ...baseAlert,
           key: AlertKeys.InsufficientPayTokenBalance,
           message: strings(
-            isMoneyAccountBalanceEmpty
-              ? 'alert_system.money_account_no_funds.message'
-              : 'alert_system.insufficient_pay_token_balance.message',
+            insufficientBalanceMessageKey ??
+              'alert_system.insufficient_pay_token_balance.message',
           ),
         },
       ];
@@ -247,7 +241,7 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
-    isMoneyAccountBalanceEmpty,
+    insufficientBalanceMessageKey,
     isPostQuote,
     selectedFiatPaymentMethod,
     ticker,
