@@ -27,6 +27,11 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  trackMfaErrorCta,
+  trackMfaEvent,
+} from '../../../../../util/identity/mfa/engine/activeFlow';
+import { MFA_EVENTS } from '../../../../../util/identity/mfa/engine/analytics';
 import { getErrorHandling } from '../../../../../util/identity/mfa/engine/errors';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 import { maskEmail } from '../../labels';
@@ -118,9 +123,20 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
       resendAvailableAt !== undefined &&
       secondsLeft === 0
     ) {
+      trackMfaEvent(MFA_EVENTS.codeResent, {
+        trigger: 'auto',
+        purpose: step.purpose,
+      });
       onAction({ type: 'resend' });
     }
-  }, [isTotp, codeSent, resendAvailableAt, secondsLeft, onAction]);
+  }, [
+    isTotp,
+    codeSent,
+    resendAvailableAt,
+    secondsLeft,
+    onAction,
+    step.purpose,
+  ]);
 
   // Submits a complete code once it was sent, so digits typed or pasted while
   // it was still sending are not left on screen.
@@ -219,7 +235,12 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={isCoolingDown}
-            onPress={() => onAction({ type: 'resend' })}
+            onPress={() => {
+              if (error) {
+                trackMfaErrorCta(error, 'try_again');
+              }
+              onAction({ type: 'resend' });
+            }}
             testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
           >
             {isCoolingDown
@@ -236,7 +257,13 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             // A complete code submits itself; the line under the boxes shows
             // it being checked.
             isDisabled={!canResend}
-            onPress={() => onAction({ type: 'resend' })}
+            onPress={() => {
+              trackMfaEvent(MFA_EVENTS.codeResent, {
+                trigger: 'user',
+                purpose: step.purpose,
+              });
+              onAction({ type: 'resend' });
+            }}
             testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
           >
             {needsNewCode ? strings('mfa.otp.get_new_code') : getResendLabel()}

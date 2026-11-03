@@ -5,6 +5,8 @@ import { startMfaFlow } from './engine/activeFlow';
 import Logger from '../../Logger';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { useMfa } from './useMfa';
+import { analytics } from '../../analytics/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 jest.mock('./engine/activeFlow', () => ({
   startMfaFlow: jest.fn(),
@@ -19,6 +21,10 @@ jest.mock('./passkeyAdapter', () => ({
 }));
 
 jest.mock('../../Logger', () => ({ error: jest.fn() }));
+
+jest.mock('../../analytics/analytics', () => ({
+  analytics: { trackEvent: jest.fn() },
+}));
 
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 
@@ -66,6 +72,7 @@ describe('useMfa', () => {
       controller: mobileMfaControllerAdapter,
       passkey: mobilePasskeyAdapter,
       reportError: expect.any(Function),
+      trackEvent: expect.any(Function),
     });
   });
 
@@ -81,6 +88,7 @@ describe('useMfa', () => {
       controller: mobileMfaControllerAdapter,
       passkey: mobilePasskeyAdapter,
       reportError: expect.any(Function),
+      trackEvent: expect.any(Function),
     });
   });
 
@@ -106,5 +114,22 @@ describe('useMfa', () => {
       },
       context: { name: 'mfa_flow', data: { step: 'otp' } },
     });
+  });
+
+  it('sends the kit events as MetaMetrics events', async () => {
+    await renderUseMfa().enroll({
+      method: 'email_otp',
+      reason: { operation: 'settings.addEmail' },
+    });
+    const { trackEvent } = mockStartMfaFlow.mock.calls[0][0];
+
+    trackEvent?.('MFA Flow Status Updated', { status: 'started' });
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.MFA_FLOW_STATUS_UPDATED.category,
+        properties: { status: 'started' },
+      }),
+    );
   });
 });

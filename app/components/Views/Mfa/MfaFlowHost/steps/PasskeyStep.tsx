@@ -6,6 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
+import { trackMfaErrorCta } from '../../../../../util/identity/mfa/engine/activeFlow';
 import StepLayout, { type StepProps } from './StepLayout';
 
 const PasskeyStep = ({ step, state, onAction }: StepProps<'passkey'>) => (
@@ -22,7 +23,12 @@ const PasskeyStep = ({ step, state, onAction }: StepProps<'passkey'>) => (
         size={ButtonSize.Lg}
         isFullWidth
         isLoading={state.busy}
-        onPress={() => onAction({ type: 'continue' })}
+        onPress={() => {
+          if (state.error) {
+            trackMfaErrorCta(state.error, 'try_again');
+          }
+          onAction({ type: 'continue' });
+        }}
         testID={MfaFlowSelectorsIDs.PRIMARY_BUTTON}
       >
         {strings('mfa.failure.retry')}

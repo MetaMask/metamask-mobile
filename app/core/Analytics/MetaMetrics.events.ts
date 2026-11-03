@@ -834,6 +834,14 @@ enum EVENT_NAME {
   KYC_VERIFICATION_UPDATED = 'KYC Verification Updated',
   KYC_STATUS_UPDATED = 'KYC Status Updated',
 
+  // MFA kit
+  MFA_FLOW_STATUS_UPDATED = 'MFA Flow Status Updated',
+  MFA_STEP_VIEWED = 'MFA Step Viewed',
+  MFA_ERROR_VIEWED = 'MFA Error Viewed',
+  MFA_ERROR_CTA_CLICKED = 'MFA Error CTA Clicked',
+  MFA_METHOD_SELECTED = 'MFA Method Selected',
+  MFA_CODE_RESENT = 'MFA Code Resent',
+
   // Money VBA and KYC onboarding
   MONEY_VBA_VENDOR_TERMS_UPDATED = 'Money VBA Vendor Terms Updated',
   MONEY_VBA_AUTORAMP_CREATE_UPDATED = 'Money VBA Autoramp Create Updated',
@@ -2260,6 +2268,14 @@ const events = {
   // KYC (virtual bank account onboarding)
   KYC_VERIFICATION_UPDATED: generateOpt(EVENT_NAME.KYC_VERIFICATION_UPDATED),
   KYC_STATUS_UPDATED: generateOpt(EVENT_NAME.KYC_STATUS_UPDATED),
+
+  // MFA kit
+  MFA_FLOW_STATUS_UPDATED: generateOpt(EVENT_NAME.MFA_FLOW_STATUS_UPDATED),
+  MFA_STEP_VIEWED: generateOpt(EVENT_NAME.MFA_STEP_VIEWED),
+  MFA_ERROR_VIEWED: generateOpt(EVENT_NAME.MFA_ERROR_VIEWED),
+  MFA_ERROR_CTA_CLICKED: generateOpt(EVENT_NAME.MFA_ERROR_CTA_CLICKED),
+  MFA_METHOD_SELECTED: generateOpt(EVENT_NAME.MFA_METHOD_SELECTED),
+  MFA_CODE_RESENT: generateOpt(EVENT_NAME.MFA_CODE_RESENT),
 
   // Money VBA and KYC onboarding
   MONEY_VBA_VENDOR_TERMS_UPDATED: generateOpt(

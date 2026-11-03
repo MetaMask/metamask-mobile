@@ -15,6 +15,7 @@ import type {
   VerificationChallenge,
   VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
+import type { MfaTrackEvent } from './analytics';
 
 export type MfaMethod = MfaCredentialType;
 
@@ -270,6 +271,11 @@ export interface MfaFlowOptions {
    * for error reporting. The context never holds an email address.
    */
   reportError?: (error: unknown, context: MfaErrorContext) => void;
+  /**
+   * Sends the kit's analytics events. Never receives an email address, a
+   * code or a secret.
+   */
+  trackEvent?: MfaTrackEvent;
 }
 
 export interface MfaErrorContext {

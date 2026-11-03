@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import React, { useEffect, type ReactNode } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -27,6 +27,10 @@ import type {
 } from '../../../../../util/identity/mfa/engine/types';
 import shieldImage from '../../../../../images/mfa-shield.png';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  trackMfaErrorCta,
+  trackMfaErrorViewed,
+} from '../../../../../util/identity/mfa/engine/activeFlow';
 import { getErrorLink, getErrorMessage } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 
@@ -71,6 +75,9 @@ export const StepError = ({
   method?: MfaMethod;
 }) => {
   const link = getErrorLink(code);
+  useEffect(() => {
+    trackMfaErrorViewed(code);
+  }, [code]);
   return (
     <HelpText
       severity={HelpTextSeverity.Danger}
@@ -83,7 +90,10 @@ export const StepError = ({
           {' '}
           <TextButton
             variant={TextVariant.BodySm}
-            onPress={() => Linking.openURL(link)}
+            onPress={() => {
+              trackMfaErrorCta(code, 'learn_more');
+              Linking.openURL(link);
+            }}
             testID={MfaFlowSelectorsIDs.ERROR_LINK}
           >
             {strings('mfa.errors.learn_more')}

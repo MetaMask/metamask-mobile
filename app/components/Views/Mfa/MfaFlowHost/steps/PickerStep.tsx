@@ -11,6 +11,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { trackMfaEvent } from '../../../../../util/identity/mfa/engine/activeFlow';
+import { MFA_EVENTS } from '../../../../../util/identity/mfa/engine/analytics';
 import type { MfaMethod } from '../../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import { MfaShield, StepError, StepHeader, type StepProps } from './StepLayout';
@@ -49,7 +51,14 @@ const PickerStep = ({ step, state, reason, onAction }: StepProps<'picker'>) => {
             })
           : undefined
       }
-      onPress={() => onAction({ type: 'choose', method })}
+      onPress={() => {
+        trackMfaEvent(MFA_EVENTS.methodSelected, {
+          method,
+          methods_offered: step.options,
+          purpose: step.purpose,
+        });
+        onAction({ type: 'choose', method });
+      }}
       testID={`${MfaFlowSelectorsIDs.PICKER_OPTION}-${method}`}
     >
       {strings(PICKER_LABEL_KEYS[method])}
