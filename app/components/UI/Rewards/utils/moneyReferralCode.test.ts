@@ -5,8 +5,8 @@ import {
 
 describe('parseMoneyReferralCodeFromUrl', () => {
   it.each([
-    'https://link.metamask.io/home?ref=kol-123',
-    'metamask://home?ref=kol-123',
+    'https://link.metamask.io/home?ref=kol123',
+    'metamask://home?ref=kol123',
     'https://link.metamask.io/rewards?utm_source=x&ref=KOL123',
   ])('reads the normalized code from %s', (url) => {
     const result = parseMoneyReferralCodeFromUrl(url);
@@ -17,6 +17,7 @@ describe('parseMoneyReferralCodeFromUrl', () => {
   it.each([
     'https://link.metamask.io/home',
     'https://link.metamask.io/home?ref=a',
+    'https://link.metamask.io/home?ref=kol-123',
     'https://link.metamask.io/home?referral=KOL123',
   ])('returns null for %s', (url) => {
     const result = parseMoneyReferralCodeFromUrl(url);
@@ -32,8 +33,8 @@ describe('parseMoneyReferralCode', () => {
     expect(result).toBe('KOL123');
   });
 
-  it('strips characters a code cannot contain', () => {
-    const result = parseMoneyReferralCode(' kol-12_3 ');
+  it('trims surrounding whitespace', () => {
+    const result = parseMoneyReferralCode(' kol123 ');
 
     expect(result).toBe('KOL123');
   });
@@ -42,7 +43,8 @@ describe('parseMoneyReferralCode', () => {
     ['shorter than 3 characters', 'AB'],
     ['longer than 24 characters', 'A'.repeat(25)],
     ['empty', ''],
-    ['only separators', '--__'],
+    ['with a hyphen', 'KOL-123'],
+    ['with an underscore', 'KOL_123'],
   ])('rejects a code %s', (_label, value) => {
     const result = parseMoneyReferralCode(value);
 

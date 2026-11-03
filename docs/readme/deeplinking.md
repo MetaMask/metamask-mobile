@@ -331,8 +331,8 @@ opens its own destination; the code never changes routing.
 
 - The code is read only after the interstitial resolves in favor of the link
   (or the action skips it). A rejected link stores nothing.
-- Non-alphanumeric characters are stripped and the code is uppercased. Codes
-  outside 3–24 characters are discarded.
+- The code is trimmed and uppercased. Codes that are not 3–24 alphanumeric
+  characters are discarded, matching the invite sheet's validation.
 - The code is kept for the current app session only, in
   `rewardsMoney.pendingReferralCode`. A newer link replaces it. A code the
   user already answered this session (`answeredReferralCode`) is not stored

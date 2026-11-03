@@ -6,25 +6,29 @@ export const MONEY_REFERRAL_CODE_MAX_LENGTH = 24;
 /** Query key that carries a Money referral code on a MetaMask deeplink. */
 export const MONEY_REFERRAL_CODE_QUERY_PARAM = 'ref';
 
+/** Money codes are alphanumeric only — the points program's hyphen is not accepted. */
+const MONEY_REFERRAL_CODE_PATTERN = /^[A-Z0-9]+$/;
+
+/** The form the API expects, and the only form the client reports or sends. */
+export const normalizeMoneyReferralCode = (code: string) =>
+  code.trim().toUpperCase();
+
+export const isMoneyReferralCodeFormatValid = (code: string) =>
+  code.length >= MONEY_REFERRAL_CODE_MIN_LENGTH &&
+  code.length <= MONEY_REFERRAL_CODE_MAX_LENGTH &&
+  MONEY_REFERRAL_CODE_PATTERN.test(code);
+
 /**
- * Reads a Money referral code from a raw link value.
- *
- * Keeps letters and digits only and uppercases them. Returns null when the
- * value is not a string or the result is not 3-24 characters long, so a
- * malformed code is discarded rather than prefilled.
+ * Reads a Money referral code from a raw link value, normalized. Returns null
+ * when the value is not a string or not a well-formed code, so a malformed
+ * code is discarded rather than prefilled.
  */
 export function parseMoneyReferralCode(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
   }
-  const code = value.replace(/[^a-zA-Z0-9]/gu, '').toUpperCase();
-  if (
-    code.length < MONEY_REFERRAL_CODE_MIN_LENGTH ||
-    code.length > MONEY_REFERRAL_CODE_MAX_LENGTH
-  ) {
-    return null;
-  }
-  return code;
+  const code = normalizeMoneyReferralCode(value);
+  return isMoneyReferralCodeFormatValid(code) ? code : null;
 }
 
 /**

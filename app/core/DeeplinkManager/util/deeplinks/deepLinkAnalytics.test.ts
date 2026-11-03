@@ -749,16 +749,17 @@ describe('deepLinkAnalytics', () => {
       const result = (await createDeepLinkUsedEventBuilder(context)).build();
 
       expect(result.properties.referral).toBe('ABC123');
+      expect(result.properties).not.toHaveProperty('referral_code');
       expect(result.sensitiveProperties).toEqual({});
     });
 
-    it('includes the normalized money referral code from ref', async () => {
+    it('reports the normalized money referral code from ref', async () => {
       mockDetectAppInstallation.mockResolvedValue(true);
 
       const context: DeepLinkAnalyticsContext = {
-        url: 'https://link.metamask.io/home?ref=kol-123',
+        url: 'https://link.metamask.io/home?ref=kol123',
         route: DeepLinkRoute.HOME,
-        urlParams: { ref: 'kol-123' },
+        urlParams: { ref: 'kol123' },
         signatureStatus: SignatureStatus.MISSING,
         interstitialShown: false,
         interstitialDisabled: false,
@@ -767,6 +768,7 @@ describe('deepLinkAnalytics', () => {
       const result = (await createDeepLinkUsedEventBuilder(context)).build();
 
       expect(result.properties.referral_code).toBe('KOL123');
+      expect(result.properties).not.toHaveProperty('referral');
     });
 
     it('omits the money referral code when ref is malformed', async () => {

@@ -20,7 +20,7 @@ describe('capturePendingMoneyReferralCode', () => {
   });
 
   it('stores the normalized code from the ref parameter', () => {
-    const url = new URL('https://link.metamask.io/rewards?ref=kol-123');
+    const url = new URL('https://link.metamask.io/rewards?ref=kol123');
 
     capturePendingMoneyReferralCode(url);
 

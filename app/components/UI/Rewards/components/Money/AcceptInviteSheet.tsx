@@ -34,11 +34,11 @@ import {
   useAcceptMoneyReferralCode,
   type ReferralRefusalReason,
 } from '../../hooks/useAcceptMoneyReferralCode';
+import { useValidateMoneyReferralCode } from '../../hooks/useValidateMoneyReferralCode';
 import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
-  useValidateMoneyReferralCode,
-} from '../../hooks/useValidateMoneyReferralCode';
+} from '../../utils/moneyReferralCode';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 
 export const ACCEPT_INVITE_SHEET_TEST_IDS = {

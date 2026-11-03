@@ -3,30 +3,14 @@ import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
 import {
-  MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
-} from '../utils/moneyReferralCode';
-
-export {
-  MONEY_REFERRAL_CODE_MAX_LENGTH,
-  MONEY_REFERRAL_CODE_MIN_LENGTH,
+  isMoneyReferralCodeFormatValid,
+  normalizeMoneyReferralCode,
 } from '../utils/moneyReferralCode';
 
 export const MONEY_REFERRAL_CODE_DEBOUNCE_MS = 1000;
 /** Validation itself failed, as opposed to the code being rejected. */
 export const MONEY_REFERRAL_CODE_UNKNOWN_ERROR = 'Unknown error';
-
-/** Money codes are alphanumeric only — the points program's hyphen is not accepted. */
-const MONEY_REFERRAL_CODE_PATTERN = /^[A-Z0-9]+$/;
-
-/** The form the API expects, and the only form this hook reports or sends. */
-export const normalizeMoneyReferralCode = (code: string) =>
-  code.trim().toUpperCase();
-
-const isReferralCodeFormatValid = (code: string) =>
-  code.length >= MONEY_REFERRAL_CODE_MIN_LENGTH &&
-  code.length <= MONEY_REFERRAL_CODE_MAX_LENGTH &&
-  MONEY_REFERRAL_CODE_PATTERN.test(code);
 
 export interface UseValidateMoneyReferralCodeResult {
   /**
@@ -76,7 +60,7 @@ export const useValidateMoneyReferralCode = (
   const [referralCode, setReferralCodeState] = useState(initialReferralCode);
   const [error, setError] = useState('');
   const [isValidating, setIsValidating] = useState(
-    isReferralCodeFormatValid(initialReferralCode),
+    isMoneyReferralCodeFormatValid(initialReferralCode),
   );
   const hasInitialized = useRef(false);
   const requestIdRef = useRef(0);
@@ -92,7 +76,7 @@ export const useValidateMoneyReferralCode = (
   const validateCode = useCallback(async (code: string): Promise<string> => {
     const refinedCode = normalizeMoneyReferralCode(code);
 
-    if (!isReferralCodeFormatValid(refinedCode)) {
+    if (!isMoneyReferralCodeFormatValid(refinedCode)) {
       return strings('rewards.error_messages.invalid_referral_code');
     }
 
@@ -131,7 +115,7 @@ export const useValidateMoneyReferralCode = (
       debounceTimerRef.current = setTimeout(async () => {
         const refinedCode = normalizeMoneyReferralCode(code);
 
-        if (!isReferralCodeFormatValid(refinedCode)) {
+        if (!isMoneyReferralCodeFormatValid(refinedCode)) {
           if (currentRequestId !== requestIdRef.current) return;
           setError(strings('rewards.error_messages.invalid_referral_code'));
           setIsValidating(false);
@@ -175,7 +159,7 @@ export const useValidateMoneyReferralCode = (
         return;
       }
 
-      if (!isReferralCodeFormatValid(refinedCode)) {
+      if (!isMoneyReferralCodeFormatValid(refinedCode)) {
         requestIdRef.current += 1;
         clearDebounceTimer();
         setIsValidating(false);
@@ -207,7 +191,7 @@ export const useValidateMoneyReferralCode = (
   );
 
   const isValid =
-    isReferralCodeFormatValid(referralCode) && !error && !isValidating;
+    isMoneyReferralCodeFormatValid(referralCode) && !error && !isValidating;
   const isUnknownError = error === MONEY_REFERRAL_CODE_UNKNOWN_ERROR;
 
   return {

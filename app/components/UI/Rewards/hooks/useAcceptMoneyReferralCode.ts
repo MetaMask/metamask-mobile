@@ -8,9 +8,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useReferralMe, type FetchReferralMeResult } from './useReferralMe';
 import {
   MONEY_REFERRAL_CODE_UNKNOWN_ERROR,
-  normalizeMoneyReferralCode,
   useValidateMoneyReferralCode,
 } from './useValidateMoneyReferralCode';
+import { normalizeMoneyReferralCode } from '../utils/moneyReferralCode';
 
 /**
  * Substrings the API uses on the refusals a 403 can carry. The status alone

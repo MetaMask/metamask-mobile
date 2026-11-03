@@ -3780,7 +3780,7 @@ describe('handleUniversalLink', () => {
     };
 
     it('stores the normalized code once the link proceeds', async () => {
-      const link = buildLink(ACTIONS.REWARDS, '?ref=kol-123');
+      const link = buildLink(ACTIONS.REWARDS, '?ref=kol123');
 
       await handleUniversalLink({
         instance,
