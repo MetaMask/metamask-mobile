@@ -670,16 +670,26 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.changeText(usernameInput, 'hello_');
 
     expect(
-      screen.queryByText('Use letters, numbers, and underscores.'),
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      ),
     ).not.toBeOnTheScreen();
-    await waitFor(() => {
-      expect(
-        Engine.context.ProfileController.checkUsernameAvailability,
-      ).toHaveBeenCalledWith('hello_');
-    });
-    expect(
-      await screen.findByText('Username available', { exact: true }),
-    ).toBeOnTheScreen();
+    // Availability is debounced 400ms. Wait for the available status — the
+    // assertion subject — with a budget above that debounce.
+    await waitFor(
+      () => {
+        expect(
+          Engine.context.ProfileController.checkUsernameAvailability,
+        ).toHaveBeenCalledWith('hello_');
+        expect(
+          screen.getByText(
+            strings('social_leaderboard.profile_onboarding.username_available'),
+            { exact: true },
+          ),
+        ).toBeOnTheScreen();
+      },
+      { timeout: 3000 },
+    );
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
         .props.accessibilityState?.disabled,
