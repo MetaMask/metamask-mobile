@@ -39,8 +39,8 @@ jest.mock('../../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
 
-jest.mock('../../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(() => false),
+jest.mock('../../../UI/PredictNext', () => ({
+  selectPredictAvailability: jest.fn(() => false),
 }));
 
 const mockOpenQuickBuy = jest.fn();
