@@ -1899,6 +1899,26 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
   });
 
+  it('renders an NFT send without inventing a zero amount', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      token: {
+        direction: 'out',
+        symbol: 'I Love FLUF',
+        assetType: 'erc1155',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent I Love FLUF',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
   it('renders a named NFT buy with the collection name and the amount paid', () => {
     const item: ActivityListItem = {
       type: 'nftBuy',

@@ -34,9 +34,9 @@ const DEFAULT_PREVIOUS_METADATA_DIR = 'previous-nightly-metadata';
 
 const DEFAULT_REPO_URL = `https://github.com/${process.env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile'}`;
 
-// Public TestFlight link for the external testing group used by nightly iOS
-// builds — same link the old Slack automation hardcoded.
-const TESTFLIGHT_URL = 'https://testflight.apple.com/join/hBrjtFuA';
+// Opens the TestFlight app when installed, otherwise its App Store page. No group
+// code, so this does not invite new testers.
+const TESTFLIGHT_URL = 'https://testflight.apple.com/a';
 
 const LAUNCHDARKLY_FLAGS_URL =
   'https://app.launchdarkly.com/projects/metamask-client-config-api-mobile/flags?env=production&env=qa-prod&env=test&env=main-exp&env=main-test&env=main-beta&env=qa-dev&env=flask-dev&env=flask-prod';

@@ -58,8 +58,8 @@ describe('PredictRoot', () => {
     expect(screen.queryByTestId('legacy-predict-stack')).not.toBeOnTheScreen();
   });
 
-  it('renders the legacy stack while Polymarket is enabled', () => {
-    mockConfig = config(true, true);
+  it('renders the legacy stack for a Polymarket-only rollout', () => {
+    mockConfig = config(true, false);
     givenRoute();
 
     render(<PredictRoot />);
