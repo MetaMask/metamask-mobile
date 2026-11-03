@@ -17,6 +17,8 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
+import { useIsGlassSurfaceEnabled } from '../../../hooks/useIsGlassSurfaceEnabled';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import PerpsCard from '../../Perps/components/PerpsCard';
@@ -58,8 +60,8 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import type { RecurringOrder } from '../../Bridge/api/recurringOrders.types';
+import type { MostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
 import { TokenDetailsOrdersSection } from './TokenDetailsOrdersSection';
-import { getMostRecentOrderType } from '../utils/getMostRecentOrderType';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
@@ -81,6 +83,8 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 20,
     } as ViewStyle,
     tokenDetailsWrapper: {
+      // Clears the action buttons when nothing else renders between them.
+      marginTop: 24,
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
@@ -170,7 +174,7 @@ export interface AssetOverviewContentProps {
     hasPerpsMarket: boolean;
     isLoading: boolean;
   }) => void;
-  recurringOrder?: RecurringOrder;
+  mostRecentOrder?: MostRecentOrder;
 }
 
 /**
@@ -217,7 +221,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   onExitAction,
   isPricePositive,
   onPerpsMarketResolved,
-  recurringOrder,
+  mostRecentOrder,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -231,6 +235,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
+  const isGlass = useIsGlassSurfaceEnabled(
+    selectTokenDetailsBrandRefreshEnabled,
+  );
   const isAssetInactive = useSelector((state) =>
     getIsAssetRequireActivate(state, {
       assetId: token.address,
@@ -294,15 +301,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [navigation, onExitAction],
   );
 
-  const mostRecentOrderType = getMostRecentOrderType({ recurringOrder });
-
   const { goToSwaps } = useSwapBridgeNavigation({
     sourcePage: 'TokenDetails',
     location: SwapBridgeNavigationLocation.TokenView,
   });
 
   const handleOrdersHeaderPress = useCallback(() => {
-    if (!mostRecentOrderType) {
+    if (!mostRecentOrder) {
       return;
     }
 
@@ -314,9 +319,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       undefined,
       true,
       undefined,
-      mostRecentOrderType,
+      mostRecentOrder.type,
     );
-  }, [mostRecentOrderType, onExitAction, goToSwaps]);
+  }, [mostRecentOrder, onExitAction, goToSwaps]);
 
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
@@ -415,6 +420,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             hasInsufficientCoverage={hasInsufficientCoverage}
             onPriceDirectionChange={onPriceDirectionChange}
             useAmbientColor={useAmbientColor}
+            isGlass={isGlass}
           />
           {!isTokenTradable(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
@@ -441,6 +447,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onActionTapped={trackActionTapped}
             resetNavigationLockRef={resetNavigationLockRef}
             onExitAction={onExitAction}
+            isGlass={isGlass}
           />
           <MoneyEarnBanner asset={token} />
           <TokenDetailsMarketInsightsSection
@@ -452,6 +459,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0
             }
             containerStyle={styles.marketInsightsWrapper}
+            isGlass={isGlass}
           />
           {tronNativeToken && <TronEnergyBandwidthDetail />}
           {balance != null && spendableBalanceData.hasSpendableBalance && (
@@ -474,7 +482,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 priceChangeOverrideColor={balancePriceChangeOverrideColor}
                 secondaryBalance={secondaryBalance}
               />
-              <EarnBalance asset={token} />
+              <EarnBalance asset={token} isGlass={isGlass} />
             </>
           )}
           {tronNativeToken && (
@@ -505,9 +513,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
             />
           )}
-          {recurringOrder ? (
+          {mostRecentOrder ? (
             <TokenDetailsOrdersSection
-              latestRecurringOrder={recurringOrder}
+              mostRecentOrder={mostRecentOrder}
               onOrdersHeaderPress={handleOrdersHeaderPress}
               onRecurringOrderPress={handleRecurringOrderPress}
             />

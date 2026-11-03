@@ -24,6 +24,15 @@ describe('isCopyTradeable', () => {
     expect(isCopyTradeable(mockClosedSpotFeedItem())).toBe(false);
   });
 
+  it('hides copy trade on a composer perps preview', () => {
+    expect(
+      isCopyTradeable({
+        ...mockOpenPerpsFeedItem(),
+        showCopyTrade: false,
+      }),
+    ).toBe(false);
+  });
+
   it('defers to the flag on a composer spot share', () => {
     const share = {
       ...mockOpenSpotFeedItem(),

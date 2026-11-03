@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 
 import { SnapElement } from '../components/SnapElement';
 import { createNavigationDetails } from '../../../../util/navigation/navUtils';
@@ -19,12 +18,15 @@ import {
   SNAPS_SETTINGS_LIST_BACK_BUTTON,
   SNAPS_SETTINGS_LIST_HEADER,
 } from './SnapsSettingsList.constants';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const createSnapsSettingsListNavDetails = createNavigationDetails(
   Routes.SNAPS.SNAPS_SETTINGS_LIST,
 );
 
 const SnapsSettingsList = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(stylesheet, {});
   const snaps = useSelector(selectSnaps);
@@ -35,7 +37,9 @@ const SnapsSettingsList = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.snaps.title')}
         titleProps={SNAPS_HEADER_TITLE_PROPS}
         onBack={handleBack}

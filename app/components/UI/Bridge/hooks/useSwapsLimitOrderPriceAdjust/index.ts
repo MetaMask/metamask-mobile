@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -45,6 +45,17 @@ export const useSwapsLimitOrderPriceAdjust = ({
     executionType: defaultExecutionType,
     isLimitFiatMode: defaultIsLimitFiatMode,
   } = getSwapsLimitOrderDefaultPriceMode({ destToken, sourceToken });
+  const defaultPriceModeKey = [
+    sourceToken?.chainId,
+    sourceToken?.address,
+    destToken?.chainId,
+    destToken?.address,
+    defaultExecutionType,
+    defaultIsLimitFiatMode,
+  ].join(':');
+  const previousDefaultPriceModeKeyRef = useRef(defaultPriceModeKey);
+  const isDefaultPriceModeResetPending =
+    previousDefaultPriceModeKeyRef.current !== defaultPriceModeKey;
   const [state, dispatch] = useReducer(
     limitOrderPriceAdjustReducer,
     {
@@ -160,27 +171,23 @@ export const useSwapsLimitOrderPriceAdjust = ({
   // A new pair starts over on the side and denomination that pair defaults to,
   // which is also what makes a source/dest flip land on the right ones.
   useEffect(() => {
+    previousDefaultPriceModeKeyRef.current = defaultPriceModeKey;
     dispatch({
       type: 'reset',
       executionType: defaultExecutionType,
       isLimitFiatMode: defaultIsLimitFiatMode,
     });
-  }, [
-    defaultExecutionType,
-    defaultIsLimitFiatMode,
-    destToken?.address,
-    destToken?.chainId,
-    sourceToken?.address,
-    sourceToken?.chainId,
-  ]);
+  }, [defaultPriceModeKey, defaultExecutionType, defaultIsLimitFiatMode]);
 
-  // Seeds the limit price from the live market rate exactly once whenever
-  // there isn't one yet (initial mount, a new token pair, or after flipping
-  // sides). Once seeded, the price stays put even as the market rate keeps
-  // moving; only the market-comparison label below keeps reflecting the live
-  // difference between the fixed price and the current market rate.
+  // Wait for a token-pair reset before seeding. A cold Limit deeplink can
+  // receive ETH/mUSD after mount; seeding in that transition render would use
+  // the stale buy mode and incorrectly price mUSD ($1) instead of ETH.
   useEffect(() => {
-    if (!isTrackingMarket || limitPrice !== undefined) {
+    if (
+      isDefaultPriceModeResetPending ||
+      !isTrackingMarket ||
+      limitPrice !== undefined
+    ) {
       return;
     }
 
@@ -192,8 +199,17 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'seedFromMarket',
       limitPrice: nextLimitPrice,
+      executionType,
+      isLimitFiatMode,
     });
-  }, [getLimitPriceFromSignedPercent, isTrackingMarket, limitPrice]);
+  }, [
+    executionType,
+    getLimitPriceFromSignedPercent,
+    isDefaultPriceModeResetPending,
+    isLimitFiatMode,
+    isTrackingMarket,
+    limitPrice,
+  ]);
 
   const canToggleLimitPrice = Boolean(
     destFiatRate && destFiatRate > 0 && sourceFiatRate && sourceFiatRate > 0,

@@ -2,10 +2,12 @@ import React from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   Box,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -16,6 +18,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
@@ -25,6 +29,11 @@ import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selector
 
 const DefaultSettings = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const isBasicFunctionalityConsolidationEnabled = useSelector(
@@ -44,12 +53,14 @@ const DefaultSettings = () => {
       edges={['left', 'right', 'bottom']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
         includesTopInset
         title={strings('default_settings.default_settings')}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView style={tw.style('flex-1')}>
+      <ScrollView style={[tw.style('flex-1'), { marginTop: headerInset }]}>
         <Box twClassName="px-4">
           <Text variant={TextVariant.BodyMd}>
             {strings('default_settings.description')}{' '}

@@ -15,8 +15,10 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  FeatureId,
   formatAddressToAssetId,
   formatChainIdToCaip,
+  type MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -24,11 +26,14 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   selectLimitOrderCostTolerance,
+  selectLimitOrderExpirationMinutes,
   selectOrdersNetworkFilter,
-  setLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
   setLimitOrderMarketComparison,
 } from '../../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
+import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../../selectors/bridge/featureFlags';
+import { EVM_SCOPE } from '../../../../Earn/constants/networks';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
 import {
@@ -44,7 +49,6 @@ import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOpt
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
-import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton';
 import LimitOrderDetails from '../../../components/LimitOrderDetails';
@@ -56,7 +60,6 @@ import type {
 import {
   HISTORY_LIMIT_ORDER_STATES,
   LIMIT_ORDER_BUTTON_PRICE_PRESETS,
-  LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
   LIMIT_ORDERS_REFETCH_INTERVAL,
   LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD,
@@ -64,6 +67,7 @@ import {
   SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
   getSwapsLimitOrderExpirationLabel,
   type SwapsLimitOrderExpirationMinutes,
+  LIMIT_ORDER_DIRECTION,
 } from '../../../constants/limitOrders';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
@@ -93,41 +97,48 @@ import {
 } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
-import { LimitOrderFeeTokenErrorBanner } from './LimitOrderFeeTokenErrorBanner';
+import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+
+const FEE_TOKEN_ERROR_BANNER_TEST_IDS = {
+  unsupportedPair: BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_UNSUPPORTED_BANNER,
+  unavailable: BridgeViewSelectorsIDs.LIMIT_FEE_TOKENS_UNAVAILABLE_BANNER,
+  retryButton: BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_RETRY_BUTTON,
+};
 
 const formatTokenAmountValue = (
   amount: string | undefined,
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-interface BridgeLimitOrderViewContentProps {
-  initialExpirationMinutes?: SwapsLimitOrderExpirationMinutes;
-  initialPriceTolerance?: string;
-  deeplinkInitializationKey?: string;
-}
-
 const BridgeLimitOrderViewContent = ({
-  initialExpirationMinutes,
-  initialPriceTolerance,
-  deeplinkInitializationKey,
-}: BridgeLimitOrderViewContentProps) => {
+  location,
+}: {
+  location: MetaMetricsSwapsEventSource;
+}) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
+  const defaultCostTolerance = useSelector(
+    selectBridgeLimitOrderDefaultCostTolerance,
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const { latestSourceBalance } = useBridgeSession();
-  const [activeOrdersTab, setActiveOrdersTab] = useState(
-    OrdersTabKey.OpenOrders,
-  );
+  const {
+    latestSourceBalance,
+    limitOrdersTab = OrdersTabKey.OpenOrders,
+    setLimitOrdersTab = () => undefined,
+  } = useBridgeSession();
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
-  const walletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const walletAddress = getSelectedAccountByScope(EVM_SCOPE)?.address;
   const ordersNetworkFilter = useSelector(selectOrdersNetworkFilter);
   const {
     destToken,
@@ -171,14 +182,14 @@ const BridgeLimitOrderViewContent = ({
     walletAddress,
     states: OPEN_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
-    enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
+    enabled: limitOrdersTab === OrdersTabKey.OpenOrders,
     refetchInterval: ordersRefetchInterval,
   });
   const historyQuery = useLimitOrders({
     walletAddress,
     states: HISTORY_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
-    enabled: activeOrdersTab === OrdersTabKey.History,
+    enabled: limitOrdersTab === OrdersTabKey.History,
     refetchInterval: ordersRefetchInterval,
   });
   const {
@@ -316,16 +327,9 @@ const BridgeLimitOrderViewContent = ({
           amount: formatAmountWithLocaleSeparators(String(minAmountUsd)),
         })
       : strings('bridge.limit.create_order');
-  const [expirationMinutes, setExpirationMinutes] =
-    useState<SwapsLimitOrderExpirationMinutes>(
-      initialExpirationMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
-    );
-
-  useEffect(() => {
-    setExpirationMinutes(
-      initialExpirationMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
-    );
-  }, [deeplinkInitializationKey, initialExpirationMinutes]);
+  const expirationMinutes =
+    useSelector(selectLimitOrderExpirationMinutes) ??
+    SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES;
 
   const blurLimitAdjustInputs = useCallback(() => {
     limitPriceInputRef.current?.blur();
@@ -378,19 +382,19 @@ const BridgeLimitOrderViewContent = ({
         return;
       }
 
-      if (activeOrdersTab === OrdersTabKey.OpenOrders) {
+      if (limitOrdersTab === OrdersTabKey.OpenOrders) {
         openOrdersQuery.fetchNextPage();
         return;
       }
 
       historyQuery.fetchNextPage();
     },
-    [activeOrdersTab, historyQuery, openOrdersQuery, trackScrollOffset],
+    [historyQuery, limitOrdersTab, openOrdersQuery, trackScrollOffset],
   );
 
   const handleOrdersRefresh = useCallback(async () => {
     const activeOrdersQuery =
-      activeOrdersTab === OrdersTabKey.OpenOrders
+      limitOrdersTab === OrdersTabKey.OpenOrders
         ? openOrdersQuery
         : historyQuery;
 
@@ -400,7 +404,7 @@ const BridgeLimitOrderViewContent = ({
     } finally {
       setIsRefreshingOrders(false);
     }
-  }, [activeOrdersTab, historyQuery, openOrdersQuery]);
+  }, [historyQuery, limitOrdersTab, openOrdersQuery]);
 
   const onSourceInputPress = useCallback(() => {
     commitCustomPercentIfFocused();
@@ -452,9 +456,9 @@ const BridgeLimitOrderViewContent = ({
 
   const handleExpirationSelect = useCallback(
     (minutes: SwapsLimitOrderExpirationMinutes) => {
-      setExpirationMinutes(minutes);
+      dispatch(setLimitOrderExpirationMinutes(minutes));
     },
-    [],
+    [dispatch],
   );
 
   const handleExpirationPress = useCallback(() => {
@@ -474,9 +478,7 @@ const BridgeLimitOrderViewContent = ({
   ]);
 
   const expiration = getSwapsLimitOrderExpirationLabel(expirationMinutes);
-  const costToleranceLabel = `${
-    costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE
-  }%`;
+  const costToleranceLabel = `${costTolerance ?? defaultCostTolerance}%`;
   const formattedLimitPrice =
     formatSubscriptNotation(Number(value)) ??
     formatAmountWithLocaleSeparators(value);
@@ -490,10 +492,22 @@ const BridgeLimitOrderViewContent = ({
     });
   }
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   const handleCreateOrderPress = useCallback(() => {
     if (!feeTokenValidation.isValid) {
       return;
     }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED)
+        .addProperties({
+          location,
+          feature_id: FeatureId.LIMIT_ORDER,
+          order_type: `${executionType}_${LIMIT_ORDER_DIRECTION[priceComparisonDirection].threshold}`,
+        })
+        .build(),
+    );
 
     dismissInputAndKeypad();
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -540,17 +554,10 @@ const BridgeLimitOrderViewContent = ({
     sourceAmount,
     sourceToken,
     triggerPrice,
+    trackEvent,
+    createEventBuilder,
+    location,
   ]);
-
-  // Initialize cost tolerance when navigating to the Limit Order screen or
-  // when a new deeplink targets an already-mounted Bridge route.
-  useEffect(() => {
-    dispatch(
-      setLimitOrderCostTolerance(
-        initialPriceTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
-      ),
-    );
-  }, [deeplinkInitializationKey, dispatch, initialPriceTolerance]);
 
   // Keeps the market-comparison label in sync everywhere it's shown: this
   // screen keeps running (and this effect keeps firing) behind the
@@ -663,9 +670,25 @@ const BridgeLimitOrderViewContent = ({
                   <TokenWarningBanner />
                   <DestAssetRequireActivateBanner />
                   <MissingAssetsPriceDataBanner />
-                  <LimitOrderFeeTokenErrorBanner
+                  <SentinelFeeTokenErrorBanner
                     reason={feeTokenValidation.reason}
+                    unsupportedPairMessage={strings(
+                      'bridge.limit.unsupported_fee_token_pair',
+                      {
+                        supportedTokens:
+                          feeTokenValidation.reason === 'unsupported-pair'
+                            ? feeTokenValidation.supportedTokenSymbols.join(
+                                ', ',
+                              )
+                            : '',
+                      },
+                    )}
+                    unavailableMessage={strings(
+                      'bridge.limit.fee_tokens_unavailable',
+                    )}
+                    retryLabel={strings('bridge.limit.try_again')}
                     onRetry={feeTokenValidation.retry}
+                    testIDs={FEE_TOKEN_ERROR_BANNER_TEST_IDS}
                   />
                 </SwapsBanners>
               </Box>
@@ -689,7 +712,8 @@ const BridgeLimitOrderViewContent = ({
                 enabledChainIds={enabledChainIds}
                 openOrders={openOrders}
                 history={history}
-                onTabChange={setActiveOrdersTab}
+                activeTab={limitOrdersTab}
+                onTabChange={setLimitOrdersTab}
               />
             </Box>
           </Box>

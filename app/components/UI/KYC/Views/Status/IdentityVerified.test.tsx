@@ -1,11 +1,15 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { CommonActions } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import VbaIdentityVerified, {
   VbaIdentityVerifiedSelectorsIDs,
 } from './IdentityVerified';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
+
+jest.mock('../../hooks/useTrackKycResultViewed');
 
 const mockNavigate = jest.fn();
 const mockParentDispatch = jest.fn();
@@ -64,9 +68,9 @@ describe('VbaIdentityVerified', () => {
     );
 
     expect(mockParentDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'NAVIGATE',
-        payload: expect.objectContaining({ name: Routes.RAMP.VBA_DETAILS }),
+      CommonActions.reset({
+        index: 1,
+        routes: [{ name: Routes.HOME_TABS }, { name: Routes.RAMP.VBA_DETAILS }],
       }),
     );
   });
@@ -80,5 +84,11 @@ describe('VbaIdentityVerified', () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
+  });
+
+  it('reports the approved result as viewed', () => {
+    renderWithProvider(<VbaIdentityVerified />);
+
+    expect(useTrackKycResultViewed).toHaveBeenCalledWith('approved');
   });
 });

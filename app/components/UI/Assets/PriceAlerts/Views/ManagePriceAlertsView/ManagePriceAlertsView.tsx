@@ -24,7 +24,6 @@ import {
   ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -38,7 +37,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
 import { formatPerpsPrice } from '../../../../Perps/utils/formatUtils';
 import {
   type AbsolutePriceAlert,
@@ -72,6 +71,9 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -88,6 +90,7 @@ const analyticsPropsForAlert = (priceAlert: Alert) =>
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
 const ManagePriceAlertsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
   const hardwareTier = getHardwareTier();
@@ -493,7 +496,9 @@ const ManagePriceAlertsView: React.FC = () => {
       testID={ManagePriceAlertsTestIds.CONTAINER}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('price_alerts.manage_title')}
           onBack={handleBack}
         />

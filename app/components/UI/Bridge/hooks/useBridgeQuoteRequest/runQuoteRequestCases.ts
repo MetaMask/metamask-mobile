@@ -28,6 +28,7 @@ import {
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { useSwapQuotes } from '../useSwapQuotes';
+import type { TraceContext, TraceRequest } from '@metamask/controller-utils';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -40,7 +41,9 @@ const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 const mockUseInsufficientNativeReserveError = jest.mocked(
   useInsufficientNativeReserveError,
 );
-const mockTrace = jest.mocked(trace);
+const mockTrace = trace as jest.MockedFunction<
+  (request: TraceRequest) => TraceContext
+>;
 const mockEndTrace = jest.mocked(endTrace);
 
 const defaultWalletAddress = '0x1234567890123456789012345678901234567890';
@@ -238,7 +241,7 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      const started = mockTrace.mock.calls[0][0];
+      const started: TraceRequest = mockTrace.mock.calls[0][0];
 
       expect(started).toEqual({
         name: TraceName.SwapQuoteFetch,
@@ -252,6 +255,9 @@ export const runQuoteRequestCases = ({
         },
         id: started.id,
         startTime: Date.now(),
+        tags: {
+          feature: 'swap',
+        },
       });
 
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
@@ -409,6 +415,9 @@ export const runQuoteRequestCases = ({
         }),
         id: expect.any(String),
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
     });
 
@@ -435,6 +444,9 @@ export const runQuoteRequestCases = ({
         }),
         id: expect.any(String),
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
     });
 

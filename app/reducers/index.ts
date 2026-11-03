@@ -38,6 +38,7 @@ import type { SampleCounterState } from '../features/SampleFeature/reducers/samp
 import cardReducer from '../core/redux/slices/card';
 import moneyBalanceReducer from '../core/redux/slices/moneyBalance';
 import rewardsReducer, { RewardsState } from './rewards';
+import rewardsMoneyReducer, { RewardsMoneyState } from './rewardsMoney';
 import { isTestEnvironment } from '../util/test/utils';
 import attributionReducer from '../core/redux/slices/attribution';
 import headlessOrderContextsReducer from '../core/redux/slices/headlessOrderContexts';
@@ -129,6 +130,7 @@ export interface RootState {
   sampleCounter?: SampleCounterState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
+  rewardsMoney: RewardsMoneyState;
   attribution: StateFromReducer<typeof attributionReducer>;
   headlessOrderContexts: StateFromReducer<typeof headlessOrderContextsReducer>;
   terminalOrderAnalytics: StateFromReducer<
@@ -185,6 +187,7 @@ const baseReducers = {
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
+  rewardsMoney: rewardsMoneyReducer,
 };
 
 if (isTestEnvironment) {

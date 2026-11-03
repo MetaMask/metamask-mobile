@@ -1,10 +1,11 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeed, { SOCIAL_FEED_NEXT_PAGE_TEST_ID } from './SocialFeed';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
@@ -25,11 +26,21 @@ jest.mock('../data/useSocialFeed', () => ({
 }));
 
 jest.mock('./SocialFeedPostShell', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View: MockView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({ post }: { post: SocialV1FeedPost }) => (
-      <View testID={`post-${post.id}`} />
+      <MockView testID={`post-${post.id}`} />
+    ),
+  };
+});
+
+jest.mock('./SocialFeedVirtualized', () => {
+  const { View: MockView } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => (
+      <MockView testID={`virtualized-${testID}`} />
     ),
   };
 });
@@ -37,7 +48,10 @@ jest.mock('./SocialFeedPostShell', () => {
 const mockSelectEnabled = jest.mocked(selectSocialLeaderboardEnabled);
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
-const source = { kind: 'perp', symbol: 'BTC' } as const;
+const query: SocialFeedQuery = {
+  scope: 'all',
+  assetIds: ['eip155:999/perp:BTC'],
+};
 
 const feedState = (
   overrides: Partial<SocialFeedState> = {},
@@ -77,11 +91,11 @@ describe('SocialFeed', () => {
     mockSelectEnabled.mockReturnValue(false);
 
     const { toJSON } = renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(toJSON()).toBeNull();
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(null);
+    expect(mockUseSocialFeed).not.toHaveBeenCalled();
   });
 
   it('loads the given source and renders its posts', () => {
@@ -90,21 +104,19 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed
-        source={source}
-        location="perps_market_details"
-        title="Trades"
-      />,
+      <SocialFeed {...query} location="perps_market_details" title="Trades" />,
     );
 
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(source);
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
+      filterPost: undefined,
+    });
     expect(screen.getByText('Trades')).toBeOnTheScreen();
     expect(screen.getByTestId('post-one')).toBeOnTheScreen();
     expect(screen.getByTestId('post-two')).toBeOnTheScreen();
   });
 
   it('shows the empty state when the feed has no posts', () => {
-    renderWithProvider(<SocialFeed source={source} location="token_details" />);
+    renderWithProvider(<SocialFeed {...query} location="token_details" />);
 
     expect(screen.getByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeOnTheScreen();
   });
@@ -113,7 +125,7 @@ describe('SocialFeed', () => {
     mockUseSocialFeed.mockReturnValue(feedState({ isLoading: true }));
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(
@@ -128,7 +140,7 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
 
@@ -147,7 +159,7 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
 
@@ -165,7 +177,7 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(screen.getByTestId(SOCIAL_FEED_NEXT_PAGE_TEST_ID)).toBeOnTheScreen();
@@ -181,7 +193,7 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(loadMore).toHaveBeenCalled();
@@ -197,9 +209,51 @@ describe('SocialFeed', () => {
     );
 
     renderWithProvider(
-      <SocialFeed source={source} location="perps_market_details" />,
+      <SocialFeed {...query} location="perps_market_details" />,
     );
 
     expect(loadMore).not.toHaveBeenCalled();
+  });
+
+  it('renders the host header below the title', () => {
+    renderWithProvider(
+      <SocialFeed
+        {...query}
+        location="perps_market_details"
+        title="Trades"
+        renderHeader={() => <Text>header</Text>}
+      />,
+    );
+
+    expect(screen.getByText('header')).toBeOnTheScreen();
+    expect(mockUseSocialFeed).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands filterPost to the feed', () => {
+    const filterPost = jest.fn(() => true);
+
+    renderWithProvider(
+      <SocialFeed
+        {...query}
+        location="perps_market_details"
+        filterPost={filterPost}
+      />,
+    );
+
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, { filterPost });
+  });
+
+  it('renders the virtualized feed for the virtualized scroll mode', () => {
+    renderWithProvider(
+      <SocialFeed
+        {...query}
+        location="social_live"
+        scrollMode="virtualized"
+        testID="live"
+      />,
+    );
+
+    expect(screen.getByTestId('virtualized-live')).toBeOnTheScreen();
+    expect(mockUseSocialFeed).not.toHaveBeenCalled();
   });
 });

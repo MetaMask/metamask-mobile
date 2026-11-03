@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -15,6 +15,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextButton,
   HeaderStandard,
   Icon,
   IconColor,
@@ -22,6 +23,7 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -65,6 +67,7 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -240,11 +243,22 @@ const CardHome = () => {
   const {
     initiateProvisioning,
     isProvisioning,
-    walletEntry,
+    isLoading: isPushProvisioningLoading,
+    canAddToWallet,
+    isCardInWallet,
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
-  } = useCardWalletProvisioning(data, platformWalletSupported);
+    walletEntry,
+  } = useCardWalletProvisioning(data, { platformWalletSupported });
+  useApplePaySplashPrompt({
+    canAddToWallet,
+    isPushProvisioningLoading,
+  });
+  const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
+  const handleLearnMoreAboutApplePay = useCallback(() => {
+    Linking.openURL(applePayLearnMoreUrl).catch(() => undefined);
+  }, [applePayLearnMoreUrl]);
   const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
   const handleOpenInWallet = useCallback(() => {
     openInWallet().catch(() => undefined);
@@ -883,6 +897,16 @@ const CardHome = () => {
                 borderRadius={4}
               />
             )}
+            {Platform.OS === 'ios' && !isCardInWallet && (
+              <TextButton
+                variant={TextVariant.BodySm}
+                twClassName="mt-2"
+                onPress={handleLearnMoreAboutApplePay}
+                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+              >
+                {strings('card.apple_pay_usage.learn_more')}
+              </TextButton>
+            )}
           </Box>
         )}
 
@@ -946,6 +970,8 @@ const CardHome = () => {
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
+            showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+            onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)

@@ -48,7 +48,7 @@ import {
   getNativeTokenAddress,
   type TokenSecurityData,
 } from '@metamask/assets-controllers';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getAssetTestId } from '../../../../../../tests/selectors/Wallet/WalletView.selectors';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';

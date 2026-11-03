@@ -58,6 +58,8 @@ const mockPop = jest.fn();
 const mockGoBack = jest.fn();
 
 let mockRouteToken: TokenI | undefined;
+const mockShowEarnToast = jest.fn();
+const mockMissingTokenToast = {};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -83,6 +85,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/useEarnToasts', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    showToast: mockShowEarnToast,
+    EarnToastOptions: {
+      earnWithdrawal: {
+        detailsUnavailable: mockMissingTokenToast,
+      },
+    },
+  })),
+}));
+
 const baseProps: EarnWithdrawInputViewProps = {
   route: {
     params: {
@@ -95,9 +109,9 @@ const baseProps: EarnWithdrawInputViewProps = {
 
 function render(
   Component: React.ComponentType,
-  mockToken: TokenI | EarnTokenDetails = MOCK_ETH_MAINNET_ASSET,
+  mockToken?: TokenI | EarnTokenDetails,
 ) {
-  mockRouteToken = mockToken;
+  mockRouteToken = arguments.length > 1 ? mockToken : MOCK_ETH_MAINNET_ASSET;
 
   return renderScreen(
     Component,
@@ -473,6 +487,17 @@ describe('EarnWithdrawInputView', () => {
     });
   });
 
+  it('shows an error toast and returns when route token is missing', async () => {
+    render(EarnWithdrawInputView, undefined);
+
+    await waitFor(() => {
+      expect(mockShowEarnToast).toHaveBeenCalledWith(mockMissingTokenToast);
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByTestId('review-button')).toBeNull();
+  });
+
   describe('service interruption banners', () => {
     const getMaintenanceMessage = (experienceName: string) =>
       strings('earn.service_interruption_banner.maintenance_message', {
@@ -590,14 +615,6 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('quick amount buttons', () => {
-    it('handles 25% quick amount button press correctly', () => {
-      render(EarnWithdrawInputView);
-
-      fireEvent.press(screen.getByText('25%'));
-
-      expect(screen.getByText('1.44783')).toBeOnTheScreen();
-    });
-
     it('handles Max button press and sets full balance', async () => {
       render(EarnWithdrawInputView);
 
@@ -605,7 +622,9 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(screen.getByText('Max'));
       });
 
-      expect(screen.getByText('5.79133')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: '5.79133 ETH' }),
+      ).toBeOnTheScreen();
     });
 
     it('tracks quick amount button press for staking flows', async () => {

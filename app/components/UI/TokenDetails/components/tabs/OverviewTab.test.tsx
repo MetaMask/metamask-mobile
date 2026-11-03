@@ -69,8 +69,19 @@ jest.mock('../../hooks/useTokenPerformance', () => ({
 
 const mockUseTokenAssetDetails = jest.fn();
 jest.mock('../../queries/tokenAssetQuery', () => ({
-  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
+  useTokenAssetDetails: (assetId: unknown, baseUrl: unknown) =>
+    mockUseTokenAssetDetails(assetId, baseUrl),
 }));
+
+const FLAGGED_TOKEN_API_BASE_URL = 'https://token.dev-api.cx.metamask.io';
+jest.mock(
+  '../../../../../selectors/featureFlagController/assetsMemecoinTdpV1',
+  () => ({
+    selectMemecoinTdpV1TokenApiBaseUrl: jest.fn(
+      () => 'https://token.dev-api.cx.metamask.io',
+    ),
+  }),
+);
 
 jest.mock('../../hooks/useTokenTransactions', () => ({
   useTokenTransactions: jest.fn(),
@@ -293,12 +304,22 @@ describe('OverviewTab', () => {
     } as never);
   });
 
+  it('asks the token API host the remote config names', () => {
+    render(
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
+    );
+
+    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(
+      'eip155:1/erc20:0xabc',
+      FLAGGED_TOKEN_API_BASE_URL,
+    );
+  });
+
   it('renders the description through ContentDisplay when the token has one', () => {
     const { getByTestId, getByText } = render(
       <OverviewTab
         token={{ ...token, description: 'Pepe the frog' }}
         assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
       />,
     );
 
@@ -312,7 +333,6 @@ describe('OverviewTab', () => {
       <OverviewTab
         token={{ ...token, description: '' }}
         assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
       />,
     );
 
@@ -321,11 +341,7 @@ describe('OverviewTab', () => {
 
   it('draws a rule before every section after the first', () => {
     const { getAllByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(getAllByTestId(OVERVIEW_SECTION_RULE_TEST_ID)).toHaveLength(2);
@@ -336,7 +352,6 @@ describe('OverviewTab', () => {
       <OverviewTab
         token={{ ...token, description: 'Pepe the frog' }}
         assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
       />,
     );
 
@@ -356,7 +371,6 @@ describe('OverviewTab', () => {
       <OverviewTab
         token={{ ...token, description: 'From the route' }}
         assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
       />,
     );
 
@@ -366,11 +380,7 @@ describe('OverviewTab', () => {
 
   it('hides the description section when the token and the asset record have none', () => {
     const { queryByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
@@ -389,26 +399,36 @@ describe('OverviewTab', () => {
       <OverviewTab
         token={{ ...token, description: '  ' }}
         assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
       />,
     );
 
     expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
   });
 
+  it('hides the performance section when every percentage is empty', () => {
+    mockUseTokenPerformance.mockReturnValue({
+      fiveMinute: null,
+      oneHour: null,
+      fourHour: null,
+      twentyFourHour: null,
+    });
+
+    const { queryByTestId, queryByText, getAllByTestId } = render(
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
+    );
+
+    expect(queryByTestId(OVERVIEW_TAB_PERFORMANCE_TEST_ID)).toBeNull();
+    expect(queryByText('Performance')).toBeNull();
+    expect(getAllByTestId(OVERVIEW_SECTION_RULE_TEST_ID)).toHaveLength(1);
+  });
+
   it('passes the performance cells to the Performance section', () => {
     const { getByTestId, getByText } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(mockUseTokenPerformance).toHaveBeenCalledWith({
-      token,
-      assetId: 'eip155:1/erc20:0xabc',
-      currentCurrency: 'usd',
+      marketData: null,
     });
     expect(
       getByTestId('token-details-overview-tab-performance-value-1h'),
@@ -434,11 +454,7 @@ describe('OverviewTab', () => {
     );
 
     const { getByTestId, getAllByTestId, queryByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(getByTestId(OVERVIEW_TAB_ACTIVITY_TEST_ID)).toBeTruthy();
@@ -458,11 +474,7 @@ describe('OverviewTab', () => {
     );
 
     const { getByTestId, getAllByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(getAllByTestId(/^mock-date-header-/)).toHaveLength(2);
@@ -473,11 +485,7 @@ describe('OverviewTab', () => {
 
   it('hides the activity section when there are no transactions', () => {
     const { queryByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(queryByTestId(OVERVIEW_TAB_ACTIVITY_TEST_ID)).toBeNull();
@@ -492,11 +500,7 @@ describe('OverviewTab', () => {
     );
 
     const { queryByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(queryByTestId(OVERVIEW_TAB_ACTIVITY_TEST_ID)).toBeNull();
@@ -504,11 +508,7 @@ describe('OverviewTab', () => {
 
   it('renders the Your balance section from the token balance, as in the legacy view', () => {
     const { getByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(getByTestId(OVERVIEW_TAB_BALANCE_TEST_ID)).toBeTruthy();
@@ -525,11 +525,7 @@ describe('OverviewTab', () => {
     } as never);
 
     const { queryByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(queryByTestId(OVERVIEW_TAB_BALANCE_TEST_ID)).toBeNull();
@@ -537,11 +533,7 @@ describe('OverviewTab', () => {
 
   it('renders the Token Details & Market Details section with copy-address tracking', () => {
     const { getByTestId } = render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(getByTestId(OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID)).toBeTruthy();
@@ -558,7 +550,6 @@ describe('OverviewTab', () => {
       <OverviewTab
         token={token}
         assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
         securityData={
           {
             created: '2024-01-01T00:00:00Z',
@@ -586,7 +577,6 @@ describe('OverviewTab', () => {
       <OverviewTab
         token={{ ...token, description: 'Pepe the frog' }}
         assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
         securityData={
           {
             created: '2024-01-01T00:00:00Z',

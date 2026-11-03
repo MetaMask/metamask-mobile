@@ -5,6 +5,7 @@ import {
   type CreateCopyTradeIntentOptions,
 } from '../../../../util/social/copyTradeIntent';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
+import { orderTypeHasExchangeOrderId } from './perpsPostTradeShare';
 
 const HYPERLIQUID_ARBITRUM_CAIP_CHAIN_ID = 'eip155:42161';
 
@@ -23,12 +24,7 @@ export const getCopyTradeOid = (
   orderType: OrderType,
   result: OrderResult | undefined,
 ): string | undefined => {
-  if (
-    !result ||
-    orderType === 'scale' ||
-    orderType === 'twap' ||
-    orderType === 'chase'
-  ) {
+  if (!result || !orderTypeHasExchangeOrderId(orderType)) {
     return undefined;
   }
   return typeof result.orderId === 'string' && result.orderId.length > 0

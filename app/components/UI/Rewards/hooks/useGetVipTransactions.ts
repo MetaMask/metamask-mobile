@@ -102,6 +102,7 @@ export const useGetVipTransactions = (
     fetchPage,
     onFirstPage,
     errorMessage: 'Failed to fetch transactions',
+    feature: 'rewards',
   });
 
   return {

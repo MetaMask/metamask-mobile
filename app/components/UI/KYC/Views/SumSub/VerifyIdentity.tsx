@@ -1,8 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -10,17 +13,18 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  ContentVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
   IconSize,
   ListItem,
+  ListItemVariant,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -28,11 +32,27 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import VbaIllustration, {
-  VbaIllustrationSource,
-} from '../../components/Illustration';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { buildKycBaseProperties } from '../../utils/kycBaseProperties';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  KYC_SCREEN_CONTENT_STATE,
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+  type KycScreenContentState,
+} from '../../kycScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+
+const trackIdentityTerms = (status: 'viewed' | 'accepted' | 'failed') =>
+  trackVbaEvent(MetaMetricsEvents.KYC_IDENTITY_TERMS_UPDATED, () => ({
+    ...buildKycBaseProperties(),
+    status,
+  }));
 
 const VERIFICATION_STEPS = [
   {
@@ -67,10 +87,26 @@ interface VbaVerifyIdentityProps {
  * agreeing there calls `onSuccess`.
  */
 const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
+
+  let identityTermsContentState: KycScreenContentState =
+    KYC_SCREEN_CONTENT_STATE.EMPTY;
+  if (error) {
+    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: KYC_SCREEN_PERFORMANCE_CONFIG,
+    screenId: KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+    contentReady: !isLoading,
+    contentState: identityTermsContentState,
+  });
 
   // The sheet can't open without the idOS / SumSub terms to review.
   const canContinue = !isLoading && !error && Boolean(disclaimers?.length);
@@ -82,6 +118,22 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
     });
   }, [navigation]);
 
+  useEffect(() => {
+    trackIdentityTerms('viewed');
+  }, []);
+
+  // Fires when the session terms fail to load, not on each render.
+  useEffect(() => {
+    if (error) {
+      trackIdentityTerms('failed');
+    }
+  }, [error]);
+
+  const handleAgree = useCallback(async () => {
+    trackIdentityTerms('accepted');
+    await onSuccess();
+  }, [onSuccess]);
+
   const openTermsSheet = useCallback(() => setIsTermsSheetOpen(true), []);
   const closeTermsSheet = useCallback(() => setIsTermsSheetOpen(false), []);
 
@@ -91,7 +143,9 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
         edges={['right', 'bottom', 'left']}
         style={tw.style('flex-1')}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           onBack={handleBack}
           backButtonProps={{
             testID: VbaVerifyIdentitySelectorsIDs.BACK_BUTTON,
@@ -102,46 +156,29 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
           contentContainerStyle={tw.style('flex-grow')}
           testID={VbaVerifyIdentitySelectorsIDs.CONTAINER}
         >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.End}
-            twClassName="h-[88px] w-full"
-          >
-            <VbaIllustration source={VbaIllustrationSource.scanner} />
-          </Box>
-          <Box twClassName="gap-2 p-4">
-            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-              {strings('virtual_bank_account.verify_identity.title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Regular}
-              color={TextColor.TextAlternative}
-              twClassName="text-center"
-            >
-              {strings('virtual_bank_account.verify_identity.description')}
-            </Text>
-          </Box>
-          <Box twClassName="px-4 py-2.5">
-            <Box twClassName="overflow-hidden rounded-3xl bg-muted">
-              {VERIFICATION_STEPS.map((step) => (
-                <ListItem
-                  key={step.id}
-                  variant={ContentVariant.OneLine}
-                  twClassName="min-h-14"
-                  startAccessory={
-                    <Icon
-                      name={step.icon}
-                      size={IconSize.Md}
-                      color={IconColor.IconDefault}
-                    />
-                  }
-                  accessoryGap={3}
-                  title={strings(step.title)}
-                  testID={`${VbaVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
-                />
-              ))}
-            </Box>
+          <TitleStandard
+            title={strings('virtual_bank_account.verify_identity.title')}
+            bottomLabel={strings(
+              'virtual_bank_account.verify_identity.description',
+            )}
+            twClassName="px-4 pb-4"
+          />
+          <Box>
+            {VERIFICATION_STEPS.map((step) => (
+              <ListItem
+                key={step.id}
+                variant={ListItemVariant.OneLine}
+                avatar={
+                  <AvatarIcon
+                    iconName={step.icon}
+                    severity={AvatarIconSeverity.Neutral}
+                    size={AvatarIconSize.Lg}
+                  />
+                }
+                title={strings(step.title)}
+                testID={`${VbaVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
+              />
+            ))}
           </Box>
         </ScrollView>
 
@@ -165,17 +202,15 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
                 {strings(
                   'virtual_bank_account.verify_identity.disclaimers_error',
                 )}{' '}
-                <Text
+                <TextButton
                   variant={TextVariant.BodySm}
-                  color={TextColor.PrimaryDefault}
-                  twClassName="underline"
                   onPress={retry}
                   testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY}
                 >
                   {strings(
                     'virtual_bank_account.verify_identity.disclaimers_retry',
                   )}
-                </Text>
+                </TextButton>
               </Text>
             </Box>
           ) : null}
@@ -219,7 +254,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
       {isTermsSheetOpen && disclaimers ? (
         <VbaProviderTermsSheet
           disclaimers={disclaimers}
-          onAgree={onSuccess}
+          onAgree={handleAgree}
           onClose={closeTermsSheet}
         />
       ) : null}

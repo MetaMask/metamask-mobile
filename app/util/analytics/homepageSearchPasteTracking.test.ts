@@ -22,4 +22,18 @@ describe('trackHomepageSearchPaste', () => {
       }),
     );
   });
+
+  it('adds the search session id when the paste happens inside a search session', () => {
+    trackHomepageSearchPaste('search-session-id');
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: {
+          interaction_type: 'paste',
+          entry_point: 'home',
+          search_session_id: 'search-session-id',
+        },
+      }),
+    );
+  });
 });

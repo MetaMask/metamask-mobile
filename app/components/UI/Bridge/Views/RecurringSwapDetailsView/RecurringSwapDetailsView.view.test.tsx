@@ -27,7 +27,7 @@ const ADD_FUNDS_BUTTON_LABEL = strings('wallet.add_funds');
 
 function getRequiredTxHash(swap: RecurringSwap): string {
   if (!swap.txHash) {
-    throw new Error(`Expected swap ${swap.swapId} to have a transaction hash`);
+    throw new Error(`Expected swap ${swap.id} to have a transaction hash`);
   }
 
   return swap.txHash;
@@ -46,7 +46,7 @@ async function openSwapDetails(swapIndex: number) {
 
   await userEvent.press(
     await renderResult.findByTestId(
-      RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId),
+      RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.id),
     ),
   );
   await renderResult.findByTestId(RecurringSwapDetailsViewSelectorsIDs.SCREEN);
@@ -67,10 +67,10 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
   it('shows filled swap details and returns to the order', async () => {
     const { renderResult, swap } = await openSwapDetails(0);
     const expectedDate = formatTimestampToDateTime(
-      Date.parse(swap.executedAt ?? swap.scheduledAt),
+      Date.parse(swap.timingData.executedAt ?? swap.timingData.scheduledAt),
     );
     if (!expectedDate) {
-      throw new Error(`Expected swap ${swap.swapId} to have a valid date`);
+      throw new Error(`Expected swap ${swap.id} to have a valid date`);
     }
 
     expect(
@@ -140,6 +140,9 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
 
   it('shows failed on-chain swap details', async () => {
     const { renderResult, swap } = await openSwapDetails(4);
+    if (!swap.failureReason) {
+      throw new Error(`Expected swap ${swap.id} to have a failure reason`);
+    }
 
     expect(
       within(
@@ -155,6 +158,13 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     ).toHaveTextContent(renderShortAddress(getRequiredTxHash(swap)), {
       exact: false,
     });
+    expect(
+      within(
+        renderResult.getByTestId(
+          RecurringSwapDetailsViewSelectorsIDs.REASON_ROW,
+        ),
+      ).getByText(swap.failureReason),
+    ).toBeOnTheScreen();
     expect(
       renderResult.getByText(BLOCK_EXPLORER_BUTTON_LABEL),
     ).toBeOnTheScreen();
@@ -249,9 +259,11 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     const insufficientBalanceSwap = MOCK_RECURRING_OPEN_ORDER_SWAPS[2];
     const successfulSwapAfter = {
       ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
-      swapId: `${MOCK_RECURRING_OPEN_ORDER.orderId}-success-after-skip`,
-      scheduledAt: '2026-09-04T13:00:00.000Z',
-      executedAt: '2026-09-04T13:00:00.000Z',
+      id: `${MOCK_RECURRING_OPEN_ORDER.id}-success-after-skip`,
+      timingData: {
+        scheduledAt: '2026-09-04T13:00:00.000Z',
+        executedAt: '2026-09-04T13:00:00.000Z',
+      },
     };
     setupRecurringOrdersDataServiceMock({
       recurringSwaps: async () => ({

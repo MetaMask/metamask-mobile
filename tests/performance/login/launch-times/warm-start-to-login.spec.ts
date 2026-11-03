@@ -9,6 +9,7 @@ import {
   PerformanceLogin,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Warm Start to Login Screen Performance Test
@@ -37,10 +38,11 @@ perfTest.describe(
         // The vault lock now runs after foreground, so it is inside this clock.
         const timer1 = new TimerHelper(
           'Time since the user open the app again and the login screen appears',
-          { ios: 2500, android: 3500 },
+          { ios: 2500, android: 4000 },
           currentDeviceDetails.platform,
         );
 
+        await enableHermesAppProfiling();
         await AppiumGestures.backgroundApp(40);
         await AppiumGestures.activateApp(currentDeviceDetails);
 

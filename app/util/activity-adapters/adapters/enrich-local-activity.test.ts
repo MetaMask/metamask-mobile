@@ -1,4 +1,7 @@
 import { mapLocalTransaction } from '@metamask/client-utils';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { Interface } from '@ethersproject/abi';
+import { abiERC20, abiERC721, abiERC1155 } from '@metamask/metamask-eth-abis';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { ActivityListItem } from '../types';
 import type { TransactionGroup } from './transaction-group';
@@ -6,6 +9,7 @@ import {
   enrichLocalActivity,
   prepareLocalTransactionGroup,
 } from './enrich-local-activity';
+import { mobileActivityAdapterEnvironment } from './environment';
 import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -45,6 +49,7 @@ const buildGroup = (
 
 const mapLocalActivity = (
   transactionGroup: TransactionGroup,
+  environment = mobileActivityAdapterEnvironment,
 ): ActivityListItem => {
   const prepared = prepareLocalTransactionGroup(transactionGroup);
 
@@ -53,6 +58,7 @@ const mapLocalActivity = (
       prepared as Parameters<typeof mapLocalTransaction>[0],
     ) as ActivityListItem,
     prepared,
+    environment,
   );
 };
 
@@ -66,6 +72,153 @@ describe('local activity call-site mapping', () => {
       chainId: 'eip155:1',
       status: 'success',
       data: { from, to },
+    });
+  });
+
+  it('maps an ERC-1155 send quantity and preserves its NFT asset type', () => {
+    const data = new Interface(abiERC1155).encodeFunctionData(
+      'safeTransferFrom',
+      [from, to, 57, 1, '0x'],
+    );
+    const item = mapLocalActivity(
+      buildGroup({
+        type: TransactionType.tokenMethodSafeTransferFrom,
+        txParams: {
+          from,
+          to: '0x3333333333333333333333333333333333333333',
+          value: '0x0',
+          data,
+        },
+      }),
+    );
+
+    expect(item).toMatchObject({
+      type: 'send',
+      data: {
+        to,
+        token: {
+          amount: '1',
+          assetId:
+            'eip155:1/erc1155:0x3333333333333333333333333333333333333333/57',
+          assetType: 'erc1155',
+          direction: 'out',
+        },
+      },
+    });
+  });
+
+  it.each(['_value', 'value', 'amount'] as const)(
+    'maps ERC-1155 quantity from the %s argument',
+    (quantityArgument) => {
+      const quantity = 3;
+      const data = '0x12345678';
+      const item = mapLocalActivity(
+        buildGroup({
+          type: TransactionType.tokenMethodSafeTransferFrom,
+          txParams: {
+            from,
+            to: '0x3333333333333333333333333333333333333333',
+            value: '0x0',
+            data,
+          },
+        }),
+        {
+          ...mobileActivityAdapterEnvironment,
+          parseStandardTokenTransactionData: () => ({
+            name: 'safeTransferFrom',
+            args: {
+              _to: to,
+              id: 57,
+              [quantityArgument]: quantity,
+            },
+          }),
+        },
+      );
+
+      expect(item).toMatchObject({
+        type: 'send',
+        data: {
+          to,
+          token: {
+            amount: String(quantity),
+            assetType: 'erc1155',
+            direction: 'out',
+          },
+        },
+      });
+    },
+  );
+
+  it('maps a MetaMask ERC-721 transferFrom as one NFT', () => {
+    const data = new Interface(abiERC721).encodeFunctionData('transferFrom', [
+      from,
+      to,
+      57,
+    ]);
+    const item = mapLocalActivity(
+      buildGroup({
+        origin: ORIGIN_METAMASK,
+        type: TransactionType.tokenMethodTransferFrom,
+        txParams: {
+          from,
+          to: '0x3333333333333333333333333333333333333333',
+          value: '0x0',
+          data,
+        },
+      }),
+    );
+
+    expect(item).toMatchObject({
+      type: 'send',
+      data: {
+        to,
+        token: {
+          amount: '1',
+          assetType: 'erc721',
+          direction: 'out',
+        },
+      },
+    });
+  });
+
+  it('keeps external ERC-20 transferFrom activity classified as ERC-20', () => {
+    const tokenContract = '0x3333333333333333333333333333333333333333';
+    const data = new Interface(abiERC20).encodeFunctionData('transferFrom', [
+      from,
+      to,
+      1_000_000,
+    ]);
+    const item = mapLocalActivity(
+      buildGroup({
+        origin: 'https://example.test',
+        type: TransactionType.tokenMethodTransferFrom,
+        txParams: {
+          from,
+          to: tokenContract,
+          value: '0x0',
+          data,
+        },
+        transferInformation: {
+          amount: '1000000',
+          contractAddress: tokenContract,
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      }),
+    );
+
+    expect(item).toMatchObject({
+      type: 'send',
+      data: {
+        to,
+        token: {
+          amount: '1000000',
+          assetType: 'erc20',
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
     });
   });
 

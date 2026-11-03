@@ -13,6 +13,7 @@ import {
   selectPerpsMoneyAccountNoFeeRouteEnabled,
 } from '../../../../../../selectors/featureFlagController/confirmations';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import {
   usePayWithMoneyAccountSection,
@@ -35,11 +36,13 @@ jest.mock('../../../../../../../locales/i18n', () => ({
         params?.balance ?? ''
       } available`,
       'confirm.pay_with_bottom_sheet.money_account': 'Money account',
+      'confirm.pay_with_bottom_sheet.no_deposit_fee': 'No deposit fee',
     };
     return translations[key] ?? key;
   },
 }));
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
+jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy');
 jest.mock('../../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -53,6 +56,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 describe('usePayWithMoneyAccountSection', () => {
   const useSelectorMock = jest.mocked(useSelector);
   const useMoneyAccountBalanceMock = jest.mocked(useMoneyAccountBalance);
+  const useMoneyVaultApyMock = jest.mocked(useMoneyVaultApy);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -97,6 +101,10 @@ describe('usePayWithMoneyAccountSection', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       withdrawableFiatFormatted: '$100.00',
       withdrawableMusd: new BigNumber(100),
+    } as never);
+
+    useMoneyVaultApyMock.mockReturnValue({
+      apyPercent: 4,
     } as never);
   });
 
@@ -418,75 +426,141 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBe(firstResult);
   });
 
-  describe('perps deposit no-fee tag', () => {
-    function mockNoFeeRoute(enabled: boolean) {
-      useSelectorMock.mockImplementation((selector) => {
-        if (selector === selectPrimaryMoneyAccount) {
-          return moneyAccountMock;
-        }
-        if (selector === selectMetaMaskPayFlags) {
-          return {
-            enableMoneyAccountTransactions: {
-              perpsDeposit: true,
-              perpsDepositAndOrder: true,
-              perpsWithdraw: true,
-              predictDeposit: true,
-            },
-          };
-        }
-        if (selector === selectPerpsMoneyAccountNoFeeRouteEnabled) {
-          return enabled;
-        }
-        return undefined;
-      });
-    }
-
-    it.each([
-      TransactionType.perpsDeposit,
-      TransactionType.perpsDepositAndOrder,
-    ])(
-      'renders the no-fee tag on the money account row for %s when the fixed-spread route is listed',
-      (txType) => {
-        useTransactionMetadataRequestMock.mockReturnValue({
-          id: 'tx-1',
-          type: txType,
-          txParams: {},
-        } as never);
-        mockNoFeeRoute(true);
-
-        const { result } = renderHook(() => usePayWithMoneyAccountSection());
-        const tag = result.current?.rows[0].tagRenderers?.[0]?.();
-        const { getByTestId } = render(<>{tag}</>);
-
-        expect(
-          getByTestId(`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`),
-        ).toBeOnTheScreen();
-      },
-    );
-
-    it('omits the no-fee tag when the fixed-spread route is absent', () => {
-      mockNoFeeRoute(false);
+  describe('tag renderers', () => {
+    it('renders the APY tag when apyPercent is defined', () => {
+      useMoneyVaultApyMock.mockReturnValue({
+        apyPercent: 4,
+      } as never);
 
       const { result } = renderHook(() => usePayWithMoneyAccountSection());
+      const tag = result.current?.rows[0].tagRenderers?.[0]?.();
+      const { getByTestId } = render(<>{tag}</>);
 
+      expect(
+        getByTestId(`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-apy-tag`),
+      ).toBeOnTheScreen();
+    });
+
+    it('omits the APY tag when apyPercent is undefined', () => {
+      useMoneyVaultApyMock.mockReturnValue({
+        apyPercent: undefined,
+      } as never);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
       expect(result.current?.rows[0].tagRenderers).toBeUndefined();
     });
 
-    it.each([TransactionType.predictDeposit, TransactionType.perpsWithdraw])(
-      'omits the no-fee tag for %s even when the fixed-spread route is listed',
-      (txType) => {
+    describe('no deposit fee tag', () => {
+      function mockNoFeeRoute(enabled: boolean) {
+        useSelectorMock.mockImplementation((selector) => {
+          if (selector === selectPrimaryMoneyAccount) {
+            return moneyAccountMock;
+          }
+          if (selector === selectMetaMaskPayFlags) {
+            return {
+              enableMoneyAccountTransactions: {
+                perpsDeposit: true,
+                perpsDepositAndOrder: true,
+                perpsWithdraw: true,
+                predictDeposit: true,
+                predictDepositAndOrder: true,
+                predictWithdraw: true,
+              },
+            };
+          }
+          if (selector === selectPerpsMoneyAccountNoFeeRouteEnabled) {
+            return enabled;
+          }
+          return undefined;
+        });
+      }
+
+      it.each([
+        TransactionType.perpsDeposit,
+        TransactionType.perpsDepositAndOrder,
+      ])(
+        'renders the "no deposit fee" tag on the money account row for %s when the fixed-spread route is listed',
+        (txType) => {
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: 'tx-1',
+            type: txType,
+            txParams: {},
+          } as never);
+          useMoneyVaultApyMock.mockReturnValue({
+            apyPercent: undefined,
+          } as never);
+          mockNoFeeRoute(true);
+
+          const { result } = renderHook(() => usePayWithMoneyAccountSection());
+          const tag = result.current?.rows[0].tagRenderers?.[0]?.();
+          const { getByTestId, getByText } = render(<>{tag}</>);
+
+          expect(
+            getByTestId(`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`),
+          ).toBeOnTheScreen();
+          expect(getByText('No deposit fee')).toBeOnTheScreen();
+        },
+      );
+
+      it.each<[TransactionType, boolean]>([
+        [TransactionType.predictDeposit, true],
+        [TransactionType.predictDeposit, false],
+        [TransactionType.predictDepositAndOrder, true],
+        [TransactionType.predictDepositAndOrder, false],
+      ])(
+        'omits the tag for %s when the fixed-spread route is listed: %s',
+        (txType, routeEnabled) => {
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: 'tx-1',
+            type: txType,
+            txParams: {},
+          } as never);
+          useMoneyVaultApyMock.mockReturnValue({
+            apyPercent: undefined,
+          } as never);
+          mockNoFeeRoute(routeEnabled);
+
+          const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+          expect(result.current?.rows[0].tagRenderers).toBeUndefined();
+        },
+      );
+
+      it('omits the tag for perps when the fixed-spread route is absent', () => {
         useTransactionMetadataRequestMock.mockReturnValue({
           id: 'tx-1',
-          type: txType,
+          type: TransactionType.perpsDeposit,
           txParams: {},
         } as never);
-        mockNoFeeRoute(true);
+        useMoneyVaultApyMock.mockReturnValue({
+          apyPercent: undefined,
+        } as never);
+        mockNoFeeRoute(false);
 
         const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
         expect(result.current?.rows[0].tagRenderers).toBeUndefined();
-      },
-    );
+      });
+
+      it.each([TransactionType.perpsWithdraw, TransactionType.predictWithdraw])(
+        'omits the tag for %s even when the fixed-spread route is listed',
+        (txType) => {
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: 'tx-1',
+            type: txType,
+            txParams: {},
+          } as never);
+          useMoneyVaultApyMock.mockReturnValue({
+            apyPercent: undefined,
+          } as never);
+          mockNoFeeRoute(true);
+
+          const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+          expect(result.current?.rows[0].tagRenderers).toBeUndefined();
+        },
+      );
+    });
   });
 
   describe('handlePress', () => {

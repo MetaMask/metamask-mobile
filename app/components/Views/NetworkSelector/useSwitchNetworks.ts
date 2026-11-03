@@ -103,15 +103,6 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
-        (
-          SelectedNetworkController as typeof SelectedNetworkController & {
-            update: (
-              fn: (state: { activeDappNetwork: string | null }) => void,
-            ) => void;
-          }
-        ).update((state: { activeDappNetwork: string | null }) => {
-          state.activeDappNetwork = networkConfigurationId;
-        });
         dismissModal?.();
       } else {
         trace({
@@ -171,15 +162,6 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-        (
-          SelectedNetworkController as typeof SelectedNetworkController & {
-            update: (
-              fn: (state: { activeDappNetwork: string | null }) => void,
-            ) => void;
-          }
-        ).update((state: { activeDappNetwork: string | null }) => {
-          state.activeDappNetwork = type;
-        });
         dismissModal?.();
       } else {
         const networkConfiguration =

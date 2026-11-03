@@ -7,7 +7,7 @@ export interface PositionDetailsSheetParams {
   /** Snapshot from the tapped card. Renders immediately, no fetch fires. */
   position?: Position;
   author: SocialV1FeedAuthor;
-  /** Post message. Trades (Live trades) have none, so the section is hidden. */
+  /** Post message. Trades (Live) have none, so the section is hidden. */
   comment?: string;
   /** Authoritative open/closed flag from the caller, when it has one. */
   isClosed?: boolean;

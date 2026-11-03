@@ -14,7 +14,7 @@ import renderWithProvider, {
 import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
-import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
+import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
 import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
@@ -103,16 +103,6 @@ const OnboardingNavigator = () => (
   </OnboardingStack.Navigator>
 );
 
-const RampNavigator = () => (
-  <RampStack.Navigator screenOptions={{ headerShown: false }}>
-    <RampStack.Screen
-      name={Routes.RAMP.VBA_ONBOARDING}
-      component={OnboardingNavigator}
-    />
-    <RampStack.Screen name={Routes.RAMP.VBA_DETAILS} component={detailsProbe} />
-  </RampStack.Navigator>
-);
-
 const MoneyHomeNavigator = () => (
   <MoneyHomeStack.Navigator screenOptions={{ headerShown: false }}>
     <MoneyHomeStack.Screen
@@ -129,6 +119,20 @@ const MoneyRootNavigator = () => (
       component={MoneyHomeNavigator}
     />
   </MoneyRootStack.Navigator>
+);
+
+const RampNavigator = () => (
+  <RampStack.Navigator
+    initialRouteName={Routes.RAMP.VBA_ONBOARDING}
+    screenOptions={{ headerShown: false }}
+  >
+    <RampStack.Screen name={Routes.HOME_TABS} component={MoneyRootNavigator} />
+    <RampStack.Screen
+      name={Routes.RAMP.VBA_ONBOARDING}
+      component={OnboardingNavigator}
+    />
+    <RampStack.Screen name={Routes.RAMP.VBA_DETAILS} component={detailsProbe} />
+  </RampStack.Navigator>
 );
 
 const PendingWithHistory = () => (
@@ -191,7 +195,7 @@ const hydratedSnapshot = (
 });
 
 const buildKycState = (session: KycSession) =>
-  initialStateWallet()
+  initialStateVba()
     .withOverrides({
       engine: {
         backgroundState: {

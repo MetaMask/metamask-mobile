@@ -21,7 +21,6 @@ import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
 import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
 import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
-import { selectIsStellarAccountsEnabled } from '../featureFlagController/stellarAccountsEnabled';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController ??
@@ -51,17 +50,15 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     selectMultichainNetworkControllerState,
     selectIsSolanaTestnetEnabled,
     selectIsBitcoinTestnetEnabled,
-    selectIsStellarAccountsEnabled,
   ],
   (
     multichainNetworkControllerState: MultichainNetworkControllerState,
     isSolanaTestnetEnabled: Json,
     isBitcoinTestnetEnabled: Json,
-    selectIsStellarAccountsEnabled: Json,
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
     const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
-    const isStellarAccountsEnabled = Boolean(selectIsStellarAccountsEnabled);
+
     const extendedNonEvmData: Record<
       CaipChainId,
       {
@@ -157,7 +154,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       // TODO: Uncomment these when we have a FF to enable them
       // TrxScope.Nile,
       // TrxScope.Shasta,
-      ...(isStellarAccountsEnabled ? [XlmScope.Pubnet] : []),
+      XlmScope.Pubnet,
     ];
 
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyTransferSheet from './MoneyTransferSheet';
@@ -43,7 +43,7 @@ const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
-// Default: liquid balance unavailable (row stays Coming soon).
+// Default: liquid balance unavailable (row is hidden).
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as unknown as jest.Mock;
 mockUseMoneyAccountBalance.mockReturnValue({
@@ -160,7 +160,9 @@ describe('MoneyTransferSheet', () => {
   });
 
   it('renders all five list items', () => {
-    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyTransferSheet />,
+    );
 
     expect(
       getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
@@ -172,20 +174,20 @@ describe('MoneyTransferSheet', () => {
       getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-    ).toBeOnTheScreen();
-    expect(
       getByTestId(MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW),
     ).toBeOnTheScreen();
   });
 
-  it('renders "Coming soon" tags on the last two items when liquid mUSD is unavailable', () => {
-    const { getAllByText } = renderWithProvider(<MoneyTransferSheet />);
-
-    const comingSoonTags = getAllByText(
-      strings('money.add_money_sheet.coming_soon'),
+  it('renders "Coming soon" for withdraw to bank option', () => {
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+    const withdrawOption = getByTestId(
+      MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW,
     );
-    expect(comingSoonTags).toHaveLength(2);
+    expect(
+      within(withdrawOption).getByText(
+        strings('money.add_money_sheet.coming_soon'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   describe('mUSD rescue send row', () => {
@@ -217,62 +219,62 @@ describe('MoneyTransferSheet', () => {
       ).toBeEnabled();
     });
 
-    it('keeps the row disabled when liquid mUSD is zero', () => {
+    it('hides the row when liquid mUSD is zero', () => {
       setupMoneyBalance({ liquidMusd: '0' });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
-    it('keeps the row disabled for a vmUSD-only balance (liquid zero)', () => {
+    it('hides the row for a vmUSD-only balance (liquid zero)', () => {
       setupMoneyBalance({ liquidMusd: '0', withdrawableMusd: '25' });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
-    it('keeps the row disabled when vmUSD-backed balance is nonzero', () => {
+    it('hides the row when vmUSD-backed balance is nonzero', () => {
       setupMoneyBalance({ liquidMusd: '99', withdrawableMusd: '0.01' });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
-    it('keeps the row disabled while the balance is loading', () => {
+    it('hides the row while the balance is loading', () => {
       setupMoneyBalance({
         liquidMusd: undefined,
         withdrawableMusd: undefined,
         isLoading: true,
       });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
-    it('keeps the row disabled on a balance fetch error', () => {
+    it('hides the row on a balance fetch error', () => {
       setupMoneyBalance({
         liquidMusd: undefined,
         withdrawableMusd: undefined,
         isError: true,
       });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
     it('navigates to the rescue review screen when enabled and pressed', () => {

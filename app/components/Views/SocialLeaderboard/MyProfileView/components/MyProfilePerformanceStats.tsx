@@ -8,7 +8,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
-import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import type {
@@ -54,12 +53,10 @@ const chunkPairs = (cells: PerformanceCell[]): PerformanceCell[][] => {
 
 interface MyProfilePerformanceStatsProps {
   cells: PerformanceCell[];
-  onPress?: () => void;
 }
 
 const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
   cells,
-  onPress,
 }) => {
   if (cells.length === 0) {
     return null;
@@ -67,59 +64,48 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
 
   return (
     <Box>
-      <SectionDivider marginVertical={4} />
-      <Pressable
-        onPress={onPress}
-        disabled={!onPress}
-        accessibilityRole={onPress ? 'button' : undefined}
-        accessibilityLabel={
-          onPress
-            ? strings(
-                'social_leaderboard.trader_profile.stats_sheet_accessibility_label',
-              )
-            : undefined
-        }
+      <SectionDivider marginVertical={6} />
+      <Box
+        twClassName="px-4"
         testID={MyProfileViewSelectorsIDs.PERFORMANCE_SECTION}
       >
-        <Box twClassName="px-4">
-          <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-            {strings('social_leaderboard.my_profile.performance_30d')}
-          </Text>
-          <Box gap={2} twClassName="py-3">
-            {chunkPairs(cells).map((row) => (
-              <Box
-                key={row.map((cell) => cell.id).join('-')}
-                flexDirection={BoxFlexDirection.Row}
-                gap={4}
-              >
-                {row.map((cell) => (
-                  <Box key={cell.id} twClassName="flex-1 min-w-0 gap-0.5">
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      numberOfLines={1}
-                    >
-                      {strings(CELL_CONFIG[cell.id].labelKey)}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                      twClassName={TONE_CLASS[cell.tone]}
-                      numberOfLines={1}
-                      testID={CELL_CONFIG[cell.id].testID}
-                    >
-                      {cell.value}
-                    </Text>
-                  </Box>
-                ))}
-                {row.length === 1 ? <Box twClassName="flex-1" /> : null}
-              </Box>
-            ))}
-          </Box>
+        <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+          {strings('social_leaderboard.my_profile.performance_30d')}
+        </Text>
+        <Box gap={2} twClassName="pt-3">
+          {chunkPairs(cells).map((row) => (
+            <Box
+              key={row.map((cell) => cell.id).join('-')}
+              flexDirection={BoxFlexDirection.Row}
+              gap={4}
+            >
+              {row.map((cell) => (
+                <Box key={cell.id} twClassName="flex-1 min-w-0 gap-0.5">
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                    numberOfLines={1}
+                  >
+                    {strings(CELL_CONFIG[cell.id].labelKey)}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    twClassName={TONE_CLASS[cell.tone]}
+                    numberOfLines={1}
+                    testID={CELL_CONFIG[cell.id].testID}
+                  >
+                    {cell.value}
+                  </Text>
+                </Box>
+              ))}
+              {row.length === 1 ? <Box twClassName="flex-1" /> : null}
+            </Box>
+          ))}
         </Box>
-      </Pressable>
-      <SectionDivider marginVertical={4} />
+      </Box>
+      <SectionDivider marginVertical={0} twClassName="mt-6" />
     </Box>
   );
 };

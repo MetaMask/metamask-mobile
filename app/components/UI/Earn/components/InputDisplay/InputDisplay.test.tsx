@@ -1,6 +1,7 @@
 import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import InputDisplay, { INPUT_DISPLAY_TEST_IDS, InputDisplayProps } from '.';
+import InputDisplay, { InputDisplayProps } from '.';
+import { INPUT_DISPLAY_TEST_IDS } from './InputDisplay.testIds';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -50,10 +51,6 @@ jest.mock('../../hooks/useEarnTokens', () => () => ({
     isETH: true,
     isNative: true,
   })),
-}));
-
-jest.mock('../../selectors/featureFlags', () => ({
-  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockToken = {
@@ -139,15 +136,15 @@ describe('InputDisplay', () => {
     getByText('Not enough ETH');
   });
 
-  it('displays amount in fiat when isFiat is true', () => {
+  it('exposes the fiat amount and unit as a combined text label', () => {
     const props = { ...defaultProps, isFiat: true };
-    const { getByText } = renderComponent(props);
-    expect(getByText('1000')).toBeTruthy();
-    expect(getByText('USD')).toBeTruthy();
+    const { getByRole } = renderComponent(props);
+
+    expect(getByRole('text', { name: '1000 USD' })).toBeOnTheScreen();
   });
 
-  it('displays amount in token when isFiat is false', () => {
-    const { getByText } = renderComponent({
+  it('exposes the token amount and unit as a combined text label', () => {
+    const { getByRole } = renderComponent({
       ...defaultProps,
       isFiat: false,
       asset: {
@@ -157,8 +154,22 @@ describe('InputDisplay', () => {
         name: 'USD Coin',
       },
     });
-    expect(getByText('50')).toBeTruthy();
-    expect(getByText('USDC')).toBeTruthy();
+
+    expect(getByRole('text', { name: '50 USDC' })).toBeOnTheScreen();
+  });
+
+  it('exposes and activates the amount row as a labeled button', () => {
+    const onPressAmount = jest.fn();
+    const { getByRole } = renderComponent({
+      ...defaultProps,
+      onPressAmount,
+    });
+    const amountButton = getByRole('button', { name: '50 ETH' });
+
+    fireEvent.press(amountButton);
+
+    expect(amountButton).toBeOnTheScreen();
+    expect(onPressAmount).toHaveBeenCalledTimes(1);
   });
 
   it('calls handleCurrencySwitch when currency toggle is pressed', () => {

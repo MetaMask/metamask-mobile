@@ -550,7 +550,7 @@ test('the Monday report lists the GitHub issues opened during the week', () => {
   assert.match(slack, /\*GitHub issues opened this week:\* 2 \(1 still open\)/);
   assert.match(
     slack,
-    /• <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/700\|#700> Measure Warm Start: Warm Start to Login Screen — JS work 20\.4 s vs 12\.2 s recent median \(1\.68×\) in run 36676470722 · owner metamask-mobile-platform · open, flagged 2 more times since/,
+    /• <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/700\|#700> Measure Warm Start: Warm Start to Login Screen — JS work 20\.4 s vs 12\.2 s recent baseline \(1\.68×\) in run 36676470722 · owner metamask-mobile-platform · open, flagged 2 more times since/,
   );
   assert.match(
     slack,

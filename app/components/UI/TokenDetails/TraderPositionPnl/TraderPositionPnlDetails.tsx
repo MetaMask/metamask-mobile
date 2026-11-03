@@ -6,6 +6,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   IconName,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
@@ -27,6 +28,7 @@ interface DetailRowProps {
   value: string;
   valueColor?: TextColor;
   testID: string;
+  twClassName?: string;
 }
 
 const getPnlColor = (value: string): TextColor | undefined => {
@@ -44,12 +46,13 @@ const DetailRow: React.FC<DetailRowProps> = ({
   value,
   valueColor,
   testID,
+  twClassName,
 }) => (
   <Box
     testID={testID}
     flexDirection={BoxFlexDirection.Row}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="py-1"
+    twClassName={twClassName ? `py-1 ${twClassName}` : 'py-1'}
   >
     <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
       {label}
@@ -87,7 +90,14 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
       >
         {strings('asset_overview.position_pnl.share_to_feed')}
       </Button>
-    ) : null}
+    ) : (
+      // When sharing is unavailable (social flag/A-B/position all absent) there
+      // is no button to separate the position header from the details, so show
+      // a divider in its place instead (ASSETS-4183). `marginVertical` is a
+      // Tailwind spacing step (my-2 = 8px); combined with the 12px from the
+      // parent `gap-3` / header margin, the rule gets ~20px above and below.
+      <SectionDivider marginVertical={2} testID={`${testID}-divider`} />
+    )}
     <Box twClassName="gap-1">
       <DetailRow
         testID={`${testID}-average-cost`}
@@ -110,6 +120,7 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
         testID={`${testID}-hold-time`}
         label={strings('asset_overview.position_pnl.hold_time')}
         value={holdTime}
+        twClassName="mb-2"
       />
     </Box>
   </Box>

@@ -34,7 +34,7 @@ import {
   PERPS_EVENT_VALUE,
   type Position,
 } from '@metamask/perps-controller';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -42,10 +42,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Modal, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { useStyles } from '../../../../../component-library/hooks';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
+import type { Theme } from '../../../../../util/theme/models';
 import {
   ImpactMoment,
   playImpact,
@@ -58,6 +62,7 @@ import { PerpsAdjustMarginBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { usePerpsFreshRemovalLimit } from '../../hooks/usePerpsFreshRemovalLimit';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
@@ -67,6 +72,7 @@ import {
 } from '../../utils/formatUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
   PerpsInlineInfoScreen,
   type PerpsInlineInfoContentKey,
@@ -76,6 +82,9 @@ export type PerpsAdjustMarginMode = 'add' | 'remove';
 
 const isAdjustMarginMode = (value: string): value is PerpsAdjustMarginMode =>
   value === 'add' || value === 'remove';
+
+/** Deposit analytics location for the add-margin sheet entry point. */
+const ADD_MARGIN_DEPOSIT_BUTTON_LOCATION = 'add_margin';
 
 interface PerpsAdjustMarginBottomSheetProps {
   position: Position;
@@ -99,6 +108,14 @@ const floorUsd = (value: number) => Math.floor(value * 100) / 100;
  */
 const HEADER_PRICE_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
+const styleSheet = ({ theme }: { theme: Theme }) =>
+  StyleSheet.create({
+    depositCover: {
+      backgroundColor: theme.colors.background.default,
+      zIndex: 2,
+    },
+  });
+
 const formatLiquidationDistance = (
   distance: number,
   liquidationPrice: number,
@@ -120,7 +137,15 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   PerpsAdjustMarginBottomSheetProps
 > = ({ position: routePosition, initialMode, enableHaptics = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { styles } = useStyles(styleSheet);
   const sheetRef = useRef<BottomSheetRef>(null);
+  const [isDepositCoverVisible, setIsDepositCoverVisible] = useState(false);
+  const { handleAddFunds, isEligibilityModalVisible, closeEligibilityModal } =
+    usePerpsHomeActions({
+      buttonLocation: ADD_MARGIN_DEPOSIT_BUTTON_LOCATION,
+      openConfirmationInPlace: true,
+      onBeforeOpenConfirmation: () => setIsDepositCoverVisible(true),
+    });
   const submittedEstimateRef = useRef<SubmittedEstimate | null>(null);
   const hasNavigatedBackRef = useRef(false);
   const { fireImpact: fireHapticImpact } = useHaptics();
@@ -144,6 +169,14 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     sheetRef.current?.onOpenBottomSheet();
   }, []);
 
+  // The cover stays up while the deposit confirmation is open, then comes off
+  // when this sheet is focused again.
+  useFocusEffect(
+    useCallback(() => {
+      setIsDepositCoverVisible(false);
+    }, []),
+  );
+
   const handleNavigationGoBack = useCallback(() => {
     if (hasNavigatedBackRef.current) {
       return;
@@ -155,6 +188,12 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(handleNavigationGoBack);
   }, [handleNavigationGoBack]);
+
+  // Keep this screen mounted under the deposit confirmation. Closing first
+  // would unmount the deposit prep session and cancel the deposit.
+  const handleDepositPress = useCallback(() => {
+    handleAddFunds().catch(() => undefined);
+  }, [handleAddFunds]);
 
   const marginAmount = useMemo(() => {
     const parsedAmount = Number.parseFloat(marginAmountString);
@@ -501,268 +540,315 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   }
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={handleNavigationGoBack}
-      testID={PerpsAdjustMarginBottomSheetSelectorsIDs.CONTAINER}
-    >
-      <HeaderSubpage
-        twClassName="h-16 min-h-[64px] px-4"
-        accessoryGap={2}
-        title={strings('perps.adjust_margin.edit_title')}
-        titleProps={{
-          variant: TextVariant.HeadingSm,
-          // `Bold` resolves to Inter-SemiBold, matching the design's Heading/Sm.
-          fontWeight: FontWeight.Bold,
-          accessibilityRole: 'header',
-        }}
-        description={
-          isHeaderPriceLoading ? (
-            <Skeleton
-              testID={PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON}
-              width={112}
-              height={HEADER_PRICE_SKELETON_HEIGHT}
-            />
-          ) : (
-            <LivePriceHeader
-              symbol={routePosition.symbol}
-              currentPrice={currentPrice}
-              percentChange24h={percentChange24h}
-              testIDPrice={
-                PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE
-              }
-              testIDChange={
-                PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_CHANGE
-              }
-            />
-          )
-        }
-        endAccessory={
-          <SegmentedControl
-            accessible={false}
-            value={mode}
-            onChange={handleModeChange}
-            size={ButtonBaseSize.Sm}
-            testID={PerpsAdjustMarginBottomSheetSelectorsIDs.MODE_TOGGLE}
-          >
-            <FilterButton
-              value="add"
-              disabled={isAdjusting}
-              startIconName={IconName.Add}
-              testID={PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_MODE_BUTTON}
+    <>
+      <BottomSheet
+        ref={sheetRef}
+        goBack={handleNavigationGoBack}
+        testID={PerpsAdjustMarginBottomSheetSelectorsIDs.CONTAINER}
+      >
+        <HeaderSubpage
+          twClassName="h-16 min-h-[64px] px-4"
+          accessoryGap={2}
+          title={strings('perps.adjust_margin.edit_title')}
+          titleProps={{
+            variant: TextVariant.HeadingSm,
+            // `Bold` resolves to Inter-SemiBold, matching the design's Heading/Sm.
+            fontWeight: FontWeight.Bold,
+            accessibilityRole: 'header',
+          }}
+          description={
+            isHeaderPriceLoading ? (
+              <Skeleton
+                testID={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON
+                }
+                width={112}
+                height={HEADER_PRICE_SKELETON_HEIGHT}
+              />
+            ) : (
+              <LivePriceHeader
+                symbol={routePosition.symbol}
+                currentPrice={currentPrice}
+                percentChange24h={percentChange24h}
+                testIDPrice={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE
+                }
+                testIDChange={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_CHANGE
+                }
+              />
+            )
+          }
+          endAccessory={
+            <SegmentedControl
+              accessible={false}
+              value={mode}
+              onChange={handleModeChange}
+              size={ButtonBaseSize.Sm}
+              testID={PerpsAdjustMarginBottomSheetSelectorsIDs.MODE_TOGGLE}
             >
-              {strings('perps.adjust_margin.add_toggle')}
-            </FilterButton>
-            <FilterButton
-              value="remove"
-              disabled={isAdjusting}
-              startIconName={IconName.Minus}
-              testID={
-                PerpsAdjustMarginBottomSheetSelectorsIDs.REMOVE_MODE_BUTTON
+              <FilterButton
+                value="add"
+                disabled={isAdjusting}
+                startIconName={IconName.Add}
+                testID={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_MODE_BUTTON
+                }
+              >
+                {strings('perps.adjust_margin.add_toggle')}
+              </FilterButton>
+              <FilterButton
+                value="remove"
+                disabled={isAdjusting}
+                startIconName={IconName.Minus}
+                testID={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.REMOVE_MODE_BUTTON
+                }
+              >
+                {strings('perps.adjust_margin.remove_toggle')}
+              </FilterButton>
+            </SegmentedControl>
+          }
+        />
+
+        <Box accessible={false} twClassName="gap-4 py-3">
+          <Box accessible={false} twClassName="gap-4 px-4">
+            <PerpsAmountDisplay
+              variant="tradeSheet"
+              amount={marginAmountString}
+              onPress={
+                hasNoRemovableMargin ? undefined : () => setIsInputFocused(true)
               }
-            >
-              {strings('perps.adjust_margin.remove_toggle')}
-            </FilterButton>
-          </SegmentedControl>
-        }
-      />
+              isActive={isInputFocused}
+              hasError={Boolean(validationError)}
+              isLoading={isLoading}
+              showMaxAmount={false}
+              accessibilityLabel={`${strings(
+                'perps.adjust_margin.amount_accessibility_label',
+              )}, ${marginAmountString}`}
+            />
 
-      <Box accessible={false} twClassName="gap-4 py-3">
-        <Box accessible={false} twClassName="gap-4 px-4">
-          <PerpsAmountDisplay
-            variant="tradeSheet"
-            amount={marginAmountString}
-            onPress={
-              hasNoRemovableMargin ? undefined : () => setIsInputFocused(true)
-            }
-            isActive={isInputFocused}
-            hasError={Boolean(validationError)}
-            isLoading={isLoading}
-            showMaxAmount={false}
-            accessibilityLabel={`${strings(
-              'perps.adjust_margin.amount_accessibility_label',
-            )}, ${marginAmountString}`}
-          />
+            {!isInputFocused && (
+              <Slider
+                // Remount on mode change so the thumb returns to 0. The slider
+                // ignores an incoming value that matches one of its own recent
+                // drag positions, treating it as a stale echo, so a drag that
+                // passed through 0 would otherwise leave the thumb in place.
+                key={mode}
+                value={sliderPercentage}
+                onValueChange={handleSliderChange}
+                minimumValue={0}
+                maximumValue={100}
+                step={1}
+                // Keeps the track inset at the design's 8px within the 16px
+                // content padding while leaving room for the thumb overhang.
+                trackInset={8}
+                showRangeLabels
+                showRangeDots
+                isDisabled={isAdjusting || hasNoRemovableMargin}
+                onGrip={() => playImpact(ImpactMoment.SliderGrip)}
+                onMark={() => playImpact(ImpactMoment.SliderTick)}
+                accessibilityLabel={strings(
+                  'perps.adjust_margin.slider_accessibility_label',
+                )}
+                testID={PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER}
+              />
+            )}
 
-          {!isInputFocused && (
-            <Slider
-              // Remount on mode change so the thumb returns to 0. The slider
-              // ignores an incoming value that matches one of its own recent
-              // drag positions, treating it as a stale echo, so a drag that
-              // passed through 0 would otherwise leave the thumb in place.
-              key={mode}
-              value={sliderPercentage}
-              onValueChange={handleSliderChange}
-              minimumValue={0}
-              maximumValue={100}
-              step={1}
-              // Keeps the track inset at the design's 8px within the 16px
-              // content padding while leaving room for the thumb overhang.
-              trackInset={8}
-              showRangeLabels
-              showRangeDots
-              isDisabled={isAdjusting || hasNoRemovableMargin}
-              onGrip={() => playImpact(ImpactMoment.SliderGrip)}
-              onMark={() => playImpact(ImpactMoment.SliderTick)}
-              accessibilityLabel={strings(
-                'perps.adjust_margin.slider_accessibility_label',
+            {displayedError && (
+              <HelpText
+                severity={HelpTextSeverity.Danger}
+                twClassName="justify-center text-center"
+                testID={PerpsAdjustMarginBottomSheetSelectorsIDs.ERROR}
+                accessibilityRole="alert"
+              >
+                {displayedError}
+              </HelpText>
+            )}
+
+            {hasNoRemovableMargin && !displayedError && (
+              <HelpText
+                twClassName="justify-center text-center"
+                testID={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN
+                }
+              >
+                {strings('perps.adjust_margin.no_removable_margin')}
+              </HelpText>
+            )}
+          </Box>
+
+          <Box accessible={false}>
+            <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
+              keyLabel={strings('perps.adjust_margin.margin_in_position')}
+              value={renderTransitionValue(
+                formatPerpsFiat(displayCurrentMargin, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                }),
+                formatPerpsFiat(displayNextMargin, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                }),
+                PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_VALUE,
               )}
-              testID={PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER}
             />
-          )}
-
-          {displayedError && (
-            <HelpText
-              severity={HelpTextSeverity.Danger}
-              twClassName="justify-center text-center"
-              testID={PerpsAdjustMarginBottomSheetSelectorsIDs.ERROR}
-              accessibilityRole="alert"
-            >
-              {displayedError}
-            </HelpText>
-          )}
-
-          {hasNoRemovableMargin && !displayedError && (
-            <HelpText
-              twClassName="justify-center text-center"
-              testID={
-                PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN
+            <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
+              keyLabel={
+                isAddMode
+                  ? strings('perps.adjust_margin.available_to_add')
+                  : strings('perps.adjust_margin.available_to_remove')
               }
+              value={formatPerpsFiat(flooredMaxAmount, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
+              valueTextProps={{
+                testID:
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.AVAILABLE_VALUE,
+              }}
+              valueEndButtonIconProps={
+                isAddMode
+                  ? {
+                      iconName: IconName.AddCircle,
+                      iconProps: { color: IconColor.IconAlternative },
+                      onPress: handleDepositPress,
+                      isDisabled: isAdjusting,
+                      testID:
+                        PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
+                      accessibilityLabel: strings('perps.add_funds'),
+                    }
+                  : undefined
+              }
+            />
+            <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
+              keyLabel={strings('perps.adjust_margin.liquidation_price')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => setSelectedTooltip('liquidation_price'),
+                testID:
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_INFO,
+                accessibilityLabel: `${strings(
+                  'perps.adjust_margin.liquidation_price',
+                )} ${strings('navigation.info')}`,
+              }}
+              value={renderTransitionValue(
+                formatLiquidationPrice(currentLiquidationPrice),
+                formatLiquidationPrice(displayNewLiquidationPrice),
+                PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+              )}
+            />
+            <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
+              keyLabel={strings('perps.adjust_margin.liquidation_distance')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => setSelectedTooltip('liquidation_distance'),
+                testID:
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_INFO,
+                accessibilityLabel: `${strings(
+                  'perps.adjust_margin.liquidation_distance',
+                )} ${strings('navigation.info')}`,
+              }}
+              value={renderTransitionValue(
+                formatLiquidationDistance(
+                  currentLiquidationDistance,
+                  currentLiquidationPrice,
+                ),
+                formatLiquidationDistance(
+                  displayNewLiquidationDistance,
+                  displayNewLiquidationPrice,
+                ),
+                PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+              )}
+            />
+          </Box>
+        </Box>
+
+        {isInputFocused && (
+          <Box accessible={false} paddingHorizontal={4} paddingTop={3} gap={3}>
+            <Box
+              accessible={false}
+              flexDirection={BoxFlexDirection.Row}
+              gap={2}
             >
-              {strings('perps.adjust_margin.no_removable_margin')}
-            </HelpText>
-          )}
-        </Box>
-
-        <Box accessible={false}>
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.adjust_margin.margin_in_position')}
-            value={renderTransitionValue(
-              formatPerpsFiat(displayCurrentMargin, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              }),
-              formatPerpsFiat(displayNextMargin, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              }),
-              PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_VALUE,
-            )}
-          />
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={
-              isAddMode
-                ? strings('perps.adjust_margin.available_to_add')
-                : strings('perps.adjust_margin.available_to_remove')
-            }
-            value={formatPerpsFiat(flooredMaxAmount, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })}
-            valueTextProps={{
-              testID: PerpsAdjustMarginBottomSheetSelectorsIDs.AVAILABLE_VALUE,
-            }}
-          />
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.adjust_margin.liquidation_price')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: () => setSelectedTooltip('liquidation_price'),
-              testID:
-                PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_INFO,
-              accessibilityLabel: `${strings(
-                'perps.adjust_margin.liquidation_price',
-              )} ${strings('navigation.info')}`,
-            }}
-            value={renderTransitionValue(
-              formatLiquidationPrice(currentLiquidationPrice),
-              formatLiquidationPrice(displayNewLiquidationPrice),
-              PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
-            )}
-          />
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.adjust_margin.liquidation_distance')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: () => setSelectedTooltip('liquidation_distance'),
-              testID:
-                PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_INFO,
-              accessibilityLabel: `${strings(
-                'perps.adjust_margin.liquidation_distance',
-              )} ${strings('navigation.info')}`,
-            }}
-            value={renderTransitionValue(
-              formatLiquidationDistance(
-                currentLiquidationDistance,
-                currentLiquidationPrice,
-              ),
-              formatLiquidationDistance(
-                displayNewLiquidationDistance,
-                displayNewLiquidationPrice,
-              ),
-              PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
-            )}
-          />
-        </Box>
-      </Box>
-
-      {isInputFocused && (
-        <Box accessible={false} paddingHorizontal={4} paddingTop={3} gap={3}>
-          <Box accessible={false} flexDirection={BoxFlexDirection.Row} gap={2}>
-            {[
-              { label: '25%', percentage: 0.25 },
-              { label: '50%', percentage: 0.5 },
-              {
-                label: strings('perps.deposit.max_button'),
-                percentage: 1,
-              },
-            ].map(({ label, percentage }) => (
+              {[
+                { label: '25%', percentage: 0.25 },
+                { label: '50%', percentage: 0.5 },
+                {
+                  label: strings('perps.deposit.max_button'),
+                  percentage: 1,
+                },
+              ].map(({ label, percentage }) => (
+                <Button
+                  key={percentage}
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Md}
+                  onPress={() => handlePercentagePress(percentage)}
+                  twClassName="flex-1"
+                >
+                  {label}
+                </Button>
+              ))}
               <Button
-                key={percentage}
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                onPress={() => handlePercentagePress(percentage)}
+                onPress={() => setIsInputFocused(false)}
                 twClassName="flex-1"
+                testID={PerpsAdjustMarginBottomSheetSelectorsIDs.DONE_BUTTON}
               >
-                {label}
+                {strings('perps.deposit.done_button')}
               </Button>
-            ))}
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              onPress={() => setIsInputFocused(false)}
-              twClassName="flex-1"
-              testID={PerpsAdjustMarginBottomSheetSelectorsIDs.DONE_BUTTON}
-            >
-              {strings('perps.deposit.done_button')}
-            </Button>
+            </Box>
+            <Keypad
+              value={marginAmountString}
+              onChange={handleKeypadChange}
+              currency="USD"
+              decimals={2}
+            />
           </Box>
-          <Keypad
-            value={marginAmountString}
-            onChange={handleKeypadChange}
-            currency="USD"
-            decimals={2}
-          />
-        </Box>
-      )}
+        )}
 
-      {!isInputFocused && (
-        <BottomSheetFooter
-          twClassName="border-t border-muted pt-4 pb-2"
-          primaryButtonProps={{
-            children: isAddMode
-              ? strings('perps.adjust_margin.add_margin_sheet')
-              : strings('perps.adjust_margin.remove_margin_sheet'),
-            size: ButtonSize.Lg,
-            onPress: handleConfirm,
-            isDisabled: isConfirmDisabled,
-            isLoading: isAdjusting,
-            testID: PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
-          }}
+        {!isInputFocused && (
+          <BottomSheetFooter
+            twClassName="border-t border-muted pt-4 pb-2"
+            primaryButtonProps={{
+              children: isAddMode
+                ? strings('perps.adjust_margin.add_margin_sheet')
+                : strings('perps.adjust_margin.remove_margin_sheet'),
+              size: ButtonSize.Lg,
+              onPress: handleConfirm,
+              isDisabled: isConfirmDisabled,
+              isLoading: isAdjusting,
+              testID: PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+            }}
+          />
+        )}
+      </BottomSheet>
+      {isDepositCoverVisible ? (
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, styles.depositCover]}
         />
+      ) : null}
+      {isEligibilityModalVisible && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey="geo_block"
+                testID={
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+                }
+              />
+            </ModalSafeAreaProvider>
+          </Modal>
+        </View>
       )}
-    </BottomSheet>
+    </>
   );
 };
 
