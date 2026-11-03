@@ -281,7 +281,3 @@ sourcemaps/**/*.js.map
 # Local planning artifacts. Not team-shared storage.
 .specs/
 .briefs/
-
-# Local MFA preview package + Engine wire (CI cannot use unpublished previews)
-.local-mfa-preview-testing/
-stubs/cubist-cubesigner-sdk/
