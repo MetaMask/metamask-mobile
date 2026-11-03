@@ -467,9 +467,10 @@ const EventMarketListContent = ({
 
       if (projection.type === 'sectionCard') {
         const { card } = projection;
+        // A card can render several standard cards; gap spaces them.
         return (
           <Box
-            twClassName={projection.spaced ? 'pt-3' : undefined}
+            twClassName={projection.spaced ? 'gap-3 pt-3' : 'gap-3'}
             testID={EventMarketLayoutSectionTestIds.card(
               projection.sectionKey,
               card.key,
