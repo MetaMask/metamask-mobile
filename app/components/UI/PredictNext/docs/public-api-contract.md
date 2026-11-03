@@ -37,6 +37,10 @@ Code outside PredictNext imports only from one curated entry point, `app/compone
 
 The entry point's first export is `PredictRoot`, the root router that `MainNavigator` registers for the `Predict` route (PRED-1375). It is a permanent, Venue-neutral component: after PRED-1356 it renders only the PredictNext stack, so that import does not change. `MainNavigator`'s legacy imports (`PredictModalStack`, `PredictPreviewSheetProvider`) stay named composition wiring.
 
+Wallet reset is named composition wiring. It calls
+`PredictDeviceAuthService:reset` through the Engine messenger; Authentication
+does not import PredictNext key or session internals.
+
 Names are proposals. The implementing ticket finalizes each name and adds its export only when it migrates a real caller. Do not create empty modules.
 
 | Proposed API                                                                                                                         | Polymarket branch (transition)                                                     | Kalshi branch                                            | After PRED-1356                            |
@@ -74,8 +78,7 @@ Public inputs are intents, consumer-owned types, and callbacks with Venue-neutra
 
 The Homepage Predictions section becomes a Predict-owned component, `PredictHomeSection`, exported from the PredictNext entry point. Homepage renders it the way it already renders other feature sections. The case for this:
 
-- **Predict already owns the code.** CODEOWNERS assigns `app/components/Views/Homepage/Sections/Predictions/` to `@MetaMask/predict`. `@MetaMask/mobile-core-ux` owns `Homepage.tsx`, the composition. Moving the section changes its location, not its ownership. Perps and Earn already own their Homepage sections the same way.
-- **There is an established pattern.** `Sections/EarnSection/HomepageEarnSection.tsx` is a 50-line Homepage wrapper that renders the Earn-owned `UI/Earn/components/EarnSection`.
+- **Predict already owns the code.** CODEOWNERS assigns `app/components/Views/Homepage/Sections/Predictions/` to `@MetaMask/predict`. `@MetaMask/mobile-core-ux` owns `Homepage.tsx`, the composition. Moving the section changes its location, not its ownership. Perps already owns its Homepage sections the same way.
 - **The interface already exists.** Today's `PredictionsSection` takes `sectionIndex`, `totalSectionsLoaded`, and `mode`, and exposes a `SectionRefreshHandle` through its ref. `PredictHomeSection` keeps exactly that contract, so `Homepage.tsx` changes one import.
 - **Every alternative is worse.** The section is 28 non-test files, about 2,600 lines, that import legacy types, hooks, queries, Polymarket endpoints, and account utilities. To show Kalshi there without moving it, Homepage would either branch on Venue, which PRED-1340 forbids, or need canonical data hooks for both Venues, which requires the client-side Polymarket adapter that ADR-0002 rejects.
 - **The Homepage team gains.** Prediction-market changes, PRED-1356, and Predict regressions stop touching Homepage files, and Homepage keeps full control of placement, ordering, visibility, and refresh.

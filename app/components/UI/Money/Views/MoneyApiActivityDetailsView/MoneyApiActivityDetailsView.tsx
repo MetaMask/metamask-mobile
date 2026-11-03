@@ -14,7 +14,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconName,
   Text,
   TextColor,
@@ -76,6 +75,8 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../../Card/util/vedaToken';
 import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 
 /** Hero asset for Money Activity card details — always the Money Account token. */
 const MONEY_ACCOUNT_HERO_TOKEN = {
@@ -482,6 +483,7 @@ interface MoneyApiActivityDetailsContentProps {
 function MoneyApiActivityDetailsContent({
   activity,
 }: MoneyApiActivityDetailsContentProps) {
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const tw = useTailwind();
   const { networkName, networkImage } = useNetworkInfo(activity.chainId);
   const handleBack = useGoBack();
@@ -509,7 +511,9 @@ function MoneyApiActivityDetailsContent({
 
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={display.label}
         onBack={handleBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
@@ -642,6 +646,7 @@ interface NeobankBankTransferDetailsContentProps {
 function NeobankBankTransferDetailsContent({
   activity,
 }: NeobankBankTransferDetailsContentProps) {
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const tw = useTailwind();
   const handleBack = useGoBack();
 
@@ -692,7 +697,9 @@ function NeobankBankTransferDetailsContent({
 
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={display.label}
         onBack={handleBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
