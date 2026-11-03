@@ -521,12 +521,7 @@ const MyProfileView: React.FC = () => {
       return;
     }
     loadMore();
-  }, [
-    isFetchingNextPage,
-    isPostsLoading,
-    loadMore,
-    showFilteredPostLoading,
-  ]);
+  }, [isFetchingNextPage, isPostsLoading, loadMore, showFilteredPostLoading]);
   const postsEmptyMessage =
     posts.length > 0 && assetFilter !== 'all'
       ? strings(

@@ -20,19 +20,6 @@ export const splitPositionsByType = (
   return { tokens, perps };
 };
 
-/** Keeps API order. `all` returns the same list; the others drop the other asset type. */
-export const filterPositionsByAsset = (
-  positions: Position[],
-  filter: ProfileAssetFilter,
-): Position[] => {
-  if (filter === 'all') {
-    return positions;
-  }
-  return positions.filter((position) =>
-    matchesProfileAssetFilter(position, filter),
-  );
-};
-
 /**
  * Whether a position, or a post that has one, belongs in the shared profile
  * asset filter. A post with no position only stays when the filter is All.
@@ -49,6 +36,19 @@ export const matchesProfileAssetFilter = (
   }
   const isPerp = isPerpPosition(position);
   return filter === 'perps' ? isPerp : !isPerp;
+};
+
+/** Keeps API order. `all` returns the same list; the others drop the other asset type. */
+export const filterPositionsByAsset = (
+  positions: Position[],
+  filter: ProfileAssetFilter,
+): Position[] => {
+  if (filter === 'all') {
+    return positions;
+  }
+  return positions.filter((position) =>
+    matchesProfileAssetFilter(position, filter),
+  );
 };
 
 export const getFilteredPositionSections = (
