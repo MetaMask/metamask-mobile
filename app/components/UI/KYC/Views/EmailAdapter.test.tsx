@@ -137,6 +137,77 @@ describe('VbaEmailAdapter', () => {
     expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
   });
 
+  describe('when a local session exists but the profile has no verified email', () => {
+    // Thrown by KycController.startSession when the partner identity token
+    // request answers 422 email_required and no email is stored.
+    const missingVerifiedEmail = () =>
+      new Error('KycController missing verified email for vendor');
+
+    it('verifies email and starts the session with the AAL2 token', async () => {
+      mockKycController.readSessionStatus.mockReturnValue({
+        id: 'session-1',
+        finalStatus: 'pending',
+      });
+      mockKycController.startSession
+        .mockRejectedValueOnce(missingVerifiedEmail())
+        .mockResolvedValueOnce({ id: 'session-1', finalStatus: 'pending' });
+
+      renderWithProvider(<VbaEmailAdapter />);
+
+      await waitFor(() => {
+        expect(mockAdvance).toHaveBeenCalled();
+      });
+      expect(mockKycController.startSession).toHaveBeenNthCalledWith(1, {
+        vendor: VBA_KYC_VENDOR,
+      });
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
+        methods: ['email_otp'],
+        verifyWith: 'email_otp',
+        reason: { operation: 'vba.verifyEmail', presentation: 'card' },
+      });
+      expect(mockKycController.startSession).toHaveBeenNthCalledWith(2, {
+        vendor: VBA_KYC_VENDOR,
+        aal2Token: 'aal2-token',
+      });
+    });
+
+    it('leaves the step when email verification is cancelled', async () => {
+      mockKycController.readSessionStatus.mockReturnValue({
+        id: 'session-1',
+        finalStatus: 'pending',
+      });
+      mockKycController.startSession.mockRejectedValue(missingVerifiedEmail());
+      mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('flow_cancelled'));
+
+      renderWithProvider(<VbaEmailAdapter />);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+      expect(mockKycController.startSession).toHaveBeenCalledTimes(1);
+      expect(mockAdvance).not.toHaveBeenCalled();
+    });
+  });
+
+  it('shows the resume error without email OTP for other local session failures', async () => {
+    mockKycController.readSessionStatus.mockReturnValue({
+      id: 'session-1',
+      finalStatus: 'pending',
+    });
+    mockKycController.startSession.mockRejectedValue(
+      new Error('Session resume failed.'),
+    );
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toHaveTextContent('Session resume failed.');
+    });
+    expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+  });
+
   it('verifies email, creates the session, records vendor terms, and advances', async () => {
     renderWithProvider(<VbaEmailAdapter />);
 

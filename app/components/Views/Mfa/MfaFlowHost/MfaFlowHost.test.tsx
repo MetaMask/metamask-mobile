@@ -1,10 +1,11 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { BackHandler } from 'react-native';
+import { BackHandler, Linking } from 'react-native';
 import { SlideInDown, SlideInRight } from 'react-native-reanimated';
-import type {
-  EnrolledCredential,
-  VerificationToken,
+import {
+  CredentialAlreadyEnrolledError,
+  type EnrolledCredential,
+  type VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
@@ -266,6 +267,57 @@ describe('MfaFlowHost', () => {
     );
     const result = await outcome;
     expect(result.ok && result.value.token?.claims.amr).toEqual(['email_otp']);
+  });
+
+  it('shows the email-taken error and support link when another profile claimed the email', async () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const controller = createController();
+    controller.beginCredentialEnrollment = jest.fn(async () => {
+      throw new CredentialAlreadyEnrolledError(
+        'email_claimed',
+        'Email is verified on another profile',
+        409,
+      );
+    });
+    const { outcome } = await start(
+      {
+        kind: 'verifyOrEnroll',
+        methods: ['email_otp'],
+        verifyWith: 'email_otp',
+      },
+      controller,
+      undefined,
+      { operation: 'vba.verifyEmail', presentation: 'card' },
+    );
+    const { getByTestId, getByText } = renderHost();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    fireEvent.changeText(
+      getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
+      'taken@b.co',
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
+    ).toBeOnTheScreen();
+    expect(
+      getByText('This email is already in use. Try a different one.', {
+        exact: false,
+      }),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.ERROR_LINK));
+    expect(openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/configure/wallet/email-in-use',
+    );
+    expect(mockRemoveSelf).not.toHaveBeenCalled();
+
+    await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
+    expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
   });
 
   it('returns to authenticator setup from its code screen', async () => {

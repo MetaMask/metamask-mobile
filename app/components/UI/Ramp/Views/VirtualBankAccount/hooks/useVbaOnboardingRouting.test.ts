@@ -1,5 +1,17 @@
 import { renderHook } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
+import {
+  KycController,
+  type KycControllerMessenger,
+} from '@metamask/kyc-controller';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import { EmailRequiredError } from '@metamask/profile-sync-controller/sdk';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -148,6 +160,53 @@ jest.mock('../vbaVendorTermsStorage', () => ({
     mockGetVbaVendorTermsAcceptance(...args),
 }));
 
+/**
+ * The rejection of a real `KycController.startSession` without an AAL2 token
+ * when the partner identity token request answers 422 `email_required` and
+ * no email is stored: a profile whose email is verified on another profile.
+ *
+ * @returns The error `startSession` rejects with.
+ */
+const getEmailRequiredStartSessionError = async (): Promise<unknown> => {
+  const rootMessenger = new Messenger<
+    MockAnyNamespace,
+    MessengerActions<KycControllerMessenger>,
+    MessengerEvents<KycControllerMessenger>
+  >({ namespace: MOCK_ANY_NAMESPACE });
+  rootMessenger.registerActionHandler(
+    'AuthenticatedUserStorageService:putIdentitySharingConsent',
+    async () => undefined,
+  );
+  rootMessenger.registerActionHandler(
+    'AuthenticationController:getPartnerIdentityToken',
+    async () => {
+      throw new EmailRequiredError('email_required');
+    },
+  );
+  const messenger: KycControllerMessenger = new Messenger<
+    'KycController',
+    MessengerActions<KycControllerMessenger>,
+    MessengerEvents<KycControllerMessenger>,
+    typeof rootMessenger
+  >({ namespace: 'KycController', parent: rootMessenger });
+  rootMessenger.delegate({
+    actions: [
+      'AuthenticatedUserStorageService:putIdentitySharingConsent',
+      'AuthenticationController:getPartnerIdentityToken',
+    ],
+    messenger,
+  });
+  const controller = new KycController({
+    messenger,
+    sumsubLauncher: { isAvailable: () => false, launch: jest.fn() },
+  });
+
+  return controller.startSession({ vendor: VBA_KYC_VENDOR }).then(
+    () => undefined,
+    (error: unknown) => error,
+  );
+};
+
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -194,6 +253,61 @@ describe('useOpenVbaOnboarding', () => {
 
     expect(mockHydrate).not.toHaveBeenCalled();
     expectResetTo({ name: VbaOnboardingRoutes.ERROR });
+  });
+
+  describe('when the profile has no verified email', () => {
+    it('opens email instead of the error screen for an existing vendor session', async () => {
+      mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+      mockGetSessionStatusForVendor.mockResolvedValue({
+        id: 'session-remote',
+      });
+      mockStartSession.mockRejectedValue(
+        await getEmailRequiredStartSessionError(),
+      );
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current();
+
+      expect(mockStartSession).toHaveBeenCalledTimes(1);
+      expect(mockStartSession).toHaveBeenCalledWith({ vendor: VBA_KYC_VENDOR });
+      expect(mockHydrate).toHaveBeenCalled();
+      expectResetTo({ name: VbaOnboardingRoutes.EMAIL });
+    });
+
+    it('opens email instead of the error screen for a persisted session', async () => {
+      mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+      mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+      mockStartSession.mockRejectedValue(
+        await getEmailRequiredStartSessionError(),
+      );
+      mockHydrate.mockResolvedValue({
+        ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+        sessionExists: true,
+        vendorDisclaimersComplete: true,
+        sessionDisclaimersComplete: true,
+        kycStatus: 'pending',
+      });
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current();
+
+      expect(mockGetSessionStatusForVendor).not.toHaveBeenCalled();
+      expectResetTo({ name: VbaOnboardingRoutes.EMAIL });
+    });
+
+    it('opens vendor terms first when they are not accepted', async () => {
+      mockGetSessionStatusForVendor.mockResolvedValue({
+        id: 'session-remote',
+      });
+      mockStartSession.mockRejectedValue(
+        await getEmailRequiredStartSessionError(),
+      );
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current();
+
+      expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
+    });
   });
 
   it('opens at email when vendor terms are accepted locally', async () => {
@@ -1118,6 +1232,27 @@ describe('resolveVbaOnboarding', () => {
       }),
     );
     expect(mockHydrate).toHaveBeenCalled();
+  });
+
+  it('resolves to email when the existing vendor session needs a verified email', async () => {
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockStartSession.mockRejectedValue(
+      await getEmailRequiredStartSessionError(),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'email',
+      }),
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-hydrate-id',
+      true,
+    );
   });
 
   it('returns an error when looking up the latest vendor session fails', async () => {

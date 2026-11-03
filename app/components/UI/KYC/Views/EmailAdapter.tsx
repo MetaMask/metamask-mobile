@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -26,6 +26,7 @@ import type { RootState } from '../../../../reducers';
 import { selectSelectedVbaWalletAddress } from '../../../../selectors/rampsController';
 import { strings } from '../../../../../locales/i18n';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
+import { isMissingVerifiedEmailError } from '../../Ramp/Views/VirtualBankAccount/kycSessionErrors';
 import { useOpenVbaOnboarding } from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { getVbaVendorTermsAcceptance } from '../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage';
 
@@ -69,8 +70,9 @@ const retryRecordVendorDisclaimers = async (
 };
 
 /**
- * Opens a KYC session. Email OTP runs only when no vendor session exists,
- * because creating a session needs an AAL2 token.
+ * Opens a KYC session. Email OTP runs when no local session exists, because
+ * creating a session needs an AAL2 token, and when resuming the local session
+ * fails because the profile has no verified email.
  */
 const VbaEmailAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -100,8 +102,7 @@ const VbaEmailAdapter = () => {
         return;
       }
 
-      let aal2Token: string | undefined;
-      if (!existingActiveSession) {
+      const startSessionWithEmailOtp = async (): Promise<boolean> => {
         const result = await verifyOrEnroll({
           methods: ['email_otp'],
           verifyWith: 'email_otp',
@@ -111,22 +112,40 @@ const VbaEmailAdapter = () => {
           },
         });
         if (!active) {
-          return;
+          return false;
         }
 
-        aal2Token = result.token?.accessToken;
+        const aal2Token = result.token?.accessToken;
         if (!aal2Token) {
           throw new Error(
             strings('virtual_bank_account.kyc_email.error_description'),
           );
         }
-      }
+        await Engine.context.KycController.startSession({
+          vendor: VBA_KYC_VENDOR,
+          aal2Token,
+        });
+        return true;
+      };
 
-      await Engine.context.KycController.startSession(
-        aal2Token
-          ? { vendor: VBA_KYC_VENDOR, aal2Token }
-          : { vendor: VBA_KYC_VENDOR },
-      );
+      if (!existingActiveSession) {
+        if (!(await startSessionWithEmailOtp())) {
+          return;
+        }
+      } else {
+        try {
+          await Engine.context.KycController.startSession({
+            vendor: VBA_KYC_VENDOR,
+          });
+        } catch (error) {
+          if (!isMissingVerifiedEmailError(error)) {
+            throw error;
+          }
+          if (!(await startSessionWithEmailOtp())) {
+            return;
+          }
+        }
+      }
 
       const walletAddress = selectSelectedVbaWalletAddress(
         ReduxService.store.getState() as RootState,
@@ -145,10 +164,6 @@ const VbaEmailAdapter = () => {
     };
 
     verifyEmail().catch((error: unknown) => {
-      Alert.alert(
-        'verifyEmail',
-        error instanceof Error ? error.message : String(error),
-      );
       if (!active) {
         return;
       }
