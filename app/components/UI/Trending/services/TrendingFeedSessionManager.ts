@@ -106,7 +106,6 @@ class TrendingFeedSessionManager {
   private entryPoint: string | undefined = undefined;
 
   // Timing (with AppState handling)
-  private startTime: number | null = null;
   private accumulatedTime: number = 0;
   private lastActiveTime: number | null = null;
 
@@ -114,7 +113,6 @@ class TrendingFeedSessionManager {
   private appStateSubscription: ReturnType<
     typeof AppState.addEventListener
   > | null = null;
-  private appStateListenerEnabled: boolean = false;
 
   private constructor() {
     // Don't setup listener in constructor - let TrendingFeed enable it when mounted
@@ -234,7 +232,6 @@ class TrendingFeedSessionManager {
     this.sessionId = null;
     this.sessionEnded = false;
     this.entryPoint = undefined;
-    this.startTime = null;
     this.accumulatedTime = 0;
     this.lastActiveTime = null;
   }
@@ -382,7 +379,6 @@ class TrendingFeedSessionManager {
     const now = Date.now();
     this.sessionId = uuidv4();
     this.entryPoint = entryPoint;
-    this.startTime = now;
     this.lastActiveTime = now;
     this.accumulatedTime = 0;
     this.sessionEnded = false;
@@ -425,7 +421,6 @@ class TrendingFeedSessionManager {
    * Call this when TrendingFeed mounts
    */
   public enableAppStateListener(): void {
-    this.appStateListenerEnabled = true;
     this.setupAppStateListener();
   }
 
@@ -434,7 +429,6 @@ class TrendingFeedSessionManager {
    * Call this when TrendingFeed unmounts
    */
   public disableAppStateListener(): void {
-    this.appStateListenerEnabled = false;
     this.removeAppStateListener();
   }
 

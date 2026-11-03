@@ -106,8 +106,9 @@ export const selectProfileEntropySourceIds = createDeepEqualSelector(
 );
 
 /**
- * Profile id of the primary SRP session. This is the id the session token
- * authenticates as (`profile.profileId`), which is not the canonical id.
+ * Profile id of the primary SRP session (`profile.profileId`). For a merged
+ * profile this is the pre-merge alias, not the canonical id the access token's
+ * `sub` carries, so profile API and social API calls must not use it.
  *
  * Same key as {@link selectCanonicalProfileId}: the primary HD keyring, so a
  * stale session left behind by a wallet reset is not read as the live one.

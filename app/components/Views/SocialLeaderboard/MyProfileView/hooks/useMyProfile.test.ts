@@ -5,18 +5,15 @@ import { resetResolvedSessionProfileIds, useMyProfile } from './useMyProfile';
 
 const mockFetchAndUpdateProfile = jest.fn();
 const mockFetchAndUpdateXAccount = jest.fn();
-const mockUseSessionProfileId = jest.fn();
+const mockUseSocialProfileId = jest.fn();
 const mockUseSelector = jest.fn();
 const mockControllerState: { profile: Profile | undefined } = {
   profile: undefined,
 };
 
-jest.mock(
-  '../../../../../util/notifications/hooks/useSessionProfileId',
-  () => ({
-    useSessionProfileId: () => mockUseSessionProfileId(),
-  }),
-);
+jest.mock('../../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => mockUseSocialProfileId(),
+}));
 
 jest.mock('../../ManageProfileView/hooks/useProfileController', () => ({
   useProfileController: () => ({
@@ -55,7 +52,7 @@ describe('useMyProfile', () => {
     jest.clearAllMocks();
     resetResolvedSessionProfileIds();
     mockControllerState.profile = controllerProfile;
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: 'profile-123',
       isLoading: false,
     });

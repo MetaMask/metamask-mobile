@@ -796,7 +796,19 @@ describe('PerpsHomeView', () => {
       setupLeaderboardApiMock({ perpsTraders, feedItems });
 
       const { store } = renderPerpsHomeView({
-        overrides: socialOverrides,
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...socialOverrides.engine.backgroundState,
+              ProfileController: {
+                profile: {
+                  profileId: 'profile-1',
+                  linkedAddresses: [],
+                },
+              },
+            },
+          },
+        },
         socialEnabled: true,
         extraRoutes: [
           {

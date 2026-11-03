@@ -1510,7 +1510,7 @@
         "kols": "KOLs (Líderes de Opinião Chave)"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Aplicar",
         "apply": "Aplicar",
         "reset": "Redefinir",
@@ -10124,7 +10124,6 @@
       "perps_withdraw": "Sacar",
       "predict_deposit": "Adicionar fundos de previsão",
       "predict_withdraw": "Sacar",
-      "money_account_add_money": "Adicionar fundos",
       "money_account_send": "Enviar"
     },
     "sub_title": {

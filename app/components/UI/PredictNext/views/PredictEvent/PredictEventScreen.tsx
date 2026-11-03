@@ -14,13 +14,16 @@ import {
   FilterButton,
   FilterButtonGroup,
   FilterButtonVariant,
-  HeaderStandard,
   IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { findWinnerMarketQuotes, getEventGame } from '../../events/game';
+import {
+  findWinnerMarketQuotes,
+  getEventGame,
+  getGameMoneylineMarkets,
+} from '../../events/game';
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
 import { getOutcomeName } from '../../utils/entryCopy';
@@ -43,6 +46,9 @@ import RulesBottomSheet from './internal/RulesBottomSheet';
 import { EventMarketList } from './internal/EventMarketList';
 import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 const styles = StyleSheet.create({
   marketFilter: {
@@ -70,37 +76,45 @@ const EventScreenChrome = ({
   onBack: () => void;
   title?: string;
   onRulesPress?: () => void;
-}) => (
-  <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
-    <HeaderStandard
-      includesTopInset
-      title={title}
-      titleProps={{
-        testID: PredictEventScreenTestIds.TITLE,
-        accessibilityRole: 'header',
-        numberOfLines: 1,
-      }}
-      onBack={onBack}
-      backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
-      endButtonIconProps={
-        onRulesPress
-          ? [
-              {
-                iconName: IconName.Question,
-                onPress: onRulesPress,
-                testID: PredictEventScreenTestIds.EVENT_RULES_BUTTON,
-                accessibilityLabel: strings(
-                  'predict.rules.event_accessibility_label',
-                ),
-                accessibilityRole: 'button',
-              },
-            ]
-          : undefined
-      }
-    />
-    {children}
-  </Box>
-);
+}) => {
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  return (
+    <Box
+      testID={PredictEventScreenTestIds.VIEW}
+      twClassName="flex-1 bg-default"
+    >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+        title={title}
+        titleProps={{
+          testID: PredictEventScreenTestIds.TITLE,
+          accessibilityRole: 'header',
+          numberOfLines: 1,
+        }}
+        onBack={onBack}
+        backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
+        endButtonIconProps={
+          onRulesPress
+            ? [
+                {
+                  iconName: IconName.Question,
+                  onPress: onRulesPress,
+                  testID: PredictEventScreenTestIds.EVENT_RULES_BUTTON,
+                  accessibilityLabel: strings(
+                    'predict.rules.event_accessibility_label',
+                  ),
+                  accessibilityRole: 'button',
+                },
+              ]
+            : undefined
+        }
+      />
+      {children}
+    </Box>
+  );
+};
 
 const EventScreenLayout = ({
   children,
@@ -128,8 +142,6 @@ const EventScreenLayout = ({
   );
 };
 
-const isUngroupedMarket = (market: PredictMarket) => market.group === undefined;
-
 const EventLoadedHeader = ({
   event,
   winnerQuotes,
@@ -144,7 +156,7 @@ const EventLoadedHeader = ({
   onSelectMarket: (marketId: string) => void;
 }) => {
   const game = getEventGame(event);
-  const chartMarkets = event.markets.filter(isUngroupedMarket);
+  const chartMarkets = getGameMoneylineMarkets(event);
   const selectedChartMarket = chartMarkets.find(
     (market) => market.id === selectedMarketId,
   );
@@ -324,11 +336,10 @@ export const PredictEventScreen = () => {
       marketProjection[0]?.type === 'group'
         ? marketProjection[0].markets[0]
         : marketProjection[0]?.market;
+    const moneylineMarkets = getGameMoneylineMarkets(event);
     const historyMarket =
-      event.markets.find(
-        (market) => market.id === selectedMarketId && isUngroupedMarket(market),
-      ) ??
-      event.markets.find(isUngroupedMarket) ??
+      moneylineMarkets.find((market) => market.id === selectedMarketId) ??
+      moneylineMarkets[0] ??
       firstProjectedMarket ??
       event.markets[0];
     const rulesMarket =
