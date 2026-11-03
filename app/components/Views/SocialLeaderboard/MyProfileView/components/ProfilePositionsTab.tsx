@@ -220,7 +220,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           {uncounted.length > 0 ? (
             <Box testID={MyProfileViewSelectorsIDs.UNCOUNTED_SECTION}>
               <TouchableOpacity
-                accessibilityRole="header"
+                accessibilityRole="button"
                 accessibilityLabel={uncountedAccessibilityLabel}
                 onPress={onUncountedHeaderPress}
                 style={tw.style(
