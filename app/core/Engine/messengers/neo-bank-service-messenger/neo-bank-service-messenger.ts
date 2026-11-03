@@ -31,7 +31,9 @@ export function getNeoBankServiceMessenger(
   rootMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken',
-      // Resolves the MoonPay customer id (abilities, microdeposits).
+      // WalletRegistrationService.getMoonpayCustomerId() reads the canonical
+      // profile id through this action; NeoBankService.getMicrodeposits()
+      // depends on it.
       'AuthenticationController:getSessionProfile',
     ],
     events: [],

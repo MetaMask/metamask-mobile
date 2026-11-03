@@ -6,11 +6,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { SectionRefreshHandle } from './types';
 import {
-  HOMEPAGE_EARN_SECTION_AB_KEY,
-  HOMEPAGE_EARN_SECTION_VARIANTS,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
   HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
-  HomepageEarnSectionVariant,
   HomepagePerpsPillsEmptyVariant,
   PERPS_SECTION_PRIORITY_AB_KEY,
   PERPS_SECTION_PRIORITY_VARIANTS,
@@ -81,23 +78,6 @@ jest.mock('../../../hooks', () => ({
   useABTest: (...args: unknown[]) =>
     Reflect.apply(mockUseABTest, undefined, args),
 }));
-
-const mockHomepageEarnSection = jest.fn();
-jest.mock('./Sections/EarnSection', () => {
-  const ReactLib = jest.requireActual<typeof import('react')>('react');
-  const { View } =
-    jest.requireActual<typeof import('react-native')>('react-native');
-
-  return {
-    __esModule: true,
-    HomepageEarnSection: ReactLib.forwardRef(
-      (props: Record<string, unknown>, _ref: React.Ref<unknown>) => {
-        mockHomepageEarnSection(props);
-        return <View testID="homepage-earn-section-mock" />;
-      },
-    ),
-  };
-});
 
 const mockUseOwnedNfts = jest.fn((): Nft[] => []);
 jest.mock('./Sections/NFTs/hooks', () => ({
@@ -404,13 +384,6 @@ function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
   return mockUseHomeViewedEvent.mock.calls;
 }
 
-let mockHomepageEarnSectionVisible = false;
-jest.mock('../../UI/Earn/selectors/visibility', () => ({
-  selectIsHomepageEarnSectionVisible: jest.fn(
-    () => mockHomepageEarnSectionVisible,
-  ),
-}));
-
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
 jest.mock('../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
@@ -505,26 +478,7 @@ describe('Homepage', () => {
     mockIsNetworkEnabled.mockReturnValue(true);
     mockHardwareTier = 'MID';
     mockNetworkTier = 'WIFI';
-    mockHomepageEarnSectionVisible = false;
   });
-
-  const mockEarnSectionExperiment = (
-    enabled: boolean,
-    variantName: HomepageEarnSectionVariant,
-  ) => {
-    mockHomepageEarnSectionVisible = enabled;
-    mockUseABTest.mockImplementation((key: string) => {
-      if (key === HOMEPAGE_EARN_SECTION_AB_KEY) {
-        return {
-          variant: HOMEPAGE_EARN_SECTION_VARIANTS[variantName],
-          variantName,
-          isActive: true,
-        };
-      }
-
-      return defaultUseABTestImplementation(key);
-    });
-  };
 
   it('uses one enabled Perps connection provider for the homepage', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
@@ -603,49 +557,6 @@ describe('Homepage', () => {
       screen.queryByTestId('balance-breakdown-section-mock'),
     ).not.toBeOnTheScreen();
     expect(mockBalanceBreakdownSection).not.toHaveBeenCalled();
-  });
-
-  describe('Earn section experiment', () => {
-    it('keeps the Earn section hidden for the control variant', () => {
-      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Control);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      expect(
-        screen.queryByTestId('homepage-earn-section-mock'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders the Earn section for the treatment variant', () => {
-      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Treatment);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      expect(
-        screen.getByTestId('homepage-earn-section-mock'),
-      ).toBeOnTheScreen();
-      expect(mockHomepageEarnSection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          sectionIndex: 2,
-          totalSectionsLoaded: 6,
-        }),
-      );
-    });
-
-    it('keeps the Earn section hidden when its feature flag is disabled', () => {
-      mockEarnSectionExperiment(false, HomepageEarnSectionVariant.Treatment);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      expect(
-        screen.queryByTestId('homepage-earn-section-mock'),
-      ).not.toBeOnTheScreen();
-      expect(mockUseABTest).toHaveBeenCalledWith(
-        HOMEPAGE_EARN_SECTION_AB_KEY,
-        HOMEPAGE_EARN_SECTION_VARIANTS,
-        expect.objectContaining({ trackExposure: false }),
-      );
-    });
   });
 
   it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {

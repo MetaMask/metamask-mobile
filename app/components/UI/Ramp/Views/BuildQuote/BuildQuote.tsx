@@ -31,7 +31,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -77,6 +76,9 @@ import {
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { formatAmountWithLocaleSeparators } from '../../../Bridge/utils/formatAmountWithLocaleSeparators';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -139,6 +141,7 @@ export const createBuildQuoteNavDetails = (
 const DEFAULT_AMOUNT = 100;
 
 function BuildQuote() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const isOnBuildQuoteScreen = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
@@ -799,7 +802,9 @@ function BuildQuote() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={
             selectedToken?.symbol
               ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })

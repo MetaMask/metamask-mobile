@@ -137,6 +137,7 @@ import {
   predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
+import { predictDeviceAuthServiceInit } from './controllers/predict-device-auth-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
 import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { sentinelFeeTokensDataServiceInit } from './controllers/sentinel-fee-tokens-data-service-init';
@@ -373,6 +374,7 @@ export class Engine {
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         PredictOrderService: predictOrderServiceInit,
+        PredictDeviceAuthService: predictDeviceAuthServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
         SentinelFeeTokensDataService: sentinelFeeTokensDataServiceInit,
@@ -672,6 +674,7 @@ export class Engine {
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictDeviceAuthService: messengerClientsByName.PredictDeviceAuthService,
       PredictVenueController: messengerClientsByName.PredictVenueController,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
@@ -1360,6 +1363,7 @@ export class Engine {
       KycController,
       PredictOrderService,
       PredictPortfolioService,
+      PredictDeviceAuthService,
       PredictVenueController,
     } = this.context;
 
@@ -1422,6 +1426,7 @@ export class Engine {
       );
     }
 
+    await PredictDeviceAuthService.reset();
     // The Venue Selection Preference and the last Active Venue are device
     // Venue history, not the next person's choice.
     PredictVenueController.clearState();

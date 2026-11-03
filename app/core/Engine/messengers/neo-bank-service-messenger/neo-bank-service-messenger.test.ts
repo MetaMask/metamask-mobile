@@ -42,7 +42,7 @@ describe('getNeoBankServiceMessenger', () => {
     );
   });
 
-  it('delegates the AuthenticationController bearer token and session profile actions to the service messenger', () => {
+  it('delegates the authentication actions the service needs', () => {
     const mockRootMessenger = createMockRootMessenger();
 
     const result = getNeoBankServiceMessenger(mockRootMessenger as never);
