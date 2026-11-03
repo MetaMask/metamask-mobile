@@ -842,6 +842,22 @@ describe('OAuth login handlers', () => {
       );
       expect(handler.authConnection).toBe(AuthConnection.Telegram);
     });
+
+    it('forwards the caller nonce to the Telegram handler', () => {
+      const recoveryNonce = `0x${'cd'.repeat(32)}`;
+
+      const handler = createLoginHandler(
+        'ios',
+        AuthConnection.Telegram,
+        false,
+        {
+          telegramLoginEnabled: true,
+          nonce: recoveryNonce,
+        },
+      );
+
+      expect(handler.nonce).toBe(recoveryNonce);
+    });
   });
 
   describe('factory validation', () => {

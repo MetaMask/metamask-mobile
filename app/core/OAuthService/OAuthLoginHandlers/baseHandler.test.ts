@@ -107,6 +107,16 @@ describe('BaseLoginHandler', () => {
       expect(handler1.nonce.length).toBeGreaterThan(0);
       expect(handler1.nonce).not.toBe(handler2.nonce); // Each instance should have unique nonce
     });
+
+    it('uses the caller nonce instead of generating one', () => {
+      const handler = new MockLoginHandler({
+        ...mockBaseHandlerParams,
+        nonce: '0xbound-nonce',
+      });
+
+      expect(handler.nonce).toBe('0xbound-nonce');
+      expect(mockRandomUUID).not.toHaveBeenCalled();
+    });
   });
 
   describe('abstract properties', () => {
@@ -280,6 +290,26 @@ describe('BaseLoginHandler', () => {
       );
 
       expect(result).toEqual(mockResponse);
+    });
+
+    it('requests online access when asked', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        json: () => Promise.resolve({ id_token: 'mock-id-token' }),
+      });
+      const params: HandleFlowParams = {
+        authConnection: AuthConnection.Google,
+        code: 'mock-code',
+        clientId: 'mock-client-id',
+        redirectUri: 'mock-redirect-uri',
+        codeVerifier: 'mock-code-verifier',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      };
+
+      await mockHandler.getAuthTokens(params, mockAuthServerUrl, 'online');
+
+      const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(JSON.parse(init.body).access_type).toBe('online');
     });
 
     it('successfully gets auth tokens with idToken', async () => {
