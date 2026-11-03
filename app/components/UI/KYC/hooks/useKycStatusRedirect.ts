@@ -7,6 +7,8 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { selectKycSessionStatus } from '../../../../selectors/kycController';
+import type { RootState } from '../../../../reducers';
+import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 import {
   navigateToVbaOnboardingDestination,
   resolveVbaOnboarding,
@@ -29,7 +31,9 @@ export const isTerminalVbaKycStatus = ({
 
 export const useVbaKycStatusRedirect = (): (() => void) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const sessionStatus = useSelector(selectKycSessionStatus);
+  const sessionStatus = useSelector((state: RootState) =>
+    selectKycSessionStatus(state, VBA_KYC_VENDOR),
+  );
   const finalStatus = sessionStatus?.finalStatus ?? null;
   const kycStatus = sessionStatus?.kycStatus ?? null;
 
@@ -124,7 +128,9 @@ export const useVbaKycStatusRedirect = (): (() => void) => {
       return;
     }
     try {
-      Engine.context.KycController.refreshSessionStatus();
+      Engine.context.KycController.refreshSessionStatus({
+        vendor: VBA_KYC_VENDOR,
+      });
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-onboarding' },

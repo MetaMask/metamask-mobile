@@ -23,10 +23,6 @@ import {
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 import { recordVbaOnboardingSnapshot } from '../vbaAnalytics';
 import {
-  getVbaVendorTermsAcceptance,
-  hasAcceptedVbaVendorTerms,
-} from '../vbaVendorTermsStorage';
-import {
   VBA_DEFAULT_CALLER_ROUTE,
   VbaOnboardingRoutes,
   type VbaOnboardingParamList,
@@ -41,7 +37,6 @@ import {
   getVbaKycStatusOverride,
 } from '../vbaDevOverrides';
 import { findUsableAutoramp } from '../ensureMusdAutoramp';
-import { startVbaKycSession } from '../vbaKycSession';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 import { TraceName } from '../../../../../../util/trace';
@@ -347,7 +342,7 @@ const isMissingAal2TokenError = (error: unknown): boolean =>
  */
 const resumePersistedKycSession = async (): Promise<void> => {
   const kycController = Engine.context.KycController;
-  if (!kycController.readSessionStatus()) {
+  if (!kycController.readSessionStatus({ vendor: VBA_KYC_VENDOR })) {
     const existingSession =
       await kycController.getSessionStatusForVendor(VBA_KYC_VENDOR);
     if (!existingSession) {
@@ -356,13 +351,16 @@ const resumePersistedKycSession = async (): Promise<void> => {
   }
 
   try {
-    await startVbaKycSession({
+    await kycController.startSession({
       vendor: VBA_KYC_VENDOR,
     });
   } catch (error) {
     // The latest session can disappear between the lookup and start. Creating
     // one still belongs on the email screen.
-    if (!kycController.readSessionStatus() && isMissingAal2TokenError(error)) {
+    if (
+      !kycController.readSessionStatus({ vendor: VBA_KYC_VENDOR }) &&
+      isMissingAal2TokenError(error)
+    ) {
       return;
     }
     throw error;
@@ -426,11 +424,12 @@ export const resolveVbaOnboarding = async (
       !accountSnapshot.vendorDisclaimersComplete
     ) {
       try {
-        const vendorTermsAcceptance =
-          await getVbaVendorTermsAcceptance(walletAddress);
-        if (vendorTermsAcceptance?.disclaimerIds.length) {
+        const accepted =
+          Engine.context.KycController.state.sessions[VBA_KYC_VENDOR]
+            ?.vendorDisclaimersAccepted;
+        if (accepted?.disclaimerIds.length && !accepted.submitted) {
           await Engine.context.KycController.recordVendorDisclaimers({
-            disclaimerIds: vendorTermsAcceptance.disclaimerIds,
+            vendor: VBA_KYC_VENDOR,
           });
         }
       } catch (error) {
@@ -447,7 +446,10 @@ export const resolveVbaOnboarding = async (
       ...accountSnapshot,
       vendorTermsAcceptedLocally:
         accountSnapshot.vendorDisclaimersComplete ||
-        (await hasAcceptedVbaVendorTerms(walletAddress)),
+        Boolean(
+          Engine.context.KycController.state.sessions[VBA_KYC_VENDOR]
+            ?.vendorDisclaimersAccepted?.disclaimerIds.length,
+        ),
     };
     recordVbaOnboardingSnapshot(snapshot);
     endVbaCufChildTrace(hydrateTraceId, true);
