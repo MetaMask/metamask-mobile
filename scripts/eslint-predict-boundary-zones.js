@@ -97,8 +97,6 @@ const predictImportBurndownFiles = [
   'app/components/UI/UiSlots/registry.ts',
   'app/components/UI/UrlAutocomplete/index.tsx',
   'app/components/Views/ActivityDetails/ActivityDetails.predict.view.test.tsx',
-  'app/components/Views/Homepage/BalanceBreakdown/hooks/slices/usePredictSlice.test.ts',
-  'app/components/Views/Homepage/BalanceBreakdown/hooks/slices/usePredictSlice.ts',
   'app/components/Views/Homepage/Sections/Predictions/PredictionsSection.test.tsx',
   'app/components/Views/Homepage/Sections/Predictions/PredictionsSection.tsx',
   'app/components/Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery/BtcLiveRow.test.tsx',
