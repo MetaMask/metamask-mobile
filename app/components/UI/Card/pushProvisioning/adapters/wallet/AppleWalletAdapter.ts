@@ -16,6 +16,7 @@ import {
   WalletType,
   ProvisionCardParams,
   ProvisioningResult,
+  ProvisioningError,
   ProvisioningErrorCode,
   ApplePayEncryptedPayload,
   WalletEligibility,
@@ -250,6 +251,10 @@ export class AppleWalletAdapter
       // Call addCardToAppleWallet with the callback
       // The callback is invoked by PassKit with nonce, nonceSignature, and certificates
       // We must call the card provider to get the encrypted payload and return it
+      let activationState: CardTokenStatus | undefined;
+      let walletDecline:
+        | { errorDomain?: string; errorCode?: number }
+        | undefined;
       const status = await wallet.addCardToAppleWallet(
         cardData,
         async (
@@ -270,10 +275,46 @@ export class AppleWalletAdapter
             ephemeralPublicKey: encryptedPayload.ephemeralPublicKey,
           };
         },
+        (result) => {
+          if (typeof result.errorCode === 'number') {
+            walletDecline = {
+              errorDomain: result.errorDomain,
+              errorCode: result.errorCode,
+            };
+            return;
+          }
+          if (result.activationState) {
+            activationState = mapCardStatus(result.activationState);
+          }
+        },
       );
 
+      const mappedStatus = mapTokenizationStatus(status);
+      if (
+        mappedStatus === 'error' &&
+        typeof walletDecline?.errorCode === 'number'
+      ) {
+        const walletError = new Error(
+          `Apple Wallet declined the card (${walletDecline.errorDomain ?? 'unknown'} ${walletDecline.errorCode}).`,
+        );
+        logAdapterError(this.getAdapterName(), 'provisionCard', walletError);
+        return {
+          status: 'error',
+          error: new ProvisioningError(
+            ProvisioningErrorCode.WALLET_DECLINED,
+            strings('card.push_provisioning.error_unknown'),
+            undefined,
+            {
+              errorDomain: walletDecline.errorDomain,
+              errorCode: walletDecline.errorCode,
+            },
+          ),
+        };
+      }
+
       return {
-        status: mapTokenizationStatus(status),
+        status: mappedStatus,
+        ...(activationState ? { activationState } : {}),
       };
     } catch (error) {
       logAdapterError('AppleWalletAdapter', 'provisionCard', error);

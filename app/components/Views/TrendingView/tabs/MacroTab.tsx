@@ -9,7 +9,7 @@ import {
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import { selectPredictAvailability } from '../../../UI/PredictNext';
 import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
@@ -91,7 +91,7 @@ const MacroTabContent: React.FC<TabProps> = ({
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
   const macroPerps = usePerpsFeed({ variant: 'macro', refresh });

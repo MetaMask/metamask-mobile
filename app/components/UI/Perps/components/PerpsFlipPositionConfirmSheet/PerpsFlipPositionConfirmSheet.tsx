@@ -8,6 +8,7 @@ import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
+  Box,
   ButtonSize,
   ButtonsAlignment,
   Icon,
@@ -39,6 +40,7 @@ import {
 import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../../constants/slippageConfig';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
+import PerpsRebateBanner from '../PerpsRebateBanner';
 import PerpsValidationErrors from '../PerpsValidationErrors';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -104,7 +106,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       ? Number.parseFloat(topOfBook.bestBid)
       : undefined,
   });
-
   const hasValidAmount = parseFloat(usdAmount) > 0;
 
   // The flip is a market order filled up to the default slippage away from
@@ -321,6 +322,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               </Text>
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                feeDiscountKind={feeResults.feeDiscountKind}
                 fee={
                   !hasValidAmount || feeResults.isLoadingMetamaskFee
                     ? undefined
@@ -371,6 +373,12 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         )}
       </View>
 
+      <PerpsRebateBanner
+        coin={position.symbol}
+        direction={oppositeDirection}
+        notionalUsd={usdAmount}
+        containerTwClassName="px-4 mb-3"
+      />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         secondaryButtonProps={secondaryButtonProps}

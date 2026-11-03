@@ -106,6 +106,34 @@ export const selectProfileEntropySourceIds = createDeepEqualSelector(
 );
 
 /**
+ * Profile id of the primary SRP session (`profile.profileId`). For a merged
+ * profile this is the pre-merge alias, not the canonical id the access token's
+ * `sub` carries, so profile API and social API calls must not use it.
+ *
+ * Same key as {@link selectCanonicalProfileId}: the primary HD keyring, so a
+ * stale session left behind by a wallet reset is not read as the live one.
+ * `undefined` when that identity is not knowable yet — signed out, no session
+ * for the primary SRP, or the wallet is locked.
+ */
+export const selectSessionProfileId = createSelector(
+  selectAuthenticationControllerState,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string | undefined => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return undefined;
+    }
+    return (
+      authenticationControllerState.srpSessionData?.[primaryEntropySourceId]
+        ?.profile?.profileId || undefined
+    );
+  },
+);
+
+/**
  * Selector that exposes the `needsProfilePairing` flag from the
  * `AuthenticationController` state.
  *

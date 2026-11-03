@@ -1,15 +1,26 @@
 import React from 'react';
-import { Text } from 'react-native';
-import { render, fireEvent } from '@testing-library/react-native';
+import { StyleSheet, Text } from 'react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
 import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass';
 
 const mockNavigate = jest.fn();
 const mockCopyContractAddress = jest.fn();
 const mockResolveTokenContractAddress = jest.fn();
 const mockIsStockToken = jest.fn(() => false);
+
+jest.mock('../../../../component-library/components-temp/CapsuleGlass', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View testID="capsule">{children}</View>
+    ),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -22,10 +33,6 @@ jest.mock('../hooks/useCopyTokenContractAddress', () => ({
 jest.mock('../../AssetOverview/utils/getTokenDetails', () => ({
   resolveTokenContractAddress: (...args: unknown[]) =>
     mockResolveTokenContractAddress(...args),
-}));
-
-jest.mock('../../../../util/address', () => ({
-  formatAddress: jest.fn((address: string) => `${address.slice(0, 7)}...short`),
 }));
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
@@ -295,18 +302,207 @@ describe('TokenDetailsInlineHeader', () => {
       expect(mockOnBackPress).toHaveBeenCalledTimes(1);
     });
 
-    it('renders asset ticker as title', () => {
-      const { getByText, queryByText } = renderHeader();
+    it('renders the token name with the ticker on the address row', () => {
+      const { getByText, getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: 'Dogecoin',
+          ticker: 'DOGE',
+          symbol: 'DOGE',
+        },
+      });
+
+      expect(getByText('Dogecoin')).toBeOnTheScreen();
+
+      const subtitle = within(getByTestId('token-details-subtitle'));
+      expect(subtitle.getByText('DOGE')).toBeOnTheScreen();
+      const nameColor = StyleSheet.flatten(
+        getByText('Dogecoin').props.style,
+      )?.color;
+      const tickerColor = StyleSheet.flatten(
+        subtitle.getByTestId('token-details-ticker').props.style,
+      )?.color;
+      const addressColor = StyleSheet.flatten(
+        subtitle.getByText('0x..0000').props.style,
+      )?.color;
+      expect(tickerColor).toStrictEqual(nameColor);
+      expect(addressColor).not.toStrictEqual(tickerColor);
+      expect(subtitle.getByText('0x..0000')).toBeOnTheScreen();
+      expect(
+        subtitle.getByTestId('copy-contract-address-button'),
+      ).toBeOnTheScreen();
+      expect(subtitle.queryByText('Dogecoin')).toBeNull();
+    });
+
+    it('renders the contract address as 0x.. plus its last four characters', () => {
+      mockResolveTokenContractAddress.mockReturnValue(
+        '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+      );
+
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: '(PoS) Tether USD',
+          ticker: 'USDT',
+          symbol: 'USDT',
+        },
+      });
+
+      const subtitle = within(getByTestId('token-details-subtitle'));
+
+      expect(subtitle.getByTestId('token-details-ticker').props.children).toBe(
+        'USDT',
+      );
+      expect(subtitle.getByText('0x..86CA')).toBeOnTheScreen();
+      expect(
+        subtitle.getByTestId('copy-contract-address-button'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders a Solana contract address with its first and last four characters', () => {
+      mockResolveTokenContractAddress.mockReturnValue(
+        'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+      );
+
+      const { getByText } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: 'STONK',
+          ticker: 'STONK',
+          symbol: 'STONK',
+        },
+      });
+
+      expect(getByText('DezX..B263')).toBeOnTheScreen();
+    });
+
+    it('renders a Tron contract address with its first and last four characters', () => {
+      mockResolveTokenContractAddress.mockReturnValue(
+        'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+      );
+
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: 'Sun Token',
+          ticker: 'SUN',
+          symbol: 'SUN',
+        },
+      });
+
+      const subtitle = within(getByTestId('token-details-subtitle'));
+
+      expect(subtitle.getByText('SUN')).toBeOnTheScreen();
+      expect(subtitle.getByText('TR7N..Lj6t')).toBeOnTheScreen();
+    });
+
+    it('ellipsizes a long ticker and keeps the contract address on the same line', () => {
+      const longTicker = 'SUPERCALIFRAGILISTIC';
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          name: 'Long Symbol Token',
+          ticker: longTicker,
+          symbol: longTicker,
+        },
+      });
+
+      const subtitle = within(getByTestId('token-details-subtitle'));
+      const ticker = subtitle.getByTestId('token-details-ticker');
+      const addressGroup = subtitle.getByTestId('token-details-address');
+
+      expect(ticker.props.children).toBe(longTicker);
+      expect(ticker.props.numberOfLines).toBe(1);
+      expect(ticker.props.ellipsizeMode).toBe('tail');
+      expect(StyleSheet.flatten(ticker.props.style)?.flexShrink).toBe(1);
+      expect(StyleSheet.flatten(addressGroup.props.style)?.flexShrink).toBe(0);
+      expect(subtitle.getByText('0x..0000')).toBeOnTheScreen();
+      expect(
+        subtitle.getByTestId('copy-contract-address-button'),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps a long native ticker on one line when there is no contract address', () => {
+      const longTicker = 'SUPERCALIFRAGILISTIC';
+      const { getByTestId, queryByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: true,
+          isNative: true,
+          name: 'Long Native Token',
+          ticker: longTicker,
+          symbol: longTicker,
+        },
+      });
+
+      const ticker = getByTestId('token-details-ticker');
+
+      expect(ticker.props.numberOfLines).toBe(1);
+      expect(ticker.props.children).toBe(longTicker);
+      expect(queryByTestId('token-details-address')).toBeNull();
+      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+    });
+
+    it('renders the ticker under the name when there is no contract address', () => {
+      const { getByText, toJSON } = renderHeader();
+
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(getByText('ETH')).toBeOnTheScreen();
+
+      const serialized = JSON.stringify(toJSON());
+      expect(serialized.indexOf('Ethereum')).toBeLessThan(
+        serialized.indexOf('ETH'),
+      );
+    });
+
+    it('renders the ticker below the name when they differ only by case', () => {
+      const { getByText, toJSON } = renderHeader({
+        token: {
+          ...mockToken,
+          name: 'Pepe',
+          ticker: 'PEPE',
+          symbol: 'PEPE',
+        },
+      });
+
+      expect(getByText('Pepe')).toBeOnTheScreen();
+      expect(getByText('PEPE')).toBeOnTheScreen();
+
+      const serialized = JSON.stringify(toJSON());
+      expect(serialized.indexOf('Pepe')).toBeLessThan(
+        serialized.indexOf('PEPE'),
+      );
+    });
+
+    it('omits the ticker line when it matches the token name', () => {
+      const { getByText, queryByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          name: 'ETH',
+          ticker: 'ETH',
+          symbol: 'ETH',
+        },
+      });
 
       expect(getByText('ETH')).toBeOnTheScreen();
-      expect(queryByText('Ethereum')).toBeNull();
+      expect(queryByTestId('token-details-ticker')).toBeNull();
     });
 
     it('does not render description or copy button for native tokens', () => {
       const { queryByTestId, queryByText } = renderHeader();
 
       expect(queryByTestId('copy-contract-address-button')).toBeNull();
-      expect(queryByText('0x00000...short')).toBeNull();
+      expect(queryByText('0x..0000')).toBeNull();
     });
 
     it('replaces the contract address when a description is provided', () => {
@@ -321,7 +517,9 @@ describe('TokenDetailsInlineHeader', () => {
       });
 
       expect(getByText('$0.000012')).toBeOnTheScreen();
-      expect(queryByText('0x00000...short')).toBeNull();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(queryByText('ETH')).toBeNull();
+      expect(queryByText('0x..0000')).toBeNull();
       expect(queryByTestId('copy-contract-address-button')).toBeNull();
     });
 
@@ -334,7 +532,7 @@ describe('TokenDetailsInlineHeader', () => {
         },
       });
 
-      expect(getByText('0x00000...short')).toBeOnTheScreen();
+      expect(getByText('0x..0000')).toBeOnTheScreen();
     });
 
     it('renders copy button and calls onCopyAddress when pressed for non-native tokens', () => {
@@ -358,7 +556,7 @@ describe('TokenDetailsInlineHeader', () => {
       const { queryByTestId, queryByText } = renderHeader();
 
       expect(queryByTestId('copy-contract-address-button')).toBeNull();
-      expect(queryByText('0x00000...short')).toBeNull();
+      expect(queryByText('0x..0000')).toBeNull();
     });
 
     it('renders price alert button when onPriceAlertPress is provided', () => {
@@ -413,6 +611,55 @@ describe('TokenDetailsInlineHeader', () => {
       expect(starIndex).toBeGreaterThanOrEqual(0);
       expect(alertIndex).toBeGreaterThan(starIndex);
       expect(shareIndex).toBeGreaterThan(alertIndex);
+    });
+  });
+
+  describe('glass', () => {
+    it('stays in place with plain buttons by default', () => {
+      const { queryByTestId } = renderHeader({ onSharePress: jest.fn() });
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(queryByTestId('capsule')).toBeNull();
+    });
+
+    it('floats on its backdrop with the back button in a capsule', () => {
+      const { getAllByTestId, getByTestId } = renderHeader({ isGlass: true });
+
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        within(getAllByTestId('capsule')[0]).getByTestId('back-arrow-button'),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('back-arrow-button'));
+
+      expect(mockOnBackPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('groups the watchlist, price alert and share buttons in one capsule', () => {
+      const { Text } = jest.requireActual('react-native');
+      const { getAllByTestId } = renderHeader({
+        isGlass: true,
+        starButton: <Text testID="watchlist-star-button">★</Text>,
+        onPriceAlertPress: jest.fn(),
+        onSharePress: jest.fn(),
+      });
+
+      const [, actions] = getAllByTestId('capsule');
+      expect(within(actions).getByTestId('watchlist-star-button')).toBeTruthy();
+      expect(
+        within(actions).getByTestId('token-price-alert-button'),
+      ).toBeTruthy();
+      expect(within(actions).getByTestId('share-button')).toBeTruthy();
+    });
+
+    it('reports the floating header layout so the page can inset its content', () => {
+      const onLayout = jest.fn();
+      const { getByTestId } = renderHeader({ isGlass: true, onLayout });
+      const event = { nativeEvent: { layout: { height: 120 } } };
+
+      fireEvent(getByTestId('back-arrow-button'), 'layout', event);
+
+      expect(onLayout).toHaveBeenCalledWith(event);
     });
   });
 });

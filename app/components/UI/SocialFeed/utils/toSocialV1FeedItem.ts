@@ -17,8 +17,7 @@ import {
 } from './formatters';
 import { isEntryAction } from './tradeAction';
 import { tradeTimestampToMs } from './tradeTimestamp';
-import { markMocked, type SocialV1MockedField } from '../mockMarker';
-import { mockMarkPrice } from '../mocks/socialV1Enrichment';
+import { buildLivePriceSource } from '../live/buildLivePriceSource';
 import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
@@ -83,10 +82,12 @@ export const deriveExitPrice = (core: Position): number | null => {
     return null;
   }
 
-  const lastExit = exitFills.reduce((latest, trade) =>
-    tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
-      ? trade
-      : latest,
+  const lastExit = exitFills.reduce(
+    (latest, trade) =>
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
+    exitFills[0],
   );
 
   return toUnitPrice(lastExit);
@@ -107,7 +108,7 @@ export const deriveCurrentPrice = (core: Position): number | null =>
  * Constant while supply is, so any price on this position scales into a
  * market cap -- the same ratio the position details sheet charts against.
  */
-const deriveMarketCapPerPrice = (core: Position): number | null => {
+export const deriveMarketCapPerPrice = (core: Position): number | null => {
   const fills = [...(core.trades ?? [])].sort(
     (a, b) => tradeTimestampToMs(b.timestamp) - tradeTimestampToMs(a.timestamp),
   );
@@ -120,7 +121,7 @@ const deriveMarketCapPerPrice = (core: Position): number | null => {
   return null;
 };
 
-const toMarketCapLabel = (
+export const toMarketCapLabel = (
   marketCapPerPrice: number | null,
   price: number | null,
 ): string | undefined =>
@@ -206,17 +207,15 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
   // No lifecycle action on older payloads: fall back to the latest fill's own
   // direction rather than defaulting to 'buy' and mislabelling a sale.
   const trades = core.trades ?? [];
-  const lastTrade = trades[trades.length - 1];
+  const lastTrade = trades.at(-1);
   return lastTrade?.direction === 'sell' ? 'sell' : 'buy';
 };
 
 /**
  * Maps one loaded feed row into the V1 card model.
  *
- * Identity, time, symbol, direction, leverage, value, P&L, the author's win
- * rate and caption, entry, hold time and
- * the spot price and market caps come from the row. A perp's mark price is
- * still invented, and is recorded in `mockedFields`.
+ * Every figure comes from the row. Open positions also carry a `live` source
+ * so the card can follow a streamed price from these snapshot values.
  */
 export function toSocialV1FeedItem(
   row: TraderFeedRow,
@@ -224,7 +223,6 @@ export function toSocialV1FeedItem(
 ): SocialV1FeedItem {
   const { item, core } = row;
   const card = asFeedCardItem(core);
-  const mockedFields: SocialV1MockedField[] = [];
 
   const author = {
     id: item.traderId,
@@ -238,9 +236,8 @@ export function toSocialV1FeedItem(
   };
 
   const authorComment = readAuthorComment(core);
-  const { text: commentText } = splitKlipyGifFromCommentText(
-    authorComment?.text ?? '',
-  );
+  const { text: commentText, gifUrl: commentGifUrl } =
+    splitKlipyGifFromCommentText(authorComment?.text ?? '');
   const comment = commentText || undefined;
 
   // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
@@ -264,6 +261,7 @@ export function toSocialV1FeedItem(
       avatar: item.tokenAvatar,
     },
     comment,
+    ...(commentGifUrl ? { commentGifUrl } : {}),
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
     // Abbreviated: the open card puts this under the percent in a column capped
@@ -277,7 +275,6 @@ export function toSocialV1FeedItem(
       ? formatUsd(Math.abs(core.boughtUsd))
       : undefined,
     isPnlPositive: item.isPnlPositive,
-    mockedFields,
   };
 
   const entryPrice = deriveAverageEntryPrice(core);
@@ -322,9 +319,14 @@ export function toSocialV1FeedItem(
         };
   }
 
-  if (isSpot) {
-    const currentPrice = deriveCurrentPrice(core);
+  const currentPrice = deriveCurrentPrice(core);
+  const live = buildLivePriceSource(core, false, {
+    snapshotPrice: currentPrice,
+    entryPrice,
+    marketCapPerPrice,
+  });
 
+  if (isSpot) {
     return {
       ...base,
       variant: 'spotOpen',
@@ -335,12 +337,8 @@ export function toSocialV1FeedItem(
       entryPriceLabel,
       entryMarketCapLabel: toMarketCapLabel(marketCapPerPrice, entryPrice),
       holdTimeLabel,
+      ...(live ? { live } : {}),
     };
-  }
-
-  const markPrice = mockMarkPrice(item.traderId, base.asset.symbol, entryPrice);
-  if (markPrice != null) {
-    mockedFields.push('markPrice');
   }
 
   return {
@@ -351,11 +349,10 @@ export function toSocialV1FeedItem(
     leverage: item.leverage ?? undefined,
     leverageLabel: toLeverageLabel(item),
     markPriceLabel:
-      markPrice == null
-        ? undefined
-        : markMocked(formatTradeUnitPrice(markPrice)),
+      currentPrice == null ? undefined : formatTradeUnitPrice(currentPrice),
     entryPriceLabel,
     holdTimeLabel,
+    ...(live ? { live } : {}),
   };
 }
 

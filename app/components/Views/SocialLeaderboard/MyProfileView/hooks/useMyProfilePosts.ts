@@ -5,6 +5,18 @@ import type {
 } from '../../../../UI/SocialFeed/types';
 import type { SocialFeedSource } from '../../../../UI/SocialFeed/data/socialFeedSource';
 import { useSocialFeed } from '../../../../UI/SocialFeed/data/useSocialFeed';
+import { readAuthorComment } from '../../../../UI/SocialFeed/reactions';
+import { usePendingPostsOverlay } from '../../pendingPosts/usePendingPostsOverlay';
+
+export interface UseMyProfilePostsOptions {
+  /**
+   * The viewer's social profile id, when this is their own profile: their
+   * just-written posts show on top until the feed returns them.
+   */
+  ownerProfileId?: string;
+  /** Whether the Posts tab is on screen; gates the pending-post refetches. */
+  isActive?: boolean;
+}
 
 export interface UseMyProfilePostsResult {
   posts: SocialV1FeedPost[];
@@ -17,9 +29,13 @@ export interface UseMyProfilePostsResult {
   refresh: () => Promise<void>;
 }
 
-/** The owner's commented positions, as feed posts. */
+/**
+ * The trader's commented positions, as feed posts. The feed is ordered by
+ * comment time, so each card is dated by its comment rather than its trade.
+ */
 export const useMyProfilePosts = (
   addressOrId: string | undefined,
+  { ownerProfileId, isActive = true }: UseMyProfilePostsOptions = {},
 ): UseMyProfilePostsResult => {
   const source = useMemo(
     (): SocialFeedSource | null =>
@@ -28,15 +44,42 @@ export const useMyProfilePosts = (
   );
 
   const {
-    posts,
+    posts: feedPosts,
     rows,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
     loadMore,
     error,
-    refresh,
+    refresh: refetch,
   } = useSocialFeed(source);
+
+  const serverPosts = useMemo(
+    () =>
+      feedPosts.map((post, index) => {
+        const row = rows[index];
+        const commentedAt = row
+          ? readAuthorComment(row.core)?.timestamp
+          : undefined;
+        return commentedAt
+          ? { ...post, timestampMs: commentedAt * 1000 }
+          : post;
+      }),
+    [feedPosts, rows],
+  );
+
+  const overlay = usePendingPostsOverlay({
+    surface: 'posts',
+    ownerProfileId,
+    serverPosts,
+    refetch,
+    isActive,
+  });
+
+  const posts = useMemo(
+    () => [...overlay.pinnedPosts, ...overlay.posts],
+    [overlay.pinnedPosts, overlay.posts],
+  );
 
   return {
     posts,
@@ -46,6 +89,6 @@ export const useMyProfilePosts = (
     hasNextPage,
     loadMore,
     error,
-    refresh,
+    refresh: overlay.refresh,
   };
 };

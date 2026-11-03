@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react-native';
 import { getVersion } from 'react-native-device-info';
 import Engine from '../../core/Engine';
 import Logger from '../Logger';
@@ -29,6 +30,24 @@ jest.mock('../../core/Engine', () => ({
 jest.mock('../Logger', () => ({
   log: jest.fn(),
 }));
+
+const mockGetState = jest.fn();
+jest.mock('../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    get store() {
+      return { getState: mockGetState };
+    },
+  },
+}));
+
+const mockSecurityState = (
+  shouldShowConsentSheet: boolean,
+  dataSharingPreference: boolean | null,
+) =>
+  mockGetState.mockReturnValue({
+    security: { shouldShowConsentSheet, dataSharingPreference },
+  });
 
 describe('buildSupportUrl', () => {
   beforeEach(() => {
@@ -306,6 +325,7 @@ describe('navigateToSupportConsent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(getVersion).mockReturnValue('7.1.0');
+    mockSecurityState(true, null);
   });
 
   it('navigates to the consent sheet with an onConfirm and onReject handler', () => {
@@ -406,5 +426,72 @@ describe('navigateToSupportConsent', () => {
     await onConfirm();
 
     expect(mockOnOpenSupport).not.toHaveBeenCalled();
+  });
+
+  it('skips the consent sheet and opens the enriched URL when the saved preference is to share', async () => {
+    mockSecurityState(false, true);
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    const mockOnOpenSupport = jest.fn();
+
+    navigateToSupportConsent(
+      mockNavigation,
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockOnOpenSupport).toHaveBeenCalledTimes(1));
+    expect(mockOpen).toHaveBeenCalledWith(
+      expect.stringContaining('customer_service_token=jwt-token'),
+    );
+  });
+
+  it('skips the consent sheet and opens the raw base URL when the saved preference is not to share', async () => {
+    mockSecurityState(false, false);
+    const mockOnOpenSupport = jest.fn();
+
+    navigateToSupportConsent(
+      mockNavigation,
+      mockOpen,
+      METAMASK_SUPPORT_URL,
+      mockOnOpenSupport,
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockOnOpenSupport).toHaveBeenCalledTimes(1));
+    expect(mockOpen).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+    expect(
+      Engine.context.AuthenticationController.getCustomerServiceToken,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('shows the consent sheet when "Remember my support preference" is off, even with a saved choice', () => {
+    mockSecurityState(true, true);
+
+    navigateToSupportConsent(mockNavigation, mockOpen, METAMASK_SUPPORT_URL);
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockOpen).not.toHaveBeenCalled();
+  });
+
+  it('shows the consent sheet when remembering is on but no choice was saved yet', () => {
+    mockSecurityState(false, null);
+
+    navigateToSupportConsent(mockNavigation, mockOpen, METAMASK_SUPPORT_URL);
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the consent sheet when the store is not initialized', () => {
+    mockGetState.mockImplementation(() => {
+      throw new Error('Redux store does not exist!');
+    });
+
+    navigateToSupportConsent(mockNavigation, mockOpen, METAMASK_SUPPORT_URL);
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });

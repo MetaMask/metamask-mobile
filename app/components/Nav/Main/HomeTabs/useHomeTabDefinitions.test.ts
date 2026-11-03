@@ -62,6 +62,8 @@ const renderDefinitions = (
       useHomeTabDefinitions({
         isMoneyAccountVisible: false,
         showSocialTab: false,
+        isSocialV1Enabled: false,
+        showSocialTabNewBadge: false,
         trackMoneyTabPress: jest.fn(),
         ...overrides,
       }),
@@ -101,10 +103,11 @@ describe('useHomeTabDefinitions', () => {
     expect(result.current.tabs[2].nativeIcon).toBeUndefined();
   });
 
-  it('swaps in Money and Social when they are enabled', () => {
+  it('orders Home, Explore, Money and Social when Social V1 is enabled', () => {
     const { result } = renderDefinitions({
       isMoneyAccountVisible: true,
       showSocialTab: true,
+      isSocialV1Enabled: true,
     });
 
     expect(result.current.tabs.map((tab) => tab.name)).toEqual([
@@ -112,6 +115,33 @@ describe('useHomeTabDefinitions', () => {
       Routes.TRENDING_VIEW,
       Routes.BROWSER.HOME,
       Routes.MONEY.ROOT,
+      Routes.SOCIAL.TAB,
+    ]);
+  });
+
+  it('marks the Social tab as new', () => {
+    const { result } = renderDefinitions({
+      showSocialTab: true,
+      isSocialV1Enabled: true,
+      showSocialTabNewBadge: true,
+    });
+
+    const social = result.current.tabs[4];
+
+    expect(social.showNewBadge).toBe(true);
+  });
+
+  it('keeps the legacy Social tab in its existing position', () => {
+    const { result } = renderDefinitions({
+      showSocialTab: true,
+      isSocialV1Enabled: false,
+    });
+
+    expect(result.current.tabs.map((tab) => tab.name)).toEqual([
+      Routes.WALLET.HOME,
+      Routes.TRENDING_VIEW,
+      Routes.BROWSER.HOME,
+      Routes.TRANSACTIONS_VIEW,
       Routes.SOCIAL.TAB,
     ]);
   });
@@ -229,10 +259,17 @@ describe('useHomeTabDefinitions', () => {
 
     it('selects the Social tab through the onboarding-aware tab helper', () => {
       const { result } = renderDefinitions({ showSocialTab: true });
-      const social = result.current.tabs[4];
+      const social = result.current.tabs.find(
+        (tab) => tab.name === Routes.SOCIAL.TAB,
+      );
+      if (!social) {
+        throw new Error('Social tab is not defined');
+      }
 
       result.current
-        .getNativeTabListeners(social)({ navigation: mockNavigation })
+        .getNativeTabListeners(social)({
+          navigation: mockNavigation,
+        })
         .tabPress?.();
 
       expect(navigateToSocialTab).toHaveBeenCalledWith(

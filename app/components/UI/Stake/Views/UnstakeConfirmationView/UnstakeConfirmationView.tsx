@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import styleSheet from './UnstakeConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -18,6 +18,8 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -25,6 +27,7 @@ export const UNSTAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID =
   'unstake-confirmation-header-back-button';
 
 const UnstakeConfirmationView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const route =
     useRoute<
       RouteProp<{ params: UnstakeConfirmationViewRouteParams }, 'params'>
@@ -48,7 +51,9 @@ const UnstakeConfirmationView = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('stake.unstake')}
         onBack={handleBackPress}
         backButtonProps={{

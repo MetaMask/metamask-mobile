@@ -4,11 +4,13 @@ import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { AppiumAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
-import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
+import PredictHome from '../../../page-objects/Predict/PredictHome';
+import PredictFeedView from '../../../page-objects/Predict/PredictFeedView';
 import PredictDetailsPage from '../../../page-objects/Predict/PredictDetailsPage';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
 import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Predict Market Details Performance Test
@@ -42,21 +44,25 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         currentDeviceDetails.platform,
       );
       await ToastModal.waitForToastToDismiss();
+      await enableHermesAppProfiling();
       await WalletView.scrollAndTapPredictionsSection();
       await timer1.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          PredictMarketList.container,
-        );
+        await AppiumAssertions.expectElementToBeVisible(PredictHome.container);
+      });
+
+      await PredictHome.tapCategoryTile('politics');
+      await PredictFeedView.waitForScreenToDisplay({
+        description: 'Predict politics feed should be visible',
       });
 
       // Timer 2: Open market details
       const timer2 = new TimerHelper(
         'Time since user taps market card until Market Detail screen is visible',
-        { ios: 1500, android: 6500 },
+        { ios: 1500, android: 1800 },
         currentDeviceDetails.platform,
       );
 
-      await PredictMarketList.tapMarketCard('trending', 1);
+      await PredictFeedView.tapMarketCard(1);
       await timer2.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           PredictDetailsPage.container,

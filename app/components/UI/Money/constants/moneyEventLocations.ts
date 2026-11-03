@@ -134,10 +134,12 @@ export enum COMPONENT_NAMES {
   FAQ_ITEM = 'money_faq_item',
 
   // — EarnSection —
-  HOMEPAGE_EARN_SECTION = 'homepage_earn_section',
   EXPLORE_EARN_SECTION = 'explore_earn_section',
   EARN_SECTION_MONEY_CARD = 'earn_section_money_card',
 
   // — EarnSectionListView —
   MONEY_ACCOUNT_ROW = 'money_account_row',
+
+  // - Homepage Balance Breakdown -
+  MONEY_ROW_BALANCE_BREAKDOWN = 'money_row_balance_breakdown',
 }

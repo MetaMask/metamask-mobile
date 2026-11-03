@@ -1,4 +1,5 @@
 import {
+  AvatarBaseSize,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
@@ -6,12 +7,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Image } from 'react-native';
+import AvatarSocial from '../../../../../component-library/components-temp/AvatarSocial';
+import { FOXICON_SIZE_BY_AVATARBASE_SIZE } from '../../../../../component-library/components-temp/AvatarSocial/AvatarSocial.constants';
+import Foxicon from '../../../../../component-library/components-temp/Foxicon';
 import superheroAvatar from '../../../../../images/socialV1/superhero.png';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
   getProfileAvatarBackground,
   getProfileAvatarPreset,
-  type ProfileAvatarPreset,
 } from '../avatarPresets';
 
 type ProfileAvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -32,33 +35,15 @@ const SIZE_PX: Record<ProfileAvatarSize, number> = {
   xl: 96,
 };
 
-/** Share of the circle the artwork fills when drawn over a backdrop color. */
-const ART_SCALE = 0.85;
-
-interface ProfileAvatarArtProps {
-  preset: ProfileAvatarPreset | undefined;
-  sizePx: number;
-  testID?: string;
-}
-
-/**
- * Preset artwork without its own backdrop, for drawing over a picked color.
- */
-export const ProfileAvatarArt: React.FC<ProfileAvatarArtProps> = ({
-  preset,
-  sizePx,
-  testID,
-}) => {
-  const tw = useTailwind();
-  return (
-    <Image
-      source={preset?.source ?? superheroAvatar}
-      style={tw.style({ width: sizePx, height: sizePx })}
-      resizeMode="contain"
-      testID={testID}
-    />
-  );
-};
+/** Diameters `AvatarSocial` renders natively; others draw a Foxicon on a circle. */
+const AVATAR_BASE_SIZE_BY_PX = new Map<number, AvatarBaseSize>(
+  (
+    Object.entries(FOXICON_SIZE_BY_AVATARBASE_SIZE) as [
+      AvatarBaseSize,
+      number,
+    ][]
+  ).map(([avatarBaseSize, px]) => [px, avatarBaseSize]),
+);
 
 interface ProfileAvatarProps {
   imageUrl?: string | null;
@@ -117,6 +102,20 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   const background =
     getProfileAvatarBackground(avatarBackgroundId) ??
     getProfileAvatarBackground(DEFAULT_PROFILE_AVATAR_BACKGROUND_ID);
+  const artTestID = testID ? `${testID}-art` : undefined;
+  const avatarBaseSize = AVATAR_BASE_SIZE_BY_PX.get(diameterPx);
+
+  if (avatarBaseSize && background) {
+    return (
+      <AvatarSocial
+        variant={preset.id}
+        backgroundColor={background.id}
+        size={avatarBaseSize}
+        testID={testID}
+        accessibilityLabel={accessibilityLabel}
+      />
+    );
+  }
 
   return (
     <Box
@@ -127,11 +126,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       testID={testID}
       accessibilityLabel={accessibilityLabel}
     >
-      <ProfileAvatarArt
-        preset={preset}
-        sizePx={diameterPx * ART_SCALE}
-        testID={testID ? `${testID}-art` : undefined}
-      />
+      <Foxicon variant={preset.id} size={diameterPx} testID={artTestID} />
     </Box>
   );
 };

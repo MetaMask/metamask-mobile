@@ -112,6 +112,12 @@ describe('PerpsAdvancedChart', () => {
     mockUsePerpsAdvancedChartAdapter.mockReturnValue(mockAdapterResult);
   });
 
+  it('asks AdvancedChart for the candle skeleton', () => {
+    renderChart({ height: 240 });
+
+    expect(advancedChartProps().skeletonVariant).toBe('candles');
+  });
+
   it('forwards Advanced Chart zoom candle counts', () => {
     const onVisibleCandleCountChange = jest.fn();
 

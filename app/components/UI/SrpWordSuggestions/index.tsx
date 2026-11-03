@@ -1,30 +1,35 @@
 import React, { useMemo } from 'react';
-import { View, FlatList, Pressable } from 'react-native';
-import { useAppTheme } from '../../../util/theme';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { createStyles } from './SrpWordSuggestions.styles';
-import { SrpWordSuggestionsProps } from './SrpWordSuggestions.types';
+import { ScrollView } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Text,
-  TextVariant,
-  TextColor,
+  Box,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import ButtonGlass from '../../../component-library/components-temp/ButtonGlass';
+import BoxGlass from '../../../component-library/components-temp/BoxGlass';
+import { getHardwareTier } from '../../../util/deviceCapability';
+import { useNetworkTier } from '../../../hooks/useNetworkTier';
+import { useTheme } from '../../../util/theme';
+import { SrpWordSuggestionsProps } from './SrpWordSuggestions.types';
 
 /**
- * SrpWordSuggestions Component
- *
- * Displays BIP39 word suggestions based on the current input word.
- * Used in conjunction with SrpInputGrid for Secret Recovery Phrase input.
+ * BIP39 word suggestions shown above the keyboard while a Secret Recovery
+ * Phrase is being entered. The glass hides when nothing matches.
  */
 const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
   currentInputWord,
   onSuggestionSelect,
   onPressIn,
 }) => {
-  const { colors } = useAppTheme();
-  const styles = createStyles(colors);
+  const tw = useTailwind();
+  const { shadows } = useTheme();
+  const hardware = getHardwareTier();
+  const network = useNetworkTier();
+  const isLowHardware = hardware === 'LOW' && network !== null;
+  const isGlass = network !== 'NONE' && !isLowHardware;
 
-  // Filter BIP39 wordlist based on current input
   const suggestions = useMemo(() => {
     const trimmedWord = currentInputWord.trim().toLowerCase();
 
@@ -40,35 +45,38 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
   }
 
   return (
-    <View
-      style={styles.suggestionContainer}
-      onTouchStart={onPressIn}
-      testID="srp-word-suggestions"
-    >
-      <FlatList
-        horizontal
-        data={suggestions}
-        renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [
-              styles.suggestionButton,
-              pressed && styles.suggestionPressed,
-            ]}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPressIn={onPressIn}
-            onPress={() => onSuggestionSelect(item)}
-          >
-            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-              {item}
-            </Text>
-          </Pressable>
-        )}
-        keyExtractor={(item) => item}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.suggestionListContent}
-        keyboardShouldPersistTaps="always"
-      />
-    </View>
+    <Box twClassName="mx-2 pb-2">
+      <BoxGlass
+        radiusClassName="rounded-full"
+        isGlass={isGlass}
+        isInteractive
+        testID="srp-word-suggestions"
+        containerStyle={[tw.style('w-full'), shadows.size.md]}
+        style={tw.style('h-12 w-full justify-center')}
+      >
+        <ScrollView
+          horizontal
+          keyboardShouldPersistTaps="always"
+          showsHorizontalScrollIndicator={false}
+          style={tw.style('h-full w-full')}
+          contentContainerStyle={tw.style('h-full items-center gap-2 px-1')}
+        >
+          {suggestions.map((word) => (
+            <ButtonGlass
+              key={word}
+              isGlass={isGlass}
+              variant={ButtonVariant.Tertiary}
+              size={ButtonSize.Md}
+              twClassName="self-center"
+              onPressIn={onPressIn}
+              onPress={() => onSuggestionSelect(word)}
+            >
+              {word}
+            </ButtonGlass>
+          ))}
+        </ScrollView>
+      </BoxGlass>
+    </Box>
   );
 };
 

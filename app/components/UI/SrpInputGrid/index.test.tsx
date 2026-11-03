@@ -1,5 +1,7 @@
 import React from 'react';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { AppState } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { ImportSRPIDs } from '../../Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
@@ -248,6 +250,108 @@ describe('SrpInputGrid', () => {
       );
 
       expect(mockOnSeedPhraseChange).toHaveBeenCalled();
+    });
+
+    it('hides paste when the clipboard has no text', async () => {
+      jest.mocked(Clipboard.hasString).mockResolvedValue(false);
+      jest.mocked(Clipboard.addListener).mockReturnValue({
+        remove: jest.fn(),
+      } as unknown as ReturnType<typeof Clipboard.addListener>);
+
+      const { queryByText } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} showPasteOnlyWithClipboard />,
+      );
+
+      await waitFor(() => {
+        expect(queryByText('Paste')).toBeNull();
+      });
+
+      jest.mocked(Clipboard.hasString).mockResolvedValue(true);
+    });
+
+    it('shows paste when the clipboard has text and the input is empty', async () => {
+      jest.mocked(Clipboard.hasString).mockResolvedValue(true);
+      jest.mocked(Clipboard.addListener).mockReturnValue({
+        remove: jest.fn(),
+      } as unknown as ReturnType<typeof Clipboard.addListener>);
+
+      const { getByText } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} showPasteOnlyWithClipboard />,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Paste')).toBeOnTheScreen();
+      });
+    });
+
+    it('shows paste after the app returns to the foreground with text copied', async () => {
+      jest.mocked(Clipboard.hasString).mockResolvedValue(false);
+      jest.mocked(Clipboard.addListener).mockReturnValue({
+        remove: jest.fn(),
+      } as unknown as ReturnType<typeof Clipboard.addListener>);
+      const appStateSpy = jest.spyOn(AppState, 'addEventListener');
+
+      const { getByText, queryByText } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} showPasteOnlyWithClipboard />,
+      );
+      await waitFor(() => {
+        expect(queryByText('Paste')).toBeNull();
+      });
+
+      jest.mocked(Clipboard.hasString).mockResolvedValue(true);
+      const changeHandler = appStateSpy.mock.calls.find(
+        ([eventType]) => eventType === 'change',
+      )?.[1];
+      await act(async () => {
+        changeHandler?.('active');
+      });
+
+      await waitFor(() => {
+        expect(getByText('Paste')).toBeOnTheScreen();
+      });
+      appStateSpy.mockRestore();
+    });
+
+    it('shows paste after focusing the input with text copied', async () => {
+      jest.mocked(Clipboard.hasString).mockResolvedValue(false);
+      jest.mocked(Clipboard.addListener).mockReturnValue({
+        remove: jest.fn(),
+      } as unknown as ReturnType<typeof Clipboard.addListener>);
+
+      const { getByText, queryByText, getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} showPasteOnlyWithClipboard />,
+      );
+      await waitFor(() => {
+        expect(queryByText('Paste')).toBeNull();
+      });
+
+      jest.mocked(Clipboard.hasString).mockResolvedValue(true);
+      await act(async () => {
+        fireEvent(getByTestId(ImportSRPIDs.SEED_PHRASE_INPUT_ID), 'focus');
+      });
+
+      await waitFor(() => {
+        expect(getByText('Paste')).toBeOnTheScreen();
+      });
+    });
+
+    it('shows clear all when the input has text even if the clipboard is empty', async () => {
+      jest.mocked(Clipboard.hasString).mockResolvedValue(false);
+
+      const { getByText, queryByText } = renderWithProvider(
+        <SrpInputGrid
+          {...defaultProps}
+          seedPhrase={['wallet', 'abandon']}
+          showPasteOnlyWithClipboard
+        />,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Clear all')).toBeOnTheScreen();
+      });
+      expect(queryByText('Paste')).toBeNull();
+
+      jest.mocked(Clipboard.hasString).mockResolvedValue(true);
     });
 
     it('clears all inputs when clear button is pressed', () => {

@@ -28,7 +28,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   cursor: {
-    marginHorizontal: 5,
     width: 1,
   },
 });
@@ -45,6 +44,10 @@ export interface AnimatedAmountCursorProps {
  * content, press handling, and numeric glyph animation.
  */
 export interface AnimatedAmountDisplayProps {
+  /** Whether the amount row itself should be an accessibility element. */
+  amountAccessible?: boolean;
+  /** Whether the non-pressable display container should be accessible. */
+  accessible?: boolean;
   accessibilityLabel?: string;
   /** Layout styles applied only to the animated numeric row. */
   amountContainerStyle?: StyleProp<ViewStyle>;
@@ -72,6 +75,8 @@ export interface AnimatedAmountDisplayProps {
 }
 
 const AnimatedAmountDisplay = ({
+  amountAccessible = false,
+  accessible: accessibleProp,
   accessibilityLabel,
   animated = true,
   amountContainerStyle,
@@ -102,6 +107,7 @@ const AnimatedAmountDisplay = ({
     `${typeof prefix === 'string' ? prefix : ''}${value}${
       typeof suffix === 'string' ? suffix : ''
     }`;
+  const contentAccessible = accessibleProp ?? !onPress;
   const cursorAnimated =
     cursor !== false && cursor.animated !== false && !reduceMotion;
   const cursorOpacity = useBlinkingCursor(cursorAnimated);
@@ -109,10 +115,10 @@ const AnimatedAmountDisplay = ({
   const defaultCursorStyle = useMemo(
     () => ({
       ...styles.cursor,
-      backgroundColor: colors.primary.default,
+      backgroundColor: colors.text.muted,
       height: 40,
     }),
-    [colors.primary.default],
+    [colors.text.muted],
   );
   const cursorOpacityStyle = useMemo(
     () => ({ opacity: cursorAnimated ? cursorOpacity : 1 }),
@@ -155,7 +161,7 @@ const AnimatedAmountDisplay = ({
     </Text>
   ) : (
     <AnimatedNumericText
-      accessible={false}
+      accessible={amountAccessible}
       animated={animated}
       color={color}
       containerStyle={amountContainerStyle}
@@ -169,9 +175,11 @@ const AnimatedAmountDisplay = ({
 
   const content = (
     <View
-      accessible={!onPress}
-      accessibilityLabel={!onPress ? displayAccessibilityLabel : undefined}
-      accessibilityRole={!onPress ? 'text' : undefined}
+      accessible={!onPress && contentAccessible}
+      accessibilityLabel={
+        !onPress && contentAccessible ? displayAccessibilityLabel : undefined
+      }
+      accessibilityRole={!onPress && contentAccessible ? 'text' : undefined}
       style={[styles.container, containerStyle]}
       testID={onPress ? undefined : testID}
     >
@@ -202,6 +210,7 @@ const AnimatedAmountDisplay = ({
       accessibilityLabel={displayAccessibilityLabel}
       accessibilityRole="button"
       onPress={onPress}
+      style={containerStyle}
       testID={testID}
     >
       {content}

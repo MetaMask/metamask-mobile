@@ -223,7 +223,7 @@ These flags are managed via `FeatureFlagConfigurationService` and control runtim
 
 ### Terminal API source selection
 
-The schema-v2 global snapshot is not controlled by the legacy `perpsTerminalBackendEnabled` flag. A configured `terminalApi.globalSnapshotUrl` enables the strict v2 snapshot attempt for Hyperliquid; Core validates provider/network/DEX identity and freshness, then falls back directly to the provider when the snapshot is unavailable or invalid. The legacy flag controls only v1 metadata enrichment on the provider path. Development builds may override the v2 URL with `MM_PERPS_TERMINAL_GLOBAL_SNAPSHOT_URL`.
+The schema-v4 global snapshot is not controlled by the legacy `perpsTerminalBackendEnabled` flag. A configured `terminalApi.globalSnapshotUrl` enables the strict v4 snapshot attempt for Hyperliquid; Core validates provider/network/DEX identity and freshness, then falls back directly to the provider when the snapshot is unavailable or invalid. The legacy flag controls only v1 metadata enrichment on the provider path. Development builds may override the v4 URL with `MM_PERPS_TERMINAL_GLOBAL_SNAPSHOT_URL`.
 
 ---
 

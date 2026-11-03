@@ -79,6 +79,7 @@ write_secret "TEST_SRP_2" "${TEST_SRP_2:-}"
 write_secret "TEST_SRP_3" "${TEST_SRP_3:-}"
 write_secret "TEST_SRP_4" "${TEST_SRP_4:-}"
 write_secret "E2E_PASSWORD" "${E2E_PASSWORD:-}"
+write_secret "ANTHROPIC_API_KEY" "${ANTHROPIC_API_KEY:-}"
 write_secret "E2E_PERFORMANCE_SENTRY_DSN" "${E2E_PERFORMANCE_SENTRY_DSN:-}"
 
 RESOLVED_ANDROID_APP_URL="${TESTMU_ANDROID_APP_URL:-}"
@@ -159,6 +160,7 @@ env:
   TESTMU_DEVICE: "$(yaml_escape "${TESTMU_DEVICE:-}")"
   TESTMU_OS_VERSION: "$(yaml_escape "${TESTMU_OS_VERSION:-}")"
   TESTMU_BUILD_NAME: "$(yaml_escape "${TESTMU_BUILD_NAME:-HyperExecute-Performance}")"
+  TESTMU_PROJECT_NAME: "$(yaml_escape "${TESTMU_PROJECT_NAME:-}")"
   TESTMU_GEO_LOCATION: "$(yaml_escape "${TESTMU_GEO_LOCATION:-SE}")"
   TEST_PLATFORM: "$(yaml_escape "${TEST_PLATFORM:-android}")"
   QA_APP_VERSION: "$(yaml_escape "${QA_APP_VERSION:-HyperExecute}")"
@@ -172,6 +174,8 @@ env:
   TEST_SRP_3: \${{.secrets.TEST_SRP_3}}
   TEST_SRP_4: \${{.secrets.TEST_SRP_4}}
   E2E_PASSWORD: \${{.secrets.E2E_PASSWORD}}
+  ANTHROPIC_API_KEY: \${{.secrets.ANTHROPIC_API_KEY}}
+  AI_LOCATOR_RECOVERY_ENABLED: "$(yaml_escape "${AI_LOCATOR_RECOVERY_ENABLED:-false}")"
   E2E_PERFORMANCE_SENTRY_DSN: \${{.secrets.E2E_PERFORMANCE_SENTRY_DSN}}
   E2E_PERFORMANCE_SENTRY_ENVIRONMENT: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_ENVIRONMENT:-github-actions-performance-e2e-testmu-he}")"
   E2E_PERFORMANCE_SENTRY_RELEASE: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_RELEASE:-}")"

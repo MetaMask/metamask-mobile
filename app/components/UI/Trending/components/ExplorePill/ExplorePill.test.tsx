@@ -73,4 +73,18 @@ describe('ExplorePill', () => {
 
     expect(getByTestId('trailing')).toBeTruthy();
   });
+
+  it('applies a custom title color', () => {
+    const { UNSAFE_getByProps } = render(
+      <ExplorePill
+        onPress={jest.fn()}
+        testID="pill"
+        leading={<Text>L</Text>}
+        title="BTC"
+        titleTextColor={TextColor.InfoInverse}
+      />,
+    );
+
+    expect(UNSAFE_getByProps({ color: TextColor.InfoInverse })).toBeTruthy();
+  });
 });

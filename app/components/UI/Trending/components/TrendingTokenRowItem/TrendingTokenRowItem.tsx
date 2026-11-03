@@ -36,7 +36,7 @@ import {
 } from './utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';

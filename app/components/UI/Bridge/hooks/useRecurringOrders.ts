@@ -4,7 +4,7 @@ import type { CaipChainId } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import type {
   GetRecurringOrdersResponse,
-  RecurringOrderStatus,
+  RecurringOrderState,
 } from '../api/recurringOrders.types';
 import {
   RECURRING_ORDERS_PAGE_LIMIT,
@@ -13,21 +13,21 @@ import {
 
 interface UseRecurringOrdersParams {
   walletAddress?: string;
-  status: RecurringOrderStatus[];
+  orderStates: RecurringOrderState[];
   chainId?: CaipChainId;
   enabled?: boolean;
 }
 
 export function useRecurringOrders({
   walletAddress,
-  status,
+  orderStates,
   chainId,
   enabled = true,
 }: UseRecurringOrdersParams) {
   const queryClient = useQueryClient();
   const descriptor = recurringOrdersQueries.getRecurringOrders({
     walletAddress: walletAddress ?? '',
-    status,
+    orderStates,
     chainId,
     limit: RECURRING_ORDERS_PAGE_LIMIT,
   });

@@ -5,6 +5,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  FontFamily,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import LivePriceHeader from './LivePriceHeader';
@@ -287,6 +288,8 @@ describe('LivePriceHeader', () => {
       );
 
       expect(priceText?.props.variant).toBe(TextVariant.BodySm);
+      expect(priceText?.props.fontFamily).toBeUndefined();
+      expect(priceText?.props.twClassName).toBeUndefined();
       expect(priceText?.props.color).toBe(TextColor.TextAlternative);
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
     });
@@ -306,7 +309,8 @@ describe('LivePriceHeader', () => {
           el.props.children.includes('(+5.50%)'),
       );
 
-      expect(priceText?.props.variant).toBe(TextVariant.DisplayLg);
+      expect(priceText?.props.variant).toBe(TextVariant.AmountDisplayLg);
+      expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
       expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
@@ -317,7 +321,7 @@ describe('LivePriceHeader', () => {
       expect(periodText?.props.variant).toBe(TextVariant.BodySm);
     });
 
-    it('renders a smaller prominent price for the prominent variant (Pro)', () => {
+    it('renders a prominent price for the prominent variant (Pro)', () => {
       const { UNSAFE_getAllByType } = render(
         <LivePriceHeader symbol="ETH" currentPrice={3000} size="prominent" />,
       );
@@ -327,7 +331,8 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '$3,000',
       );
 
-      expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
+      expect(priceText?.props.variant).toBe(TextVariant.AmountDisplayLg);
+      expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
 
       const periodText = textElements.find((el) => el.props.children === '24h');

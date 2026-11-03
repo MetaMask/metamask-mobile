@@ -9,14 +9,25 @@ import { mapFeedItem } from '../../../../../UI/SocialFeed/utils/mapFeedItem';
 import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFeedPosts';
 import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
-  COMPOSER_POSTING_DELAY_MS,
-  resetSocialV1ComposedFeedStore,
-  startSocialV1PendingPostCountdown,
-  submitSocialV1ComposedPost,
-} from '../store/socialV1ComposedFeedStore';
+  addPendingPost,
+  confirmPendingPosts,
+  getPendingPostsSnapshot,
+  resetPendingPosts,
+} from '../../../pendingPosts/pendingPostsStore';
 import { useSocialV1Feed } from './useSocialV1Feed';
 
 jest.mock('../../../../../UI/SocialFeed/data/useSocialFeed');
+
+// Unlocked wallet, unknown network: the overlay's defaults.
+let mockIsSocialV1Treatment = true;
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsSocialV1Treatment,
+}));
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
+}));
+
+const OWNER = 'viewer-profile';
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
@@ -47,13 +58,14 @@ const arrangeFeed = (
   });
 };
 
-const composedPost = () => ({
-  id: 'composed-1',
-  authorHandle: 'giga-whale',
+const pendingPost = () => ({
+  id: 'pending-comment-1',
+  commentId: 'comment-1',
+  authorHandle: 'Giga Whale',
   timestampMs: Date.now(),
   reactions: [],
   item: mockOpenPerpsFeedItem({
-    id: 'composed-item',
+    id: 'pending-item',
     comment: 'this is alpha',
   }),
 });
@@ -61,16 +73,17 @@ const composedPost = () => ({
 describe('useSocialV1Feed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsSocialV1Treatment = true;
     jest.useFakeTimers();
     arrangeFeed([buildRow('pos-1'), buildRow('pos-2')]);
     act(() => {
-      resetSocialV1ComposedFeedStore();
+      resetPendingPosts();
     });
   });
 
   afterEach(() => {
     act(() => {
-      resetSocialV1ComposedFeedStore();
+      resetPendingPosts();
     });
     jest.useRealTimers();
   });
@@ -100,23 +113,38 @@ describe('useSocialV1Feed', () => {
       expect(result.current.posts[0].item.author.winRatePercent).toBeNull();
     });
 
-    it('reads the leaderboard scope on Trending', () => {
+    it('reads the trending scope on Trending', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
-        audience: 'all',
-      });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'trending' },
+        {
+          performance: { tab: 'trending' },
+        },
+      );
     });
 
     // Following must hit its own scope, or both tabs would render one list.
     it('reads the following scope on Following', () => {
       renderHook(() => useSocialV1Feed('following'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
-        audience: 'following',
-      });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'following' },
+        {
+          performance: { tab: 'following' },
+        },
+      );
+    });
+
+    it('omits performance tracing outside the Social V1 treatment', () => {
+      mockIsSocialV1Treatment = false;
+
+      renderHook(() => useSocialV1Feed('trending'));
+
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { scope: 'trending' },
+        { performance: undefined },
+      );
     });
 
     // Without these forwarded, the feed stops after page one and a failed
@@ -162,63 +190,147 @@ describe('useSocialV1Feed', () => {
     });
   });
 
-  describe('composer', () => {
-    it('keeps composed posts off the Following tab', () => {
-      const composed = composedPost();
-      submitSocialV1ComposedPost(composed);
-
-      const { result } = renderHook(() => useSocialV1Feed('following'));
-
-      expect(
-        result.current.posts.every((post) => post.id !== composed.id),
-      ).toBe(true);
-      expect(result.current.pendingPost).toBeNull();
-    });
-
-    it('prepends a composed post on Trending after the posting delay', () => {
-      const composed = composedPost();
-      const { result } = renderHook(() => useSocialV1Feed('trending'));
+  describe('pending posts', () => {
+    it('pins the viewer’s new post on Following', () => {
+      const { result } = renderHook(() =>
+        useSocialV1Feed('following', { ownerProfileId: OWNER }),
+      );
 
       act(() => {
-        submitSocialV1ComposedPost(composed);
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
       });
 
-      expect(result.current.pendingPost?.item.comment).toBe('this is alpha');
-      // The clock only starts once the banner is on screen, so the post is
-      // still pending here no matter how much time passes.
-      expect(result.current.pendingStartedAtMs).toBeNull();
-
-      act(() => {
-        startSocialV1PendingPostCountdown();
-      });
-
-      expect(result.current.pendingStartedAtMs).not.toBeNull();
-
-      act(() => {
-        jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
-      });
-
-      expect(result.current.pendingPost).toBeNull();
-      expect(result.current.posts[0].id).toBe(composed.id);
-    });
-
-    it('keeps live posts below a composed one', () => {
-      const composed = composedPost();
-      const { result } = renderHook(() => useSocialV1Feed('trending'));
-
-      act(() => {
-        submitSocialV1ComposedPost(composed);
-        startSocialV1PendingPostCountdown();
-      });
-      act(() => {
-        jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
-      });
-
-      expect(result.current.posts.map((post) => post.id)).toEqual([
-        composed.id,
-        'pos-1-1700000500',
-        'pos-2-1700000500',
+      expect(result.current.pinnedPosts.map((post) => post.id)).toEqual([
+        'pending-comment-1',
       ]);
+      expect(result.current.pinnedPosts[0].isPending).toBe(true);
+    });
+
+    it('never pins it on Trending, which does not serve it', () => {
+      const { result } = renderHook(() =>
+        useSocialV1Feed('trending', { ownerProfileId: OWNER }),
+      );
+
+      act(() => {
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
+      });
+
+      expect(result.current.pinnedPosts).toEqual([]);
+      expect(result.current.posts).toHaveLength(2);
+    });
+
+    it('keeps it pinned, confirmed, once Following returns it, hiding the duplicate', () => {
+      const { result, rerender } = renderHook(() =>
+        useSocialV1Feed('following', { ownerProfileId: OWNER }),
+      );
+      act(() => {
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
+      });
+
+      arrangeFeed([buildRow('pos-1'), buildRow('pos-2')], {
+        posts: [
+          ...toSocialFeedPosts([buildRow('pos-1')]),
+          {
+            ...toSocialFeedPosts([buildRow('pos-2')])[0],
+            commentId: 'comment-1',
+          },
+        ],
+      });
+      rerender({});
+
+      expect(result.current.pinnedPosts).toHaveLength(1);
+      expect(result.current.pinnedPosts[0].isPending).toBeFalsy();
+      expect(result.current.pinnedPosts[0].id).toBe('pending-comment-1');
+      expect(result.current.posts.map((post) => post.id)).toEqual([
+        'pos-1-1700000500',
+      ]);
+    });
+
+    it('refetches the first page on a backoff until the post is returned', async () => {
+      const refresh = jest.fn(async () => undefined);
+      arrangeFeed([buildRow('pos-1')], { refresh });
+      renderHook(() => useSocialV1Feed('following', { ownerProfileId: OWNER }));
+
+      act(() => {
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
+      });
+      expect(refresh).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(1_000);
+      });
+      expect(refresh).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2_000);
+      });
+      expect(refresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not refetch while the tab is off screen', async () => {
+      const refresh = jest.fn(async () => undefined);
+      arrangeFeed([buildRow('pos-1')], { refresh });
+      renderHook(() =>
+        useSocialV1Feed('following', {
+          ownerProfileId: OWNER,
+          isActive: false,
+        }),
+      );
+
+      act(() => {
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('keeps the Following pin when Trending is refreshed', async () => {
+      act(() => {
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
+        confirmPendingPosts([
+          {
+            ...toSocialFeedPosts([buildRow('pos-2')])[0],
+            commentId: 'comment-1',
+          },
+        ]);
+      });
+      const { result } = renderHook(() =>
+        useSocialV1Feed('trending', { ownerProfileId: OWNER }),
+      );
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(getPendingPostsSnapshot()[0].dismissedOn.following).toBe(false);
+    });
+
+    it('releases a confirmed post on a user refresh', async () => {
+      const { result, rerender } = renderHook(() =>
+        useSocialV1Feed('following', { ownerProfileId: OWNER }),
+      );
+      act(() => {
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
+      });
+      arrangeFeed([buildRow('pos-2')], {
+        posts: [
+          {
+            ...toSocialFeedPosts([buildRow('pos-2')])[0],
+            commentId: 'comment-1',
+          },
+        ],
+      });
+      rerender({});
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(result.current.pinnedPosts).toEqual([]);
+      expect(result.current.posts[0].commentId).toBe('comment-1');
     });
   });
 });

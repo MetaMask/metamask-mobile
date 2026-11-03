@@ -44,7 +44,7 @@ import Keypad from '../../../../Base/Keypad';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
-import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
@@ -87,6 +87,9 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+
 import useTronStake from '../../hooks/useTronStake';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
@@ -94,6 +97,7 @@ import { ComputeFeeResult } from '../../utils/tron-staking-snap';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 
 const EarnInputView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   // navigation hooks
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<EarnInputViewProps['route']>();
@@ -1030,7 +1034,9 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleBackPress}
         endButtonIconProps={

@@ -4,7 +4,10 @@ import {
 } from '@metamask/transaction-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { ConfirmationLoader } from '../components/confirm/confirm-component';
+import {
+  ConfirmationLaunchSource,
+  ConfirmationLoader,
+} from '../components/confirm/confirm-component';
 import { useConfirmNavigation } from './useConfirmNavigation';
 import { act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
@@ -172,6 +175,66 @@ describe('useConfirmNavigation', () => {
       }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('pushes confirmation on the current stack', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      stack: STACK_MOCK,
+      loader: ConfirmationLoader.CustomAmount,
+      launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+      pushOnCurrentStack: true,
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        {
+          loader: ConfirmationLoader.CustomAmount,
+          launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+        },
+      ),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('pushes on the current stack after pending custom amount transactions are rejected', () => {
+    const view = runHook({
+      transactions: [
+        {
+          id: TRANSACTION_ID_MOCK,
+          status: TransactionStatus.unapproved,
+        } as TransactionMeta,
+      ],
+    });
+
+    act(() => {
+      view.result.current.navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        pushOnCurrentStack: true,
+      });
+    });
+
+    expect(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest),
+    ).toHaveBeenCalledWith(TRANSACTION_ID_MOCK, expect.anything());
+    expect(mockDispatch).not.toHaveBeenCalled();
+
+    // useSelector only re-reads the selector after the store state changes.
+    jest.mocked(selectTransactions).mockReturnValue([]);
+    act(() => {
+      const state = view.store.getState();
+      view.store.replaceReducer(() => ({ ...state }));
+      view.store.dispatch({ type: 'tick' });
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        { loader: ConfirmationLoader.CustomAmount },
+      ),
+    );
   });
 
   it('rejects pending transactions before navigating if custom amount loader', async () => {

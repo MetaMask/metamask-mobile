@@ -1,5 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialV1FeedAuthor } from '../types';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
@@ -47,7 +48,7 @@ describe('SocialTraderIdentityRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the handle, invented verified badge, cohort, and 30-day P&L', () => {
+  it('renders the handle and 30-day P&L without a verified badge or mock marker', () => {
     renderWithProvider(
       <SocialFeedSurfaceProvider showMockedFields>
         <SocialTraderIdentityRow
@@ -65,15 +66,35 @@ describe('SocialTraderIdentityRow', () => {
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.HANDLE),
     ).toHaveTextContent('cented');
     expect(
-      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('*')).toBeOnTheScreen();
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
     expect(
-      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.COHORT),
-    ).toHaveTextContent('🐬');
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER),
+    ).toBeNull();
+    expect(screen.queryByText('*')).toBeNull();
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
     ).toHaveTextContent('$50K P&L (30d)');
+  });
+
+  it('leaves 12px between the avatar and the content column', () => {
+    renderWithProvider(
+      <SocialTraderIdentityRow
+        author={dolphinAuthor()}
+        handle="cented"
+        imageUrl={null}
+        timestampMs={Date.now()}
+        recyclingKey="row-1"
+        onMorePress={onMorePress}
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.CONTAINER).props
+          .style,
+      ),
+    ).toEqual(expect.objectContaining({ gap: 12 }));
   });
 
   it('omits the invented verified badge when the surface has not opted in', () => {
@@ -91,13 +112,15 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
     ).toBeNull();
-    expect(screen.queryByText('*')).toBeNull();
+    expect(
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER),
+    ).toBeNull();
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.HANDLE),
     ).toHaveTextContent('cented');
   });
 
-  it('omits the stat line and cohort when the trader has no stats', () => {
+  it('omits the stat line when the trader has no stats', () => {
     renderWithProvider(
       <SocialTraderIdentityRow
         author={authorWithoutStats()}
@@ -110,9 +133,6 @@ describe('SocialTraderIdentityRow', () => {
 
     expect(
       screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.COHORT),
     ).toBeNull();
   });
 

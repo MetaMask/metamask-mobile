@@ -1,3 +1,4 @@
+import type { PerpsFeeDiscountKind } from '../../../../utils/feeDiscount';
 import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
 import type { View } from 'react-native';
@@ -9,6 +10,12 @@ export interface ScaleOrderRung {
 }
 
 export type PerpsProOrderDirection = 'long' | 'short';
+
+export interface PerpsProRebateQuote {
+  coin: string;
+  direction: PerpsProOrderDirection;
+  notionalUsd: string;
+}
 
 /**
  * Active size-denomination for the Pro order form size field.
@@ -57,8 +64,19 @@ export interface PerpsProOrderSummaryProps {
   fee?: number;
   originalFee?: number;
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
+  /**
+   * Fee display format A/B test. `'dollar'` (default)
+   * renders `fee`/`originalFee` as today; `'percentage'` renders
+   * `takerFeeRate`/`makerFeeRate` as "Taker X.XXX% / Maker Y.YYY%" instead.
+   */
+  feeDisplayMode?: 'dollar' | 'percentage';
+  /** Taker-side combined fee rate as a decimal. Only used in `percentage` mode. */
+  takerFeeRate?: number;
+  /** Maker-side combined fee rate as a decimal. Only used in `percentage` mode. */
+  makerFeeRate?: number;
   /**
    * Present only for TWAP orders. The Figma TWAP summary lists Runtime and Size
    * per suborder in place of Est Liquidation and Slippage.
@@ -150,6 +168,7 @@ export interface PerpsProOrderFormProps {
   onUseMidPricePress?: () => void;
   chaseMaxDistance?: string;
   onChaseMaxDistanceChange?: (value: string) => void;
+  onChaseMaxDistanceFocus?: () => void;
   chaseMaxDistanceUnit?: 'usd' | 'percent';
   onChaseMaxDistanceUnitChange?: (unit: 'usd' | 'percent') => void;
   chaseReferencePrice?: string;
@@ -182,6 +201,7 @@ export interface PerpsProOrderFormProps {
   onTPSLPress?: () => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
+  rebateQuote?: PerpsProRebateQuote;
   placeOrderLabel: string;
   placeOrderIntent: PerpsProOrderDirection;
   isPlaceOrderDisabled?: boolean;

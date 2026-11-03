@@ -52,6 +52,8 @@ import SearchFeedRow, {
 } from '../../search/SearchFeedRow';
 import {
   getExploreSearchResultCount,
+  getExploreSearchSessionId,
+  renewEndedExploreSearchSession,
   trackExploreSearchAbandoned,
   trackExploreSearchEvent,
   trackExploreSearchOpened,
@@ -74,6 +76,8 @@ import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors
 import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import { selectExploreBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/exploreBrandRefresh';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import {
@@ -319,6 +323,17 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   const isLoading = sections.some((s) => s.isLoading);
 
+  // A focus counter, not useIsFocused: frozen screens never render the blurred value.
+  const navigation = useNavigation();
+  const [focusCount, setFocusCount] = useState(0);
+  useEffect(
+    () =>
+      navigation.addListener('focus', () =>
+        setFocusCount((count) => count + 1),
+      ),
+    [navigation],
+  );
+
   const pills = useMemo<PillOption[]>(
     () => [
       { key: ALL_PILL_KEY, name: strings('trending.search_tabs.all') },
@@ -342,6 +357,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     searchQuery,
     redactSearchQuery,
     isLoading,
+    focusCount,
     getPill: getActivePill,
     getSections,
   });
@@ -517,6 +533,7 @@ interface ExploreSearchHeaderProps {
   browserTabsCount: number;
   exploreSearchBar: React.ReactNode;
   homeSearchAnimatedStyle: AnimatedStyle<ViewStyle>;
+  isGlass: boolean;
   isHomepageSearch: boolean;
   onBrowserTabsPress: () => void;
   searchOrigin?: SearchOrigin;
@@ -527,6 +544,7 @@ const ExploreSearchHeader = ({
   browserTabsCount,
   exploreSearchBar,
   homeSearchAnimatedStyle,
+  isGlass,
   isHomepageSearch,
   onBrowserTabsPress,
   searchOrigin,
@@ -567,6 +585,7 @@ const ExploreSearchHeader = ({
           tabCount={browserTabsCount}
           onPress={onBrowserTabsPress}
           testID={ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON}
+          isGlass={isGlass}
         />
       )}
     </Box>
@@ -647,11 +666,15 @@ const ExploreSearchScreen: React.FC = () => {
     enabled: isHomepageSearch,
     initiallyAvailable: routeParams?.pastePillVisible,
     onPaste: handleHomepagePaste,
+    getSearchSessionId: getExploreSearchSessionId,
   });
   // Gates the keyboard, which iOS paints dark grey mid-push, and the results
   // subtree, whose mount blocks the JS thread while the screen slides in.
   const isTransitionComplete = useScreenTransitionComplete();
   const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
+  const isSearchGlass = useIsGlassSurfaceEnabled(
+    selectExploreBrandRefreshEnabled,
+  );
   const browserTabsCount = useSelector(selectBrowserTabCount);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -668,6 +691,7 @@ const ExploreSearchScreen: React.FC = () => {
     // leaving it mounted, e.g. switching away from the nav-bar Search tab.
     const unsubscribeFocus = navigation.addListener('focus', () => {
       isCancelPressedRef.current = false;
+      renewEndedExploreSearchSession();
     });
     const unsubscribeBeforeRemove = navigation.addListener(
       'beforeRemove',
@@ -758,6 +782,7 @@ const ExploreSearchScreen: React.FC = () => {
       onPastePress={handlePastePress}
       clipboardButtonTestID={ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON}
       rowTwClassName={isHomepageSearch ? 'flex-1' : undefined}
+      isGlass={isSearchGlass}
     />
   );
 
@@ -781,6 +806,7 @@ const ExploreSearchScreen: React.FC = () => {
           browserTabsCount={browserTabsCount}
           exploreSearchBar={exploreSearchBar}
           homeSearchAnimatedStyle={homeSearchAnimatedStyle}
+          isGlass={isSearchGlass}
           isHomepageSearch={isHomepageSearch}
           onBrowserTabsPress={handleBrowserTabsPress}
           searchOrigin={searchOrigin}
