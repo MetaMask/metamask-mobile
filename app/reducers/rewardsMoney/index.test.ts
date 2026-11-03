@@ -550,6 +550,36 @@ describe('rewardsMoneyReducer', () => {
       expect(state.pendingReferralCode).toBe('KOL2');
     });
 
+    it('keeps a newer code pending when the older one it replaced is answered', () => {
+      const replaced = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        setPendingReferralCode('KOL2'),
+      );
+
+      const state = rewardsMoneyReducer(
+        replaced,
+        clearPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('clears the pending code when that code is answered', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(
+        withCode,
+        clearPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
     it('keeps the answered code when clearing with nothing pending', () => {
       const answered = rewardsMoneyReducer(
         rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),

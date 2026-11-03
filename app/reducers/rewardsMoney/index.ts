@@ -298,11 +298,21 @@ const rewardsMoneySlice = createSlice({
       }
       state.pendingReferralCode = action.payload;
     },
-    clearPendingReferralCode: (state) => {
-      if (state.pendingReferralCode) {
-        state.answeredReferralCode = state.pendingReferralCode;
+    /**
+     * Answers `code`, or whatever is pending without one. A newer code that
+     * replaced `code` stays pending, since its link was never offered.
+     */
+    clearPendingReferralCode: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      const code = action.payload ?? state.pendingReferralCode;
+      if (code) {
+        state.answeredReferralCode = code;
       }
-      state.pendingReferralCode = null;
+      if (code === state.pendingReferralCode) {
+        state.pendingReferralCode = null;
+      }
     },
     setReferralLinkPending: (state, action: PayloadAction<boolean>) => {
       state.isReferralLinkPending = action.payload;

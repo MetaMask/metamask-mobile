@@ -136,20 +136,22 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const referralMe = referralMeEntry?.data;
 
   // A deeplink's code is answered once: whichever way this sheet closes, the
-  // code it was opened for must not prompt again. After an accept, the
+  // code it was opened for must not prompt again. A newer link that arrived
+  // meanwhile was never shown, so it stays pending. After an accept, the
   // accepted splash clears it instead, so the push pre-prompt waits for the
   // splash too.
   const hasAcceptedRef = useRef(false);
   const handleAccepted = useCallback(() => {
     hasAcceptedRef.current = true;
   }, []);
+  const offeredReferralCode = route.params?.referralCode;
   useEffect(
     () => () => {
       if (!hasAcceptedRef.current) {
-        dispatch(clearPendingReferralCode());
+        dispatch(clearPendingReferralCode(offeredReferralCode));
       }
     },
-    [dispatch],
+    [dispatch, offeredReferralCode],
   );
 
   // Once this sheet has shown an eligible invite, accept's own refresh to

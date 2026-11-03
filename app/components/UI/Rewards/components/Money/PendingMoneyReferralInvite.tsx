@@ -4,6 +4,7 @@ import type { RootState } from '../../../../../reducers';
 import { clearPendingReferralCode } from '../../../../../reducers/rewardsMoney';
 import {
   canAcceptMoneyReferralInvite,
+  selectAnsweredMoneyReferralCode,
   selectIsReferralLinkPending,
   selectMoneyReferralAllowedForGeo,
   selectPendingMoneyReferralCode,
@@ -43,6 +44,7 @@ const PendingMoneyReferralInvitePresenter = ({
   const store = useStore<RootState>();
   useGeoRewardsMetadata({ enabled: true });
   const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
+  const answeredReferralCode = useSelector(selectAnsweredMoneyReferralCode);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,7 +70,9 @@ const PendingMoneyReferralInvitePresenter = ({
             return;
           }
           clearTimeout(budgetTimer);
-          // A newer link while the sheet is open is not a second prompt.
+          // A newer link while the sheet is open is not a second prompt. The
+          // sheet answers its own code when it closes, which runs this again
+          // for the newer one.
           if (
             NavigationService.getCurrentRoute()?.name ===
             Routes.MODAL.REWARDS_MONEY_INVITE_SHEET
@@ -104,7 +108,7 @@ const PendingMoneyReferralInvitePresenter = ({
       handle.cancel();
       clearTimeout(budgetTimer);
     };
-  }, [dispatch, fetchReferralMe, referralCode, store]);
+  }, [answeredReferralCode, dispatch, fetchReferralMe, referralCode, store]);
 
   return null;
 };

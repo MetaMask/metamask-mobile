@@ -222,6 +222,13 @@ export function selectPendingMoneyReferralCode(
   return state.rewardsMoney?.pendingReferralCode ?? null;
 }
 
+/** Last referral code answered this session, if any. */
+export function selectAnsweredMoneyReferralCode(
+  state: RootState,
+): string | null {
+  return state.rewardsMoney?.answeredReferralCode ?? null;
+}
+
 /** Whether a deeplink carrying a referral code is still being handled. */
 export function selectIsReferralLinkPending(state: RootState): boolean {
   return state.rewardsMoney?.isReferralLinkPending ?? false;

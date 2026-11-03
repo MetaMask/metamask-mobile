@@ -4,6 +4,7 @@ import { act, render, waitFor } from '@testing-library/react-native';
 import configureStore from '../../../../../util/test/configureStore';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
+  clearPendingReferralCode,
   setPendingReferralCode,
   setReferralLinkPending,
   type ReferralMeEntry,
@@ -356,6 +357,29 @@ describe('PendingMoneyReferralInvite', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenLastCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL2', entryType: 'deeplink' },
+      );
+    });
+  });
+
+  it('offers a newer code once the sheet showing the older one closes', async () => {
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+    });
+    const { store } = renderInvite();
+    await act(async () => {
+      store.dispatch(setPendingReferralCode('KOL2'));
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    mockGetCurrentRoute.mockReturnValue({ name: Routes.WALLET_VIEW });
+    await act(async () => {
+      store.dispatch(clearPendingReferralCode('KOL1'));
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
         { referralCode: 'KOL2', entryType: 'deeplink' },
       );
