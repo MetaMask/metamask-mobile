@@ -74,7 +74,19 @@ const parseUsd = (value: string | undefined): BigNumber => {
 export const hasPositiveUsd = (value: string | undefined): boolean =>
   parseUsd(value).gt(0);
 
-const matchesVault = (
+/**
+ * Whether a position belongs to a vault.
+ *
+ * Address match wins when `vaultAddress` is set. Otherwise, and when the
+ * address does not match, `vault_key` decides. Callers that must prefer a
+ * known address over an earlier key hit have to check the address first.
+ *
+ * @param position - Position from the Money positions payload.
+ * @param vaultAddress - Configured vault address, if the config has loaded.
+ * @param vaultKey - Stable vault identity, such as `standard` or `premium`.
+ * @returns True when the address matches, or the position key is `vaultKey`.
+ */
+export const matchesVault = (
   position: MoneyVaultPositionLike,
   vaultAddress: string | undefined,
   vaultKey: string,

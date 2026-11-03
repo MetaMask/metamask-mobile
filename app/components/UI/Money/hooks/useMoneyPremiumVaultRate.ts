@@ -5,6 +5,7 @@ import { useQuery } from '@metamask/react-data-query';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import { parseApy, toApyPercent } from '../utils/apy';
+import { matchesVault } from '../utils/moneyVaultState';
 import { readVaultAddress } from '../utils/readVaultAddress';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 
@@ -45,8 +46,10 @@ interface UseMoneyPremiumVaultRateResult {
  *
  * Reads `current_apy` from the premium position. The vault address comes from
  * the Plus subscription's crypto payment method, then from `options.vaultAddress`
- * when that payment method has no token. The account address comes from the
- * primary Money account.
+ * when that payment method has no token. A position at that address wins.
+ * Otherwise the position is the one `matchesVault` accepts for `premium`
+ * (`vault_key`), including when no vault address is available yet. The account
+ * address comes from the primary Money account.
  *
  * @param options - Optional enable flag and fallback vault. `enabled` defaults
  * to true. When false the positions query does not run, even if an account and
@@ -74,14 +77,18 @@ const useMoneyPremiumVaultRate = ({
     refetchInterval,
   }) as UseQueryResult<PositionResponse>;
 
+  const positions = vaultRateQuery.data?.positions;
   const normalizedVaultAddress = vaultAddress?.toLowerCase();
-  const rate =
-    normalizedVaultAddress === undefined
-      ? undefined
-      : vaultRateQuery.data?.positions.find(
-          (position) =>
-            position.vault_address.toLowerCase() === normalizedVaultAddress,
-        )?.current_apy;
+  // Address wins when it is known. `matchesVault` is also true for `vault_key`,
+  // so one find would take an earlier key hit over the configured vault.
+  const position =
+    (normalizedVaultAddress
+      ? positions?.find(
+          (item) => item.vault_address.toLowerCase() === normalizedVaultAddress,
+        )
+      : undefined) ??
+    positions?.find((item) => matchesVault(item, undefined, 'premium'));
+  const rate = position?.current_apy;
   const ratePercent = toApyPercent(parseApy(rate));
   const ratePercentFormatted =
     ratePercent !== undefined ? `${ratePercent}%` : undefined;

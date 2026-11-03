@@ -78,7 +78,11 @@ function setSelectors({
 }
 
 function mockPositions(
-  positions: { vault_address: string; current_apy: string }[],
+  positions: {
+    vault_address: string;
+    current_apy: string;
+    vault_key?: string;
+  }[],
 ) {
   mockUseQuery.mockReturnValue({
     data: { positions },
@@ -205,6 +209,44 @@ describe('useMoneyPremiumVaultRate', () => {
       expect(result.current.ratePercentFormatted).toBe('7%');
     },
   );
+
+  it('reads the premium APY from vault_key when no vault address is available', () => {
+    setSelectors({ paymentType: 'card' });
+    mockPositions([
+      {
+        vault_address: OTHER_VAULT_ADDRESS,
+        vault_key: 'premium',
+        current_apy: '0.08',
+      },
+    ]);
+
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(result.current.rate).toBe('0.08');
+    expect(result.current.ratePercentFormatted).toBe('8%');
+  });
+
+  it('prefers the configured vault address over an earlier vault_key hit', () => {
+    mockPositions([
+      {
+        vault_address: OTHER_VAULT_ADDRESS,
+        vault_key: 'premium',
+        current_apy: '0.04',
+      },
+      {
+        vault_address: MOCK_VAULT_ADDRESS,
+        vault_key: 'standard',
+        current_apy: '0.07',
+      },
+    ]);
+
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(result.current.rate).toBe('0.07');
+  });
 
   it('prefers the crypto payment token over the fallback vault', () => {
     mockPositions([
