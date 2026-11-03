@@ -1,14 +1,11 @@
 import '../../../../tests/component-view/mocks';
 
-import { fireEvent, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import React from 'react';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  clearQrSyncAccountsReview,
-  setQrSyncAccountsReview,
-} from '../../../core/QrSync/qrSyncAccountsReview';
+import { clearQrSyncAccountsReview } from '../../../core/QrSync/qrSyncAccountsReview';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import { renderShortAddress } from '../../../util/address';
 import {
@@ -55,17 +52,10 @@ const TWO_WALLETS_ONE_ACCOUNT = [
   },
 ];
 
-const showReview = (
+const renderAccountsImported = (
   mode: 'new-user' | 'existing-user',
   sections = ONE_WALLET,
-) => {
-  setQrSyncAccountsReview({
-    mode,
-    sections,
-  });
-};
-
-const renderAccountsImported = () =>
+) =>
   renderScreenWithRoutes(
     AccountsImported as React.ComponentType,
     { name: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET },
@@ -76,7 +66,17 @@ const renderAccountsImported = () =>
     {
       routeMessenger: createMockRouteMessenger({
         'QrSyncController:resetState': resetState,
+        'QrSyncController:clearAccountsReview': jest.fn(),
       }),
+      state: {
+        engine: {
+          backgroundState: {
+            QrSyncController: {
+              accountsReview: { mode, sections },
+            },
+          },
+        },
+      },
     },
   );
 
@@ -88,9 +88,8 @@ describeForPlatforms('AccountsImported', () => {
   });
 
   it('lists every imported account and continues to create a password', async () => {
-    showReview('new-user');
-
-    const { findByTestId, findByText, getByTestId } = renderAccountsImported();
+    const { findByTestId, findByText, getByTestId } =
+      renderAccountsImported('new-user');
 
     expect(
       await findByText(
@@ -128,10 +127,8 @@ describeForPlatforms('AccountsImported', () => {
   });
 
   it('goes home when an existing user presses Done', async () => {
-    showReview('existing-user');
-
     const { findByTestId, findByText, getByTestId, queryByText } =
-      renderAccountsImported();
+      renderAccountsImported('existing-user');
 
     expect(
       await findByText(strings('app_settings.add_device.done')),
@@ -160,9 +157,10 @@ describeForPlatforms('AccountsImported', () => {
   });
 
   it('uses singular account and plural wallet copy for a new user', async () => {
-    showReview('new-user', TWO_WALLETS_ONE_ACCOUNT);
-
-    const { findByText } = renderAccountsImported();
+    const { findByText } = renderAccountsImported(
+      'new-user',
+      TWO_WALLETS_ONE_ACCOUNT,
+    );
 
     expect(
       await findByText(
@@ -181,9 +179,10 @@ describeForPlatforms('AccountsImported', () => {
   });
 
   it('omits the password sentence when an existing user imports several wallets', async () => {
-    showReview('existing-user', TWO_WALLETS_ONE_ACCOUNT);
-
-    const { findByText, queryByText } = renderAccountsImported();
+    const { findByText, queryByText } = renderAccountsImported(
+      'existing-user',
+      TWO_WALLETS_ONE_ACCOUNT,
+    );
 
     expect(
       await findByText(
@@ -203,13 +202,13 @@ describeForPlatforms('AccountsImported', () => {
   });
 
   it('returns to add this device when back is pressed', async () => {
-    showReview('new-user');
-
-    const { findByTestId, queryByTestId } = renderAccountsImported();
+    const { findByTestId, queryByTestId } = renderAccountsImported('new-user');
 
     fireEvent.press(await findByTestId(AccountsImportedTestIds.BACK));
 
-    expect(resetState).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(resetState).toHaveBeenCalled();
+    });
     expect(queryByTestId(AccountsImportedTestIds.SCREEN)).not.toBeOnTheScreen();
   });
 });

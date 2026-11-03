@@ -4,16 +4,11 @@ import { useSelector } from 'react-redux';
 
 import Routes from '../../constants/navigation/Routes';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
-import {
-  selectQrSyncAccountImportPayload,
-  selectQrSyncShouldNavigateToImport,
-} from '../../selectors/qrSyncController';
+import { selectQrSyncShouldNavigateToImport } from '../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../NavigationService/types';
 import { useMessenger } from '../../hooks/useMessenger';
-import { buildImportedAccountSections } from './buildImportedAccountSections';
 import { QrSyncSyncFlows } from './constants';
 import type { RouteMessengerInstance } from './route-messenger';
-import { setQrSyncAccountsReview } from './qrSyncAccountsReview';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
 import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 import Logger from '../../util/Logger';
@@ -91,6 +86,9 @@ const finishExistingUserSyncWithoutMnemonic = async (
 /**
  * Drives vault import / onboarding navigation after QR sync Phase A
  * (SYNC_READY → awaiting_password with pending secrets).
+ *
+ * The account review is built inside the controller before secrets are cleared.
+ * An incomplete review is reported and not shown. Existing users still import.
  */
 export const useQrSyncImportNavigation = ({
   enabled,
@@ -104,9 +102,6 @@ export const useQrSyncImportNavigation = ({
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
   );
-  const importPayload = useSelector(selectQrSyncAccountImportPayload);
-  const importPayloadRef = useRef(importPayload);
-  importPayloadRef.current = importPayload;
   const hasHandledImportNavigationRef = useRef(false);
 
   useEffect(() => {
@@ -122,21 +117,26 @@ export const useQrSyncImportNavigation = ({
     hasHandledImportNavigationRef.current = true;
 
     inFlightImportNavigation = (async () => {
-      const { pendingSecretImports, provisioningMetadata } =
-        importPayloadRef.current;
-      let sections: Awaited<ReturnType<typeof buildImportedAccountSections>> =
-        [];
+      const reviewMode = completedOnboarding ? 'existing-user' : 'new-user';
+      let reviewReady = false;
       try {
-        sections = await buildImportedAccountSections(
-          provisioningMetadata,
-          pendingSecretImports,
+        await messenger.call(
+          'QrSyncController:prepareAccountsReview',
+          reviewMode,
         );
-      } catch {
-        sections = [];
+        reviewReady = true;
+      } catch (error: unknown) {
+        reportQrSyncFailure(error, {
+          surface: QrSyncSurfaces.IMPORT,
+          operation: QrSyncOperations.BUILD_IMPORTED_ACCOUNT_SECTIONS,
+          source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
+          ...(completedOnboarding
+            ? { syncFlow: QrSyncSyncFlows.EXISTING_USER }
+            : {}),
+        });
       }
 
       if (!completedOnboarding) {
-        setQrSyncAccountsReview({ mode: 'new-user', sections });
         return;
       }
 
@@ -171,8 +171,8 @@ export const useQrSyncImportNavigation = ({
           navigation,
           messenger,
         );
-        if (result === 'review') {
-          setQrSyncAccountsReview({ mode: 'existing-user', sections });
+        if (result === 'review' && !reviewReady) {
+          navigation.navigate(Routes.WALLET_VIEW);
         }
       } catch (error: unknown) {
         hasHandledImportNavigationRef.current = false;

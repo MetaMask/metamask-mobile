@@ -1,19 +1,10 @@
 import { useSyncExternalStore } from 'react';
 
-import type { ImportedAccountSection } from './buildImportedAccountSections';
-
-export interface QrSyncAccountsReview {
-  mode: 'new-user' | 'existing-user';
-  sections: ImportedAccountSection[];
-}
-
-interface QrSyncAccountsReviewSnapshot {
-  review: QrSyncAccountsReview | null;
+interface QrSyncInstructionsHoldSnapshot {
   holdInstructions: boolean;
 }
 
-let snapshot: QrSyncAccountsReviewSnapshot = {
-  review: null,
+let snapshot: QrSyncInstructionsHoldSnapshot = {
   holdInstructions: false,
 };
 
@@ -26,25 +17,21 @@ const emit = () => {
 };
 
 export const getQrSyncAccountsReviewSnapshot =
-  (): QrSyncAccountsReviewSnapshot => snapshot;
+  (): QrSyncInstructionsHoldSnapshot => snapshot;
 
-export const subscribeQrSyncAccountsReview = (
-  listener: () => void,
-): (() => void) => {
+const subscribeQrSyncAccountsReview = (listener: () => void): (() => void) => {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
   };
 };
 
-export const setQrSyncAccountsReview = (review: QrSyncAccountsReview): void => {
-  snapshot = { review, holdInstructions: false };
-  emit();
-};
-
-/** Back from the review screen. Holds the instructions UI until sync state resets. */
-export const dismissQrSyncAccountsReview = (): void => {
-  snapshot = { review: null, holdInstructions: true };
+/** Hide the linked-device screen until the sync session has returned to instructions. */
+export const holdQrSyncInstructions = (): void => {
+  if (snapshot.holdInstructions) {
+    return;
+  }
+  snapshot = { holdInstructions: true };
   emit();
 };
 
@@ -52,19 +39,33 @@ export const releaseQrSyncAccountsReviewHold = (): void => {
   if (!snapshot.holdInstructions) {
     return;
   }
-  snapshot = { review: null, holdInstructions: false };
+  snapshot = { holdInstructions: false };
   emit();
 };
 
 export const clearQrSyncAccountsReview = (): void => {
-  snapshot = { review: null, holdInstructions: false };
+  snapshot = { holdInstructions: false };
   emit();
 };
 
-export const useQrSyncAccountsReviewSnapshot =
-  (): QrSyncAccountsReviewSnapshot =>
-    useSyncExternalStore(
-      subscribeQrSyncAccountsReview,
-      getQrSyncAccountsReviewSnapshot,
-      getQrSyncAccountsReviewSnapshot,
-    );
+export const useQrSyncInstructionsHold = (): boolean =>
+  useSyncExternalStore(
+    subscribeQrSyncAccountsReview,
+    () => snapshot.holdInstructions,
+    () => snapshot.holdInstructions,
+  );
+
+/**
+ * Leaves a QR sync session from the review or password step.
+ * The instructions hold stays until the session is idle, unless reset fails.
+ */
+export const leaveQrSyncSession = async (
+  clearAndReset: () => Promise<void>,
+): Promise<void> => {
+  holdQrSyncInstructions();
+  try {
+    await clearAndReset();
+  } catch {
+    releaseQrSyncAccountsReviewHold();
+  }
+};

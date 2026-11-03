@@ -772,6 +772,15 @@ describe('QrSyncController', () => {
       expect(controller.hasPendingSecretImports()).toBe(false);
     });
 
+    it('prepareAccountsReview rejects when no addresses can be derived', async () => {
+      const controller = buildController();
+
+      await expect(
+        controller.prepareAccountsReview('new-user'),
+      ).rejects.toThrow('QR sync account review has no addresses');
+      expect(controller.state.accountsReview).toBeNull();
+    });
+
     it('marks the connection errored and failed when the wallet client emits error', async () => {
       const controller = buildController();
       const walletClient = buildMockWalletClient();

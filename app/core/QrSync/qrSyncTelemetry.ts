@@ -35,6 +35,7 @@ export const QrSyncOperations = {
   IMPORT_SECRETS_TO_VAULT: 'import_secrets_to_vault',
   USER_STORAGE_RECONCILIATION: 'user_storage_reconciliation',
   IMPORT_REMAINING_SECRETS_FINALIZE: 'import_remaining_secrets_finalize',
+  BUILD_IMPORTED_ACCOUNT_SECTIONS: 'build_imported_account_sections',
   ENRICH_PRIMARY_PROVISIONING_ENTRY: 'enrich_primary_provisioning_entry',
   TERMINATE_WITH_ERROR: 'terminate_with_error',
 } as const;

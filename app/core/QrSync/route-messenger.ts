@@ -11,6 +11,8 @@ export const ALLOWED_CAPABILITIES = defineAllowedRouteCapabilities({
     'QrSyncController:handleScannedQrPayload',
     'QrSyncController:importRemainingSecrets',
     'QrSyncController:hasPendingSecretImports',
+    'QrSyncController:prepareAccountsReview',
+    'QrSyncController:clearAccountsReview',
     'KeyringController:getAccounts',
     'QrSyncProvisioningService:provisionFromMetadata',
   ],

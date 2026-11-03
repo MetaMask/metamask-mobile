@@ -40,34 +40,35 @@ const deriveAddressesForGroups = async (
     return new Map();
   }
 
-  let mnemonic: string;
-  try {
-    mnemonic = encodeMnemonicWords(new Uint8Array(mnemonicValue));
-  } catch {
-    return new Map();
-  }
+  const mnemonic = encodeMnemonicWords(new Uint8Array(mnemonicValue));
 
   if (!validateMnemonic(mnemonic, wordlist)) {
     return new Map();
   }
 
   const keyring = new HdKeyring();
-  try {
-    await keyring.deserialize({ mnemonic, numberOfAccounts: 0 });
-    await keyring.addAccounts(Math.max(...indexes) + 1);
-    const accounts = await keyring.getAccounts();
-    const addresses = new Map<number, string>();
-    indexes.forEach((index) => {
-      const address = accounts[index];
-      if (address) {
-        addresses.set(index, getChecksumAddress(address as Hex));
-      }
-    });
-    return addresses;
-  } catch {
-    return new Map();
-  }
+  await keyring.deserialize({ mnemonic, numberOfAccounts: 0 });
+  await keyring.addAccounts(Math.max(...indexes) + 1);
+  const accounts = await keyring.getAccounts();
+  const addresses = new Map<number, string>();
+  indexes.forEach((index) => {
+    const address = accounts[index];
+    if (address) {
+      addresses.set(index, getChecksumAddress(address as Hex));
+    }
+  });
+  return addresses;
 };
+
+export const importedAccountSectionsAreComplete = (
+  sections: ImportedAccountSection[],
+): boolean =>
+  sections.length > 0 &&
+  sections.every(
+    (section) =>
+      section.accounts.length > 0 &&
+      section.accounts.every((account) => account.address.length > 0),
+  );
 
 /**
  * Display rows for the accounts-imported screen.

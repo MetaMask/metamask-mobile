@@ -29,7 +29,6 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import {
   clearQrSyncAccountsReview,
   getQrSyncAccountsReviewSnapshot,
-  setQrSyncAccountsReview,
 } from '../../../core/QrSync/qrSyncAccountsReview';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -1537,7 +1536,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     it('returns to add this device when back is pressed on the password step', async () => {
       const mockNavigate = jest.fn();
       const Stack = createNativeStackNavigator();
-      setQrSyncAccountsReview({ mode: 'new-user', sections: [] });
 
       const { getByTestId } = renderWithProvider(
         <NavigationContainer>
@@ -1576,7 +1574,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
       });
       expect(getQrSyncAccountsReviewSnapshot()).toEqual({
-        review: null,
         holdInstructions: true,
       });
       clearQrSyncAccountsReview();

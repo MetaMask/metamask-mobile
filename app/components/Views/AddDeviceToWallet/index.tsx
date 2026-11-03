@@ -39,9 +39,16 @@ import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDevi
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
 import {
+  leaveQrSyncSession,
   releaseQrSyncAccountsReviewHold,
-  useQrSyncAccountsReviewSnapshot,
+  useQrSyncInstructionsHold,
 } from '../../../core/QrSync/qrSyncAccountsReview';
+import { selectQrSyncAccountsReview ,
+  selectQrSyncIsBusy,
+  selectQrSyncIsSessionActive,
+  selectQrSyncPresentation,
+  selectQrSyncShouldShowOtpSheet,
+} from '../../../selectors/qrSyncController';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import {
   QrSyncOperations,
@@ -50,12 +57,6 @@ import {
   reportQrSyncFailure,
 } from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import {
-  selectQrSyncIsBusy,
-  selectQrSyncIsSessionActive,
-  selectQrSyncPresentation,
-  selectQrSyncShouldShowOtpSheet,
-} from '../../../selectors/qrSyncController';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
 const SettingsPathDescription = () => (
@@ -117,13 +118,34 @@ const AddDeviceToWallet = () => {
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
-  const { review, holdInstructions } = useQrSyncAccountsReviewSnapshot();
+  const review = useSelector(selectQrSyncAccountsReview);
+  const holdInstructions = useQrSyncInstructionsHold();
 
   useEffect(() => {
     if (presentation === 'instructions') {
       releaseQrSyncAccountsReviewHold();
     }
   }, [presentation]);
+
+  useEffect(() => {
+    if (typeof navigation.addListener !== 'function' || !review) {
+      return undefined;
+    }
+
+    return navigation.addListener('beforeRemove', (event) => {
+      if (event.data.action.type !== 'GO_BACK') {
+        return;
+      }
+      void leaveQrSyncSession(async () => {
+        try {
+          await messenger.call('QrSyncController:clearAccountsReview');
+        } catch {
+          // Review clear is best-effort when the action is unavailable.
+        }
+        await messenger.call('QrSyncController:resetState');
+      });
+    });
+  }, [messenger, navigation, review]);
 
   const handleBack = useCallback(() => {
     Promise.resolve(messenger.call('QrSyncController:resetState')).catch(

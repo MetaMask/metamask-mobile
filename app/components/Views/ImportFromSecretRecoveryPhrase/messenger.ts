@@ -2,7 +2,10 @@ import { defineAllowedRouteCapabilities } from '../../../messengers/helpers/rout
 import type { RouteMessengerFromCapabilities } from '../../../messengers/route-messenger';
 
 export const ALLOWED_CAPABILITIES = defineAllowedRouteCapabilities({
-  actions: ['QrSyncController:resetState'],
+  actions: [
+    'QrSyncController:resetState',
+    'QrSyncController:clearAccountsReview',
+  ],
   events: [],
 });
 

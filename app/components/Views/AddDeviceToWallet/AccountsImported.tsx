@@ -34,11 +34,8 @@ import HeaderStandardGlass from '../../../component-library/components-temp/Head
 import { getAvatarAccountVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import Routes from '../../../constants/navigation/Routes';
 import { navigateToQrSyncImport } from '../../../core/QrSync/navigateToQrSyncImport';
-import {
-  dismissQrSyncAccountsReview,
-  useQrSyncAccountsReviewSnapshot,
-  clearQrSyncAccountsReview,
-} from '../../../core/QrSync/qrSyncAccountsReview';
+import { leaveQrSyncSession } from '../../../core/QrSync/qrSyncAccountsReview';
+import { selectQrSyncAccountsReview } from '../../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useMessenger } from '../../../hooks/useMessenger';
 import { useNetworkTier } from '../../../hooks/useNetworkTier';
@@ -131,7 +128,8 @@ const AccountsImported = ({
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const messenger = useMessenger<RouteMessengerInstance>();
-  const { review } = useQrSyncAccountsReviewSnapshot();
+  const review = useSelector(selectQrSyncAccountsReview);
+  const [hasLeft, setHasLeft] = useState(false);
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const { top: safeAreaTop, bottom: safeAreaBottom } = useSafeAreaInsets();
   const [footerHeight, setFooterHeight] = useState(0);
@@ -170,10 +168,15 @@ const AccountsImported = ({
   }, [sections]);
 
   const handleBack = useCallback(() => {
-    dismissQrSyncAccountsReview();
-    Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-      () => undefined,
-    );
+    setHasLeft(true);
+    void leaveQrSyncSession(async () => {
+      try {
+        await messenger.call('QrSyncController:clearAccountsReview');
+      } catch {
+        // Review clear is best-effort when the action is unavailable.
+      }
+      await messenger.call('QrSyncController:resetState');
+    });
     if (returnFromScanner) {
       navigation.goBack();
     }
@@ -181,12 +184,14 @@ const AccountsImported = ({
 
   const handleContinue = useCallback(() => {
     if (review?.mode === 'existing-user') {
-      clearQrSyncAccountsReview();
+      void Promise.resolve()
+        .then(() => messenger.call('QrSyncController:clearAccountsReview'))
+        .catch(() => undefined);
       navigation.navigate(Routes.WALLET_VIEW);
       return;
     }
     navigateToQrSyncImport(navigation);
-  }, [navigation, review?.mode]);
+  }, [messenger, navigation, review?.mode]);
 
   const handleFooterLayout = useCallback((event: LayoutChangeEvent) => {
     setFooterHeight(event.nativeEvent.layout.height);
@@ -240,7 +245,7 @@ const AccountsImported = ({
     [avatarVariant],
   );
 
-  if (!review) {
+  if (!review || hasLeft) {
     return null;
   }
 

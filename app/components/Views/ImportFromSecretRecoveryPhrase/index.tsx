@@ -64,7 +64,7 @@ import FooterGlass from '../../../component-library/components-temp/FooterGlass'
 import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
-import { dismissQrSyncAccountsReview } from '../../../core/QrSync/qrSyncAccountsReview';
+import { leaveQrSyncSession } from '../../../core/QrSync/qrSyncAccountsReview';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import {
   Box,
@@ -454,12 +454,30 @@ const ImportFromSecretRecoveryPhrase = () => {
     [currentStep, slideAnim],
   );
 
+  const leaveQrSyncImport = useCallback(() => {
+    void leaveQrSyncSession(async () => {
+      try {
+        await messenger.call('QrSyncController:clearAccountsReview');
+      } catch {
+        // Review clear is best-effort when the action is unavailable.
+      }
+      await messenger.call('QrSyncController:resetState');
+    });
+  }, [messenger]);
+
+  useEffect(() => navigation.addListener('beforeRemove', (event) => {
+      if (event.data.action.type !== 'GO_BACK') {
+        return;
+      }
+      if (!isQrSyncImport || currentStep !== 1) {
+        return;
+      }
+      leaveQrSyncImport();
+    }), [currentStep, isQrSyncImport, leaveQrSyncImport, navigation]);
+
   const onBackPress = () => {
     if (isQrSyncImport && currentStep === 1) {
-      dismissQrSyncAccountsReview();
-      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-        () => undefined,
-      );
+      leaveQrSyncImport();
       navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET, undefined, {
         pop: true,
       });

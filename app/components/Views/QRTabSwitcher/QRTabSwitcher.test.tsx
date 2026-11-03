@@ -127,6 +127,10 @@ const wrapQrTabSwitcher = (ui: React.ReactElement = <QRTabSwitcher />) => (
       'QrSyncController:importRemainingSecrets': mockImportRemainingSecrets,
       'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
       'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
+      'QrSyncController:prepareAccountsReview': jest
+        .fn()
+        .mockResolvedValue(undefined),
+      'QrSyncController:clearAccountsReview': jest.fn(),
       'KeyringController:getAccounts': mockGetAccounts,
     })}
   >
@@ -354,6 +358,22 @@ describe('QRTabSwitcher', () => {
     const { findByText, getByTestId } = renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        accountsReview: {
+          mode: 'new-user',
+          sections: [
+            {
+              id: 'wallet:test',
+              walletName: 'Wallet 1',
+              accounts: [
+                {
+                  id: 'wallet:test/0',
+                  name: 'Account 1',
+                  address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+                },
+              ],
+            },
+          ],
+        },
         pendingSecretImports: {
           version: 1 as const,
           wallets: [
@@ -408,6 +428,22 @@ describe('QRTabSwitcher', () => {
     const { findByText, getByTestId } = renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        accountsReview: {
+          mode: 'existing-user',
+          sections: [
+            {
+              id: 'wallet:test',
+              walletName: 'Wallet 1',
+              accounts: [
+                {
+                  id: 'wallet:test/0',
+                  name: 'Account 1',
+                  address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+                },
+              ],
+            },
+          ],
+        },
         pendingSecretImports: {
           version: 1 as const,
           wallets: [

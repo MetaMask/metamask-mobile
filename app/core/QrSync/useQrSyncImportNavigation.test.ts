@@ -5,10 +5,6 @@ import React from 'react';
 import Routes from '../../constants/navigation/Routes';
 import { QrSyncProvisioningStatuses } from './constants';
 import { useQrSyncImportNavigation } from './useQrSyncImportNavigation';
-import {
-  clearQrSyncAccountsReview,
-  getQrSyncAccountsReviewSnapshot,
-} from './qrSyncAccountsReview';
 import { RouteMessengerContext } from '../../contexts/route-messenger';
 import { createMockRouteMessenger } from '../../util/test/mock-route-messenger';
 
@@ -17,6 +13,7 @@ const mockGetAccounts = jest.fn<Promise<string[]>, []>();
 const mockImportRemainingSecrets = jest.fn();
 const mockResetState = jest.fn().mockResolvedValue(undefined);
 const mockHasPendingSecretImports = jest.fn().mockResolvedValue(false);
+const mockPrepareAccountsReview = jest.fn().mockResolvedValue(undefined);
 const mockProvisionFromMetadata = jest.fn();
 const mockShowAlreadySyncedSheet = jest.fn();
 const mockShowImportFailedSheet = jest.fn();
@@ -66,10 +63,6 @@ jest.mock('../../selectors/onboarding', () => ({
 
 jest.mock('../../selectors/qrSyncController', () => ({
   selectQrSyncShouldNavigateToImport: () => mockShouldNavigateToImport,
-  selectQrSyncAccountImportPayload: () => ({
-    pendingSecretImports: mockQrSyncControllerState.pendingSecretImports,
-    provisioningMetadata: mockQrSyncControllerState.provisioningMetadata,
-  }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -130,7 +123,7 @@ const flushAsync = async () => {
     expect(
       mockProvisionFromMetadata.mock.calls.length +
         mockResetState.mock.calls.length +
-        (getQrSyncAccountsReviewSnapshot().review ? 1 : 0),
+        mockPrepareAccountsReview.mock.calls.length,
     ).toBeGreaterThan(0);
   });
   // Allow in-flight finally handlers to clear module-level locks.
@@ -155,6 +148,7 @@ const renderUseQrSyncImportNavigation = <TProps>(
             'KeyringController:getAccounts': mockGetAccounts,
             'QrSyncController:importRemainingSecrets':
               mockImportRemainingSecrets,
+            'QrSyncController:prepareAccountsReview': mockPrepareAccountsReview,
           }),
         },
         children,
@@ -167,7 +161,6 @@ describe('useQrSyncImportNavigation', () => {
     jest.clearAllMocks();
     mockCompletedOnboarding = false;
     mockShouldNavigateToImport = false;
-    clearQrSyncAccountsReview();
     mockQrSyncControllerState.pendingSecretImports = null;
     mockQrSyncControllerState.provisioningMetadata = null;
     mockQrSyncControllerState.provisioningStatus =
@@ -175,6 +168,7 @@ describe('useQrSyncImportNavigation', () => {
     mockGetAccounts.mockResolvedValue([]);
     mockImportRemainingSecrets.mockResolvedValue(undefined);
     mockHasPendingSecretImports.mockResolvedValue(false);
+    mockPrepareAccountsReview.mockResolvedValue(undefined);
     mockResetState.mockResolvedValue(undefined);
     mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
@@ -189,7 +183,7 @@ describe('useQrSyncImportNavigation', () => {
 
     await flushAsync();
 
-    expect(getQrSyncAccountsReviewSnapshot().review?.mode).toBe('new-user');
+    expect(mockPrepareAccountsReview).toHaveBeenCalledWith('new-user');
     expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
@@ -211,9 +205,7 @@ describe('useQrSyncImportNavigation', () => {
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
       expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
-      expect(getQrSyncAccountsReviewSnapshot().review?.mode).toBe(
-        'existing-user',
-      );
+      expect(mockPrepareAccountsReview).toHaveBeenCalledWith('existing-user');
     });
 
     expect(mockResetState).not.toHaveBeenCalled();
@@ -234,9 +226,8 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
-      expect(getQrSyncAccountsReviewSnapshot().review?.mode).toBe(
-        'existing-user',
-      );
+      expect(mockPrepareAccountsReview).toHaveBeenCalledWith('existing-user');
+      expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
     });
 
     // Phase C must run even when no new accounts were added — it applies
@@ -288,9 +279,7 @@ describe('useQrSyncImportNavigation', () => {
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
       expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
-      expect(getQrSyncAccountsReviewSnapshot().review?.mode).toBe(
-        'existing-user',
-      );
+      expect(mockPrepareAccountsReview).toHaveBeenCalledWith('existing-user');
     });
 
     expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
@@ -338,15 +327,15 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
-      expect(getQrSyncAccountsReviewSnapshot().review?.mode).toBe('new-user');
+      expect(mockPrepareAccountsReview).toHaveBeenCalledTimes(1);
     });
 
-    clearQrSyncAccountsReview();
+    mockPrepareAccountsReview.mockClear();
     rerender({ enabled: true, shouldNavigate: false });
     rerender({ enabled: true, shouldNavigate: true });
 
     await waitFor(() => {
-      expect(getQrSyncAccountsReviewSnapshot().review?.mode).toBe('new-user');
+      expect(mockPrepareAccountsReview).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -358,7 +347,7 @@ describe('useQrSyncImportNavigation', () => {
       useQrSyncImportNavigation({ enabled: false }),
     );
 
-    expect(getQrSyncAccountsReviewSnapshot().review).toBeNull();
+    expect(mockPrepareAccountsReview).not.toHaveBeenCalled();
     expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
   });
 
@@ -397,5 +386,46 @@ describe('useQrSyncImportNavigation', () => {
 
     expect(mockResetState).not.toHaveBeenCalled();
     expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
+  });
+
+  it('reports a failed review and leaves a new user on add device', async () => {
+    mockCompletedOnboarding = false;
+    mockShouldNavigateToImport = true;
+    mockPrepareAccountsReview.mockRejectedValueOnce(
+      new Error('QR sync account review has no addresses'),
+    );
+
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
+
+    await waitFor(() => {
+      expect(reportQrSyncFailure).toHaveBeenCalled();
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
+  });
+
+  it('sends an existing user home when the review cannot be built', async () => {
+    mockCompletedOnboarding = true;
+    mockShouldNavigateToImport = true;
+    mockHasPendingSecretImports.mockResolvedValue(true);
+    mockPrepareAccountsReview.mockRejectedValueOnce(
+      new Error('QR sync account review has no addresses'),
+    );
+    mockGetAccounts.mockResolvedValue(['0xexisting']);
+
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    });
+
+    expect(reportQrSyncFailure).toHaveBeenCalled();
+    expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+    expect(mockResetState).not.toHaveBeenCalled();
   });
 });

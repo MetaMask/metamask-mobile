@@ -68,6 +68,10 @@ const renderComponent = (
       'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
       'QrSyncController:importRemainingSecrets': jest.fn(),
       'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
+      'QrSyncController:prepareAccountsReview': jest
+        .fn()
+        .mockResolvedValue(undefined),
+      'QrSyncController:clearAccountsReview': jest.fn(),
       'KeyringController:getAccounts': jest.fn().mockResolvedValue([]),
     }),
     state: {
@@ -311,6 +315,23 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
+    const accountsReview = {
+      mode: 'new-user' as const,
+      sections: [
+        {
+          id: 'wallet:test',
+          walletName: 'Wallet 1',
+          accounts: [
+            {
+              id: 'wallet:test/0',
+              name: 'Account 1',
+              address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+            },
+          ],
+        },
+      ],
+    };
+
     const pendingSecretImports = {
       version: 1 as const,
       wallets: [
@@ -334,6 +355,7 @@ describe('AddDeviceToWallet', () => {
       const { findByText, getByTestId } = renderComponent({
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
         pendingSecretImports,
+        accountsReview,
       });
 
       expect(
@@ -362,11 +384,14 @@ describe('AddDeviceToWallet', () => {
         phase: QrSyncPhases.COMPLETED,
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
         pendingSecretImports,
+        accountsReview,
       });
 
       fireEvent.press(await findByTestId(AccountsImportedTestIds.BACK));
 
-      expect(mockResetState).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockResetState).toHaveBeenCalled();
+      });
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(
         getByText(strings('app_settings.add_device.add_device_to_wallet')),
@@ -383,6 +408,7 @@ describe('AddDeviceToWallet', () => {
         {
           provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
           pendingSecretImports,
+          accountsReview: { ...accountsReview, mode: 'existing-user' },
         },
         true,
       );

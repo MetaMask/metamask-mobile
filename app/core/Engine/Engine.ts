@@ -1359,6 +1359,9 @@ export class Engine {
       PredictPortfolioService,
     } = this.context;
 
+    // Drop an in-progress QR sync session, including the accounts review.
+    this.context.QrSyncController?.resetState?.();
+
     // Remove all permissions.
     PermissionController?.clearState?.();
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
