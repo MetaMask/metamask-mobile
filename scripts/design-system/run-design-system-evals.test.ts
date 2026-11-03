@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { SPACING_RULE_ID } from './spacing-rule';
 import {
+  EVAL_RULES,
   formatAnnotation,
   formatErrorAnnotation,
   isInScopeAppFile,
@@ -18,6 +20,14 @@ function addedDiff(filePath: string, bodies: readonly string[]): string {
     ...bodies.map((body) => `+${body}`),
   ].join('\n');
 }
+
+describe('EVAL_RULES', () => {
+  it('enables the spacing rule from the shared map', () => {
+    const ruleIds = Object.keys(EVAL_RULES);
+
+    expect(ruleIds).toEqual([SPACING_RULE_ID]);
+  });
+});
 
 describe('isInScopeAppFile', () => {
   it('accepts an app source file', () => {

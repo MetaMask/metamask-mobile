@@ -1,10 +1,18 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-import { Linter } from 'eslint';
+import { Linter, type Rule } from 'eslint';
 
 import { parseAddedLines } from './changed-lines';
 import { SPACING_RULE_ID, spacingRule } from './spacing-rule';
+
+/**
+ * Add the next eval here. Registration, severity, and the finding filter all
+ * read this map.
+ */
+export const EVAL_RULES: Record<string, Rule.RuleModule> = {
+  [SPACING_RULE_ID]: spacingRule,
+};
 
 const PARSER_ID = 'design-system-evals-typescript';
 const BASE_SHA = /^[0-9a-f]{40}$/i;
@@ -67,7 +75,11 @@ export function lintSource(filePath: string, code: string): LintFinding[] {
       );
     }
 
-    if (message.ruleId !== SPACING_RULE_ID || message.line == null) {
+    if (
+      message.line == null ||
+      message.ruleId == null ||
+      !(message.ruleId in EVAL_RULES)
+    ) {
       continue;
     }
 
@@ -104,7 +116,9 @@ function createLinter(): Linter {
   // The parser package is CJS. tsx/jest both resolve this require.
   // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
   linter.defineParser(PARSER_ID, require('@typescript-eslint/parser'));
-  linter.defineRule(SPACING_RULE_ID, spacingRule);
+  for (const [ruleId, rule] of Object.entries(EVAL_RULES)) {
+    linter.defineRule(ruleId, rule);
+  }
   return linter;
 }
 
@@ -116,9 +130,9 @@ function linterConfig(): Linter.Config {
       sourceType: 'module',
       ecmaFeatures: { jsx: true },
     },
-    rules: {
-      [SPACING_RULE_ID]: 'error',
-    },
+    rules: Object.fromEntries(
+      Object.keys(EVAL_RULES).map((ruleId) => [ruleId, 'error']),
+    ),
   };
 }
 
