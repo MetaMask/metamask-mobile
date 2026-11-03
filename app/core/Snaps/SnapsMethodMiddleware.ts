@@ -26,7 +26,12 @@ const STALE_BACKGROUND_EVENT_MESSAGE_SUFFIX = '" does not exist.';
 const HANDLED_SNAP_FALLBACK_LOG_MESSAGE =
   'Dropped handled Solana snap fallback error';
 
-const HANDLED_SNAP_FALLBACK_PATTERNS = [
+interface HandledSnapFallbackPattern {
+  id: string;
+  matcher: (error: Error) => boolean;
+}
+
+const HANDLED_SNAP_FALLBACK_PATTERNS: HandledSnapFallbackPattern[] = [
   {
     // 5ZQH, 12HES. remove when the upstream snap fix ships.
     id: 'UNSUPPORTED_PROGRAM_ADDRESS',
@@ -50,7 +55,10 @@ const HANDLED_SNAP_FALLBACK_PATTERNS = [
   },
 ];
 
-function isHandledSnapFallbackError(origin: string, error: Error) {
+function findHandledSnapFallbackPattern(
+  origin: string,
+  error: Error,
+): HandledSnapFallbackPattern | undefined {
   if (origin !== SOLANA_WALLET_SNAP_ID) {
     return undefined;
   }
@@ -105,7 +113,7 @@ const snapMethodMiddlewareBuilder = (
           return captureException(error);
         }
 
-        const handledPattern = isHandledSnapFallbackError(origin, error);
+        const handledPattern = findHandledSnapFallbackPattern(origin, error);
         if (handledPattern) {
           // The message can carry transaction data, so log the pattern id only.
           Logger.log(
