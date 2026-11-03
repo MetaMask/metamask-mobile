@@ -1,6 +1,9 @@
 import Engine from '../../../core/Engine';
 import { profileSyncEnv } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
-import { getEnvUrls , getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
+import {
+  getEnvUrls,
+  getMfaErrorCode,
+} from '@metamask/profile-sync-controller/sdk';
 import {
   establishSocialProfileSession,
   listEnrolledCredentialsWithAccessToken,
