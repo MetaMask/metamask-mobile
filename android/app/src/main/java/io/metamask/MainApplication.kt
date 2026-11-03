@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Build
+import android.util.Log
 import android.webkit.WebView
 import android.database.CursorWindow
 
@@ -75,9 +76,17 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
     override fun onCreate() {
         super.onCreate()
 
-        // Internal perf builds only: sample from process start so cold start is covered.
+        // Internal test builds only: sample from process start so cold start is covered.
+        // A sampler failure must never take the app down.
         if (BuildConfig.PERF_SESSION_URL.isNotEmpty()) {
-            PerfSession.start(this, BuildConfig.PERF_SESSION_URL, BuildConfig.PERF_SESSION_TOKEN)
+            runCatching {
+                PerfSession.start(
+                    this,
+                    BuildConfig.PERF_SESSION_URL,
+                    BuildConfig.PERF_SESSION_KEY,
+                    BuildConfig.PERF_SESSION_ENV,
+                )
+            }.onFailure { Log.w("PerfSession", "Could not start", it) }
         }
 
         // Fill the edge-to-edge host; HTML templates use --braze-safe-area-inset-* for content padding.

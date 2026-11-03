@@ -3,8 +3,9 @@
  * which tags its always-on performance samples with it.
  *
  * The module lives in `android/app/src/main/java/io/metamask/nativeModules/PerfSession`
- * and is only registered in builds with `MM_PERF_SESSION_URL` set (`main-rc-perf`
- * in builds.yml), so on every other build and on iOS this is a no-op.
+ * and is only registered in builds with `MM_PERF_SESSION_URL` set (builds.yml
+ * entries that merge `*perf_session`, e.g. `main-exp`), so on every other build
+ * and on iOS this is a no-op.
  * See `scripts/perf-sessions/README.md`.
  */
 

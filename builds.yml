@@ -123,6 +123,15 @@ _main_dev_env: &main_dev_env
   PROFILE: 'development'
   DEV_OAUTH_CONFIG: 'true'
 
+# Always-on perf sampler (android/.../nativeModules/PerfSession). Merge into a build's
+# env to turn it on, e.g. `<<: [*public_envs, *perf_session]`; Gradle only allows dev,
+# exp and rc. Both values ship in the APK and are public by design: the collector
+# treats every client as untrusted and decides per env whether devices record.
+# See scripts/perf-sessions/README.md.
+_perf_session: &perf_session
+  MM_PERF_SESSION_URL: 'https://superserviceable-stacia-nonindulgently.ngrok-free.dev'
+  MM_PERF_SESSION_KEY: 'RPHLuCRSaAhZKf_brgroIpVAdqRrmwyr'
+
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
   MM_SENTRY_AUTH_TOKEN: 'MM_SENTRY_AUTH_TOKEN'
@@ -348,25 +357,6 @@ builds:
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
     code_fencing: *code_fencing_main
-  # Release candidate for PM test sessions with the always-on perf sampler
-  # (android/.../nativeModules/PerfSession). Samples CPU per thread, FPS/jank and
-  # RAM tagged with the focused screen and POSTs them to MM_PERF_SESSION_URL.
-  # Both secrets live in the build-rc environment. Internal distribution only.
-  # See scripts/perf-sessions/README.md.
-  main-rc-perf:
-    script_name: main-rc
-    github_environment: build-rc
-    signing: *signing_rc
-    env:
-      <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
-      METAMASK_BUILD_TYPE: 'main'
-    secrets:
-      <<: *secrets
-      MM_PERF_SESSION_URL: 'MM_PERF_SESSION_URL'
-      MM_PERF_SESSION_TOKEN: 'MM_PERF_SESSION_TOKEN'
-    code_fencing: *code_fencing_main
-
   # Release candidate with pre-imported wallet (system tests / performance tests)
   # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
   # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
@@ -446,7 +436,7 @@ builds:
     github_environment: build-exp
     signing: *signing_uat
     env:
-      <<: *api_uat
+      <<: [*api_uat, *perf_session]
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       RAMP_INTERNAL_BUILD: 'true'

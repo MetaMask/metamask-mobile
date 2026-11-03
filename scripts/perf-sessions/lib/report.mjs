@@ -1,6 +1,5 @@
 /**
- * Shared report builder for perf sessions. Used by aggregate.mjs (recordings on
- * disk) and collector.mjs (live data from main-rc-perf devices).
+ * Report builder for lab-agent recordings on disk (aggregate.mjs).
  *
  * Input: Flashlight TestCaseResult objects with a `perfSession` block (see
  * agent.mjs). Measures may also carry `flow` (screen name, set by the in-app

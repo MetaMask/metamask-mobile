@@ -97,7 +97,6 @@ on:
           - main-prod
           - main-beta
           - main-rc
-          - main-rc-perf
           - main-test
           - main-e2e
           - main-exp
