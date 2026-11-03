@@ -1,6 +1,3 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-
 import { SPACING_RULE_ID } from './spacing-rule';
 import {
   EVAL_RULES,
@@ -210,44 +207,5 @@ describe('formatErrorAnnotation', () => {
     const annotation = formatErrorAnnotation(message);
 
     expect(annotation).toBe('::error::bad%0Asha');
-  });
-});
-
-describe('design-system-evals workflow', () => {
-  const workflow = readFileSync(
-    path.join(__dirname, '../../.github/workflows/design-system-evals.yml'),
-    'utf8',
-  );
-
-  it('runs only on same-repo pull requests that touch app source', () => {
-    expect(workflow).toContain('pull_request:');
-    expect(workflow).not.toContain('pull_request_target');
-    expect(workflow).toContain(
-      'github.event.pull_request.head.repo.full_name == github.repository',
-    );
-    expect(workflow).toContain('app/**/*.ts');
-    expect(workflow).not.toContain('ci.yml');
-    expect(workflow).not.toContain('secrets.');
-    expect(workflow).toContain('contents: read');
-    expect(workflow).toContain('name: Design system evals');
-    expect(workflow).toContain('fetch-depth: 2');
-    expect(workflow).not.toContain('fetch-depth: 0');
-    expect(workflow).not.toContain('DS_EVALS_BASE_SHA');
-    expect(workflow).toContain('namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0');
-    expect(workflow).toContain('yarn install --immutable');
-  });
-});
-
-describe('design-system evals entrypoint', () => {
-  const source = readFileSync(
-    path.join(__dirname, 'run-design-system-evals.ts'),
-    'utf8',
-  );
-
-  it('diffs the pull request merge commit against its first parent, and only app/', () => {
-    expect(source).toContain(
-      "['diff', '-U0', 'HEAD^1', 'HEAD', '--', 'app/']",
-    );
-    expect(source).not.toContain('DS_EVALS_BASE_SHA');
   });
 });

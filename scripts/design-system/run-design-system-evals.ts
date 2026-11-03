@@ -140,8 +140,18 @@ function main(): void {
   const diffStarted = Date.now();
   const diff = execFileSync(
     'git',
-    ['diff', '-U0', 'HEAD^1', 'HEAD', '--', 'app/'],
-    { encoding: 'utf8' },
+    [
+      'diff',
+      '-U0',
+      'HEAD^1',
+      'HEAD',
+      '--',
+      'app/*.ts',
+      'app/*.tsx',
+      'app/*.js',
+      'app/*.jsx',
+    ],
+    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
   );
   const diffMs = Date.now() - diffStarted;
   const lintStarted = Date.now();
