@@ -187,13 +187,9 @@ const MoneyVbaHomeCard = ({
       size={ButtonBaseSize.Lg}
       isFullWidth
       isLoading={isRouting}
-      // No loadingText here: this CTA has no permanent start accessory, so
-      // the overlay's icon+gap+text row would be wider than the plain
-      // centered label, shifting the visible text right the instant
-      // isLoading flips. Icon-only keeps the overlay centered instead.
-      spinnerProps={{
-        color: IconColor.IconDefault,
-      }}
+      // Icon-only loading: a loadingText row is wider than the plain label
+      // and shifts it right. The spinner inherits the label color from
+      // textClassName so it stays visible on the light CTA backgrounds.
       startAccessory={
         variant === 'kyc_pending' ? (
           <Spinner
