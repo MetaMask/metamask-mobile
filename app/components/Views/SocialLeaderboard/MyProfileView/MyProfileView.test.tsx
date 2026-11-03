@@ -1608,6 +1608,7 @@ describe('MyProfileView', () => {
     fireEvent.press(
       screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
     );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_ERROR),
