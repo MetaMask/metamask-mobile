@@ -190,6 +190,20 @@ const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
 };
 
 /**
+ * True when account details can open from persisted state, with no loading
+ * route. Matches the fast path inside {@link openVbaEntry}.
+ */
+export const canOpenPersistedVbaDetails = (): boolean => {
+  const walletAddress = selectSelectedVbaWalletAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!walletAddress || getVbaKycStatusOverride() !== null) {
+    return false;
+  }
+  return hasPersistedApprovedAutoramp(walletAddress);
+};
+
+/**
  * Cold entry from Money surfaces. An account whose autoramp is already
  * Approved on this device opens its details directly, and onboarding facts
  * refresh in the background. Everyone else gets the loading screen, which
@@ -206,11 +220,7 @@ export const openVbaEntry = (
   const walletAddress = selectSelectedVbaWalletAddress(
     ReduxService.store.getState() as RootState,
   );
-  if (
-    walletAddress &&
-    getVbaKycStatusOverride() === null &&
-    hasPersistedApprovedAutoramp(walletAddress)
-  ) {
+  if (walletAddress && canOpenPersistedVbaDetails()) {
     openCompletedVbaAccount(navigation);
     Engine.context.RampsController.hydrateVbaOnboarding({
       walletAddress,

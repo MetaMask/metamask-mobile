@@ -8,6 +8,7 @@ import {
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
+  canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
   openVbaEntry,
   resolveVbaOnboarding,
@@ -47,6 +48,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
+    canOpenPersistedVbaDetails: jest.fn(),
     navigateToVbaOnboardingDestination: jest.fn(),
     openVbaEntry: jest.fn(),
     resolveVbaOnboarding: jest.fn(),
@@ -70,6 +72,7 @@ const mockNavigateToDestination = jest.mocked(
 );
 const mockResolve = jest.mocked(resolveVbaOnboarding);
 const mockOpenVbaEntry = jest.mocked(openVbaEntry);
+const mockCanOpenPersistedVbaDetails = jest.mocked(canOpenPersistedVbaDetails);
 const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
 const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 const mockLoggerError = jest.mocked(Logger.error);
@@ -168,11 +171,7 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
   });
 
-  it.each(
-    VARIANTS.filter(
-      (variant) => variant !== 'kyc_pending' && variant !== 'account_is_ready',
-    ),
-  )(
+  it.each(VARIANTS.filter((variant) => variant !== 'kyc_pending'))(
     'hydrates on the card and opens the resolved destination for %s',
     async (variant) => {
       const expectations = VARIANT_EXPECTATIONS[variant];
@@ -222,7 +221,8 @@ describe('MoneyVbaHomeCard', () => {
     );
   });
 
-  it('opens account details directly from the account_is_ready card, without the hydrate round trip', () => {
+  it('opens persisted account details directly and ignores a second tap', () => {
+    mockCanOpenPersistedVbaDetails.mockReturnValue(true);
     const { getByTestId } = render(
       <MoneyVbaHomeCard variant="account_is_ready" />,
     );
@@ -231,15 +231,13 @@ describe('MoneyVbaHomeCard', () => {
     );
 
     fireEvent.press(cta);
+    fireEvent.press(cta);
 
     expect(mockResolve).not.toHaveBeenCalled();
+    expect(mockOpenVbaEntry).toHaveBeenCalledTimes(1);
     expect(mockOpenVbaEntry).toHaveBeenCalledWith(mockNavigation, {
       source: 'vba-home-card-account-is-ready',
     });
-    expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
-      VBA_CUF_ENTRY_SURFACE.HOME_CARD,
-    );
-    // The fast path navigates synchronously, so the CTA never shows busy.
     expect(cta.props.accessibilityState?.busy).toBeFalsy();
   });
 

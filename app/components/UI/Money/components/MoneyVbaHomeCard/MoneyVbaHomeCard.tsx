@@ -18,6 +18,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
 import {
+  canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
   openVbaEntry,
   resolveVbaOnboarding,
@@ -128,13 +129,13 @@ const MoneyVbaHomeCard = ({
       return;
     }
 
-    // An approved session with a usable autoramp already has local account
-    // state. Opening details directly and hydrating in the background
-    // matches the Details action elsewhere on Money home and skips the
-    // button spinner that a full resolve-then-navigate round trip causes.
-    if (variant === 'account_is_ready') {
+    // Only an Approved autoramp can open details from persisted state.
+    // account_is_ready also covers provider-final KYC with no autoramp yet,
+    // and that case must stay on the card while hydrate runs. openVbaEntry
+    // would otherwise present the standalone loading route, and clearing the
+    // reentry guard would let a second tap mount it again.
+    if (variant === 'account_is_ready' && canOpenPersistedVbaDetails()) {
       openVbaEntry(navigation, { source: config.source });
-      hasPendingCtaOpenRef.current = false;
       return;
     }
 
