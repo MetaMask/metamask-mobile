@@ -4,7 +4,12 @@ import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { handleSocialTraderUrl } from '../handleSocialTraderUrl';
 import { navigateToSocialV1Profile } from '../../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { isSocialV1Treatment } from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
+jest.mock(
+  '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({ ensureSocialTermsAccepted: jest.fn(() => true) }),
+);
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
@@ -33,10 +38,23 @@ jest.mock(
 describe('handleSocialTraderUrl', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
   const mockIsSocialV1Treatment = jest.mocked(isSocialV1Treatment);
+  const mockEnsureSocialTermsAccepted = jest.mocked(ensureSocialTermsAccepted);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsSocialV1Treatment.mockReturnValue(false);
+    mockEnsureSocialTermsAccepted.mockReturnValue(true);
+  });
+
+  it('stops before opening a profile when the Social terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+
+    handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });
+
+    expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(navigateToSocialV1Profile).not.toHaveBeenCalled();
   });
 
   it('opens the V0 trader profile when the Social V1 flag is control', () => {

@@ -14,6 +14,7 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
 /* eslint-enable import-x/no-restricted-paths */
+jest.mock('../../SocialLeaderboard/terms/socialTermsAcceptance');
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -85,12 +86,9 @@ jest.mock('../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
 }));
 
-const mockUsePlusAccess = jest.fn(() => ({
-  isPlusSubscriber: false,
-  isPlusAccessUnknown: false,
-}));
-jest.mock('../../../../hooks/usePlusAccess', () => ({
-  usePlusAccess: () => mockUsePlusAccess(),
+const mockUseHasProMembership = jest.fn(() => false);
+jest.mock('../../../../hooks/useHasProMembership', () => ({
+  useHasProMembership: () => mockUseHasProMembership(),
 }));
 
 const mockTrackButtonClicked = jest.fn();
@@ -140,10 +138,7 @@ describe('ProfileDrawer', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
-    mockUsePlusAccess.mockReturnValue({
-      isPlusSubscriber: false,
-      isPlusAccessUnknown: false,
-    });
+    mockUseHasProMembership.mockReturnValue(false);
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -591,20 +586,24 @@ describe('ProfileDrawer', () => {
       ).toBeNull();
     });
 
-    it('stays hidden while membership access is unresolved', () => {
+    it('shows the join label while membership access is unresolved', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: false,
-        isPlusAccessUnknown: true,
-      });
+      mockUseHasProMembership.mockReturnValue(false);
 
-      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE));
 
       expect(
-        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
-      ).toBeNull();
+        within(
+          getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+        ).getByText(strings('accounts_menu.join_metamask_orange')),
+      ).toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
     });
 
     it('invites a non-member to join and opens the subscription flow', () => {
@@ -637,10 +636,7 @@ describe('ProfileDrawer', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: true,
-        isPlusAccessUnknown: false,
-      });
+      mockUseHasProMembership.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 

@@ -162,7 +162,7 @@ describe('ManageProfileView', () => {
     ).toHaveTextContent(/@giga-whale\.metamask/);
     expect(
       screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
-    ).toHaveTextContent(/X @giga-whale/);
+    ).toHaveTextContent(/@giga-whale/);
   });
 
   it('shows live trading activity as On when sharing is public', () => {
@@ -429,7 +429,7 @@ describe('ManageProfileView', () => {
 
       expect(
         screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
-      ).toHaveTextContent(/X @fresh-handle/);
+      ).toHaveTextContent(/@fresh-handle/);
     });
   });
 

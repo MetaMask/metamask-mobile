@@ -5,7 +5,12 @@ import ReactQueryService from '../../../../ReactQueryService';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 import { isSocialV1Treatment } from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
+jest.mock(
+  '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({ ensureSocialTermsAccepted: jest.fn(() => true) }),
+);
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
@@ -62,6 +67,30 @@ describe('handleSocialTraderPositionUrl', () => {
     mockBuild.mockReturnValue({ event: 'mocked' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockIsSocialV1Treatment.mockReturnValue(false);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(true);
+  });
+
+  it('tracks the notification click but does not open the position when the Social terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
+
+    handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
+    });
+
+    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockBuild).toHaveBeenCalled();
+  });
+
+  it('does not open the fallback when the Social terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
+
+    handleSocialTraderPositionUrl({ actionPath: '?traderId=trader-1' });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to TraderPositionView with positionId and forwards notificationSubtype', () => {

@@ -223,7 +223,10 @@ jest.mock('../../../UI/WhatsHappening', () => ({
 
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../../UI/PredictNext';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
@@ -236,7 +239,6 @@ import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 import {
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_ENTRY_POINTS,
@@ -274,7 +276,7 @@ const createMockSelectorImpl =
   }) =>
   (selector: unknown) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
-    if (selector === selectPredictEnabledFlag) return predictEnabled;
+    if (selector === selectPredictAvailability) return predictEnabled;
     if (selector === selectWhatsHappeningEnabled) return whatsHappeningEnabled;
     if (selector === selectIsExploreEarnSectionVisible)
       return earnSectionVisible;

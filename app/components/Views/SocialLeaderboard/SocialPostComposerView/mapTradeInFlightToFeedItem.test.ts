@@ -1,4 +1,8 @@
 import {
+  KLIPY_STATIC_GIF_EXAMPLE,
+  KLIPY_STATIC_GIF_HOST,
+} from '#app/components/UI/SocialFeed/utils/klipyGifComment';
+import {
   mapTradeInFlightToFeedItem,
   type TradeInFlightPreview,
 } from './mapTradeInFlightToFeedItem';
@@ -39,5 +43,33 @@ describe('mapTradeInFlightToFeedItem', () => {
     }
     expect(item.side).toBe('sell');
     expect(item.showCopyTrade).toBe(false);
+  });
+
+  it('carries the KLIPY GIF URL as commentGifUrl for a GIF-only trade-in-flight post', () => {
+    const item = mapTradeInFlightToFeedItem(preview, '', {
+      commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
+    });
+
+    expect(item).toMatchObject({
+      comment: '',
+      commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
+    });
+  });
+
+  it('keeps the caption text free of the GIF URL for a trade-in-flight post', () => {
+    const item = mapTradeInFlightToFeedItem(preview, 'this is alpha', {
+      commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
+    });
+
+    expect(item.comment).toBe('this is alpha');
+    expect(item.comment).not.toContain(KLIPY_STATIC_GIF_HOST);
+  });
+
+  it('ignores a commentGifUrl that is not a KLIPY static GIF for a trade-in-flight post', () => {
+    const item = mapTradeInFlightToFeedItem(preview, 'this is alpha', {
+      commentGifUrl: 'https://media.test/party.gif',
+    });
+
+    expect(item).not.toHaveProperty('commentGifUrl');
   });
 });

@@ -10,9 +10,9 @@ import { toSocialV1FeedItem } from './toSocialV1FeedItem';
  * The shell reads the avatar, handle and time off the envelope, so the real
  * actor has to be copied up here; the trader's stats stay on `item.author`,
  * where the header's rotating stat line reads them. Reactions come from the
- * Call (`authorComment`). Posts without a Call still show the add-reaction
- * button; picks stay session-local until a comment id exists. The copy count
- * is passed through only when the API sent it.
+ * Call (`authorComment`). A row with no Call has no comment id, so the shell
+ * hides reaction controls. The copy count is passed through only when the API
+ * sent it.
  */
 export const toSocialFeedPosts = (
   rows: TraderFeedRow[],
