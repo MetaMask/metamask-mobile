@@ -36,7 +36,7 @@ const createStyles = (colors) =>
     },
     closeIcon: { paddingTop: 4, position: 'absolute', right: 16 },
     body: {
-      paddingHorizontal: 15,
+      paddingHorizontal: 16,
     },
     section: {
       paddingVertical: 16,
