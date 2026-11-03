@@ -686,62 +686,73 @@ jest.mock(
 );
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(() => jest.fn()),
-  useSelector: jest.fn((selector) => {
-    // reselect selectors do not carry their export name in `toString()`, so
-    // match this one by identity.
-    const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
-      '../../selectors/featureFlags',
-    );
-    const { selectPerpsSizeDenomination } = jest.requireActual(
-      '../../selectors/sizeDenomination',
-    );
-    if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
-      return mockTradeWithAnyTokenEnabled;
-    }
-    if (selector === selectPerpsSizeDenomination) {
-      return mockPerpsSizeDenomination;
-    }
-    const { selectSelectedInternalAccountByScope } = jest.requireActual(
-      '../../../../../selectors/multichainAccounts/accounts',
-    );
-    if (selector === selectSelectedInternalAccountByScope) {
-      return () => mockSelectedEvmAccount;
-    }
-    const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
-      '../../../../../selectors/profileController',
-    );
-    if (selector === selectIsProfileTradingActivityPrivate) {
-      return mockProfileTradingActivityPrivate;
-    }
-    if (
-      selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
-      selector.toString().includes('perpsAdvancedChart')
-    ) {
-      return mockPerpsAdvancedChartEnabled;
-    }
-    if (selector.toString().includes('selectTokenList')) {
-      return {};
-    }
-    if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
-      return false;
-    }
-    if (selector.toString().includes('selectPaymentOverrideByTransactionId')) {
-      return mockPaymentOverride;
-    }
-    if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
-      return {};
-    }
-    if (
-      selector.toString().includes('selectSelectedAccountGroupInternalAccounts')
-    ) {
-      return [];
-    }
-    return null;
-  }),
-}));
+jest.mock('react-redux', () => {
+  const orderBookByUnit = {
+    usd: { currency: 'usd', metric: 'total' },
+    asset: { currency: 'base', metric: 'total' },
+  };
+
+  return {
+    ...jest.requireActual('react-redux'),
+    useDispatch: jest.fn(() => jest.fn()),
+    useSelector: jest.fn((selector) => {
+      // reselect selectors do not carry their export name in `toString()`, so
+      // match this one by identity.
+      const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
+        '../../selectors/featureFlags',
+      );
+      const { selectPerpsOrderBookPreferences } = jest.requireActual(
+        '../../selectors/perpsController',
+      );
+      if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
+        return mockTradeWithAnyTokenEnabled;
+      }
+      if (selector === selectPerpsOrderBookPreferences) {
+        return orderBookByUnit[mockPerpsSizeDenomination];
+      }
+      const { selectSelectedInternalAccountByScope } = jest.requireActual(
+        '../../../../../selectors/multichainAccounts/accounts',
+      );
+      if (selector === selectSelectedInternalAccountByScope) {
+        return () => mockSelectedEvmAccount;
+      }
+      const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
+        '../../../../../selectors/profileController',
+      );
+      if (selector === selectIsProfileTradingActivityPrivate) {
+        return mockProfileTradingActivityPrivate;
+      }
+      if (
+        selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
+        selector.toString().includes('perpsAdvancedChart')
+      ) {
+        return mockPerpsAdvancedChartEnabled;
+      }
+      if (selector.toString().includes('selectTokenList')) {
+        return {};
+      }
+      if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
+        return false;
+      }
+      if (
+        selector.toString().includes('selectPaymentOverrideByTransactionId')
+      ) {
+        return mockPaymentOverride;
+      }
+      if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
+        return {};
+      }
+      if (
+        selector
+          .toString()
+          .includes('selectSelectedAccountGroupInternalAccounts')
+      ) {
+        return [];
+      }
+      return null;
+    }),
+  };
+});
 
 // Rewards feature flag removed - rewards are always enabled
 

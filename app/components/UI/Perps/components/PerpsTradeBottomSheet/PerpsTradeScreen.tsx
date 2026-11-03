@@ -57,7 +57,6 @@ import {
   PerpsTradeSheetTitleBanner,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
-import { usePerpsOrderBookPreferences } from '../../hooks/usePerpsOrderBookPreferences';
 import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
 import { resolveShownPerpsSizeDenomination } from '../../utils/perpsSizeDenomination';
 
@@ -342,7 +341,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
   const { denomination, setDenomination } = usePerpsSizeDenomination();
-  const { setOrderBookPreferences } = usePerpsOrderBookPreferences();
   // A USD amount typed before the price can project coin must stay in USD
   // until the keypad closes. Flipping to coin on the price tick would reseed
   // the draft and make the next key edit coin instead of the USD entry.
@@ -356,14 +354,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       price: amountPrice,
       holdUsdEdit: usdEditBeforePriceRef.current,
     }) === 'asset';
-  // Pro restores a saved order-book coin on mount. Write that currency with the
-  // shared unit so switching back to USD here is not put back to coin later.
+  // The shared unit is the persisted order-book currency, so this toggle is
+  // what Pro reads on the next open.
   const onDisplayToggle = () => {
-    const nextDenomination = showAssetValue ? 'usd' : 'asset';
-    setDenomination(nextDenomination);
-    setOrderBookPreferences({
-      currency: nextDenomination === 'asset' ? 'base' : 'usd',
-    });
+    setDenomination(showAssetValue ? 'usd' : 'asset');
   };
   const { fireImpact } = useHaptics();
   const navigateWithHaptic = (screen: Parameters<typeof navigateTo>[0]) => {

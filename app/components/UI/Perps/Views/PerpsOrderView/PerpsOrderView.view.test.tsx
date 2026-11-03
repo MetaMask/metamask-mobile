@@ -1692,10 +1692,16 @@ describe('PerpsOrderView', () => {
 
   describe('saved size unit on the real Trade sheet', () => {
     const savedCoinSettings = {
-      settings: {
-        perpsSizeDenomination: 'asset' as const,
-        perpsChartPreferences: {
-          preferredCandlePeriod: CandlePeriod.FifteenMinutes,
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            isEligible: true,
+            isFirstTimeUser: { mainnet: false, testnet: false },
+            orderBookPreferences: {
+              currency: 'base' as const,
+              metric: 'total' as const,
+            },
+          },
         },
       },
     };

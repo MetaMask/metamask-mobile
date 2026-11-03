@@ -1,12 +1,4 @@
-import React from 'react';
-import { Provider } from 'react-redux';
-import {
-  act,
-  renderHook as renderHookWithStore,
-  type RenderHookOptions,
-} from '@testing-library/react-native';
-import configureStore from '../../../../../../../util/test/configureStore';
-import type { PerpsSizeDenomination } from '../../../../utils/perpsSizeDenomination';
+import { act, renderHook } from '@testing-library/react-native';
 import {
   usePerpsProSizeInput,
   type UsePerpsProSizeInputParams,
@@ -68,24 +60,6 @@ const {
   getTestOrderBookPreferences: () => { currency: 'usd' | 'base' };
 };
 
-let store = configureStore({});
-
-const renderHook = <Result, Props>(
-  hook: (props: Props) => Result,
-  options?: RenderHookOptions<Props>,
-) =>
-  renderHookWithStore(hook, {
-    ...options,
-    wrapper: ({ children }) =>
-      React.createElement(Provider, { store } as never, children),
-  });
-
-const setStoredSizeDenomination = (denomination: PerpsSizeDenomination) => {
-  store = configureStore({
-    settings: { perpsSizeDenomination: denomination },
-  });
-};
-
 const mockSetAmount = jest.fn();
 
 const createParams = (
@@ -104,7 +78,6 @@ const createParams = (
 describe('usePerpsProSizeInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    store = configureStore({});
     resetTestOrderBookPreferences();
   });
 
@@ -247,26 +220,8 @@ describe('usePerpsProSizeInput', () => {
     });
   });
 
-  it('writes base order-book currency when settings restore coin against a USD book', () => {
-    setStoredSizeDenomination('asset');
-    setTestOrderBookPreferences({ currency: 'usd' });
-
-    const { result } = renderHook(() =>
-      usePerpsProSizeInput(
-        createParams({ usdAmount: '100', effectivePrice: 100 }),
-      ),
-    );
-
-    expect(getTestOrderBookPreferences().currency).toBe('base');
-    expect(result.current.sizeInput.denomination).toEqual({
-      unit: 'asset',
-      symbol: 'BTC',
-    });
-    expect(result.current.sizeInput.value).toBe('1');
-  });
-
   it('shows the USD amount until a persisted coin unit can be priced', () => {
-    setStoredSizeDenomination('asset');
+    setTestOrderBookPreferences({ currency: 'base' });
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       {
@@ -293,7 +248,7 @@ describe('usePerpsProSizeInput', () => {
   });
 
   it('keeps a pre-price USD edit visible until blur projects it into coin', () => {
-    setStoredSizeDenomination('asset');
+    setTestOrderBookPreferences({ currency: 'base' });
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       {
@@ -327,7 +282,7 @@ describe('usePerpsProSizeInput', () => {
   });
 
   it('projects a blurred pre-price USD edit into coin once the price arrives', () => {
-    setStoredSizeDenomination('asset');
+    setTestOrderBookPreferences({ currency: 'base' });
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       {
@@ -358,7 +313,7 @@ describe('usePerpsProSizeInput', () => {
   });
 
   it('keeps a focused USD edit in USD after its echo and the price arrive separately', () => {
-    setStoredSizeDenomination('asset');
+    setTestOrderBookPreferences({ currency: 'base' });
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       {

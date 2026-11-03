@@ -506,33 +506,53 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
-let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
-
-jest.mock('../../../../hooks/usePerpsSizeDenomination', () => {
+jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => {
   const React = jest.requireActual<typeof import('react')>('react');
+  const state: {
+    currency: 'usd' | 'base';
+    notify: () => void;
+  } = {
+    currency: 'usd',
+    notify: () => undefined,
+  };
 
   return {
-    usePerpsSizeDenomination: () => {
-      const [denomination, setDenominationState] = React.useState(
-        mockPerpsSizeDenomination,
-      );
+    usePerpsOrderBookPreferences: () => {
+      const [currency, setCurrency] = React.useState(state.currency);
+
+      React.useLayoutEffect(() => {
+        state.notify = () => setCurrency(state.currency);
+        return () => {
+          state.notify = () => undefined;
+        };
+      }, []);
 
       return {
-        denomination,
-        setDenomination: (next: 'usd' | 'asset') => {
-          mockPerpsSizeDenomination = next;
-          setDenominationState(next);
+        preferences: { currency, metric: 'total' as const },
+        setOrderBookPreferences: (patch: { currency?: 'usd' | 'base' }) => {
+          if (patch.currency) {
+            state.currency = patch.currency;
+            setCurrency(patch.currency);
+          }
         },
       };
     },
+    resetTestOrderBookCurrency: () => {
+      state.currency = 'usd';
+      state.notify = () => undefined;
+    },
+    setTestOrderBookCurrency: (currency: 'usd' | 'base') => {
+      state.currency = currency;
+      state.notify();
+    },
   };
 });
-jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => ({
-  usePerpsOrderBookPreferences: () => ({
-    preferences: { currency: 'usd', metric: 'total' },
-    setOrderBookPreferences: jest.fn(),
-  }),
-}));
+
+const { resetTestOrderBookCurrency, setTestOrderBookCurrency } =
+  jest.requireMock('../../../../hooks/usePerpsOrderBookPreferences') as {
+    resetTestOrderBookCurrency: () => void;
+    setTestOrderBookCurrency: (currency: 'usd' | 'base') => void;
+  };
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: {
@@ -697,7 +717,7 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
-    mockPerpsSizeDenomination = 'usd';
+    resetTestOrderBookCurrency();
     jest.clearAllMocks();
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
@@ -2087,7 +2107,7 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it('reports usd on place order when coin is saved but the price is not ready', async () => {
-      mockPerpsSizeDenomination = 'asset';
+      setTestOrderBookCurrency('base');
       mockLivePrice = '0';
       mockLiveMarkPrice = '0';
       const { result } = renderProForm();

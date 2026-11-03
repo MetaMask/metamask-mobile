@@ -21,7 +21,6 @@ import {
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
-import { setPerpsSizeDenomination } from '../../../../../actions/settings';
 import configureStore from '../../../../../util/test/configureStore';
 
 let store = configureStore({});
@@ -29,14 +28,63 @@ let store = configureStore({});
 const render: typeof renderRoot = (ui, options) =>
   renderRoot(<Provider store={store}>{ui}</Provider>, options);
 
-const mockSetOrderBookPreferences = jest.fn();
+jest.mock('../../hooks/usePerpsOrderBookPreferences', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const state: {
+    currency: 'usd' | 'base';
+    notify: () => void;
+  } = {
+    currency: 'usd',
+    notify: () => undefined,
+  };
 
-jest.mock('../../hooks/usePerpsOrderBookPreferences', () => ({
-  usePerpsOrderBookPreferences: () => ({
-    preferences: { currency: 'usd', metric: 'total' },
-    setOrderBookPreferences: mockSetOrderBookPreferences,
-  }),
-}));
+  return {
+    usePerpsOrderBookPreferences: () => {
+      const [currency, setCurrency] = React.useState(state.currency);
+
+      React.useLayoutEffect(() => {
+        state.notify = () => setCurrency(state.currency);
+        return () => {
+          state.notify = () => undefined;
+        };
+      }, []);
+
+      const setOrderBookPreferences = React.useCallback(
+        (patch: { currency?: 'usd' | 'base' }) => {
+          if (patch.currency) {
+            state.currency = patch.currency;
+            setCurrency(patch.currency);
+          }
+        },
+        [],
+      );
+
+      return {
+        preferences: { currency, metric: 'total' as const },
+        setOrderBookPreferences,
+      };
+    },
+    resetTestOrderBookCurrency: () => {
+      state.currency = 'usd';
+      state.notify = () => undefined;
+    },
+    setTestOrderBookCurrency: (currency: 'usd' | 'base') => {
+      state.currency = currency;
+      state.notify();
+    },
+    getTestOrderBookCurrency: () => state.currency,
+  };
+});
+
+const {
+  resetTestOrderBookCurrency,
+  setTestOrderBookCurrency,
+  getTestOrderBookCurrency,
+} = jest.requireMock('../../hooks/usePerpsOrderBookPreferences') as {
+  resetTestOrderBookCurrency: () => void;
+  setTestOrderBookCurrency: (currency: 'usd' | 'base') => void;
+  getTestOrderBookCurrency: () => 'usd' | 'base';
+};
 
 jest.mock('../../../../../util/haptics');
 
@@ -171,6 +219,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
 describe('PerpsTradeScreen errors', () => {
   beforeEach(() => {
     store = configureStore({});
+    resetTestOrderBookCurrency();
     jest.clearAllMocks();
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;
@@ -375,8 +424,7 @@ describe('PerpsTradeScreen errors', () => {
   });
 
   it('keeps a pre-price USD edit in USD after the price arrives', () => {
-    store = configureStore({});
-    store.dispatch(setPerpsSizeDenomination('asset'));
+    setTestOrderBookCurrency('base');
     const onKeypadChange = jest.fn();
     const { rerender } = render(
       <PerpsTradeScreen
@@ -423,8 +471,7 @@ describe('PerpsTradeScreen errors', () => {
   });
 
   it('keeps the USD keypad when a saved coin unit has no price yet', () => {
-    store = configureStore({});
-    store.dispatch(setPerpsSizeDenomination('asset'));
+    setTestOrderBookCurrency('base');
     const onKeypadChange = jest.fn();
     render(
       <PerpsTradeScreen
@@ -499,15 +546,12 @@ describe('PerpsTradeScreen errors', () => {
   });
 
   it('writes the order-book currency when the trade sheet switches back to USD', () => {
-    store.dispatch(setPerpsSizeDenomination('asset'));
+    setTestOrderBookCurrency('base');
     render(<PerpsTradeScreen {...defaultProps} />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Show fiat value' }));
 
-    expect(store.getState().settings.perpsSizeDenomination).toBe('usd');
-    expect(mockSetOrderBookPreferences).toHaveBeenCalledWith({
-      currency: 'usd',
-    });
+    expect(getTestOrderBookCurrency()).toBe('usd');
   });
 
   it('keeps coin sizing after the trade screen remounts', () => {

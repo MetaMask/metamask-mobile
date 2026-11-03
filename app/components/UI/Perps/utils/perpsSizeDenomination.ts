@@ -1,13 +1,13 @@
 /**
  * Order-form size denomination shared by Lite and Pro.
  * `asset` is the coin amount (BTC, ETH, …); USD stays the canonical order amount.
- * The choice itself lives in persisted settings.
+ * The choice itself is the persisted order-book currency (`base` is coin).
  */
 export type PerpsSizeDenomination = 'usd' | 'asset';
 
 /**
  * Segment value for the `size_unit` analytics property.
- * Coin matches the order-form label; settings stores `asset`.
+ * Coin matches the order-form label; the order book stores coin as `base`.
  */
 export const toPerpsSizeUnitAnalyticsValue = (
   denomination: PerpsSizeDenomination,

@@ -1,7 +1,5 @@
 import { useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setPerpsSizeDenomination } from '../../../../actions/settings';
-import { selectPerpsSizeDenomination } from '../selectors/sizeDenomination';
+import { usePerpsOrderBookPreferences } from './usePerpsOrderBookPreferences';
 import type { PerpsSizeDenomination } from '../utils/perpsSizeDenomination';
 
 export interface UsePerpsSizeDenominationResult {
@@ -14,23 +12,24 @@ export interface UsePerpsSizeDenominationResult {
 /**
  * Shared order-size denomination for Lite and Pro order forms.
  *
- * This is a second persisted copy of the Pro order book's `currency`
- * (`usd` / `base` via `usePerpsOrderBookPreferences`). Both are required:
- * the book currency is the Pro order book's own listed-by unit and already
- * persisted before this choice was shared, while Lite has no order book and
- * still has to keep the same choice across markets, sheet remounts, and
- * restarts. Toggles write both. On a Pro open, a saved coin in either store
- * wins so a book left on USD does not hide a coin size choice.
+ * The persisted store is the order-book currency (`usd` / `base`). Pro already
+ * saved that choice for the book; Lite reads and writes the same field so a
+ * toggle survives sheet remounts, market changes, and restarts. `base` is the
+ * coin amount (`asset` on the order form).
  */
 export const usePerpsSizeDenomination = (): UsePerpsSizeDenominationResult => {
-  const denomination = useSelector(selectPerpsSizeDenomination);
-  const dispatch = useDispatch();
+  const { preferences, setOrderBookPreferences } =
+    usePerpsOrderBookPreferences();
+  const denomination: PerpsSizeDenomination =
+    preferences.currency === 'base' ? 'asset' : 'usd';
 
   const setDenomination = useCallback(
     (next: PerpsSizeDenomination) => {
-      dispatch(setPerpsSizeDenomination(next));
+      setOrderBookPreferences({
+        currency: next === 'asset' ? 'base' : 'usd',
+      });
     },
-    [dispatch],
+    [setOrderBookPreferences],
   );
 
   return { denomination, setDenomination };

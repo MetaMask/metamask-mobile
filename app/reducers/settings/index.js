@@ -27,8 +27,6 @@ const initialState = {
     marketTypeFilter: 'all',
     showFavoritesOnly: false,
   },
-  // Order size denomination shared by Lite and Pro (`usd` or `asset`).
-  perpsSizeDenomination: 'usd',
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -138,17 +136,6 @@ const settingsReducer = (state = initialState, action) => {
           ...state.perpsChartPreferences,
           preferredCandlePeriod: action.preferredCandlePeriod,
         },
-      };
-    case 'SET_PERPS_SIZE_DENOMINATION':
-      if (
-        action.perpsSizeDenomination !== 'usd' &&
-        action.perpsSizeDenomination !== 'asset'
-      ) {
-        return state;
-      }
-      return {
-        ...state,
-        perpsSizeDenomination: action.perpsSizeDenomination,
       };
     case 'SET_PERPS_MARKET_LIST_PREFERENCES': {
       const next = action.preferences ?? {};

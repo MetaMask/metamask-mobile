@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { usePerpsSizeDenomination } from '../../../../hooks/usePerpsSizeDenomination';
 import {
   finalizeNumericTextInput,
   normalizeNumericTextInput,
@@ -159,10 +158,10 @@ const getSliderDisplayValue = (
  * Owns the Pro size field's editable draft while keeping order state canonical
  * in USD. Asset drafts remain stable across live price updates.
  *
- * The visible unit is the shared Lite/Pro size denomination. Pro also follows
- * the order-book currency, and toggling size writes that currency so the field
- * and the order book stay on USD or coin together. A saved coin unit stays
- * hidden until a price can project it.
+ * The visible unit starts from the persisted order-book currency, which Lite
+ * writes too. Toggling size writes that currency so the field and the order
+ * book stay on USD or coin together. A saved coin unit stays hidden until a
+ * price can project it.
  *
  * @param params - Canonical amount, market conversion, and sizing constraints.
  * @returns Size-input model, amount-domain slider, and effective USD amount.
@@ -181,17 +180,19 @@ export const usePerpsProSizeInput = ({
   fillAssetAmount,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const priceReady = Number.isFinite(effectivePrice) && effectivePrice > 0;
-  const { denomination: activeDenominationUnit, setDenomination } =
-    usePerpsSizeDenomination();
   const { preferences: orderBookPreferences, setOrderBookPreferences } =
     usePerpsOrderBookPreferences();
   const preferenceUnit: SizeDenominationUnit =
     orderBookPreferences.currency === 'base' ? 'asset' : 'usd';
+  // Local unit so an order-book currency change can convert the draft before
+  // the field follows it. Seeded from the persisted currency so a remount
+  // keeps the last choice.
+  const [activeDenominationUnit, setDenominationUnit] =
+    useState<SizeDenominationUnit>(preferenceUnit);
   // Tracks the last order-book currency applied to the size field. The size
   // toggle updates the field immediately, then writes the same currency; this
   // ref skips a second conversion when that write echoes back.
   const appliedPreferenceUnitRef = useRef(preferenceUnit);
-  const didReconcileDenominationRef = useRef(false);
   const [usdDraft, setUsdDraft] = useState(usdAmount);
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
     () => ({
@@ -592,12 +593,12 @@ export const usePerpsProSizeInput = ({
             projected: fillAssetAmount !== undefined || priceReady,
           });
         }
-        setDenomination('asset');
+        setDenominationUnit('asset');
         return;
       }
 
       if (!priceReady) {
-        setDenomination('usd');
+        setDenominationUnit('usd');
         return;
       }
 
@@ -607,7 +608,7 @@ export const usePerpsProSizeInput = ({
           : getUsdFromAsset(assetDraft, effectivePrice);
       setUsdDraft(nextUsdAmount);
       commitUsdAmount(nextUsdAmount || '0');
-      setDenomination('usd');
+      setDenominationUnit('usd');
     },
     [
       assetDraft,
@@ -621,7 +622,6 @@ export const usePerpsProSizeInput = ({
       preserveAssetIntent,
       clearSliderMaxIntent,
       priceReady,
-      setDenomination,
       szDecimals,
       usdDraft,
     ],
@@ -629,42 +629,11 @@ export const usePerpsProSizeInput = ({
   const switchDenominationUnitRef = useRef(switchDenominationUnit);
   switchDenominationUnitRef.current = switchDenominationUnit;
 
-  // Settings (`perpsSizeDenomination`) and the order book's `currency` are
-  // both persisted copies of this choice. Settings is what Lite reads — it
-  // has no order book — and the book currency is what the Pro book renders.
-  // On open, a saved coin from either one wins over the other's default USD,
-  // and a settings coin writes `currency: 'base'` so the book matches the
-  // size field. Lite's toggle writes the book too, so an explicit USD choice
-  // is not left behind as coin. After that, order-book currency changes
-  // convert the field, and a size toggle writes both. The switcher is read
-  // from a ref so price ticks do not re-run this effect.
+  // Order-book currency is the other writer of this unit. Follow it so a
+  // change from the book converts the draft. The switcher is read from a ref
+  // so price ticks do not re-run this effect. A size toggle writes the same
+  // currency after updating the field; the ref skips that echo.
   useLayoutEffect(() => {
-    if (!didReconcileDenominationRef.current) {
-      didReconcileDenominationRef.current = true;
-
-      if (activeDenominationUnit === preferenceUnit) {
-        appliedPreferenceUnitRef.current = preferenceUnit;
-        return;
-      }
-
-      // A coin choice saved in settings aligns the order book. Remember the
-      // currency currently applied so this write's echo is the only later
-      // change that can move the field.
-      if (activeDenominationUnit === 'asset') {
-        appliedPreferenceUnitRef.current = preferenceUnit;
-        setOrderBookPreferences({ currency: 'base' });
-        return;
-      }
-
-      appliedPreferenceUnitRef.current = preferenceUnit;
-      if (keepSizeEmpty) {
-        setDenomination(preferenceUnit);
-        return;
-      }
-      switchDenominationUnitRef.current(preferenceUnit);
-      return;
-    }
-
     if (appliedPreferenceUnitRef.current === preferenceUnit) {
       return;
     }
@@ -675,18 +644,12 @@ export const usePerpsProSizeInput = ({
     }
 
     if (keepSizeEmpty) {
-      setDenomination(preferenceUnit);
+      setDenominationUnit(preferenceUnit);
       return;
     }
 
     switchDenominationUnitRef.current(preferenceUnit);
-  }, [
-    activeDenominationUnit,
-    keepSizeEmpty,
-    preferenceUnit,
-    setDenomination,
-    setOrderBookPreferences,
-  ]);
+  }, [activeDenominationUnit, keepSizeEmpty, preferenceUnit]);
 
   const onToggleDenomination = useCallback(() => {
     if (!canToggleDenomination || keepSizeEmpty) {

@@ -3328,6 +3328,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         positions: [createShortPositionForViews()],
       },
     });
+    const unwire = wirePerpsControllerForStore(store);
     const sizeInput = await findSizeInput();
     fireEvent.changeText(sizeInput, '100');
     await waitFor(() => expect(sizeInput).toHaveProp('value', '100'));
@@ -3341,7 +3342,13 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     // ETH szDecimals is 2, so a third decimal place is rejected.
     fireEvent.changeText(sizeInput, '0.123');
     expect(sizeInput).toHaveProp('value', '0.04');
-    expect(store.getState().settings.perpsSizeDenomination).toBe('asset');
+    expect(
+      (
+        store.getState().engine.backgroundState.PerpsController as {
+          orderBookPreferences?: { currency?: string };
+        }
+      ).orderBookPreferences?.currency,
+    ).toBe('base');
 
     const btcRow = await screen.findByTestId(
       getPerpsProPositionRowSelector('BTC'),
@@ -3363,6 +3370,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(nextSizeInput, '0.001234');
       expect(nextSizeInput).toHaveProp('value', '0.00123');
     });
+    unwire();
   });
 
   itForPlatforms(
