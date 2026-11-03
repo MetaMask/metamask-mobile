@@ -42,6 +42,13 @@ const mockGoBack = jest.fn();
 const mockFocusEffect: { current: (() => void) | null } = { current: null };
 const mockScrollTo = jest.fn();
 const mockScrollHost = {};
+const mockScrollContent = {};
+
+const attachScrollContent = (ref: { current: unknown } | undefined) => {
+  if (ref) {
+    ref.current = mockScrollContent;
+  }
+};
 
 // The RN test ScrollView exposes no instance, so stand in one with `scrollTo`.
 jest.mock('react-native-reanimated', () => {
@@ -50,12 +57,19 @@ jest.mock('react-native-reanimated', () => {
     jest.requireActual('react');
   const { ScrollView } = jest.requireActual('react-native');
   const MockAnimatedScrollView = forwardRef(
-    (props: Record<string, unknown>, ref: unknown) => {
+    (
+      props: Record<string, unknown> & {
+        innerViewRef?: { current: unknown };
+      },
+      ref: unknown,
+    ) => {
       useImperativeHandle(ref, () => ({
         scrollTo: mockScrollTo,
         getNativeScrollRef: () => mockScrollHost,
       }));
-      return createElement(ScrollView, props);
+      attachScrollContent(props.innerViewRef);
+      const { innerViewRef: _innerViewRef, ...rest } = props;
+      return createElement(ScrollView, rest);
     },
   );
   return {
@@ -1705,7 +1719,11 @@ describe('MyProfileView', () => {
         screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
       );
 
-      expect(measureLayout).toHaveBeenCalled();
+      expect(measureLayout).toHaveBeenCalledWith(
+        mockScrollContent,
+        expect.any(Function),
+        expect.any(Function),
+      );
       expect(mockScrollTo).toHaveBeenCalledWith({ y: 640, animated: true });
       expect(setAccessibilityFocus).toHaveBeenCalledWith(44);
       expect(
@@ -1788,6 +1806,11 @@ describe('MyProfileView', () => {
         },
       );
 
+      expect(measureLayout).toHaveBeenCalledWith(
+        mockScrollContent,
+        expect.any(Function),
+        expect.any(Function),
+      );
       expect(mockScrollTo).toHaveBeenCalledWith({ y: 480, animated: true });
     } finally {
       measureLayout.mockRestore();

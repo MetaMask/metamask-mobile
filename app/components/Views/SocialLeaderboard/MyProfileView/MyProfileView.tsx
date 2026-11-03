@@ -218,6 +218,9 @@ const MyProfileView: React.FC = () => {
     [activeTab],
   );
   const scrollRef = useRef<Animated.ScrollView>(null);
+  // Content view inside the scroll host. measureLayout against the host
+  // returns a viewport y, which scrollTo would treat as a content offset.
+  const scrollContentRef = useRef<View>(null);
   const uncountedSectionRef = useRef<View>(null);
   const uncountedHeaderRef = useRef<View>(null);
   useFocusEffect(
@@ -266,12 +269,12 @@ const MyProfileView: React.FC = () => {
   const scrollToUncountedSection = useCallback(() => {
     const scrollView = scrollRef.current;
     const section = uncountedSectionRef.current;
-    const scrollHost = scrollView?.getNativeScrollRef();
-    if (!scrollView || !section || !scrollHost) {
+    const scrollContent = scrollContentRef.current;
+    if (!scrollView || !section || !scrollContent) {
       return;
     }
     section.measureLayout(
-      scrollHost,
+      scrollContent,
       (_x, y) => {
         scrollView.scrollTo({ y, animated: true });
         // The P&L label and value are separate text nodes, so focus the
@@ -672,6 +675,7 @@ const MyProfileView: React.FC = () => {
         ) : displayProfile && overlayedStats ? (
           <Animated.ScrollView
             ref={scrollRef}
+            innerViewRef={scrollContentRef as React.RefObject<View>}
             testID={MyProfileViewSelectorsIDs.SCROLL}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('flex-grow pb-6')}
