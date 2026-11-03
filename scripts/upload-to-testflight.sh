@@ -71,9 +71,29 @@ echo "Changelog: $CHANGELOG"
 # Change to ios directory where fastlane folder is located
 cd ios
 
-bundle exec fastlane upload_to_testflight_only \
-  ipa_path:"$IPA_PATH" \
-  groups:"$TESTFLIGHT_GROUP" \
-  changelog:"$CHANGELOG" \
-  distribute_external:"$DISTRIBUTE_EXTERNAL"
+MAX_UPLOAD_ATTEMPTS="${TESTFLIGHT_UPLOAD_MAX_ATTEMPTS:-3}"
+BASE_RETRY_DELAY_SECONDS="${TESTFLIGHT_UPLOAD_RETRY_DELAY_SECONDS:-30}"
+ATTEMPT=1
 
+while [ "$ATTEMPT" -le "$MAX_UPLOAD_ATTEMPTS" ]; do
+  echo "TestFlight upload attempt ${ATTEMPT}/${MAX_UPLOAD_ATTEMPTS}"
+
+  if bundle exec fastlane upload_to_testflight_only \
+    ipa_path:"$IPA_PATH" \
+    groups:"$TESTFLIGHT_GROUP" \
+    changelog:"$CHANGELOG" \
+    distribute_external:"$DISTRIBUTE_EXTERNAL"; then
+    echo "✅ TestFlight upload succeeded on attempt ${ATTEMPT}/${MAX_UPLOAD_ATTEMPTS}"
+    break
+  fi
+
+  if [ "$ATTEMPT" -eq "$MAX_UPLOAD_ATTEMPTS" ]; then
+    echo "❌ TestFlight upload failed after ${MAX_UPLOAD_ATTEMPTS} attempts."
+    exit 1
+  fi
+
+  SLEEP_SECONDS=$((BASE_RETRY_DELAY_SECONDS * ATTEMPT))
+  echo "⚠️ Upload failed, retrying in ${SLEEP_SECONDS}s..."
+  sleep "$SLEEP_SECONDS"
+  ATTEMPT=$((ATTEMPT + 1))
+done
