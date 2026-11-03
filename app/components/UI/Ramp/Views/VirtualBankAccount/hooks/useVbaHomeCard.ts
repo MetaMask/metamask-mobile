@@ -271,11 +271,6 @@ export const useVbaHomeCard = (): VbaHomeCard => {
         : sessionStatus,
     [kycStatusOverride, sessionStatus],
   );
-  // A pending demo must not be hidden by an autoramp that was created before
-  // the override was enabled. This affects presentation only; controller state
-  // and production behavior remain unchanged.
-  const effectiveHasUsableAutoramp =
-    kycStatusOverride === 'pending' ? false : hasUsableAutoramp;
   const autoramps = useSelector((state: RootState) => {
     const rampsControllerState = selectRampsControllerState(state);
     return rampsControllerState?.autoramps ?? EMPTY_AUTORAMPS;
@@ -319,7 +314,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
         hasAcceptedVendorTerms,
         autoramps,
         walletRegistrations,
-        hasUsableAutoramp: effectiveHasUsableAutoramp,
+        hasUsableAutoramp,
       }),
     [
       isEligible,
@@ -330,7 +325,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
       hasAcceptedVendorTerms,
       autoramps,
       walletRegistrations,
-      effectiveHasUsableAutoramp,
+      hasUsableAutoramp,
     ],
   );
 };

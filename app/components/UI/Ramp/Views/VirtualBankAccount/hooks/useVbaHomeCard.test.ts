@@ -585,21 +585,6 @@ describe('useVbaHomeCard', () => {
     expect(result.current).toEqual({ type: 'kyc_decision' });
   });
 
-  it('shows the pending demo card over an existing usable autoramp', () => {
-    mockGetVbaKycStatusOverride.mockReturnValue('pending');
-    setupSelectors({
-      hasUsableAutoramp: true,
-      sessionStatus: makeSession({
-        finalStatus: 'approved',
-        kycStatus: 'approved',
-      }),
-    });
-
-    const { result } = renderHook(() => useVbaHomeCard());
-
-    expect(result.current).toEqual({ type: 'kyc_pending' });
-  });
-
   it('treats local vendor terms as not accepted while loading, then flips once accepted', async () => {
     setupSelectors();
 

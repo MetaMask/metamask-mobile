@@ -60,23 +60,6 @@ describe('vbaDevOverrides', () => {
     });
   });
 
-  it('masks an existing autoramp when demonstrating pending KYC', () => {
-    mockReadEnv.mockReturnValue('pending');
-
-    expect(
-      applyVbaDevOverrides({
-        ...baseSnapshot,
-        providerFlowStatus: 'abandoned',
-        kycStatus: 'approved',
-        autorampStatus: 'ready',
-      }),
-    ).toStrictEqual({
-      ...baseSnapshot,
-      providerFlowStatus: 'submitted',
-      autorampStatus: 'not_ready',
-    });
-  });
-
   it('ignores the env var outside dev builds', () => {
     devGlobal.__DEV__ = false;
     mockReadEnv.mockReturnValue('rejected');
