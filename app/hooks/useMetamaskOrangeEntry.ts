@@ -11,16 +11,25 @@ import {
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
 import Routes from '../constants/navigation/Routes';
 import type { AppNavigationProp } from '../core/NavigationService/types';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
+} from './useMoneyAccountPlusAccess';
 import { useHasProMembership } from './useHasProMembership';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 
 export interface UseMetamaskOrangeEntryResult {
   /**
-   * True when the Pro flow is on. The row stays in the menu while Plus
-   * access is still loading so it does not appear after the list is visible.
+   * True when the Pro flow is on. The row stays in the menu while the label
+   * is still resolving so it does not pop in later.
    */
   showOrangeEntry: boolean;
-  /** Subscriber or join label, already localized. */
+  /**
+   * True while the Pro flow is on and membership is not known yet. Callers
+   * show a skeleton instead of either label.
+   */
+  isLabelPending: boolean;
+  /** Subscriber or join label, already localized. Unused while pending. */
   label: string;
   /** Tracks the Accounts Menu Orange click and opens the hub or subscription flow. */
   onPress: () => void;
@@ -31,35 +40,47 @@ export interface UseMetamaskOrangeEntryResult {
  *
  * Visibility, copy, analytics, and destination stay identical across both
  * surfaces, including the `accounts_menu` navigation source.
+ *
+ * A stored membership shows "MetaMask Orange" immediately. A settled
+ * non-member shows "Join MetaMask Orange". While the check is still running
+ * and nothing is stored, the row stays put and shows a skeleton.
  */
 export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const navigation = useNavigation<AppNavigationProp>();
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const { access } = useMoneyAccountPlusAccessState();
   const hasMembership = useHasProMembership();
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
   });
-  // Present as soon as the Pro flow is on. The label updates in place once
-  // membership status is known.
+  // Opening the menu starts the subscriptions query. A stored plan can label
+  // the row on the first paint; an empty result waits until that query settles.
+  const isMember =
+    hasMembership || access === MoneyAccountPlusAccess.Subscriber;
+  const isKnownNonMember =
+    !isMember && access === MoneyAccountPlusAccess.Eligible;
   const showOrangeEntry = isProSubscriptionEnabled;
-  const labelKey = hasMembership
-    ? 'accounts_menu.metamask_orange'
-    : 'accounts_menu.join_metamask_orange';
+  const isLabelPending = showOrangeEntry && !isMember && !isKnownNonMember;
+  const labelKey = isKnownNonMember
+    ? 'accounts_menu.join_metamask_orange'
+    : 'accounts_menu.metamask_orange';
 
   const onPress = useCallback(() => {
-    // Statuses Pro Hub can show open the hub. Canceled, incomplete,
-    // incomplete-expired, no subscription, and a still-loading membership
-    // open Benefits.
-    const destination = hasMembership
+    if (!isMember && !isKnownNonMember) {
+      return;
+    }
+
+    // Members open the hub. Only a settled non-member opens Benefits.
+    const destination = isKnownNonMember
       ? {
-          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
-          redirect_target: SCREEN_NAMES.PRO_HUB,
-          route: Routes.PRO_HUB.ROOT,
-        }
-      : {
           button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
           redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
           route: Routes.PRO_SUBSCRIPTION.ROOT,
+        }
+      : {
+          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+          redirect_target: SCREEN_NAMES.PRO_HUB,
+          route: Routes.PRO_HUB.ROOT,
         };
 
     trackButtonClicked({
@@ -73,10 +94,11 @@ export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
     navigation.navigate(destination.route, {
       source: 'accounts_menu',
     });
-  }, [hasMembership, labelKey, navigation, trackButtonClicked]);
+  }, [isKnownNonMember, isMember, labelKey, navigation, trackButtonClicked]);
 
   return {
     showOrangeEntry,
+    isLabelPending,
     label: strings(labelKey),
     onPress,
   };

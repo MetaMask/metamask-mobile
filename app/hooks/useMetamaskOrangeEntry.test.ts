@@ -9,6 +9,10 @@ import {
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
 import Routes from '../constants/navigation/Routes';
 import { strings } from '../../locales/i18n';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
+} from './useMoneyAccountPlusAccess';
 import { useHasProMembership } from './useHasProMembership';
 import { useMetamaskOrangeEntry } from './useMetamaskOrangeEntry';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
@@ -33,6 +37,14 @@ jest.mock('./useHasProMembership', () => ({
   useHasProMembership: jest.fn(() => false),
 }));
 
+jest.mock('./useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('./useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccessState: jest.fn(() => ({
+    access: 'eligible',
+    isSubscriptionsSettled: true,
+  })),
+}));
+
 jest.mock('../components/UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackButtonClicked: mockTrackButtonClicked,
@@ -41,6 +53,9 @@ jest.mock('../components/UI/Money/hooks/useMoneyAnalytics', () => ({
 
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
 const mockUseHasProMembership = jest.mocked(useHasProMembership);
+const mockUseMoneyAccountPlusAccessState = jest.mocked(
+  useMoneyAccountPlusAccessState,
+);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 
 describe('useMetamaskOrangeEntry', () => {
@@ -50,6 +65,10 @@ describe('useMetamaskOrangeEntry', () => {
       isProSubscriptionEnabled: false,
     });
     mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Eligible,
+      isSubscriptionsSettled: true,
+    });
     mockUseMoneyAnalytics.mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
@@ -61,28 +80,43 @@ describe('useMetamaskOrangeEntry', () => {
     expect(result.current.showOrangeEntry).toBe(false);
   });
 
-  it('shows the join label while membership access is unresolved', () => {
+  it('keeps the row pending while membership is still loading', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
     });
     mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Unknown,
+      isSubscriptionsSettled: false,
+    });
 
     const { result } = renderHook(() => useMetamaskOrangeEntry());
 
     result.current.onPress();
 
     expect(result.current.showOrangeEntry).toBe(true);
-    expect(result.current.label).toBe(
-      strings('accounts_menu.join_metamask_orange'),
-    );
-    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
-      component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
-      label_key: 'accounts_menu.join_metamask_orange',
-      redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+    expect(result.current.isLabelPending).toBe(true);
+    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('labels an entitled member MetaMask Orange before the subscription list loads', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
     });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+    mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: MoneyAccountPlusAccess.Subscriber,
+      isSubscriptionsSettled: false,
+    });
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(true);
+    expect(result.current.label).toBe(strings('accounts_menu.metamask_orange'));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
       source: 'accounts_menu',
     });
   });

@@ -24,6 +24,7 @@ import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationS
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
 import { CardFlow } from '../../UI/Card/util/metrics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { METAMASK_ORANGE_MENU_SKELETON_TEST_ID } from '../../UI/Money/components/MetamaskOrangeMenuSkeleton';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -174,6 +175,15 @@ jest.mock('../../../hooks/useHasProMembership', () => ({
   useHasProMembership: () => mockUseHasProMembership(),
 }));
 
+const mockUseMoneyAccountPlusAccessState = jest.fn(() => ({
+  access: 'eligible',
+  isSubscriptionsSettled: true,
+}));
+jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccessState: () => mockUseMoneyAccountPlusAccessState(),
+}));
+
 const mockTrackButtonClicked = jest.fn();
 jest.mock('../../UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: () => ({
@@ -210,6 +220,10 @@ describe('AccountsMenu', () => {
       isProSubscriptionEnabled: false,
     });
     mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: 'eligible',
+      isSubscriptionsSettled: true,
+    });
     mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
     mockActiveProviderId = 'baanx';
     mockUseCardUkMigrationState.mockReturnValue({
@@ -719,22 +733,30 @@ describe('AccountsMenu', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows the join label while membership access is unresolved', () => {
+    it('shows a skeleton while membership is still loading', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
       mockUseHasProMembership.mockReturnValue(false);
+      mockUseMoneyAccountPlusAccessState.mockReturnValue({
+        access: 'unknown',
+        isSubscriptionsSettled: false,
+      });
 
-      const { getByTestId } = render(<AccountsMenu />);
-
-      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+      const { getByTestId, queryByText } = render(<AccountsMenu />);
 
       expect(
         getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
-      ).toHaveTextContent('accounts_menu.join_metamask_orange');
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
-        source: 'accounts_menu',
-      });
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(METAMASK_ORANGE_MENU_SKELETON_TEST_ID),
+      ).toBeOnTheScreen();
+      expect(queryByText('accounts_menu.metamask_orange')).toBeNull();
+      expect(queryByText('accounts_menu.join_metamask_orange')).toBeNull();
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('invites a non-member to join and opens the subscription flow', () => {

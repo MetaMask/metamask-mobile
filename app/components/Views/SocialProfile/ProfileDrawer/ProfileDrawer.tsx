@@ -27,6 +27,7 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 import { strings } from '../../../../../locales/i18n';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../../hooks/useSupportConsent';
+import MetamaskOrangeMenuSkeleton from '../../../UI/Money/components/MetamaskOrangeMenuSkeleton';
 import { useMetamaskOrangeEntry } from '../../../../hooks/useMetamaskOrangeEntry';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getBetaSupportUrl } from '../../../../util/support/betaSupportUrl';
@@ -114,6 +115,7 @@ const ProfileDrawer = () => {
 
   const {
     showOrangeEntry,
+    isLabelPending: isOrangeLabelPending,
     label: orangeLabel,
     onPress: onPressOrange,
   } = useMetamaskOrangeEntry();
@@ -146,8 +148,10 @@ const ProfileDrawer = () => {
 
   const menuItems: {
     iconName: IconName;
-    label: string;
+    label: React.ReactNode;
+    accessibilityLabel?: string;
     badgeCount?: number;
+    isDisabled?: boolean;
     onPress: () => void;
     testID: string;
   }[] = [
@@ -168,7 +172,13 @@ const ProfileDrawer = () => {
       ? [
           {
             iconName: IconName.MetamaskFoxOutline,
-            label: orangeLabel,
+            label: isOrangeLabelPending ? (
+              <MetamaskOrangeMenuSkeleton />
+            ) : (
+              orangeLabel
+            ),
+            accessibilityLabel: isOrangeLabelPending ? undefined : orangeLabel,
+            isDisabled: isOrangeLabelPending,
             onPress: onPressOrange,
             testID: ProfileDrawerSelectorsIDs.METAMASK_ORANGE,
           },
@@ -307,16 +317,28 @@ const ProfileDrawer = () => {
         )}
 
         <Box>
-          {menuItems.map(({ iconName, label, badgeCount, onPress, testID }) => (
-            <ProfileDrawerMenuRow
-              key={testID}
-              iconName={iconName}
-              label={label}
-              badgeCount={badgeCount}
-              onPress={onPress}
-              testID={testID}
-            />
-          ))}
+          {menuItems.map(
+            ({
+              iconName,
+              label,
+              accessibilityLabel,
+              badgeCount,
+              isDisabled,
+              onPress,
+              testID,
+            }) => (
+              <ProfileDrawerMenuRow
+                key={testID}
+                iconName={iconName}
+                label={label}
+                accessibilityLabel={accessibilityLabel}
+                badgeCount={badgeCount}
+                isDisabled={isDisabled}
+                onPress={onPress}
+                testID={testID}
+              />
+            ),
+          )}
         </Box>
       </ScrollView>
     </SafeAreaView>
