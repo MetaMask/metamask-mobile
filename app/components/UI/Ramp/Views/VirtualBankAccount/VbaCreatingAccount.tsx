@@ -1,11 +1,11 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
-  Spinner,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -17,22 +17,22 @@ import {
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
 } from './vbaScreenPerformance';
+import vbaCreatingAccount from './assets/vba-creating-account.png';
 
 export const VbaCreatingAccountSelectorsIDs = {
   CONTAINER: 'vba-creating-account-container',
-  BACK_BUTTON: 'vba-creating-account-back-button',
-  SPINNER: 'vba-creating-account-spinner',
+  ILLUSTRATION: 'vba-creating-account-illustration',
+  TITLE: 'vba-creating-account-title',
+  DESCRIPTION: 'vba-creating-account-description',
 } as const;
 
 interface VbaCreatingAccountProps {
-  onBack: () => void;
   /** KYC is approved, but the MoonPay customer is not Active yet. */
   awaitingProviderApproval?: boolean;
 }
 
 /** Shown while the autoramp is being created and until it is Approved. */
 const VbaCreatingAccount = ({
-  onBack,
   awaitingProviderApproval = false,
 }: VbaCreatingAccountProps) => {
   const tw = useTailwind();
@@ -49,33 +49,46 @@ const VbaCreatingAccount = ({
 
   return (
     <SafeAreaView
-      edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
       testID={VbaCreatingAccountSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        onBack={onBack}
-        backButtonProps={{ testID: VbaCreatingAccountSelectorsIDs.BACK_BUTTON }}
-        includesTopInset
-      />
       <Box
-        gap={4}
-        paddingHorizontal={4}
-        twClassName="flex-1"
+        gap={6}
+        twClassName="flex-1 px-8"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         accessible
         accessibilityRole="progressbar"
         accessibilityLabel={title}
       >
-        <Spinner testID={VbaCreatingAccountSelectorsIDs.SPINNER} />
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {title}
-        </Text>
+        <Image
+          source={vbaCreatingAccount}
+          resizeMode="contain"
+          accessible={false}
+          accessibilityIgnoresInvertColors
+          style={tw.style('h-[88px] w-[94px]')}
+          testID={VbaCreatingAccountSelectorsIDs.ILLUSTRATION}
+        />
+        <Box gap={1} alignItems={BoxAlignItems.Center} twClassName="w-full">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="text-center"
+            testID={VbaCreatingAccountSelectorsIDs.TITLE}
+          >
+            {title}
+          </Text>
+          {!awaitingProviderApproval ? (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+              testID={VbaCreatingAccountSelectorsIDs.DESCRIPTION}
+            >
+              {strings('virtual_bank_account.creating_account.description')}
+            </Text>
+          ) : null}
+        </Box>
       </Box>
     </SafeAreaView>
   );
