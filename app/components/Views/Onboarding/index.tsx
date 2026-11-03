@@ -107,6 +107,12 @@ import {
   startOAuthLifecycleTracking,
 } from '../../../core/OAuthService/oauthLifecycleTracking';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import {
+  authenticateSeedlessViaMfaIdentifier,
+  buildOidcIdentifier,
+} from '../../../core/MfaRecovery';
+import Engine from '../../../core/Engine';
+import { selectMoneyEnableMfaFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { isSentryEnabled, setupSentry } from '../../../util/sentry/utils';
@@ -264,6 +270,7 @@ const Onboarding = () => {
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
   const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
+  const isMoneyMfaEnabledFlag = useSelector(selectMoneyEnableMfaFlag);
   const walletSetupAttributionAnalyticsProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -1158,14 +1165,54 @@ const Onboarding = () => {
             is_rehydration: (!createWallet).toString(),
           });
 
+          // Money MFA password unlock (left-hand social unlock plan): one
+          // authenticateIdentifier login → seedless authenticate. Keep the
+          // existing OAuth start when the flag is off, for create-wallet
+          // (provider subject not known yet), or when seedless state cannot
+          // supply the OIDC subject for this provider.
+          const seedlessState =
+            Engine.context.SeedlessOnboardingController?.state;
+          // Preview package + Engine wire are local-only for testing (not in CI).
+          const hasMfaRecoveryController = Boolean(
+            (Engine.context as { MfaRecoveryController?: unknown })
+              .MfaRecoveryController,
+          );
+          const canUseMfaPasswordUnlock =
+            isMoneyMfaEnabledFlag &&
+            !createWallet &&
+            Boolean(seedlessState?.userId) &&
+            seedlessState?.authConnection === provider &&
+            hasMfaRecoveryController;
+
           try {
-            const result = await OAuthLoginService.handleOAuthLogin(
-              loginHandler,
-              !createWallet,
-              // Nest provider-login / get-auth-tokens / seedless-authenticate spans under
-              // the social-login attempt so backend + web3auth time shows in the journey.
-              socialLoginTraceCtx.current,
-            );
+            // eslint-disable-next-line no-console -- temporary MFA password-path E2E signal
+            console.log('[MFA] social unlock path decision', {
+              canUseMfaPasswordUnlock,
+              isMoneyMfaEnabledFlag,
+              createWallet,
+              provider,
+              hasSeedlessUserId: Boolean(seedlessState?.userId),
+              seedlessAuthConnection: seedlessState?.authConnection,
+              hasMfaRecoveryController,
+            });
+
+            const result = canUseMfaPasswordUnlock
+              ? await authenticateSeedlessViaMfaIdentifier(
+                  // Provider OIDC subject is discovered from the ID token after
+                  // login. Seedless userId is the auth-server subject and must
+                  // not be used as identifier.value.
+                  buildOidcIdentifier({ authConnection: provider }),
+                  {
+                    expectedSeedlessUserId: seedlessState.userId as string,
+                  },
+                )
+              : await OAuthLoginService.handleOAuthLogin(
+                  loginHandler,
+                  !createWallet,
+                  // Nest provider-login / get-auth-tokens / seedless-authenticate spans under
+                  // the social-login attempt so backend + web3auth time shows in the journey.
+                  socialLoginTraceCtx.current,
+                );
             handlePostSocialLogin(
               result as OAuthLoginResult,
               createWallet,
@@ -1185,6 +1232,13 @@ const Onboarding = () => {
               endSocialLoginLoading({ delayMs: 1000 });
             }
           } catch (error) {
+            // eslint-disable-next-line no-console -- temporary MFA password-path E2E signal
+            console.error('[MFA] social unlock failed', {
+              message: (error as Error)?.message,
+              name: (error as Error)?.name,
+              code: (error as { code?: string })?.code,
+              canUseMfaPasswordUnlock,
+            });
             endSocialLoginLoading();
             if (!shouldAttemptAndroidGoogleBrowserFallback(error, provider)) {
               finalizeOAuthLifecycle(
@@ -1233,6 +1287,7 @@ const Onboarding = () => {
       handleExistingUser,
       isGoogleLoginIosUnsupportedBlockingEnabled,
       isTelegramLoginEnabled,
+      isMoneyMfaEnabledFlag,
     ],
   );
 
