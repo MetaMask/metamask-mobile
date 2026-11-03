@@ -1,5 +1,8 @@
 import Engine from '../../core/Engine';
-import { getSocialProfileId } from './getSocialProfileId';
+import {
+  getSocialProfileId,
+  resolveSocialProfileId,
+} from './getSocialProfileId';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -14,6 +17,30 @@ const mockGetSessionProfile = jest.mocked(
 );
 
 type SessionProfile = Awaited<ReturnType<typeof mockGetSessionProfile>>;
+
+describe('resolveSocialProfileId', () => {
+  it('prefers the canonical profile ID', () => {
+    expect(
+      resolveSocialProfileId({
+        profileId: 'alias-profile-id',
+        canonicalProfileId: 'canonical-profile-id',
+      }),
+    ).toBe('canonical-profile-id');
+  });
+
+  it('falls back to the session profile ID when the canonical ID is empty', () => {
+    expect(
+      resolveSocialProfileId({
+        profileId: 'session-profile-id',
+        canonicalProfileId: '',
+      }),
+    ).toBe('session-profile-id');
+  });
+
+  it('returns undefined without a session profile', () => {
+    expect(resolveSocialProfileId(undefined)).toBeUndefined();
+  });
+});
 
 describe('getSocialProfileId', () => {
   afterEach(() => {

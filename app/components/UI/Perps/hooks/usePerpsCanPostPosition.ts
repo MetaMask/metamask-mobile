@@ -8,8 +8,9 @@ import {
 } from '@metamask/perps-controller';
 import type { Position as SocialPosition } from '@metamask/social-controllers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Engine from '../../../../core/Engine';
 import { areAddressesEqual } from '../../../../util/address';
-import { getSocialProfileId } from '../../../../util/social/getSocialProfileId';
+import { resolveSocialProfileId } from '../../../../util/social/getSocialProfileId';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -136,7 +137,10 @@ export const usePerpsCanPostPosition = (): UsePerpsCanPostPositionResult => {
   const { data: lookedUpProfileId } = useQuery({
     queryKey: [...PERPS_SHARE_SOCIAL_PROFILE_QUERY_KEY, isSignedIn],
     queryFn: async () => {
-      const profileId = await getSocialProfileId();
+      // A failed session lookup must reject so it is not cached as "no profile".
+      const profileId = resolveSocialProfileId(
+        await Engine.context.AuthenticationController.getSessionProfile(),
+      );
       if (!profileId) {
         return null;
       }
