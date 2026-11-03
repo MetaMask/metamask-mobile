@@ -15,9 +15,7 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useTokenPrice } from '../hooks/useTokenPrice';
-import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending.testIds';
-
-export { TOKEN_DETAILS_PAGE_PENDING_TEST_ID };
+import { TokenDetailsIds } from '../testIds';
 
 /**
  * Shown while `/v2/assets` is still deciding the new page versus the legacy
@@ -52,7 +50,7 @@ const TokenDetailsPagePending = ({
     <Box
       flexDirection={BoxFlexDirection.Column}
       twClassName="flex-1"
-      testID={TOKEN_DETAILS_PAGE_PENDING_TEST_ID}
+      testID={TokenDetailsIds.pending}
     >
       <TokenDetailsInlineHeader
         token={token}

@@ -17,16 +17,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import { OVERVIEW_TAB_DESCRIPTION_TEST_ID } from '../components/tabs/OverviewTab.testIds';
-import { OVERVIEW_TAB_PERFORMANCE_TEST_ID } from '../components/sections/PerformanceSection.testIds';
-import { TokenHolderRowSelectorsIDs } from '../components/tabs/holders/TokenHolderRow.testIds';
-import { getTokenDetailsV1TabTestId } from '../components/TokenDetailsV1TabBar.testIds';
-import { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip.testIds';
-import {
-  TOKEN_DETAILS_V1_TEST_ID,
-  tokenDetailsV1TabPageTestId,
-} from './TokenDetailsV1.testIds';
-import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending.testIds';
+import { TokenDetailsIds } from '../testIds';
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { STAT_EXPLAINER_KEYS, TokenStatKey } from '../constants/tokenStats';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
@@ -43,6 +34,14 @@ import {
 } from '../../SocialFeed/utils/formatters';
 
 const FIND_TIMEOUT = { timeout: 15000 };
+const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
+const OVERVIEW_TAB_PERFORMANCE_TEST_ID = TokenDetailsIds.overview.performance;
+const TokenHolderRowSelectorsIDs = TokenDetailsIds.holderRow;
+const getTokenDetailsV1TabTestId = TokenDetailsIds.tab;
+const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = TokenDetailsIds.ageChip;
+const TOKEN_DETAILS_V1_TEST_ID = TokenDetailsIds.v1;
+const tokenDetailsV1TabPageTestId = TokenDetailsIds.tabPage;
+const TOKEN_DETAILS_PAGE_PENDING_TEST_ID = TokenDetailsIds.pending;
 
 const STAT_VALUES: [TokenStatKey, string][] = [
   [TokenStatKey.MarketCap, '$12.4M'],

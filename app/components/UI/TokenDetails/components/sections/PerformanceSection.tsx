@@ -10,9 +10,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import type { TokenPerformance } from '../../hooks/useTokenPerformance';
-import { OVERVIEW_TAB_PERFORMANCE_TEST_ID } from './PerformanceSection.testIds';
-
-export { OVERVIEW_TAB_PERFORMANCE_TEST_ID };
+import { TokenDetailsIds } from '../../testIds';
 
 const MISSING_VALUE_LABEL = '—';
 
@@ -112,7 +110,7 @@ const PerformanceSection = memo(({ performance }: PerformanceSectionProps) => {
   ];
 
   return (
-    <Box testID={OVERVIEW_TAB_PERFORMANCE_TEST_ID}>
+    <Box testID={TokenDetailsIds.overview.performance}>
       <Text
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Bold}

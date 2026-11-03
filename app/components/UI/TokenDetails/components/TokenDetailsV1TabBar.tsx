@@ -23,13 +23,9 @@ import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
-import {
-  getTokenDetailsV1TabTestId,
-  TOKEN_DETAILS_V1_TAB_BAR_TEST_ID,
-} from './TokenDetailsV1TabBar.testIds';
+import { TokenDetailsIds } from '../testIds';
 
 export { TOKEN_DETAILS_V1_TABS } from '../constants/constants';
-export { TOKEN_DETAILS_V1_TAB_BAR_TEST_ID };
 
 const AnimatedBox = Animated.createAnimatedComponent(Box);
 
@@ -289,7 +285,7 @@ const TokenDetailsV1TabBar = memo(
           key: tab,
           label: getTabLabel(tab),
           content: null,
-          testID: getTokenDetailsV1TabTestId(tab),
+          testID: TokenDetailsIds.tab(tab),
         })),
       [tabs],
     );
@@ -317,7 +313,7 @@ const TokenDetailsV1TabBar = memo(
       <AnimatedBox
         twClassName="border-b border-muted bg-default"
         style={stickyInsetStyle}
-        testID={TOKEN_DETAILS_V1_TAB_BAR_TEST_ID}
+        testID={TokenDetailsIds.tabBar}
         onLayout={handleLayout}
       >
         <Box twClassName="pt-3">

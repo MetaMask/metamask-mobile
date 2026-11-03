@@ -111,21 +111,7 @@ import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
 import { formatTokenAge } from '../utils/formatTokenAge';
 import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
-import {
-  TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
-  TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID,
-  TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX,
-  TOKEN_DETAILS_V1_TEST_ID,
-  tokenDetailsV1TabPageTestId,
-} from './TokenDetailsV1.testIds';
-
-export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip.testIds';
-export {
-  TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
-  TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID,
-  TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX,
-  TOKEN_DETAILS_V1_TEST_ID,
-};
+import { TokenDetailsIds } from '../testIds';
 
 /**
  * Direct-child index of the tab bar inside the body ScrollView — registered in
@@ -173,7 +159,7 @@ const TokenDetailsV1TabPlaceholder = ({
     flexDirection={BoxFlexDirection.Column}
     alignItems={BoxAlignItems.Center}
     twClassName="py-8"
-    testID={`${TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX}-${tab}`}
+    testID={`${TokenDetailsIds.tabPanelPrefix}-${tab}`}
   >
     <Text
       variant={TextVariant.BodyMd}
@@ -826,7 +812,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   return (
     <PriceChartProvider>
-      <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
+      <View style={styles.wrapper} testID={TokenDetailsIds.v1}>
         <TokenDetailsInlineHeader
           token={token}
           securityData={securityData}
@@ -865,7 +851,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               scrollEnabled={!isChartBeingTouched}
               onLayout={handleScrollViewLayout}
               onContentSizeChange={pageScroll.onContentSizeChange}
-              testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
+              testID={TokenDetailsIds.scrollView}
             >
               <Price.Provider
                 asset={token}
@@ -930,7 +916,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 <View
                   collapsable={false}
                   style={isEmptyFeed ? undefined : tabContentStyle}
-                  testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
+                  testID={TokenDetailsIds.tabContent}
                 >
                   <TokenDetailsScrollProvider value={pageScroll.value}>
                     {visibleTabs.map((tab) => {
@@ -941,7 +927,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                           collapsable={false}
                           style={isActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
                           pointerEvents={isActive ? 'auto' : 'none'}
-                          testID={tokenDetailsV1TabPageTestId(tab)}
+                          testID={TokenDetailsIds.tabPage(tab)}
                         >
                           {renderTabPage(tab, isActive)}
                         </View>
