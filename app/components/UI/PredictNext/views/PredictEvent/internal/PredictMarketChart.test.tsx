@@ -475,4 +475,30 @@ describe('PredictMarketChart', () => {
       ),
     ).toBeOnTheScreen();
   });
+
+  it('labels a line end with its end value until scrubbed', () => {
+    const view = render(
+      <PredictMarketChart
+        series={[{ ...testSeries[0], endValue: 0.81 }]}
+        formatTime={(time) => `Time ${Math.round(time)}`}
+        testID="market-chart"
+      />,
+    );
+    const chart = view.getByTestId('market-chart');
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 240 } },
+    });
+
+    expect(
+      view.getByLabelText('Market probability history. Vikings 81%'),
+    ).toBeOnTheScreen();
+
+    fireEvent(chart, 'responderGrant', createResponderEvent(104, 80));
+
+    expect(
+      view.getByLabelText(
+        /Market probability history at Time 1[34][0-9]\. Vikings 58%/,
+      ),
+    ).toBeOnTheScreen();
+  });
 });

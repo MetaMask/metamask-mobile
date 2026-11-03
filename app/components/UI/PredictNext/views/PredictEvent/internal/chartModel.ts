@@ -12,6 +12,8 @@ export interface ChartSeries {
   label: string;
   color: string;
   data: readonly ChartPoint[];
+  /** Value the end label shows instead of the last plotted one, until scrubbed. */
+  endValue?: number;
 }
 
 export interface ChartEndpoint {

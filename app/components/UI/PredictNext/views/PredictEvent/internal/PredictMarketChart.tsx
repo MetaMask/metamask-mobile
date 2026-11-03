@@ -30,6 +30,7 @@ import {
   getScrubTimeLabelPosition,
   type ChartPoint,
   type ChartSeries,
+  type PreparedChartSeries,
 } from './chartModel';
 import { ChartPulse } from './chartPulse';
 
@@ -61,6 +62,9 @@ interface PredictMarketChartProps {
   testID?: string;
 }
 
+export const formatChartValue = (value: number) =>
+  `${roundProbabilityToWhole(value)}%`;
+
 const getGradientId = (prefix: string, seriesId: string, index: number) =>
   `${prefix}-gradient-${index}-${seriesId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
@@ -72,7 +76,7 @@ export const PredictMarketChart = ({
   continuationWidth = DEFAULT_CONTINUATION_WIDTH,
   lineWidth = 2,
   fillOpacity = 0.16,
-  formatValue = (value) => `${roundProbabilityToWhole(value)}%`,
+  formatValue = formatChartValue,
   formatTime = (time) =>
     getIntlDateTimeFormatter(I18n.locale, {
       month: 'short',
@@ -93,7 +97,7 @@ export const PredictMarketChart = ({
     fontScale,
     labels: series.map((entry) => entry.label),
     values: series.flatMap((entry) => {
-      const value = entry.data.at(-1)?.value;
+      const value = entry.endValue ?? entry.data.at(-1)?.value;
       return value === undefined ? [] : [formatValue(value)];
     }),
   });
@@ -174,9 +178,15 @@ export const PredictMarketChart = ({
 
   const handleLayout = (event: LayoutChangeEvent) =>
     setWidth(event.nativeEvent.layout.width);
+  const getShownValue = (entry: PreparedChartSeries) =>
+    formatValue(
+      !scrub && entry.endValue !== undefined
+        ? entry.endValue
+        : entry.endpoint.value,
+    );
   const accessibilityValues =
     model?.displayedSeries
-      .map((entry) => `${entry.label} ${formatValue(entry.endpoint.value)}`)
+      .map((entry) => `${entry.label} ${getShownValue(entry)}`)
       .join(', ') ?? '';
   const clipId = `${idPrefix}-plot-clip`;
   const fadeId = `${idPrefix}-edge-fade`;
@@ -411,7 +421,7 @@ export const PredictMarketChart = ({
                   ]}
                   testID={`${testID}-value-${entry.id}`}
                 >
-                  {formatValue(entry.endpoint.value)}
+                  {getShownValue(entry)}
                 </SvgText>
               </G>
             );
