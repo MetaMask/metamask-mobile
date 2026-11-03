@@ -204,6 +204,18 @@ describe('MoneyVbaHomeCard', () => {
     },
   );
 
+  it('tracks the CTA click before starting the VBA journey', () => {
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON),
+    );
+
+    expect(mockTrackButtonClicked.mock.invocationCallOrder[0]).toBeLessThan(
+      mockStartVbaCufJourney.mock.invocationCallOrder[0],
+    );
+  });
+
   it('opens the pending screen immediately from the kyc_pending card', () => {
     const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
 
