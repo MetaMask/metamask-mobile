@@ -456,6 +456,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
                 testID: ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
               }}
               inputProps={{
+                accessibilityLabel: strings('token.search_tokens_placeholder'),
                 autoCapitalize: 'none',
                 keyboardAppearance: themeAppearance,
                 testID: ImportTokenViewSelectorsIDs.SEARCH_BAR,
@@ -464,9 +465,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
               onBlur={() => setFocusState(false)}
               autoFocus={false}
               placeholder={strings('token.search_tokens_placeholder')}
-              inputAccessibilityLabel={strings(
-                'token.search_tokens_placeholder',
-              )}
             />
           </Box>
         </Box>

@@ -112,11 +112,11 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
                   placeholder={strings(
                     'social_leaderboard.composer.gifs_search_placeholder',
                   )}
-                  inputAccessibilityLabel={strings(
-                    'social_leaderboard.composer.gifs_search_placeholder',
-                  )}
                   autoFocus={false}
                   inputProps={{
+                    accessibilityLabel: strings(
+                      'social_leaderboard.composer.gifs_search_placeholder',
+                    ),
                     testID: GifPickerSheetSelectorsIDs.SEARCH_INPUT,
                   }}
                 />

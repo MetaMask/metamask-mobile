@@ -291,7 +291,6 @@ const ExploreSearchBarInteractive = ({
       value={searchQuery}
       onChangeText={onSearchChange}
       placeholder={resolvedPlaceholder}
-      inputAccessibilityLabel={resolvedPlaceholder}
       autoFocus={autoFocus}
       inputRef={inputRef}
       onPressClearButton={() => {
@@ -300,6 +299,7 @@ const ExploreSearchBarInteractive = ({
       clearButtonProps={{ testID: 'explore-search-clear-button' }}
       startAccessory={resolvedStartAccessory}
       inputProps={{
+        accessibilityLabel: resolvedPlaceholder,
         autoCapitalize: 'none',
         keyboardAppearance,
         testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,

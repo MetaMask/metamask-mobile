@@ -141,7 +141,9 @@ const SitesFullView: React.FC = () => {
               value: searchQuery,
               onChangeText: setSearchQuery,
               placeholder: strings('trending.search_sites'),
-              inputAccessibilityLabel: strings('trending.search_sites'),
+              inputProps: {
+                accessibilityLabel: strings('trending.search_sites'),
+              },
               onPressClearButton: handleSearchClear,
               autoFocus: true,
               testID: 'sites-full-view-header-search-bar',

@@ -183,9 +183,11 @@ const MusdRescueRecipientScreen = () => {
           placeholder={strings('money.musd_rescue_send.recipient_placeholder')}
           onPressClearButton={() => setSearchQuery('')}
           testID={MusdRescueRecipientTestIds.SEARCH_FIELD}
-          inputAccessibilityLabel={strings(
-            'money.musd_rescue_send.recipient_label',
-          )}
+          inputProps={{
+            accessibilityLabel: strings(
+              'money.musd_rescue_send.recipient_label',
+            ),
+          }}
         />
       </Box>
 

@@ -78,7 +78,9 @@ const TrendingListHeader: React.FC<TrendingListHeaderProps> = ({
           value: searchQuery,
           onChangeText: onSearchQueryChange,
           placeholder: strings('trending.search_placeholder'),
-          inputAccessibilityLabel: strings('trending.search_placeholder'),
+          inputProps: {
+            accessibilityLabel: strings('trending.search_placeholder'),
+          },
           onPressClearButton: handleSearchClear,
           autoFocus: true,
           testID: testID ? `${testID}-search-bar` : undefined,

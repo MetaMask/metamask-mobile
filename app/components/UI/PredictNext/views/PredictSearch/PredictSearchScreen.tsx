@@ -218,9 +218,9 @@ export const PredictSearchScreen = () => {
           onChangeText: setQuery,
           onPressClearButton: () => setQuery(''),
           placeholder: strings('predict_next.search.placeholder'),
-          inputAccessibilityLabel: strings('predict_next.search.placeholder'),
           autoFocus: true,
           inputProps: {
+            accessibilityLabel: strings('predict_next.search.placeholder'),
             autoCorrect: false,
             maxLength: SEARCH_QUERY_MAX_LENGTH,
             returnKeyType: 'search',
