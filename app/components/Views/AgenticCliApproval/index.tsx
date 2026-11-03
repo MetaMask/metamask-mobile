@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Image, Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -19,7 +20,8 @@ import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { AgenticCliApprovalService } from './AgenticCliApprovalService';
 import type { AgenticCliApprovalParams } from './types';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import FOX from '../../../images/branding/fox.png';
 
 interface AgenticCliApprovalErrorState {
@@ -85,6 +87,7 @@ const getLoadErrorDetails = ({
 const AgenticCliApproval: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { projectId, approvalId, mimirSignature, operationType, subjectId } =
     useParams<AgenticCliApprovalParams>();
   const [error, setError] = useState<AgenticCliApprovalErrorState | null>(null);
@@ -109,7 +112,9 @@ const AgenticCliApproval: React.FC = () => {
   }, [navigation]);
 
   const renderHeader = () => (
-    <HeaderCompactStandard
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
       title={title}
       onBack={handleClose}
       includesTopInset

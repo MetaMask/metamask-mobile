@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import Logger from '../../../util/Logger';
 import { AgenticCliApprovalService } from './AgenticCliApprovalService';
 import AgenticCliApproval from './index';
@@ -12,6 +12,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
   }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: () => false,
 }));
 
 jest.mock('../../../util/navigation/navUtils', () => ({
@@ -128,7 +132,7 @@ jest.mock('@metamask/react-native-webview', () => {
 });
 
 jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
+  '../../../component-library/components-temp/HeaderStandardGlass',
   () => {
     const ActualReact = jest.requireActual('react');
     const { Text: RNText } = jest.requireActual('react-native');
@@ -156,8 +160,12 @@ describe('AgenticCliApproval', () => {
     render(<AgenticCliApproval />);
 
     await waitFor(() =>
-      expect(HeaderCompactStandard).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'Review request' }),
+      expect(HeaderStandardGlass).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Review request',
+          isGlass: false,
+          isFloating: false,
+        }),
         undefined,
       ),
     );
@@ -265,8 +273,12 @@ describe('AgenticCliApproval', () => {
       });
     });
 
-    expect(HeaderCompactStandard).toHaveBeenCalledWith(
-      expect.objectContaining({ includesTopInset: true }),
+    expect(HeaderStandardGlass).toHaveBeenCalledWith(
+      expect.objectContaining({
+        includesTopInset: true,
+        isGlass: false,
+        isFloating: false,
+      }),
       undefined,
     );
     expect(getByTestId('agentic-cli-approval-error-title').props.children).toBe(
