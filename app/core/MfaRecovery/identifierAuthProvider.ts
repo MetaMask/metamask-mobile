@@ -11,11 +11,13 @@ import { createLoginHandler } from '../OAuthService/OAuthLoginHandlers';
 import {
   AuthConnectionConfig,
   AuthServerUrl,
+  GoogleWebGID,
   SupportedPlatforms,
   web3AuthNetwork,
 } from '../OAuthService/OAuthLoginHandlers/constants';
 import { fromBase64UrlSafe } from '../OAuthService/OAuthLoginHandlers/utils';
 import { toByteArray } from 'react-native-quick-base64';
+import Device from '../../util/device';
 import type {
   Identifier,
   KeyBoundIdentifierLogin,
@@ -82,16 +84,30 @@ const decodeJwtPayload = (jwt: string): Record<string, unknown> => {
 
 const trimTrailingSlash = (value: string) => value.replace(/\/$/u, '');
 
-const resolvePlatform = (): SupportedPlatforms =>
-  Platform.OS === 'ios' ? SupportedPlatforms.IOS : SupportedPlatforms.Android;
+/**
+ * Match {@link OAuthService} `getAuthConnectionIdFromClientId`: modern iOS
+ * Google uses `GoogleWebGID` and must map to the Android auth connection IDs
+ * that existing wallets were created with.
+ */
+const resolveAuthConnectionConfig = (
+  authConnection: AuthConnection,
+  clientId: string,
+) => {
+  const platform =
+    Device.isAndroid() || clientId === GoogleWebGID
+      ? SupportedPlatforms.Android
+      : SupportedPlatforms.IOS;
+  return AuthConnectionConfig[platform][authConnection];
+};
 
 const buildSeedlessAuthData = (
   authConnection: AuthConnection,
   authResponse: AuthResponse,
   userId: string,
+  clientId: string,
   socialLoginEmail?: string,
 ): SeedlessAuthData => {
-  const config = AuthConnectionConfig[resolvePlatform()][authConnection];
+  const config = resolveAuthConnectionConfig(authConnection, clientId);
   if (!authResponse.id_token) {
     throw new Error('MFA recovery: auth server did not return id_token');
   }
@@ -181,6 +197,7 @@ export const loginWithNonceAndSeedlessAuthViaHandlers: LoginWithNonceAndSeedless
       authConnection,
       authResponse,
       userId,
+      handler.options.clientId,
       accountName || undefined,
     );
 

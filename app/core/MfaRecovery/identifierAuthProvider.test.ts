@@ -20,6 +20,7 @@ jest.mock('../OAuthService/OAuthLoginHandlers', () => ({
 jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
   AuthServerUrl: 'https://auth.example',
   web3AuthNetwork: 'sapphire_devnet',
+  GoogleWebGID: 'mock-google-web-gid',
   SupportedPlatforms: { Android: 'android', IOS: 'ios' },
   AuthConnectionConfig: {
     ios: {
@@ -50,6 +51,14 @@ jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
         groupedAuthConnectionId: 'g-telegram',
       },
     },
+  },
+}));
+
+jest.mock('../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isAndroid: jest.fn(() => false),
+    isIos: jest.fn(() => true),
   },
 }));
 
@@ -136,6 +145,8 @@ describe('loginWithNonceAndSeedlessAuthViaHandlers', () => {
       login,
       getAuthTokens,
       getUserInfo,
+      // Legacy iOS Google client — maps to iOS auth connection IDs.
+      options: { clientId: 'ios-native-google-client' },
     } as never);
 
     const result = await loginWithNonceAndSeedlessAuthViaHandlers({
@@ -172,6 +183,33 @@ describe('loginWithNonceAndSeedlessAuthViaHandlers', () => {
     });
   });
 
+  it('maps modern iOS Google (GoogleWebGID) to Android auth connection IDs', async () => {
+    const providerIdToken = tokenFor('0xabc');
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({ idToken: providerIdToken }),
+      getAuthTokens: jest
+        .fn()
+        .mockResolvedValue(authServerResponse(providerIdToken)),
+      getUserInfo: jest.fn().mockReturnValue({
+        userId: 'auth-sub',
+        accountName: 'user@example.com',
+      }),
+      options: { clientId: 'mock-google-web-gid' },
+    } as never);
+
+    const result = await loginWithNonceAndSeedlessAuthViaHandlers({
+      authConnection: AuthConnection.Google,
+      nonce: '0xabc',
+    });
+
+    expect(result.seedlessAuthData).toMatchObject({
+      authConnection: AuthConnection.Google,
+      authConnectionId: 'android-google',
+      groupedAuthConnectionId: 'g-google',
+      userId: 'auth-sub',
+    });
+  });
+
   it('fails clearly when the auth-server exchange omits seedless tokens', async () => {
     const login = jest.fn().mockResolvedValue({ idToken: 'raw' });
     const getAuthTokens = jest.fn().mockResolvedValue({
@@ -186,6 +224,7 @@ describe('loginWithNonceAndSeedlessAuthViaHandlers', () => {
       login,
       getAuthTokens,
       getUserInfo: () => ({ userId: 'u', accountName: '' }),
+      options: { clientId: 'ios-apple-client' },
     } as never);
 
     await expect(
@@ -213,6 +252,7 @@ describe('loginWithNonceViaHandlers', () => {
         userId: 'auth-sub',
         accountName: 'a@b.com',
       }),
+      options: { clientId: 'ios-apple-client' },
     } as never);
 
     const idToken = await loginWithNonceViaHandlers({

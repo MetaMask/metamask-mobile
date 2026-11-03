@@ -17,6 +17,7 @@ jest.mock('../OAuthService/OAuthLoginHandlers', () => ({
 jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
   AuthServerUrl: 'https://auth.example',
   web3AuthNetwork: 'sapphire_devnet',
+  GoogleWebGID: 'mock-google-web-gid',
   SupportedPlatforms: { Android: 'android', IOS: 'ios' },
   AuthConnectionConfig: {
     ios: {
@@ -47,6 +48,14 @@ jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
         groupedAuthConnectionId: 'g-telegram',
       },
     },
+  },
+}));
+
+jest.mock('../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isAndroid: jest.fn(() => false),
+    isIos: jest.fn(() => true),
   },
 }));
 
@@ -213,6 +222,7 @@ describe('createMoneyMfaOidcIdentifierAuthProvider', () => {
       login,
       getAuthTokens,
       getUserInfo,
+      options: { clientId: 'ios-native-google-client' },
     } as never);
 
     const provider = createMoneyMfaOidcIdentifierAuthProvider({
