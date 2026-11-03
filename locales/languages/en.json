@@ -3733,7 +3733,20 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcomes": "Outcomes"
+      "outcomes": "Outcomes",
+      "market_layout": {
+        "moneyline": "Moneyline",
+        "spread": "Spread",
+        "total_points": "Total points",
+        "team_total": "Team total",
+        "full_game": "Full game",
+        "first_half": "1st half",
+        "second_half": "2nd half",
+        "q1": "1st quarter",
+        "q2": "2nd quarter",
+        "q3": "3rd quarter",
+        "q4": "4th quarter"
+      }
     },
     "search": {
       "placeholder": "Search markets",
