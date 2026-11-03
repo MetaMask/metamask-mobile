@@ -14,7 +14,7 @@ import { renderEventMarketList } from '../../../../../../../tests/component-view
 import { createComponentViewQueryClient } from '../../../../../../../tests/component-view/render';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import type { InfiniteData } from '@tanstack/react-query';
-import { FlatList } from 'react-native';
+import { FlatList, Linking } from 'react-native';
 import { getTotalMemorySync } from 'react-native-device-info';
 import Engine from '../../../../../../core/Engine';
 import { updateBgState } from '../../../../../../core/redux/slices/engine';
@@ -29,10 +29,12 @@ import { MoneylineMarketGroupCardTestIds } from '../../../events/markets/Moneyli
 import { portfolioQueries } from '../../../queries/portfolioQueries';
 import type {
   PredictEvent,
+  PredictHttpsUrl,
   PredictMarket,
   PredictPosition,
   PredictPositionsPage,
 } from '../../../types';
+import { EventAboutTestIds } from './EventAbout.testIds';
 import { EventMarketListTestIds } from './EventMarketList.testIds';
 import { EventMarketLayoutSectionTestIds } from './EventMarketLayoutSection.testIds';
 import { EventMarketPeriodChipsTestIds } from './EventMarketPeriodChips.testIds';
@@ -1943,6 +1945,130 @@ describe('EventMarketList', () => {
         ),
       ).toBeOnTheScreen();
       expect(titles(view)).toEqual([]);
+    });
+  });
+
+  describe('with an About tab', () => {
+    const TAB_IDS = /^predict-next-event-market-list-.*-tab$/;
+    const SOURCE = {
+      name: ' MLB ',
+      url: 'https://www.mlb.com/' as PredictHttpsUrl,
+    };
+    const renderAbout = (event: PredictEvent) =>
+      renderEventMarketList({
+        event,
+        onOrder: jest.fn(),
+        onRulesPress: jest.fn(),
+        onCashOut: jest.fn(),
+      });
+    const tabIds = (view: ReturnType<typeof renderEventMarketList>) =>
+      within(view.getByTestId(EventMarketListTestIds.TABS))
+        .getAllByTestId(TAB_IDS)
+        .map((tab) => tab.props.testID);
+
+    it('shows About after Outcomes with the Event sources and rules', async () => {
+      const openURL = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const view = renderAbout({
+        ...makePredictNextMultiMarketEvent(),
+        rules: '  Resolves to the World Series winner.  ',
+        settlementSources: [SOURCE],
+      });
+      await view.findByTestId(EventMarketListTestIds.ABOUT_TAB);
+
+      expect(tabIds(view)).toEqual([
+        EventMarketListTestIds.MARKETS_TAB,
+        EventMarketListTestIds.ABOUT_TAB,
+      ]);
+      expect(view.queryByTestId(EventAboutTestIds.ROOT)).not.toBeOnTheScreen();
+
+      fireEvent.press(view.getByTestId(EventMarketListTestIds.ABOUT_TAB));
+
+      expect(
+        view.getByText(strings('predict.market_details.resolution_details')),
+      ).toBeOnTheScreen();
+      expect(
+        within(view.getByTestId(EventAboutTestIds.sourceLink(0))).getByText(
+          'MLB',
+        ),
+      ).toBeOnTheScreen();
+      expect(view.getByTestId(EventAboutTestIds.RULES)).toHaveTextContent(
+        'Resolves to the World Series winner.',
+      );
+      expect(
+        view.queryByTestId(
+          MarketStandardCardTestIds.card(
+            makePredictNextMultiMarketEvent().markets[0].id,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(view.getByTestId(EventAboutTestIds.sourceLink(0)));
+
+      expect(openURL).toHaveBeenCalledWith(SOURCE.url);
+      openURL.mockRestore();
+    });
+
+    it('shows About with settlement sources and no rules', async () => {
+      const view = renderAbout({
+        ...makePredictNextMultiMarketEvent(),
+        rules: ' ',
+        settlementSources: [SOURCE],
+      });
+
+      fireEvent.press(
+        await view.findByTestId(EventMarketListTestIds.ABOUT_TAB),
+      );
+
+      expect(view.getByTestId(EventAboutTestIds.SOURCES)).toBeOnTheScreen();
+      expect(view.queryByTestId(EventAboutTestIds.RULES)).not.toBeOnTheScreen();
+    });
+
+    it('shows About with rules and no settlement sources', async () => {
+      const view = renderAbout({
+        ...makePredictNextMultiMarketEvent(),
+        rules: 'Event rule.',
+        settlementSources: [],
+      });
+
+      fireEvent.press(
+        await view.findByTestId(EventMarketListTestIds.ABOUT_TAB),
+      );
+
+      expect(view.getByTestId(EventAboutTestIds.RULES)).toHaveTextContent(
+        'Event rule.',
+      );
+      expect(
+        view.queryByTestId(EventAboutTestIds.SOURCES),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides About when the Event has neither rules nor settlement sources', async () => {
+      const view = renderAbout({
+        ...makePredictNextMultiMarketEvent(),
+        rules: '   ',
+        settlementSources: [],
+      });
+      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
+
+      expect(tabIds(view)).toEqual([EventMarketListTestIds.MARKETS_TAB]);
+      expect(
+        view.queryByTestId(EventMarketListTestIds.ABOUT_TAB),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides About for a Game Event with rules and settlement sources', async () => {
+      const view = renderAbout({
+        ...makePredictNextLaidOutGameEvent(),
+        rules: 'Game rule.',
+        settlementSources: [SOURCE],
+      });
+      await view.findByTestId(EventMarketListTestIds.layoutTab('game_lines'));
+
+      expect(
+        view.queryByTestId(EventMarketListTestIds.ABOUT_TAB),
+      ).not.toBeOnTheScreen();
     });
   });
 });

@@ -27,6 +27,7 @@ import type {
   PredictOutcome,
   PredictPosition,
 } from '../../../types';
+import { EventAbout, hasEventAbout, type EventAboutProps } from './EventAbout';
 import { EventPositionRow } from './EventPositionRow';
 import {
   createMarketGroupProjection,
@@ -65,6 +66,7 @@ const OPEN_SECTION_COUNT = 3;
 const COLLAPSED_CARD_COUNT = 3;
 const POSITIONS_TAB = 'positions';
 const MARKETS_TAB = 'markets';
+const ABOUT_TAB = 'about';
 
 export interface EventMarketListProps {
   /** The current canonical Event, including any live-projected Markets. */
@@ -117,7 +119,8 @@ type SectionRow =
 type ContentRow =
   | MarketGroupProjection
   | SectionRow
-  | { type: 'position'; position: PredictPosition };
+  | { type: 'position'; position: PredictPosition }
+  | ({ type: 'about' } & EventAboutProps);
 
 const isSectionRow = (row: ContentRow): row is SectionRow =>
   row.type === 'sectionHeader' ||
@@ -162,6 +165,9 @@ const getRowKey = (row: ContentRow): string => {
       row.position.marketId,
       row.position.side,
     ]);
+  }
+  if (row.type === 'about') {
+    return ABOUT_TAB;
   }
   if (row.type === 'sectionHeader') {
     return `markets:section:${row.stateKey}`;
@@ -303,15 +309,21 @@ const EventMarketListContent = ({
     Record<string, readonly string[]>
   >({});
   const marketTabs = useMemo(() => toMarketTabs(event), [event]);
+  const game = getEventGame(event);
+  // Game Events keep their market tabs; only standard Events get About.
+  const hasAbout = !game && hasEventAbout(event);
   let firstTab: string | undefined;
   if (positions.length > 0) {
     firstTab = POSITIONS_TAB;
   } else if (marketTabs.length > 0) {
     firstTab = marketTabs[0].key;
+  } else if (hasAbout) {
+    firstTab = ABOUT_TAB;
   }
   const [selectedTab, setSelectedTab] = useState<string | undefined>(firstTab);
   const activeTab =
     (selectedTab === POSITIONS_TAB && positions.length > 0) ||
+    (selectedTab === ABOUT_TAB && hasAbout) ||
     marketTabs.some((tab) => tab.key === selectedTab)
       ? selectedTab
       : firstTab;
@@ -322,9 +334,13 @@ const EventMarketListContent = ({
     setSelectedTab(activeTab);
   }
 
+  const { rules, settlementSources } = event;
   const rows = useMemo<readonly ContentRow[]>(() => {
     if (activeTab === POSITIONS_TAB) {
       return positions.map((position) => ({ type: 'position', position }));
+    }
+    if (activeTab === ABOUT_TAB) {
+      return [{ type: 'about', event: { rules, settlementSources } }];
     }
     const tab = marketTabs.find((candidate) => candidate.key === activeTab);
     return tab
@@ -345,7 +361,9 @@ const EventMarketListContent = ({
     marketTabs,
     openSections,
     positions,
+    rules,
     selectedPeriods,
+    settlementSources,
   ]);
   const tabs = [
     ...(positions.length > 0
@@ -372,6 +390,16 @@ const EventMarketListContent = ({
       content: null,
       testID: tab.testID,
     })),
+    ...(hasAbout
+      ? [
+          {
+            key: ABOUT_TAB,
+            label: strings('predict.tabs.about'),
+            content: null,
+            testID: EventMarketListTestIds.ABOUT_TAB,
+          },
+        ]
+      : []),
   ];
   const contentContainerStyle = useMemo(() => tw.style('px-4'), [tw]);
   const handleGroupMarketSelect = useCallback(
@@ -399,9 +427,8 @@ const EventMarketListContent = ({
     },
     [],
   );
-  const game = getEventGame(event);
   const renderMarket = useCallback(
-    (projection: Exclude<ContentRow, { type: 'position' }>) => {
+    (projection: Exclude<ContentRow, { type: 'position' | 'about' }>) => {
       if (projection.type === 'sectionHeader') {
         return (
           <EventMarketLayoutSectionHeader
@@ -517,8 +544,11 @@ const EventMarketListContent = ({
     ],
   );
   const renderRow = useCallback(
-    (row: ContentRow) =>
-      row.type === 'position' ? (
+    (row: ContentRow) => {
+      if (row.type === 'about') {
+        return <EventAbout event={row.event} />;
+      }
+      return row.type === 'position' ? (
         <EventPositionRow
           position={row.position}
           isPrivacyMode={isPrivacyMode}
@@ -534,7 +564,8 @@ const EventMarketListContent = ({
         />
       ) : (
         renderMarket(row)
-      ),
+      );
+    },
     [isPrivacyMode, onCashOut, renderMarket],
   );
 
