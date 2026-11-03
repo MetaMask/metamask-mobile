@@ -77,5 +77,26 @@ ruleTester.run('design-system/no-hardcoded-spacing', spacingRule, {
       filename: 'app/Screen.tsx',
       errors: [{ messageId: 'hardcoded' }],
     },
+    {
+      code: 'const styles = { marginRight: 8 }; /* ds-exception: icon gap */',
+      filename: 'app/Screen.tsx',
+      errors: [{ messageId: 'hardcoded' }],
+    },
+    {
+      code: [
+        'export const seed = {',
+        '  marginRight: 0,',
+        '  marginTop: 8,',
+        '  padding: 1,',
+        '  gap: 4, // ds-exception: local seed, keep the raw gap',
+        '  top: 12,',
+        '};',
+      ].join('\n'),
+      filename: 'app/Screen.tsx',
+      errors: [
+        { messageId: 'hardcoded', line: 3, data: { value: '8', key: 'marginTop' } },
+        { messageId: 'hardcoded', line: 4, data: { value: '1', key: 'padding' } },
+      ],
+    },
   ],
 });
