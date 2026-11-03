@@ -11056,6 +11056,19 @@
     "ios_google_login_unsupported_blocking_rehydration_description_3": "Can't update? You can still access your wallet by signing in on another device with the same Google login and password or importing with your Secret Recovery Phrase.",
     "ios_google_login_unsupported_blocking_rehydration_button": "Close"
   },
+  "wallet_recovery_mfa": {
+    "header": "Wallet recovery",
+    "verify_title": "Verify it's you",
+    "verify_description": "Choose a security method to recover your wallet.",
+    "use_passkey": "Use passkey",
+    "or": "or",
+    "method_password": "Password",
+    "method_email": "Email",
+    "method_totp": "Authenticator app",
+    "password_description": "Enter the password for this wallet.",
+    "password_placeholder": "Password",
+    "continue": "Continue"
+  },
   "password_hint": {
     "title": "Password hint",
     "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
