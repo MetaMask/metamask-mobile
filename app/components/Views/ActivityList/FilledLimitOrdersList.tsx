@@ -86,9 +86,6 @@ type FilledLimitOrdersListProps = Pick<
   | 'onScroll'
   | 'onEndReached'
   | 'contentContainerStyle'
-  | 'contentInset'
-  | 'contentOffset'
-  | 'scrollIndicatorInsets'
   | 'style'
 > & {
   /** Pass none while loading so the empty component shows the spinner. */

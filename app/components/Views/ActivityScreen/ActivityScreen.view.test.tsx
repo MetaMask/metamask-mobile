@@ -2298,32 +2298,18 @@ describe('ActivityScreen — glass header', () => {
     });
 
   itForPlatforms(
-    'starts the list below the floating header through a content inset',
+    'pads the list and its refresh spinner below the floating header',
     async () => {
       const { findByTestId } = renderWithGlassHeaders(true);
 
       const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+      const { paddingTop } = list.props.contentContainerStyle;
 
-      expect(list.props.contentInset.top).toBeGreaterThan(0);
-      expect(list.props.contentOffset.y).toBe(-list.props.contentInset.top);
-    },
-    'ios',
-  );
-
-  itForPlatforms(
-    'pads the list below the floating header',
-    async () => {
-      const { findByTestId } = renderWithGlassHeaders(true);
-
-      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
-
-      expect(list.props.contentInset.top).toBe(0);
-      expect(list.props.contentContainerStyle).toEqual(
-        expect.objectContaining({ paddingTop: expect.any(Number) }),
+      expect(paddingTop).toBeGreaterThan(0);
+      expect(list.props.refreshControl.props.progressViewOffset).toBe(
+        paddingTop,
       );
-      expect(list.props.contentContainerStyle.paddingTop).toBeGreaterThan(0);
     },
-    'android',
   );
 
   itForPlatforms(
@@ -2333,8 +2319,21 @@ describe('ActivityScreen — glass header', () => {
 
       const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
 
-      expect(list.props.contentInset.top).toBe(0);
       expect(list.props.contentContainerStyle.paddingTop).toBe(0);
+      expect(list.props.refreshControl.props.progressViewOffset).toBe(0);
+    },
+  );
+
+  itForPlatforms(
+    'opens the type filter sheet from a glass filter chip',
+    async () => {
+      const { getByTestId, findByTestId } = renderWithGlassHeaders(true);
+
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+
+      expect(
+        await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET),
+      ).toBeOnTheScreen();
     },
   );
 });
