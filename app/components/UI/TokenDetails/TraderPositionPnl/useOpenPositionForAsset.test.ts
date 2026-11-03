@@ -84,6 +84,16 @@ describe('useOpenPositionForAsset', () => {
     expect(queryOptions().enabled).toBe(false);
   });
 
+  it('stays disabled when the caller opts out via enabled: false', () => {
+    renderHook(() =>
+      useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60', '0xAbc', {
+        enabled: false,
+      }),
+    );
+
+    expect(queryOptions().enabled).toBe(false);
+  });
+
   it('returns null when the route answers 404', async () => {
     mockGetOpenPosition.mockRejectedValue(new TraderPositionHttpError(404));
     renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));

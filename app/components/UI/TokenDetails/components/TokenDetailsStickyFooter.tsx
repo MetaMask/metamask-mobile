@@ -159,6 +159,13 @@ interface TokenStickyFooterProps {
   tdpVersion?: TdpVersion;
   /** Optional trader position header rendered above the footer actions. */
   traderPositionPnl?: TraderPositionPnlProps;
+  /**
+   * True while a position-capable page is still resolving its open position.
+   * The whole footer holds back until this clears so it mounts once in its
+   * final shape (with or without the position line) instead of flipping the
+   * container type mid-load. Never set on pages without a position line.
+   */
+  traderPositionPnlLoading?: boolean;
   /** Reports the laid-out height of the sticky footer, including its safe-area inset. */
   onFooterLayout?: (height: number) => void;
 }
@@ -186,6 +193,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   isTokenDetailsV1 = false,
   tdpVersion = 'v2',
   traderPositionPnl,
+  traderPositionPnlLoading = false,
   onFooterLayout,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -266,6 +274,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     isTokenDetailsV1 && token.symbol
       ? strings('asset_overview.buy_token_button', { symbol: token.symbol })
       : strings('asset_overview.buy_button');
+  const hasTraderPosition = Boolean(traderPositionPnl);
   const isTraderPositionExpanded = Boolean(traderPositionPnl?.isExpanded);
   const onToggleTraderPositionExpanded = traderPositionPnl?.onToggleExpanded;
   const expandedDetailsHeight = useSharedValue(
@@ -554,7 +563,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       traderPositionPnl?.isExpanded,
     ],
   );
-  if (!tradingOpen && !isTokenDetailsV1) return null;
+  // Hold the footer back until the position settles so it appears once in its
+  // final shape, instead of mounting as plain buttons and then swapping to the
+  // position sheet. Only set on position-capable pages, so other footers are
+  // unaffected.
+  if (traderPositionPnlLoading) return null;
+  if (!tradingOpen && !isTokenDetailsV1 && !hasTraderPosition) return null;
 
   const moneyDepositButton = showMoneyDepositButton ? (
     <Button
@@ -621,7 +635,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     <>
       <Box
         testID="bottomsheetfooter"
-        style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
+        style={[
+          styles.footer,
+          (isTokenDetailsV1 || hasTraderPosition) &&
+            styles.traderPositionFooter,
+        ]}
       >
         {showSwapButton && !isBuySellLayout && (
           <Button

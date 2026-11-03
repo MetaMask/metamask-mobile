@@ -156,6 +156,21 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
 }));
 
+const mockUseTraderPositionPnl = jest.fn(
+  (
+    _args?: unknown,
+  ): {
+    traderPositionPnl: Record<string, unknown> | undefined;
+    isLoading: boolean;
+  } => ({
+    traderPositionPnl: undefined,
+    isLoading: false,
+  }),
+);
+jest.mock('../TraderPositionPnl/useTraderPositionPnl', () => ({
+  useTraderPositionPnl: (args: unknown) => mockUseTraderPositionPnl(args),
+}));
+
 jest.mock('../../Assets/watchlist/components/WatchlistStarButton', () => {
   const MockedStarButton = () => null;
   MockedStarButton.displayName = 'WatchlistStarButton';
@@ -522,6 +537,12 @@ describe('TokenDetails', () => {
       isError: false,
     });
     mockBeforeRemoveListener = undefined;
+    // clearAllMocks keeps mockReturnValue, so reset the default each test to
+    // stop a per-test position from leaking into later suites.
+    mockUseTraderPositionPnl.mockReturnValue({
+      traderPositionPnl: undefined,
+      isLoading: false,
+    });
     mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
@@ -611,6 +632,72 @@ describe('TokenDetails', () => {
     expect(mockUseTokenActions).toHaveBeenCalledWith(
       expect.objectContaining({ tdpVersion: 'v2' }),
     );
+  });
+
+  describe('trader position P&L footer', () => {
+    const applySelectorsWithMemeFlag = (flagEnabled: boolean) => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsMemecoinTdpV1Enabled) return flagEnabled;
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates)
+          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+        if (selector === getRampNetworks) return [];
+        if (selector === selectSelectedInternalAccountFormattedAddress)
+          return '0x1234567890123456789012345678901234567890';
+        return undefined;
+      });
+    };
+
+    it('does not show the position line and disables the fetch when the flag is off', () => {
+      applySelectorsWithMemeFlag(false);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: undefined,
+        isLoading: false,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(mockUseTraderPositionPnl).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
+
+    it('shows the position line and enables the fetch when the flag is on', () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: {
+          positionValue: '$103.31',
+          pnl: { amount: '+$15.01', percentage: '+16.99%', isProfit: true },
+        },
+        isLoading: false,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(mockUseTraderPositionPnl).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
+      );
+      expect(
+        getByTestId('token-details-trader-position-pnl'),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the whole footer while the position is still loading', () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: undefined,
+        isLoading: true,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+      expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
   });
 
   it('does not render a full-page loader when txLoading is true', () => {

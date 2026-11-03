@@ -33,7 +33,9 @@ export interface OpenPositionHeaderResult extends OpenPositionHeaderModel {
 
 export const useOpenPositionHeader = (
   token: TokenDetailsRouteParams,
+  options?: { enabled?: boolean },
 ): OpenPositionHeaderResult => {
+  const enabled = options?.enabled ?? true;
   const assetId = useTokenCaipAssetId(token);
   const scope = useMemo(() => assetChainScope(assetId), [assetId]);
 
@@ -56,6 +58,9 @@ export const useOpenPositionHeader = (
     walletAddress,
     assetId ?? undefined,
     walletAddress,
+    {
+      enabled,
+    },
   );
   const { fiatBalance } = useTokenBalance(token);
   const conversion = useUsdToFiatRate();

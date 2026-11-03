@@ -53,10 +53,14 @@ export const useOpenPositionForAsset = (
   traderId: string | undefined,
   tokenAddress: string | undefined,
   walletAddress?: string,
+  options?: { enabled?: boolean },
 ): UseOpenPositionForAssetResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
   const isFocused = useIsFocused();
-  const enabled = Boolean(traderId && tokenAddress) && isUnlocked;
+  const enabled =
+    (options?.enabled ?? true) &&
+    Boolean(traderId && tokenAddress) &&
+    isUnlocked;
 
   const query = useQuery({
     queryKey: queryKey(traderId, tokenAddress, walletAddress),

@@ -128,6 +128,7 @@ describe('useOpenPositionHeader', () => {
       SOLANA_ADDRESS,
       SOLANA_TOKEN,
       SOLANA_ADDRESS,
+      { enabled: true },
     );
   });
 
@@ -138,6 +139,7 @@ describe('useOpenPositionHeader', () => {
       EVM_ADDRESS,
       USDC_MAINNET,
       EVM_ADDRESS,
+      { enabled: true },
     );
   });
 
@@ -164,6 +166,18 @@ describe('useOpenPositionHeader', () => {
       undefined,
       undefined,
       undefined,
+      { enabled: true },
+    );
+  });
+
+  it('forwards enabled: false to the open-position query', () => {
+    renderHook(() => useOpenPositionHeader(token, { enabled: false }));
+
+    expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
+      EVM_ADDRESS,
+      USDC_MAINNET,
+      EVM_ADDRESS,
+      { enabled: false },
     );
   });
 
