@@ -3,10 +3,7 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  HeaderStandard,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -32,6 +29,8 @@ import NotificationsDeveloperOptionsSection from '../../../UI/Notification/Devel
 import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import NewWalletDeveloperOptionsSection from './NewWalletDeveloperOptionsSection';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local
@@ -46,6 +45,7 @@ const SampleFeatureDevSettingsEntryPoint: React.FC =
     : () => null;
 
 const DeveloperOptions = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<{ isFullScreenModal: boolean }>();
   const isFullScreenModal = params?.isFullScreenModal;
@@ -76,7 +76,9 @@ const DeveloperOptions = () => {
       style={styles.wrapper}
       testID={DeveloperOptionsSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.developer_options.title')}
         titleProps={{ color: TextColor.PrimaryDefault }}
         onBack={isFullScreenModal ? undefined : handleBack}

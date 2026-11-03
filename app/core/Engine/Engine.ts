@@ -643,7 +643,12 @@ export class Engine {
       DeFiPositionsControllerV2:
         messengerClientsByName.DeFiPositionsControllerV2,
       SeedlessOnboardingController: seedlessOnboardingController,
-      SamplePetnamesController: messengerClientsByName.SamplePetnamesController,
+      // Omitted entirely unless INCLUDE_SAMPLE_FEATURE=true, so code iterating
+      // the context never sees an `undefined` controller.
+      ...(messengerClientsByName.SamplePetnamesController && {
+        SamplePetnamesController:
+          messengerClientsByName.SamplePetnamesController,
+      }),
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -1411,8 +1416,7 @@ export class Engine {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {
-      // SamplePetnamesController is undefined unless INCLUDE_SAMPLE_FEATURE=true.
-      if (controller?.destroy) {
+      if (controller.destroy) {
         controller.destroy();
       }
     });

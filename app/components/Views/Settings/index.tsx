@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -20,6 +20,8 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTestEnvironment } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
@@ -30,6 +32,7 @@ const createStyles = (colors: Colors) =>
   });
 
 const Settings = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
@@ -113,7 +116,9 @@ const Settings = () => {
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.title')}
         onBack={handleBack}
         backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}

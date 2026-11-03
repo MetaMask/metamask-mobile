@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { AppState, Platform, type AppStateStatus } from 'react-native';
+import { selectPushProvisioningEnabled } from '../../../../../selectors/featureFlagController/card';
 import { usePushProvisioning } from './usePushProvisioning';
 
 interface FocusEffectHarness {
@@ -112,14 +113,12 @@ jest.mock('../../hooks/useCardCapabilities', () => ({
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/card', () => ({
-  selectPushProvisioningEnabled: (
-    _state: unknown,
-    _providerId: unknown,
-    walletType: string,
-  ) =>
-    walletType === 'apple_wallet'
-      ? mockAppleProvisioningEnabled
-      : mockGoogleProvisioningEnabled,
+  selectPushProvisioningEnabled: jest.fn(
+    (_state: unknown, _providerId: unknown, walletType: string) =>
+      walletType === 'apple_wallet'
+        ? mockAppleProvisioningEnabled
+        : mockGoogleProvisioningEnabled,
+  ),
 }));
 
 describe('usePushProvisioning', () => {
@@ -163,11 +162,6 @@ describe('usePushProvisioning', () => {
       if (selector === 'selectIsCardAuthenticated') return true;
       if (selector === 'selectCardActiveProviderId') return 'baanx';
       if (typeof selector === 'function') return selector({});
-      // Feature flags enabled by default for tests
-      if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-        return true;
-      if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-        return true;
       return undefined;
     });
     // Default adapter returns - use sync mock to avoid act() warnings
@@ -403,10 +397,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return false;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -504,6 +494,41 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
+    it('passes the card country and processor into the provisioning flag', async () => {
+      const { unmount } = renderHook(() =>
+        usePushProvisioning({
+          ...defaultOptions,
+          walletProvisioning: {
+            ...mockWalletProvisioning,
+            countryCode: 'US',
+            cardProcessor: 'galileo',
+          },
+        }),
+      );
+
+      expect(selectPushProvisioningEnabled).toHaveBeenCalledWith(
+        expect.anything(),
+        'baanx',
+        expect.any(String),
+        { countryCode: 'US', cardProcessor: 'galileo' },
+      );
+      unmount();
+    });
+
+    it('passes empty facts when provisioning info is missing', async () => {
+      const { unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, walletProvisioning: null }),
+      );
+
+      expect(selectPushProvisioningEnabled).toHaveBeenCalledWith(
+        expect.anything(),
+        'baanx',
+        expect.any(String),
+        { countryCode: undefined, cardProcessor: undefined },
+      );
+      unmount();
+    });
+
     it('returns false when provisioning data is absent for a pending card', async () => {
       const { result, unmount } = renderHook(() =>
         usePushProvisioning({ ...defaultOptions, walletProvisioning: null }),
@@ -526,10 +551,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -562,10 +583,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 
@@ -595,10 +612,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 
@@ -631,10 +644,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -665,10 +674,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return false;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return true;
         return undefined;
       });
 
@@ -702,10 +707,6 @@ describe('usePushProvisioning', () => {
         if (selector === 'selectIsCardAuthenticated') return true;
         if (selector === 'selectCardActiveProviderId') return 'baanx';
         if (typeof selector === 'function') return selector({});
-        if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
-          return true;
-        if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
-          return false;
         return undefined;
       });
 

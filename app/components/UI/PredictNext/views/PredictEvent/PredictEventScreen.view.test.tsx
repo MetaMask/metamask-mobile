@@ -2008,9 +2008,12 @@ describe('PredictEventScreen', () => {
         await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
       );
 
-      expect(
-        view.getByTestId(EventMarketListTestIds.positionRow('market-1', 'yes')),
-      ).toBeOnTheScreen();
+      // The held row is on the second Positions page. The tab can paint
+      // before that page is appended, so wait for the row itself.
+      const laterPageRow = await view.findByTestId(
+        EventMarketListTestIds.positionRow('market-1', 'yes'),
+      );
+      expect(laterPageRow).toBeOnTheScreen();
       expect(
         view.getByTestId(
           EventMarketListTestIds.positionCashOut('market-1', 'yes'),
