@@ -166,6 +166,22 @@ describe('useTraderPositionPnl', () => {
     });
   });
 
+  it('hides the line when disabled even if the wallet balance resolves a value', () => {
+    // The balance-derived position value survives a disabled Social request, so
+    // the flag-off page must still render nothing.
+    mockUseOpenPositionHeader.mockReturnValue({
+      positionValue: '$150.00',
+      sharePosition: null,
+      isLoading: false,
+      isPositionLoading: false,
+    });
+
+    const { result } = renderPnl(false);
+
+    expect(result.current.traderPositionPnl).toBeUndefined();
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('attaches Share to feed when a sharable position and social are enabled', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       positionValue: '$2,000.00',

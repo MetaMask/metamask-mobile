@@ -88,8 +88,11 @@ export const useTraderPositionPnl = ({
   }, [tokenKey]);
 
   const shareToFeed = canShareToFeed ? { onShare: shareToFeedPress } : {};
+  // `enabled` gates the whole line, not just the Social request: the wallet
+  // balance still resolves while disabled, so without this a flag-off page
+  // would render the value-only "Your position" row for any held token.
   const traderPositionPnl =
-    header.positionValue !== undefined
+    enabled && header.positionValue !== undefined
       ? {
           positionValue: header.positionValue,
           pnl: header.pnl,
@@ -109,5 +112,8 @@ export const useTraderPositionPnl = ({
 
   // `isPositionLoading` already folds in the `enabled` flag (a disabled hook
   // never starts the request), so this stays false on non-position pages.
-  return { traderPositionPnl, isLoading: header.isPositionLoading };
+  return {
+    traderPositionPnl,
+    isLoading: enabled && header.isPositionLoading,
+  };
 };
