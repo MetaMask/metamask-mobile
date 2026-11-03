@@ -41,6 +41,9 @@ function makeVersionFlag(enabled: boolean) {
   return { enabled, minimumVersion: '0.0.1' };
 }
 
+/** Matches `withMinimalAccounts()` so copy-trade and Follow gates see a linked wallet. */
+const CV_SOCIAL_LINKED_ADDRESS = '0x0000000000000000000000000000000000000001';
+
 /**
  * Returns a `StateFixtureBuilder` configured for Social Leaderboard CV tests.
  * Call `.build()` to produce the state object, or chain `.withOverrides(...)`.
@@ -91,6 +94,20 @@ export function initialStateSocialLeaderboard(
           // SocialController.followingProfileIds drives isFollowing() in
           // useFollowToggleMany without any additional API calls.
           SocialController: { followingProfileIds },
+          ProfileController: {
+            profile: {
+              profileId: 'cv-social-profile',
+              username: 'cv_trader',
+              displayName: 'cv_trader',
+              bio: '',
+              linkedAddresses: [`eip155:1:${CV_SOCIAL_LINKED_ADDRESS}`],
+              avatarUrl: '',
+              tradingPrivacy: 'public',
+              connectedToX: false,
+              createdAt: '',
+              updatedAt: '',
+            },
+          },
         },
       },
       settings: {

@@ -105,6 +105,32 @@ const perpsModalsRoute = {
   name: Routes.PERPS.MODALS.ROOT,
 };
 
+const profileOnboardingRoute = {
+  name: Routes.SOCIAL.PROFILE_ONBOARDING,
+};
+
+const noLinkedWalletOverrides = {
+  engine: {
+    backgroundState: {
+      PerpsController: { isEligible: true },
+      ProfileController: {
+        profile: {
+          profileId: '',
+          username: '',
+          displayName: '',
+          bio: '',
+          linkedAddresses: [],
+          avatarUrl: '',
+          tradingPrivacy: 'public',
+          connectedToX: false,
+          createdAt: '',
+          updatedAt: '',
+        },
+      },
+    },
+  },
+};
+
 const eligibleOverrides = {
   engine: {
     backgroundState: {
@@ -206,6 +232,23 @@ describe('SocialV1View copy trade', () => {
 
     expect(
       await screen.findByTestId(SocialV1ViewSelectorsIDs.COPY_TRADE_GEO_BLOCK),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT)),
+    ).toBeNull();
+  });
+
+  it('opens profile onboarding instead of the perps order when there is no linked wallet', async () => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute, profileOnboardingRoute], {
+      overrides: noLinkedWalletOverrides,
+    });
+
+    await pressCopyTrade();
+
+    expect(
+      await screen.findByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT)),
