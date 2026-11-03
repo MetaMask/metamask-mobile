@@ -1,5 +1,6 @@
 import React from 'react';
 import { BackHandler } from 'react-native';
+import { Provider } from 'react-redux';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   CANCELLATION_REASONS,
@@ -17,6 +18,8 @@ import {
   getCancelReasonTestId,
 } from './CancelMembership.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../../reducers';
+import configureStore from '../../../../../util/test/configureStore';
 import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -137,7 +140,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const renderScreen = () => render(<CancelMembership />);
+const renderScreen = () =>
+  render(
+    <Provider store={configureStore({} as RootState)}>
+      <CancelMembership />
+    </Provider>,
+  );
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 

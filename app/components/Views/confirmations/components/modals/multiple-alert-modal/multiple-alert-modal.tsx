@@ -1,64 +1,29 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { IconName as DesignSystemIconName } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { Alert, AlertSeverity, Severity } from '../../../types/alerts';
-import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
-  IconColor,
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import AlertModal from '../alert-modal';
-import { HeaderBaseProps } from '../../../../../../component-library/components/HeaderBase/HeaderBase.types';
-import HeaderBase from '../../../../../../component-library/components/HeaderBase';
+import HeaderBaseGlass, {
+  type HeaderBaseGlassProps,
+} from '../../../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 import { getSeverityStyle } from '../../../utils/alert-system';
 import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './multiple-alert-modal.styles';
 
-export interface NavigationAlertHeaderProps extends HeaderBaseProps {
+export interface NavigationAlertHeaderProps extends HeaderBaseGlassProps {
   arrLength: number;
   onBack?: () => void;
   onForward?: () => void;
   selectedIndex: number;
 }
-
-const PreviousButton: React.FC<{
-  onBackButtonClick?: () => void;
-  selectedIndex: number;
-}> = ({ onBackButtonClick, selectedIndex }) => {
-  if (selectedIndex <= 0) {
-    return null;
-  }
-
-  return (
-    <ButtonIcon
-      iconColor={IconColor.Default}
-      iconName={IconName.ArrowLeft}
-      onPress={onBackButtonClick}
-      testID="alert-button-icon-arrow-left"
-    />
-  );
-};
-
-const NextButton: React.FC<{
-  alertsLength: number;
-  onNextButtonClick?: () => void;
-  selectedIndex: number;
-}> = ({ alertsLength, onNextButtonClick, selectedIndex }) => {
-  if (selectedIndex >= alertsLength - 1) {
-    return null;
-  }
-
-  return (
-    <ButtonIcon
-      iconColor={IconColor.Default}
-      iconName={IconName.ArrowRight}
-      onPress={onNextButtonClick}
-      testID="alert-button-icon-arrow-right"
-    />
-  );
-};
 
 const NavigationAlertHeader: React.FC<NavigationAlertHeaderProps> = ({
   arrLength,
@@ -68,27 +33,41 @@ const NavigationAlertHeader: React.FC<NavigationAlertHeaderProps> = ({
   selectedIndex,
   style,
   ...props
-}) => (
-  <HeaderBase
-    endAccessory={
-      <NextButton
-        alertsLength={arrLength}
-        onNextButtonClick={onForward}
-        selectedIndex={selectedIndex}
-      />
-    }
-    startAccessory={
-      <PreviousButton
-        onBackButtonClick={onBack}
-        selectedIndex={selectedIndex}
-      />
-    }
-    style={style}
-    {...props}
-  >
-    {children}
-  </HeaderBase>
-);
+}) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const startButtonIconProps =
+    selectedIndex > 0
+      ? {
+          iconName: DesignSystemIconName.ArrowLeft,
+          onPress: onBack,
+          testID: 'alert-button-icon-arrow-left',
+        }
+      : undefined;
+  const endButtonIconProps =
+    selectedIndex < arrLength - 1
+      ? [
+          {
+            iconName: DesignSystemIconName.ArrowRight,
+            onPress: onForward,
+            testID: 'alert-button-icon-arrow-right',
+          },
+        ]
+      : undefined;
+
+  return (
+    <HeaderBaseGlass
+      {...props}
+      isGlass={isGlassHeader}
+      isFloating={false}
+      testID="header"
+      startButtonIconProps={startButtonIconProps}
+      endButtonIconProps={endButtonIconProps}
+      style={style}
+    >
+      {children}
+    </HeaderBaseGlass>
+  );
+};
 
 const PageNavigation: React.FC<{
   alerts: Alert[];

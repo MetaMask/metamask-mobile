@@ -16,7 +16,6 @@ import {
   BoxJustifyContent,
   ButtonIconSize,
   FontWeight,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -57,10 +56,12 @@ import {
 } from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import {
   getAvatarAccountVariant,
   type AccountAvatarVariant,
 } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
+import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
 
 interface AccountGroupDetailsRouteParams {
   accountGroup: AccountGroupObject;
@@ -70,6 +71,7 @@ export const AccountGroupDetails = () => {
   const route =
     useRoute<RouteProp<{ params: AccountGroupDetailsRouteParams }, 'params'>>();
   const navigation = useNavigation<AppNavigationProp>();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { accountGroup: initialAccountGroup } = route.params;
   const { id } = initialAccountGroup;
 
@@ -185,7 +187,9 @@ export const AccountGroupDetails = () => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         style={styles.header}
         startButtonIconProps={{
@@ -196,7 +200,7 @@ export const AccountGroupDetails = () => {
         }}
       >
         {groupName}
-      </HeaderBase>
+      </HeaderBaseGlass>
       <ScrollView
         style={styles.container}
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
