@@ -8,7 +8,7 @@ import {
   PaymentOverride,
   TransactionPayRequiredToken,
   TransactionPayTotals,
-  TransactionPaymentToken,
+  EvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
@@ -53,7 +53,7 @@ const PAY_TOKEN_MOCK = {
   chainId: '0x1' as Hex,
   balanceUsd: '1.23',
   balanceRaw: '1000',
-} as TransactionPaymentToken;
+} as EvmPaymentToken;
 
 const REQUIRED_TOKEN_MOCK = {
   amountUsd: '1.23',
@@ -483,6 +483,39 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           severity: Severity.Danger,
         },
       ]);
+    });
+
+    it('leaves fee and native reserve shortfalls of a non-EVM source to the Core quote error', () => {
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '99',
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        nonEvmPayToken: {
+          accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          balanceFiat: '0',
+          balanceHuman: '0',
+          balanceRaw: '999',
+          balanceUsd: '0',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          decimals: 9,
+          symbol: 'SOL',
+          walletAccountId: 'solana-account-id',
+        },
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+
+      jest.mocked(useTransactionPayBalance).mockReturnValue({
+        balanceRaw: '999',
+        balanceUsd: 1000,
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
     });
 
     it('returns no alert if pay token is native', () => {

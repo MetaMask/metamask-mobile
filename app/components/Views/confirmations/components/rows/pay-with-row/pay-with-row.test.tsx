@@ -8,7 +8,7 @@ import { merge } from 'lodash';
 import { Text as MockText } from 'react-native';
 
 import { PayWithRow } from './pay-with-row';
-import { TokenIconProps } from '../../token-icon';
+import { NonEvmTokenIconProps, TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
@@ -79,6 +79,9 @@ jest.mock('../../token-icon/', () => ({
       <MockText>{`${props.address} ${props.chainId}`}</MockText>
       <MockText testID="token-icon-symbol">{`icon-symbol:${props.symbol ?? ''}`}</MockText>
     </>
+  ),
+  NonEvmTokenIcon: (props: NonEvmTokenIconProps) => (
+    <MockText>{`non-evm-icon:${props.assetId}`}</MockText>
   ),
   TokenIconVariant: { Default: 'default', Row: 'row', Hero: 'hero' },
 }));
@@ -181,6 +184,36 @@ describe('PayWithRow', () => {
       Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
       expect.any(Object),
     );
+  });
+
+  it('renders a selected Solana source from the Pay payment token', () => {
+    const assetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    jest.mocked(useTransactionPayToken).mockReturnValue({
+      nonEvmPayToken: {
+        accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+        assetId,
+        balanceFiat: '300',
+        balanceHuman: '2',
+        balanceRaw: '2000000000',
+        balanceUsd: '300',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        decimals: 9,
+        symbol: 'SOL',
+        walletAccountId: 'solana-account-id',
+      },
+      payToken: undefined,
+      setPayToken: jest.fn(),
+    });
+    jest.mocked(usePayTokenAccountBalance).mockReturnValue({
+      balanceUsd: '300',
+      balanceRaw: '2000000000',
+    });
+
+    const { getByText, getByTestId } = render();
+
+    expect(getByText(`non-evm-icon:${assetId}`)).toBeDefined();
+    expect(getByTestId('pay-with-symbol')).toHaveTextContent('SOL ($300)');
+    expect(getByTestId('pay-with-balance')).toHaveTextContent('($300)');
   });
 
   it('renders skeleton when no pay token selected but tokens are available', () => {
@@ -418,6 +451,39 @@ describe('PayWithRow', () => {
       });
 
       expect(navigateMock).toHaveBeenCalled();
+    });
+
+    it('renders the Solana source for a Money Account deposit funded from Solana', () => {
+      const assetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: '0x1' },
+        type: TransactionType.moneyAccountDeposit,
+      } as never);
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        nonEvmPayToken: {
+          accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+          assetId,
+          balanceFiat: '300',
+          balanceHuman: '2',
+          balanceRaw: '2000000000',
+          balanceUsd: '300',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          decimals: 9,
+          symbol: 'SOL',
+          walletAccountId: 'solana-account-id',
+        },
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+      jest.mocked(usePayTokenAccountBalance).mockReturnValue({
+        balanceUsd: '300',
+        balanceRaw: '2000000000',
+      });
+
+      const { getByTestId } = renderMoneyAccount();
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('SOL ($300)');
     });
 
     it('renders money account row regardless of isResultReady when paymentOverride is MoneyAccount', () => {

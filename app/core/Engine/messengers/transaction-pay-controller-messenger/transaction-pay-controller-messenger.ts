@@ -30,6 +30,7 @@ export function getTransactionPayControllerMessenger(
     actions: [
       'AccountsController:getState',
       'AssetsController:getState',
+      'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
@@ -38,8 +39,14 @@ export function getTransactionPayControllerMessenger(
       'RampsController:getQuoteWithFees',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
+      'SnapController:handleRequest',
+      // Solana Pay recovery runs the Money Account second leg from the
+      // controller messenger rather than from the publish hook.
+      'TransactionController:addTransactionBatch',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
+      'TransactionController:confirmTransaction',
+      'TransactionController:failTransaction',
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',

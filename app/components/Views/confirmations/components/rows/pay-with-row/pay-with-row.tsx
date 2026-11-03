@@ -6,7 +6,7 @@ import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { NonEvmTokenIcon, TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
@@ -30,7 +30,6 @@ import {
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isHardwareAccount } from '../../../../../../util/address';
@@ -52,6 +51,7 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import { isMoneyAccountFunding } from '../../../utils/transaction-pay';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -65,7 +65,7 @@ function PayWithRowComponent({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
-  const { payToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken } = useTransactionPayToken();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
   const { payWithOption } = useParams<ConfirmationParams>({});
@@ -76,8 +76,16 @@ function PayWithRowComponent({
     return null;
   }
 
-  // Explicit selection via controller — always honor it.
-  if (paymentOverride === PaymentOverride.MoneyAccount) {
+  // Explicit selection via controller — always honor it. A Money Account
+  // deposit funded from Solana keeps the override for its second leg but shows
+  // the Solana source.
+  if (
+    isMoneyAccountFunding({
+      paymentOverride,
+      payToken: payToken ?? nonEvmPayToken,
+      transactionMeta,
+    })
+  ) {
     return <PayWithRowMoneyAccount />;
   }
 
@@ -87,6 +95,7 @@ function PayWithRowComponent({
   if (
     isDefaultMoneyAccount &&
     !payToken &&
+    !nonEvmPayToken &&
     !selectedFiatPaymentMethod &&
     !isResultReady
   ) {
@@ -146,7 +155,7 @@ function PayWithRowLayout({
 
 function PayWithRowInteractive() {
   const navigation = useNavigation<AppNavigationProp>();
-  const { payToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const accountNoFundsAlert = useAccountNoFundsAlert();
@@ -218,6 +227,38 @@ function PayWithRowInteractive() {
         hasFrom={Boolean(from)}
         onPress={handleClick}
       />
+    );
+  }
+
+  if (nonEvmPayToken && !hasAccountNoFunds) {
+    return (
+      <PayWithRowLayout
+        label={label}
+        disabled={isDisabled}
+        showArrow={Boolean(from)}
+        onPress={handleClick}
+      >
+        <NonEvmTokenIcon
+          assetId={nonEvmPayToken.assetId}
+          chainId={nonEvmPayToken.chainId}
+          symbol={nonEvmPayToken.symbol}
+          variant={TokenIconVariant.Row}
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
+          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+        >
+          {nonEvmPayToken.symbol}
+          <Text
+            color={TextColor.TextAlternative}
+            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+          >
+            {` (${balanceUsdFormatted})`}
+          </Text>
+        </Text>
+      </PayWithRowLayout>
     );
   }
 

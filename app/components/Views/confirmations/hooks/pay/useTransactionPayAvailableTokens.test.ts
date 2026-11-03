@@ -1,4 +1,9 @@
-import { EthAccountType } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  SolAccountType,
+  SolScope,
+} from '@metamask/keyring-api';
+import type { NonEvmPaymentToken } from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -11,6 +16,8 @@ import {
   selectMetaMaskPayTokensFlags,
   MetaMaskPayTokensFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { useIsSolanaPaySourceEnabled } from './useIsSolanaPaySourceEnabled';
+import { useTransactionPayToken } from './useTransactionPayToken';
 
 jest.mock('../send/useAccountTokens');
 jest.mock('../../utils/transaction-pay', () => ({
@@ -18,6 +25,8 @@ jest.mock('../../utils/transaction-pay', () => ({
   getAvailableTokens: jest.fn(),
 }));
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('./useIsSolanaPaySourceEnabled');
+jest.mock('./useTransactionPayToken');
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
@@ -36,6 +45,34 @@ const TOKEN_MOCK = {
   standard: TokenStandard.ERC20,
   symbol: 'NTV1',
 } as AssetType;
+
+const SOLANA_ASSET_ID = `${SolScope.Mainnet}/slip44:501` as const;
+
+const SOLANA_TOKEN_MOCK = {
+  accountId: 'solana-account-id',
+  accountType: SolAccountType.DataAccount,
+  address: SOLANA_ASSET_ID,
+  assetId: SOLANA_ASSET_ID,
+  balance: '2',
+  chainId: SolScope.Mainnet,
+  decimals: 9,
+  name: 'Solana',
+  standard: TokenStandard.ERC20,
+  symbol: 'SOL',
+} as AssetType;
+
+const SOLANA_PAY_TOKEN_MOCK = {
+  accountId: `${SolScope.Mainnet}:SoLAddress`,
+  assetId: SOLANA_ASSET_ID,
+  balanceFiat: '300',
+  balanceHuman: '2',
+  balanceRaw: '2000000000',
+  balanceUsd: '300',
+  chainId: SolScope.Mainnet,
+  decimals: 9,
+  symbol: 'SOL',
+  walletAccountId: 'solana-account-id',
+} as NonEvmPaymentToken;
 
 describe('useTransactionPayAvailableTokens', () => {
   const useAccountTokensMock = jest.mocked(useAccountTokens);
@@ -63,6 +100,11 @@ describe('useTransactionPayAvailableTokens', () => {
     useTransactionMetadataRequestMock.mockReturnValue(undefined);
     jest.mocked(getAvailableTokens).mockReturnValue([TOKEN_MOCK]);
     selectMetaMaskPayTokensFlagsMock.mockReturnValue(defaultPayTokensFlags);
+    jest.mocked(useIsSolanaPaySourceEnabled).mockReturnValue(false);
+    jest.mocked(useTransactionPayToken).mockReturnValue({
+      payToken: undefined,
+      setPayToken: jest.fn(),
+    });
   });
 
   it('returns available tokens and hasTokens true when tokens exist', () => {
@@ -165,5 +207,41 @@ describe('useTransactionPayAvailableTokens', () => {
         blockedTokens: defaultBlocked,
       }),
     );
+  });
+
+  it('offers Solana sources only when Solana Pay is enabled for the transaction', () => {
+    jest.mocked(useIsSolanaPaySourceEnabled).mockReturnValue(true);
+
+    renderHookWithProvider(useTransactionPayAvailableTokens);
+
+    expect(getAvailableTokens).toHaveBeenCalledWith(
+      expect.objectContaining({ isSolanaPayEnabled: true }),
+    );
+  });
+
+  it('passes the selected Solana source so it stays listed after a rollback', () => {
+    jest.mocked(useTransactionPayToken).mockReturnValue({
+      nonEvmPayToken: SOLANA_PAY_TOKEN_MOCK,
+      payToken: undefined,
+      setPayToken: jest.fn(),
+    });
+
+    renderHookWithProvider(useTransactionPayAvailableTokens);
+
+    expect(getAvailableTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isSolanaPayEnabled: false,
+        payToken: SOLANA_PAY_TOKEN_MOCK,
+      }),
+    );
+  });
+
+  it('does not count Solana sources towards hasTokens', () => {
+    jest.mocked(getAvailableTokens).mockReturnValue([SOLANA_TOKEN_MOCK]);
+
+    const { result } = renderHookWithProvider(useTransactionPayAvailableTokens);
+
+    expect(result.current.availableTokens).toEqual([SOLANA_TOKEN_MOCK]);
+    expect(result.current.hasTokens).toBe(false);
   });
 });

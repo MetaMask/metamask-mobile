@@ -2,6 +2,7 @@ import {
   TransactionData,
   TransactionPayQuote,
   TransactionPayStrategy,
+  isNonEvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
@@ -30,7 +31,7 @@ export function isNoOpQuote(
 function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
   const paymentToken = data?.paymentToken;
 
-  if (!paymentToken) {
+  if (!paymentToken || isNonEvmPaymentToken(paymentToken)) {
     return false;
   }
 

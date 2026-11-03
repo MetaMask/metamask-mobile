@@ -118,6 +118,25 @@ export interface PayHardwareFlags {
   overrides?: Record<string, PayHardwareConfig>;
 }
 
+/**
+ * Whether Solana SOL and SPL balances may be offered as new MetaMask Pay
+ * sources. Mirrors the Core admission gate
+ * (`confirmations_pay.payStrategies.relay.solana.enabled === true`) and fails
+ * closed for any other value.
+ */
+export const selectSolanaPayEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): boolean => {
+    const metaMaskPayFlags = featureFlags?.confirmations_pay as
+      | {
+          payStrategies?: { relay?: { solana?: { enabled?: unknown } } };
+        }
+      | undefined;
+
+    return metaMaskPayFlags?.payStrategies?.relay?.solana?.enabled === true;
+  },
+);
+
 export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayFlags & MetaMaskPayExtendedFlags => {

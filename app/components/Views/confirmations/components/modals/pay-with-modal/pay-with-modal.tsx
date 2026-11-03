@@ -8,7 +8,10 @@ import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import {
+  useSetNonEvmPayToken,
+  useTransactionPayToken,
+} from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { strings } from '../../../../../../../locales/i18n';
@@ -23,7 +26,12 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
+import {
+  getAvailableTokens,
+  isSelectedPayToken,
+  isSolanaPayAsset,
+} from '../../../utils/transaction-pay';
+import { useIsSolanaPaySourceEnabled } from '../../../hooks/pay/useIsSolanaPaySourceEnabled';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -62,7 +70,10 @@ export function PayWithModal() {
     transactionMeta,
     HIDE_NETWORK_FILTER_TYPES,
   );
-  const { payToken, setPayToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken, setPayToken } = useTransactionPayToken();
+  const paymentToken = payToken ?? nonEvmPayToken;
+  const setNonEvmPayToken = useSetNonEvmPayToken();
+  const isSolanaPayEnabled = useIsSolanaPaySourceEnabled();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
@@ -90,6 +101,9 @@ export function PayWithModal() {
   const isMoneyAccount = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
     TransactionType.moneyAccountWithdraw,
+  ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
   ]);
   const { renderNoFeeTag } = usePayWithNoFeeToken();
   const tagRenderers = useMemo(
@@ -138,13 +152,13 @@ export function PayWithModal() {
       // override (e.g. Money Account). This is deliberately done here rather
       // than when the picker is opened, so closing the picker without
       // choosing a token leaves the previous selection intact.
-      if (
-        payToken &&
-        payToken.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
-      ) {
+      if (isSelectedPayToken(token, paymentToken)) {
         close(() => {
-          clearPaymentOverride();
+          // A selected Solana source on a Money Account deposit carries the
+          // Money Account override for its vault second leg; keep it.
+          if (!(isSolanaPayAsset(token) && isMoneyAccountDeposit)) {
+            clearPaymentOverride();
+          }
           if (dismissOnSelectCount > 1) {
             navigation.dispatch(StackActions.pop(dismissOnSelectCount));
           }
@@ -177,6 +191,14 @@ export function PayWithModal() {
           return;
         }
 
+        if (isSolanaPayAsset(token)) {
+          setNonEvmPayToken({
+            assetId: token.assetId,
+            walletAccountId: token.accountId,
+          });
+          return;
+        }
+
         // Ensure the token is registered in unified assets state so the pay
         // controller can resolve its metadata (symbol, decimals, balance) —
         // otherwise it throws "Payment token not found".
@@ -204,12 +226,14 @@ export function PayWithModal() {
       close,
       dismissOnSelectCount,
       ensurePayToken,
+      isMoneyAccountDeposit,
       isPredictContext,
       isWithdraw,
       navigation,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
-      payToken,
+      paymentToken,
+      setNonEvmPayToken,
       setPayToken,
       transactionMeta,
     ],
@@ -223,11 +247,12 @@ export function PayWithModal() {
 
       // Standard deposit/payment token filtering
       const availableTokens = getAvailableTokens({
-        payToken,
+        payToken: paymentToken,
         requiredTokens,
         tokens,
         blockedTokens,
         fiatPayment,
+        isSolanaPayEnabled,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -248,7 +273,8 @@ export function PayWithModal() {
       blockedTokens,
       fiatPayment,
       withdrawTokenFilter,
-      payToken,
+      isSolanaPayEnabled,
+      paymentToken,
       requiredTokens,
       transactionMeta,
       isPredictContext,

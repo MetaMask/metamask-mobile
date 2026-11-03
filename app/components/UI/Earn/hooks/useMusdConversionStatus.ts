@@ -3,7 +3,11 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import {
+  NonEvmTransactionPayQuote,
+  TransactionPayQuote,
+} from '@metamask/transaction-pay-controller';
+import { Hex, Json, isCaipChainId } from '@metamask/utils';
 import { useCallback, useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
@@ -25,7 +29,19 @@ import { getMusdConversionQuoteTrackingData } from '../utils/analytics';
 
 function getTransactionPayQuotes(transactionId: string) {
   const state = store.getState();
-  return selectTransactionPayQuotesByTransactionId(state, transactionId) ?? [];
+  return (
+    selectTransactionPayQuotesByTransactionId(state, transactionId) ?? []
+  ).filter(isEvmTransactionPayQuote);
+}
+
+/**
+ * mUSD conversion analytics read Hex quote fields, so only EVM-source quotes
+ * apply. Non-EVM quotes, such as Solana sources, carry a CAIP-2 source chain.
+ */
+function isEvmTransactionPayQuote(
+  quote: TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>,
+): quote is TransactionPayQuote<Json> {
+  return !isCaipChainId(quote.request?.sourceChainId);
 }
 
 /**

@@ -1,5 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { isNonEvmPaymentToken } from '@metamask/transaction-pay-controller';
 import {
   TransactionStatus,
   TransactionType,
@@ -33,6 +34,7 @@ import {
   type ActivityAdapterEnvironment,
 } from './environment';
 import { decodeErc20Transfer } from '../../transactions/erc20-transfer';
+import { getSolanaPayOutcome } from '../../transactions/solana-pay';
 
 const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodTransfer,
@@ -191,7 +193,13 @@ function getEoaFacingMoneyToken(
   environment: ActivityAdapterEnvironment,
 ): TokenAmount | undefined {
   const transaction = transactionGroup.initialTransaction;
-  const paymentToken = transactionGroup.transactionPayData?.paymentToken;
+  const transactionPaymentToken =
+    transactionGroup.transactionPayData?.paymentToken;
+  // A non-EVM source is never the EOA-facing Money token.
+  const paymentToken =
+    transactionPaymentToken && !isNonEvmPaymentToken(transactionPaymentToken)
+      ? transactionPaymentToken
+      : undefined;
   const tokenAddress =
     paymentToken?.address ?? transaction.metamaskPay?.tokenAddress;
   const tokenChainId =
@@ -718,6 +726,17 @@ function enrichPreparedFees(
   } as ActivityListItem;
 }
 
+function enrichPayOutcome(
+  activity: ActivityListItem,
+  transactionGroup: TransactionGroup,
+): ActivityListItem {
+  const execution =
+    transactionGroup.initialTransaction.metamaskPay?.solanaExecution;
+  const payOutcome = execution ? getSolanaPayOutcome(execution) : undefined;
+
+  return payOutcome ? { ...activity, payOutcome } : activity;
+}
+
 function enrichCancelledStatus(
   activity: ActivityListItem,
   transactionGroup: TransactionGroup,
@@ -746,6 +765,7 @@ export function enrichLocalActivity(
   next = enrichStakingDeposit(next, transactionGroup, environment);
   next = enrichMusdClaim(next, transactionGroup, environment);
   next = enrichCancelledStatus(next, transactionGroup, environment);
+  next = enrichPayOutcome(next, transactionGroup);
   next = enrichPreparedFees(next, transactionGroup);
   return next;
 }

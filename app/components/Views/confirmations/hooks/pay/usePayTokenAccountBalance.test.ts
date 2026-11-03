@@ -1,5 +1,5 @@
 import { Hex } from '@metamask/utils';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '@metamask/transaction-pay-controller';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionPayToken } from './useTransactionPayToken';
@@ -21,7 +21,7 @@ const PAY_TOKEN_MOCK = {
   balanceFiat: '5.00',
   decimals: 18,
   symbol: 'ETH',
-} as TransactionPaymentToken;
+} as EvmPaymentToken;
 
 const ACCOUNT_TOKEN_MOCK = {
   address: '0xabc',
@@ -190,7 +190,7 @@ describe('usePayTokenAccountBalance', () => {
         ...PAY_TOKEN_MOCK,
         balanceUsd: undefined,
         balanceRaw: undefined,
-      } as unknown as TransactionPaymentToken,
+      } as unknown as EvmPaymentToken,
       setPayToken: jest.fn(),
     });
 

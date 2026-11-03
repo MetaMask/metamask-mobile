@@ -14,7 +14,7 @@ export function usePayTokenAccountBalance(): {
   balanceUsd: string;
   balanceRaw: string;
 } {
-  const { payToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken } = useTransactionPayToken();
   const accountTokens = useAccountTokens({ includeNoBalance: true });
   const usdRate = useTokenFiatRate(
     (payToken?.address ?? ZERO_ADDRESS) as Hex,
@@ -23,6 +23,15 @@ export function usePayTokenAccountBalance(): {
   );
 
   return useMemo(() => {
+    // Core refreshes a non-EVM token balance from AssetsController on every
+    // quote update, so its snapshot is the reactive source.
+    if (nonEvmPayToken) {
+      return {
+        balanceUsd: nonEvmPayToken.balanceUsd,
+        balanceRaw: nonEvmPayToken.balanceRaw,
+      };
+    }
+
     if (!payToken) {
       return { balanceUsd: '0', balanceRaw: '0' };
     }
@@ -50,5 +59,5 @@ export function usePayTokenAccountBalance(): {
       : (payToken.balanceUsd ?? '0');
 
     return { balanceUsd, balanceRaw: rawBalanceDecimal };
-  }, [payToken, accountTokens, usdRate]);
+  }, [nonEvmPayToken, payToken, accountTokens, usdRate]);
 }
