@@ -10,6 +10,7 @@ import { mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from './socialFeedRealtime';
+import { resetSocialRealtimeLeases } from './socialRealtimeLease';
 import { useSocialFeedRealtime } from './useSocialFeedRealtime';
 
 const mockAddListener = jest.fn();
@@ -126,6 +127,7 @@ describe('useSocialFeedRealtime', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSocialRealtimeLeases();
     listener = undefined;
     reconnectListener = undefined;
     refresh = jest.fn().mockResolvedValue(undefined);
@@ -157,7 +159,7 @@ describe('useSocialFeedRealtime', () => {
 
     expect(mockSetScopes).toHaveBeenCalledWith(['trending']);
     expect(mockAddReconnectListener).toHaveBeenCalledTimes(1);
-    expect(mockSetActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() => expect(mockSetActive).toHaveBeenLastCalledWith(false));
   });
 
   it('does not subscribe while inactive', () => {
@@ -450,13 +452,13 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.posts[0]?.commentId).toBeUndefined();
   });
 
-  it('keeps socket posts while inactive', () => {
+  it('keeps socket posts while inactive', async () => {
     const { result, rerender } = renderRealtime();
     emit(buildEvent('pos-a'));
 
     rerender({ active: false });
 
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
-    expect(mockSetActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() => expect(mockSetActive).toHaveBeenLastCalledWith(false));
   });
 });

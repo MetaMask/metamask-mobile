@@ -30,7 +30,10 @@ interface MockSocialFeedProps {
   renderHeader?: () => React.ReactNode;
   pageRef?: React.Ref<SocialFeedPageHandle>;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
-  onPositionPress?: (post: SocialV1FeedPost) => void;
+  onPositionPress?: (
+    post: SocialV1FeedPost,
+    context?: { isSnapshotLive: boolean },
+  ) => void;
   testID?: string;
   scrollTestID?: string;
 }
@@ -328,7 +331,21 @@ describe('LiveView', () => {
       expect.objectContaining({
         positionId: 'other-perp-position',
         isClosed: false,
+        isSnapshotLive: false,
       }),
+    );
+  });
+
+  it('marks the snapshot live when the feed was streaming it', () => {
+    renderWithProvider(<LiveView />, { state });
+
+    act(() => {
+      lastFeedProps().onPositionPress?.(otherPerp, { isSnapshotLive: true });
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION_SHEET,
+      expect.objectContaining({ isSnapshotLive: true }),
     );
   });
 });

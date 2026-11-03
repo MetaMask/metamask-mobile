@@ -7,9 +7,13 @@ import PositionDetailsSheet from './PositionDetailsSheet';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import {
+  DAY_MS,
+  NOW_MS,
   buildAuthor,
+  buildComment,
   buildPerpPosition,
   buildPosition,
+  buildTrade,
 } from './positionDetailsSheet.fixtures';
 
 const mockNavigate = jest.fn();
@@ -44,8 +48,12 @@ jest.mock('./hooks/usePositionSheetData', () => ({
   usePositionSheetData: () => mockSheetData,
 }));
 
-jest.mock('../TraderPositionView/hooks/useTraderPosition', () => ({
-  useTraderPosition: () => ({ position: undefined, isLoading: false }),
+jest.mock('./hooks/useLivePosition', () => ({
+  useLivePosition: ({ snapshot }: { snapshot?: unknown }) => ({
+    position: snapshot,
+    isRefreshed: false,
+    isLoading: false,
+  }),
 }));
 
 jest.mock('../MyProfileView/hooks', () => ({
@@ -227,22 +235,77 @@ describe('PositionDetailsSheet', () => {
     });
   });
 
-  describe('post message', () => {
-    it('renders the comment when the post has one', () => {
-      mockParams = { ...mockParams, comment: 'Shorting the top' };
+  describe('tabs', () => {
+    it('lists every comment on the position under Posts', () => {
+      mockParams = {
+        ...mockParams,
+        position: buildPosition({
+          trades: [
+            buildTrade({
+              comments: [
+                buildComment({ uid: 'comment-2', text: 'Adding more' }),
+                buildComment({ uid: 'comment-1', text: 'Shorting the top' }),
+              ],
+            }),
+          ],
+        }),
+      };
 
       render(<PositionDetailsSheet />);
 
       expect(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COMMENT),
-      ).toHaveTextContent('Shorting the top');
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      ).toHaveTextContent(/Posts \(2\)/);
+      expect(
+        screen.getByTestId(
+          `${PositionDetailsSheetSelectorsIDs.POST_ROW}-comment-1`,
+        ),
+      ).toHaveTextContent(/Shorting the top/);
+      expect(
+        screen.getByTestId(
+          `${PositionDetailsSheetSelectorsIDs.POST_ROW}-comment-2`,
+        ),
+      ).toHaveTextContent(/Adding more/);
     });
 
-    it('is omitted for a trade', () => {
+    it('shows the empty state when the position has no comments', () => {
       render(<PositionDetailsSheet />);
 
       expect(
-        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.COMMENT),
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      ).toHaveTextContent(/Posts \(0\)/);
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_EMPTY),
+      ).toBeOnTheScreen();
+    });
+
+    it('switches to the fills under Transactions', () => {
+      mockParams = {
+        ...mockParams,
+        position: buildPosition({
+          trades: [
+            buildTrade({ transactionHash: '0xopen', action: 'opened' }),
+            buildTrade({
+              transactionHash: '0xadd',
+              action: 'added',
+              timestamp: NOW_MS - DAY_MS,
+            }),
+          ],
+        }),
+      };
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRANSACTIONS_TAB),
+      );
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRANSACTIONS_TAB),
+      ).toHaveTextContent(/Transactions \(2\)/);
+      expect(screen.getByTestId('trade-row-0xadd')).toBeOnTheScreen();
+      expect(screen.getByTestId('trade-row-0xopen')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_EMPTY),
       ).toBeNull();
     });
   });

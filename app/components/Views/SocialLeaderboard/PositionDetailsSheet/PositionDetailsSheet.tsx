@@ -5,8 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   Box,
-  Text,
-  TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
@@ -34,12 +32,13 @@ import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurf
 import { useOpenPerpsOrder } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
 import type { PerpDirection } from '../../../UI/SocialFeed/utils/perp';
 import { useMyProfile } from '../MyProfileView/hooks';
-import { useTraderPosition } from '../TraderPositionView/hooks/useTraderPosition';
 import PositionSheetChart from './components/PositionSheetChart';
 import PositionSheetFooter from './components/PositionSheetFooter';
 import PositionSheetHeader from './components/PositionSheetHeader';
 import PositionSheetPriceHeader from './components/PositionSheetPriceHeader';
+import PositionSheetTabs from './components/PositionSheetTabs';
 import PositionSheetTradeSummary from './components/PositionSheetTradeSummary';
+import { useLivePosition } from './hooks/useLivePosition';
 import { usePositionSheetData } from './hooks/usePositionSheetData';
 import { useTwoStepSheetReveal } from './hooks/useTwoStepSheetReveal';
 import { formatChartTimestamp } from './utils/chartWindow';
@@ -74,23 +73,29 @@ const PositionDetailsSheet = () => {
     positionId,
     position: positionParam,
     author,
-    comment,
     isClosed: isClosedParam,
+    isSnapshotLive,
   } = useParams<PositionDetailsSheetParams>();
 
-  const fetched = useTraderPosition(positionParam ? undefined : positionId);
-  const position = positionParam ?? fetched.position;
+  const live = useLivePosition({
+    positionId,
+    snapshot: positionParam,
+    isSnapshotLive,
+  });
+  const { position } = live;
 
   // `null` (unknown) is treated as online; only a confirmed `NONE` skips the
   // price fetch and the line draw.
   const networkTier = useNetworkTier();
   const isNetworkAvailable = networkTier !== 'NONE';
 
-  const data = usePositionSheetData(position, isClosedParam, {
-    isNetworkAvailable,
-  });
-  const isChartLoading =
-    data.isPricesLoading || (!position && fetched.isLoading);
+  // The caller's flag describes its snapshot; a newer copy carries its own.
+  const data = usePositionSheetData(
+    position,
+    live.isRefreshed ? undefined : isClosedParam,
+    { isNetworkAvailable },
+  );
+  const isChartLoading = data.isPricesLoading || live.isLoading;
   const reveal = useTwoStepSheetReveal({
     isChartReady: !isChartLoading,
     hasChartData: data.prices.length >= 2,
@@ -220,15 +225,8 @@ const PositionDetailsSheet = () => {
           isPnlPositive={data.isPnlPositive}
           onPress={handleSummaryPress}
         />
-        {comment ? (
-          <Text
-            variant={TextVariant.BodySm}
-            testID={PositionDetailsSheetSelectorsIDs.COMMENT}
-          >
-            {comment}
-          </Text>
-        ) : null}
       </Box>
+      <PositionSheetTabs position={position} author={author} />
       <PositionSheetFooter
         isPerp={data.isPerp}
         isClosed={data.isClosed}

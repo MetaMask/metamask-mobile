@@ -96,8 +96,14 @@ jest.mock('./SocialFeedPostShell', () => {
   const { Text: MockText } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: { id: string } }) => (
-      <MockText>{post.id}</MockText>
+    default: ({
+      post,
+      onPositionPress,
+    }: {
+      post: { id: string };
+      onPositionPress?: (post: { id: string }) => void;
+    }) => (
+      <MockText onPress={() => onPositionPress?.(post)}>{post.id}</MockText>
     ),
   };
 });
@@ -306,6 +312,30 @@ describe('SocialFeedVirtualized', () => {
       filterPost,
     });
   });
+
+  it.each([
+    ['streaming', realtimeState(), true],
+    ['not streaming', undefined, false],
+  ])(
+    'tells the position press whether the feed was %s',
+    (_label, realtime, isSnapshotLive) => {
+      const onPositionPress = jest.fn();
+      const tapped: SocialV1FeedPost = {
+        ...post('one'),
+        position: {
+          positionId: 'position-one',
+        } as SocialV1FeedPost['position'],
+      };
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [tapped], realtime }),
+      );
+
+      renderFeed({ realtime: true, onPositionPress });
+      fireEvent.press(screen.getByText('one'));
+
+      expect(onPositionPress).toHaveBeenCalledWith(tapped, { isSnapshotLive });
+    },
+  );
 
   it('stops fetching while unfocused', () => {
     mockUseIsFocused.mockReturnValue(false);

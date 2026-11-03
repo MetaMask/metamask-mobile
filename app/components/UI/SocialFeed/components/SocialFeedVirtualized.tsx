@@ -31,6 +31,7 @@ import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import { useSocialFeedScreenView } from '../socialFeedTracking';
+import type { SocialV1FeedPost } from '../types';
 import {
   buildSocialFeedListItems,
   getSocialFeedListItemKey,
@@ -324,6 +325,20 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     livePrices?.requestVisibilityCheck();
   }, [livePrices]);
 
+  // Read at tap time so the row callback stays stable across socket updates.
+  const isSnapshotLiveRef = useRef(false);
+  isSnapshotLiveRef.current = Boolean(live);
+  const handlePositionPress = useMemo(
+    () =>
+      onPositionPress
+        ? (post: SocialV1FeedPost) =>
+            onPositionPress(post, {
+              isSnapshotLive: isSnapshotLiveRef.current,
+            })
+        : undefined,
+    [onPositionPress],
+  );
+
   const entrances = live?.entrances;
   const lastIndex = listItems.length - 1;
   const renderItem = useCallback(
@@ -346,7 +361,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               reducedMotion={isLowHardware}
               onAuthorPress={onAuthorPress}
               onCopyTrade={onCopyTrade}
-              onPositionPress={onPositionPress}
+              onPositionPress={handlePositionPress}
               now={clock}
             />
           );
@@ -374,7 +389,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       location,
       onAuthorPress,
       onCopyTrade,
-      onPositionPress,
+      handlePositionPress,
       scheduleEntryDelay,
       state,
     ],

@@ -19,6 +19,7 @@ import {
   createSocialFeedEntrances,
   type SocialFeedEntrances,
 } from './socialFeedEntrances';
+import { acquireSocialRealtime } from './socialRealtimeLease';
 import {
   SOCIAL_FEED_REALTIME_BUFFER_SIZE,
   SOCIAL_FEED_REVEAL_BATCH_SIZE,
@@ -361,19 +362,14 @@ export const useSocialFeedRealtime = (
       return undefined;
     }
 
-    let cancelled = false;
     const removeListener = realtimeService.addListener(handleEvent);
     const removeReconnectListener =
       realtimeService.addReconnectListener(markCatchUp);
-    realtimeService
-      .setScopes([realtimeScope])
-      .then(() => (cancelled ? undefined : realtimeService.setActive(true)))
-      .catch(noop);
+    const release = acquireSocialRealtime(realtimeScope);
     return () => {
-      cancelled = true;
       removeListener();
       removeReconnectListener();
-      realtimeService.setActive(false).catch(noop);
+      release();
     };
   }, [active, handleEvent, markCatchUp, realtimeScope]);
 
