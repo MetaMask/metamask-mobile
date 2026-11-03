@@ -221,7 +221,7 @@ describe('MoneyVbaHomeCard', () => {
     );
   });
 
-  it('opens persisted account details directly and ignores a second tap', () => {
+  it('opens persisted account details directly and stays tappable afterward', () => {
     mockCanOpenPersistedVbaDetails.mockReturnValue(true);
     const { getByTestId } = render(
       <MoneyVbaHomeCard variant="account_is_ready" />,
@@ -234,7 +234,7 @@ describe('MoneyVbaHomeCard', () => {
     fireEvent.press(cta);
 
     expect(mockResolve).not.toHaveBeenCalled();
-    expect(mockOpenVbaEntry).toHaveBeenCalledTimes(1);
+    expect(mockOpenVbaEntry).toHaveBeenCalledTimes(2);
     expect(mockOpenVbaEntry).toHaveBeenCalledWith(mockNavigation, {
       source: 'vba-home-card-account-is-ready',
     });
