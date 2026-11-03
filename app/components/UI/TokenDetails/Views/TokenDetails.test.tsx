@@ -33,7 +33,7 @@ import {
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
@@ -50,6 +50,10 @@ import { usePriceApiHost } from '../context/PriceApiHostContext';
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
 const mockUseMostRecentOrder = jest.fn();
+const getSelectedAccountByScopeStub = (scope: string) =>
+  scope.startsWith('eip155:')
+    ? { address: '0x1234567890123456789012345678901234567890' }
+    : { address: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61' };
 
 jest.mock('../../../../util/deviceCapability', () => ({
   getHardwareTier: () => 'HIGH',
@@ -381,6 +385,7 @@ jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => ({
     '0x1': { nativeCurrency: 'ETH' },
   })),
+  selectNetworkConfigurationsByCaipChainId: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
@@ -582,8 +587,8 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectSelectedInternalAccountFormattedAddress)
-        return '0x1234567890123456789012345678901234567890';
+      if (selector === selectSelectedInternalAccountByScope)
+        return getSelectedAccountByScopeStub;
       if (selector === selectBridgeLimitOrderFeatureFlags)
         return { enabled: true, enabledChainIds: ['eip155:1'] };
       if (selector === selectBridgeRecurringBuyFeatureFlags)
@@ -962,6 +967,8 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
+      if (selector === selectSelectedInternalAccountByScope)
+        return getSelectedAccountByScopeStub;
       return undefined;
     });
 
@@ -1137,6 +1144,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1240,6 +1249,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1747,8 +1758,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectSelectedInternalAccountFormattedAddress)
-          return '0x1234567890123456789012345678901234567890';
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         if (selector === selectBridgeLimitOrderFeatureFlags)
           return { enabled: true, enabledChainIds: ['eip155:1'] };
         if (selector === selectBridgeRecurringBuyFeatureFlags)
