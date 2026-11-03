@@ -1,5 +1,6 @@
 import { Common, Hardfork } from '@ethereumjs/common';
 import { TransactionFactory, TransactionType } from '@ethereumjs/tx';
+import type { Hex } from '@metamask/utils';
 
 const POLYGON_CHAIN_ID = 137;
 
@@ -19,7 +20,8 @@ const buildTransaction = (nonce: string) =>
         {
           chainId: '0x89',
           address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          nonce,
+          // The patch fixes the runtime; the 5.4.0 types still describe a list.
+          nonce: nonce as unknown as Hex[],
           yParity: '0x',
           r: '0x92a33b87033e778e501312be23e7013968340fa6cf9471970479d128a45567eb',
           s: '0x31141a6d485c6b894f50fb15b00223076a8e4eb0efa2f74835fb45bf00a98462',
