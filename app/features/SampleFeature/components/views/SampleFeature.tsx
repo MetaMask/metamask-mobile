@@ -2,7 +2,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
@@ -19,6 +18,8 @@ import styleSheet from './SampleFeature.styles';
 import { baseStyles } from '../../../../styles/common';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { selectSampleFeatureCounterEnabled } from '../../selectors/sampleFeatureCounter';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * SampleFeature Component
@@ -46,6 +47,7 @@ import { selectSampleFeatureCounterEnabled } from '../../selectors/sampleFeature
  * @returns A scrollable view containing sample feature components
  */
 const SampleFeature = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { networkName, networkImageSource } = useSampleNetwork();
@@ -53,7 +55,9 @@ const SampleFeature = () => {
 
   return (
     <SafeAreaView style={styles.wrapper} edges={['left', 'right', 'bottom']}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title={strings('sample_feature.title')}
         onBack={() => navigation.goBack()}

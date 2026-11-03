@@ -1307,6 +1307,15 @@ describe('Engine', () => {
     );
   });
 
+  describe('when the sample feature is disabled', () => {
+    it('omits SamplePetnamesController from the context and state', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(Engine.context).not.toHaveProperty('SamplePetnamesController');
+      expect(Engine.state).not.toHaveProperty('SamplePetnamesController');
+    });
+  });
+
   describe('Engine.state', () => {
     it('throws error when accessing state before Engine exists', () => {
       expect(() => Engine.state).toThrow('Engine does not exist');
@@ -1317,9 +1326,6 @@ describe('Engine', () => {
       const controllersWithState = Object.entries(Engine.context)
         .filter(
           ([controllerName, controller]) =>
-            // SamplePetnamesController is undefined unless
-            // INCLUDE_SAMPLE_FEATURE=true.
-            Boolean(controller) &&
             'state' in controller &&
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
