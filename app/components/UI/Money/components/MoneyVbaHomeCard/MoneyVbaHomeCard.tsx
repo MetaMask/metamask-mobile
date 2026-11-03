@@ -19,6 +19,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Logger from '../../../../../util/Logger';
 import {
   navigateToVbaOnboardingDestination,
+  openVbaEntry,
   resolveVbaOnboarding,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
@@ -123,6 +124,16 @@ const MoneyVbaHomeCard = ({
     // flicker before opening the same screen.
     if (variant === 'kyc_pending') {
       navigateToVbaOnboardingDestination(navigation, 'kycPending');
+      hasPendingCtaOpenRef.current = false;
+      return;
+    }
+
+    // An approved session with a usable autoramp already has local account
+    // state. Opening details directly and hydrating in the background
+    // matches the Details action elsewhere on Money home and skips the
+    // button spinner that a full resolve-then-navigate round trip causes.
+    if (variant === 'account_is_ready') {
+      openVbaEntry(navigation, { source: config.source });
       hasPendingCtaOpenRef.current = false;
       return;
     }
