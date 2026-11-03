@@ -358,6 +358,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         <SocialFeedPostShell
           post={post}
           requireSocialTerms
+          requireSocialProfile
           onCopyTrade={handleCopyTrade}
           onAuthorPress={handleAuthorPress}
           onPositionPress={post.position ? handlePositionPress : undefined}

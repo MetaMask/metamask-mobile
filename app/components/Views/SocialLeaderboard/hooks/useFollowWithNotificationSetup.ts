@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
-import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
+import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
+import { useRequireSocialProfileOnboarding } from './useRequireSocialProfileOnboarding';
 
 /** The follow or unfollow write. A follow runs before notification setup. */
 type PerformFollow = () => void | Promise<void>;
@@ -44,10 +45,14 @@ export const useFollowWithNotificationSetup = ({
 }: UseFollowWithNotificationSetupOptions = {}): UseFollowWithNotificationSetupResult => {
   const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
 
   const followWithSetup = useCallback(
     async (isFollowing: boolean, performFollow: PerformFollow) => {
       if (requireSocialTerms && !ensureSocialTermsAccepted()) {
+        return;
+      }
+      if (!ensureSocialProfileOnboarding()) {
         return;
       }
       await performFollow();
@@ -57,7 +62,12 @@ export const useFollowWithNotificationSetup = ({
         openSetupIfNeeded();
       }
     },
-    [ensureSocialTermsAccepted, openSetupIfNeeded, requireSocialTerms],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openSetupIfNeeded,
+      requireSocialTerms,
+    ],
   );
 
   return { followWithSetup };

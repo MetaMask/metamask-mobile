@@ -56,6 +56,11 @@ export interface SocialFeedPostShellProps {
   onPositionPress?: (post: SocialV1FeedPost) => void;
   /** Gates interactions when the post is rendered on a Social V1 surface. */
   requireSocialTerms?: boolean;
+  /**
+   * Gates Copy trade behind a linked social wallet. Social V1 hosts pass
+   * this; token details and other embeds leave it off.
+   */
+  requireSocialProfile?: boolean;
   /** Clock for the relative timestamp. Defaults to `Date.now()`. */
   now?: number;
 }
@@ -69,6 +74,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   onAuthorPress,
   onPositionPress,
   requireSocialTerms = false,
+  requireSocialProfile = false,
   now,
 }) => {
   const tracked = useSocialFeedTracking();
@@ -86,6 +92,19 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     () => !requireSocialTerms || ensureSocialTermsAccepted(),
     [ensureSocialTermsAccepted, requireSocialTerms],
   );
+  const ensureCopyTradeAllowed = useCallback(() => {
+    if (!ensureSocialTermsForInteraction()) {
+      return false;
+    }
+    if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
+      return false;
+    }
+    return true;
+  }, [
+    ensureSocialProfileOnboarding,
+    ensureSocialTermsForInteraction,
+    requireSocialProfile,
+  ]);
   const optionsTarget = useMemo(
     () => ({
       postId: post.id,
@@ -155,25 +174,25 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsForInteraction()) {
+    if (!ensureCopyTradeAllowed()) {
       return;
     }
     notifyCopy?.('spot');
     onSpotCopyTrade?.(post.item, post.commentId);
   }, [
-    ensureSocialTermsForInteraction,
+    ensureCopyTradeAllowed,
     notifyCopy,
     onSpotCopyTrade,
     post.item,
     post.commentId,
   ]);
   const handlePerpsCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsForInteraction()) {
+    if (!ensureCopyTradeAllowed()) {
       return;
     }
     notifyCopy?.('perps');
     onPerpsCopyTrade?.();
-  }, [ensureSocialTermsForInteraction, notifyCopy, onPerpsCopyTrade]);
+  }, [ensureCopyTradeAllowed, notifyCopy, onPerpsCopyTrade]);
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade
