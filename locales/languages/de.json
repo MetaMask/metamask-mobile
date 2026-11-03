@@ -1510,7 +1510,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Anwenden",
         "apply": "Anwenden",
         "reset": "Zurücksetzen",
