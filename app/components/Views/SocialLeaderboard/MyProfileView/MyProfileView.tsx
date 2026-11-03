@@ -141,8 +141,9 @@ const MyProfileView: React.FC = () => {
     if (isOwner) {
       return myProfile;
     }
-    if (liveProfile.profile) {
-      return traderProfileResponseToMySocialProfile(liveProfile.profile, {
+    const remoteProfile = liveProfile.profile;
+    if (remoteProfile) {
+      return traderProfileResponseToMySocialProfile(remoteProfile, {
         handle: traderName,
         imageUrl: traderAvatarUri,
       });
