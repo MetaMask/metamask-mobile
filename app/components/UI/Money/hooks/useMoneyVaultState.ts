@@ -21,6 +21,7 @@ import { parseApy, toApyPercent } from '../utils/apy';
 import {
   getMoneyVaultState,
   hasPositiveUsd,
+  matchesVault,
   type MoneyVaultKind,
   MoneyVaultStatus,
 } from '../utils/moneyVaultState';
@@ -115,17 +116,11 @@ const useMoneyVaultState = (): UseMoneyVaultStateResult => {
 
   const positions = positionsQuery.data?.positions;
   const hasPremiumPosition =
-    positions?.some((position) => {
-      const matchesAddress =
-        premiumVaultAddress !== undefined &&
-        position.vault_address?.toLowerCase() ===
-          premiumVaultAddress.toLowerCase();
-      const matchesKey = position.vault_key === 'premium';
-      return (
-        (matchesAddress || matchesKey) &&
-        hasPositiveUsd(position.current_value_usd)
-      );
-    }) ?? false;
+    positions?.some(
+      (position) =>
+        matchesVault(position, premiumVaultAddress, 'premium') &&
+        hasPositiveUsd(position.current_value_usd),
+    ) ?? false;
 
   const { rate, vaultRateQuery } = useMoneyPremiumVaultRate({
     enabled: isEntitled || hasPremiumPosition,
