@@ -1,7 +1,9 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { lightTheme } from '@metamask/design-tokens';
 import { DevLogger } from '../../../../../../core/SDKConnect/utils/DevLogger';
+import { ChoiceMarketGroupCardTestIds } from '../../../events/markets/ChoiceMarketGroupCard.testIds';
 import { MarketGroupCardTestIds } from '../../../events/markets/MarketGroupCard.testIds';
 import { MarketStandardCardTestIds } from '../../../events/markets/MarketStandardCard.testIds';
 import { MoneylineMarketGroupCardTestIds } from '../../../events/markets/MoneylineMarketGroupCard.testIds';
@@ -116,6 +118,54 @@ describe('EventMarketLayoutCard', () => {
     expect(
       screen.getByTestId(MoneylineMarketGroupCardTestIds.card('moneyline')),
     ).toBeOnTheScreen();
+  });
+
+  const henry: MarketLayoutCard = {
+    type: 'choice',
+    key: 'henry',
+    markets: [
+      createMarket(
+        'henry-40',
+        { key: 'henry', groupType: 'choice', label: 'Derrick Henry' },
+        'away',
+      ),
+    ],
+  };
+
+  it("renders a labelled choice group as a choice card titled with its label, in its Team's color", () => {
+    const { onOrder } = renderCard(henry);
+
+    expect(
+      screen.getByTestId(ChoiceMarketGroupCardTestIds.title('henry')),
+    ).toHaveTextContent('Derrick Henry');
+    expect(
+      screen.queryByTestId(MoneylineMarketGroupCardTestIds.card('henry')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        ChoiceMarketGroupCardTestIds.line('henry', 'henry-40'),
+      ),
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.info.default });
+
+    fireEvent.press(
+      screen.getByTestId(
+        ChoiceMarketGroupCardTestIds.price('henry', 'henry-40'),
+      ),
+    );
+    expect(onOrder).toHaveBeenCalledWith(
+      henry.markets[0],
+      henry.markets[0].outcomes[0],
+    );
+  });
+
+  it('colors a labelled choice card neutrally without a Game', () => {
+    renderCard(henry, { withGame: false });
+
+    expect(
+      screen.getByTestId(
+        ChoiceMarketGroupCardTestIds.line('henry', 'henry-40'),
+      ),
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.text.alternative });
   });
 
   it('renders a choice group as standard cards when the Event has no Game', () => {

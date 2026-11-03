@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { DevLogger } from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
 import { PREDICT_MARKET_TYPES } from '../../../constants';
+import { useGameTeamColors } from '../../../events/game';
 import {
+  ChoiceMarketGroupCard,
   MarketStandardCard,
   MoneylineMarketGroupCard,
   SpreadMarketGroupCard,
@@ -86,6 +89,40 @@ const getTeamTotalTitle = (
 };
 
 /**
+ * A titled choice card, such as a Player's thresholds: each row in the color
+ * of the Team its yes side backs, without an avatar; neutral without a Game
+ * or a Team.
+ */
+const LabelledChoiceCard = ({
+  game,
+  ...props
+}: {
+  groupKey: string;
+  markets: readonly PredictMarket[];
+  title: string;
+  game?: PredictGame;
+  onOrder: EventMarketLayoutCardProps['onOrder'];
+}) => {
+  const { colors } = useTheme();
+  const teamColors = useGameTeamColors(game);
+  const describeRow = useCallback(
+    (_market: PredictMarket, yes: PredictOutcome) => {
+      const selection = yes.gameSelection;
+      return {
+        label: yes.label,
+        color:
+          game && (selection === 'home' || selection === 'away')
+            ? teamColors[selection]
+            : colors.text.alternative,
+      };
+    },
+    [colors.text.alternative, game, teamColors],
+  );
+
+  return <ChoiceMarketGroupCard {...props} describeRow={describeRow} />;
+};
+
+/**
  * Renders one projected card with the component for its group's shape. Line
  * pickers have no title or rules button: the section header names them.
  */
@@ -108,6 +145,18 @@ export const EventMarketLayoutCard = ({
   }
 
   if (card.type === 'choice') {
+    const label = card.markets[0]?.group?.label;
+    if (label !== undefined) {
+      return (
+        <LabelledChoiceCard
+          groupKey={card.key}
+          markets={card.markets}
+          title={label}
+          game={game}
+          onOrder={onOrder}
+        />
+      );
+    }
     return game ? (
       <MoneylineMarketGroupCard
         groupKey={card.key}
