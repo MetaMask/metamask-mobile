@@ -465,6 +465,9 @@ describe('EarningsTab tax documentation', () => {
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
     expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+    expect(
       queryByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
     ).toBeNull();
     await waitFor(() => {
@@ -509,6 +512,99 @@ describe('EarningsTab tax documentation', () => {
     expect(
       callsFor(engine, 'RewardsMoneyController:getTaxMe').length,
     ).toBeGreaterThan(0);
+  });
+
+  it('shows the summary amount and submits only cashback when follow-trade is closed', async () => {
+    const summary = earningsSummaryFixture({
+      claimable: '2000000',
+      cashbackClaimable: '1000000',
+    });
+    summary.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE = {
+      lifetime: '1000000',
+      claimable: '1000000',
+      held: '0',
+      blocked: '0',
+      voided: '0',
+      pending: '0',
+      claimed: '0',
+    };
+    const { findByTestId, engine } = renderEarningsTab({
+      persona: 'referee',
+      summary,
+      claimReady: true,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED),
+      },
+    });
+
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
+          (call) => call[1],
+        ),
+      ).toEqual(['referral-trade-fee-cashback']);
+    });
+  });
+
+  it('shows follow-trade and submits it when the tax form and claim route are open', async () => {
+    const summary = earningsSummaryFixture({
+      claimable: '2000000',
+      cashbackClaimable: '1000000',
+    });
+    summary.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE = {
+      lifetime: '1000000',
+      claimable: '1000000',
+      held: '0',
+      blocked: '0',
+      voided: '0',
+      pending: '0',
+      claimed: '0',
+    };
+    const { findByTestId, engine } = renderEarningsTab({
+      persona: 'referee',
+      summary,
+      claimReady: true,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED),
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve({
+            results: [],
+            mechanisms: {
+              REFERRAL_REV_SHARE: {
+                claim_open: false,
+                reason: 'MECHANISM_NOT_CLAIMABLE',
+              },
+              SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
+            },
+            has_more: false,
+            cursor: null,
+          }),
+      },
+    });
+
+    await waitFor(async () => {
+      expect(
+        await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+      ).toHaveTextContent('$2.00');
+    });
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
+          (call) => call[1],
+        ),
+      ).toEqual(['referral-trade-fee-cashback', 'social-follow-trade']);
+    });
   });
 
   it('shows the determination sheet for a provider 503 and does not retry', async () => {

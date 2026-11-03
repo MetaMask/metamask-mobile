@@ -557,8 +557,8 @@ export function useClaimEarnings(
     },
     [
       localizedText,
-      persona,
       followTradeClaimOpen,
+      persona,
       moneyAccount?.address,
       vaultConfig,
       isSponsorshipEnabled,

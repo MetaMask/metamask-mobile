@@ -3,6 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import type {
   EarningsSummaryDto,
   LedgerEntryDto,
+  MechanismsView,
   ReferralLocalizedText,
   ReferralMeDto,
   ReferralRole,
@@ -18,6 +19,7 @@ import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListS
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows.testIds';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner.testIds';
+import { useFollowTradeClaimOpen } from '../../../hooks/useFollowTradeClaimOpen';
 import EarningsTab from './EarningsTab';
 import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
 
@@ -83,6 +85,14 @@ jest.mock('../../../hooks/useInFlightClaims', () => ({
 }));
 
 const PROFILE_ID = 'profile-a';
+
+const OPEN_FOLLOW_TRADE: MechanismsView = {
+  REFERRAL_REV_SHARE: {
+    claim_open: false,
+    reason: 'MECHANISM_NOT_CLAIMABLE',
+  },
+  SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
+};
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
@@ -224,6 +234,7 @@ const renderTab = (
     onViewPerformance = jest.fn(),
     roles,
     localizedText = LOCALIZED_TEXT,
+    followTradeClaimOpen = false,
   }: {
     summary?: EarningsSummaryDto | null;
     summaryLoading?: boolean;
@@ -237,8 +248,10 @@ const renderTab = (
     onViewPerformance?: () => void;
     roles?: ReferralRole[];
     localizedText?: ReferralLocalizedText;
+    followTradeClaimOpen?: boolean;
   } = {},
 ) => {
+  (useFollowTradeClaimOpen as jest.Mock).mockReturnValue(followTradeClaimOpen);
   (useEarningsSummary as jest.Mock).mockReturnValue({ fetchEarningsSummary });
   (useLast7DaysEarnings as jest.Mock).mockReturnValue({
     data: last7,
@@ -280,6 +293,9 @@ const renderTab = (
               data: summary,
             },
           },
+          commissionMechanisms: followTradeClaimOpen
+            ? { [PROFILE_ID]: OPEN_FOLLOW_TRADE }
+            : {},
         },
       },
     },
@@ -603,6 +619,16 @@ describe('EarningsTab', () => {
         claimable: '12000000',
         held: '0',
         blocked: '0',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '12000000',
+            },
+          },
+        },
       },
     });
 
@@ -621,6 +647,157 @@ describe('EarningsTab', () => {
         }),
       );
     });
+  });
+
+  it('offers Claim to a referrer whose follow-trade balance meets the minimum', () => {
+    const { getByTestId } = renderTab('referrer', {
+      followTradeClaimOpen: true,
+      summary: {
+        ...SUMMARY,
+        claimable: '1000000',
+        earned_by_others: {
+          ...SUMMARY.earned_by_others,
+          by_claim_family: {
+            ...SUMMARY.earned_by_others.by_claim_family,
+            SOCIAL_FOLLOW_TRADE: {
+              ...branch('9150000'),
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not offer Claim for follow-trade when the claim route is closed', () => {
+    const { getByTestId, queryByTestId } = renderTab('referrer', {
+      summary: {
+        ...SUMMARY,
+        claimable: '1000000',
+        earned_by_others: {
+          ...SUMMARY.earned_by_others,
+          by_claim_family: {
+            ...SUMMARY.earned_by_others.by_claim_family,
+            SOCIAL_FOLLOW_TRADE: {
+              ...branch('9150000'),
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+  });
+
+  it('does not offer Claim for follow-trade when the tax form URL is hidden', () => {
+    const { getByTestId, queryByTestId } = renderTab('referrer', {
+      followTradeClaimOpen: true,
+      localizedText: { ...LOCALIZED_TEXT, taxFormUrl: '' },
+      summary: {
+        ...SUMMARY,
+        claimable: '1000000',
+        earned_by_others: {
+          ...SUMMARY.earned_by_others,
+          by_claim_family: {
+            ...SUMMARY.earned_by_others.by_claim_family,
+            SOCIAL_FOLLOW_TRADE: {
+              ...branch('9150000'),
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+  });
+
+  it('shows the summary amount and keeps Claim when follow-trade is closed', () => {
+    const { getByTestId } = renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        claimable: '2000000',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+        earned_by_others: {
+          ...SUMMARY.earned_by_others,
+          by_claim_family: {
+            ...SUMMARY.earned_by_others.by_claim_family,
+            SOCIAL_FOLLOW_TRADE: {
+              ...branch('9150000'),
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the summary amount and Claim when the tax form and claim route are open', () => {
+    const { getByTestId } = renderTab('referee', {
+      followTradeClaimOpen: true,
+      summary: {
+        ...SUMMARY,
+        claimable: '2000000',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+        earned_by_others: {
+          ...SUMMARY.earned_by_others,
+          by_claim_family: {
+            ...SUMMARY.earned_by_others.by_claim_family,
+            SOCIAL_FOLLOW_TRADE: {
+              ...branch('9150000'),
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('does not show Paused for a referrer with a positive hold', () => {

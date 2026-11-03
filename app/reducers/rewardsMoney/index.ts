@@ -257,6 +257,16 @@ const rewardsMoneySlice = createSlice({
     ) => {
       state.commissions[action.payload.profileId] = action.payload.items;
     },
+    setCommissionMechanisms: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        mechanisms: MechanismsView;
+      }>,
+    ) => {
+      state.commissionMechanisms[action.payload.profileId] =
+        action.payload.mechanisms;
+    },
     setCashbackLedger: (
       state,
       action: PayloadAction<{
