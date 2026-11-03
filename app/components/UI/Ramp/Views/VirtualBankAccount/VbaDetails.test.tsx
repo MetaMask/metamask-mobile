@@ -1,8 +1,12 @@
 import React, { StrictMode } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, AppState } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
+import {
+  AutorampStatus,
+  type AutorampDepositInstructions,
+  type AutorampRemoteSnapshot,
+} from '@metamask/ramps-controller';
 import renderWithProvider, {
   type ProviderValues,
 } from '../../../../../util/test/renderWithProvider';
@@ -11,7 +15,12 @@ import ReduxService from '../../../../../core/redux';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
-import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
+import VbaDetails, {
+  DEFAULT_POLL_INTERVAL_MS,
+  VBA_DETAILS_APPROVAL_BACKOFF_POLL_INTERVAL_MS,
+  VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT,
+  VbaDetailsSelectorsIDs,
+} from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
 import {
@@ -57,6 +66,7 @@ let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
 let mockCanGoBack = true;
+let focusEffect: (() => void) | undefined;
 
 jest.mock('./vbaAnalytics', () => ({
   ...jest.requireActual('./vbaAnalytics'),
@@ -72,12 +82,30 @@ const mockNavigation = {
   goBack: (...args: unknown[]) => mockGoBack(...args),
   navigate: (...args: unknown[]) => mockNavigate(...args),
 };
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  // Stable like the real hook, so effects keyed on navigation do not rerun.
-  useNavigation: () => mockNavigation,
-  useRoute: () => ({ params: mockRouteParams }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const react = jest.requireActual<typeof import('react')>('react');
+  return {
+    ...jest.requireActual('@react-navigation/native'),
+    // Stable like the real hook, so effects keyed on navigation do not rerun.
+    useNavigation: () => mockNavigation,
+    useRoute: () => ({ params: mockRouteParams }),
+    // The real hook needs a navigator focus event. Tests re-invoke the
+    // effect to simulate a later focus. Component-view tests cannot use
+    // fake timers, so the poll cadence lives in this unit file.
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      react.useEffect(() => {
+        focusEffect = effect;
+        const cleanup = effect();
+        return () => {
+          focusEffect = undefined;
+          if (typeof cleanup === 'function') {
+            cleanup();
+          }
+        };
+      }, [effect]);
+    },
+  };
+});
 
 jest.mock('../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
@@ -894,22 +922,36 @@ describe('VbaDetails', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows Creating your bank account until the autoramp is Approved', async () => {
-    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
+  it('shows the MoonPay approval wait for an autoramp that is not approved yet', async () => {
+    setAutoramps([
+      { id: 'ar-1', walletAddress: '0xabc', status: AutorampStatus.Created },
+    ]);
     mockRefreshAutoramp.mockResolvedValue({
       id: 'ar-1',
       walletAddress: '0xabc',
-      status: 'Authorized',
+      status: AutorampStatus.Authorized,
     });
 
-    const { getByText, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByText, queryByTestId, queryByText } = renderWithProvider(
+      <VbaDetails />,
+    );
 
+    expect(
+      getByText(
+        strings('virtual_bank_account.creating_account.awaiting_provider'),
+      ),
+    ).toBeOnTheScreen();
     await waitFor(() => {
       expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
     });
     expect(
-      getByText(strings('virtual_bank_account.creating_account.title')),
+      getByText(
+        strings('virtual_bank_account.creating_account.awaiting_provider'),
+      ),
     ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('virtual_bank_account.creating_account.title')),
+    ).toBeNull();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(queryByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeNull();
   });
@@ -1083,28 +1125,33 @@ describe('VbaDetails', () => {
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
-  it('opens the generic error when the autoramp is rejected after creation', async () => {
-    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
-    mockRefreshAutoramp.mockResolvedValue({
-      id: 'ar-1',
-      walletAddress: '0xabc',
-      status: 'Rejected',
-    });
+  it.each([AutorampStatus.Rejected, AutorampStatus.Cancelled])(
+    'opens the generic error when the autoramp is %s after creation',
+    async (status) => {
+      setAutoramps([
+        { id: 'ar-1', walletAddress: '0xabc', status: AutorampStatus.Created },
+      ]);
+      mockRefreshAutoramp.mockResolvedValue({
+        id: 'ar-1',
+        walletAddress: '0xabc',
+        status,
+      });
 
-    renderWithProvider(<VbaDetails />);
+      renderWithProvider(<VbaDetails />);
 
-    await waitFor(() => {
-      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
-        expect.anything(),
-        'accountCreateGeneric',
-        undefined,
-        undefined,
-        'BRL',
-      );
-    });
-    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-  });
+      await waitFor(() => {
+        expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+          expect.anything(),
+          'accountCreateGeneric',
+          undefined,
+          undefined,
+          'BRL',
+        );
+      });
+      expect(mockGetDepositInstructions).not.toHaveBeenCalled();
+      expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    },
+  );
 
   it.each(['RegistrationFailed', 'AuthorizationFailed'] as const)(
     'opens the verification error when refresh returns %s',
@@ -1428,6 +1475,290 @@ describe('VbaDetails', () => {
       enabled: true,
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
+  });
+
+  describe('approval wait polling', () => {
+    // Component-view tests forbid fake timers, and this cadence is a timer
+    // contract, so it stays in the unit suite next to the Engine mock.
+    const authorizedAutoramp: AutorampRemoteSnapshot = {
+      id: 'ar-1',
+      walletAddress: '0xabc',
+      status: AutorampStatus.Authorized,
+      depositRailsSummary: { currency: 'BRL', ready: false },
+    };
+
+    const settleTick = async () => {
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+    };
+
+    const advanceAndSettle = async (intervalMs: number) => {
+      await act(async () => {
+        jest.advanceTimersByTime(intervalMs);
+      });
+      await settleTick();
+    };
+
+    const renderAuthorizedWait = async () => {
+      mockHardwareTier = 'HIGH';
+      mockNetworkTier = 'WIFI';
+      setAutoramps([
+        {
+          id: authorizedAutoramp.id,
+          walletAddress: '0xabc',
+          status: AutorampStatus.Authorized,
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+      mockRefreshAutoramp.mockResolvedValue(authorizedAutoramp);
+      const view = renderWithProvider(<VbaDetails />);
+      await settleTick();
+      return view;
+    };
+
+    const reachBackoff = async () => {
+      await renderAuthorizedWait();
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(1);
+      for (
+        let poll = 1;
+        poll < VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT;
+        poll += 1
+      ) {
+        await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      }
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT,
+      );
+    };
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.mocked(AppState.addEventListener).mockImplementation(() => ({
+        remove: jest.fn(),
+      }));
+    });
+
+    it('shows the approval wait and polls every 60s after 30 fast polls', async () => {
+      jest.useFakeTimers();
+      const view = await renderAuthorizedWait();
+      const { getByText } = view;
+
+      expect(
+        getByText(
+          strings('virtual_bank_account.creating_account.awaiting_provider'),
+        ),
+      ).toBeOnTheScreen();
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(1);
+
+      for (
+        let poll = 1;
+        poll < VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT;
+        poll += 1
+      ) {
+        await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+        expect(mockRefreshAutoramp).toHaveBeenCalledTimes(poll + 1);
+      }
+
+      await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT,
+      );
+
+      await advanceAndSettle(
+        VBA_DETAILS_APPROVAL_BACKOFF_POLL_INTERVAL_MS -
+          DEFAULT_POLL_INTERVAL_MS,
+      );
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT + 1,
+      );
+
+      view.unmount();
+      const callsAfterUnmount = mockRefreshAutoramp.mock.calls.length;
+      await advanceAndSettle(VBA_DETAILS_APPROVAL_BACKOFF_POLL_INTERVAL_MS);
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(callsAfterUnmount);
+    });
+
+    it('returns to the 10s interval when the screen is focused again', async () => {
+      jest.useFakeTimers();
+      await reachBackoff();
+
+      await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT,
+      );
+
+      await act(async () => {
+        focusEffect?.();
+      });
+      await settleTick();
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT + 1,
+      );
+
+      await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT + 2,
+      );
+    });
+
+    it('returns to the 10s interval when the app becomes active', async () => {
+      jest.useFakeTimers();
+      let onAppStateChange: ((state: string) => void) | undefined;
+      const appStateSpy = jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((event, handler) => {
+          if (event === 'change') {
+            onAppStateChange = handler as (state: string) => void;
+          }
+          return { remove: jest.fn() };
+        });
+
+      await reachBackoff();
+      await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT,
+      );
+
+      await act(async () => {
+        onAppStateChange?.('background');
+        onAppStateChange?.('active');
+      });
+      await settleTick();
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT + 1,
+      );
+
+      await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      expect(mockRefreshAutoramp).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT + 2,
+      );
+      appStateSpy.mockImplementation(() => ({ remove: jest.fn() }));
+    });
+
+    it('keeps the fast interval when Approved instructions are still null', async () => {
+      jest.useFakeTimers();
+      mockHardwareTier = 'HIGH';
+      mockNetworkTier = 'WIFI';
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: AutorampStatus.Approved,
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+      mockGetDepositInstructions.mockResolvedValue(null);
+
+      renderWithProvider(<VbaDetails />);
+      await settleTick();
+      expect(mockGetDepositInstructions).toHaveBeenCalledTimes(1);
+
+      for (
+        let poll = 1;
+        poll < VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT;
+        poll += 1
+      ) {
+        await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      }
+      expect(mockGetDepositInstructions).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT,
+      );
+
+      await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      expect(mockGetDepositInstructions).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT + 1,
+      );
+    });
+
+    it('backs off to 60s while no autoramp row exists yet', async () => {
+      jest.useFakeTimers();
+      mockHardwareTier = 'HIGH';
+      mockNetworkTier = 'WIFI';
+      setAutoramps([]);
+      mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
+
+      const { getByText } = renderWithProvider(<VbaDetails />);
+      await settleTick();
+      expect(
+        getByText(strings('virtual_bank_account.creating_account.title')),
+      ).toBeOnTheScreen();
+      expect(mockHydrate).toHaveBeenCalledTimes(1);
+      expect(mockCreateAutoramp).not.toHaveBeenCalled();
+
+      for (
+        let poll = 1;
+        poll < VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT;
+        poll += 1
+      ) {
+        await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      }
+      expect(mockHydrate).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT,
+      );
+
+      await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      expect(mockHydrate).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT,
+      );
+
+      await advanceAndSettle(
+        VBA_DETAILS_APPROVAL_BACKOFF_POLL_INTERVAL_MS -
+          DEFAULT_POLL_INTERVAL_MS,
+      );
+      expect(mockHydrate).toHaveBeenCalledTimes(
+        VBA_DETAILS_APPROVAL_FAST_POLL_LIMIT + 1,
+      );
+    });
+
+    it('keeps polling and shows the load error when a refresh fails', async () => {
+      jest.useFakeTimers();
+      mockHardwareTier = 'HIGH';
+      mockNetworkTier = 'WIFI';
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: AutorampStatus.Approved,
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+      mockGetDepositInstructions.mockRejectedValue(new Error('details failed'));
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+      await settleTick();
+      expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
+      expect(mockGetDepositInstructions).toHaveBeenCalledTimes(1);
+
+      await advanceAndSettle(DEFAULT_POLL_INTERVAL_MS);
+      expect(mockGetDepositInstructions).toHaveBeenCalledTimes(2);
+      expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
+    });
+
+    it('loads deposit instructions for an Approved autoramp', async () => {
+      mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: AutorampStatus.Approved,
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+
+      const { getByTestId, queryByText } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+      });
+      expect(
+        queryByText(
+          strings('virtual_bank_account.creating_account.awaiting_provider'),
+        ),
+      ).toBeNull();
+      expect(mockRefreshAutoramp).not.toHaveBeenCalled();
     });
   });
 
