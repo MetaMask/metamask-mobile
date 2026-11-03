@@ -258,6 +258,36 @@ describe('SocialV1View copy trade', () => {
   });
 });
 
+describe('SocialV1View terms gate', () => {
+  beforeEach(async () => {
+    await resetSocialTermsAcceptance();
+    setupLeaderboardApiMock({ feedItems: [openPerpFeedItem] });
+    installComplianceController(false);
+  });
+
+  afterEach(() => {
+    clearLeaderboardApiMock();
+  });
+
+  it('opens profile onboarding instead of copy trade when terms are not accepted', async () => {
+    renderSocialV1ViewWithRoutes(
+      [perpsModalsRoute, { name: Routes.SOCIAL.PROFILE_ONBOARDING }],
+      { overrides: eligibleOverrides },
+    );
+
+    await pressCopyTrade();
+
+    expect(
+      await screen.findByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT)),
+    ).toBeNull();
+  });
+});
+
 describe('SocialV1View initial tab', () => {
   const feedPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`;
   const getCalledActions = () =>

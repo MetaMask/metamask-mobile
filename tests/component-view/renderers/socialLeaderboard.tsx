@@ -10,12 +10,17 @@
  */
 
 import '../mocks';
-import React from 'react';
-import { View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Text, View } from 'react-native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
-import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
+import {
+  getRouteProbeTestId,
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import ReduxService from '../../../app/core/redux/ReduxService';
 import type { ReduxStore } from '../../../app/core/redux/types';
@@ -244,18 +249,15 @@ export const SECOND_ONBOARDING_EVM_ACCOUNT = {
   address: '0x0000000000000000000000000000000000000002',
 };
 
-/**
- * Renders profile onboarding with an EVM account that has a native mainnet
- * balance, plus a Solana account. The balance hooks are EVM-only. Onboarding
- * must mount and list only the EVM account.
- *
- * Pass `includeSecondEvmAccount` to add a second EVM account after the default.
- */
-export function renderSocialProfileOnboarding(
-  extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
-  options: { includeSecondEvmAccount?: boolean } = {},
-) {
-  const state = createStateFixture()
+interface RenderSocialProfileOnboardingOptions {
+  includeSecondEvmAccount?: boolean;
+  initialParams?: Record<string, unknown>;
+}
+
+const buildSocialProfileOnboardingState = ({
+  includeSecondEvmAccount = false,
+}: RenderSocialProfileOnboardingOptions = {}) =>
+  createStateFixture()
     .withMinimalAccounts()
     .withMinimalKeyringController()
     .withMinimalMainnetNetwork()
@@ -281,7 +283,7 @@ export function renderSocialProfileOnboarding(
                   type: SolAccountType.DataAccount,
                   scopes: [SolScope.Mainnet],
                 },
-                ...(options.includeSecondEvmAccount
+                ...(includeSecondEvmAccount
                   ? {
                       [SECOND_ONBOARDING_EVM_ACCOUNT.id]: {
                         id: SECOND_ONBOARDING_EVM_ACCOUNT.id,
@@ -330,10 +332,64 @@ export function renderSocialProfileOnboarding(
     })
     .build();
 
+/**
+ * Renders profile onboarding with an EVM account that has a native mainnet
+ * balance, plus a Solana account. The balance hooks are EVM-only. Onboarding
+ * must mount and list only the EVM account.
+ *
+ * Pass `includeSecondEvmAccount` to add a second EVM account after the default.
+ */
+export function renderSocialProfileOnboarding(
+  extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
+  options: RenderSocialProfileOnboardingOptions = {},
+) {
+  const state = buildSocialProfileOnboardingState(options);
+
   return renderScreenWithRoutes(
     SocialProfileOnboardingView as unknown as React.ComponentType,
     { name: Routes.SOCIAL.PROFILE_ONBOARDING },
     extraRoutes,
+    { state },
+    options.initialParams,
+  );
+}
+
+/**
+ * Starts profile onboarding after a previous route so terms-only dismissal
+ * can be asserted with the real navigation stack.
+ */
+export function renderSocialProfileOnboardingWithBackStack(
+  options: RenderSocialProfileOnboardingOptions = {},
+) {
+  const state = buildSocialProfileOnboardingState(options);
+  const BackStackEntry = () => {
+    const isFocused = useIsFocused();
+    const navigation = useNavigation();
+
+    useEffect(() => {
+      navigation.navigate(
+        Routes.SOCIAL.PROFILE_ONBOARDING,
+        options.initialParams,
+      );
+    }, [navigation]);
+
+    return isFocused ? (
+      <Text testID={getRouteProbeTestId(Routes.SOCIAL.V1)}>
+        {Routes.SOCIAL.V1}
+      </Text>
+    ) : null;
+  };
+
+  return renderScreenWithRoutes(
+    BackStackEntry,
+    { name: Routes.SOCIAL.V1 },
+    [
+      {
+        name: Routes.SOCIAL.PROFILE_ONBOARDING,
+        Component:
+          SocialProfileOnboardingView as unknown as React.ComponentType,
+      },
+    ],
     { state },
   );
 }
