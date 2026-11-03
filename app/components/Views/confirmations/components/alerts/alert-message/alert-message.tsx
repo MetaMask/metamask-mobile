@@ -1,19 +1,13 @@
 import React, { ReactElement } from 'react';
-import { StyleProp, TextStyle } from 'react-native';
-import {
-  HelpText,
-  HelpTextSeverity,
-} from '@metamask/design-system-react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 
 export interface AlertMessageProps {
   content?: ReactElement;
   alertMessage: string | undefined;
-  /** Overrides the help-text size. HelpText itself is fixed at body-sm. */
-  style?: StyleProp<TextStyle>;
 }
 
 export const AlertMessage: React.FC<AlertMessageProps> = React.memo((props) => {
-  const { content, alertMessage, style } = props;
+  const { content, alertMessage } = props;
 
   if (content) {
     return content;
@@ -24,13 +18,12 @@ export const AlertMessage: React.FC<AlertMessageProps> = React.memo((props) => {
   }
 
   return (
-    <HelpText
-      severity={HelpTextSeverity.Danger}
+    <Text
+      color={TextColor.ErrorDefault}
       twClassName="text-center"
       testID="alert-message-banner"
-      style={style}
     >
       {alertMessage}
-    </HelpText>
+    </Text>
   );
 });

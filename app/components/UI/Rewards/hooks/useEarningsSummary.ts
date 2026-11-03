@@ -66,67 +66,97 @@ function leaveEarningsSummaryFlight(profileId: string): void {
 export const useEarningsSummary = (
   profileId: string | undefined,
 ): {
-  fetchEarningsSummary: (options?: { forceFresh?: boolean }) => Promise<void>;
+  fetchEarningsSummary: (options?: {
+    forceFresh?: boolean;
+  }) => Promise<EarningsSummaryDto | undefined>;
 } => {
   const dispatch = useDispatch();
   const { cancel: cancelBusyRefetch, arm: armBusyRefetch } =
     useOneShotBusyRefetch();
   const fetchRef = useRef<
-    (options?: { forceFresh?: boolean; followUp?: boolean }) => Promise<void>
-  >(() => Promise.resolve());
-  const isLoadingRef = useRef(false);
+    (options?: {
+      forceFresh?: boolean;
+      followUp?: boolean;
+    }) => Promise<EarningsSummaryDto | undefined>
+  >(() => Promise.resolve(undefined));
+  // The promise for this instance's current read. A later caller that does
+  // not need a newer summary shares it. A forceFresh caller does not: the
+  // read already running may be the pre-claim cache, and returning nothing
+  // would look like that refresh had finished.
+  const inFlightRef = useRef<{
+    promise: Promise<EarningsSummaryDto | undefined>;
+  } | null>(null);
 
   const fetchEarningsSummary = useCallback(
     async ({
       forceFresh,
       followUp = false,
-    }: { forceFresh?: boolean; followUp?: boolean } = {}): Promise<void> => {
+    }: { forceFresh?: boolean; followUp?: boolean } = {}): Promise<
+      EarningsSummaryDto | undefined
+    > => {
       if (!profileId) {
-        return;
+        return undefined;
       }
-      // This instance skips a second call while its own request is in flight.
-      // Another instance has its own ref, so it can still start a duplicate.
-      if (isLoadingRef.current) {
-        return;
-      }
-      isLoadingRef.current = true;
-      const flight = joinEarningsSummaryFlight(profileId);
-
-      cancelBusyRefetch();
-      // Leave a previous error set while this request is in flight. The
-      // Earnings banner reads that flag, and clearing it here unmounts the
-      // banner for the whole retry. A success clears it with the new summary.
-      dispatch(setEarningsSummaryLoading({ profileId, loading: true }));
-
-      try {
-        const summary: EarningsSummaryDto =
-          await Engine.controllerMessenger.call(
-            'RewardsMoneyController:getEarningsSummary',
-            { forceFresh },
-          );
-        flight.stored = true;
-        dispatch(setEarningsSummary({ profileId, data: summary }));
-      } catch (error) {
-        // A faster duplicate already stored this profile's summary. Applying
-        // this rejection would mark that stored read as failed.
-        if (!flight.stored) {
-          reportRewardsMoneyReadFailure(
-            error,
-            'earningsSummary.fetch_failed',
-            followUp,
-            'rewards-money',
-          );
-          dispatch(setEarningsSummaryError({ profileId, error: true }));
-          if (!followUp) {
-            armBusyRefetch(error, () => {
-              void fetchRef.current({ forceFresh: true, followUp: true });
-            });
-          }
+      const current = inFlightRef.current;
+      if (current) {
+        if (!forceFresh) {
+          return current.promise;
         }
+        await current.promise.catch(() => undefined);
+        return fetchRef.current({ forceFresh: true, followUp });
+      }
+
+      const promise = (async (): Promise<EarningsSummaryDto | undefined> => {
+        const flight = joinEarningsSummaryFlight(profileId);
+
+        cancelBusyRefetch();
+        // Leave a previous error set while this request is in flight. The
+        // Earnings banner reads that flag, and clearing it here unmounts the
+        // banner for the whole retry. A success clears it with the new summary.
+        dispatch(setEarningsSummaryLoading({ profileId, loading: true }));
+
+        try {
+          const summary: EarningsSummaryDto =
+            await Engine.controllerMessenger.call(
+              'RewardsMoneyController:getEarningsSummary',
+              { forceFresh },
+            );
+          flight.stored = true;
+          dispatch(setEarningsSummary({ profileId, data: summary }));
+          return summary;
+        } catch (error) {
+          // A faster duplicate already stored this profile's summary. Applying
+          // this rejection would mark that stored read as failed.
+          if (!flight.stored) {
+            reportRewardsMoneyReadFailure(
+              error,
+              'earningsSummary.fetch_failed',
+              followUp,
+              'rewards-money',
+            );
+            dispatch(setEarningsSummaryError({ profileId, error: true }));
+            if (!followUp) {
+              armBusyRefetch(error, () => {
+                // The slice already holds the error, and this retry has no caller.
+                void fetchRef
+                  .current({ forceFresh: true, followUp: true })
+                  .catch(() => undefined);
+              });
+            }
+          }
+          throw error;
+        } finally {
+          leaveEarningsSummaryFlight(profileId);
+          dispatch(setEarningsSummaryLoading({ profileId, loading: false }));
+        }
+      })();
+      inFlightRef.current = { promise };
+      try {
+        return await promise;
       } finally {
-        leaveEarningsSummaryFlight(profileId);
-        isLoadingRef.current = false;
-        dispatch(setEarningsSummaryLoading({ profileId, loading: false }));
+        if (inFlightRef.current?.promise === promise) {
+          inFlightRef.current = null;
+        }
       }
     },
     [armBusyRefetch, cancelBusyRefetch, dispatch, profileId],
@@ -135,7 +165,9 @@ export const useEarningsSummary = (
 
   useFocusEffect(
     useCallback(() => {
-      void fetchEarningsSummary();
+      // The error is already on the slice. A focus refresh has no caller to
+      // tell, so the rejection stops here.
+      void fetchEarningsSummary().catch(() => undefined);
     }, [fetchEarningsSummary]),
   );
 

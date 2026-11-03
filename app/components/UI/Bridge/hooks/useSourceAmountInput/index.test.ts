@@ -7,7 +7,10 @@ import { useSourceAmountInput } from './index';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { playSelection } from '../../../../../util/haptics';
 import { useTokenFiatRate } from '../useTokenFiatRate';
-import { formatFiatInputAmount } from '../../utils/sourceAmountInputMode';
+import {
+  formatFiatInputAmount,
+  formatSecondaryTokenAmount,
+} from '../../utils/sourceAmountInputMode';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../../components/TokenInputArea', () => ({
@@ -42,11 +45,13 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
+const mockIsMaxSourceAmount = jest.fn(() => false);
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBridgeControllerState: () => ({
     inputPrimaryDenomination: 'token_amount',
   }),
   selectDestToken: () => undefined,
+  selectIsMaxSourceAmount: () => mockIsMaxSourceAmount(),
 }));
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'usd',
@@ -181,5 +186,55 @@ describe('useSourceAmountInput analytics', () => {
       UnifiedSwapBridgeEventName.FiatCryptoToggleClicked,
       expect.objectContaining({ feature_id: FeatureId.LIMIT_ORDER }),
     );
+  });
+});
+
+describe('useSourceAmountInput max amount', () => {
+  const renderMaxHook = () =>
+    renderHook(() =>
+      useSourceAmountInput({
+        isFiatToggleEnabled: false,
+        sourceAmount: '1.234567890123456789',
+        sourceToken: {
+          address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+          symbol: 'ETH',
+          chainId: '0x1',
+          decimals: 18,
+        },
+        onSourceAmountChange: jest.fn(),
+      }),
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(formatSecondaryTokenAmount).mockReturnValue('1.23456');
+  });
+
+  afterAll(() => {
+    mockIsMaxSourceAmount.mockReturnValue(false);
+    jest
+      .mocked(formatSecondaryTokenAmount)
+      .mockImplementation((value) => value);
+  });
+
+  it('shows the truncated amount and keeps the full amount for balance checks', () => {
+    mockIsMaxSourceAmount.mockReturnValue(true);
+
+    const { result } = renderMaxHook();
+
+    expect(formatSecondaryTokenAmount).toHaveBeenCalledWith(
+      '1.234567890123456789',
+    );
+    expect(result.current.amount).toBe('1.23456');
+    expect(result.current.keypadValue).toBe('1.23456');
+    expect(result.current.balanceCheckAmount).toBe('1.234567890123456789');
+  });
+
+  it('shows the full amount when the max flag is not set', () => {
+    mockIsMaxSourceAmount.mockReturnValue(false);
+
+    const { result } = renderMaxHook();
+
+    expect(result.current.amount).toBe('1.234567890123456789');
   });
 });

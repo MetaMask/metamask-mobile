@@ -32,7 +32,6 @@ export interface MySocialProfile {
   connectedToX?: boolean;
   followerCount?: number | null;
   followingCount?: number | null;
-  shareUrl: string;
   /** Whole-percent win rate (e.g. 60). Swap for profile-endpoint stats later. */
   winRatePercent?: number | null;
   /** Realized P&L in USD. */
@@ -55,6 +54,15 @@ export interface UseMyProfileResult {
 interface UseMyProfileOptions {
   enabled?: boolean;
 }
+
+// Shared across mounts so a remount, like reopening the profile drawer, does
+// not wait again on a lookup that already found the profile or a 404.
+const resolvedSessionProfileIds = new Set<string>();
+
+/** Test helper. Forgets every resolved profile lookup. */
+export const resetResolvedSessionProfileIds = (): void => {
+  resolvedSessionProfileIds.clear();
+};
 
 /**
  * Owner profile seam.
@@ -96,6 +104,7 @@ export const useMyProfile = ({
 
     try {
       const fetched = await fetchAndUpdateProfile(profileId);
+      resolvedSessionProfileIds.add(profileId);
       if (fetched.connectedToX) {
         try {
           await fetchAndUpdateXAccount();
@@ -104,7 +113,10 @@ export const useMyProfile = ({
         }
       }
     } catch (err) {
-      if (!isProfileNotFoundError(err)) {
+      if (isProfileNotFoundError(err)) {
+        resolvedSessionProfileIds.add(profileId);
+      } else {
+        resolvedSessionProfileIds.delete(profileId);
         setError(strings('social_leaderboard.my_profile.load_profile_error'));
       }
     } finally {
@@ -131,6 +143,7 @@ export const useMyProfile = ({
       : null,
     isLoading:
       enabled &&
+      !resolvedSessionProfileIds.has(trimmedSessionProfileId) &&
       (isSessionLoading ||
         isHydrating ||
         (Boolean(trimmedSessionProfileId) &&

@@ -123,6 +123,8 @@ describe('cardTransactionDisplayInfo', () => {
       );
 
       expect(display.primaryAmount).toBe('-$42.50');
+      expect(display.fiatAmount).toBe('');
+      expect(display.showPrimaryAmount).toBe(true);
       expect(display.isIncoming).toBe(false);
     });
 
@@ -136,6 +138,7 @@ describe('cardTransactionDisplayInfo', () => {
 
       expect(display.primaryAmount).toBe('-R$61.35');
       expect(display.fiatAmount).toBe('-$11.95');
+      expect(display.showPrimaryAmount).toBe(true);
     });
 
     it('omits secondary amount when original currency matches billing', () => {

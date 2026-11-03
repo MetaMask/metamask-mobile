@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { navigateToSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { pushSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsSocialFeedSection from './PerpsSocialFeedSection';
@@ -15,7 +15,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock(
   '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
-  () => ({ navigateToSocialLeaderboard: jest.fn() }),
+  () => ({ pushSocialLeaderboard: jest.fn() }),
 );
 
 jest.mock('../../hooks/usePerpsSocialEnabled', () => ({
@@ -28,9 +28,7 @@ jest.mock('../../../SocialLeaderboard', () => ({
   SocialLeaderboard: () => null,
 }));
 
-const mockNavigateToSocialLeaderboard = jest.mocked(
-  navigateToSocialLeaderboard,
-);
+const mockPushSocialLeaderboard = jest.mocked(pushSocialLeaderboard);
 const mockUsePerpsSocialEnabled = jest.mocked(usePerpsSocialEnabled);
 
 describe('PerpsSocialFeedSection', () => {
@@ -56,8 +54,8 @@ describe('PerpsSocialFeedSection', () => {
       screen.getByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_HEADER),
     );
 
-    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
+    expect(mockPushSocialLeaderboard).toHaveBeenCalledTimes(1);
+    expect(mockPushSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
       source: 'perps_home',
       initialTab: 'trending',
     });
@@ -75,8 +73,8 @@ describe('PerpsSocialFeedSection', () => {
       screen.getByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_HEADER),
     );
 
-    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
+    expect(mockPushSocialLeaderboard).toHaveBeenCalledTimes(1);
+    expect(mockPushSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
       source: 'perps_home',
       initialTab: 'leaderboard',
     });

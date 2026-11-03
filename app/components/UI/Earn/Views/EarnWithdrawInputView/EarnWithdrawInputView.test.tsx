@@ -58,6 +58,8 @@ const mockPop = jest.fn();
 const mockGoBack = jest.fn();
 
 let mockRouteToken: TokenI | undefined;
+const mockShowEarnToast = jest.fn();
+const mockMissingTokenToast = {};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -83,6 +85,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/useEarnToasts', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    showToast: mockShowEarnToast,
+    EarnToastOptions: {
+      earnWithdrawal: {
+        detailsUnavailable: mockMissingTokenToast,
+      },
+    },
+  })),
+}));
+
 const baseProps: EarnWithdrawInputViewProps = {
   route: {
     params: {
@@ -95,9 +109,9 @@ const baseProps: EarnWithdrawInputViewProps = {
 
 function render(
   Component: React.ComponentType,
-  mockToken: TokenI | EarnTokenDetails = MOCK_ETH_MAINNET_ASSET,
+  mockToken?: TokenI | EarnTokenDetails,
 ) {
-  mockRouteToken = mockToken;
+  mockRouteToken = arguments.length > 1 ? mockToken : MOCK_ETH_MAINNET_ASSET;
 
   return renderScreen(
     Component,
@@ -471,6 +485,17 @@ describe('EarnWithdrawInputView', () => {
     await waitFor(async () => {
       expect(screen.getByTestId('review-button')).toBeOnTheScreen();
     });
+  });
+
+  it('shows an error toast and returns when route token is missing', async () => {
+    render(EarnWithdrawInputView, undefined);
+
+    await waitFor(() => {
+      expect(mockShowEarnToast).toHaveBeenCalledWith(mockMissingTokenToast);
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByTestId('review-button')).toBeNull();
   });
 
   describe('service interruption banners', () => {

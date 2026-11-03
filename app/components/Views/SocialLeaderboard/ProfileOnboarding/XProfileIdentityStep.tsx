@@ -2,11 +2,10 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  FontWeight,
   Icon,
   IconName,
   IconSize,
+  Switch,
   Text,
   TextColor,
   TextField,
@@ -14,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, Switch, type LayoutChangeEvent } from 'react-native';
+import { Pressable, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   Easing,
   ReduceMotion,
@@ -31,59 +30,25 @@ import type {
   HardwareTier,
   NetworkTier,
 } from '../../../../util/deviceCapability/types';
-import { useTheme } from '../../../../util/theme';
+import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
-import type {
-  ProfileOnboardingDraft,
-  UsernameStatus,
-} from './profileOnboardingDraft';
+import { MAX_USERNAME_LENGTH } from './generateUsername';
+import type { ProfileOnboardingDraft } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import UsernameShuffleDie from './UsernameShuffleDie';
+import UsernameStatusLine from './UsernameStatusLine';
+import type { UsernameFeedback } from './utils/getUsernameFeedback';
 
 interface XProfileIdentityStepProps {
   draft: ProfileOnboardingDraft;
-  usernameStatus: UsernameStatus;
-  usernameClaimError: string | null;
+  /** The one line under the username field, already resolved. */
+  usernameFeedback: UsernameFeedback | null;
   onToggleUsername: (enabled: boolean) => void;
   onToggleAvatar: (enabled: boolean) => void;
   onUsernameChange: (value: string) => void;
   onShuffleUsername: () => void;
   onEditAvatar: () => void;
 }
-
-const IdentityToggle: React.FC<{
-  label: string;
-  value: boolean;
-  onValueChange: (enabled: boolean) => void;
-  testID: string;
-}> = ({ label, value, onValueChange, testID }) => {
-  const { brandColors, colors } = useTheme();
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      gap={3}
-    >
-      <Text variant={TextVariant.BodyMd} twClassName="flex-1">
-        {label}
-      </Text>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        accessibilityLabel={label}
-        ios_backgroundColor={colors.border.muted}
-        thumbColor={brandColors.white}
-        trackColor={{
-          false: colors.border.muted,
-          true: colors.primary.default,
-        }}
-        testID={testID}
-      />
-    </Box>
-  );
-};
 
 /**
  * X connect identity step. Reuses the manual username field and fox avatar,
@@ -240,8 +205,7 @@ const CrossDissolve: React.FC<{
 
 const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
   draft,
-  usernameStatus,
-  usernameClaimError,
+  usernameFeedback,
   onToggleUsername,
   onToggleAvatar,
   onUsernameChange,
@@ -256,13 +220,12 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
       twClassName="flex-1"
       testID={SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP}
     >
-      <Text
-        variant={TextVariant.DisplayMd}
-        fontWeight={FontWeight.Bold}
+      <MarketingMomentTitle
+        variant={TextVariant.DisplayLg}
         twClassName="w-full text-center px-2"
       >
         {strings('social_leaderboard.profile_onboarding.choose_x_identity')}
-      </Text>
+      </MarketingMomentTitle>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
@@ -337,16 +300,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
               >
                 @{xUsername}
               </Text>
-              {usernameClaimError ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                  twClassName="text-center"
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {usernameClaimError}
-                </Text>
-              ) : null}
+              <UsernameStatusLine feedback={usernameFeedback} align="center" />
             </Box>
           }
           secondary={
@@ -354,9 +308,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
               <TextField
                 value={draft.username}
                 onChangeText={onUsernameChange}
-                isError={
-                  usernameStatus === 'invalid' || Boolean(usernameClaimError)
-                }
+                isError={usernameFeedback?.tone === 'error'}
                 startAccessory={
                   <Text
                     variant={TextVariant.BodyMd}
@@ -379,58 +331,29 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                 inputProps={{
                   autoCapitalize: 'none',
                   autoCorrect: false,
+                  maxLength: MAX_USERNAME_LENGTH,
                   testID: SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                 }}
               />
-              {usernameClaimError ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {usernameClaimError}
-                </Text>
-              ) : null}
-              {usernameStatus === 'available' && !usernameClaimError ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.SuccessDefault}
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {strings(
-                    'social_leaderboard.profile_onboarding.username_available',
-                  )}
-                </Text>
-              ) : null}
-              {usernameStatus === 'invalid' ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {strings(
-                    'social_leaderboard.profile_onboarding.username_invalid',
-                  )}
-                </Text>
-              ) : null}
+              <UsernameStatusLine feedback={usernameFeedback} />
             </Box>
           }
         />
       </Box>
 
       <Box twClassName="mt-auto w-full pt-10 pb-4" gap={5}>
-        <IdentityToggle
+        <Switch
           label={strings(
             'social_leaderboard.profile_onboarding.use_x_username',
             { username: xUsername },
           )}
-          value={draft.useXUsername}
+          isOn={draft.useXUsername}
           onValueChange={onToggleUsername}
           testID={SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH}
         />
-        <IdentityToggle
+        <Switch
           label={strings('social_leaderboard.profile_onboarding.use_x_avatar')}
-          value={draft.useXAvatar}
+          isOn={draft.useXAvatar}
           onValueChange={onToggleAvatar}
           testID={SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH}
         />

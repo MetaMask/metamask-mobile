@@ -62,6 +62,11 @@ import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
 } from './predict-order-service-messenger';
+import { getPredictVenueControllerMessenger } from './predict-venue-controller-messenger';
+import {
+  getPredictDeviceAuthServiceInitMessenger,
+  getPredictDeviceAuthServiceMessenger,
+} from './predict-device-auth-service-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -138,6 +143,7 @@ import {
 } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
+import { getSocialRealtimeServiceMessenger } from './social-realtime-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getProfileServiceMessenger } from './profile-service-messenger';
 import { getProfileControllerMessenger } from './profile-controller-messenger';
@@ -326,9 +332,17 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictPortfolioServiceMessenger,
     getInitMessenger: getPredictPortfolioServiceInitMessenger,
   },
+  PredictDeviceAuthService: {
+    getMessenger: getPredictDeviceAuthServiceMessenger,
+    getInitMessenger: getPredictDeviceAuthServiceInitMessenger,
+  },
   PredictOrderService: {
     getMessenger: getPredictOrderServiceMessenger,
     getInitMessenger: getPredictOrderServiceInitMessenger,
+  },
+  PredictVenueController: {
+    getMessenger: getPredictVenueControllerMessenger,
+    getInitMessenger: noop,
   },
   RecurringOrdersDataService: {
     getMessenger: getRecurringOrdersDataServiceMessenger,
@@ -444,6 +458,10 @@ export const MESSENGER_FACTORIES = {
   },
   SocialService: {
     getMessenger: getSocialServiceMessenger,
+    getInitMessenger: noop,
+  },
+  SocialRealtimeService: {
+    getMessenger: getSocialRealtimeServiceMessenger,
     getInitMessenger: noop,
   },
   SocialController: {

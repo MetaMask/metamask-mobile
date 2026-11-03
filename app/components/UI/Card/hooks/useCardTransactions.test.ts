@@ -19,6 +19,11 @@ import { cardQueries } from '../queries';
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
 });
+// The default scheduler is setTimeout(0). A remount refetch notifies after
+// the test's act() has finished, which warns and leaves the worker open.
+notifyManager.setScheduler((callback: () => void) => {
+  callback();
+});
 
 const mockListTransactions = jest.fn();
 
@@ -360,6 +365,57 @@ describe('useCardTransactions', () => {
     await waitFor(() => expect(result.current.items).toHaveLength(2));
     expect(result.current.isLoadMoreError).toBe(false);
     expect(result.current.error).toBeNull();
+  });
+
+  it('refetches on remount and keeps cached items visible while the request runs', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, staleTime: 1000 * 60 * 5 },
+        mutations: { retry: false },
+      },
+    });
+    activeQueryClient = queryClient;
+    const Wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        children,
+      );
+
+    let resolveRefetch: (page: CardTransactionPage) => void = () => undefined;
+    mockListTransactions
+      .mockResolvedValueOnce(buildPage(['tx-1']))
+      .mockReturnValueOnce(
+        new Promise<CardTransactionPage>((resolve) => {
+          resolveRefetch = resolve;
+        }),
+      );
+
+    const { result, unmount } = renderHook(() => useCardTransactions(), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(mockListTransactions).toHaveBeenCalledTimes(1);
+
+    unmount();
+
+    const { result: remounted } = renderHook(() => useCardTransactions(), {
+      wrapper: Wrapper,
+    });
+
+    expect(remounted.current.items.map((tx) => tx.id)).toStrictEqual(['tx-1']);
+    expect(remounted.current.isLoading).toBe(false);
+    await waitFor(() => expect(mockListTransactions).toHaveBeenCalledTimes(2));
+    expect(remounted.current.items.map((tx) => tx.id)).toStrictEqual(['tx-1']);
+
+    await act(async () => {
+      resolveRefetch(buildPage(['tx-2']));
+    });
+    await waitFor(() =>
+      expect(remounted.current.items.map((tx) => tx.id)).toStrictEqual([
+        'tx-2',
+      ]),
+    );
   });
 
   it('does not treat a later query error as a load-more error after pagination succeeds', async () => {

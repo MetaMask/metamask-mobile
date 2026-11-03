@@ -89,13 +89,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
           <View>
             <TraderAvatar
               imageUrl={trader.avatarUri}
-              address={trader.address}
+              address={trader.id}
               size={AVATAR_SIZE}
               recyclingKey={trader.id}
             />
             {showMedal ? (
-              // Offset so the medal bottom (incl. its 2px border) sits ~10px
-              // below the avatar's bottom edge.
               <View style={tw.style('absolute -bottom-[10px] -right-2')}>
                 <RankMedal rank={trader.rank} />
               </View>

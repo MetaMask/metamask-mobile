@@ -1,8 +1,10 @@
 import {
   beginPerpsPostTradeShare,
   canBeginPerpsPostTradeShare,
+  canPromptPerpsPostTrade,
   completePerpsPostTradeShare,
   failPerpsPostTradeShare,
+  openPerpsPostTradeShareSession,
 } from './perpsPostTradeShare';
 import {
   clearPostTradeShareSession,
@@ -14,6 +16,44 @@ const copyTradeOrigin = { commentId: 'comment-1', asset: 'ETH' };
 describe('perpsPostTradeShare', () => {
   afterEach(() => {
     clearPostTradeShareSession();
+  });
+
+  it('prompts only for Hyperliquid market orders', () => {
+    expect(
+      canPromptPerpsPostTrade({
+        orderType: 'market',
+        activeProvider: 'hyperliquid',
+      }),
+    ).toBe(true);
+    expect(
+      canPromptPerpsPostTrade({
+        orderType: 'limit',
+        activeProvider: 'hyperliquid',
+      }),
+    ).toBe(false);
+    expect(
+      canPromptPerpsPostTrade({ orderType: 'market', activeProvider: 'myx' }),
+    ).toBe(false);
+  });
+
+  it('opens a pending share session without a copy-trade origin', () => {
+    const sessionId = openPerpsPostTradeShareSession({
+      asset: 'ETH',
+      direction: 'short',
+      leverage: 5,
+      amountUsd: '100',
+    });
+
+    expect(getPostTradeShareSession()).toEqual(
+      expect.objectContaining({
+        sessionId,
+        product: 'perps',
+        status: 'pending',
+        pairLabel: '5x Short ETH',
+        tradeInFlightChain: 'hyperliquid',
+        variant: 'share',
+      }),
+    );
   });
 
   it('begins a share only for a Hyperliquid order that returns one order id', () => {

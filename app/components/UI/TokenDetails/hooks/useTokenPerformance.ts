@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import type { FungibleAssetPrice } from '@metamask/assets-controller';
-import type { TokenAssetMarketData } from '../queries/tokenAssetQuery';
+import type { TokenMarketData } from '../queries/tokenMarketData';
 
 /** Percent change values rendered by the Performance section. Null → gray dash. */
 export interface TokenPerformance {
@@ -11,33 +10,23 @@ export interface TokenPerformance {
 }
 
 export interface UseTokenPerformanceParams {
-  marketData: FungibleAssetPrice | null;
-  assetMarketData: TokenAssetMarketData | null;
+  marketData: TokenMarketData | null;
 }
 
 const toFiniteOrNull = (value: number | null | undefined): number | null =>
   typeof value === 'number' && Number.isFinite(value) ? value : null;
 
-const parseAssetPercent = (value: string | null | undefined): number | null => {
-  if (value == null || value === '') {
-    return null;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
 export const useTokenPerformance = ({
   marketData,
-  assetMarketData,
 }: UseTokenPerformanceParams): TokenPerformance =>
   useMemo(
     () => ({
-      fiveMinute: parseAssetPercent(assetMarketData?.pricePercentChange5m),
+      fiveMinute: toFiniteOrNull(marketData?.pricePercentChange5m),
       oneHour: toFiniteOrNull(marketData?.pricePercentChange1h),
-      fourHour: parseAssetPercent(assetMarketData?.pricePercentChange4h),
+      fourHour: toFiniteOrNull(marketData?.pricePercentChange4h),
       twentyFourHour: toFiniteOrNull(marketData?.pricePercentChange1d),
     }),
-    [marketData, assetMarketData],
+    [marketData],
   );
 
 export default useTokenPerformance;

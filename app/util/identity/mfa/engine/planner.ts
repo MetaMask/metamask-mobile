@@ -33,7 +33,7 @@ const METHOD_COST_RANKING: readonly MfaMethod[] = [
  */
 const PLATFORM_METHODS: Record<MfaPlatform, readonly MfaMethod[]> = {
   mobile: ['passkey', 'totp', 'email_otp'],
-  extension: ['email_otp'],
+  extension: ['totp', 'email_otp'],
 };
 
 export const isMethodSupported = (method: MfaMethod, platform: MfaPlatform) =>

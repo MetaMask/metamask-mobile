@@ -5,6 +5,10 @@ import { act } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
+import { BridgeEntryPoint } from '../../HardwareWallet/Swaps/flowStrategy';
+import { notifyHwSubmissionOutcome } from '../../HardwareWallet/Swaps/hwSubmissionOutcome';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { useDisplayCurrencyValue } from '../../Bridge/hooks/useDisplayCurrencyValue';
 import { useFormattedNetworkFee } from '../../Bridge/hooks/useFormattedNetworkFee';
 import {
@@ -18,9 +22,12 @@ import {
   selectIsSlippageUserOverride,
   selectIsSubmittingTx,
   selectSlippage,
+  resetHardwareWalletsSwaps,
+  updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -71,6 +78,7 @@ import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
@@ -116,12 +124,19 @@ const mockToAssetId = toAssetId as jest.MockedFunction<typeof toAssetId>;
 const mockRecordSocialTrade = recordSocialTrade as jest.MockedFunction<
   typeof recordSocialTrade
 >;
+const mockResolvePostTradePrompt = jest.fn();
 
 const mockAddPopularNetwork = jest.fn();
 const mockTrackAmountSelected = jest.fn();
 const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
 const mockTrackTradeSubmitted = jest.fn();
 const mockTrackTradeCompleted = jest.fn();
+const mockPreserveBridgeStateOnUnmount = jest.fn();
+const mockNavigate = (
+  jest.requireMock('@react-navigation/native') as {
+    useNavigation: () => { navigate: jest.Mock };
+  }
+).useNavigation().navigate;
 const mockTrackQuoteSelected = jest.fn();
 const mockTrackPayWithSelected = jest.fn();
 const mockTrackReceiveTokenSelected = jest.fn();
@@ -237,6 +252,7 @@ export const setupDefaultMocks = () => {
     trackTradeSubmitted: mockTrackTradeSubmitted,
     trackTradeCompleted: mockTrackTradeCompleted,
     markTradeSubmitted: jest.fn(),
+    preserveBridgeStateOnUnmount: mockPreserveBridgeStateOnUnmount,
   } as ReturnType<typeof useQuickBuyAnalytics>);
 
   // Each useSelector call is dispatched to the corresponding mocked selector.
@@ -245,6 +261,9 @@ export const setupDefaultMocks = () => {
     (selector: (state: unknown) => unknown) => selector({}),
   );
   (selectIsSubmittingTx as unknown as jest.Mock).mockReturnValue(false);
+  (
+    selectIsProfileTradingActivityPrivate as unknown as jest.Mock
+  ).mockReturnValue(false);
   (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
     '0xWALLET',
   );
@@ -328,6 +347,10 @@ export const setupDefaultMocks = () => {
     addPopularNetwork: mockAddPopularNetwork,
   });
   (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
+  mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+  (usePostTradePromptResolver as jest.Mock).mockReturnValue(
+    mockResolvePostTradePrompt,
+  );
 };
 
 export const runQuickBuyControllerCases = ({
@@ -3118,19 +3141,183 @@ export const runQuickBuyControllerCases = ({
 
         expect(
           Engine.context.BridgeStatusController.submitTx,
-        ).toHaveBeenCalledWith(
-          '0xWALLET',
-          expect.objectContaining({ approval: null }),
-          true,
-          undefined, // quotesReceivedContext
-          undefined, // location
-          undefined, // abTests
-          undefined, // mergedActiveAbTests
-          undefined, // tokenSecurityTypeDestination
-          undefined, // batchSellTrades
-          undefined, // inputPrimaryDenomination
-          '1.5',
-        );
+        ).toHaveBeenCalledWith({
+          accountAddress: '0xWALLET',
+          quoteResponses: [expect.objectContaining({ approval: null })],
+          isStxEnabled: true,
+          tokenSecurityTypeDestination: null,
+          inputPrimaryDenomination: 'token_amount',
+          migrationPhase: '1.5',
+        });
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockPreserveBridgeStateOnUnmount).not.toHaveBeenCalled();
+      });
+
+      describe('hardware wallet accounts', () => {
+        const startHardwareWalletConfirm = async (
+          copyTradeOrigin?: CopyTradeOrigin,
+        ) => {
+          const { isHardwareAccount } = jest.requireMock(
+            '../../../../util/address',
+          );
+          isHardwareAccount.mockReturnValue(true);
+          const activeQuote = createActiveQuote({
+            quoteId: 'quote-request-1',
+            quote: { dest: { normalizedAmount: '5' } },
+          });
+          setupQuoteSourceMock(
+            createQuoteState({ activeQuote, destTokenAmount: '5' }),
+          );
+          const onClose = jest.fn();
+          const { result } = renderHook(
+            createTarget(),
+            onClose,
+            { source: 'profile_position' },
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
+
+          let confirmPromise: Promise<void> = Promise.resolve();
+          await act(async () => {
+            confirmPromise = result.current.handleConfirm();
+          });
+          const [, params] = mockNavigate.mock.calls[0];
+          return {
+            activeQuote,
+            onClose,
+            confirmPromise,
+            outcomeListenerId: params.submissionParams
+              .outcomeListenerId as string,
+          };
+        };
+
+        it('signs on the HW screen instead of submitting directly', async () => {
+          const { activeQuote, onClose } = await startHardwareWalletConfirm();
+
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).not.toHaveBeenCalled();
+          expect(
+            Engine.context.BridgeStatusController.submitIntent,
+          ).not.toHaveBeenCalled();
+          expect(mockPreserveBridgeStateOnUnmount).toHaveBeenCalledTimes(1);
+          expect(resetHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+          expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith(
+            expect.objectContaining({
+              payload: expect.objectContaining({ totalSteps: 1 }),
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+            {
+              bridgeEntryPoint: BridgeEntryPoint.QuickBuy,
+              submissionParams: {
+                quoteResponse: activeQuote,
+                postTradeModalParams: expect.objectContaining({
+                  destAmount: '5',
+                  destToken: expect.objectContaining({ symbol: 'TARGET' }),
+                }),
+                outcomeListenerId: expect.any(String),
+              },
+            },
+          );
+          expect(onClose).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(mockTrackTradeCompleted).not.toHaveBeenCalled();
+        });
+
+        it('runs the regular post-submit handling once the HW session submits', async () => {
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, {
+              status: 'submitted',
+              transaction: { id: 'tx-1', hash: '0xhash' } as TransactionMeta,
+            });
+            await confirmPromise;
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockRecordSocialTrade).toHaveBeenCalledTimes(1);
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'success', tx_hash: '0xhash' }),
+          );
+        });
+
+        it('treats a HW session that ends without submitting as a failed trade', async () => {
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, { status: 'failed' });
+            await confirmPromise;
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockRecordSocialTrade).not.toHaveBeenCalled();
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'failed' }),
+          );
+        });
+
+        it('opens the share sheet only after the HW session submits', async () => {
+          mockResolvePostTradePrompt.mockReturnValue({
+            kind: 'share_sheet',
+            countKey: { address: '0xlinked', product: 'swap' },
+          });
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          expect(getPostTradeShareSession()).toBeNull();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, {
+              status: 'submitted',
+              transaction: { id: 'tx-1', hash: '0xhash' } as TransactionMeta,
+            });
+            await confirmPromise;
+          });
+
+          expect(getPostTradeShareSession()).toEqual(
+            expect.objectContaining({
+              status: 'pending',
+              variant: 'share',
+              transactionHash: '0xhash',
+            }),
+          );
+          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
+        it('never opens the share sheet when the HW session ends without submitting', async () => {
+          mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, { status: 'failed' });
+            await confirmPromise;
+          });
+
+          expect(getPostTradeShareSession()).toBeNull();
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+        });
+
+        it('posts the copy-trade intent before signing', async () => {
+          await startHardwareWalletConfirm({
+            commentId: '7f1a9c2e-5b8d-4e3f-9a6c-1d2e3f4a5b6c',
+          });
+
+          expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+            'SocialService:createCopyTradeIntent',
+            expect.objectContaining({
+              execution: { product: 'swaps', quoteId: 'quote-request-1' },
+            }),
+          );
+        });
       });
 
       it('records social activity after a resolved social Quick Buy', async () => {
@@ -3286,7 +3473,10 @@ export const runQuickBuyControllerCases = ({
         const expectedIntent = {
           origin: { kind: 'comment', id: copyTradeOrigin.commentId },
           copierAccount: { caip10: 'eip155:1:0xWALLET' },
-          execution: { product: 'swaps', quoteId: 'quote-request-1' },
+          execution: {
+            product: 'swaps',
+            quoteId: 'b16f3319-fb64-4b15-9a16-ff8769195eb2',
+          },
         };
         const mockMessengerCall = () =>
           Engine.controllerMessenger.call as jest.Mock;
@@ -3295,6 +3485,7 @@ export const runQuickBuyControllerCases = ({
           setupQuoteSourceMock(
             createQuoteState({
               activeQuote: createActiveQuote({
+                quoteId: 'b16f3319-fb64-4b15-9a16-ff8769195eb2',
                 quote: { requestId: 'quote-request-1' },
               }),
               destTokenAmount: '1',
@@ -3369,6 +3560,35 @@ export const runQuickBuyControllerCases = ({
         it('posts no intent without a copy-trade origin', async () => {
           mockQuote();
           const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockMessengerCall()).not.toHaveBeenCalled();
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).toHaveBeenCalled();
+        });
+
+        it('posts no intent when the quote has no Bridge quoteId', async () => {
+          setupQuoteSourceMock(
+            createQuoteState({
+              activeQuote: createActiveQuote({
+                quote: { requestId: 'quote-request-1' },
+              }),
+              destTokenAmount: '1',
+            }),
+          );
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
 
           await act(async () => {
             await result.current.handleConfirm();
@@ -3886,6 +4106,129 @@ export const runQuickBuyControllerCases = ({
             theme: expect.any(Object),
           });
           expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
+        describe('post-trade prompt', () => {
+          const submit = async (postTradeShare?: boolean) => {
+            mockUsableQuote();
+            (
+              Engine.context.BridgeStatusController.submitTx as jest.Mock
+            ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+            const { result } = renderHook(
+              createTarget(),
+              jest.fn(),
+              undefined,
+              undefined,
+              'buy',
+              postTradeShare,
+            );
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+          };
+
+          it('opens a pending share sheet that counts toward the limit', async () => {
+            const countKey = { address: '0xlinked', product: 'swap' };
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'share_sheet',
+              countKey,
+            });
+
+            await submit();
+
+            expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('swap');
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                product: 'spot',
+                status: 'pending',
+                variant: 'share',
+              }),
+            );
+            expect(buildQuickBuyToastOptions).not.toHaveBeenCalledWith(
+              'pending',
+              expect.anything(),
+            );
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: true,
+                postTradePrompt: { kind: 'share_sheet', countKey },
+              }),
+            );
+          });
+
+          it('opens a pending create profile sheet for a user without a profile', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+            await submit();
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                product: 'spot',
+                status: 'pending',
+                variant: 'create_profile',
+              }),
+            );
+            expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: true,
+                postTradePrompt: { kind: 'claim_sheet' },
+              }),
+            );
+          });
+
+          it('tracks the post-to-feed toast with the composer preview', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'post_to_feed_toast',
+            });
+
+            await submit();
+
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradePrompt: expect.objectContaining({
+                  kind: 'post_to_feed_toast',
+                  tradeInFlightChain: 'ethereum',
+                  preview: expect.objectContaining({ side: 'buy' }),
+                }),
+              }),
+            );
+          });
+
+          it('skips the prompt for copy-trades', async () => {
+            await submit(true);
+
+            expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: true,
+                postTradePrompt: undefined,
+              }),
+            );
+          });
+
+          it('uses the normal toasts for copy-trades from a private profile', async () => {
+            (
+              selectIsProfileTradingActivityPrivate as unknown as jest.Mock
+            ).mockReturnValue(true);
+
+            await submit(true);
+
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: false,
+                postTradePrompt: undefined,
+              }),
+            );
+          });
         });
 
         it('tracks an EVM swap with isNonEvmSwap false and the tx hash as the signature', async () => {
