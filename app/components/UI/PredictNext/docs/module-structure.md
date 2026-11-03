@@ -17,6 +17,10 @@ PredictNext/
     NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
   availability/
     index.ts                   # Venue-aware selectPredictAvailability / usePredictAvailability
+  venueSelection/
+    index.ts                   # Venue picker for the Predict home headers (PRED-1401)
+    PredictVenueSelectorButton.tsx
+    internal/                  # Picker sheet and the preference-writing hook
   analytics/
     index.ts                   # Analytics vocabulary, re-exported unchanged from legacy
   activity/
