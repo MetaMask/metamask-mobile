@@ -2,7 +2,7 @@ import React, { ComponentType } from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 import { mockTheme } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
+import { AppThemeKey, Theme } from '../../../../util/theme/models';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import OnboardingSheet, { OnboardingSheetProps } from '.';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
@@ -31,7 +31,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('OnboardingSheet', () => {
   const renderSheet = (
     props: Partial<OnboardingSheetProps> = {},
-    theme = mockTheme,
+    theme: Theme = mockTheme,
   ) =>
     renderWithProvider(<OnboardingSheet onDismiss={jest.fn()} {...props} />, {
       theme,
