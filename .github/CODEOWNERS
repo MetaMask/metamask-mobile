@@ -278,6 +278,7 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
+app/components/Views/SocialLeaderboard/ManageProfileView         @MetaMask/accounts-engineers
 
 # Predict Team
 app/components/UI/Predict/                                              @MetaMask/predict
