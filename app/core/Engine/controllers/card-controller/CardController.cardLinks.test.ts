@@ -162,7 +162,7 @@ function setup({
       } as unknown as ICardProvider,
     },
     cardService: cardService as unknown as CardService,
-    state: { ...defaultCardControllerState, ...state },
+    state: { ...defaultCardControllerState, selectedCountry: 'US', ...state },
     sha256: testSha256,
     isBasicFunctionalityEnabled: () => basicFunctionality,
   });
@@ -675,6 +675,71 @@ describe('CardController card links', () => {
         { status: 'active', linkedAccountRef: refFor(SELECTED_ADDRESS) },
         'token-1',
       );
+    });
+
+    it('waits for a country, then seeds a Baanx country', async () => {
+      const { controller, cardService } = setup({
+        state: {
+          selectedCountry: null,
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+        },
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      controller.setSelectedCountry('US');
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', linkedAccountRef: refFor(CARDHOLDER_ADDRESS) },
+        'token-1',
+      );
+    });
+
+    it('does not seed a GB cardholder', async () => {
+      const { controller, cardService } = setup({
+        state: {
+          selectedCountry: 'GB',
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+        },
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+      expect(controller.state.cardLinksSeeded).toBe(false);
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.properties).toStrictEqual({
+        provider: 'baanx',
+        outcome: 'skipped',
+        skip_reason: 'gb',
+      });
+    });
+
+    it('does not seed when the country resolves to Immersve', async () => {
+      const { controller, cardService } = setup({
+        remoteFeatureFlags: {
+          cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+          cardImmersveCountries: ['FR'],
+        },
+        state: {
+          selectedCountry: 'FR',
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+        },
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.properties).toMatchObject({
+        outcome: 'skipped',
+        skip_reason: 'not_baanx',
+      });
     });
 
     it('ends the seed on a 400 without retrying it', async () => {

@@ -606,6 +606,8 @@ export class CardController extends BaseController<
     if (providerChanged) {
       this.#invalidateAndClear();
     }
+    this.#cardLinkSeedAttempted = false;
+    this.#seedCardLinkIfNeededWithLogging();
   }
 
   #resolveProviderForCountry(country: string): CardProviderId {
@@ -887,7 +889,20 @@ export class CardController extends BaseController<
   }
 
   async #doSeedCardLink(caipAccountId: string): Promise<void> {
+    const country = this.state.selectedCountry;
+    if (!country) return;
+
     this.#cardLinkSeedAttempted = true;
+    const providerForCountry = this.#resolveProviderForCountry(country);
+    if (country === 'GB' || providerForCountry !== CardProviderIds.Baanx) {
+      this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
+        provider: CardProviderIds.Baanx,
+        outcome: 'skipped',
+        skip_reason: country === 'GB' ? 'gb' : 'not_baanx',
+      });
+      return;
+    }
+
     const generation = this.#cardLinksGeneration;
     const outcome = await this.#writeCardLink(
       CardProviderIds.Baanx,
