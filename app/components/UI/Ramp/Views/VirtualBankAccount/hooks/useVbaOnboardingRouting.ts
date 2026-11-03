@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { Alert } from 'react-native';
 import {
   CommonActions,
   StackActions,
@@ -333,10 +332,6 @@ const resumePersistedKycSession = async (): Promise<boolean> => {
     });
     return false;
   } catch (error) {
-    Alert.alert(
-      'resumePersistedKycSession',
-      error instanceof Error ? error.message : String(error),
-    );
     // The profile has no verified email (for example, another profile owns
     // it). Email OTP on the email screen verifies one or reports the conflict.
     if (isMissingVerifiedEmailError(error)) {
