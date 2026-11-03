@@ -1,20 +1,9 @@
 import {
   commentContainsUrl,
-  countCommentWords,
   isComposerCommentValid,
 } from './commentValidation';
 
 describe('commentValidation', () => {
-  describe('countCommentWords', () => {
-    it('counts whitespace-separated words', () => {
-      expect(countCommentWords('  this is a thought  ')).toBe(4);
-    });
-
-    it('returns 0 for empty text', () => {
-      expect(countCommentWords('   ')).toBe(0);
-    });
-  });
-
   describe('commentContainsUrl', () => {
     it('returns true for http links', () => {
       expect(commentContainsUrl('see https://example.com now')).toBe(true);
@@ -34,12 +23,16 @@ describe('commentValidation', () => {
   });
 
   describe('isComposerCommentValid', () => {
-    it('returns false when there are fewer than three words', () => {
-      expect(isComposerCommentValid('hello world')).toBe(false);
+    it('returns true for a short caption', () => {
+      expect(isComposerCommentValid('hello world')).toBe(true);
     });
 
     it('returns false when the text contains a url', () => {
       expect(isComposerCommentValid('this is https://phish.test')).toBe(false);
+    });
+
+    it('returns false for a bare domain', () => {
+      expect(isComposerCommentValid('visit example.com today')).toBe(false);
     });
 
     it('returns true for three words within the limit', () => {

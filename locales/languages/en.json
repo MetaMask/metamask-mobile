@@ -1457,6 +1457,7 @@
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
+      "links_not_allowed": "Links aren't allowed in a post.",
       "chip_position": "Position",
       "chip_gif": "GIF",
       "gifs_title": "Add a GIF",

@@ -3,6 +3,7 @@ export const SocialPostComposerViewSelectorsIDs = {
   HEADER: 'social-post-composer-header',
   CLOSE_BUTTON: 'social-post-composer-close',
   CHARACTER_COUNT: 'social-post-composer-character-count',
+  URL_ERROR: 'social-post-composer-url-error',
   POST_BUTTON: 'social-post-composer-post',
   INPUT: 'social-post-composer-input',
   SCROLL: 'social-post-composer-scroll',
