@@ -6338,6 +6338,10 @@ describe('PerpsStreamManager', () => {
       });
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'snapshot rejected' }),
+        { context: 'PerpsStreamManager.getUserDataSnapshot' },
+      );
     });
 
     it('discards an in-flight snapshot after account caches are cleared', async () => {
