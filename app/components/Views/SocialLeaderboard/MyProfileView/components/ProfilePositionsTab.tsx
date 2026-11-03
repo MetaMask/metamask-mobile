@@ -235,7 +235,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
             >
               <TouchableOpacity
                 ref={uncountedHeaderRef}
-                accessibilityRole="header"
+                accessibilityRole="button"
                 accessibilityLabel={uncountedAccessibilityLabel}
                 onPress={onUncountedHeaderPress}
                 style={tw.style(

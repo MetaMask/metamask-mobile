@@ -226,11 +226,9 @@ describe('ProfilePositionsTab', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
     ).toBeOnTheScreen();
+    expect(screen.getByText('Not counted in P&L')).toBeOnTheScreen();
     expect(
-      screen.getByRole('header', { name: 'Not counted in P&L' }),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByRole('header', {
+      screen.getByRole('button', {
         name: 'Not counted in P&L, 2 positions. Learn why',
       }),
     ).toBeOnTheScreen();
@@ -353,7 +351,7 @@ describe('ProfilePositionsTab', () => {
     });
 
     expect(
-      screen.getByRole('header', {
+      screen.getByRole('button', {
         name: 'Not counted in P&L, 1 position. Learn why',
       }),
     ).toBeOnTheScreen();
@@ -377,9 +375,17 @@ describe('ProfilePositionsTab', () => {
       />,
     );
 
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
+    const header = screen.getByTestId(
+      MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER,
     );
+
+    expect(header).toHaveProp('accessibilityRole', 'button');
+    expect(header).toHaveProp(
+      'accessibilityLabel',
+      'Not counted in P&L, 1 position. Learn why',
+    );
+
+    fireEvent.press(header);
 
     expect(onUncountedHeaderPress).toHaveBeenCalledTimes(1);
     expect(
