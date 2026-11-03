@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
@@ -47,6 +48,29 @@ describe('TotalMarketGroupCard', () => {
         onSelectMarket={jest.fn()}
         onRulesPress={jest.fn()}
       />,
+    );
+  });
+
+  it('titles the card Total points by default', () => {
+    expect(screen.getByTestId(TestIds.title(GROUP))).toHaveTextContent(
+      strings('predict.market_groups.total_points'),
+    );
+  });
+
+  it('shows a given title instead', () => {
+    screen.rerender(
+      <TotalMarketGroupCard
+        title="Team total"
+        groupKey={GROUP}
+        markets={[market]}
+        selectedMarket={market}
+        onSelectMarket={jest.fn()}
+        onRulesPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId(TestIds.title(GROUP))).toHaveTextContent(
+      'Team total',
     );
   });
 
