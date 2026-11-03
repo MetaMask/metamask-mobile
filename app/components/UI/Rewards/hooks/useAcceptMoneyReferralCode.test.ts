@@ -85,9 +85,7 @@ describe('useAcceptMoneyReferralCode', () => {
 
   const unusedToastVariant = jest.fn(() => ({}) as RewardsToastOptions);
 
-  const renderAcceptHook = (
-    options?: Parameters<typeof useAcceptMoneyReferralCode>[0],
-  ) => {
+  const renderAcceptHook = () => {
     const store = configureStore({
       reducer: { rewardsMoney: rewardsMoneyReducer },
     });
@@ -100,7 +98,7 @@ describe('useAcceptMoneyReferralCode', () => {
 
     return {
       store,
-      ...renderHook(() => useAcceptMoneyReferralCode(options), { wrapper }),
+      ...renderHook(() => useAcceptMoneyReferralCode(), { wrapper }),
     };
   };
 
@@ -294,10 +292,10 @@ describe('useAcceptMoneyReferralCode', () => {
       const onAccepted = jest.fn(() => {
         expect(mockNavigate).not.toHaveBeenCalled();
       });
-      const { result } = renderAcceptHook({ onAccepted });
+      const { result } = renderAcceptHook();
 
       await act(async () => {
-        await result.current.acceptReferralCode('kol1');
+        await result.current.acceptReferralCode('kol1', { onAccepted });
       });
 
       expect(onAccepted).toHaveBeenCalledTimes(1);
@@ -309,10 +307,10 @@ describe('useAcceptMoneyReferralCode', () => {
     it('does not report an accept that register refused', async () => {
       mockMessenger({ registerError: new Error('refused') });
       const onAccepted = jest.fn();
-      const { result } = renderAcceptHook({ onAccepted });
+      const { result } = renderAcceptHook();
 
       await act(async () => {
-        await result.current.acceptReferralCode('kol1');
+        await result.current.acceptReferralCode('kol1', { onAccepted });
       });
 
       expect(onAccepted).not.toHaveBeenCalled();

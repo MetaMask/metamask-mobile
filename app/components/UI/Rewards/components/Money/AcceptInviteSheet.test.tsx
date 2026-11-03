@@ -10,6 +10,7 @@ import {
   setReferralMe,
 } from '../../../../../reducers/rewardsMoney';
 import type { MoneyReferralEntryType } from '../../types/navigation';
+import type { AcceptReferralCodeOptions } from '../../hooks/useAcceptMoneyReferralCode';
 import { setGeoRewardsMetadata } from '../../../../../reducers/rewards';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -109,8 +110,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('../../hooks/useAcceptMoneyReferralCode', () => ({
-  useAcceptMoneyReferralCode: (options?: { onAccepted?: () => void }) =>
-    mockUseAcceptMoneyReferralCode(options),
+  useAcceptMoneyReferralCode: () => mockUseAcceptMoneyReferralCode(),
 }));
 
 jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
@@ -276,19 +276,22 @@ describe('AcceptInviteSheet', () => {
   });
 
   it('leaves the deeplink referral code to the accepted splash after an accept', async () => {
-    const { store, unmount } = await renderSheet('KOL1');
+    mockAcceptReferralCode.mockImplementation(
+      async (_code: string, options?: AcceptReferralCodeOptions) => {
+        options?.onAccepted?.();
+        return { accepted: true };
+      },
+    );
+    const { getByTestId, store, unmount } = await renderSheet('KOL1');
     act(() => {
       store.dispatch(setPendingReferralCode('KOL1'));
     });
-    const { onAccepted } =
-      mockUseAcceptMoneyReferralCode.mock.calls.at(-1)?.[0] ?? {};
 
-    act(() => {
-      onAccepted?.();
+    await act(async () => {
+      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
     });
     unmount();
 
-    expect(onAccepted).toEqual(expect.any(Function));
     expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });
 
@@ -598,7 +601,9 @@ describe('AcceptInviteSheet', () => {
     );
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
-    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1', {
+      onAccepted: expect.any(Function),
+    });
   });
 
   it.each([
@@ -626,7 +631,9 @@ describe('AcceptInviteSheet', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
-    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1', {
+      onAccepted: expect.any(Function),
+    });
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
@@ -637,7 +644,9 @@ describe('AcceptInviteSheet', () => {
     await advanceDebounce();
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
-    expect(mockAcceptReferralCode).toHaveBeenCalledWith('AB12CD');
+    expect(mockAcceptReferralCode).toHaveBeenCalledWith('AB12CD', {
+      onAccepted: expect.any(Function),
+    });
   });
 
   it('does not accept while the code is being validated', async () => {
@@ -709,7 +718,9 @@ describe('AcceptInviteSheet', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
-    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1', {
+      onAccepted: expect.any(Function),
+    });
   });
 
   it('treats a country-region geo string as its country prefix for exclusion', () => {
@@ -771,7 +782,9 @@ describe('AcceptInviteSheet', () => {
     });
 
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
-    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1', {
+      onAccepted: expect.any(Function),
+    });
 
     await act(async () => {
       store.dispatch(
@@ -1248,7 +1261,9 @@ describe('AcceptInviteSheet', () => {
         referral_code: 'KOL1',
         interaction_type: 'accepted',
       });
-      expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+      expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1', {
+        onAccepted: expect.any(Function),
+      });
     });
 
     it('does not record accepted until registration resolves', async () => {

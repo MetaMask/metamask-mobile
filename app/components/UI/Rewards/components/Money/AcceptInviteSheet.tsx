@@ -190,7 +190,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     refusalReason,
     acceptBlockedUntil,
     clearError,
-  } = useAcceptMoneyReferralCode({ onAccepted: handleAccepted });
+  } = useAcceptMoneyReferralCode();
 
   // Confirmed exclusion only — unknown geo fails open and stays on screen.
   // After Accept has started (or while it is loading), keep the sheet
@@ -370,7 +370,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     // Registration is the accept. A refused write leaves the sheet open, so
     // `accepted` must not lock the funnel until the hook reports accepted.
     acceptInFlightRef.current = true;
-    acceptReferralCode(referralCode)
+    acceptReferralCode(referralCode, { onAccepted: handleAccepted })
       .then((result) => {
         if (result.accepted) {
           trackResponded('accepted');
@@ -387,6 +387,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   }, [
     acceptReferralCode,
     canAccept,
+    handleAccepted,
     referralCode,
     trackRefused,
     trackResponded,
