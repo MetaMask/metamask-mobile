@@ -1510,7 +1510,7 @@
         "kols": "Mga KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Ilapat",
         "apply": "Ilapat",
         "reset": "I-reset",
@@ -10124,7 +10124,6 @@
       "perps_withdraw": "Mag-withdraw",
       "predict_deposit": "Magdagdag ng mga pondo para sa Prediksyon",
       "predict_withdraw": "Mag-withdraw",
-      "money_account_add_money": "Magdagdag ng pondo",
       "money_account_send": "Ipadala"
     },
     "sub_title": {

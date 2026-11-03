@@ -1510,7 +1510,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "लागू करें",
         "apply": "लागू करें",
         "reset": "रीसेट करें",
@@ -10124,7 +10124,6 @@
       "perps_withdraw": "निकालें",
       "predict_deposit": "प्रिडिक्शन फ़ंड जोड़ें",
       "predict_withdraw": "निकालें",
-      "money_account_add_money": "फंड जोड़ें",
       "money_account_send": "भेजें"
     },
     "sub_title": {

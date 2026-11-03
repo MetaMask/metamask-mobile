@@ -9,6 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import {
+  FontFamily,
   FontWeight,
   Text,
   TextColor,
@@ -28,7 +29,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   cursor: {
-    marginHorizontal: 5,
     width: 1,
   },
 });
@@ -59,6 +59,7 @@ export interface AnimatedAmountDisplayProps {
   cursor?: false | AnimatedAmountCursorProps;
   /** Use native text autosizing for legacy high-precision displays. */
   fitToWidth?: boolean;
+  fontFamily?: FontFamily;
   fontWeight?: FontWeight;
   loading?: boolean;
   loadingContent?: React.ReactNode;
@@ -86,6 +87,7 @@ const AnimatedAmountDisplay = ({
   containerStyle,
   cursor = false,
   fitToWidth = false,
+  fontFamily,
   fontWeight,
   loading = false,
   loadingContent,
@@ -116,10 +118,10 @@ const AnimatedAmountDisplay = ({
   const defaultCursorStyle = useMemo(
     () => ({
       ...styles.cursor,
-      backgroundColor: colors.primary.default,
+      backgroundColor: colors.text.muted,
       height: 40,
     }),
-    [colors.primary.default],
+    [colors.text.muted],
   );
   const cursorOpacityStyle = useMemo(
     () => ({ opacity: cursorAnimated ? cursorOpacity : 1 }),
@@ -134,6 +136,7 @@ const AnimatedAmountDisplay = ({
       return (
         <Text
           color={affixColor ?? color}
+          fontFamily={fontFamily}
           fontWeight={fontWeight}
           style={[style, affixStyle]}
           variant={variant}
@@ -151,6 +154,7 @@ const AnimatedAmountDisplay = ({
       accessible={false}
       adjustsFontSizeToFit
       color={color}
+      fontFamily={fontFamily}
       fontWeight={fontWeight}
       minimumFontScale={minimumFontScale}
       numberOfLines={1}
@@ -166,6 +170,7 @@ const AnimatedAmountDisplay = ({
       animated={animated}
       color={color}
       containerStyle={amountContainerStyle}
+      fontFamily={fontFamily}
       fontWeight={fontWeight}
       style={style}
       testID={amountTestID}

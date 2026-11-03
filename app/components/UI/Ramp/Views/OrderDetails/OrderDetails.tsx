@@ -14,7 +14,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
@@ -55,6 +54,9 @@ import {
   RAMP_SCREEN_CONTENT_STATE,
   RAMP_V2_SCREEN_ID,
 } from '../../constants/rampScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const createRampsOrderDetailsNavDetails =
   createNavigationDetails<RampsOrderDetailsParams>(
@@ -83,6 +85,7 @@ const styles = StyleSheet.create({
 });
 
 const OrderDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder, getOrderFromCallback, addOrder } =
     useRampsOrders();
@@ -323,7 +326,9 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -346,7 +351,9 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -391,7 +398,9 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('ramps_order_details.title')}
             onBack={handleHeaderBack}
             backButtonProps={{
@@ -407,7 +416,9 @@ const OrderDetails = () => {
   return (
     <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('ramps_order_details.title')}
           onBack={handleHeaderBack}
           backButtonProps={{

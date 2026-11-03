@@ -12,9 +12,16 @@ import {
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
+import { merge } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { createBridgeTestState } from '../../../testUtils';
+import {
+  evmAccountAddress,
+  initialState,
+  solanaAccountAddress,
+  solanaAccountId,
+} from '../../../_mocks_/initialState';
 import { createMockTokenWithBalance } from '../../../testUtils/fixtures';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
@@ -1294,6 +1301,39 @@ describe('BridgeLimitOrderView', () => {
           LimitOrderState.Failed,
         ],
       }),
+    );
+  });
+
+  it('loads the orders of the EVM account of the selected group when a non-EVM account is selected', () => {
+    renderWithProvider(getLimitOrderView(), {
+      state: createBridgeTestState(
+        { bridgeReducerOverrides: { sourceToken: mockSourceToken } },
+        merge({}, initialState, {
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: { selectedAccount: solanaAccountId },
+              },
+            },
+          },
+        }),
+      ),
+    });
+
+    expect(useLimitOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        walletAddress: evmAccountAddress,
+        states: expect.arrayContaining([LimitOrderState.Open]),
+      }),
+    );
+    expect(useLimitOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        walletAddress: evmAccountAddress,
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+      }),
+    );
+    expect(useLimitOrders).not.toHaveBeenCalledWith(
+      expect.objectContaining({ walletAddress: solanaAccountAddress }),
     );
   });
 

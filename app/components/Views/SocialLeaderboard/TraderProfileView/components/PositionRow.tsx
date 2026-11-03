@@ -6,6 +6,8 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -13,7 +15,6 @@ import {
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
-import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { getPositionFlagLabelKey } from '../utils/positionFlags';
 import {
@@ -184,11 +185,26 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
               {displaySymbol}
             </Text>
             {perpDirection ? (
-              <PerpBadges
-                direction={perpDirection}
-                leverage={position.perpLeverage}
-                testID={`position-row-perp-badges-${position.tokenSymbol}`}
-              />
+              <Tag
+                severity={
+                  perpDirection === 'long'
+                    ? TagSeverity.Success
+                    : TagSeverity.Danger
+                }
+                twClassName="shrink-0"
+                testID={`position-row-perp-tag-${position.tokenSymbol}`}
+              >
+                {[
+                  position.perpLeverage ? `${position.perpLeverage}x` : null,
+                  strings(
+                    perpDirection === 'long'
+                      ? 'social_leaderboard.trader_position.long'
+                      : 'social_leaderboard.trader_position.short',
+                  ),
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              </Tag>
             ) : null}
           </Box>
           <Text
