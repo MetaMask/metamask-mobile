@@ -13,14 +13,15 @@
 #
 # Repository variable GA_MODE:
 #   unset or test — post only to vars.RELEASE_SUMMARY_TEST_CHANNEL, no PR write
-#   live          — real release channels when test-channel is empty, and
-#                   allow-pr-write when the run is not a dry run
+#   live          — real release channels when test-channel is empty
 # Any other value is treated as test. A non-live run with no test channel
 # dry-runs and posts nothing, so an empty channel cannot fall through to
 # the real release channels.
-# test-channel does not turn the PR rewrite off (github-tools#306 deviation 3).
-# The rewrite still requires GA_MODE=live and dry-run false. The action then
-# rewrites only for release-validation.
+# allow-pr-write is set only when GA_MODE=live, mode=release-validation,
+# dry-run is false, and no test channel is set. A test channel limits Slack
+# and also blocks the PR rewrite: Zap 597 still rewrites the release PR body
+# during the parallel run, so this caller must not write at the same time.
+# github-tools#306 deviation 3 (test channel limits Slack only) is not used here.
 #
 ################################################################################
 
@@ -130,12 +131,11 @@ jobs:
             dry_run=true
           fi
 
-          # github-tools#306 deviation 3: test-channel does not turn the PR rewrite off.
-          # The action rewrites only for release-validation, and only when
-          # allow-pr-write is true and dry-run is false. This caller arms the
-          # write only for GA_MODE=live.
+          # Do not follow github-tools#306 deviation 3. A test channel must block
+          # the PR rewrite as well as real Slack channels. Zap 597 still
+          # rewrites the release PR body while both paths run in parallel.
           allow_pr_write=false
-          if [[ "$live" == "true" && "$dry_run" == "false" ]]; then
+          if [[ "$live" == "true" && "$mode" == "release-validation" && "$dry_run" == "false" && -z "$test_channel" ]]; then
             allow_pr_write=true
           fi
 
