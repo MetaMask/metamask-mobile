@@ -21,6 +21,8 @@ import { CreatePriceAlertTestIds } from '../constants';
 
 interface AlertFormShellProps {
   children: React.ReactNode;
+  /** Optional row above the recurring toggle (percent-change alert period). */
+  aboveRecurring?: React.ReactNode;
   /** Optional content between the recurring toggle and the keypad (e.g. quick % pills). */
   footerAccessory?: React.ReactNode;
   isRecurring: boolean;
@@ -35,8 +37,9 @@ interface AlertFormShellProps {
 }
 
 /**
- * Shared create/edit chrome: centered header slot, recurring toggle, keypad,
- * and primary save button. Forms own validation and pass label / disabled.
+ * Shared create/edit chrome: centered header slot, optional row above the
+ * recurring toggle, keypad, and primary save button. Forms own validation
+ * and pass label / disabled.
  *
  * "price_alert" is intentionally not in the Keypad CURRENCIES map — unknown
  * codes fall through to the decimals-aware branch in useCurrency, which is
@@ -44,6 +47,7 @@ interface AlertFormShellProps {
  */
 const AlertFormShell: React.FC<AlertFormShellProps> = ({
   children,
+  aboveRecurring,
   footerAccessory,
   isRecurring,
   onRecurringChange,
@@ -63,11 +67,12 @@ const AlertFormShell: React.FC<AlertFormShellProps> = ({
       <Box twClassName="flex-1 justify-center px-4">{children}</Box>
 
       <View style={tw.style('px-4 pb-2')}>
+        {aboveRecurring}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="mb-4 px-2"
+          twClassName="mb-5"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('price_alerts.recurring')}

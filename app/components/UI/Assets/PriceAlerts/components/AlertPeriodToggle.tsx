@@ -1,13 +1,31 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
+import { Modal, Pressable, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  BottomSheetDialog,
+  BottomSheetHeader,
+  Box,
+  ContentVariant,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  ListItem,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import {
   ALERT_PERIODS,
-  AlertPeriod,
+  type AlertPeriod,
   CreatePriceAlertTestIds,
   PERP_ALERT_PERIODS,
 } from '../constants';
-import SlidingPillToggle from './SlidingPillToggle';
 
 interface AlertPeriodToggleProps {
   value: AlertPeriod;
@@ -21,47 +39,151 @@ const PERIOD_TEST_IDS = {
   '24h': CreatePriceAlertTestIds.PERIOD_SEGMENT_24H,
 } as const;
 
-const createOption = (period: AlertPeriod) => ({
-  value: period,
-  label: strings(`price_alerts.period_${period}`),
-  testID: PERIOD_TEST_IDS[period],
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
 });
 
-const spotOptions = ALERT_PERIODS.map(createOption) as [
-  ReturnType<typeof createOption>,
-  ReturnType<typeof createOption>,
-];
-const perpOptions = PERP_ALERT_PERIODS.map(createOption) as [
-  ReturnType<typeof createOption>,
-  ReturnType<typeof createOption>,
-  ...ReturnType<typeof createOption>[],
-];
+const periodLabel = (period: AlertPeriod) =>
+  strings(`price_alerts.period_${period}`);
+
+interface AlertPeriodSheetProps {
+  value: AlertPeriod;
+  options: readonly AlertPeriod[];
+  onChange: (value: AlertPeriod) => void;
+  onClose: () => void;
+}
 
 /**
- * Small animated sliding-pill toggle for the percent-change rolling window
- * (24hr / 1hr, plus 5min for perpetuals).
+ * Mounted only while open. BottomSheetDialog animates in on mount.
+ */
+const AlertPeriodSheet: React.FC<AlertPeriodSheetProps> = ({
+  value,
+  options,
+  onChange,
+  onClose,
+}) => {
+  const { colors } = useTheme();
+
+  const handleSelect = useCallback(
+    (next: AlertPeriod) => {
+      if (next !== value) {
+        playSelection().catch(() => undefined);
+        onChange(next);
+      }
+      onClose();
+    },
+    [onChange, onClose, value],
+  );
+
+  return (
+    <Modal
+      visible
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={styles.root}>
+          <Box twClassName="absolute inset-0">
+            <Pressable
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: colors.overlay.default },
+              ]}
+              onPress={onClose}
+              accessibilityRole="button"
+              testID={CreatePriceAlertTestIds.PERIOD_SHEET_BACKDROP}
+            />
+            <BottomSheetDialog
+              onClose={onClose}
+              testID={CreatePriceAlertTestIds.PERIOD_SHEET}
+            >
+              <BottomSheetHeader onClose={onClose}>
+                {strings('price_alerts.alert_period')}
+              </BottomSheetHeader>
+              <Box twClassName="pb-4">
+                {options.map((option) => {
+                  const isSelected = option === value;
+                  return (
+                    <ListItem
+                      key={option}
+                      isInteractive
+                      variant={ContentVariant.OneLine}
+                      title={periodLabel(option)}
+                      onPress={() => handleSelect(option)}
+                      twClassName={
+                        isSelected ? 'h-[56px] bg-muted' : 'h-[56px]'
+                      }
+                      endAccessory={
+                        isSelected ? (
+                          <Icon
+                            name={IconName.Check}
+                            size={IconSize.Md}
+                            color={IconColor.IconDefault}
+                            testID={CreatePriceAlertTestIds.PERIOD_CHECK}
+                          />
+                        ) : undefined
+                      }
+                      accessibilityState={{ selected: isSelected }}
+                      testID={PERIOD_TEST_IDS[option]}
+                    />
+                  );
+                })}
+              </Box>
+            </BottomSheetDialog>
+          </Box>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </Modal>
+  );
+};
+
+/**
+ * Tertiary button for the percent-change rolling window. The current period
+ * is the label; pressing it opens a sheet of 24hr / 1hr, plus 5min for
+ * perpetuals.
  */
 const AlertPeriodToggle: React.FC<AlertPeriodToggleProps> = ({
   value,
   onChange,
   includeFiveMinutes = false,
 }) => {
-  const { colors } = useTheme();
+  const tw = useTailwind();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const options = includeFiveMinutes ? PERP_ALERT_PERIODS : ALERT_PERIODS;
 
   return (
-    <SlidingPillToggle
-      value={value}
-      options={includeFiveMinutes ? perpOptions : spotOptions}
-      onChange={onChange}
-      testID={CreatePriceAlertTestIds.PERIOD_SEGMENT}
-      inset={4}
-      containerBorderRadius={999}
-      pillBorderRadius={999}
-      containerBorderColor={colors.border.muted}
-      sliderBackgroundColor={colors.background.defaultPressed}
-      pillPaddingHorizontal={12}
-      pillPaddingVertical={2}
-    />
+    <>
+      <Pressable
+        onPress={() => setIsSheetOpen(true)}
+        testID={CreatePriceAlertTestIds.PERIOD_SEGMENT}
+        accessibilityRole="button"
+        accessibilityLabel={periodLabel(value)}
+        android_ripple={null}
+        style={({ pressed }) =>
+          tw.style(
+            'h-8 flex-row items-center justify-center gap-1 self-center rounded-full pl-4 pr-0',
+            pressed ? 'opacity-50' : 'opacity-100',
+          )
+        }
+      >
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {periodLabel(value)}
+        </Text>
+        <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+      </Pressable>
+      {isSheetOpen ? (
+        <AlertPeriodSheet
+          value={value}
+          options={options}
+          onChange={onChange}
+          onClose={() => setIsSheetOpen(false)}
+        />
+      ) : null}
+    </>
   );
 };
 

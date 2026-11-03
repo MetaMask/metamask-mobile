@@ -116,6 +116,10 @@ const ManagePriceAlertsView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasResolvedInitialFetch = useRef(false);
+  // Stays true after the first non-empty result so the header remains when the
+  // user deletes the last alert. The initial empty/error path never sets it,
+  // so the header does not flash before the redirect.
+  const hasDisplayedAlerts = useRef(false);
   const {
     has: isDeleteInFlight,
     add: startDelete,
@@ -157,6 +161,11 @@ const ManagePriceAlertsView: React.FC = () => {
     gcTime: 0,
   });
   const isInitialFetchPending = isLoading || !isFetched;
+  if (!isInitialFetchPending && alerts.length > 0) {
+    hasDisplayedAlerts.current = true;
+  }
+  const showHeader =
+    !isInitialFetchPending && (alerts.length > 0 || hasDisplayedAlerts.current);
 
   useEffect(() => {
     if (!isFetched || isLoading || hasResolvedInitialFetch.current) {
@@ -493,10 +502,12 @@ const ManagePriceAlertsView: React.FC = () => {
       testID={ManagePriceAlertsTestIds.CONTAINER}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
-          title={strings('price_alerts.manage_title')}
-          onBack={handleBack}
-        />
+        {showHeader ? (
+          <HeaderStandard
+            title={strings('price_alerts.manage_title')}
+            onBack={handleBack}
+          />
+        ) : null}
 
         {isInitialFetchPending ? (
           <Box
