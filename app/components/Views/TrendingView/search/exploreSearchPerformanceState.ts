@@ -170,6 +170,7 @@ export class ExploreSearchPerformanceState {
     measurement.resultCounts.clear();
     measurement.feedSources.clear();
     measurement.requestFeedStates = createRequestFeedStates();
+    measurement.errorCount = 0;
 
     return true;
   }

@@ -109,4 +109,26 @@ describe('ExploreSearchPerformanceState', () => {
 
     expect(state.currentMeasurement?.supersededRequestCount).toBe(1);
   });
+
+  it('resets earlier request errors when input changes within a generation', () => {
+    const state = new ExploreSearchPerformanceState();
+
+    state.startGeneration({ id: 'generation-1', query: 'e', firstInputAt: 0 });
+    state.startRequest({
+      feedId: 'tokens',
+      query: 'e',
+      requestId: 'request-1',
+      startedAt: 10,
+    });
+    state.completeRequest({
+      requestId: 'request-1',
+      outcome: 'error',
+      endedAt: 20,
+    });
+
+    expect(state.currentMeasurement?.errorCount).toBe(1);
+    state.updateInput('eth', 30);
+
+    expect(state.currentMeasurement?.errorCount).toBe(0);
+  });
 });

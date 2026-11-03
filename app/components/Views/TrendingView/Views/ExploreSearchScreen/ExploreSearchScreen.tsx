@@ -322,11 +322,14 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
+  const navigation = useNavigation();
+  const [focusCount, setFocusCount] = useState(0);
   const isFocused = useIsFocused();
   const { sections, performanceLifecycle } = useExploreSearch(searchQuery, {
     exposePagination: true,
     entryPoint,
     isFocused,
+    focusCount,
   });
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
@@ -334,8 +337,6 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const isLoading = sections.some((s) => s.isLoading);
 
   // A focus counter, not useIsFocused: frozen screens never render the blurred value.
-  const navigation = useNavigation();
-  const [focusCount, setFocusCount] = useState(0);
   useEffect(() => {
     const unsubscribeFocus = navigation.addListener('focus', () => {
       setFocusCount((count) => count + 1);
@@ -744,9 +745,19 @@ const ExploreSearchScreen: React.FC = () => {
       return;
     }
 
-    setSearchQuery(getTrimmedInitialQuery(routeParams.initialQuery));
-    setIsClipboardQuery(routeParams.initialQuerySource === 'clipboard');
-    trackExploreSearchOpened(routeParams.entryPoint);
+    if (routeParams.initialQuery !== undefined) {
+      setSearchQuery(getTrimmedInitialQuery(routeParams.initialQuery));
+      setIsClipboardQuery(routeParams.initialQuerySource === 'clipboard');
+    }
+
+    // In-app tap handlers emit opened before navigation. Route params cover
+    // opens without a tap handler, such as deeplinks and homepage pastes.
+    if (
+      routeParams.entryPoint === 'deeplink' ||
+      routeParams.initialQuerySource === 'clipboard'
+    ) {
+      trackExploreSearchOpened(routeParams.entryPoint);
+    }
   }, [routeParams]);
 
   const handleSearchCancel = useCallback(() => {

@@ -47,12 +47,19 @@ export interface UseExploreSearchOptions {
   entryPoint?: SearchEntryPoint;
   /** Enables performance measurement for the focused Explore Search screen. */
   isFocused?: boolean;
+  /** Rechecks cached feed readiness after a navigation focus event. */
+  focusCount?: number;
 }
 export const useExploreSearch = (
   query: string,
   options: UseExploreSearchOptions = {},
 ): ExploreSearchResult => {
-  const { exposePagination = false, entryPoint, isFocused = false } = options;
+  const {
+    exposePagination = false,
+    entryPoint,
+    isFocused = false,
+    focusCount = 0,
+  } = options;
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -226,7 +233,7 @@ export const useExploreSearch = (
         section.items.length,
       );
     });
-  }, [isFocused, query, result.sections, searchPerformance]);
+  }, [focusCount, isFocused, query, result.sections, searchPerformance]);
 
   return result;
 };

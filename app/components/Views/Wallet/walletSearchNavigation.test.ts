@@ -40,7 +40,7 @@ describe('navigateToExploreSearch', () => {
       true,
     );
 
-    expect(trackExploreSearchOpened).not.toHaveBeenCalled();
+    expect(trackExploreSearchOpened).toHaveBeenCalledWith('home');
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH, {
       entryPoint: 'home',
       initialQuery: '0xabc',

@@ -436,19 +436,26 @@ describe('useExploreSearch', () => {
 
     it('rechecks readiness and cache state when Search regains focus', () => {
       const { rerender } = renderHook(
-        ({ isFocused }: { isFocused: boolean }) =>
+        ({
+          focusCount,
+          isFocused,
+        }: {
+          focusCount: number;
+          isFocused: boolean;
+        }) =>
           useExploreSearch('eth', {
             exposePagination: true,
             isFocused,
+            focusCount,
           }),
-        { initialProps: { isFocused: false } },
+        { initialProps: { focusCount: 0, isFocused: true } },
       );
 
       mockMarkFeedReady.mockClear();
       mockMarkCachedTokens.mockClear();
       mockMarkCachedStocks.mockClear();
       mockMarkCachedPredictions.mockClear();
-      rerender({ isFocused: true });
+      rerender({ focusCount: 1, isFocused: true });
 
       expect(mockMarkFeedReady).toHaveBeenCalledWith(
         'tokens',
