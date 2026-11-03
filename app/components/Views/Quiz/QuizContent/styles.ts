@@ -12,7 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginHorizontal: 16,
     },
     container: {
-      padding: 15,
+      padding: 16,
       alignItems: 'center',
     },
     header: {
