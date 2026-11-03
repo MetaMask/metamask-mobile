@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import MoneyVbaHomeCard from './MoneyVbaHomeCard';
 import {
   MONEY_VBA_HOME_CARD_CONFIG,
@@ -11,8 +11,14 @@ import {
   navigateToVbaOnboardingDestination,
   resolveVbaOnboarding,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
-import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import {
+  endVbaCufJourney,
+  startVbaCufJourney,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import {
+  VBA_CUF_END_REASON,
+  VBA_CUF_ENTRY_SURFACE,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import {
   COMPONENT_NAMES,
@@ -21,6 +27,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 
 const mockNavigation = { dispatch: jest.fn() };
 
@@ -44,7 +51,15 @@ jest.mock(
   }),
 );
 jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  endVbaCufJourney: jest.fn(),
   startVbaCufJourney: jest.fn(),
+}));
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
 }));
 
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
@@ -52,7 +67,9 @@ const mockNavigateToDestination = jest.mocked(
   navigateToVbaOnboardingDestination,
 );
 const mockResolve = jest.mocked(resolveVbaOnboarding);
+const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
 const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
+const mockLoggerError = jest.mocked(Logger.error);
 
 const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'get_started',
@@ -232,6 +249,78 @@ describe('MoneyVbaHomeCard', () => {
 
     expect(mockResolve).toHaveBeenCalledTimes(1);
     expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the error destination when onboarding cannot resolve', async () => {
+    mockResolve.mockResolvedValue({ status: 'error' });
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigateToDestination).toHaveBeenCalledWith(
+        mockNavigation,
+        'error',
+      );
+    });
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.ERROR,
+    );
+  });
+
+  it('logs rejected onboarding resolution and opens the error destination', async () => {
+    const error = new Error('hydrate failed');
+    mockResolve.mockRejectedValue(error);
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(error, expect.any(Object));
+      expect(mockNavigateToDestination).toHaveBeenCalledWith(
+        mockNavigation,
+        'error',
+      );
+    });
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.ERROR,
+    );
+  });
+
+  it('does not navigate after the card unmounts during onboarding resolution', async () => {
+    let resolveOnboarding!: (
+      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
+    ) => void;
+    mockResolve.mockReturnValue(
+      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
+        (resolve) => {
+          resolveOnboarding = resolve;
+        },
+      ),
+    );
+    const { getByTestId, unmount } = render(
+      <MoneyVbaHomeCard variant="get_started" />,
+    );
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON),
+    );
+
+    unmount();
+    await act(async () => {
+      resolveOnboarding({
+        status: 'ready',
+        destinationId: 'kycPending',
+        snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
+      });
+    });
+
+    expect(mockNavigateToDestination).not.toHaveBeenCalled();
   });
 
   it('hides the kyc_decision card when Dismiss is pressed', () => {
