@@ -180,6 +180,33 @@ describe('snapMethodMiddlewareBuilder trackError', () => {
       );
     });
 
+    it('drops SolanaError 8500000 when the snap serializes an undefined cause', () => {
+      const solanaProgramError = new Error(
+        'Solana error #8500000; Decode this error by running `npx @solana/errors decode -- 8500000`',
+      );
+      solanaProgramError.name = 'SolanaError';
+      // snaps-sdk getJsonError turns an undefined own `cause` into Error('undefined').
+      solanaProgramError.cause = new Error('undefined');
+
+      snapMethodMiddlewareBuilder(
+        controllerMessenger,
+        solanaOrigin,
+        SubjectType.Snap,
+      );
+
+      const trackError = jest.mocked(createSnapsMethodMiddleware).mock
+        .calls[0][1].trackError;
+      const returnedEventId = trackError(solanaProgramError);
+
+      expect(returnedEventId).toBe('');
+      expect(captureException).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        droppedLogMessage,
+        'SOLANA_ERROR_8500000',
+        solanaOrigin,
+      );
+    });
+
     it('drops a stale background event id reported as an unknown error', () => {
       const staleBackgroundEventError = new Error('Unknown error');
       staleBackgroundEventError.cause = new Error(
