@@ -53,9 +53,7 @@ const MoneyApyInfoSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const isPremiumCopy =
-    vaultStatus === MoneyVaultStatus.Premium ||
-    vaultStatus === MoneyVaultStatus.Upgrading;
+  const isPremiumCopy = vaultStatus === MoneyVaultStatus.Premium;
   const migrationCopyKey =
     vaultStatus === MoneyVaultStatus.Upgrading
       ? 'money.apy_tooltip.migration_upgrading'

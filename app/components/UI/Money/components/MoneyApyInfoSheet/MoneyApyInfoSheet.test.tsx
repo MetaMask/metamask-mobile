@@ -132,11 +132,25 @@ describe('MoneyApyInfoSheet', () => {
       vaultStatus: 'upgrading',
     });
 
-    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneyApyInfoSheet />,
+    );
 
     expect(
       getByText(strings('money.apy_tooltip.migration_upgrading')),
     ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('money.apy_tooltip.paragraph_1', { percentage: DEFAULT_APY }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(
+        strings('money.apy_tooltip.paragraph_1_premium', {
+          percentage: DEFAULT_APY,
+        }),
+      ),
+    ).toBeNull();
   });
 
   it('renders the downgrading migration line when vaultStatus is downgrading', () => {
