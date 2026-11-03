@@ -1,9 +1,9 @@
 import {
-  ActionListItem,
   BottomSheetDialog,
   BottomSheetHeader,
   Box,
-  RadioButton,
+  ListItemSelect,
+  ListItemVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
@@ -113,16 +113,13 @@ function FilterOptionSheetInner<T extends string>({
                 {options.map((option) => {
                   const isSelected = option === value;
                   return (
-                    <ActionListItem
+                    <ListItemSelect
                       key={option}
-                      label={getLabel(option)}
+                      title={getLabel(option)}
+                      variant={ListItemVariant.OneLine}
+                      isSelected={isSelected}
+                      showSelectedIcon
                       onPress={() => handleSelect(option)}
-                      endAccessory={
-                        <RadioButton
-                          isChecked={isSelected}
-                          onPress={() => handleSelect(option)}
-                        />
-                      }
                       accessibilityState={{ selected: isSelected }}
                       testID={getOptionTestID(option)}
                     />

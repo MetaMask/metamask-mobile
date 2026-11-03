@@ -31,8 +31,6 @@ import {
 } from '../../../Transactions/AssetDetailsActivityListItem.utils';
 import { filterDuplicateOutgoingTransactions } from '../../../Transactions/utils';
 import ActivityHeader from '../../../../Views/Asset/ActivityHeader';
-import { useUnifiedTxActions } from '../../../../Views/ActivityList/useUnifiedTxActions';
-import { CancelSpeedupModal } from '../../../../Views/confirmations/components/modals/cancel-speedup-modal';
 import { useTokenTransactions } from '../../hooks/useTokenTransactions';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 
@@ -178,18 +176,6 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     isNonEvmAsset,
   } = useTokenTransactions(token);
 
-  const {
-    speedUpIsOpen,
-    cancelIsOpen,
-    confirmDisabled,
-    existingTx,
-    onSpeedUpAction,
-    onCancelAction,
-    onSpeedUpCancelCompleted,
-    speedUpTransaction,
-    cancelTransaction,
-  } = useUnifiedTxActions();
-
   const accountImportTime = useSelector(
     (state: RootState) =>
       selectSelectedInternalAccount(state)?.metadata.importTime,
@@ -281,8 +267,6 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
               networkConfigurations={networkConfigurationsByChainId}
               allTokens={allTokens}
               bridgeHistory={bridgeHistory}
-              onSpeedUpAction={onSpeedUpAction}
-              onCancelAction={onCancelAction}
             />
           );
         })}
@@ -299,17 +283,6 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
           </Box>
         ) : null}
       </Box>
-
-      {existingTx ? (
-        <CancelSpeedupModal
-          isVisible={speedUpIsOpen || cancelIsOpen}
-          isCancel={cancelIsOpen}
-          tx={existingTx}
-          onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
-          onClose={onSpeedUpCancelCompleted}
-          confirmDisabled={confirmDisabled}
-        />
-      ) : null}
     </>
   );
 };

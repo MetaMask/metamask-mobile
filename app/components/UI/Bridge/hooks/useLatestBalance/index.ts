@@ -13,6 +13,7 @@ import {
   formatChainIdToCaip,
   isNativeAddress,
   isNonEvmChainId,
+  SwapFeatureTag,
   type FeatureId,
 } from '@metamask/bridge-controller';
 import {
@@ -147,6 +148,7 @@ export const useLatestBalance = (
             srcChainId: chainId,
             isNative: isNativeAddress(token?.address),
           },
+          tags: { feature: SwapFeatureTag.SWAP },
           startTime: Date.now(),
         });
         const web3Provider = getProviderByChainId(chainId);

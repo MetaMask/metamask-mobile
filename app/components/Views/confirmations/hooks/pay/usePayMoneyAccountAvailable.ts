@@ -6,6 +6,9 @@ import { isTransactionPayWithdraw } from '../../utils/transaction';
 
 export interface PayMoneyAccountAvailability {
   isAvailable: boolean;
+  withdrawableBalance: ReturnType<
+    typeof useMoneyAccountBalance
+  >['withdrawableMusd'];
   /**
    * The balance is still loading. Callers that would otherwise select a
    * different payment source must wait rather than treat this as unavailable,
@@ -41,16 +44,25 @@ export function usePayMoneyAccountAvailable({
   });
 
   if (!isApplicable) {
-    return { isAvailable: false, isPending: false };
+    return {
+      isAvailable: false,
+      isPending: false,
+      withdrawableBalance: undefined,
+    };
   }
 
   // Receiving flows do not spend from the account, so no balance is required.
   if (!isFundingSource) {
-    return { isAvailable: true, isPending: false };
+    return {
+      isAvailable: true,
+      isPending: false,
+      withdrawableBalance: undefined,
+    };
   }
 
   return {
     isAvailable: Boolean(withdrawableMusd?.isGreaterThan(0)),
     isPending: isBalanceLoading,
+    withdrawableBalance: withdrawableMusd,
   };
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { IconColor, IconName } from '@metamask/design-system-react-native';
 import PasswordResetWarningSheet from './PasswordResetWarningSheet';
 import { PasswordResetWarningSheetSelectorsIDs } from './PasswordResetWarningSheet.testIds';
 import { strings } from '../../../../../locales/i18n';
@@ -49,6 +50,21 @@ describe('PasswordResetWarningSheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the info icon in the default text color', () => {
+    const { UNSAFE_getByProps, UNSAFE_queryByProps } = render(
+      <PasswordResetWarningSheet
+        isVisible
+        onConfirm={jest.fn()}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    const icon = UNSAFE_getByProps({ name: IconName.Info });
+
+    expect(icon.props.color).toBe(IconColor.IconDefault);
+    expect(UNSAFE_queryByProps({ name: IconName.Error })).toBeNull();
+  });
+
   it('confirms when the primary CTA is pressed', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = render(
@@ -83,22 +99,5 @@ describe('PasswordResetWarningSheet', () => {
 
     expect(onDismiss).toHaveBeenCalled();
     expect(onConfirm).not.toHaveBeenCalled();
-  });
-
-  it('dismisses when the close button is pressed', () => {
-    const onDismiss = jest.fn();
-    const { getByTestId } = render(
-      <PasswordResetWarningSheet
-        isVisible
-        onConfirm={jest.fn()}
-        onDismiss={onDismiss}
-      />,
-    );
-
-    fireEvent.press(
-      getByTestId(PasswordResetWarningSheetSelectorsIDs.CLOSE_BUTTON),
-    );
-
-    expect(onDismiss).toHaveBeenCalled();
   });
 });

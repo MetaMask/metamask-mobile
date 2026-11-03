@@ -11,9 +11,9 @@ import {
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from '../../../flows/wallet.flow.js';
+import { openPerpsHomeFromWallet } from '../../../flows/perps.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import { Assertions } from '../../../framework/index.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import PerpsHomeView from '../../../page-objects/Perps/PerpsHomeView.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
@@ -72,7 +72,7 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
 
-          await WalletView.scrollAndTapPerpsSection();
+          await openPerpsHomeFromWallet();
           await PerpsHomeView.tapExploreCryptoIfVisible();
           await PerpsHomeView.tapAddFundsButton();
 

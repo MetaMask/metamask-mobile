@@ -44,6 +44,7 @@
 import { readFile, writeFile, mkdir, readdir, access } from 'fs/promises';
 import { constants as fsConstants } from 'fs';
 import { execSync } from 'child_process';
+import { inflateRawSync } from 'zlib';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -53,6 +54,9 @@ import {
   aggregateTimingsFromPlaywrightJson,
   countSkips,
   countDefinedTests,
+  mergePlatformTimingSamples,
+  summarizeTimingSamples,
+  timingSamplesFromQaStats,
 } from './qa-stats-e2e.mjs';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -98,6 +102,40 @@ const PATTERN_PERF_SPEC_FILE = /\.spec\.js$/;
 let _runId = null;
 let _artifactList = null;
 
+/** Successful `push`/`schedule` ci.yml runs on main, newest first. */
+async function listRecentSuccessfulCiRuns() {
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+  };
+
+  const fetchSuccessfulForEvent = async (event) => {
+    const maxPages = 3;
+    const successful = [];
+    for (let page = 1; page <= maxPages; page += 1) {
+      const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=completed&event=${event}&per_page=30&page=${page}`;
+      const res = await fetch(url, { headers });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      const runs = data.workflow_runs ?? [];
+      successful.push(...runs.filter((r) => r.conclusion === 'success'));
+      if (runs.length < 30) break;
+    }
+    return successful;
+  };
+
+  const [pushRuns, scheduleRuns] = await Promise.all([
+    fetchSuccessfulForEvent('push'),
+    fetchSuccessfulForEvent('schedule'),
+  ]);
+
+  return [...pushRuns, ...scheduleRuns].sort(
+    (a, b) => new Date(b.created_at) - new Date(a.created_at),
+  );
+}
+
 /**
  * Fetches the ID of the latest successful CI workflow run on `main` triggered
  * by a `push` (merge-queue merge) or `schedule` event.
@@ -119,36 +157,7 @@ let _artifactList = null;
  * @returns {Promise<string>}
  */
 async function getLatestCiRunId() {
-  const headers = {
-    Authorization: `Bearer ${GITHUB_TOKEN}`,
-    Accept: 'application/vnd.github+json',
-  };
-
-  const fetchLatestForEvent = async (event) => {
-    const maxPages = 3;
-    for (let page = 1; page <= maxPages; page += 1) {
-      const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=completed&event=${event}&per_page=30&page=${page}`;
-      const res = await fetch(url, { headers });
-      if (!res.ok) {
-        throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
-      }
-      const data = await res.json();
-      const runs = data.workflow_runs ?? [];
-      const successful = runs.find((r) => r.conclusion === 'success');
-      if (successful) return successful;
-      if (runs.length < 30) break;
-    }
-    return null;
-  };
-
-  const [pushRun, scheduleRun] = await Promise.all([
-    fetchLatestForEvent('push'),
-    fetchLatestForEvent('schedule'),
-  ]);
-
-  const run = [pushRun, scheduleRun]
-    .filter(Boolean)
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+  const [run] = await listRecentSuccessfulCiRuns();
 
   if (!run) {
     throw new Error('No successful CI workflow runs found on main (push or schedule)');
@@ -173,7 +182,11 @@ async function getRunId() {
 async function getArtifactList() {
   if (_artifactList) return _artifactList;
 
-  const runId = await getRunId();
+  _artifactList = await listRunArtifacts(await getRunId());
+  return _artifactList;
+}
+
+async function listRunArtifacts(runId) {
   const artifacts = [];
   let page = 1;
 
@@ -197,8 +210,7 @@ async function getArtifactList() {
     page++;
   }
 
-  _artifactList = artifacts;
-  return _artifactList;
+  return artifacts.filter((a) => !a.expired);
 }
 
 /**
@@ -208,10 +220,12 @@ async function getArtifactList() {
  * @param {string} artifactName
  * @returns {Promise<string>} Path to the directory containing the extracted files
  */
-async function downloadArtifact(artifactName) {
-  const artifacts = await getArtifactList();
+async function downloadArtifact(artifactName, source = null) {
+  const defaultRunId = await getRunId();
+  const runId = source?.runId ?? defaultRunId;
+  const artifacts = source?.artifacts ?? (await getArtifactList());
   const artifact = artifacts.find((a) => a.name === artifactName);
-  const runId = await getRunId();
+  const dirName = runId === defaultRunId ? artifactName : `${artifactName}-run-${runId}`;
 
   if (!artifact) {
     throw new Error(
@@ -223,7 +237,7 @@ async function downloadArtifact(artifactName) {
   // this process, reuse the existing directory (collectors may request the
   // same artifact). The presence of the marker zip is enough to confirm a
   // previous successful extraction.
-  const destDirCached = `./${artifactName}`;
+  const destDirCached = `./${dirName}`;
   const cachedZip = join(destDirCached, `${artifactName}.zip`);
   try {
     await access(cachedZip, fsConstants.F_OK);
@@ -254,7 +268,7 @@ async function downloadArtifact(artifactName) {
     );
   }
 
-  const destDir = `./${artifactName}`;
+  const destDir = `./${dirName}`;
   await mkdir(destDir, { recursive: true });
   const zipPath = join(destDir, `${artifactName}.zip`);
   await writeFile(zipPath, Buffer.from(await zipRes.arrayBuffer()));
@@ -924,14 +938,68 @@ async function readPlaywrightJsonReport(destDir) {
   return JSON.parse(await readFile(found[0], 'utf8'));
 }
 
+const MAX_FALLBACK_RUNS_TO_SCAN = 10;
+const PLATFORM_FALLBACK_EVENT = { android: 'push', ios: 'schedule' };
+
+/**
+ * Pushes to main only run Android Appium; scheduled runs only run iOS. When the
+ * selected run lacks a platform, pull it from the newest successful run of the
+ * event that runs that platform.
+ */
+async function findFallbackPlatformArtifacts(platform) {
+  const defaultRunId = await getRunId();
+  const runs = (await listRecentSuccessfulCiRuns())
+    .filter((r) => String(r.id) !== defaultRunId && r.event === PLATFORM_FALLBACK_EVENT[platform])
+    .slice(0, MAX_FALLBACK_RUNS_TO_SCAN);
+
+  for (const run of runs) {
+    const runId = String(run.id);
+    const artifacts = await listRunArtifacts(runId);
+    const matching = artifacts
+      .map((a) => ({ artifact: a, dims: getE2EArtifactDimensions(a.name) }))
+      .filter(({ dims }) => dims?.platform === platform);
+    if (matching.length > 0) {
+      console.log(
+        `[e2e_test_times] no ${platform} Appium reports on the selected run; ` +
+          `using ${matching.length} from ci run #${run.run_number} (id=${runId}, event=${run.event})`,
+      );
+      return matching.map((m) => ({ ...m, source: { runId, artifacts } }));
+    }
+  }
+  console.warn(
+    `[e2e_test_times] no ${platform} Appium reports in the last ${runs.length} fallback run(s)`,
+  );
+  return [];
+}
+
+/**
+ * Appium report artifacts for the selected run, plus a per-platform fallback to
+ * the newest scheduled run for any platform the selected run lacks.
+ */
+let _appiumReports = null;
+
+async function collectAppiumReportArtifacts() {
+  if (_appiumReports) return _appiumReports;
+  const artifacts = await getArtifactList();
+  const reports = artifacts
+    .map((a) => ({ artifact: a, dims: getE2EArtifactDimensions(a.name), source: null }))
+    .filter(({ dims }) => dims);
+
+  for (const platform of ['android', 'ios']) {
+    if (!reports.some(({ dims }) => dims.platform === platform)) {
+      reports.push(...(await findFallbackPlatformArtifacts(platform)));
+    }
+  }
+  _appiumReports = reports;
+  return reports;
+}
+
 // Collects Appium E2E test counts from Playwright JSON artifacts.
 async function collectE2ECounts() {
-  const artifacts = await getArtifactList();
-
   const platformCounts = { android: 0, ios: 0 };
   const suiteCounts = {};
 
-  const e2eArtifacts = artifacts.filter((a) => getE2EArtifactDimensions(a.name));
+  const e2eArtifacts = await collectAppiumReportArtifacts();
   console.log(`[e2e] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
 
   if (e2eArtifacts.length === 0) {
@@ -939,10 +1007,10 @@ async function collectE2ECounts() {
       '[e2e] no Appium Playwright report artifacts found — skipping run counts (see `metametrics` namespace for static event coverage)',
     );
   } else {
-    for (const artifact of e2eArtifacts) {
-      const { platform, suiteTag } = getE2EArtifactDimensions(artifact.name);
+    for (const { artifact, dims, source } of e2eArtifacts) {
+      const { platform, suiteTag } = dims;
 
-      const destDir = await downloadArtifact(artifact.name);
+      const destDir = await downloadArtifact(artifact.name, source);
       const report = await readPlaywrightJsonReport(destDir);
       const count = countExecutedTestsFromPlaywrightJson(report);
       console.log(`[e2e] ${artifact.name}: ${count} test(s)`);
@@ -990,23 +1058,38 @@ async function collectE2ECounts() {
 }
 
 async function collectE2ETestTimes() {
-  const artifacts = await getArtifactList();
-  const e2eArtifacts = artifacts
-    .map((a) => ({ artifact: a, dims: getE2EArtifactDimensions(a.name) }))
-    .filter(({ dims }) => dims);
+  const e2eArtifacts = await collectAppiumReportArtifacts();
+  const defaultRunId = await getRunId();
 
   console.log(`[e2e_test_times] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
+  const { samples: previous, sources: previousSources } = await fetchPreviousTimingSamples();
+
   if (e2eArtifacts.length === 0) {
+    const timings = summarizeTimingSamples(previous);
+    if (Object.keys(timings).length === 0) {
+      console.warn(
+        '[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ' +
+          'Appium timing-balanced sharding will fall back to equal-count splits until the next successful collect',
+      );
+      return {};
+    }
     console.warn(
-      '[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ' +
-        'Appium timing-balanced sharding will fall back to equal-count splits until the next successful collect',
+      `[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ` +
+        `republishing retained timing history for ${Object.keys(previous).length} spec file(s)`,
     );
-    return {};
+    return { timings, samples: previous, sources: previousSources };
   }
 
+  // A run's durations may only enter the retained window once. Fallback runs are
+  // reused across collections, so skip platforms whose source run is already in.
+  const sources = { ...previousSources };
   const acc = {};
-  for (const { artifact, dims } of e2eArtifacts) {
-    const destDir = await downloadArtifact(artifact.name);
+  for (const { artifact, dims, source } of e2eArtifacts) {
+    const runId = source?.runId ?? defaultRunId;
+    if (previousSources[dims.platform] === runId) continue;
+    sources[dims.platform] = runId;
+
+    const destDir = await downloadArtifact(artifact.name, source);
     const report = await readPlaywrightJsonReport(destDir);
     aggregateTimingsFromPlaywrightJson(report, dims.platform, acc);
   }
@@ -1017,9 +1100,177 @@ async function collectE2ETestTimes() {
     }
   }
 
-  const specCount = Object.keys(acc).length;
-  console.log(`[e2e_test_times] aggregated timings for ${specCount} spec file(s)`);
-  return acc;
+  const samples = mergePlatformTimingSamples(previous, acc);
+  const timings = summarizeTimingSamples(samples);
+  console.log(
+    `[e2e_test_times] aggregated ${Object.keys(acc).length} spec file(s); ` +
+      `publishing p75 across ${Object.keys(samples).length} retained spec history entries`,
+  );
+  return { timings, samples, sources };
+}
+
+const MAX_PREVIOUS_QA_STATS_ZIP_BYTES = 50 * 1024 * 1024;
+const MAX_PREVIOUS_QA_STATS_JSON_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Reads qa-stats.json from a GitHub artifact zip without writing the archive
+ * to disk. Only the named entry is inflated, and only up to the size cap.
+ *
+ * @param {Buffer} buffer
+ * @returns {string}
+ */
+function readQaStatsJsonFromZip(buffer) {
+  if (buffer.length === 0 || buffer.length > MAX_PREVIOUS_QA_STATS_ZIP_BYTES) {
+    throw new Error('qa-stats artifact is empty or larger than 50MB');
+  }
+
+  const endOfCentralDirectory = findEndOfCentralDirectory(buffer);
+  const entryCount = buffer.readUInt16LE(endOfCentralDirectory + 10);
+  let cursor = buffer.readUInt32LE(endOfCentralDirectory + 16);
+  let jsonEntry;
+
+  for (let index = 0; index < entryCount; index += 1) {
+    if (cursor + 46 > buffer.length || buffer.readUInt32LE(cursor) !== 0x02014b50) {
+      throw new Error('qa-stats artifact central directory is invalid');
+    }
+    const method = buffer.readUInt16LE(cursor + 10);
+    const compressedSize = buffer.readUInt32LE(cursor + 20);
+    const uncompressedSize = buffer.readUInt32LE(cursor + 24);
+    const nameLength = buffer.readUInt16LE(cursor + 28);
+    const extraLength = buffer.readUInt16LE(cursor + 30);
+    const commentLength = buffer.readUInt16LE(cursor + 32);
+    const localOffset = buffer.readUInt32LE(cursor + 42);
+    const name = buffer.toString('utf8', cursor + 46, cursor + 46 + nameLength);
+    if (name === 'qa-stats.json') {
+      jsonEntry = { method, compressedSize, uncompressedSize, localOffset };
+    }
+    cursor += 46 + nameLength + extraLength + commentLength;
+  }
+
+  if (!jsonEntry) {
+    throw new Error('qa-stats.json missing from previous qa-stats artifact');
+  }
+  if (
+    jsonEntry.compressedSize === 0xffffffff ||
+    jsonEntry.uncompressedSize === 0xffffffff ||
+    jsonEntry.uncompressedSize > MAX_PREVIOUS_QA_STATS_JSON_BYTES
+  ) {
+    throw new Error('qa-stats.json exceeds 10MB');
+  }
+
+  const local = jsonEntry.localOffset;
+  if (local + 30 > buffer.length || buffer.readUInt32LE(local) !== 0x04034b50) {
+    throw new Error('qa-stats artifact local header is invalid');
+  }
+  const nameLength = buffer.readUInt16LE(local + 26);
+  const extraLength = buffer.readUInt16LE(local + 28);
+  const dataStart = local + 30 + nameLength + extraLength;
+  const compressed = buffer.subarray(
+    dataStart,
+    dataStart + jsonEntry.compressedSize,
+  );
+  if (compressed.length !== jsonEntry.compressedSize) {
+    throw new Error('qa-stats artifact entry is truncated');
+  }
+
+  if (jsonEntry.method === 0) return compressed.toString('utf8');
+  if (jsonEntry.method === 8) {
+    const inflated = inflateRawSync(compressed);
+    if (inflated.length > MAX_PREVIOUS_QA_STATS_JSON_BYTES) {
+      throw new Error('qa-stats.json exceeds 10MB');
+    }
+    return inflated.toString('utf8');
+  }
+  throw new Error(`unsupported qa-stats zip method ${jsonEntry.method}`);
+}
+
+/**
+ * @param {Buffer} buffer
+ * @returns {number}
+ */
+function findEndOfCentralDirectory(buffer) {
+  const earliest = Math.max(0, buffer.length - 22 - 65535);
+  for (let offset = buffer.length - 22; offset >= earliest; offset -= 1) {
+    if (buffer.readUInt32LE(offset) === 0x06054b50) return offset;
+  }
+  throw new Error('qa-stats artifact is not a zip file');
+}
+
+/**
+ * @param {object | null | undefined} parsed
+ * @returns {{ samples: object, sources: Record<string, string> }}
+ */
+function previousTimingStateFromQaStats(parsed) {
+  const sources = parsed?.e2e_test_time_sources;
+  return {
+    samples: timingSamplesFromQaStats(parsed),
+    sources: sources && typeof sources === 'object' ? sources : {},
+  };
+}
+
+async function fetchPreviousTimingSamples() {
+  const override = process.env.PREVIOUS_QA_STATS_PATH?.trim();
+  if (override) {
+    const parsed = JSON.parse(await readFile(override, 'utf8'));
+    return previousTimingStateFromQaStats(parsed);
+  }
+
+  if (!GITHUB_TOKEN) return { samples: {}, sources: {} };
+
+  try {
+    const headers = {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    const runsUrl = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/qa-stats.yml/runs?branch=main&status=success&per_page=1`;
+    const runsRes = await fetch(runsUrl, { headers });
+    if (!runsRes.ok) {
+      throw new Error(`qa-stats runs → ${runsRes.status} ${runsRes.statusText}`);
+    }
+    const run = (await runsRes.json())?.workflow_runs?.[0];
+    if (!run?.id) return { samples: {}, sources: {} };
+
+    const artifactsRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run.id}/artifacts`,
+      { headers },
+    );
+    if (!artifactsRes.ok) {
+      throw new Error(`qa-stats artifacts → ${artifactsRes.status} ${artifactsRes.statusText}`);
+    }
+    const artifact = ((await artifactsRes.json())?.artifacts ?? []).find(
+      (entry) => entry?.name === 'qa-stats' && !entry?.expired,
+    );
+    if (!artifact?.archive_download_url) return { samples: {}, sources: {} };
+
+    const redirectRes = await fetch(artifact.archive_download_url, {
+      headers,
+      redirect: 'manual',
+    });
+    const downloadUrl = redirectRes.headers.get('location');
+    if (!downloadUrl) return { samples: {}, sources: {} };
+    const zipRes = await fetch(downloadUrl);
+    if (!zipRes.ok) {
+      throw new Error(`qa-stats download → ${zipRes.status} ${zipRes.statusText}`);
+    }
+
+    const declaredLength = Number(zipRes.headers.get('content-length'));
+    if (
+      Number.isFinite(declaredLength) &&
+      declaredLength > MAX_PREVIOUS_QA_STATS_ZIP_BYTES
+    ) {
+      throw new Error('qa-stats artifact exceeds 50MB');
+    }
+    const parsed = JSON.parse(
+      readQaStatsJsonFromZip(Buffer.from(await zipRes.arrayBuffer())),
+    );
+    console.log(`[e2e_test_times] retained timing history from qa-stats run #${run.id}`);
+    return previousTimingStateFromQaStats(parsed);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[e2e_test_times] previous timing history unavailable: ${message}`);
+    return { samples: {}, sources: {} };
+  }
 }
 
 /**
@@ -1123,6 +1374,20 @@ async function main() {
   for (const { namespace, collect } of collectors) {
     try {
       const nested = await collect();
+      if (namespace === 'e2e_test_times') {
+        const timings = nested?.timings ?? nested;
+        const samples = nested?.samples;
+        const sources = nested?.sources;
+        if (!timings || Object.keys(timings).length === 0) continue;
+        stats.e2e_test_times = timings;
+        if (samples && Object.keys(samples).length > 0) {
+          stats.e2e_test_time_samples = samples;
+        }
+        if (sources && Object.keys(sources).length > 0) {
+          stats.e2e_test_time_sources = sources;
+        }
+        continue;
+      }
       if (Object.keys(nested).length === 0) continue;
       stats[namespace] = nested;
     } catch (err) {

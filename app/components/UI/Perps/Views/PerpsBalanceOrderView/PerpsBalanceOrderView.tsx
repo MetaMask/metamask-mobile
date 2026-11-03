@@ -68,13 +68,21 @@ const PerpsBalanceOrderView = () => {
     activeProvider !== PROVIDER_CONFIG.AggregatedProvider
       ? activeProvider
       : PROVIDER_CONFIG.DefaultProvider;
-  const market = isLighterOrder
+  const foundMarket = isLighterOrder
     ? markets.find(
         ({ symbol, providerId }) =>
           symbol === params.asset &&
           (providerId ?? defaultMarketProvider) === orderProvider,
       )
     : undefined;
+  // A providerless market only matches above because Lighter is the active
+  // provider; backfill it so every downstream consumer (validation, fees,
+  // signing) sees it as a Lighter order instead of silently skipping gates
+  // keyed on providerId.
+  const market =
+    foundMarket && foundMarket.providerId === undefined
+      ? { ...foundMarket, providerId: PROVIDER_CONFIG.LighterProvider }
+      : foundMarket;
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
   const prices = usePerpsLivePrices({
     symbols: market ? [market.symbol] : [],

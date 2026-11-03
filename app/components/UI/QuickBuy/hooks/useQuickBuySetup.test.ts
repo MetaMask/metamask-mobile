@@ -35,6 +35,7 @@ const BASE_CAIP: CaipChainId = 'eip155:8453';
 const MONAD_CAIP: CaipChainId = 'eip155:143';
 const HYPE_CAIP: CaipChainId = 'eip155:999';
 const SOLANA_CAIP: CaipChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const STELLAR_CAIP: CaipChainId = 'stellar:pubnet';
 const UNMAPPED_CAIP = 'eip155:9999' as CaipChainId;
 
 const mockGetNativeSourceToken = getNativeSourceToken as jest.MockedFunction<
@@ -133,6 +134,7 @@ describe('useQuickBuySetup', () => {
     mockUseAssetMetadata.mockReturnValue({
       assetMetadata: {
         address: '0x9999999999999999999999999999999999999999',
+        assetId: `${BASE_CAIP}/erc20:0x9999999999999999999999999999999999999999`,
         symbol: 'TEST',
         decimals: 6,
         image: 'https://example.com/test-token.png',
@@ -168,6 +170,7 @@ describe('useQuickBuySetup', () => {
     mockUseAssetMetadata.mockReturnValue({
       assetMetadata: {
         address: 'solana-token-address',
+        assetId: `${SOLANA_CAIP}/token:solana-token-address`,
         symbol: 'TEST',
         decimals: 9,
         image: 'https://example.com/solana-token.png',
@@ -196,6 +199,49 @@ describe('useQuickBuySetup', () => {
     });
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isUnsupportedChain).toBe(false);
+  });
+
+  it('resolves Stellar asset tokens via their full CAIP-19 assetId', () => {
+    const stellarUsdc =
+      `${STELLAR_CAIP}/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN` as const;
+    const target = createTarget({
+      chain: STELLAR_CAIP,
+      tokenAddress: stellarUsdc,
+      tokenSymbol: 'USDC',
+      tokenName: 'USDC',
+    });
+    mockUseAssetMetadata.mockReturnValue({
+      assetMetadata: {
+        address:
+          'USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+        assetId: stellarUsdc,
+        symbol: 'USDC',
+        decimals: 7,
+        image: 'https://example.com/usdc.png',
+        chainId: STELLAR_CAIP,
+        isNative: false,
+        type: AssetType.token,
+        balance: '',
+        string: '',
+      },
+      pending: false,
+    });
+
+    const { result } = renderHook(() => useQuickBuySetup(target));
+
+    expect(mockUseAssetMetadata).toHaveBeenCalledWith(
+      stellarUsdc,
+      true,
+      STELLAR_CAIP,
+    );
+    expect(result.current.destToken).toEqual({
+      address: stellarUsdc,
+      chainId: STELLAR_CAIP,
+      decimals: 7,
+      image: 'https://example.com/usdc.png',
+      name: 'USDC',
+      symbol: 'USDC',
+    });
   });
 
   it.each<{

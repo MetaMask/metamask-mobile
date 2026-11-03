@@ -1,75 +1,25 @@
+import { create, StructError } from '@metamask/superstruct';
 import {
-  isCaipAssetType,
-  isCaipChainId,
-  parseCaipAssetType,
-} from '@metamask/utils';
-import type { SentinelFeeTokensByChain } from './types';
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+  SentinelFeeTokensResponseSchema,
+  type SentinelFeeTokensByChain,
+} from './schema';
 
 /**
- * Validates the Sentinel token-object response and normalizes it into the
- * token representation used by consumers.
+ * Validates and parses a `GET /getSentinelFeeTokens` response body.
  *
- * @param value - Raw response from `GET /getSentinelFeeTokens`.
+ * @param value - The raw, unknown response payload to validate.
  * @returns Sentinel fee tokens grouped by CAIP-2 chain ID.
- * @throws If the response is malformed or contains a token under another
- * chain.
+ * @throws If `value` does not match the expected response shape.
  */
 export function parseSentinelFeeTokensResponse(
   value: unknown,
 ): SentinelFeeTokensByChain {
-  if (!isRecord(value)) {
-    throw new Error('Invalid Sentinel fee tokens response: expected object');
-  }
-
-  const sentinelFeeTokens: SentinelFeeTokensByChain = {};
-
-  for (const [chainId, tokens] of Object.entries(value)) {
-    if (!isCaipChainId(chainId)) {
-      throw new Error(
-        `Invalid Sentinel fee tokens response: invalid chain ID ${chainId}`,
-      );
+  try {
+    return create(value, SentinelFeeTokensResponseSchema);
+  } catch (error) {
+    if (error instanceof StructError) {
+      throw new Error(`Invalid Sentinel fee tokens response: ${error.message}`);
     }
-
-    if (!Array.isArray(tokens)) {
-      throw new Error(
-        `Invalid Sentinel fee tokens response: expected token array for ${chainId}`,
-      );
-    }
-
-    sentinelFeeTokens[chainId] = tokens.map((token) => {
-      if (!isRecord(token)) {
-        throw new Error(
-          `Invalid Sentinel fee tokens response: expected token object for ${chainId}`,
-        );
-      }
-
-      const { assetId, symbol } = token;
-
-      if (!isCaipAssetType(assetId)) {
-        throw new Error(
-          `Invalid Sentinel fee tokens response: invalid asset ID for ${chainId}`,
-        );
-      }
-
-      if (typeof symbol !== 'string' || symbol.length === 0) {
-        throw new Error(
-          `Invalid Sentinel fee tokens response: invalid symbol for ${assetId}`,
-        );
-      }
-
-      if (parseCaipAssetType(assetId).chainId !== chainId) {
-        throw new Error(
-          `Invalid Sentinel fee tokens response: asset ${assetId} does not belong to ${chainId}`,
-        );
-      }
-
-      return { assetId, symbol };
-    });
+    throw error;
   }
-
-  return sentinelFeeTokens;
 }

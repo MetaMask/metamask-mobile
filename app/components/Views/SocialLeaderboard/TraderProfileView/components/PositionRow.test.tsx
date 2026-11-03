@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PositionRow from './PositionRow';
 import type { Position } from '@metamask/social-controllers';
@@ -213,6 +214,59 @@ describe('PositionRow', () => {
     expect(onPress).toHaveBeenCalledWith(basePosition);
   });
 
+  it('shows the insider label and ignores onPress when showFlaggedState is set', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(
+      <PositionRow position={position} onPress={onPress} showFlaggedState />,
+    );
+
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toHaveTextContent('Insider allocation - excluded');
+    expect(screen.UNSAFE_queryAllByType(TouchableOpacity)).toHaveLength(0);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('uses muted color for flagged percent instead of PnL color', () => {
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(<PositionRow position={position} showFlaggedState />);
+
+    const percentColor = colorOf(screen.getByText('+182.00%'));
+    const labelColor = colorOf(
+      screen.getByText('Insider allocation - excluded'),
+    );
+
+    expect(percentColor).toBeDefined();
+    expect(percentColor).toBe(labelColor);
+  });
+
+  it('shows the generic excluded label for unrecognized flags when showFlaggedState is set', () => {
+    const position = { ...basePosition, flags: ['blocked'] };
+
+    renderWithProvider(<PositionRow position={position} showFlaggedState />);
+
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toHaveTextContent('Excluded from PnL');
+  });
+
+  it('keeps a flagged row pressable when showFlaggedState is omitted', () => {
+    const onPress = jest.fn();
+    const position = { ...basePosition, flags: ['insider'] };
+
+    renderWithProvider(<PositionRow position={position} onPress={onPress} />);
+
+    expect(screen.queryByTestId('position-row-flag-label-STARKBOT')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledWith(position);
+  });
+
   it('renders the row without a token image when the chain is not recognized', () => {
     const position = { ...basePosition, chain: 'unknown' };
 
@@ -351,35 +405,46 @@ describe('PositionRow', () => {
       positionAmountWithLeverage: 25,
     };
 
-    it('renders the leverage and LONG direction badges for a long perp', () => {
+    it('renders one success tag with leverage and direction for a long perp', () => {
       renderWithProvider(<PositionRow position={perpPosition} />);
 
-      expect(screen.getByText('5x')).toBeOnTheScreen();
-      expect(screen.getByText('LONG')).toBeOnTheScreen();
+      expect(screen.getByText('5x Long')).toBeOnTheScreen();
+      expect(screen.getByTestId('position-row-perp-tag-ETH')).toHaveStyle({
+        backgroundColor: lightTheme.colors.success.muted,
+      });
+      expect(colorOf(screen.getByText('5x Long'))).toBe(
+        lightTheme.colors.success.default,
+      );
     });
 
-    it('renders a SHORT badge for a short perp', () => {
+    it('renders one error tag for a short perp', () => {
       const position = { ...perpPosition, perpPositionType: 'short' as const };
 
       renderWithProvider(<PositionRow position={position} />);
 
-      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+      expect(screen.getByText('5x Short')).toBeOnTheScreen();
+      expect(screen.getByTestId('position-row-perp-tag-ETH')).toHaveStyle({
+        backgroundColor: lightTheme.colors.error.muted,
+      });
+      expect(colorOf(screen.getByText('5x Short'))).toBe(
+        lightTheme.colors.error.default,
+      );
     });
 
-    it('omits the leverage badge when perpLeverage is null', () => {
+    it('omits the leverage from the tag when perpLeverage is null', () => {
       const position = { ...perpPosition, perpLeverage: null };
 
       renderWithProvider(<PositionRow position={position} />);
 
-      expect(screen.queryByText('5x')).not.toBeOnTheScreen();
-      expect(screen.getByText('LONG')).toBeOnTheScreen();
+      expect(screen.getByText('Long')).toBeOnTheScreen();
+      expect(screen.queryByText('5x Long')).not.toBeOnTheScreen();
     });
 
-    it('does not render perp badges for a spot position', () => {
+    it('does not render a perp tag for a spot position', () => {
       renderWithProvider(<PositionRow position={basePosition} />);
 
-      expect(screen.queryByText('LONG')).not.toBeOnTheScreen();
-      expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Long')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Short')).not.toBeOnTheScreen();
     });
 
     it('hides the HIP-3 provider prefix in the symbol and amount subtitle', () => {

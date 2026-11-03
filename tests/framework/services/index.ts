@@ -10,7 +10,6 @@ export {
   createServiceProvider,
   type ProviderType,
   EmulatorProvider,
-  BrowserStackProvider,
   TestMuAIProvider,
 } from './providers';
 
@@ -31,12 +30,6 @@ export {
   type ReinstallAppOptions,
   type UninstallAppOptions,
 } from './device-commands';
-
-// BrowserStack specific exports
-export {
-  BrowserStackAPI,
-  type BrowserStackSessionDetails,
-} from './providers/browserstack';
 
 // Legacy alias for backward compatibility (deprecated)
 /** @deprecated Use createServiceProvider instead */

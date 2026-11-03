@@ -14,6 +14,7 @@ jobs:
     # This saves runner time for most PRs while still doing exact regex check below
     if: startsWith(github.head_ref, 'stable-main-')
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Check exact branch pattern
         env:

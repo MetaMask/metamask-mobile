@@ -20,7 +20,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import {
   Button,
   ButtonVariant,
-  HeaderStandard,
   Icon as DesignSystemIcon,
   IconName as DSIconName,
   IconSize as DesignSystemIconSize,
@@ -61,8 +60,11 @@ import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const NftDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { collectible, source } = useParams<NftDetailsParams>();
   const chainId = useSelector(selectChainId);
@@ -318,7 +320,9 @@ const NftDetails = () => {
 
   return (
     <SafeAreaView style={styles.wrapper} edges={['left', 'right', 'bottom']}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         onBack={() => navigation.goBack()}
         endButtonIconProps={[
