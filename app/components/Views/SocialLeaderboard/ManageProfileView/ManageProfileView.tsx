@@ -37,7 +37,7 @@ const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile } = useMyProfile();
-  const { isControllerBacked } = useProfileController();
+  const { isControllerBacked, updateProfile } = useProfileController();
   const {
     isConnected: isConnectedToX,
     xProfile,
@@ -50,9 +50,9 @@ const ManageProfileView: React.FC = () => {
   });
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
-  // `connect` resolves void, so the outcome is read from hook state rather than
-  // a return value: `connectError` is set on failure and cleared when the next
-  // connect starts. A user-cancelled OAuth stays silent.
+  // `connect` resolves the X profile (or `undefined` on failure), and also
+  // records the failure in `connectError`: it is set on failure and cleared
+  // when the next connect starts. A user-cancelled OAuth stays silent.
   const errorMessage =
     xAuthConnectError && xAuthConnectError.type !== XAuthErrorType.UserCancelled
       ? strings('social_leaderboard.profile_onboarding.connect_x_error')
@@ -121,8 +121,24 @@ const ManageProfileView: React.FC = () => {
       return;
     }
 
-    await connectX();
-  }, [connectX, isConnectedToX, isConnectingX, isControllerBacked, navigation]);
+    const linked = await connectX();
+    const avatarUrl = linked?.avatarUrl;
+    if (avatarUrl && avatarUrl !== profile?.imageUrl) {
+      try {
+        await updateProfile({ avatar_url: avatarUrl });
+      } catch {
+        // Avatar sync is best-effort; the X link itself succeeded.
+      }
+    }
+  }, [
+    connectX,
+    isConnectedToX,
+    isConnectingX,
+    isControllerBacked,
+    navigation,
+    profile?.imageUrl,
+    updateProfile,
+  ]);
 
   const displayName = profile?.displayName ?? '';
   const handle = profile?.handle ? `@${profile.handle}` : '';
