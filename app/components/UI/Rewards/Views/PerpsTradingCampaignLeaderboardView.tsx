@@ -6,7 +6,8 @@ import { Box, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import PerpsTradingCampaignLeaderboard from '../components/Campaigns/PerpsTradingCampaignLeaderboard';
 import PerpsTradingCampaignStatsHeader from '../components/Campaigns/PerpsTradingCampaignStatsHeader';
@@ -42,6 +43,7 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
       >
     >();
   const { campaignId } = route.params;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const referralCode = useSelector(selectReferralCode);
 
   const selectCampaign = useMemo(
@@ -89,7 +91,9 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PERPS_CAMPAIGN_LEADERBOARD_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.perps_trading_campaign.leaderboard_title')}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}

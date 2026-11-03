@@ -18,7 +18,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import PerpsTradingCampaignStatsHeader from '../components/Campaigns/PerpsTradingCampaignStatsHeader';
@@ -63,6 +64,7 @@ const CheckIcon: React.FC = () => (
 
 const PerpsTradingCampaignStatsView: React.FC = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
@@ -143,7 +145,9 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.perps_trading_campaign.stats_title')}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
