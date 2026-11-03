@@ -99,8 +99,6 @@ const predictImportBurndownFiles = [
   'app/components/UI/Rewards/components/Campaigns/PredictThePitchPositionRows.tsx',
   'app/components/UI/UrlAutocomplete/index.tsx',
   'app/components/Views/ActivityDetails/ActivityDetails.predict.view.test.tsx',
-  'app/components/Views/Homepage/BalanceBreakdown/hooks/slices/usePredictSlice.test.ts',
-  'app/components/Views/Homepage/BalanceBreakdown/hooks/slices/usePredictSlice.ts',
   'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.test.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionsCarouselSection.tsx',

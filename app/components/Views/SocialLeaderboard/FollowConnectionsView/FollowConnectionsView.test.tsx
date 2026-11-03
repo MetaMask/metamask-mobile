@@ -61,13 +61,13 @@ jest.mock('../../../hooks/useFollowToggle', () => ({
   }),
 }));
 
-const mockUseSessionProfileId = jest.fn(() => ({
+const mockUseSocialProfileId = jest.fn(() => ({
   profileId: undefined as string | undefined,
   isLoading: false,
 }));
 
-jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
-  useSessionProfileId: () => mockUseSessionProfileId(),
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => mockUseSocialProfileId(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -121,7 +121,7 @@ describe('FollowConnectionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = { initialTab: 'followers' };
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: undefined,
       isLoading: false,
     });
@@ -340,7 +340,7 @@ describe('FollowConnectionsView', () => {
 
   it('hides Follow on the signed-in viewer row in another trader followers list', () => {
     mockRouteParams = { initialTab: 'followers', addressOrId: '0xabc' };
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: 'me-profile',
       isLoading: false,
     });
@@ -377,7 +377,7 @@ describe('FollowConnectionsView', () => {
 
   it('opens owner profile chrome when the viewer row is tapped', () => {
     mockRouteParams = { initialTab: 'followers', addressOrId: '0xabc' };
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: 'me-profile',
       isLoading: false,
     });
@@ -435,7 +435,7 @@ describe('FollowConnectionsView', () => {
 
   it('hides Follow on the signed-in viewer row in another trader following list', () => {
     mockRouteParams = { initialTab: 'following', addressOrId: '0xabc' };
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: 'me-profile',
       isLoading: false,
     });
