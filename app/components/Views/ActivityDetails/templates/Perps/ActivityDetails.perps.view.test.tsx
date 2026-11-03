@@ -1,10 +1,10 @@
-import '../../../../tests/component-view/mocks';
+import '../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { Text, TextColor } from '@metamask/design-system-react-native';
-import { strings } from '../../../../locales/i18n';
-import { renderShortAddress } from '../../../util/address';
-import { describeForPlatforms } from '../../../../tests/component-view/platform';
+import { strings } from '../../../../../../locales/i18n';
+import { renderShortAddress } from '../../../../../util/address';
+import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   ACTIVITY_CV_ACCOUNT,
   ACTIVITY_CV_PERPS_ORDER_FEE,
@@ -25,13 +25,13 @@ import {
   buildActivityCvPerpsTradeItem,
   buildActivityCvPerpsTradeTransaction,
   initialStateActivityWithPerpsDetails,
-} from '../../../../tests/component-view/presets/activity';
-import { renderActivityDetailsView } from '../../../../tests/component-view/renderers/activity';
-import { getRouteProbeTestId } from '../../../../tests/component-view/render';
-import Engine from '../../../core/Engine';
-import Routes from '../../../constants/navigation/Routes';
-import { usePerpsActivityQuery } from './hooks/usePerpsActivityQuery';
-import type { ActivityListItem } from '../../../util/activity-adapters';
+} from '../../../../../../tests/component-view/presets/activity';
+import { renderActivityDetailsView } from '../../../../../../tests/component-view/renderers/activity';
+import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
+import { usePerpsActivityQuery } from './usePerpsActivityQuery';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
   type PerpsTransaction,
   formatPerpsOrderFee,
@@ -40,15 +40,15 @@ import {
   formatPositiveFiat,
   getPerpsPositionSize,
   getPerpsPriceValue,
-} from './components/ActivityDetailsPerps.utils';
+} from './ActivityDetailsPerps.utils';
 import {
   ActivityDetailsSelectorsIDs,
   getActivityDetailsStepIconTestId,
   getActivityDetailsStepTestId,
-} from './ActivityDetails.testIds';
+} from '../../ActivityDetails.testIds';
 
 // eslint-disable-next-line no-restricted-syntax
-jest.mock('./hooks/usePerpsActivityQuery', () => ({
+jest.mock('./usePerpsActivityQuery', () => ({
   usePerpsActivityQuery: jest.fn(() => ({
     data: undefined,
     isFetching: false,

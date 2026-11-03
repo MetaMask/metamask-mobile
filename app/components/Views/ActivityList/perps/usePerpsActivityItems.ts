@@ -19,7 +19,7 @@ import {
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
 // eslint-disable-next-line import-x/no-restricted-paths
-import { usePerpsActivityQuery } from '../../ActivityDetails/hooks/usePerpsActivityQuery';
+import { usePerpsActivityQuery } from '../../ActivityDetails/templates/Perps/usePerpsActivityQuery';
 
 export function usePerpsActivityItems({
   enabled = true,
