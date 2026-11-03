@@ -62,7 +62,7 @@ const VbaCreatingAccount = ({
     >
       <HeaderStandardGlass
         isGlass={isGlassHeader}
-        isFloating={false}
+        isFloating
         onBack={onBack}
         backButtonProps={{ testID: VbaCreatingAccountSelectorsIDs.BACK_BUTTON }}
         includesTopInset
