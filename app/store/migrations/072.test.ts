@@ -93,22 +93,23 @@ const createTestState = () => ({
   },
 });
 
-const createMegaEthTestnetConfiguration = (): NetworkConfiguration => ({
-  chainId: '0x18c6',
-  rpcEndpoints: [
-    {
-      networkClientId: 'megaeth-testnet',
-      url: 'https://carrot.megaeth.com/rpc',
-      type: RpcEndpointType.Custom,
-      failoverUrls: [],
-    },
-  ],
-  defaultRpcEndpointIndex: 0,
-  blockExplorerUrls: ['https://megaexplorer.xyz'],
-  defaultBlockExplorerUrlIndex: 0,
-  name: 'Mega Testnet',
-  nativeCurrency: 'MegaETH',
-});
+const createMegaEthTestnetConfiguration = () =>
+  ({
+    chainId: '0x18c6',
+    rpcEndpoints: [
+      {
+        networkClientId: 'megaeth-testnet',
+        url: 'https://carrot.megaeth.com/rpc',
+        type: RpcEndpointType.Custom,
+        failoverUrls: [],
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    blockExplorerUrls: ['https://megaexplorer.xyz'],
+    defaultBlockExplorerUrlIndex: 0,
+    name: 'Mega Testnet',
+    nativeCurrency: 'MegaETH',
+  }) as unknown as NetworkConfiguration;
 
 describe('Migration 72: Add `MegaEth Testnet`', () => {
   beforeEach(() => {

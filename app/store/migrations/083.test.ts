@@ -109,22 +109,23 @@ const createTestState = () => ({
   },
 });
 
-const createMonadTestnetConfiguration = (): NetworkConfiguration => ({
-  chainId: '0x279f',
-  rpcEndpoints: [
-    {
-      networkClientId: 'monad-testnet',
-      url: 'https://testnet-rpc.monad.xyz',
-      type: RpcEndpointType.Custom,
-      failoverUrls: [],
-    },
-  ],
-  defaultRpcEndpointIndex: 0,
-  blockExplorerUrls: ['https://testnet.monadexplorer.com'],
-  defaultBlockExplorerUrlIndex: 0,
-  name: 'Monad Testnet',
-  nativeCurrency: 'MON',
-});
+const createMonadTestnetConfiguration = () =>
+  ({
+    chainId: '0x279f',
+    rpcEndpoints: [
+      {
+        networkClientId: 'monad-testnet',
+        url: 'https://testnet-rpc.monad.xyz',
+        type: RpcEndpointType.Custom,
+        failoverUrls: [],
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    blockExplorerUrls: ['https://testnet.monadexplorer.com'],
+    defaultBlockExplorerUrlIndex: 0,
+    name: 'Monad Testnet',
+    nativeCurrency: 'MON',
+  }) as unknown as NetworkConfiguration;
 
 describe('Migration 83: Add `Monad Testnet`', () => {
   beforeEach(() => {
