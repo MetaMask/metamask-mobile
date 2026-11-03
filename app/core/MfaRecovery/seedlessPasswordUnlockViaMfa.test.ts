@@ -34,6 +34,24 @@ jest.mock('../../actions/onboarding', () => ({
   })),
 }));
 
+/**
+ * Preview package is not on EngineContext in CI. Tests mock it on context and
+ * cast the same way production unlock code does.
+ */
+const getMockMfaRecoveryController = () => {
+  const controller = (
+    Engine.context as unknown as {
+      MfaRecoveryController?: {
+        authenticateIdentifier: jest.Mock;
+      };
+    }
+  ).MfaRecoveryController;
+  if (!controller) {
+    throw new Error('Expected MfaRecoveryController mock on Engine.context');
+  }
+  return controller;
+};
+
 describe('buildOidcIdentifier', () => {
   it('maps auth connection to OIDC issuer namespace', () => {
     expect(
@@ -92,9 +110,9 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
       ephemeralPrivateKey: new Uint8Array(32),
       pkE: new Uint8Array(32),
     };
-    (
-      Engine.context.MfaRecoveryController.authenticateIdentifier as jest.Mock
-    ).mockResolvedValue(session);
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      session,
+    );
     (
       Engine.context.SeedlessOnboardingController.authenticate as jest.Mock
     ).mockResolvedValue({ isNewUser: false });
@@ -104,7 +122,7 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
     });
 
     expect(
-      Engine.context.MfaRecoveryController.authenticateIdentifier,
+      getMockMfaRecoveryController().authenticateIdentifier,
     ).toHaveBeenCalledWith(identifier, { requireSeedlessAuthData: true });
     expect(
       Engine.context.SeedlessOnboardingController.authenticate,
@@ -131,9 +149,9 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
   });
 
   it('fails when seedlessAuthData is missing', async () => {
-    (
-      Engine.context.MfaRecoveryController.authenticateIdentifier as jest.Mock
-    ).mockResolvedValue({ seedlessAuthData: undefined });
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
+      seedlessAuthData: undefined,
+    });
 
     await expect(
       authenticateSeedlessViaMfaIdentifier(identifier),
@@ -143,9 +161,7 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
   });
 
   it('fails when seedless userId does not match the expected account', async () => {
-    (
-      Engine.context.MfaRecoveryController.authenticateIdentifier as jest.Mock
-    ).mockResolvedValue({
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
       seedlessAuthData: {
         idTokens: ['auth-jwt'],
         accessToken: 'access',
