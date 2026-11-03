@@ -69,15 +69,6 @@ const styles = StyleSheet.create({
  * same hue at alpha 0. Fading to `transparent` would fade toward black.
  * Intermediate stops sample that line so the fade stays smooth on a short card.
  */
-const washColors = (muted: string, base: string): [string, string] => [
-  muted,
-  `${base}00`,
-];
-
-const borderClassName = (
-  _tone: PositionCardTone,
-  _emphasizeBorder: boolean,
-): string => 'border border-muted';
 const hexChannel = (value: number) =>
   Math.round(value).toString(16).padStart(2, '0');
 
@@ -119,23 +110,10 @@ const BORDER_CLASS_NAME = 'border border-muted';
 
 export interface PositionCardShellProps {
   tone?: PositionCardTone;
-  /**
-   * Accepted for existing call sites. Every card uses the muted hairline;
-   * closed cards no longer take the thicker P&L outline.
-   */
-  emphasizeBorder?: boolean;
-  /**
-   * Header-only cards (no comment) take the flatter compact wash. The border
-   * rule is still set by `emphasizeBorder`.
-   */
-  compact?: boolean;
   children: React.ReactNode;
 }
 
 /**
- * The surface a position card is drawn on. Dark mode lays a diagonal P&L wash
- * under the content. Light mode has no wash. Open and closed cards share the
- * muted 1px border.
  * The surface a position card is drawn on. Dark mode lays one diagonal P&L
  * wash under the content, and that wash scales with the card. Light mode has
  * no wash. Open and closed cards share the muted 1px border.

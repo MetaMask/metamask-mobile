@@ -98,39 +98,6 @@ describe('PositionCardShell', () => {
     expect(losing.props.locations).toEqual(gradient.props.locations);
   });
 
-  it('starts the closed wash on the top edge, less far to the right', () => {
-    const gradient = gradientOf(renderShell('negative', true));
-
-    expect(gradient.props.start.y).toBeCloseTo(0, 4);
-    expect(gradient.props.start.x).toBeCloseTo(0.7136, 3);
-    expect(gradient.props.end.y).toBeCloseTo(1, 4);
-    expect(gradient.props.end.x).toBeCloseTo(0.2864, 3);
-  });
-
-  it('starts the compact live wash flatter than the open wash', () => {
-    const gradient = gradientOf(renderShell('positive', false, true));
-
-    expect(gradient.props.start.y).toBeCloseTo(0, 4);
-    expect(gradient.props.start.x).toBeCloseTo(0.61, 3);
-    expect(gradient.props.end.y).toBeCloseTo(1, 4);
-    expect(gradient.props.end.x).toBeCloseTo(0.39, 3);
-  });
-
-  it('starts the compact closed wash less far right than the compact live wash', () => {
-    const gradient = gradientOf(renderShell('negative', true, true));
-
-    expect(gradient.props.start.x).toBeCloseTo(0.6132, 3);
-    expect(gradient.props.end.x).toBeCloseTo(0.3868, 3);
-  });
-
-  it('keeps the muted hairline on a compact closed card', () => {
-    renderShell('positive', true, true);
-
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
-    expect(cardStyleOf()?.borderWidth).toBe(1);
-  });
-
-  it('keeps a hairline border when the wash is tinted but the border is not emphasized', () => {
   it('keeps a hairline border when the wash is tinted', () => {
     renderShell('positive');
 
@@ -138,15 +105,6 @@ describe('PositionCardShell', () => {
     expect(cardStyleOf()?.borderWidth).toBe(1);
   });
 
-  it('keeps the muted hairline on a winning closed card', () => {
-    renderShell('positive', true);
-
-    expect(cardStyleOf()?.borderColor).toBe(lightTheme.colors.border.muted);
-    expect(cardStyleOf()?.borderWidth).toBe(1);
-  });
-
-  it('washes a losing card red and keeps the muted hairline', () => {
-    const utils = renderShell('negative', true);
   it('washes a losing card red and keeps the muted hairline', () => {
     const utils = renderShell('negative');
 
