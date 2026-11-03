@@ -26,7 +26,10 @@ import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isMpcMoneyAccount,
+} from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   ConfirmationLaunchSource,
@@ -89,6 +92,12 @@ const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+const isMpcMoneyAccountMock = jest.mocked(isMpcMoneyAccount);
+const mockWaitForMfaFlowSuccess = jest.fn();
+jest.mock('../../../../../util/identity/mfa/engine/activeFlow', () => ({
+  waitForMfaFlowSuccess: (...args: unknown[]) =>
+    mockWaitForMfaFlowSuccess(...args),
+}));
 const useHandleHwSendMock = jest.mocked(useHandleHwSend);
 const onFiatConfirmMock = jest.fn();
 const useParamsMock = jest.mocked(useParams);
@@ -264,6 +273,53 @@ describe('useTransactionConfirm', () => {
       }),
       expect.anything(),
     );
+  });
+
+  describe('Money MPC account signer', () => {
+    beforeEach(() => {
+      useSelectedGasFeeTokenMock.mockReturnValue(
+        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      );
+      isMpcMoneyAccountMock.mockReturnValue(true);
+    });
+
+    it('navigates once signing verification succeeds', async () => {
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: Promise.resolve(),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ waitForResult: true }),
+        expect.anything(),
+      );
+      expect(mockWaitForMfaFlowSuccess).toHaveBeenCalledWith('money.mpcSign');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('stays until verification succeeds', async () => {
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: new Promise(() => undefined),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      act(() => {
+        result.current.onConfirm();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   it('does not wait for result if smart transaction', async () => {

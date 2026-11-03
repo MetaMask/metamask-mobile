@@ -299,6 +299,17 @@ export function isHardwareAccount(
 }
 
 /**
+ * Determines if an address belongs to a Money MPC account
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isMpcMoneyAccount(address: string) {
+  const keyring = getKeyringByAddress(address);
+  return keyring?.type === KeyringTypes.mpcMoney;
+}
+
+/**
  * Determines if an address belongs to a snap account
  *
  * @param {String} address - String corresponding to an address

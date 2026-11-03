@@ -11,7 +11,10 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isMpcMoneyAccount,
+} from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import {
@@ -28,6 +31,8 @@ import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
+import { waitForMfaFlowSuccess } from '../../../../../util/identity/mfa/engine/activeFlow';
+import { MONEY_MPC_SIGN_OPERATION } from '../../../../../core/MpcMoneyKeyring/constants';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
 import { useTransactionPayingAccount } from './useTransactionPayingAccount';
 
@@ -74,8 +79,15 @@ export function useTransactionConfirm() {
   // confirmation waiting to drive the awaiting UI and surface errors.
   const isPayerHardwareWallet = isHardwareAccount(payingAccount ?? '');
 
+  // A Money MPC account signs only after 2-step verification: the
+  // confirmation stays open until the user passes it.
+  const isSignerMpcMoneyAccount = isMpcMoneyAccount(
+    transactionMetadata?.txParams?.from ?? '',
+  );
+
   const waitForResult =
     isPayerHardwareWallet ||
+    isSignerMpcMoneyAccount ||
     (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
@@ -251,19 +263,30 @@ export function useTransactionConfirm() {
 
       const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
 
-      try {
-        await onRequestConfirm(
-          {
-            deleteAfterResult: true,
-            // Intentionally not hiding errors so we can log
-            handleErrors: false,
-            waitForResult: effectiveWaitForResult,
-          },
-          { txMeta: updatedMetadata },
-        );
-      } catch (error) {
-        log('Error confirming transaction', error);
-        options?.onError?.(error);
+      const confirmed = (async () => {
+        try {
+          await onRequestConfirm(
+            {
+              deleteAfterResult: true,
+              // Intentionally not hiding errors so we can log
+              handleErrors: false,
+              waitForResult: effectiveWaitForResult,
+            },
+            { txMeta: updatedMetadata },
+          );
+        } catch (error) {
+          log('Error confirming transaction', error);
+          options?.onError?.(error);
+        }
+      })();
+
+      if (isSignerMpcMoneyAccount) {
+        // Leave once verification passes; the Money toasts report the rest.
+        const verified = waitForMfaFlowSuccess(MONEY_MPC_SIGN_OPERATION);
+        await Promise.race([confirmed, verified.promise]);
+        verified.stop();
+      } else {
+        await confirmed;
       }
 
       if (!options?.deferNavigation) {
@@ -286,6 +309,7 @@ export function useTransactionConfirm() {
       transactionMetadata,
       waitForResult,
       isSignerHardwareWallet,
+      isSignerMpcMoneyAccount,
     ],
   );
 
