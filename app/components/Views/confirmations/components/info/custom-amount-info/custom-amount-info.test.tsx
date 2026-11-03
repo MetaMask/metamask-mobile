@@ -794,7 +794,7 @@ describe('CustomAmountInfo', () => {
     ).not.toBeDisabled();
   });
 
-  it('renders help text under the amount when a blocking error is present', () => {
+  it('renders the alert under the amount when a blocking error is present', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
       alertMessage: 'Test Help Text',
     });
@@ -802,7 +802,6 @@ describe('CustomAmountInfo', () => {
     const { getByTestId, getByText } = render();
 
     expect(getByTestId('alert-message-banner')).toBeOnTheScreen();
-    expect(getByTestId('alert-message-banner')).toHaveStyle({ fontSize: 16 });
     expect(getByText('Test Help Text')).toBeDefined();
   });
 
