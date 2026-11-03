@@ -131,6 +131,44 @@ describe('getBalance', () => {
       ).toBeUndefined();
     });
 
+    it('keeps the Polymarket source balance while Kalshi is the Active Venue', () => {
+      // A Polymarket withdraw that started before, or outside, a switch to
+      // Kalshi must not lose its max source to the Active Venue (PRED-1383).
+      jest.mocked(ReduxService.store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictConfig: {
+                  enabled: true,
+                  venues: {
+                    polymarket: { enabled: true },
+                    kalshi: { enabled: true },
+                  },
+                  venueSelection: { enabled: true },
+                },
+              },
+            },
+            PredictVenueController: {
+              venueSelectionPreference: 'kalshi',
+              lastActiveVenue: 'kalshi',
+              sessionDefault: null,
+            },
+          },
+        },
+      } as never);
+      Engine.context.PredictController.state.balances = {
+        [ACCOUNT_ADDRESS]: { balance: 50.5, validUntil: 0 },
+      } as never;
+
+      expect(
+        getBalance(buildRequest({ type: TransactionType.predictWithdraw })),
+      ).toStrictEqual({
+        balanceRaw: '50500000',
+      });
+    });
+
     it('returns undefined when the transaction has no from address', () => {
       Engine.context.PredictController.state.balances = {
         [ACCOUNT_ADDRESS]: { balance: 10, validUntil: 0 },

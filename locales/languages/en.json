@@ -3820,7 +3820,8 @@
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
-      "review": "Review order"
+      "review": "Review order",
+      "venue_changed": "Your prediction market changed. Close this order to continue."
     },
     "order_approval": {
       "title": "Review your order",
@@ -3851,6 +3852,10 @@
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
       "requote": "Try again"
+    },
+    "order_notification": {
+      "not_placed_title": "Order not placed",
+      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
     }
   },
   "predict": {
