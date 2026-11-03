@@ -8,16 +8,15 @@ import { DUST_THRESHOLD } from '../../../../UI/Money/utils/moneyFormatFiat';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 /**
- * Alert message key for an under-funded Money Account withdraw.
+ * Message key for the insufficient pay token balance alert.
  *
- * A Money balance at or below dust means the account was never funded, so the
- * user has to add funds rather than lower the amount. Returns undefined for
- * every other transaction type and for a funded balance, leaving the caller
- * with the generic pay token balance message.
+ * A Money Account withdraw with a balance at or below dust means the account
+ * was never funded, so the user has to add funds rather than lower the amount.
+ * Every other flow uses the generic copy.
  */
-export function useMoneyAccountNoFundsMessageKey(
+export function useInsufficientPayTokenBalanceMessageKey(
   balanceUsd: string,
-): string | undefined {
+): string {
   const transactionMeta = useTransactionMetadataRequest();
 
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
@@ -28,7 +27,7 @@ export function useMoneyAccountNoFundsMessageKey(
     () =>
       isMoneyAccountWithdraw && new BigNumber(balanceUsd).lt(DUST_THRESHOLD)
         ? 'alert_system.money_account_no_funds.message'
-        : undefined,
+        : 'alert_system.insufficient_pay_token_balance.message',
     [balanceUsd, isMoneyAccountWithdraw],
   );
 }
