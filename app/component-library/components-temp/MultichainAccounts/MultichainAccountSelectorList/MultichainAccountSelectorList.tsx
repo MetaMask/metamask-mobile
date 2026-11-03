@@ -465,8 +465,8 @@ const MultichainAccountSelectorList = ({
             onFocus={onSearchFocus}
             onPressClearButton={() => setSearchText('')}
             placeholder={strings('accounts.search_your_accounts')}
+            inputAccessibilityLabel={strings('accounts.search_your_accounts')}
             inputProps={{
-              accessibilityLabel: strings('accounts.search_your_accounts'),
               testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
             }}
             autoFocus={false}

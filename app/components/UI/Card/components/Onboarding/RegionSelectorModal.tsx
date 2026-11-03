@@ -228,11 +228,11 @@ function RegionSelectorModal() {
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
+          inputAccessibilityLabel={strings(
+            'card.card_onboarding.region_selector.title',
+          )}
           clearButtonProps={{ testID: 'search-clear-button' }}
           inputProps={{
-            accessibilityLabel: strings(
-              'card.card_onboarding.region_selector.title',
-            ),
             autoComplete: 'one-time-code',
             testID: 'region-selector-search-input',
           }}
