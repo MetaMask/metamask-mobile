@@ -77,16 +77,12 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
-const mockWatchlistSymbols: string[] = [];
-const mockHeaderVariant: { destination: 'lastViewedMarket' | 'marketList' } = {
-  destination: 'lastViewedMarket',
-};
 const mockReact = React;
 
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: (
     _flagKey: string,
-    _variants: unknown,
+    variants: { control: { destination: 'lastViewedMarket' } },
     metadata?: { trackExposure?: boolean },
   ) => {
     // Mirrors useABTest: Experiment Viewed is an effect, so it only runs
@@ -98,19 +94,16 @@ jest.mock('../../../../../hooks/useABTest', () => ({
     }, [metadata?.trackExposure]);
 
     return {
-      variant: mockHeaderVariant,
-      variantName:
-        mockHeaderVariant.destination === 'marketList'
-          ? 'treatment'
-          : 'control',
-      isActive: mockHeaderVariant.destination === 'marketList',
+      variant: variants.control,
+      variantName: 'control',
+      isActive: false,
     };
   },
 }));
 
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsLastViewedMarketSymbol: () => 'BTC',
-  selectPerpsWatchlistMarkets: () => mockWatchlistSymbols,
+  selectPerpsWatchlistMarkets: () => [],
   selectPerpsMode: () => mockPerpsMode,
 }));
 
@@ -190,8 +183,6 @@ describe('PerpsModeSelectionView', () => {
     mockIsProModeEnabled = true;
     mockPerpsMode = PerpsMode.Lite;
     mockRouteParams = {};
-    mockHeaderVariant.destination = 'lastViewedMarket';
-    mockWatchlistSymbols.splice(0, mockWatchlistSymbols.length);
     proEntrySequence.length = 0;
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
       cb(0);
@@ -282,13 +273,6 @@ describe('PerpsModeSelectionView', () => {
       expect.anything(),
     );
   });
-
-  // Home/trade Pro-selection cases that drive real assignment/exposure
-  // (useABTest via usePerpsHeaderEntryNavigation) moved to
-  // PerpsModeSelectionView.view.test.tsx, which exercises the real hook
-  // against Redux flag/mode/watchlist state instead of this file's
-  // replacement useABTest effect. Kept here: Lite/dismiss/market-entry
-  // contracts below, none of which arm Pro-entry exposure.
 
   it('drops Perps Home from the parent stack when selecting Pro from a market', async () => {
     mockRouteParams = {

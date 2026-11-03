@@ -7,11 +7,12 @@ import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { clearTrackedABTestExposureForTests } from '../../../../../hooks/useABTest';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
@@ -50,6 +51,51 @@ const makeLandingProbe = (
 const readLandedParams = async (routeName: string) => {
   const probe = await screen.findByTestId(getRouteParamsProbeTestId(routeName));
   return JSON.parse(String(probe.props.children)) as Record<string, unknown>;
+};
+
+const activeProTreatmentFlags = {
+  perpsProModeEnabled: {
+    enabled: true,
+    minimumVersion: '0.0.0',
+  },
+  [PERPS_HEADER_AB_TEST_KEY]: PerpsHeaderNavVariant.Treatment,
+};
+
+const isHeaderExperimentViewed = (event: {
+  name?: string;
+  properties?: Record<string, unknown>;
+}) =>
+  event.name === MetaMetricsEvents.EXPERIMENT_VIEWED.category &&
+  event.properties?.experiment_id === PERPS_HEADER_AB_TEST_KEY;
+
+interface BottomSheetMockHandle {
+  onCloseBottomSheet?: () => void;
+}
+
+/**
+ * View tests replace the design-system sheet with a stub that has no backdrop.
+ * Closing through the stub handle runs this screen's `goBack` (`handleClose`):
+ * dismiss, continue as the pre-selected mode, and do not arm exposure.
+ */
+const dismissModeChooser = () => {
+  const sheet = screen.UNSAFE_root.findAll((node) => {
+    const type = node.type as { displayName?: string } | string;
+    return typeof type !== 'string' && type.displayName === 'BottomSheet';
+  })[0] as
+    | {
+        _fiber?: {
+          ref?: { current?: BottomSheetMockHandle | null };
+        };
+      }
+    | undefined;
+  const close = sheet?._fiber?.ref?.current?.onCloseBottomSheet;
+  if (!close) {
+    throw new Error('Mode chooser close handle was not found');
+  }
+
+  act(() => {
+    close();
+  });
 };
 
 describe('PerpsModeSelectionView', () => {
@@ -127,21 +173,19 @@ describe('PerpsModeSelectionView', () => {
     expect(setPerpsMode).toHaveBeenCalledTimes(1);
   });
 
-  // Real assignment/exposure for the home/trade Pro-selection cases
-  // (TAT-4021 / perpsTAT4021AbtestPerpsHeaderMarketList), driven by Redux
-  // flag/mode/watchlist state through the real useABTest hook — no hook
-  // mocks. See PerpsModeSelectionView.test.tsx for the Lite/dismiss/
-  // market-entry contracts that don't arm Pro-entry exposure.
-  describe('Pro-selection treatment routing and exposure (TAT-4021)', () => {
+  // Real assignment and exposure for home and trade Pro selections, driven
+  // by Redux flag, mode, and watchlist state through the real hook.
+  describe('Pro selection routing and exposure', () => {
     let sequence: string[];
     let trackEventSpy: jest.SpyInstance;
 
     beforeEach(() => {
+      clearTrackedABTestExposureForTests();
       sequence = [];
       trackEventSpy = jest
         .spyOn(analytics, 'trackEvent')
         .mockImplementation((event) => {
-          if (event.name === MetaMetricsEvents.EXPERIMENT_VIEWED.category) {
+          if (isHeaderExperimentViewed(event)) {
             sequence.push('experiment-viewed');
           }
         });
@@ -149,7 +193,34 @@ describe('PerpsModeSelectionView', () => {
 
     afterEach(() => {
       trackEventSpy.mockRestore();
+      clearTrackedABTestExposureForTests();
     });
+
+    const renderTradeChooserWithActiveTreatment = () => {
+      renderPerpsView(
+        PerpsModeSelectionView as unknown as React.ComponentType,
+        Routes.PERPS.MODALS.MODE_SELECTION,
+        {
+          mainMount: 'perps-modal',
+          overrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: activeProTreatmentFlags,
+                },
+              },
+            },
+          },
+          extraRoutes: [
+            {
+              name: Routes.PERPS.PERPS_HOME,
+              mount: 'perps-root',
+              Component: makeLandingProbe(Routes.PERPS.PERPS_HOME, sequence),
+            },
+          ],
+        },
+      );
+    };
 
     it('emits real Experiment Viewed exposure before resetting onto the default Pro market, for a control Trade-menu Pro selection', async () => {
       renderPerpsView(
@@ -207,27 +278,29 @@ describe('PerpsModeSelectionView', () => {
       ]);
     });
 
-    it('does not emit Experiment Viewed exposure when a Trade-menu chooser selection stays on Lite', async () => {
-      renderPerpsView(
-        PerpsModeSelectionView as unknown as React.ComponentType,
-        Routes.PERPS.MODALS.MODE_SELECTION,
-        {
-          mainMount: 'perps-modal',
-          extraRoutes: [
-            {
-              name: Routes.PERPS.PERPS_HOME,
-              mount: 'perps-root',
-              Component: makeLandingProbe(Routes.PERPS.PERPS_HOME, sequence),
-            },
-          ],
-        },
-      );
+    it('does not emit header-experiment exposure when a Trade-menu selection stays on Lite and Pro treatment is active', async () => {
+      renderTradeChooserWithActiveTreatment();
 
       fireEvent.press(
         await screen.findByTestId(
           PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION,
         ),
       );
+
+      await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.PERPS.PERPS_HOME),
+      );
+
+      expect(sequence).not.toContain('experiment-viewed');
+    });
+
+    it('does not emit header-experiment exposure when the Trade-menu chooser is dismissed and Pro treatment is active', async () => {
+      renderTradeChooserWithActiveTreatment();
+
+      await screen.findByTestId(
+        PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION,
+      );
+      dismissModeChooser();
 
       await screen.findByTestId(
         getRouteParamsProbeTestId(Routes.PERPS.PERPS_HOME),

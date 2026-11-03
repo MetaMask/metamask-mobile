@@ -655,6 +655,9 @@ interface RenderPerpsViewOptions {
    * stack within PERPS.ROOT): this makes getParent() resolve to the same
    * PERPS.ROOT navigator that owns the sibling 'perps-root' extraRoutes being
    * reset onto.
+   *
+   * Applied only when `extraRoutes` is non-empty. A caller that sets this
+   * without extra routes still gets the single-screen mount.
    */
   mainMount?: 'perps-modal';
   /** Selects the matching Perps state preset. */
