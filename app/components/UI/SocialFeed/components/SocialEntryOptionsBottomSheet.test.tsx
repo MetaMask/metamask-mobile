@@ -50,7 +50,12 @@ jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
     mockReportSocialServiceFailure(...args),
 }));
 
-const mockUseSocialProfileId = jest.fn(() => ({
+interface MockSocialProfileIdResult {
+  profileId: string | undefined;
+  isLoading: boolean;
+}
+
+const mockUseSocialProfileId = jest.fn<MockSocialProfileIdResult, []>(() => ({
   profileId: 'viewer-1',
   isLoading: false,
 }));
