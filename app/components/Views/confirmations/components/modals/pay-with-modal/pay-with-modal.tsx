@@ -192,10 +192,7 @@ export function PayWithModal() {
         }
 
         if (isSolanaPayAsset(token)) {
-          setNonEvmPayToken({
-            assetId: token.assetId,
-            walletAccountId: token.accountId,
-          });
+          setNonEvmPayToken({ assetId: token.assetId });
           return;
         }
 

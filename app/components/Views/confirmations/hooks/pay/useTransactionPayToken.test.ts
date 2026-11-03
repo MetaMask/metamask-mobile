@@ -14,18 +14,21 @@ import {
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
-  EvmPaymentToken,
-  NonEvmPaymentToken,
   PaymentOverride,
   TransactionConfig,
   TransactionPayRequiredToken,
+  TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../../core/Engine';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { flushPromises } from '../../../../../util/test/utils';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
+    AssetsController: {
+      state: { assetsInfo: {} },
+    },
     TransactionPayController: {
       setTransactionConfig: jest.fn(),
       updatePaymentToken: jest.fn(),
@@ -56,6 +59,7 @@ const NETWORK_CLIENT_ID_MOCK = 'network-client-id-mock';
 
 const PAY_TOKEN_MOCK = {
   address: tokenAddress1Mock,
+  assetId: `eip155:1/erc20:${tokenAddress1Mock}`,
   balanceHuman: '123.456',
   balanceFiat: '456.12',
   balanceUsd: '456.123',
@@ -71,25 +75,22 @@ const REQUIRED_TOKEN_MOCK = {
   skipIfBalance: false,
 } as unknown as TransactionPayRequiredToken;
 
-const NON_EVM_PAY_TOKEN_MOCK = {
-  accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+const NON_EVM_PAY_TOKEN_MOCK: TransactionPaymentToken = {
   assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
   balanceFiat: '300',
   balanceHuman: '2',
   balanceRaw: '2000000000',
   balanceUsd: '300',
-  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   decimals: 9,
   symbol: 'SOL',
-  walletAccountId: 'solana-account-id',
-} as NonEvmPaymentToken;
+};
 
 function runHook({
   payToken,
   type,
   requiredTokens,
 }: {
-  payToken?: EvmPaymentToken | NonEvmPaymentToken;
+  payToken?: TransactionPaymentToken;
   type?: TransactionType;
   requiredTokens?: TransactionPayRequiredToken[];
 } = {}) {
@@ -163,17 +164,44 @@ describe('useTransactionPayToken', () => {
 
     expect(updatePaymentTokenMock).toHaveBeenCalledWith({
       transactionId: TRANSACTION_ID_MOCK,
-      tokenAddress: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId,
+      assetId: PAY_TOKEN_MOCK.assetId,
     });
+  });
+
+  it('sets token in state by its AssetsController asset ID', async () => {
+    const checksummedAssetId = `eip155:1/erc20:${tokenAddress1Mock.replace(
+      'abcdef',
+      'ABCDEF',
+    )}`;
+    const assetsControllerState = jest.mocked(Engine.context.AssetsController)
+      .state as unknown as { assetsInfo: Record<string, unknown> };
+    assetsControllerState.assetsInfo = {
+      [checksummedAssetId]: { type: 'erc20' },
+    };
+
+    const { result } = runHook();
+
+    result.current.setPayToken({
+      address: PAY_TOKEN_MOCK.address,
+      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+    });
+
+    await flushPromises();
+
+    expect(updatePaymentTokenMock).toHaveBeenCalledWith({
+      transactionId: TRANSACTION_ID_MOCK,
+      assetId: checksummedAssetId,
+    });
+
+    assetsControllerState.assetsInfo = {};
   });
 
   it('returns isNative true when pay token is native address', () => {
     const { result } = runHook({
       payToken: {
         ...PAY_TOKEN_MOCK,
-        address: '0x0000000000000000000000000000000000000000',
-      } as EvmPaymentToken,
+        assetId: 'eip155:1/slip44:60',
+      },
     });
 
     expect(result.current.isNative).toBe(true);
@@ -334,7 +362,10 @@ describe('useTransactionPayToken', () => {
   it('exposes a non-EVM payment token separately from the EVM pay token', () => {
     const { result } = runHook({ payToken: NON_EVM_PAY_TOKEN_MOCK });
 
-    expect(result.current.nonEvmPayToken).toStrictEqual(NON_EVM_PAY_TOKEN_MOCK);
+    expect(result.current.nonEvmPayToken).toStrictEqual({
+      ...NON_EVM_PAY_TOKEN_MOCK,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
     expect(result.current.payToken).toBeUndefined();
     expect(result.current.isNative).toBeFalsy();
   });
@@ -355,7 +386,7 @@ describe('useTransactionPayToken', () => {
       payToken,
       type,
     }: {
-      payToken?: EvmPaymentToken | NonEvmPaymentToken;
+      payToken?: TransactionPaymentToken;
       type: TransactionType;
     }) {
       const mockState = cloneDeep(STATE_MOCK);
@@ -385,10 +416,7 @@ describe('useTransactionPayToken', () => {
         type: TransactionType.moneyAccountDeposit,
       });
 
-      setNonEvmPayToken({
-        assetId: NON_EVM_PAY_TOKEN_MOCK.assetId,
-        walletAccountId: NON_EVM_PAY_TOKEN_MOCK.walletAccountId,
-      });
+      setNonEvmPayToken({ assetId: NON_EVM_PAY_TOKEN_MOCK.assetId });
 
       expect(setTransactionConfigMock).toHaveBeenCalledWith(
         TRANSACTION_ID_MOCK,
@@ -408,10 +436,7 @@ describe('useTransactionPayToken', () => {
         type: TransactionType.perpsDeposit,
       });
 
-      setNonEvmPayToken({
-        assetId: NON_EVM_PAY_TOKEN_MOCK.assetId,
-        walletAccountId: NON_EVM_PAY_TOKEN_MOCK.walletAccountId,
-      });
+      setNonEvmPayToken({ assetId: NON_EVM_PAY_TOKEN_MOCK.assetId });
 
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
@@ -477,21 +502,17 @@ describe('useTransactionPayToken', () => {
     });
   });
 
-  it('selects a non-EVM payment token by CAIP asset ID and wallet account', () => {
+  it('selects a non-EVM payment token by CAIP asset ID', () => {
     const mockState = cloneDeep(STATE_MOCK);
     const { result } = renderHookWithProvider(useSetNonEvmPayToken, {
       state: mockState,
     });
 
-    result.current({
-      assetId: NON_EVM_PAY_TOKEN_MOCK.assetId,
-      walletAccountId: NON_EVM_PAY_TOKEN_MOCK.walletAccountId,
-    });
+    result.current({ assetId: NON_EVM_PAY_TOKEN_MOCK.assetId });
 
     expect(updatePaymentTokenMock).toHaveBeenCalledWith({
       transactionId: TRANSACTION_ID_MOCK,
       assetId: NON_EVM_PAY_TOKEN_MOCK.assetId,
-      walletAccountId: NON_EVM_PAY_TOKEN_MOCK.walletAccountId,
     });
   });
 });

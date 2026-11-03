@@ -5,21 +5,25 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import {
-  EvmPaymentToken,
-  NonEvmPaymentToken,
   PaymentOverride,
   TransactionPaymentToken,
-  isNonEvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { noop } from 'lodash';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import EngineService from '../../../../../core/EngineService';
 import { RootState } from '../../../../../reducers';
 import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import {
+  EvmPaymentToken,
+  NonEvmPaymentToken,
+  getEvmPaymentToken,
+  getEvmPaymentTokenAssetId,
+  getNonEvmPaymentToken,
+} from '../../../../../util/transactions/payment-token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Logger from '../../../../../util/Logger';
@@ -27,8 +31,6 @@ import Logger from '../../../../../util/Logger';
 export interface SetNonEvmPayTokenRequest {
   /** CAIP-19 asset type of the non-EVM token. */
   assetId: CaipAssetType;
-  /** ID of the `InternalAccount` holding the token. */
-  walletAccountId: string;
 }
 
 /**
@@ -77,15 +79,15 @@ export function useTransactionPayToken(): {
       selectTransactionPaymentTokenByTransactionId(state, transactionId),
   );
 
-  const nonEvmPayToken =
-    paymentToken && isNonEvmPaymentToken(paymentToken)
-      ? paymentToken
-      : undefined;
+  const nonEvmPayToken = useMemo(
+    () => getNonEvmPaymentToken(paymentToken),
+    [paymentToken],
+  );
 
-  const payToken =
-    paymentToken && !isNonEvmPaymentToken(paymentToken)
-      ? paymentToken
-      : undefined;
+  const payToken = useMemo(
+    () => getEvmPaymentToken(paymentToken),
+    [paymentToken],
+  );
 
   const requiredTokens = useTransactionPayRequiredTokens();
   const primaryRequiredToken = (requiredTokens ?? []).find(
@@ -101,8 +103,12 @@ export function useTransactionPayToken(): {
 
   const setPayToken = useCallback(
     (newPayToken: { address: Hex; chainId: Hex }) => {
-      const { GasFeeController, NetworkController, TransactionPayController } =
-        Engine.context;
+      const {
+        AssetsController,
+        GasFeeController,
+        NetworkController,
+        TransactionPayController,
+      } = Engine.context;
 
       if (isMoneyAccountDeposit && nonEvmPayToken) {
         setMoneyAccountDepositNonEvmSource(transactionId as string, false);
@@ -119,8 +125,10 @@ export function useTransactionPayToken(): {
       try {
         TransactionPayController.updatePaymentToken({
           transactionId: transactionId as string,
-          tokenAddress: newPayToken.address,
-          chainId: newPayToken.chainId,
+          assetId: getEvmPaymentTokenAssetId(
+            newPayToken,
+            AssetsController.state.assetsInfo,
+          ),
         });
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');
@@ -173,8 +181,10 @@ export function useTransactionPayToken(): {
 
 /**
  * Selects a non-EVM payment token, such as Solana SOL or an SPL token, on the
- * current transaction by CAIP-19 asset type and wallet account. Core resolves
- * the balance, quotes and submission.
+ * current transaction by CAIP-19 asset type. Core resolves the balance, quotes
+ * and submission from the account in the transaction account group that
+ * supports the asset chain, which is the group the token list is built from,
+ * so no account override is needed.
  *
  * @returns Callback that selects the non-EVM payment token.
  */
@@ -188,7 +198,7 @@ export function useSetNonEvmPayToken(): (
   ]);
 
   return useCallback(
-    ({ assetId, walletAccountId }: SetNonEvmPayTokenRequest) => {
+    ({ assetId }: SetNonEvmPayTokenRequest) => {
       if (isMoneyAccountDeposit) {
         setMoneyAccountDepositNonEvmSource(transactionId, true);
       }
@@ -197,7 +207,6 @@ export function useSetNonEvmPayToken(): (
         Engine.context.TransactionPayController.updatePaymentToken({
           transactionId,
           assetId,
-          walletAccountId,
         });
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');

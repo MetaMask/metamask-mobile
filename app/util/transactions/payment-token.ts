@@ -1,0 +1,184 @@
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import type { AssetsControllerState } from '@metamask/assets-controller';
+import type {
+  TransactionPayQuote,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
+import {
+  KnownCaipNamespace,
+  numberToHex,
+  parseCaipAssetType,
+  toCaipChainId,
+  type CaipAssetType,
+  type CaipChainId,
+  type Hex,
+  type Json,
+} from '@metamask/utils';
+
+/** Payment token on an EVM chain, with the chain and address derived from its asset ID. */
+export type EvmPaymentToken = TransactionPaymentToken & {
+  address: Hex;
+  chainId: Hex;
+};
+
+/** Payment token on a non-EVM chain, such as Solana, with its CAIP-2 chain ID. */
+export type NonEvmPaymentToken = TransactionPaymentToken & {
+  chainId: CaipChainId;
+};
+
+/**
+ * Derive the Hex chain ID and token address of an EVM CAIP-19 asset type. A
+ * `slip44` native asset maps to the chain's native token address, matching the
+ * address the confirmation asset list exposes for natives.
+ *
+ * @param assetId - CAIP-19 asset type.
+ * @returns The Hex chain ID and token address, or undefined for a non-EVM asset.
+ */
+export function getEvmAsset(
+  assetId: CaipAssetType,
+): { address: Hex; chainId: Hex } | undefined {
+  const { chain, assetNamespace, assetReference } = parseCaipAssetType(assetId);
+
+  if (chain.namespace !== KnownCaipNamespace.Eip155) {
+    return undefined;
+  }
+
+  const chainId = numberToHex(Number(chain.reference));
+
+  const address =
+    assetNamespace === 'slip44'
+      ? getNativeTokenAddress(chainId)
+      : (assetReference as Hex);
+
+  return { address, chainId };
+}
+
+/**
+ * Whether a payment token is on a non-EVM chain, derived from its asset ID.
+ *
+ * @param paymentToken - Payment token.
+ * @returns True for a non-EVM payment token.
+ */
+export function isNonEvmPaymentToken(
+  paymentToken: TransactionPaymentToken,
+): boolean {
+  return !getEvmAsset(paymentToken.assetId);
+}
+
+/**
+ * Add the chain ID and address derived from its asset ID to an EVM payment
+ * token.
+ *
+ * @param paymentToken - Payment token, if any.
+ * @returns The EVM payment token, or undefined if none is selected or it is not
+ * an EVM token.
+ */
+export function getEvmPaymentToken(
+  paymentToken: TransactionPaymentToken | undefined,
+): EvmPaymentToken | undefined {
+  const evmAsset = paymentToken && getEvmAsset(paymentToken.assetId);
+
+  return evmAsset && { ...paymentToken, ...evmAsset };
+}
+
+/**
+ * Add the CAIP-2 chain ID derived from its asset ID to a non-EVM payment token.
+ *
+ * @param paymentToken - Payment token, if any.
+ * @returns The non-EVM payment token, or undefined if none is selected or it is
+ * an EVM token.
+ */
+export function getNonEvmPaymentToken(
+  paymentToken: TransactionPaymentToken | undefined,
+): NonEvmPaymentToken | undefined {
+  if (!paymentToken || !isNonEvmPaymentToken(paymentToken)) {
+    return undefined;
+  }
+
+  return {
+    ...paymentToken,
+    chainId: parseCaipAssetType(paymentToken.assetId).chainId,
+  };
+}
+
+/**
+ * Get the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
+ * state, which identifies the payment token in `updatePaymentToken`.
+ *
+ * A native token is the chain's sole asset of type `native`, since natives are
+ * keyed as `slip44` assets. An ERC-20 key is matched case-insensitively,
+ * preferring a checksummed key over a lowercase duplicate. A token absent from
+ * state falls back to its derived asset ID.
+ *
+ * @param token - EVM token.
+ * @param token.address - Token address, or the chain's native token address.
+ * @param token.chainId - Hex chain ID.
+ * @param assetsInfo - `AssetsController` asset metadata keyed by asset ID.
+ * @returns The CAIP-19 asset ID of the token.
+ */
+export function getEvmPaymentTokenAssetId(
+  { address, chainId }: { address: Hex; chainId: Hex },
+  assetsInfo: AssetsControllerState['assetsInfo'],
+): CaipAssetType {
+  const caipChainId = toCaipChainId(
+    KnownCaipNamespace.Eip155,
+    String(parseInt(chainId, 16)),
+  );
+  const chainPrefix = `${caipChainId}/`;
+  const keys = Object.keys(assetsInfo) as CaipAssetType[];
+  const derivedAssetId: CaipAssetType = `${caipChainId}/erc20:${address}`;
+  const isNative =
+    address.toLowerCase() === getNativeTokenAddress(chainId).toLowerCase();
+
+  if (isNative) {
+    return (
+      keys.find(
+        (key) =>
+          key.startsWith(chainPrefix) && assetsInfo[key].type === 'native',
+      ) ?? derivedAssetId
+    );
+  }
+
+  const target = derivedAssetId.toLowerCase();
+  const matches = keys.filter((key) => key.toLowerCase() === target);
+
+  return (
+    matches.find((key) => key !== key.toLowerCase()) ??
+    matches[0] ??
+    derivedAssetId
+  );
+}
+
+/**
+ * Whether a quote pays with an EVM source token, from the protocol of its
+ * source asset. Only these quotes carry a Hex source chain ID and a source
+ * token address.
+ *
+ * @param quote - Transaction pay quote.
+ * @returns True for a quote with an EVM source.
+ */
+export function isEvmTransactionPayQuote<OriginalQuote = Json>(
+  quote: TransactionPayQuote<OriginalQuote, Hex | CaipChainId>,
+): quote is TransactionPayQuote<OriginalQuote> {
+  return Boolean(getEvmAsset(quote.request.sourceAssetId));
+}
+
+/** Quote request for a payment token on any chain. */
+export type TransactionPayQuoteRequest = TransactionPayQuote<
+  Json,
+  Hex | CaipChainId
+>['request'];
+
+/**
+ * Whether a quote request pays with a non-EVM source token, such as Solana,
+ * from the protocol of its source asset. These requests carry a CAIP-2 source
+ * chain ID and no source token address.
+ *
+ * @param request - Quote request.
+ * @returns True for a request with a non-EVM source.
+ */
+export function isNonEvmQuoteRequest(
+  request: TransactionPayQuoteRequest,
+): request is TransactionPayQuote<Json, CaipChainId>['request'] {
+  return !getEvmAsset(request.sourceAssetId);
+}

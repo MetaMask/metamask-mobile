@@ -8,7 +8,6 @@ import {
   PaymentOverride,
   TransactionPayRequiredToken,
   TransactionPayTotals,
-  EvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
@@ -35,6 +34,7 @@ import { useTransactionPayingAccount } from '../transactions/useTransactionPayin
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { BigNumber } from 'bignumber.js';
 import { isHardwareAccount } from '../../../../../util/address';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
@@ -493,7 +493,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
       useTransactionPayTokenMock.mockReturnValue({
         nonEvmPayToken: {
-          accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
           assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
           balanceFiat: '0',
           balanceHuman: '0',
@@ -502,7 +501,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           decimals: 9,
           symbol: 'SOL',
-          walletAccountId: 'solana-account-id',
         },
         payToken: undefined,
         setPayToken: jest.fn(),

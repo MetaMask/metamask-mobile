@@ -276,7 +276,11 @@ describe('PayWithModal', () => {
     useTransactionPayRequiredTokensMock.mockReturnValue(REQUIRED_TOKENS_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { address: NATIVE_TOKEN_ADDRESS, chainId: CHAIN_ID_1_MOCK },
+      payToken: {
+        address: NATIVE_TOKEN_ADDRESS,
+        assetId: 'eip155:1/slip44:60',
+        chainId: CHAIN_ID_1_MOCK,
+      },
       setPayToken: setPayTokenMock,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
     jest.mocked(useSetNonEvmPayToken).mockReturnValue(setNonEvmPayTokenMock);
@@ -337,7 +341,7 @@ describe('PayWithModal', () => {
       });
     });
 
-    it('selects a Solana source by CAIP asset ID and wallet account', async () => {
+    it('selects a Solana source by CAIP asset ID', async () => {
       getAvailableTokensMock.mockReturnValue([SOLANA_TOKEN_MOCK]);
       const { findByText } = render();
 
@@ -346,7 +350,6 @@ describe('PayWithModal', () => {
       await waitFor(() =>
         expect(setNonEvmPayTokenMock).toHaveBeenCalledWith({
           assetId: SOLANA_USDC_ASSET_ID,
-          walletAccountId: 'solana-account-id',
         }),
       );
       expect(setPayTokenMock).not.toHaveBeenCalled();
@@ -385,7 +388,6 @@ describe('PayWithModal', () => {
       useTransactionPayTokenMock.mockReturnValue({
         nonEvmPayToken: {
           assetId: SOLANA_USDC_ASSET_ID,
-          walletAccountId: 'solana-account-id',
           chainId: SolScope.Mainnet,
         },
         payToken: undefined,

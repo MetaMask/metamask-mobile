@@ -190,7 +190,7 @@ describe('transactionPayController selectors', () => {
 
   describe('selectTransactionPaymentTokenByTransactionId', () => {
     it('returns payment token from transaction data', () => {
-      const paymentToken = { address: '0xToken', chainId: '0x1' };
+      const paymentToken = { assetId: 'eip155:1/erc20:0xToken' };
       const state = createMockRootState({
         [TRANSACTION_ID_MOCK]: { paymentToken },
       });
@@ -386,13 +386,11 @@ describe('transactionPayController selectors', () => {
     };
 
     const MATCHING_PAYMENT_TOKEN = {
-      address: '0xrequiredtoken',
-      chainId: '0xa4b1',
+      assetId: 'eip155:42161/erc20:0xrequiredtoken',
     };
 
     const OTHER_PAYMENT_TOKEN = {
-      address: '0xOtherToken',
-      chainId: '0x1',
+      assetId: 'eip155:1/erc20:0xOtherToken',
     };
 
     it('returns true when an executable quote is in state', () => {

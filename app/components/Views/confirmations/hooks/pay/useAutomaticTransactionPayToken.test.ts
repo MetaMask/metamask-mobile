@@ -1013,6 +1013,7 @@ describe('useAutomaticTransactionPayToken', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: TOKEN_ADDRESS_1_MOCK,
+        assetId: `eip155:1/erc20:${TOKEN_ADDRESS_1_MOCK}`,
         chainId: CHAIN_ID_1_MOCK,
       } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
       setPayToken: setPayTokenMock,
@@ -1106,6 +1107,7 @@ describe('useAutomaticTransactionPayToken', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: TOKEN_ADDRESS_2_MOCK,
+        assetId: `eip155:2/erc20:${TOKEN_ADDRESS_2_MOCK}`,
         chainId: CHAIN_ID_2_MOCK,
       },
       setPayToken: setPayTokenMock,
@@ -1225,6 +1227,7 @@ describe('useAutomaticTransactionPayToken', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: TOKEN_ADDRESS_1_MOCK,
+        assetId: `eip155:1/erc20:${TOKEN_ADDRESS_1_MOCK}`,
         chainId: CHAIN_ID_1_MOCK,
       } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
       setPayToken: setPayTokenMock,
@@ -1334,7 +1337,6 @@ describe('useAutomaticTransactionPayToken', () => {
     } as never);
     useTransactionPayTokenMock.mockReturnValue({
       nonEvmPayToken: {
-        accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
         assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
         balanceFiat: '300',
         balanceHuman: '2',
@@ -1343,7 +1345,6 @@ describe('useAutomaticTransactionPayToken', () => {
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         decimals: 9,
         symbol: 'SOL',
-        walletAccountId: 'solana-account-id',
       },
       payToken: undefined,
       setPayToken: setPayTokenMock,
@@ -1406,6 +1407,7 @@ describe('useAutomaticTransactionPayToken', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: TOKEN_ADDRESS_2_MOCK,
+        assetId: `eip155:2/erc20:${TOKEN_ADDRESS_2_MOCK}`,
         chainId: CHAIN_ID_2_MOCK,
       } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
       setPayToken: setPayTokenMock,

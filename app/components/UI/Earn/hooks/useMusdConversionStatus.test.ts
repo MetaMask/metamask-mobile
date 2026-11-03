@@ -922,6 +922,7 @@ describe('useMusdConversionStatus', () => {
           request: {
             from: '0x0000000000000000000000000000000000000000',
             sourceBalanceRaw: '0',
+            sourceAssetId: `eip155:59144/erc20:${paymentTokenAddress}`,
             sourceChainId: chainId,
             sourceTokenAddress: paymentTokenAddress,
             sourceTokenAmount: '100',
@@ -988,6 +989,7 @@ describe('useMusdConversionStatus', () => {
           request: {
             from: '0x0000000000000000000000000000000000000000',
             sourceBalanceRaw: '0',
+            sourceAssetId: `eip155:1/erc20:${paymentTokenAddress}`,
             sourceChainId: paymentChainId,
             sourceTokenAddress: paymentTokenAddress,
             sourceTokenAmount: '100',
@@ -1055,8 +1057,13 @@ describe('useMusdConversionStatus', () => {
   describe('Sentry traces', () => {
     beforeEach(() => {
       mockSelectTransactionPayQuotesByTransactionId.mockReturnValue([
-        { strategy: TransactionPayStrategy.Relay },
-      ] as ReturnType<typeof mockSelectTransactionPayQuotesByTransactionId>);
+        {
+          request: { sourceAssetId: 'eip155:1/slip44:60' },
+          strategy: TransactionPayStrategy.Relay,
+        },
+      ] as unknown as ReturnType<
+        typeof mockSelectTransactionPayQuotesByTransactionId
+      >);
     });
 
     it('starts confirmation trace when transaction status is approved', () => {

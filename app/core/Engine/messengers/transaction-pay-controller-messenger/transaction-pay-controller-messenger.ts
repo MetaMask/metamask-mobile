@@ -29,6 +29,9 @@ export function getTransactionPayControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'AccountsController:getState',
+      // Resolve the non-EVM source account in the transaction account group.
+      'AccountTreeController:getAccountContext',
+      'AccountTreeController:getAccountGroupObject',
       'AssetsController:getState',
       'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'GasFeeController:getState',

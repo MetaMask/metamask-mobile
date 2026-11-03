@@ -3,7 +3,7 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-import type { NonEvmPaymentToken } from '@metamask/transaction-pay-controller';
+import type { NonEvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -61,8 +61,7 @@ const SOLANA_TOKEN_MOCK = {
   symbol: 'SOL',
 } as AssetType;
 
-const SOLANA_PAY_TOKEN_MOCK = {
-  accountId: `${SolScope.Mainnet}:SoLAddress`,
+const SOLANA_PAY_TOKEN_MOCK: NonEvmPaymentToken = {
   assetId: SOLANA_ASSET_ID,
   balanceFiat: '300',
   balanceHuman: '2',
@@ -71,8 +70,7 @@ const SOLANA_PAY_TOKEN_MOCK = {
   chainId: SolScope.Mainnet,
   decimals: 9,
   symbol: 'SOL',
-  walletAccountId: 'solana-account-id',
-} as NonEvmPaymentToken;
+};
 
 describe('useTransactionPayAvailableTokens', () => {
   const useAccountTokensMock = jest.mocked(useAccountTokens);

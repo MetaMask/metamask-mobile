@@ -134,6 +134,7 @@ describe('PayWithRow', () => {
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
+        assetId: `eip155:${parseInt(CHAIN_ID_MOCK, 16)}/erc20:${ADDRESS_MOCK}`,
         address: ADDRESS_MOCK,
         balanceHuman: '0',
         balanceFiat: '$0',
@@ -190,7 +191,6 @@ describe('PayWithRow', () => {
     const assetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
     jest.mocked(useTransactionPayToken).mockReturnValue({
       nonEvmPayToken: {
-        accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
         assetId,
         balanceFiat: '300',
         balanceHuman: '2',
@@ -199,7 +199,6 @@ describe('PayWithRow', () => {
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         decimals: 9,
         symbol: 'SOL',
-        walletAccountId: 'solana-account-id',
       },
       payToken: undefined,
       setPayToken: jest.fn(),
@@ -462,7 +461,6 @@ describe('PayWithRow', () => {
       } as never);
       jest.mocked(useTransactionPayToken).mockReturnValue({
         nonEvmPayToken: {
-          accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
           assetId,
           balanceFiat: '300',
           balanceHuman: '2',
@@ -471,7 +469,6 @@ describe('PayWithRow', () => {
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           decimals: 9,
           symbol: 'SOL',
-          walletAccountId: 'solana-account-id',
         },
         payToken: undefined,
         setPayToken: jest.fn(),
@@ -538,6 +535,7 @@ describe('PayWithRow', () => {
       } as never);
       jest.mocked(useTransactionPayToken).mockReturnValue({
         payToken: {
+          assetId: `eip155:${parseInt(CHAIN_ID_MOCK, 16)}/erc20:${ADDRESS_MOCK}`,
           address: ADDRESS_MOCK,
           balanceHuman: '0',
           balanceFiat: '$0',

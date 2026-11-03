@@ -5,8 +5,8 @@ import {
 import {
   PaymentOverride,
   type GetBalanceRequest,
-  type NonEvmPaymentToken,
   type TransactionData,
+  type TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
@@ -32,18 +32,15 @@ jest.mock('../../../../components/UI/Perps/selectors/perpsController');
 
 const ACCOUNT_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 
-const SOLANA_PAY_TOKEN_MOCK = {
-  accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+const SOLANA_PAY_TOKEN_MOCK: TransactionPaymentToken = {
   assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
   balanceFiat: '300',
   balanceHuman: '2',
   balanceRaw: '2000000000',
   balanceUsd: '300',
-  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   decimals: 9,
   symbol: 'SOL',
-  walletAccountId: 'solana-account-id',
-} as NonEvmPaymentToken;
+};
 
 function buildRequest({
   type,
@@ -55,7 +52,7 @@ function buildRequest({
 }: {
   type?: TransactionType;
   paymentOverride?: PaymentOverride;
-  paymentToken?: NonEvmPaymentToken;
+  paymentToken?: TransactionPaymentToken;
   decimals?: number;
   from?: string;
   omitFrom?: boolean;

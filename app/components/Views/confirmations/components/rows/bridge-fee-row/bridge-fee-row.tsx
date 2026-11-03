@@ -12,8 +12,6 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 import {
-  NonEvmQuoteRequest,
-  NonEvmTransactionPayQuote,
   TransactionPayQuote,
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
@@ -32,13 +30,7 @@ import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import {
-  CaipAssetType,
-  CaipChainId,
-  Hex,
-  Json,
-  isCaipChainId,
-} from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex, Json } from '@metamask/utils';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import Icon, {
@@ -54,6 +46,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { NonEvmTokenIcon, TokenIcon, TokenIconVariant } from '../../token-icon';
+import { isNonEvmQuoteRequest } from '../../../../../../util/transactions/payment-token';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -99,7 +92,7 @@ function TransactionFeeRow({
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
   hasSourceAmounts: boolean;
-  quotes?: (TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>)[];
+  quotes?: TransactionPayQuote<Json, Hex | CaipChainId>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
   isFiatPayment: boolean;
@@ -238,7 +231,7 @@ function Tooltip({
   transactionMeta,
   totals,
 }: {
-  quotes?: (TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>)[];
+  quotes?: TransactionPayQuote<Json, Hex | CaipChainId>[];
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
@@ -278,7 +271,7 @@ function getNetworkFeeToken({
   totals,
   transactionMeta,
 }: {
-  quotes?: (TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>)[];
+  quotes?: TransactionPayQuote<Json, Hex | CaipChainId>[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
 }): NetworkFeeToken {
@@ -303,12 +296,6 @@ type NetworkFeeToken =
   | { address: Hex; chainId: Hex }
   | { assetId: CaipAssetType; chainId: CaipChainId; symbol: string };
 
-function isNonEvmQuoteRequest(
-  request: TransactionPayQuote<Json>['request'] | NonEvmQuoteRequest,
-): request is NonEvmQuoteRequest {
-  return isCaipChainId(request.sourceChainId);
-}
-
 function FeesTooltip({
   message,
   quotes,
@@ -316,7 +303,7 @@ function FeesTooltip({
   transactionMeta,
 }: {
   message: string;
-  quotes?: (TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>)[];
+  quotes?: TransactionPayQuote<Json, Hex | CaipChainId>[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
 }) {

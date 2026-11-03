@@ -34,7 +34,6 @@ import {
 } from '@metamask/keyring-api';
 import { AssetType, TokenStandard } from '../types/token';
 import {
-  NonEvmPaymentToken,
   TransactionPayRequiredToken,
   TransactionPaymentToken,
   PaymentOverride,
@@ -85,6 +84,16 @@ const TOKEN_MOCK = {
   standard: TokenStandard.ERC20,
   symbol: 'NTV1',
 } as AssetType;
+
+const NATIVE_PAY_TOKEN_MOCK: TransactionPaymentToken = {
+  assetId: 'eip155:1/slip44:60',
+  balanceFiat: '0',
+  balanceHuman: '0',
+  balanceRaw: '0',
+  balanceUsd: '0',
+  decimals: 18,
+  symbol: 'NTV1',
+};
 
 const ERC20_TOKEN_MOCK = {
   ...TOKEN_MOCK,
@@ -282,10 +291,7 @@ describe('Transaction Pay Utils', () => {
 
       const result = getAvailableTokens({
         tokens: [tokenWithZeroBalance] as AssetType[],
-        payToken: {
-          address: TOKEN_MOCK.address as Hex,
-          chainId: TOKEN_MOCK.chainId as Hex,
-        } as TransactionPaymentToken,
+        payToken: NATIVE_PAY_TOKEN_MOCK,
       });
 
       expect(result).toMatchObject([tokenWithZeroBalance]);
@@ -417,10 +423,7 @@ describe('Transaction Pay Utils', () => {
       it('clears isSelected on all tokens when fiat payment is active', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
-          payToken: {
-            address: TOKEN_MOCK.address as Hex,
-            chainId: TOKEN_MOCK.chainId as Hex,
-          } as TransactionPaymentToken,
+          payToken: NATIVE_PAY_TOKEN_MOCK,
           fiatPayment: { selectedPaymentMethodId: 'pm-card' },
         });
 
@@ -431,10 +434,7 @@ describe('Transaction Pay Utils', () => {
       it('preserves isSelected when fiat payment has no selected method', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
-          payToken: {
-            address: TOKEN_MOCK.address as Hex,
-            chainId: TOKEN_MOCK.chainId as Hex,
-          } as TransactionPaymentToken,
+          payToken: NATIVE_PAY_TOKEN_MOCK,
           fiatPayment: {},
         });
 
@@ -576,18 +576,15 @@ describe('Transaction Pay Utils', () => {
       symbol: 'USDC',
     } as AssetType;
 
-    const SOLANA_PAY_TOKEN_MOCK = {
-      accountId: `${SolScope.Mainnet}:SoLAddress`,
+    const SOLANA_PAY_TOKEN_MOCK: TransactionPaymentToken = {
       assetId: USDC_ASSET_ID,
       balanceFiat: '0',
       balanceHuman: '0',
       balanceRaw: '0',
       balanceUsd: '0',
-      chainId: SolScope.Mainnet,
       decimals: 6,
       symbol: 'USDC',
-      walletAccountId: 'solana-account-id',
-    } as NonEvmPaymentToken;
+    };
 
     it('lists Solana SOL and SPL balances when Solana Pay is enabled', () => {
       const result = getAvailableTokens({
@@ -674,32 +671,20 @@ describe('Transaction Pay Utils', () => {
     });
   });
 
-  const NON_EVM_PAY_TOKEN_MOCK: NonEvmPaymentToken = {
-    accountId: `${SolScope.Mainnet}:SoLAddress`,
+  const NON_EVM_PAY_TOKEN_MOCK: TransactionPaymentToken = {
     assetId: `${SolScope.Mainnet}/slip44:501`,
     balanceFiat: '0',
     balanceHuman: '0',
     balanceRaw: '0',
     balanceUsd: '0',
-    chainId: SolScope.Mainnet,
     decimals: 9,
     symbol: 'SOL',
-    walletAccountId: 'solana-account-id',
   };
 
-  const EVM_PAY_TOKEN_MOCK: TransactionPaymentToken = {
-    address: TOKEN_MOCK.address.toUpperCase() as Hex,
-    balanceFiat: '0',
-    balanceHuman: '0',
-    balanceRaw: '0',
-    balanceUsd: '0',
-    chainId: CHAIN_ID_MOCK,
-    decimals: 18,
-    symbol: 'NTV1',
-  };
+  const EVM_PAY_TOKEN_MOCK = NATIVE_PAY_TOKEN_MOCK;
 
   describe('isSelectedPayToken', () => {
-    it('matches a non-EVM payment token by asset ID and wallet account', () => {
+    it('matches a non-EVM payment token by asset ID', () => {
       const token = {
         accountId: 'solana-account-id',
         assetId: `${SolScope.Mainnet}/slip44:501`,
@@ -708,14 +693,20 @@ describe('Transaction Pay Utils', () => {
       expect(isSelectedPayToken(token, NON_EVM_PAY_TOKEN_MOCK)).toBe(true);
       expect(
         isSelectedPayToken(
-          { ...token, accountId: 'other' },
+          { ...token, assetId: `${SolScope.Mainnet}/token:USDCMint` },
           NON_EVM_PAY_TOKEN_MOCK,
         ),
       ).toBe(false);
     });
 
-    it('matches an EVM payment token by address and chain', () => {
+    it('matches an EVM payment token by the address and chain of its asset ID', () => {
       expect(isSelectedPayToken(TOKEN_MOCK, EVM_PAY_TOKEN_MOCK)).toBe(true);
+      expect(
+        isSelectedPayToken(TOKEN_MOCK, {
+          ...EVM_PAY_TOKEN_MOCK,
+          assetId: 'eip155:10/slip44:60',
+        }),
+      ).toBe(false);
       expect(isSelectedPayToken(TOKEN_MOCK, undefined)).toBe(false);
     });
   });
@@ -769,9 +760,9 @@ describe('Transaction Pay Utils', () => {
   });
 
   describe('getPaymentTokenKey', () => {
-    it('returns the wallet account and asset ID key for a non-EVM token', () => {
+    it('returns the asset ID key for a non-EVM token', () => {
       expect(getPaymentTokenKey(NON_EVM_PAY_TOKEN_MOCK)).toBe(
-        `solana-account-id:${SolScope.Mainnet}/slip44:501`,
+        `${SolScope.Mainnet}/slip44:501`,
       );
     });
 
@@ -779,8 +770,7 @@ describe('Transaction Pay Utils', () => {
       expect(
         getPaymentTokenKey({
           ...EVM_PAY_TOKEN_MOCK,
-          address: '0xABC',
-          chainId: '0xA',
+          assetId: 'eip155:10/erc20:0xABC',
         }),
       ).toBe('0xa:0xabc');
       expect(getPaymentTokenKey(undefined)).toBe('');

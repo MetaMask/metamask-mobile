@@ -11,7 +11,6 @@ import {
   TransactionPayRequiredToken,
   TransactionPayTotals,
   TransactionPaymentToken,
-  isNonEvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
@@ -30,6 +29,10 @@ import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { isTransactionPayWithdraw } from './transaction';
+import {
+  getEvmPaymentToken,
+  isNonEvmPaymentToken,
+} from '../../../../util/transactions/payment-token';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -242,8 +245,8 @@ export function getAvailableTokens({
 }
 
 /**
- * Stable identity of a payment token: CAIP-19 asset and wallet account for
- * non-EVM tokens, lowercase chain and address for EVM tokens.
+ * Stable identity of a payment token: CAIP-19 asset for non-EVM tokens,
+ * lowercase chain and address for EVM tokens.
  *
  * @param token - Payment token.
  * @returns Identity key, or an empty string when no token is selected.
@@ -255,11 +258,13 @@ export function getPaymentTokenKey(
     return '';
   }
 
-  if (isNonEvmPaymentToken(token)) {
-    return `${token.walletAccountId}:${token.assetId}`;
+  const evmToken = getEvmPaymentToken(token);
+
+  if (!evmToken) {
+    return token.assetId;
   }
 
-  return `${token.chainId.toLowerCase()}:${token.address.toLowerCase()}`;
+  return `${evmToken.chainId.toLowerCase()}:${evmToken.address.toLowerCase()}`;
 }
 
 /**
@@ -316,8 +321,8 @@ export function isSolanaPayAsset(
 
 /**
  * Whether a token-list asset is the selected payment token. Non-EVM tokens
- * match on CAIP-19 asset ID and wallet account; EVM tokens on address and
- * chain.
+ * match on CAIP-19 asset ID; EVM tokens on the address and chain derived from
+ * the asset ID.
  *
  * @param token - Token-list asset.
  * @param payToken - Selected payment token.
@@ -331,16 +336,15 @@ export function isSelectedPayToken(
     return false;
   }
 
-  if (isNonEvmPaymentToken(payToken)) {
-    return (
-      token.assetId === payToken.assetId &&
-      token.accountId === payToken.walletAccountId
-    );
+  const evmPayToken = getEvmPaymentToken(payToken);
+
+  if (!evmPayToken) {
+    return token.assetId === payToken.assetId;
   }
 
   return (
-    payToken.address.toLowerCase() === token.address?.toLowerCase() &&
-    payToken.chainId === token.chainId
+    evmPayToken.address.toLowerCase() === token.address?.toLowerCase() &&
+    evmPayToken.chainId === token.chainId
   );
 }
 

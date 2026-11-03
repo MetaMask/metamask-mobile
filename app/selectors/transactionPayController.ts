@@ -2,10 +2,10 @@ import {
   TransactionData,
   TransactionPayQuote,
   TransactionPayStrategy,
-  isNonEvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
+import { getEvmPaymentToken } from '../util/transactions/payment-token';
 
 /**
  * Check whether a quote is a no-op quote. The controller stores one when a
@@ -29,9 +29,9 @@ export function isNoOpQuote(
  * @returns Whether direct submission is safe.
  */
 function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
-  const paymentToken = data?.paymentToken;
+  const paymentToken = getEvmPaymentToken(data?.paymentToken);
 
-  if (!paymentToken || isNonEvmPaymentToken(paymentToken)) {
+  if (!paymentToken) {
     return false;
   }
 

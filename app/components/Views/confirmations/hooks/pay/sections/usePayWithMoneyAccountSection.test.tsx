@@ -385,10 +385,7 @@ describe('usePayWithMoneyAccountSection', () => {
 
   describe('selection state', () => {
     const SOLANA_PAY_TOKEN_MOCK = {
-      accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
       assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      walletAccountId: 'solana-account-id',
     };
 
     function mockMoneyAccountDeposit(payToken?: object) {

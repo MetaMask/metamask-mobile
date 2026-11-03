@@ -202,16 +202,13 @@ describe('usePaySectionSourceMetrics', () => {
   it('returns the account type for a Money Account deposit funded from Solana', () => {
     selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
     selectPaymentTokenMock.mockReturnValue({
-      accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
       assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
       balanceFiat: '300',
       balanceHuman: '2',
       balanceRaw: '2000000000',
       balanceUsd: '300',
-      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       decimals: 9,
       symbol: 'SOL',
-      walletAccountId: 'solana-account-id',
     });
     useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
 

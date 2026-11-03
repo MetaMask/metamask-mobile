@@ -1,5 +1,5 @@
 import { Hex } from '@metamask/utils';
-import { EvmPaymentToken } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionPayToken } from './useTransactionPayToken';

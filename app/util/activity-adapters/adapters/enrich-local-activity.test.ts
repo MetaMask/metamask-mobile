@@ -544,12 +544,11 @@ describe('local activity call-site mapping', () => {
           transactionPayData: {
             isPostQuote: true,
             paymentToken: {
-              address: usdcAddress,
+              assetId: `eip155:1/erc20:${usdcAddress}`,
               balanceFiat: '100',
               balanceHuman: '100',
               balanceRaw: '100000000',
               balanceUsd: '100',
-              chainId: '0x1',
               decimals: 6,
               symbol: 'USDC',
             },

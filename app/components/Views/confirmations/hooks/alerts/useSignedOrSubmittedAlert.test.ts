@@ -14,7 +14,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { EvmPaymentToken } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { isHardwareAccount } from '../../../../../util/address';
 
 const FROM_MOCK = '0x123';

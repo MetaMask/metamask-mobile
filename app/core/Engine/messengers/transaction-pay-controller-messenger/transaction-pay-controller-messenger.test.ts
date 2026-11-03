@@ -121,6 +121,22 @@ describe('getTransactionPayControllerMessenger', () => {
     );
   });
 
+  it('delegates the AccountTreeController actions Core needs to resolve the non-EVM source account', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:getAccountContext',
+          'AccountTreeController:getAccountGroupObject',
+        ]),
+      }),
+    );
+  });
+
   it('delegates TransactionController:addTransactionBatch for the Solana Pay Money Account second leg', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');

@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import {
   SetPayTokenRequest,
@@ -9,6 +8,7 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { isMatchingPayToken, payBalanceUsd } from '../../utils/transaction-pay';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 
 export interface PayWithPreferredToken {
   address: Hex;
@@ -20,7 +20,7 @@ export interface PayWithPreferredToken {
 export interface UsePayWithPreferredTokenResult {
   hasTokens: boolean;
   preferredToken: PayWithPreferredToken | undefined;
-  selectedToken: TransactionPaymentToken | undefined;
+  selectedToken: EvmPaymentToken | undefined;
 }
 
 export function usePayWithPreferredToken({

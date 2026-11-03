@@ -272,12 +272,8 @@ describe('useTransactionPayBalance', () => {
                     transactionData: {
                       [TRANSACTION_ID_MOCK]: {
                         paymentToken: {
-                          accountId:
-                            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
                           assetId:
                             'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-                          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-                          walletAccountId: 'solana-account-id',
                         },
                       },
                     },

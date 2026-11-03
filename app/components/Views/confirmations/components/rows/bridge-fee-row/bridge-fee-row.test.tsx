@@ -42,6 +42,8 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
 
 const SOURCE_TOKEN_ADDRESS_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const SOURCE_CHAIN_ID_MOCK = '0xa';
+const SOURCE_ASSET_ID_MOCK =
+  `eip155:10/erc20:${SOURCE_TOKEN_ADDRESS_MOCK}` as const;
 const NATIVE_TOKEN_ADDRESS_MOCK = '0x0000000000000000000000000000000000000000';
 
 function createQuoteMock(
@@ -107,6 +109,7 @@ describe('BridgeFeeRow', () => {
 
     useTransactionPayQuotesMock.mockReturnValue([
       createQuoteMock({
+        sourceAssetId: SOURCE_ASSET_ID_MOCK,
         sourceChainId: SOURCE_CHAIN_ID_MOCK,
         sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
       }),
@@ -501,6 +504,7 @@ describe('BridgeFeeRow', () => {
       useTransactionPayQuotesMock.mockReturnValue([
         createQuoteMock({
           isPostQuote: true,
+          sourceAssetId: SOURCE_ASSET_ID_MOCK,
           sourceChainId: SOURCE_CHAIN_ID_MOCK,
           sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
           targetChainId: '0x1',
@@ -584,6 +588,7 @@ describe('BridgeFeeRow', () => {
     it('renders native SOL for a Solana source quote', async () => {
       useTransactionPayQuotesMock.mockReturnValue([
         createQuoteMock({
+          sourceAssetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
           sourceChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         } as unknown as Partial<TransactionPayQuote<Json>['request']>),
       ]);
