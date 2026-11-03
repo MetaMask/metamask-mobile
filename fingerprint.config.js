@@ -221,8 +221,7 @@ const config = {
     // Crowdin translation sync.
     '.github/workflows/crowdin_download_translations.yml',
     '.github/workflows/crowdin_upload_sources.yml',
-    '.github/workflows/crowdin-rc-download-translations.yml',
-    '.github/workflows/crowdin-rc-upload-sources.yml',
+    '.github/workflows/crowdin-rc.yml',
 
     // Fire-and-forget dispatchers/re-runners around `ci.yml` (which is itself tracked) -
     // these don't run any build steps of their own.
