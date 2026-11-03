@@ -5810,7 +5810,6 @@
     "edit_title": "Επεξεργασία ειδοποίησης τιμής για {{ticker}}",
     "price_target": "Τιμή-στόχος",
     "price_change": "Αλλαγή τιμής",
-    "enter_target_price": "Εισάγετε την επιθυμητή τιμή",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "πάνω από την τρέχουσα τιμή του {{ticker}}",
     "approx_percent_below": "κάτω από την τρέχουσα τιμή του {{ticker}}",

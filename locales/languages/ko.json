@@ -5810,7 +5810,6 @@
     "edit_title": "{{ticker}} 가격 알림 수정",
     "price_target": "목표 가격",
     "price_change": "가격 변동",
-    "enter_target_price": "목표 가격 입력",
     "approx_percent": "약 {{percent}}%",
     "approx_percent_above": "높음(현재 {{ticker}} 가격 대비)",
     "approx_percent_below": "낮음(현재 {{ticker}} 가격 대비)",

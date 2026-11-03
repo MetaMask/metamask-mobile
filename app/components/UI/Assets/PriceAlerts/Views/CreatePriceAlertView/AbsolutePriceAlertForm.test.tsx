@@ -102,7 +102,6 @@ describe('AbsolutePriceAlertForm', () => {
   it('renders the absolute price controls', () => {
     const screen = renderForm();
 
-    expect(screen.getByText('Enter target price')).toBeOnTheScreen();
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
     ).toBeOnTheScreen();
@@ -167,13 +166,13 @@ describe('AbsolutePriceAlertForm', () => {
       ),
     );
 
-    expect(screen.getByRole('text', { name: '$1322.18' })).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$1,322.18' })).toBeOnTheScreen();
   });
 
   it('displays pre-filled current price with $ prefix', () => {
     const screen = renderForm();
 
-    expect(screen.getByRole('text', { name: '$1201.98' })).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$1,201.98' })).toBeOnTheScreen();
   });
 
   it('shows only the $ sign with no digits after fully clearing the input', () => {
@@ -232,6 +231,21 @@ describe('AbsolutePriceAlertForm', () => {
       screen.getByTestId(CreatePriceAlertTestIds.PERCENT_DIFF),
     ).toHaveTextContent(/-17%/);
     expect(screen.getByText(/below current ETH price/)).toBeOnTheScreen();
+  });
+
+  it('groups thousands in the percent distance', () => {
+    const screen = renderForm();
+
+    clearKeypad(screen.getByTestId);
+    fireEvent.press(screen.getByTestId('keypad-key-2'));
+    fireEvent.press(screen.getByTestId('keypad-key-0'));
+    fireEvent.press(screen.getByTestId('keypad-key-0'));
+    fireEvent.press(screen.getByTestId('keypad-key-0'));
+    fireEvent.press(screen.getByTestId('keypad-key-0'));
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.PERCENT_DIFF),
+    ).toHaveTextContent(/\+1,564%/);
   });
 
   it('displays signed quick-percentage labels', () => {

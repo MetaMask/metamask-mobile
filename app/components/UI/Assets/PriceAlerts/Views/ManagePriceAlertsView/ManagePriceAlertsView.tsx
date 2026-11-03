@@ -506,7 +506,7 @@ const ManagePriceAlertsView: React.FC = () => {
           >
             <ActivityIndicator
               testID={ManagePriceAlertsTestIds.LOADING}
-              color={colors.primary.default}
+              color={colors.icon.alternative}
             />
           </Box>
         ) : (

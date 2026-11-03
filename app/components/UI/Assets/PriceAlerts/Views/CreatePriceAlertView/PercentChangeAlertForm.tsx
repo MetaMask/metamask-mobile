@@ -29,6 +29,7 @@ import { useSubmitPercentAlert } from '../../api';
 import { useSubmitPerpPercentAlert } from '../../perpApi';
 import { type SaveAlert } from '../../hooks/useAlertSaveFlow';
 import {
+  formatKeypadDisplay,
   KEYPAD_EMPTY,
   MAX_DOWN_PERCENT_THRESHOLD,
   PERCENT_KEYPAD_DECIMALS,
@@ -66,6 +67,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   );
 
   const hasInput = percentAmount !== KEYPAD_EMPTY;
+  const displayPercent = formatKeypadDisplay(percentAmount);
   const percentValue = useMemo(() => {
     const parsed = Number.parseFloat(percentAmount);
     return Number.isFinite(parsed) ? parsed : 0;
@@ -226,10 +228,18 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
       }
     >
       <Box alignItems={BoxAlignItems.Center}>
+        <AlertAmountInput
+          text={displayPercent}
+          hasInput={hasInput}
+          prefix={directionToggle}
+          suffix={percentSuffix}
+          testID={CreatePriceAlertTestIds.PERCENT_INPUT}
+        />
+
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-3"
+          twClassName="mt-3"
         >
           {strings(
             direction === 'up'
@@ -237,14 +247,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
               : 'price_alerts.moves_down',
           )}
         </Text>
-
-        <AlertAmountInput
-          text={percentAmount}
-          hasInput={hasInput}
-          prefix={directionToggle}
-          suffix={percentSuffix}
-          testID={CreatePriceAlertTestIds.PERCENT_INPUT}
-        />
 
         <Box twClassName="mt-4 w-full" alignItems={BoxAlignItems.Center}>
           <AlertPeriodToggle
