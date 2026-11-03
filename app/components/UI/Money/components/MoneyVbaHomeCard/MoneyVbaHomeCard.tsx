@@ -131,11 +131,13 @@ const MoneyVbaHomeCard = ({
 
     // Only an Approved autoramp can open details from persisted state.
     // account_is_ready also covers provider-final KYC with no autoramp yet,
-    // and that case must stay on the card while hydrate runs. openVbaEntry
-    // would otherwise present the standalone loading route, and clearing the
-    // reentry guard would let a second tap mount it again.
+    // and that case must stay on the card while hydrate runs. This path is
+    // synchronous, same as the pending card, and Money home stays mounted
+    // under details, so the guard has to clear or the CTA stays dead after
+    // the user comes back.
     if (variant === 'account_is_ready' && canOpenPersistedVbaDetails()) {
       openVbaEntry(navigation, { source: config.source });
+      hasPendingCtaOpenRef.current = false;
       return;
     }
 
