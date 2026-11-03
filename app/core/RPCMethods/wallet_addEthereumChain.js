@@ -171,8 +171,6 @@ export const wallet_addEthereumChain = async ({
         (endpoint) => endpoint.url === firstValidRPCUrl,
       );
 
-      // A request without a valid explorer must leave the existing explorers alone
-      // instead of appending `null` and pointing the default index at it.
       const blockExplorerResult = firstValidBlockExplorerUrl
         ? addOrUpdateIndex(
             existingNetworkConfiguration.blockExplorerUrls,

@@ -488,8 +488,8 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       const spyOnAddNetwork = jest
         .spyOn(Engine.context.NetworkController, 'addNetwork')
         .mockReturnValue(networkConfigurationResult);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { blockExplorerUrls, ...paramsWithoutExplorer } = correctParams;
+      const paramsWithoutExplorer = { ...correctParams };
+      delete paramsWithoutExplorer.blockExplorerUrls;
 
       await wallet_addEthereumChain({
         req: {
