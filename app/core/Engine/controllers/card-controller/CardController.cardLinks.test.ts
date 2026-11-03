@@ -65,6 +65,8 @@ interface Setup {
   basicFunctionality?: boolean;
   state?: Partial<CardControllerState>;
   getBearerToken?: jest.Mock;
+  signPersonalMessage?: jest.Mock;
+  keyrings?: { type: string; accounts: string[] }[];
   provider?: Partial<ICardProvider>;
   remoteFeatureFlags?: Record<string, unknown>;
 }
@@ -74,6 +76,8 @@ function setup({
   basicFunctionality = true,
   state = {},
   getBearerToken = jest.fn().mockResolvedValue('token-1'),
+  signPersonalMessage = jest.fn().mockResolvedValue(undefined),
+  keyrings = [],
   provider = {},
   remoteFeatureFlags = {},
 }: Setup = {}) {
@@ -101,6 +105,10 @@ function setup({
           };
         case 'AuthenticationController:getBearerToken':
           return getBearerToken(...args);
+        case 'KeyringController:getState':
+          return { keyrings };
+        case 'KeyringController:signPersonalMessage':
+          return signPersonalMessage(...args);
         case 'AccountsController:getState':
           return {
             internalAccounts: {
@@ -172,6 +180,7 @@ function setup({
     cardService,
     messenger,
     getBearerToken,
+    signPersonalMessage,
     subscriptions,
     selectors,
   };
@@ -1800,6 +1809,91 @@ describe('CardController card links', () => {
       includeInDebugSnapshot: false,
       includeInStateLogs: false,
       usedInUi: true,
+    });
+  });
+
+  describe('wallet proof', () => {
+    const profileId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const signature = `0x${'ab'.repeat(65)}`;
+    const bearer = `e30.${Buffer.from(JSON.stringify({ sub: profileId })).toString('base64url')}.sig`;
+
+    it('sends a signed proof when onboarding starts on a Card screen', async () => {
+      const signPersonalMessage = jest.fn().mockResolvedValue(signature);
+      const { controller, cardService } = setup({
+        getBearerToken: jest.fn().mockResolvedValue(bearer),
+        signPersonalMessage,
+      });
+
+      await controller.recordProviderOnboardingStarted({
+        provider: 'immersve',
+        address: SELECTED_ADDRESS,
+      });
+
+      expect(signPersonalMessage).toHaveBeenCalledWith({
+        data: expect.stringMatching(/^0x/),
+        from: SELECTED_ADDRESS,
+      });
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'immersve',
+        expect.objectContaining({
+          walletProof: expect.objectContaining({
+            signature,
+            message: expect.stringContaining(`Profile: ${profileId}`),
+          }),
+        }),
+        bearer,
+      );
+      const body = (cardService.putCardLink as jest.Mock).mock.calls[0][1] as {
+        walletProof: { message: string };
+      };
+      expect(body.walletProof.message).toContain(
+        `Address: ${SELECTED_ADDRESS.toLowerCase()}`,
+      );
+    });
+
+    it('skips the proof for a hardware wallet outside a Card screen', async () => {
+      const signPersonalMessage = jest.fn().mockResolvedValue(signature);
+      const { controller } = setup({
+        getBearerToken: jest.fn().mockResolvedValue(bearer),
+        signPersonalMessage,
+        keyrings: [{ type: 'Ledger Hardware', accounts: [SELECTED_ADDRESS] }],
+      });
+
+      await controller.recordProviderLogin({
+        provider: 'immersve',
+        phase: 'active',
+        address: SELECTED_ADDRESS,
+      });
+
+      expect(signPersonalMessage).not.toHaveBeenCalled();
+    });
+
+    it('writes the link without the proof when the signature is rejected', async () => {
+      const { controller, cardService } = setup({
+        getBearerToken: jest.fn().mockResolvedValue(bearer),
+        signPersonalMessage: jest.fn().mockResolvedValue(signature),
+      });
+      cardService.putCardLink
+        .mockRejectedValueOnce(apiError(400))
+        .mockImplementationOnce(async (providerId, body) =>
+          link({
+            provider: providerId,
+            status: body.status,
+          }),
+        );
+
+      await controller.recordProviderOnboardingStarted({
+        provider: 'immersve',
+        address: SELECTED_ADDRESS,
+      });
+
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(2);
+      expect(cardService.putCardLink.mock.calls[1][1]).not.toHaveProperty(
+        'walletProof',
+      );
+      expect(controller.state.cardLinks).toEqual([
+        expect.objectContaining({ provider: 'immersve', status: 'onboarding' }),
+      ]);
     });
   });
 });

@@ -164,6 +164,44 @@ const bucketRedeemAmount = (amount: string): string => {
 interface CardLinkWriteFields {
   address?: string;
   providerCardholderId?: string;
+  promptWalletProof?: boolean;
+}
+
+const HARDWARE_KEYRING_TYPES = new Set<string>([
+  'Ledger Hardware',
+  'QR Hardware Wallet Device',
+  'Trezor Hardware',
+  'Lattice Hardware',
+  'OneKey Hardware',
+]);
+
+function profileIdFromBearer(token: string): string | undefined {
+  const segment = token.split('.')[1];
+  if (!segment) return undefined;
+  try {
+    const json = JSON.parse(
+      Buffer.from(segment, 'base64url').toString('utf8'),
+    ) as { sub?: unknown };
+    return typeof json.sub === 'string' && json.sub ? json.sub : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function cardLinkProofMessage(
+  profileId: string,
+  address: string,
+  issuedAt: string,
+): string {
+  const bare = address.includes(':')
+    ? address.slice(address.lastIndexOf(':') + 1)
+    : address;
+  return [
+    'MetaMask Card link',
+    `Profile: ${profileId.toLowerCase()}`,
+    `Address: ${bare.toLowerCase()}`,
+    `Issued at: ${issuedAt}`,
+  ].join('\n');
 }
 
 const isValidCardLinkField = (value: string | undefined): value is string =>
@@ -1054,7 +1092,11 @@ export class CardController extends BaseController<
     await this.#writeCardLink(
       provider,
       status,
-      { address, providerCardholderId: cardholderId },
+      {
+        address,
+        providerCardholderId: cardholderId,
+        promptWalletProof: true,
+      },
       method,
     );
   }
@@ -1156,7 +1198,7 @@ export class CardController extends BaseController<
       if (generation !== this.#cardLinksGeneration) return 'skipped';
       if (!this.#isCardLinkApiEnabled()) return 'skipped';
 
-      const { address, providerCardholderId } =
+      const { address, providerCardholderId, promptWalletProof } =
         typeof fields === 'function' ? fields() : fields;
       const body: CardLinkWriteBody = { status };
       if (isValidCardLinkField(providerCardholderId)) {
@@ -1168,10 +1210,34 @@ export class CardController extends BaseController<
       if (isValidCardLinkField(linkedAccountRef)) {
         body.linkedAccountRef = linkedAccountRef;
       }
+      if (provider === CardProviderIds.Immersve && address) {
+        const walletProof = await this.#cardLinkWalletProof(
+          address,
+          promptWalletProof === true,
+        );
+        if (walletProof) {
+          body.walletProof = walletProof;
+        }
+      }
 
-      const link = await this.#withCardLinkBearer((token) =>
-        this.cardService.putCardLink(provider, body, token),
-      );
+      const put = (payload: CardLinkWriteBody) =>
+        this.#withCardLinkBearer((token) =>
+          this.cardService.putCardLink(provider, payload, token),
+        );
+      let link;
+      try {
+        link = await put(body);
+      } catch (error) {
+        if (
+          !body.walletProof ||
+          !(error instanceof CardApiError) ||
+          error.statusCode !== 400
+        ) {
+          throw error;
+        }
+        const { walletProof: _walletProof, ...unverified } = body;
+        link = await put(unverified);
+      }
       if (generation === this.#cardLinksGeneration) {
         this.update((s) => {
           s.cardLinks = [
@@ -1188,6 +1254,67 @@ export class CardController extends BaseController<
         ? 'rejected'
         : 'failed';
     }
+  }
+
+  async #cardLinkWalletProof(
+    address: string,
+    prompt: boolean,
+  ): Promise<{ message: string; signature: string } | undefined> {
+    if (!prompt) {
+      try {
+        if (this.#isHardwareAddress(address)) return undefined;
+      } catch {
+        return undefined;
+      }
+    }
+
+    let token: string;
+    try {
+      token = await this.messenger.call(
+        'AuthenticationController:getBearerToken',
+      );
+    } catch {
+      return undefined;
+    }
+    const profileId = profileIdFromBearer(token);
+    const bare = address.includes(':')
+      ? address.slice(address.lastIndexOf(':') + 1)
+      : address;
+    if (!profileId || !bare) return undefined;
+
+    const message = cardLinkProofMessage(
+      profileId,
+      bare,
+      new Date().toISOString(),
+    );
+    try {
+      const signature = await this.messenger.call(
+        'KeyringController:signPersonalMessage',
+        {
+          data: `0x${Buffer.from(message, 'utf8').toString('hex')}`,
+          from: bare,
+        },
+      );
+      return /^0x[0-9a-fA-F]{130}$/.test(signature)
+        ? { message, signature }
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  #isHardwareAddress(address: string): boolean {
+    const bare = (
+      address.includes(':')
+        ? address.slice(address.lastIndexOf(':') + 1)
+        : address
+    ).toLowerCase();
+    const { keyrings } = this.messenger.call('KeyringController:getState');
+    return keyrings.some(
+      (keyring) =>
+        HARDWARE_KEYRING_TYPES.has(keyring.type) &&
+        keyring.accounts.some((account) => account.toLowerCase() === bare),
+    );
   }
 
   async #computeLinkedAccountRef(address: string): Promise<string | undefined> {
