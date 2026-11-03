@@ -5810,7 +5810,6 @@
     "edit_title": "Edit peringatan harga {{ticker}}",
     "price_target": "Target harga",
     "price_change": "Perubahan harga",
-    "enter_target_price": "Masukkan harga target",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "di atas harga {{ticker}} saat ini",
     "approx_percent_below": "di bawah harga {{ticker}} saat ini",

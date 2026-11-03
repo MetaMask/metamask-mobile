@@ -5810,7 +5810,6 @@
     "edit_title": "{{ticker}} प्राइस एलर्ट बदलें",
     "price_target": "प्राइस टार्गेट",
     "price_change": "प्राइस में बदलाव",
-    "enter_target_price": "टार्गेट प्राइस दर्ज करें",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "वर्तमान {{ticker}} प्राइस से ऊपर",
     "approx_percent_below": "वर्तमान {{ticker}} प्राइस से नीचे",

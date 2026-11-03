@@ -5810,7 +5810,6 @@
     "edit_title": "Chỉnh sửa cảnh báo giá {{ticker}}",
     "price_target": "Giá mục tiêu",
     "price_change": "Biến động giá",
-    "enter_target_price": "Nhập giá mục tiêu",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "cao hơn giá {{ticker}} hiện tại",
     "approx_percent_below": "thấp hơn giá {{ticker}} hiện tại",

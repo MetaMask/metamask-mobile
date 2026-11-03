@@ -102,7 +102,6 @@ describe('AbsolutePriceAlertForm', () => {
   it('renders the absolute price controls', () => {
     const screen = renderForm();
 
-    expect(screen.getByText('Enter target price')).toBeOnTheScreen();
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
     ).toBeOnTheScreen();

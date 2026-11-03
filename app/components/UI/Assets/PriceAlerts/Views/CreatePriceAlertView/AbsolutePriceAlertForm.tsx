@@ -229,14 +229,6 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
       footerAccessory={quickPercentagePills}
     >
       <Box alignItems={BoxAlignItems.Center}>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          twClassName="mb-3"
-        >
-          {strings('price_alerts.enter_target_price')}
-        </Text>
-
         <AlertAmountInput
           text={displayText}
           hasInput

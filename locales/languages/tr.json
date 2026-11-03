@@ -5810,7 +5810,6 @@
     "edit_title": "{{ticker}} fiyat uyarısını düzenle",
     "price_target": "Fiyat hedefi",
     "price_change": "Fiyat değişikliği",
-    "enter_target_price": "Hedef fiyatı girin",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "mevcut {{ticker}} fiyatının üzerinde",
     "approx_percent_below": "mevcut {{ticker}} fiyatının altında",
