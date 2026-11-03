@@ -49,7 +49,7 @@ jobs:
           fetch-depth: 2
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
         with:
           path: |
             ~/.cache/yarn
