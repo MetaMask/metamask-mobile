@@ -1,6 +1,5 @@
 # Draft: MFA kit + W3A / social profile session
 
-**Status:** draft for discussion with Accounts (Mathieu)  
 **Branch:** `feat/mfa-kit-w3a-social-profile-session`
 
 ## Problem
@@ -23,7 +22,7 @@ Himanshu’s note: a **profile session can also come from the W3A / social acces
 | `useMfa()`                                                       | Exposes the above next to `verifyOrEnroll` / `enroll`               |
 | `MfaControllerAdapter.listEnrolledCredentialsWithSocialSession?` | Optional adapter hook for clients                                   |
 
-## Open questions for Mathieu / Accounts + core
+## Open questions for Accounts + core
 
 1. Should **AuthController** own `listEnrolledCredentialsFromSocialSession()` (or accept an access token) instead of mobile fetching `/mfa/credentials` directly?
 2. How should **kit verify** (`begin` / `complete` credential verification) run on a **social profile session** before unlock? SDK enroll helpers already take optional `accessToken` in places; verify paths still look SRP/unlock-centric.

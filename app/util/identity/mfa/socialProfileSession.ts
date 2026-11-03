@@ -12,10 +12,9 @@ import { MfaFlowError } from './engine/errors';
  * unlock and no SRP signing. Used to list MFA factors before password on the
  * social rehydration "Verify it's you" screen.
  *
- * Draft for Accounts (Mathieu): AuthController already exposes
- * `exchangeSocialAccessToken()`. Listing credentials with the resulting access
- * token is not yet a first-class AuthController API; this module bridges that
- * gap for discussion and early mobile integration.
+ * AuthController already exposes `exchangeSocialAccessToken()`. Listing
+ * credentials with the resulting access token is not yet a first-class
+ * AuthController API; this module bridges that gap for mobile integration.
  */
 export interface SocialProfileSession {
   accessToken: string;
