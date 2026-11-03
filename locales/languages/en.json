@@ -1249,7 +1249,8 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
+      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure_link": "Learn more",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Add money by bank transfer",
@@ -3734,7 +3735,20 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcomes": "Outcomes"
+      "outcomes": "Outcomes",
+      "market_layout": {
+        "moneyline": "Moneyline",
+        "spread": "Spread",
+        "total_points": "Total points",
+        "team_total": "Team total",
+        "full_game": "Full game",
+        "first_half": "1st half",
+        "second_half": "2nd half",
+        "q1": "1st quarter",
+        "q2": "2nd quarter",
+        "q3": "3rd quarter",
+        "q4": "4th quarter"
+      }
     },
     "search": {
       "placeholder": "Search markets",
