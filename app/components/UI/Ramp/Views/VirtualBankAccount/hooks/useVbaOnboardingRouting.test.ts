@@ -13,6 +13,7 @@ import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 import { VBA_KYC_VENDOR } from '../constants';
+import { buildVbaBaseProperties } from '../vbaAnalytics';
 import { TraceName } from '../../../../../../util/trace';
 import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
@@ -74,6 +75,7 @@ const mockHasAcceptedVbaVendorTerms = jest.fn();
 const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
+const mockGetSessionStatusForVendor = jest.fn();
 const mockStartSession = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 const mockRampsState: {
@@ -96,6 +98,8 @@ jest.mock('../../../../../../core/Engine', () => ({
         return mockKycState;
       },
       readSessionStatus: () => mockReadSessionStatus(),
+      getSessionStatusForVendor: (...args: unknown[]) =>
+        mockGetSessionStatusForVendor(...args),
       startSession: (...args: unknown[]) => mockStartSession(...args),
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
@@ -153,6 +157,7 @@ describe('useOpenVbaOnboarding', () => {
     mockRecordVendorDisclaimers.mockResolvedValue([]);
     mockKycState.email = null;
     mockReadSessionStatus.mockReturnValue(null);
+    mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
     mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
     mockCreateAutoramp.mockResolvedValue({
@@ -199,6 +204,39 @@ describe('useOpenVbaOnboarding', () => {
 
     expect(mockHasAcceptedVbaVendorTerms).toHaveBeenCalledWith('0xabc');
     expectResetTo({ name: VbaOnboardingRoutes.EMAIL });
+  });
+
+  it('reattaches a remote KYC session after reinstall and opens the existing account', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: false,
+      sessionDisclaimersComplete: false,
+      kycStatus: 'approved',
+      autorampStatus: 'ready',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockGetSessionStatusForVendor).toHaveBeenCalledWith(VBA_KYC_VENDOR);
+    expect(mockStartSession).toHaveBeenCalledWith({ vendor: VBA_KYC_VENDOR });
+    expect(mockHydrate).toHaveBeenCalledWith({
+      walletAddress: '0xabc',
+      refreshKyc: true,
+      refreshAutoramps: true,
+    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 1,
+          routes: [callerRoute, { name: Routes.RAMP.VBA_DETAILS }],
+        }),
+      }),
+    );
   });
 
   it('navigates to the VBA details screen when the autoramp is ready', async () => {
@@ -860,6 +898,7 @@ describe('resolveVbaOnboarding', () => {
     mockRecordVendorDisclaimers.mockResolvedValue([]);
     mockKycState.email = null;
     mockReadSessionStatus.mockReturnValue(null);
+    mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
@@ -937,6 +976,21 @@ describe('resolveVbaOnboarding', () => {
     );
   });
 
+  it('remembers the hydrated facts for analytics', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      kycStatus: 'pending',
+      autorampStatus: 'in_progress',
+    });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(buildVbaBaseProperties()).toMatchObject({
+      kyc_status: 'pending',
+      autoramp_status: 'in_progress',
+    });
+  });
+
   it('returns an error when no wallet address is selected', async () => {
     mockGetState.mockReturnValue({ address: null });
 
@@ -988,6 +1042,7 @@ describe('resolveVbaOnboarding', () => {
 
     await resolveVbaOnboarding('money-add-money-bank-account');
 
+    expect(mockGetSessionStatusForVendor).not.toHaveBeenCalled();
     expect(mockStartSession).toHaveBeenCalledWith({
       vendor: VBA_KYC_VENDOR,
     });
@@ -1006,15 +1061,72 @@ describe('resolveVbaOnboarding', () => {
     expect(mockHydrate).toHaveBeenCalled();
   });
 
-  it('does not start a KYC session when none is persisted', async () => {
+  it('does not start a KYC session when the vendor has no latest session', async () => {
     await resolveVbaOnboarding('money-add-money-bank-account');
 
+    expect(mockGetSessionStatusForVendor).toHaveBeenCalledWith(VBA_KYC_VENDOR);
     expect(mockStartSession).not.toHaveBeenCalled();
     expect(mockHydrate).toHaveBeenCalled();
     expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
       'vba-hydrate-id',
       true,
     );
+  });
+
+  it('reattaches the latest vendor session before hydrate when nothing is persisted', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    const calls: string[] = [];
+    mockStartSession.mockImplementation(async () => {
+      calls.push('start');
+      return { id: 'session-remote' };
+    });
+    mockHydrate.mockImplementation(async () => {
+      calls.push('hydrate');
+      return {
+        ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+        sessionExists: true,
+        kycStatus: 'approved',
+        autorampStatus: 'ready',
+      };
+    });
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'complete',
+      }),
+    );
+    expect(calls).toEqual(['start', 'hydrate']);
+  });
+
+  it('continues as a new user when the discovered session is gone before start', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockStartSession.mockRejectedValue(
+      new Error(
+        'KycController.startSession: aal2Token is required to create a KYC session.',
+      ),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'vendorTerms',
+      }),
+    );
+    expect(mockHydrate).toHaveBeenCalled();
+  });
+
+  it('returns an error when looking up the latest vendor session fails', async () => {
+    mockGetSessionStatusForVendor.mockRejectedValue(new Error('offline'));
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({ status: 'error' });
+    expect(mockHydrate).not.toHaveBeenCalled();
   });
 
   it('returns an error without hydrating when session resume fails', async () => {

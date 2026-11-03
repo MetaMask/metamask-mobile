@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
-import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
+import { selectPredictAvailability } from '../../../../UI/PredictNext';
 import { HomepageDiscoveryPillsTestIds } from './HomepageDiscoveryPills.testIds';
 import { HOMESCREEN_PILL_SOURCE } from './useHomepageDiscoveryPillsNavigation';
 
@@ -54,7 +54,7 @@ const mockSelectorState = ({
     if (selector === selectPerpsEnabledFlag) {
       return isPerpsEnabled;
     }
-    if (selector === selectPredictEnabledFlag) {
+    if (selector === selectPredictAvailability) {
       return isPredictEnabled;
     }
     return undefined;

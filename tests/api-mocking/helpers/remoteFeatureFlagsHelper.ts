@@ -77,10 +77,6 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     enabled: false,
     minimumVersion: '0.0.0',
   },
-  earnHomeSectionEnabled: {
-    enabled: false,
-    minimumVersion: '0.0.0',
-  },
   earnExploreSectionEnabled: {
     enabled: false,
     minimumVersion: '0.0.0',

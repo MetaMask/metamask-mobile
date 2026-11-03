@@ -17,14 +17,10 @@ import { getBrand, getDeviceId } from 'react-native-device-info';
 import {
   FontWeight,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '../../../../../component-library/components/Texts/Text';
 import useDataDeletion from './useDataDeletion';
 
 interface DeleteMetaMetricsDataProps {
@@ -200,15 +196,12 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
             >
               {strings('app_settings.delete_metrics_description_part_one')}
             </Text>{' '}
-            <Button
-              variant={ButtonVariants.Link}
-              size={ButtonSize.Auto}
-              labelTextVariant={LibraryTextVariant.BodySMMedium}
+            <TextButton
+              variant={TextVariant.BodySm}
               onPress={openMetametricsHowto}
-              label={strings(
-                'app_settings.delete_metrics_description_part_two',
-              )}
-            />{' '}
+            >
+              {strings('app_settings.delete_metrics_description_part_two')}
+            </TextButton>{' '}
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -223,15 +216,14 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
             >
               {strings('app_settings.delete_metrics_description_before_delete')}
             </Text>{' '}
-            <Button
-              variant={ButtonVariants.Link}
-              size={ButtonSize.Auto}
-              labelTextVariant={LibraryTextVariant.BodySMMedium}
+            <TextButton
+              variant={TextVariant.BodySm}
               onPress={openPrivacyPolicy}
-              label={strings(
+            >
+              {strings(
                 'app_settings.delete_metrics_description_privacy_policy',
               )}
-            />
+            </TextButton>
           </>
         ) : (
           <>
@@ -260,15 +252,14 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
                 'app_settings.delete_metrics_description_after_delete_part_two',
               )}
             </Text>{' '}
-            <Button
-              variant={ButtonVariants.Link}
-              size={ButtonSize.Auto}
-              labelTextVariant={LibraryTextVariant.BodySMMedium}
+            <TextButton
+              variant={TextVariant.BodySm}
               onPress={openPrivacyPolicy}
-              label={strings(
+            >
+              {strings(
                 'app_settings.delete_metrics_description_privacy_policy',
               )}
-            />
+            </TextButton>
           </>
         )
       }

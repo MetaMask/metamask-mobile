@@ -13,7 +13,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconName,
   ListItem,
   Text,
@@ -47,6 +46,8 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
 import {
   getCachedDepositInstructions,
   setCachedDepositInstructions,
@@ -73,6 +74,8 @@ import {
   startVbaCufChildTrace,
 } from './vbaCufTrace';
 import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -224,6 +227,7 @@ const buildDetailRows = (
  * `NeoBankService.getDepositInstructions`.
  */
 const VbaDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
@@ -660,6 +664,22 @@ const VbaDetails = () => {
   ]);
 
   const isApproved = autorampStatus === 'Approved';
+  const detailsViewedRef = useRef(false);
+
+  // The account-ready screen shows once the autoramp is approved. A return to
+  // an existing account reports it too; the ref keeps polling re-renders quiet.
+  useEffect(() => {
+    if (!isApproved || detailsViewedRef.current) {
+      return;
+    }
+    detailsViewedRef.current = true;
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, () =>
+      buildVbaBaseProperties({
+        screenName: 'vba_details',
+        currencySource: sourceCurrency,
+      }),
+    );
+  }, [isApproved, sourceCurrency]);
 
   useEffect(() => {
     if (!loadError || !isApproved || instructions) {
@@ -756,7 +776,9 @@ const VbaDetails = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
         includesTopInset

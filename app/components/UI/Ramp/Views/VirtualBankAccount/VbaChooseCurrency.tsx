@@ -6,7 +6,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -25,6 +24,9 @@ import {
 import bankTransferImage from '../../../../../images/bank-transfer.png';
 import { openCompletedVbaAccount } from './hooks/useVbaOnboardingRouting';
 import { VbaChooseCurrencySelectorsIDs } from './VbaChooseCurrency.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const CURRENCY_FLAGS: Record<VbaSourceCurrency, string> = {
   BRL: '🇧🇷',
@@ -46,6 +48,7 @@ const getCurrencyName = (currency: VbaSourceCurrency): string =>
  * for the effective location.
  */
 const VbaChooseCurrency = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
@@ -62,7 +65,9 @@ const VbaChooseCurrency = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: VbaChooseCurrencySelectorsIDs.BACK_BUTTON }}
         includesTopInset
