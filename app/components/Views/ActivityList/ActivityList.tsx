@@ -25,7 +25,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, RefreshControl, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Platform,
+  RefreshControl,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
   runOnJS,
@@ -174,6 +179,11 @@ interface ActivityListProps {
    * offset, for driving scroll-linked animations in the parent.
    */
   scrollY?: SharedValue<number>;
+  /**
+   * Height of a header floating over the list. The content starts below it,
+   * and `scrollY` still reads 0 at the top.
+   */
+  contentTopInset?: number;
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
@@ -194,6 +204,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       header,
       chainId,
       scrollY,
+      contentTopInset = 0,
       typeFilter,
       networkFilter,
       subFilterKinds,
@@ -950,11 +961,28 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const { bottom: bottomInset } = useSafeAreaInsets();
     const tabBarHeight = useContext(BottomTabBarHeightContext);
     const floatingTabBarInset = useFloatingTabBarInset();
+    // iOS only drops the refresh spinner below a real content inset, not padding.
+    const scrollTopInset = Platform.OS === 'ios' ? contentTopInset : 0;
+    const paddingTopInset = contentTopInset - scrollTopInset;
+    // Offset of the list's top edge. `|| 0` keeps it 0, not -0, without an inset.
+    const topOffset = -scrollTopInset || 0;
+    // A ref so an inset change does not re-run the scroll-to-top effects.
+    const topOffsetRef = useRef(topOffset);
+    topOffsetRef.current = topOffset;
     const listContentStyle = useMemo(
       () => ({
+        paddingTop: paddingTopInset,
         paddingBottom: floatingTabBarInset || (tabBarHeight ? 0 : bottomInset),
       }),
-      [floatingTabBarInset, tabBarHeight, bottomInset],
+      [paddingTopInset, floatingTabBarInset, tabBarHeight, bottomInset],
+    );
+    const scrollInsetProps = useMemo(
+      () => ({
+        contentInset: { top: scrollTopInset },
+        contentOffset: { x: 0, y: topOffset },
+        scrollIndicatorInsets: { top: scrollTopInset },
+      }),
+      [scrollTopInset, topOffset],
     );
 
     const isPerpsLoading = perps.isLoading;
@@ -985,6 +1013,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const { handleScroll } = useTransactionAutoScroll(data, listRef, {
       enabled: !isDomainFilter && !isRelevantActivityLoading,
+      topOffset,
       keyExtractor: (item) =>
         item.hash ?? `${item.chainId}-${item.timestamp}-${item.type}`,
     });
@@ -996,9 +1025,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       ref,
       () => ({
         scrollToTop: () => {
-          listRef.current?.scrollToOffset({ offset: 0, animated: true });
+          const offset = topOffsetRef.current;
+          listRef.current?.scrollToOffset({ offset, animated: true });
           limitOrdersListRef.current?.scrollToOffset({
-            offset: 0,
+            offset,
             animated: true,
           });
         },
@@ -1016,9 +1046,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         isInitialFilterRender.current = false;
         return;
       }
-      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      const offset = topOffsetRef.current;
+      listRef.current?.scrollToOffset({ offset, animated: false });
       limitOrdersListRef.current?.scrollToOffset({
-        offset: 0,
+        offset,
         animated: false,
       });
 
@@ -1034,7 +1065,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const scrollHandler = useAnimatedScrollHandler({
       onScroll: (event) => {
         if (scrollY) {
-          scrollY.value = event.contentOffset.y;
+          scrollY.value = event.contentOffset.y + scrollTopInset;
         }
         runOnJS(runAutoScroll)();
       },
@@ -1163,12 +1194,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               onEndReached={filledLimitOrders.fetchNextPage}
               style={baseStyles.flexGrow}
               contentContainerStyle={listContentStyle}
+              {...scrollInsetProps}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={onRefresh}
                   colors={[colors.primary.default]}
                   tintColor={colors.icon.default}
+                  progressViewOffset={paddingTopInset}
                 />
               }
               onScroll={scrollHandler}
@@ -1197,12 +1230,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   }}
                   style={baseStyles.flexGrow}
                   contentContainerStyle={listContentStyle}
+                  {...scrollInsetProps}
                   refreshControl={
                     <RefreshControl
                       refreshing={refreshing}
                       onRefresh={onRefresh}
                       colors={[colors.primary.default]}
                       tintColor={colors.icon.default}
+                      progressViewOffset={paddingTopInset}
                     />
                   }
                   onScroll={scrollHandler}

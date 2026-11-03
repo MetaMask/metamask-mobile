@@ -20,6 +20,10 @@ interface UseTransactionAutoScrollOptions<T> {
    */
   delay?: number;
   /**
+   * Offset the list rests at when scrolled to the top (negative under an iOS content inset)
+   */
+  topOffset?: number;
+  /**
    * Function to extract a unique ID from an item
    */
   keyExtractor: (item: T) => string | null;
@@ -38,7 +42,7 @@ export function useTransactionAutoScroll<T>(
   listRef: RefObject<ScrollableListRef | null>,
   options: UseTransactionAutoScrollOptions<T>,
 ) {
-  const { enabled = true, delay = 150, keyExtractor } = options;
+  const { enabled = true, delay = 150, topOffset = 0, keyExtractor } = options;
 
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isUserScrollingRef = useRef(false);
@@ -122,7 +126,10 @@ export function useTransactionAutoScroll<T>(
         }
 
         try {
-          listRef.current?.scrollToOffset({ offset: 0, animated: true });
+          listRef.current?.scrollToOffset({
+            offset: topOffset,
+            animated: true,
+          });
         } catch (error) {
           // Silently handle scroll errors (e.g., list not ready)
           Logger.error(
@@ -134,7 +141,7 @@ export function useTransactionAutoScroll<T>(
     }
 
     previousFirstItemIdRef.current = currentFirstItemId;
-  }, [data, enabled, delay, keyExtractor, listRef]);
+  }, [data, enabled, delay, topOffset, keyExtractor, listRef]);
 
   /**
    * Cleanup timeouts on unmount

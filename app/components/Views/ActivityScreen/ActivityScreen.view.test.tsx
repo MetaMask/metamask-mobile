@@ -11,7 +11,10 @@ import {
   getRouteParamsProbeTestId,
   getRouteProbeTestId,
 } from '../../../../tests/component-view/render';
-import { describeForPlatforms } from '../../../../tests/component-view/platform';
+import {
+  describeForPlatforms,
+  itForPlatforms,
+} from '../../../../tests/component-view/platform';
 import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
@@ -60,6 +63,7 @@ import {
   buildPredictBuyActivity,
   buildPredictClaimActivity,
   buildPredictSellActivity,
+  initialStateActivity,
   initialStateActivityWithAccountsApi,
   initialStateActivityWithLocalTransactions,
   initialStateActivityWithPerpsDetails,
@@ -101,6 +105,7 @@ const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
 const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
 const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
 const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
+const ACTIVITY_LIST_CONTAINER = 'activity-list';
 const AGGREGATED_CHECKBOX_CHECK_ICON = `${ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX}-check-icon`;
 
 const monToBaseBridgeState = (
@@ -2280,4 +2285,56 @@ describeForPlatforms('ActivityScreen — Monad bridge status', () => {
 
     await assertDetailsAmountFeeTotal(screen);
   });
+});
+
+describe('ActivityScreen — glass header', () => {
+  const renderWithGlassHeaders = (enabled: boolean) =>
+    renderActivityScreenView({
+      state: initialStateActivity()
+        .withRemoteFeatureFlags({
+          glassHeaders: { enabled, minimumVersion: '0.0.0' },
+        })
+        .build(),
+    });
+
+  itForPlatforms(
+    'starts the list below the floating header through a content inset',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(true);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+
+      expect(list.props.contentInset.top).toBeGreaterThan(0);
+      expect(list.props.contentOffset.y).toBe(-list.props.contentInset.top);
+    },
+    'ios',
+  );
+
+  itForPlatforms(
+    'pads the list below the floating header',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(true);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+
+      expect(list.props.contentInset.top).toBe(0);
+      expect(list.props.contentContainerStyle).toEqual(
+        expect.objectContaining({ paddingTop: expect.any(Number) }),
+      );
+      expect(list.props.contentContainerStyle.paddingTop).toBeGreaterThan(0);
+    },
+    'android',
+  );
+
+  itForPlatforms(
+    'keeps the list at the top edge when glass headers are off',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(false);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+
+      expect(list.props.contentInset.top).toBe(0);
+      expect(list.props.contentContainerStyle.paddingTop).toBe(0);
+    },
+  );
 });

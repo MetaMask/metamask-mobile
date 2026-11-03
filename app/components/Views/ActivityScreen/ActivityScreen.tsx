@@ -11,19 +11,24 @@ import {
   useAnimatedReaction,
   useSharedValue,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandardAnimated,
   Text,
   // TextFieldSearch, // TODO(activity-redesign): restore with the unified list + filtering
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import Routes from '../../../constants/navigation/Routes';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import {
@@ -74,6 +79,11 @@ const ActivityScreen = () => {
 
   const scrollY = useSharedValue(0);
   const titleSectionHeight = useSharedValue(0);
+
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
 
   const handleTitleLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -371,7 +381,9 @@ const ActivityScreen = () => {
         testID={ActivityScreenSelectorsIDs.SAFE_AREA_VIEW}
       >
         <Box twClassName="flex-1 bg-default">
-          <HeaderStandardAnimated
+          <HeaderStandardAnimatedGlass
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
             testID={ActivityScreenSelectorsIDs.HEADER}
             includesTopInset
             title={strings('activity_view.title')}
@@ -391,6 +403,7 @@ const ActivityScreen = () => {
               ref={activityListRef}
               header={activityListHeader}
               scrollY={scrollY}
+              contentTopInset={headerInset}
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
               subFilterKinds={subFilterKinds}
@@ -400,7 +413,10 @@ const ActivityScreen = () => {
             />
 
             {isFilterBarPinned ? (
-              <Box twClassName="absolute top-0 left-0 right-0 bg-default">
+              <Box
+                twClassName="absolute left-0 right-0 bg-default"
+                style={{ top: headerInset }}
+              >
                 {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
                 <Box twClassName="pb-4">
                   <TextFieldSearch

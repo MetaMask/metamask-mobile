@@ -52,6 +52,36 @@ describe('useTransactionAutoScroll', () => {
     });
   });
 
+  it('scrolls to the top offset when the list rests under a content inset', () => {
+    const listRef = {
+      current: {
+        scrollToOffset: jest.fn(),
+      },
+    };
+    const { rerender } = renderHook(
+      ({ data }) =>
+        useTransactionAutoScroll(data, listRef as never, {
+          delay: 50,
+          topOffset: -100,
+          keyExtractor,
+        }),
+      {
+        initialProps: { data: [{ id: 'old' }] },
+      },
+    );
+
+    rerender({ data: [{ id: 'new' }, { id: 'old' }] });
+
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+
+    expect(listRef.current.scrollToOffset).toHaveBeenCalledWith({
+      animated: true,
+      offset: -100,
+    });
+  });
+
   it('does not scroll when the list only grows (pagination / staged load) with the same top item', () => {
     const listRef = {
       current: {
