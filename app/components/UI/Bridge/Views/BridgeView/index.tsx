@@ -17,6 +17,8 @@ import {
   Box,
   HeaderStandard,
   IconName,
+  Tag,
+  TagSeverity,
 } from '@metamask/design-system-react-native';
 import {
   TabsBar,
@@ -252,6 +254,16 @@ const BridgeView = () => {
         label: strings('bridge.tabs.limit'),
         content: null,
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
+        endAccessory: (
+          <Tag
+            severity={TagSeverity.Info}
+            startIconName={IconName.Sparkle}
+            twClassName="top-0.5"
+            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
+          >
+            {strings('bridge.tabs.new_badge')}
+          </Tag>
+        ),
       });
     }
 
