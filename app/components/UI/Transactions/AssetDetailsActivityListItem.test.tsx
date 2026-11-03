@@ -37,7 +37,6 @@ jest.mock('../ActivityListItemRow/ActivityListItemRow', () => ({
       />
     );
   }),
-  resolveActivityListItemTitle: jest.fn(() => 'Send ETH'),
 }));
 
 const createNavigation = () =>
@@ -80,8 +79,6 @@ describe('AssetDetailsActivityListItem', () => {
         chainId="0x1"
         accountImportTime={2000}
         navigation={navigation}
-        onSpeedUpAction={jest.fn()}
-        onCancelAction={jest.fn()}
       />,
     );
 
@@ -106,8 +103,6 @@ describe('AssetDetailsActivityListItem', () => {
         assetSymbol="ETH"
         chainId="0x1"
         navigation={navigation}
-        onSpeedUpAction={jest.fn()}
-        onCancelAction={jest.fn()}
       />,
     );
 
@@ -141,8 +136,6 @@ describe('AssetDetailsActivityListItem', () => {
         chainId="0x2105"
         bridgeHistory={bridgeHistory as never}
         navigation={navigation}
-        onSpeedUpAction={jest.fn()}
-        onCancelAction={jest.fn()}
       />,
     );
 
@@ -167,8 +160,6 @@ describe('AssetDetailsActivityListItem', () => {
         assetSymbol="ETH"
         chainId="0x1"
         navigation={navigation}
-        onSpeedUpAction={jest.fn()}
-        onCancelAction={jest.fn()}
       />,
     );
 
@@ -181,6 +172,33 @@ describe('AssetDetailsActivityListItem', () => {
         txIdentifier: '0xabc',
       }),
     );
+  });
+
+  it('routes a transaction without a hash to ActivityDetails using its id as the identifier', () => {
+    const navigation = createNavigation();
+    const transaction = createTransaction({
+      id: 'tx-unsubmitted',
+      hash: undefined,
+      status: TransactionStatus.approved,
+    });
+
+    const { getByTestId } = render(
+      <AssetDetailsActivityListItem
+        transaction={transaction}
+        index={0}
+        assetSymbol="ETH"
+        chainId="0x1"
+        navigation={navigation}
+      />,
+    );
+
+    fireEvent.press(getByTestId('activity-list-item-row'));
+
+    expect(navigation.navigate).toHaveBeenCalledTimes(1);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+      chainId: 'eip155:1',
+      txIdentifier: 'tx-unsubmitted',
+    });
   });
 
   it('renders successfully when token metadata is resolved from the selected account group EVM account', () => {
@@ -206,8 +224,6 @@ describe('AssetDetailsActivityListItem', () => {
             },
           }}
           navigation={navigation}
-          onSpeedUpAction={jest.fn()}
-          onCancelAction={jest.fn()}
         />,
       ),
     ).not.toThrow();

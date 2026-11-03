@@ -18,6 +18,7 @@ import { initialState as initialPerformanceState } from '../../core/redux/slices
 import { initialState as initialSampleCounterState } from '../../features/SampleFeature/reducers/sample-counter';
 import { isTestEnvironment } from './utils';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
+import { initialState as initialRewardsMoneyState } from '../../reducers/rewardsMoney';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -72,12 +73,12 @@ const initialRootState: RootState = {
   bridge: initialBridgeState,
   banners: {
     dismissedBanners: [],
-    lastDismissedBrazeBanner: null,
   },
   sampleCounter: initialSampleCounterState,
   card: initialCardState,
   moneyBalance: initialMoneyBalanceState,
   rewards: initialRewardsState,
+  rewardsMoney: initialRewardsMoneyState,
   attribution: {
     attribution: null,
   },

@@ -38,12 +38,20 @@ jest.mock('@react-navigation/native-stack', () => {
         name: string;
         options?: {
           headerShown?: boolean;
+          animation?: string;
+          gestureEnabled?: boolean;
         };
         component?: React.ComponentType;
       }) => (
         <View testID={`screen-${name}`}>
           <Text>{name}</Text>
           {options?.headerShown === false && <Text>no-header</Text>}
+          {options?.animation ? (
+            <Text>{`${name}-animation:${options.animation}`}</Text>
+          ) : null}
+          {options?.gestureEnabled === false ? (
+            <Text>{`${name}-gesture:disabled`}</Text>
+          ) : null}
           {(name === 'CardHome' || name === 'CardModals') && Component ? (
             <Component />
           ) : null}
@@ -66,6 +74,16 @@ jest.mock('../Views/CardWelcome/CardWelcome', () => {
 jest.mock('../Views/CardAuthentication/CardAuthentication', () => {
   const { View } = require('react-native');
   return () => <View testID="card-authentication" />;
+});
+
+jest.mock('../Views/CardMfa/CardMfaMethod', () => {
+  const { View } = require('react-native');
+  return () => <View testID="card-mfa-method" />;
+});
+
+jest.mock('../Views/CardMfa/CardMfaCode', () => {
+  const { View } = require('react-native');
+  return () => <View testID="card-mfa-code" />;
 });
 
 jest.mock('../Views/ContactDetails/ContactDetails', () => {
@@ -197,6 +215,8 @@ jest.mock('../../../../selectors/cardController', () => ({
 jest.mock('../../../../constants/navigation/Routes', () => ({
   CARD: {
     HOME: 'CardHome',
+    APPLE_PAY_SPLASH: 'CardApplePaySplash',
+    APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
     WELCOME: 'CardWelcome',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
@@ -207,6 +227,8 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     AUTHENTICATION: 'CardAuthentication',
+    MFA_METHOD: 'CardMfaMethod',
+    MFA_CODE: 'CardMfaCode',
     SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
@@ -229,23 +251,10 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      APPLE_PAY_USAGE: 'CardApplePayUsageSheet',
     },
   },
 }));
-
-jest.mock('../../../../core/LockManagerService', () => ({
-  __esModule: true,
-  default: {
-    stopListening: jest.fn(),
-    startListening: jest.fn(),
-  },
-}));
-
-const mockLockManagerService = jest.requireMock(
-  '../../../../core/LockManagerService',
-).default;
-const mockStopListening = mockLockManagerService.stopListening as jest.Mock;
-const mockStartListening = mockLockManagerService.startListening as jest.Mock;
 
 const createMockStore = (isAuthenticated = false, isCardholder = false) =>
   configureStore({
@@ -346,28 +355,21 @@ describe('CardRoutes', () => {
 
       expect(getAllByText('headerShown: false').length).toBeGreaterThan(0);
     });
-  });
 
-  describe('Auto-lock Management', () => {
-    beforeEach(() => {
-      mockStopListening.mockClear();
-      mockStartListening.mockClear();
+    it('slides the Apple Pay splash in from the bottom', () => {
+      const { getByText } = renderWithProviders(<CardRoutes />);
+
+      expect(
+        getByText('CardApplePaySplash-animation:slide_from_bottom'),
+      ).toBeOnTheScreen();
     });
 
-    it('disables auto-lock when Card root mounts', () => {
-      renderWithProviders(<CardRoutes />);
+    it('disables swipe back on the Apple Pay confirmation', () => {
+      const { getByText } = renderWithProviders(<CardRoutes />);
 
-      expect(mockStopListening).toHaveBeenCalledTimes(1);
-    });
-
-    it('re-enables auto-lock when Card root unmounts', () => {
-      const { unmount } = renderWithProviders(<CardRoutes />);
-
-      expect(mockStartListening).not.toHaveBeenCalled();
-
-      unmount();
-
-      expect(mockStartListening).toHaveBeenCalledTimes(1);
+      expect(
+        getByText('CardApplePayConfirmation-gesture:disabled'),
+      ).toBeOnTheScreen();
     });
   });
 });

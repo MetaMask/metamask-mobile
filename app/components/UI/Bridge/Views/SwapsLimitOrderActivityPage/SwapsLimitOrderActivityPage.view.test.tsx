@@ -23,6 +23,7 @@ import {
 } from '../../api/limitOrders/getLimitOrders/mock';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 import { OpenOrderRowSelectorsIDs } from '../../components/OpenOrderRow/OpenOrderRow.testIds';
+import { TokenAmountValueSelectorsIDs } from '../../components/LimitOrderConfirmationModal/TokenAmountValue/testIds';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 /* eslint-disable-next-line import-x/no-restricted-paths -- the page reuses the shared Activity Details footer */
 import { ActivityDetailsSelectorsIDs } from '../../../../Views/ActivityDetails/ActivityDetails.testIds';
@@ -30,6 +31,7 @@ import { SwapsLimitOrderActivityPageSelectorsIDs } from './SwapsLimitOrderActivi
 
 const {
   SCREEN,
+  AMOUNT_DIVIDER,
   BACK_BUTTON,
   STATUS_ROW,
   DATE_CREATED_ROW,
@@ -102,6 +104,7 @@ const MOCK_LIMIT_FILLED_BUY_ORDER: LimitOrder = {
 };
 
 const BLOCK_EXPLORER_LABEL = strings('activity_details.view_on_block_explorer');
+const CREATE_NEW_ORDER_LABEL = strings('bridge.limit.create_new_order');
 
 const titleParams = { source: 'ETH', dest: 'USDC' };
 
@@ -201,6 +204,11 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     expect(
       within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('2200 USDC'),
     ).toBeOnTheScreen();
+    expect(
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByTestId(
+        TokenAmountValueSelectorsIDs.PREFIX,
+      ),
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_above'));
     expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Ethereum', {
       exact: false,
     });
@@ -275,13 +283,41 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     const networkFeeRow = await findByTestId(NETWORK_FEE_ROW);
 
     expect(
-      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2160'),
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2,160.00'),
     ).toBeOnTheScreen();
     expect(within(networkFeeRow).getByText('$1.23')).toBeOnTheScreen();
     // 0.1 ETH at $2160.
     expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$216.00', {
       exact: false,
     });
+  });
+
+  it('condenses the leading zeros of tiny amounts and a tiny trigger price', async () => {
+    const { findByTestId, getByTestId, getByText } = await openActivityPage(
+      {
+        ...MOCK_LIMIT_FILLED_ORDER,
+        trigger: {
+          kind: 'src_price',
+          threshold: 'above',
+          price: '0.000003747',
+        },
+      },
+      [
+        {
+          ...FILL_TRANSACTION,
+          src: { ...FILL_TRANSACTION.src, amount: '12345678900' },
+          dest: { ...FILL_TRANSACTION.dest, amount: '1' },
+        },
+      ],
+    );
+
+    await findByTestId(ActivityDetailsSelectorsIDs.TRANSACTION_ID_COPY);
+
+    expect(getByText('-0.0₇1234 ETH')).toBeOnTheScreen();
+    expect(getByText('+0.0₅1 USDC')).toBeOnTheScreen();
+    expect(
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$0.0₅3747'),
+    ).toBeOnTheScreen();
   });
 
   it('shows the network fee as a token amount when the fill reports no USD value for it', async () => {
@@ -339,6 +375,43 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     });
   });
 
+  it('offers no new order for an order that filled', async () => {
+    const { findByText, queryByText } = await openActivityPage(
+      MOCK_LIMIT_FILLED_ORDER,
+      [FILL_TRANSACTION],
+    );
+
+    await findByText(BLOCK_EXPLORER_LABEL);
+
+    expect(queryByText(CREATE_NEW_ORDER_LABEL)).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    { name: 'expired', order: MOCK_LIMIT_EXPIRED_ORDER, transactions: [] },
+    { name: 'canceled', order: MOCK_LIMIT_CANCELLED_ORDER, transactions: [] },
+    {
+      name: 'failed',
+      order: MOCK_LIMIT_FAILED_ORDER,
+      transactions: [REVERTED_TRANSACTION],
+    },
+  ])(
+    'returns to the limit orders tab to create a new order after an $name order',
+    async ({ order, transactions }) => {
+      const { getByText, findByTestId } = await openActivityPage(
+        order,
+        transactions,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText(CREATE_NEW_ORDER_LABEL));
+      });
+
+      expect(
+        await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    },
+  );
+
   it('returns to the orders list from the back button', async () => {
     const { getByTestId, findByTestId } = await openActivityPage(
       MOCK_LIMIT_FILLED_ORDER,
@@ -378,6 +451,17 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
         await openActivityPage(order);
 
       expect(getByText(title)).toBeOnTheScreen();
+      // The details frame already separates sections by 8px, so this 8px
+      // margin leaves 16px above and below the divider.
+      expect(getByTestId(AMOUNT_DIVIDER)).toHaveStyle({
+        marginTop: 8,
+        marginBottom: 8,
+      });
+      expect(
+        within(getByTestId(TRIGGER_CONDITION_ROW)).getByTestId(
+          TokenAmountValueSelectorsIDs.AMOUNT,
+        ),
+      ).toHaveStyle({ fontFamily: 'Inter-Medium' });
       expect(
         within(getByTestId(STATUS_ROW)).getByText(status),
       ).toBeOnTheScreen();

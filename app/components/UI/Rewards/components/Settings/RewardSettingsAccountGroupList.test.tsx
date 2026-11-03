@@ -14,6 +14,7 @@ import {
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { AccountWalletType } from '@metamask/account-api';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -29,6 +30,46 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
     style: jest.fn(() => ({})),
   })),
 }));
+
+jest.mock('./RewardsEnvironmentToggle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockRewardsEnvironmentToggle() {
+      return ReactActual.createElement(View, {
+        testID: 'rewards-environment-toggle',
+      });
+    },
+  };
+});
+
+jest.mock('./ReferredByCodeSection', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const mounts = { count: 0 };
+  function MockReferredByCodeSection({
+    showTrailingDivider,
+  }: {
+    showTrailingDivider?: boolean;
+  }) {
+    const didMount = ReactActual.useRef(false);
+    if (!didMount.current) {
+      didMount.current = true;
+      mounts.count += 1;
+    }
+    return ReactActual.createElement(View, {
+      testID: showTrailingDivider
+        ? 'referred-by-code-section-with-divider'
+        : 'referred-by-code-section',
+    });
+  }
+  return {
+    __esModule: true,
+    default: MockReferredByCodeSection,
+    referralSectionMounts: mounts,
+  };
+});
 
 jest.mock('../../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
@@ -88,7 +129,7 @@ jest.mock('@shopify/flash-list', () => {
         }) => React.ReactElement;
         keyExtractor: (item: unknown, index: number) => string;
         getItemType?: (item: unknown) => string;
-        ListHeaderComponent?: () => React.ReactElement;
+        ListHeaderComponent?: React.ReactElement | (() => React.ReactElement);
         ListEmptyComponent?: () => React.ReactElement;
         ListFooterComponent?: () => React.ReactElement;
         [key: string]: unknown;
@@ -108,7 +149,9 @@ jest.mock('@shopify/flash-list', () => {
           ReactActual.createElement(
             View,
             { testID: 'list-header' },
-            ReactActual.createElement(ListHeaderComponent),
+            ReactActual.isValidElement(ListHeaderComponent)
+              ? ListHeaderComponent
+              : ReactActual.createElement(ListHeaderComponent),
           ),
         data && Array.isArray(data) && data.length > 0
           ? data.map((item: unknown, index: number) => {
@@ -231,6 +274,18 @@ jest.mock('@metamask/design-system-react-native', () => {
       Primary: 'primary',
       Secondary: 'secondary',
     },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+    SectionDivider: ({
+      testID,
+      ...props
+    }: {
+      testID?: string;
+      [key: string]: unknown;
+    }) => ReactActual.createElement(View, { testID, ...props }),
     ButtonVariants: {
       Primary: 'primary',
       Secondary: 'secondary',
@@ -363,23 +418,6 @@ jest.mock('./RewardSettingsAccountGroup', () => {
         ReactActual.createElement(View, { testID: 'account-group-content' }),
       ),
   );
-});
-
-// Mock ReferredByCodeSection component to avoid navigation context requirement
-jest.mock('./ReferredByCodeSection', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, TouchableOpacity } = jest.requireActual('react-native');
-
-  return ({ onInputFocus }: { onInputFocus?: () => void }) =>
-    ReactActual.createElement(
-      View,
-      { testID: 'referred-by-code-section' },
-      onInputFocus &&
-        ReactActual.createElement(TouchableOpacity, {
-          testID: 'referred-by-code-focus-trigger',
-          onPress: onInputFocus,
-        }),
-    );
 });
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -538,6 +576,10 @@ describe('RewardSettingsAccountGroupList', () => {
         return 'default';
       }
 
+      if (selector === selectRewardsSubscriptionId) {
+        return 'subscription-1';
+      }
+
       // Mock selectBulkLinkIsRunning selector
       if (selector === mockSelectBulkLinkIsRunning) {
         return false;
@@ -673,26 +715,9 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('flash-list-item-referredByCode')).toBeOnTheScreen();
       expect(
         getByTestId('flash-list-item-environmentToggle'),
       ).toBeOnTheScreen();
-    });
-
-    it('scrolls to referral section on input focus', () => {
-      jest.useFakeTimers();
-      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
-
-      fireEvent.press(getByTestId('referred-by-code-focus-trigger'));
-      jest.runAllTimers();
-
-      expect(mockFlashListScrollToIndex).toHaveBeenCalledWith(
-        expect.objectContaining({
-          viewPosition: 0.2,
-          animated: true,
-        }),
-      );
-      jest.useRealTimers();
     });
   });
 
@@ -1238,6 +1263,9 @@ describe('RewardSettingsAccountGroupList', () => {
         if (selector === selectAvatarAccountType) {
           return 'default';
         }
+        if (selector === selectRewardsSubscriptionId) {
+          return 'subscription-1';
+        }
         if (selector === mockSelectBulkLinkIsRunning) {
           return true;
         }
@@ -1332,6 +1360,9 @@ describe('RewardSettingsAccountGroupList', () => {
         if (selector === selectAvatarAccountType) {
           return 'default';
         }
+        if (selector === selectRewardsSubscriptionId) {
+          return 'subscription-1';
+        }
         if (selector === mockSelectBulkLinkIsRunning) {
           return true;
         }
@@ -1350,6 +1381,85 @@ describe('RewardSettingsAccountGroupList', () => {
 
       // Should not show "Add all accounts" button when running
       expect(queryByTestId('rewards-settings-add-all-button')).toBeNull();
+    });
+  });
+
+  describe('referral section placement', () => {
+    it('renders the referral section and environment toggle when there is no subscription', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectRewardsSubscriptionId) {
+          return null;
+        }
+        return undefined;
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <RewardSettingsAccountGroupList />,
+      );
+
+      expect(getByTestId('rewards-settings-referral-only')).toBeOnTheScreen();
+      expect(getByTestId('referred-by-code-section')).toBeOnTheScreen();
+      expect(getByTestId('rewards-environment-toggle')).toBeOnTheScreen();
+      expect(queryByTestId('rewards-settings-header')).toBeNull();
+      expect(queryByTestId('opt-out-section')).toBeNull();
+      expect(mockUseRewardOptinSummary).not.toHaveBeenCalled();
+    });
+
+    it('places the referral section above the accounts header when subscribed', () => {
+      const { getByTestId, getByLabelText } = render(
+        <RewardSettingsAccountGroupList onRequestOptOut={jest.fn()} />,
+      );
+
+      expect(
+        getByTestId('referred-by-code-section-with-divider'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
+      expect(getByTestId('opt-out-section')).toBeOnTheScreen();
+      expect(getByLabelText('environmentToggle')).toBeOnTheScreen();
+    });
+
+    it('keeps the referral field mounted when account counts change', () => {
+      const { referralSectionMounts } = jest.requireMock(
+        './ReferredByCodeSection',
+      ) as { referralSectionMounts: { count: number } };
+      referralSectionMounts.count = 0;
+
+      const { rerender } = render(
+        <RewardSettingsAccountGroupList onRequestOptOut={jest.fn()} />,
+      );
+      expect(referralSectionMounts.count).toBe(1);
+
+      mockUseRewardOptinSummary.mockReturnValue({
+        byWallet: [
+          {
+            ...mockWalletData[0],
+            groups: [
+              {
+                ...mockWalletData[0].groups[0],
+                optedInAccounts: [
+                  ...mockWalletData[0].groups[0].optedInAccounts,
+                  {
+                    ...mockWalletData[0].groups[0].optedInAccounts[0],
+                    id: 'account-extra',
+                    address: '0x2222222222222222222222222222222222222222',
+                  },
+                ],
+              },
+              ...mockWalletData[0].groups.slice(1),
+            ],
+          },
+          ...mockWalletData.slice(1),
+        ],
+        isLoading: false,
+        hasError: false,
+        refresh: mockFetchOptInStatus,
+        bySelectedAccountGroup: null,
+        currentAccountGroupOptedInStatus: null,
+        currentAccountGroupPartiallySupported: null,
+      });
+      rerender(<RewardSettingsAccountGroupList onRequestOptOut={jest.fn()} />);
+
+      expect(referralSectionMounts.count).toBe(1);
     });
   });
 });

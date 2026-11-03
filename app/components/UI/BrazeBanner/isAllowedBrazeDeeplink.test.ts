@@ -1,4 +1,7 @@
-import { isAllowedBrazeDeeplink } from './isAllowedBrazeDeeplink';
+import {
+  isAllowedBrazeDeeplink,
+  isAllowedBrazeExternalUrl,
+} from './isAllowedBrazeDeeplink';
 
 // ---------------------------------------------------------------------------
 // Mock: AppConstants — provide predictable MM host values for every test
@@ -212,5 +215,23 @@ describe('isAllowedBrazeDeeplink', () => {
     it('rejects about:blank', () => {
       expect(isAllowedBrazeDeeplink('about:blank')).toBe(false);
     });
+  });
+});
+
+describe('isAllowedBrazeExternalUrl', () => {
+  it.each(['https://example.com/article'])(
+    'allows external web URL %s',
+    (url) => {
+      expect(isAllowedBrazeExternalUrl(url)).toBe(true);
+    },
+  );
+
+  it.each([
+    'https://link.metamask.io/home',
+    'metamask://home',
+    `${'java'}${'script'}:alert(1)`,
+    'not a url',
+  ])('rejects URL not meant for the external browser: %s', (url) => {
+    expect(isAllowedBrazeExternalUrl(url)).toBe(false);
   });
 });

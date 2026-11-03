@@ -13,10 +13,7 @@ import {
   ActionPosition,
 } from '../../../../../util/analytics/actionButtonTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  ARC_HEX_CHAIN_ID,
-  ARC_USDC_ERC20_ADDRESS,
-} from '../../../../../enablement/assets/arc';
+import { ARC_HEX_CHAIN_ID } from '../../../../../enablement/assets/arc';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -41,6 +38,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 const mockGetIsBridgeEnabledSource = jest.fn(() => true);
 const mockSetIsDestTokenManuallySet = jest.fn();
 const mockSetDestToken = jest.fn();
+const mockResetBridgeState = jest.fn();
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
   return {
@@ -55,6 +53,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setDestToken: (...args: unknown[]) => {
       mockSetDestToken(...args);
       return actual.setDestToken(...args);
+    },
+    resetBridgeState: (...args: unknown[]) => {
+      mockResetBridgeState(...args);
+      return actual.resetBridgeState(...args);
     },
   };
 });
@@ -474,6 +476,27 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
+  it('clears the previous bridge session before navigating to swaps', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps();
+
+    expect(mockResetBridgeState).toHaveBeenCalledTimes(1);
+    expect(mockResetBridgeState.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
+    expect(mockResetBridgeState.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSetDestToken.mock.invocationCallOrder[0],
+    );
+  });
+
   it('sets isDestTokenManuallySet when an explicit dest token is provided', () => {
     const destOverride: BridgeToken = {
       address: '0x0000000000000000000000000000000000000005',
@@ -807,7 +830,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
     });
 
-    it('lets sourceTokenOverride be overridden by NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN when applicable (Arc)', () => {
+    it('keeps Arc native USDC as the source token', () => {
       const sourceOverride: BridgeToken = {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'SRC_OVERRIDE',
@@ -833,14 +856,7 @@ describe('useSwapBridgeNavigation', () => {
         {
           screen: 'BridgeView',
           params: {
-            // Overridden because native on Arc
-            sourceToken: {
-              symbol: 'USDC',
-              name: 'USDC',
-              address: ARC_USDC_ERC20_ADDRESS,
-              chainId: ARC_HEX_CHAIN_ID,
-              decimals: 6,
-            },
+            sourceToken: sourceOverride,
             sourcePage: mockSourcePage,
             bridgeViewMode: BridgeViewMode.Unified,
             location: 'Main View',

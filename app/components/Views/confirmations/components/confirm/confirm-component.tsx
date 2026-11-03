@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useMemo } from 'react';
 import {
   BackHandler,
   StyleProp,
@@ -20,9 +20,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
-import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
-import { AlertsContextProvider } from '../../context/alert-system-context';
+import { ConfirmationFirstFrameProvider } from '../../context/confirmation-first-frame-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
@@ -55,10 +54,13 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
 import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
+import { ConfirmationAlerts } from '../alerts/confirmation-alerts';
 
 const DEFAULT_BOTTOM_SHEET_HEIGHT = 60;
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
+
+const FIRST_FRAME_TRANSACTION_TYPES = [TransactionType.moneyAccountDeposit];
 
 const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
@@ -100,6 +102,12 @@ export enum ConfirmationLaunchSource {
    * the landing returns to it instead of stacking a second copy on top.
    */
   RewardsMoneyHome = 'rewards-money-home',
+  /**
+   * The adjust-margin sheet. That sheet stays on the stack under the deposit
+   * confirmation, so finishing the deposit should dismiss the confirmation
+   * and land back on the sheet.
+   */
+  PerpsAdjustMargin = 'perps-adjust-margin',
 }
 
 export interface ConfirmationParams {
@@ -145,34 +153,40 @@ const ConfirmWrapped = ({
   styles: ReturnType<typeof styleSheet>;
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
+  const transaction = useTransactionMetadataRequest();
   const isScrollDisabled = useDisableScroll();
 
   return (
     <ConfirmationContextProvider>
-      <ConfirmationAssetPollingProvider>
-        <ConfirmationAlerts>
-          <QRHardwareContextProvider>
-            <Title />
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollViewContent}
-              nestedScrollEnabled
-              scrollEnabled={!isScrollDisabled}
-            >
-              <TouchableWithoutFeedback>
-                <>
-                  <AlertBanner
-                    ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
-                  />
-                  <Info route={route} />
-                </>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-            <Footer />
-            <MmPayDebugFloatingButton />
-          </QRHardwareContextProvider>
-        </ConfirmationAlerts>
-      </ConfirmationAssetPollingProvider>
+      <ConfirmationFirstFrameProvider
+        enabled={hasTransactionType(transaction, FIRST_FRAME_TRANSACTION_TYPES)}
+        transactionId={transaction?.id}
+      >
+        <ConfirmationAssetPollingProvider>
+          <ConfirmationAlerts>
+            <QRHardwareContextProvider>
+              <Title />
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
+                nestedScrollEnabled
+                scrollEnabled={!isScrollDisabled}
+              >
+                <TouchableWithoutFeedback>
+                  <>
+                    <AlertBanner
+                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                    />
+                    <Info route={route} />
+                  </>
+                </TouchableWithoutFeedback>
+              </ScrollView>
+              <Footer />
+              <MmPayDebugFloatingButton />
+            </QRHardwareContextProvider>
+          </ConfirmationAlerts>
+        </ConfirmationAssetPollingProvider>
+      </ConfirmationFirstFrameProvider>
     </ConfirmationContextProvider>
   );
 };
@@ -241,8 +255,12 @@ function ConfirmInternal({
   const { forceBottomSheet, bottomSheetHeightPercentage } =
     useParams<ConfirmationParams>();
   const { height: screenHeight } = useSafeAreaFrame();
-  const { top: screenTopPadding, bottom: screenBottomPadding } =
-    useSafeAreaInsets();
+  const {
+    bottom: screenBottomPadding,
+    left: screenLeftPadding,
+    right: screenRightPadding,
+    top: screenTopPadding,
+  } = useSafeAreaInsets();
   const sheetHeightPercentage =
     bottomSheetHeightPercentage ??
     (forceBottomSheet ? DEFAULT_BOTTOM_SHEET_HEIGHT : undefined);
@@ -276,17 +294,36 @@ function ConfirmInternal({
     navigation.setOptions(options);
   }, [approvalRequest, isFullScreenConfirmation, navigation]);
 
+  // Pad with the window insets rather than a native `SafeAreaView`, which
+  // measures its own position and so applies the bottom inset late while the
+  // screen animates in, shifting the content up after the first frame.
+  const safeAreaStyle = useMemo(
+    () =>
+      disableSafeArea
+        ? undefined
+        : {
+            paddingBottom: screenBottomPadding,
+            paddingLeft: screenLeftPadding,
+            paddingRight: screenRightPadding,
+          },
+    [
+      disableSafeArea,
+      screenBottomPadding,
+      screenLeftPadding,
+      screenRightPadding,
+    ],
+  );
+
   // Show confirmation in a flat container if the confirmation is full screen
   if (isFullScreenConfirmation) {
     return (
-      <SafeAreaView
-        edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
-        style={[styles.flatContainer, fullscreenStyle]}
+      <View
+        style={[styles.flatContainer, safeAreaStyle, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
         onLayout={onFirstPaint}
       >
         <ConfirmWrapped styles={styles} route={route} />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -319,14 +356,6 @@ function ConfirmInternal({
         </View>
       )}
     </BottomSheet>
-  );
-}
-
-function ConfirmationAlerts({ children }: { children: ReactNode }) {
-  const alerts = useConfirmationAlerts();
-
-  return (
-    <AlertsContextProvider alerts={alerts}>{children}</AlertsContextProvider>
   );
 }
 

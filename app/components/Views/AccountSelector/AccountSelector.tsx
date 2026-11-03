@@ -35,7 +35,10 @@ import { useAccounts } from '../../hooks/useAccounts';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectVisibleAccountGroupsByWallet } from '../../../selectors/multichainAccounts/manageAccounts';
+import { selectInternalAccountsById } from '../../../selectors/accountsController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { isEvmAccountType } from '@metamask/keyring-api';
 
 // Internal dependencies.
 import {
@@ -61,6 +64,7 @@ import {
 import { getTraceTags } from '../../../util/sentry/tags';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import Routes from '../../../constants/navigation/Routes';
+import AccountListBalanceProviders from '../../hooks/AccountListBalanceProviders';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const tw = useTailwind();
@@ -74,6 +78,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const {
     navigateToAddAccountActions,
     disableAddAccountButton,
+    isEvmOnly,
     onSelectAccount: onSelectAccountFromRoute,
   } = routeParams || {};
 
@@ -81,6 +86,28 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     (state: RootState) => state.accounts.reloadAccounts,
   );
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+  const accountSections = useSelector(selectVisibleAccountGroupsByWallet);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+
+  // Hide groups that have no EVM account. A group that also holds SOL stays,
+  // because the row is the account, not the chain.
+  const evmOnlyAccountSections = useMemo(() => {
+    if (!isEvmOnly) {
+      return undefined;
+    }
+
+    return accountSections
+      .map((section) => ({
+        ...section,
+        data: section.data.filter((group) =>
+          group.accounts.some((accountId) => {
+            const account = internalAccountsById[accountId];
+            return Boolean(account && isEvmAccountType(account.type));
+          }),
+        ),
+      }))
+      .filter((section) => section.data.length > 0);
+  }, [accountSections, internalAccountsById, isEvmOnly]);
 
   // Stable array reference so the memoized list isn't re-rendered (and its
   // selectedIdSet / renderItem rebuilt) on every parent render.
@@ -232,15 +259,18 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <Fragment>
         {selectedAccountGroup ? (
-          <MultichainAccountSelectorList
-            onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroups={selectedAccountGroups}
-            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-            setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
-            showFooter={!disableAddAccountButton}
-            onSearchFocus={handleSearchFocus}
-            onSearchSettled={handleSearchSettled}
-          />
+          <AccountListBalanceProviders>
+            <MultichainAccountSelectorList
+              onSelectAccount={_onSelectMultichainAccount}
+              selectedAccountGroups={selectedAccountGroups}
+              accountSections={evmOnlyAccountSections}
+              testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+              setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+              showFooter={!disableAddAccountButton}
+              onSearchFocus={handleSearchFocus}
+              onSearchSettled={handleSearchSettled}
+            />
+          </AccountListBalanceProviders>
         ) : null}
         {!disableAddAccountButton && (
           <AddWalletButton
@@ -255,11 +285,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [
       selectedAccountGroup,
       selectedAccountGroups,
+      evmOnlyAccountSections,
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,
       handleSearchFocus,
       handleSearchSettled,
+      setKeyboardAvoidingViewEnabled,
     ],
   );
 

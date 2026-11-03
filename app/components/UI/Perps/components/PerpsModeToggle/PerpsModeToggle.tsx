@@ -43,6 +43,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   source,
   enableHaptics = false,
   testID = PerpsModeToggleSelectorsIDs.CONTAINER,
+  isCapsule = false,
 }) => {
   const { track } = usePerpsEventTracking();
   const { playImpact } = useHaptics();
@@ -96,6 +97,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
         currentModeLabel={currentModeLabel}
         isPro={isPro}
         enableHaptics={enableHaptics}
+        isCapsule={isCapsule}
         onSwitchRequest={() =>
           handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)
         }

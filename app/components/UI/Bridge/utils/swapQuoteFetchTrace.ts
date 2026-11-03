@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import {
   formatChainIdToCaip,
+  SwapFeatureTag,
   type GenericQuoteRequest,
   type QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
@@ -86,6 +87,7 @@ export const swapQuoteFetchTrace = {
         }),
       },
       startTime: Date.now(),
+      tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
     return id;

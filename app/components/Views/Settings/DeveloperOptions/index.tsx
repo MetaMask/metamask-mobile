@@ -35,6 +35,7 @@ import NotificationsDeveloperOptionsSection from '../../../UI/Notification/Devel
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/components/SocialLeaderboardDeveloperOptionsSection/SocialLeaderboardDeveloperOptionsSection';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import NewWalletDeveloperOptionsSection from './NewWalletDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -107,6 +108,7 @@ const DeveloperOptions = () => {
           <SocialLeaderboardDeveloperOptionsSection />
         )}
         <HapticsDeveloperOptionsSection />
+        <NewWalletDeveloperOptionsSection />
       </ScrollView>
     </SafeAreaView>
   );

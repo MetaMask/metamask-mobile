@@ -1,3 +1,5 @@
+import PerpsFeeCaption from '../PerpsFeesDisplay/PerpsFeeCaption';
+import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import {
   Box,
   BoxAlignItems,
@@ -25,8 +27,8 @@ import type { OrderType } from '@metamask/perps-controller';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
@@ -35,8 +37,18 @@ import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
 import PerpsSwapIcon from '../PerpsSwapIcon';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsRebateBanner from '../PerpsRebateBanner';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import { typography } from '@metamask/design-tokens';
+import {
+  LIMIT_PRICE_CONFIG,
+  MAX_PERPS_INPUT_DIGITS,
+} from '../../constants/perpsConfig';
+import { useAssetAmountDraft } from '../../hooks/useAssetAmountDraft';
+import {
+  convertAssetAmountToUsd,
+  limitAssetAmountDecimals,
+} from '../../utils/assetAmountInput';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -45,7 +57,6 @@ import {
   PerpsTradeSheetTitleBanner,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
-import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 
 interface PerpsTradeScreenProps {
   asset: string;
@@ -68,6 +79,10 @@ interface PerpsTradeScreenProps {
   liquidationDistance?: string;
   amount: string;
   tokenAmount?: string;
+  /** USD price used to turn a typed coin amount into the canonical USD size. */
+  amountPrice: number;
+  /** Market size decimals for the coin keypad. */
+  sizeDecimals: number;
   sliderMaximum: number;
   isAmountDisabled: boolean;
   isAmountLoading: boolean;
@@ -90,7 +105,12 @@ interface PerpsTradeScreenProps {
   showPayWith: boolean;
   isPayWithDisabled: boolean;
   feePercentage?: string;
+  /** Pre-discount combined rate, shown struck through on a promo caption. */
+  originalFeePercentage?: string;
+  /** Formatted fiat bridge fee, shown when the user pays with a token. */
+  bridgeFee?: string;
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -100,7 +120,15 @@ interface PerpsTradeScreenProps {
   onAmountPress: () => void;
   onSliderValueChange: (value: number) => void;
   onSliderDragEnd: (value: number) => void;
-  onKeypadChange: (value: { value: string; valueAsNumber: number }) => void;
+  onKeypadChange: (value: {
+    value: string;
+    valueAsNumber: number;
+    /**
+     * True when `value` is USD converted from a coin keypad entry. That string
+     * can exceed the typed-digit cap, which already applied to the coin entry.
+     */
+    isAssetAmount?: boolean;
+  }) => void;
   onPercentagePress: (percentage: number) => void;
   onMaxPress: () => void;
   onDonePress: () => void;
@@ -261,6 +289,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   liquidationDistance,
   amount,
   tokenAmount,
+  amountPrice,
+  sizeDecimals,
   sliderMaximum,
   isAmountDisabled,
   isAmountLoading,
@@ -282,7 +312,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   showPayWith,
   isPayWithDisabled,
   feePercentage,
+  originalFeePercentage,
+  bridgeFee,
   feeDiscountPercentage,
+  feeDiscountKind,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -305,7 +338,43 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const { fireImpact } = useHaptics();
   const [showAssetValue, setShowAssetValue] = useState(false);
+  const navigateWithHaptic = (screen: Parameters<typeof navigateTo>[0]) => {
+    fireImpact(ImpactMoment.PageNavigation);
+    navigateTo(screen);
+  };
+  const { draft: assetDraft, setDraftFromKeypad } = useAssetAmountDraft({
+    isActive: showAssetValue,
+    usdAmount: amount,
+    assetAmount: tokenAmount,
+  });
+  const handleAmountKeypadChange = (input: {
+    value: string;
+    valueAsNumber: number;
+  }) => {
+    if (!showAssetValue) {
+      onKeypadChange(input);
+      return;
+    }
+
+    const nextAsset = limitAssetAmountDecimals(
+      input.value || '0',
+      sizeDecimals,
+    );
+    const digitCount = (nextAsset.match(/\d/g) || []).length;
+    if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+      return;
+    }
+
+    const usd = convertAssetAmountToUsd(nextAsset, amountPrice);
+    setDraftFromKeypad(nextAsset, usd);
+    onKeypadChange({
+      value: usd,
+      valueAsNumber: Number(usd),
+      isAssetAmount: true,
+    });
+  };
   const directionLabel =
     direction === 'long'
       ? strings('perps.order.button.long', { asset })
@@ -316,7 +385,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   // another bottom sheet; the parent only records the press for analytics.
   const handlePayWithPress = () => {
     onPayWithPress();
-    navigateTo('payWith');
+    navigateWithHaptic('payWith');
   };
   const limitPriceDisplay = limitPrice
     ? isLimitPriceFocused
@@ -339,10 +408,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           accessible={false}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={2}
+          gap={3}
           twClassName="min-w-0 flex-1"
         >
-          <PerpsTokenLogo symbol={oiCapSymbol} size={32} />
+          <PerpsTokenLogo symbol={oiCapSymbol} size={40} />
           <Box accessible={false} twClassName="min-w-0 flex-1">
             <Box
               accessible={false}
@@ -399,7 +468,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
         <Box accessible={false} paddingHorizontal={4} gap={4}>
           <PerpsAmountDisplay
             amount={amount}
-            tokenAmount={tokenAmount}
+            tokenAmount={
+              showAssetValue && isInputFocused ? assetDraft : tokenAmount
+            }
             tokenSymbol={asset}
             showTokenAmount={showAssetValue}
             variant="tradeSheet"
@@ -465,10 +536,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 </Button>
               </Box>
               <Keypad
-                value={amount}
-                onChange={onKeypadChange}
-                currency="USD"
-                decimals={0}
+                value={showAssetValue ? assetDraft : amount}
+                onChange={handleAmountKeypadChange}
+                currency={showAssetValue ? 'ASSET' : 'USD'}
+                decimals={showAssetValue ? sizeDecimals : 0}
               />
             </Box>
           ) : (
@@ -506,7 +577,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   {leverage}x
                 </Text>
               }
-              onPress={() => navigateTo('leverage')}
+              onPress={() => navigateWithHaptic('leverage')}
             />
             {orderType === 'limit' ? (
               <>
@@ -521,7 +592,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
                       color={
-                        limitPrice ? TextColor.TextDefault : TextColor.TextMuted
+                        limitPrice
+                          ? TextColor.TextDefault
+                          : TextColor.ErrorDefault
                       }
                     >
                       {limitPriceDisplay}
@@ -558,7 +631,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                         {autoCloseText}
                       </Text>
                     }
-                    onPress={() => navigateTo('tpsl')}
+                    onPress={() => navigateWithHaptic('tpsl')}
                   />
                 ) : null}
                 {showPayWith ? (
@@ -703,6 +776,14 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   showEndIcon={false}
                   onPress={() => navigateTo('liquidationInfo')}
                 />
+                {!isAtOICap ? (
+                  <PerpsRebateBanner
+                    coin={asset}
+                    direction={direction}
+                    notionalUsd={amount}
+                    twClassName="mt-2"
+                  />
+                ) : null}
               </>
             ) : null}
           </Box>
@@ -826,21 +907,14 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 twClassName="self-center"
               />
             ) : feePercentage ? (
-              <Box
-                accessible={false}
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                gap={2}
-              >
-                {(feeDiscountPercentage ?? 0) > 0 ? <RewardsVipBadge /> : null}
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('perps.trade_sheet.includes_fee', { feePercentage })}
-                </Text>
-              </Box>
+              <PerpsFeeCaption
+                feePercentage={feePercentage}
+                originalFeePercentage={originalFeePercentage}
+                bridgeFee={bridgeFee}
+                feeDiscountPercentage={feeDiscountPercentage}
+                feeDiscountKind={feeDiscountKind}
+                testID={PerpsTradeSheetSelectorsIDs.FEE_TEXT}
+              />
             ) : null}
           </Box>
         </Box>

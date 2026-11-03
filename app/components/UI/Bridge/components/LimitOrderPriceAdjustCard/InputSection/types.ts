@@ -1,8 +1,18 @@
 import type { TextInputSelectionChangeEvent } from 'react-native';
+import type { BridgeToken } from '../../../types';
 import {
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
 } from '../../../constants/limitOrders';
+
+/**
+ * Identity of the token shown in the quote-unit chip. The parent swaps this
+ * when the chip is pressed, so the avatar follows the toggle.
+ */
+export type QuoteUnitToken = Pick<
+  BridgeToken,
+  'address' | 'symbol' | 'image' | 'chainId'
+>;
 
 export interface InputSectionRef {
   blur: () => void;
@@ -19,6 +29,11 @@ export interface InputSectionProps {
    * Quoted-token symbol for the unit chip, e.g. "WBTC".
    */
   quotedSymbol?: string;
+  /**
+   * Quoted token rendered as the chip avatar. Changes with the quote-unit
+   * toggle.
+   */
+  quotedToken?: QuoteUnitToken;
   /**
    * When true the primary amount is fiat and a currency prefix is shown.
    */
@@ -44,6 +59,11 @@ export interface InputSectionProps {
    * Fired when the amount input is pressed or focused. Parent owns the keypad.
    */
   onInputPress?: () => void;
+  /**
+   * When true the amount input ignores touches, so a press on it reaches the
+   * parent and only dismisses the keypad instead of focusing the input.
+   */
+  isInputPressDisabled?: boolean;
   /**
    * Controlled caret selection, matching the swaps source amount input.
    */

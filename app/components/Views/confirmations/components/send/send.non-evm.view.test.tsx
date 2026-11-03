@@ -347,23 +347,31 @@ describeForPlatforms('Send (Non-EVM)', () => {
       .withOverrides(NON_EVM_NETWORK_OVERRIDE)
       .build();
 
-    const { getByTestId, getByText, findByRole } = renderScreenWithRoutes(
-      Send as unknown as React.ComponentType,
-      { name: Routes.SEND.DEFAULT },
-      [],
-      { state },
-      {
-        screen: Routes.SEND.AMOUNT,
-        params: { asset: MINIMAL_BTC_BALANCE_ASSET },
-      },
-    );
+    const { getByTestId, getByText, getByRole, findByRole } =
+      renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        {
+          screen: Routes.SEND.AMOUNT,
+          params: { asset: MINIMAL_BTC_BALANCE_ASSET },
+        },
+      );
 
     expect(
       getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
     ).toBeOnTheScreen();
 
-    // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance
+    // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance.
+    // Non-EVM validation is deferred until the first Continue press.
     fireEvent.press(getByText('1'));
+
+    const continueButton = getByRole('button', { name: 'Continue' });
+    await waitFor(() => expect(continueButton).toBeEnabled(), {
+      timeout: 5000,
+    });
+    fireEvent.press(continueButton);
 
     expect(
       await findByRole(

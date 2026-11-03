@@ -27,6 +27,7 @@ import {
 } from './metrics/useNonEvmSendMetrics';
 import { ConfirmationLoader } from '../../components/confirm/confirm-component';
 import { mapSnapErrorCodeIntoTranslation } from './useAmountValidation';
+import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 
 interface SnapConfirmSendResult {
   valid?: boolean;
@@ -106,7 +107,7 @@ export const useSendActions = () => {
 
           // Success. The Snap owns the rest of the non-EVM transaction
           // lifecycle (Submitted/Finalized) and emits those itself.
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          navigateToActivityAfterConfirmation(navigation);
         } catch (error) {
           // Check for user rejection using error code (4001) - this is language-independent
           const { errorCode, failurePhase } = classifyNonEvmSendError(error);

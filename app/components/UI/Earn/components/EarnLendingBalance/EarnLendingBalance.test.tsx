@@ -289,7 +289,7 @@ describe('EarnLendingBalance', () => {
       { state: mockInitialState },
     );
 
-    expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.lending'))).toBeOnTheScreen();
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
     ).toBeOnTheScreen();
@@ -319,7 +319,7 @@ describe('EarnLendingBalance', () => {
       { state: mockInitialState },
     );
 
-    expect(queryByText(strings('earn.lending_earnings'))).not.toBeOnTheScreen();
+    expect(queryByText(strings('earn.lending'))).not.toBeOnTheScreen();
     expect(
       queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
     ).not.toBeOnTheScreen();

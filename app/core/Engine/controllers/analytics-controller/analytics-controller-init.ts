@@ -60,13 +60,18 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   AnalyticsControllerMessenger,
   AnalyticsControllerInitMessenger
 > = ({ controllerMessenger, analyticsId, persistedState, initMessenger }) => {
-  const persistedAnalyticsState = persistedState.AnalyticsController;
+  const persistedAnalyticsState = persistedState.AnalyticsController ?? {};
   const defaultState = getDefaultAnalyticsControllerState();
 
+  // Defaults fill fields added after a user's last launch. The persisted slice
+  // then wins so marketing consent, eventsConfig, and queued payloads survive
+  // restart. analyticsId always comes from MMKV, which is the identity source.
   const state: AnalyticsControllerState = {
-    optedIn: persistedAnalyticsState?.optedIn ?? defaultState.optedIn,
+    ...defaultState,
+    ...persistedAnalyticsState,
+    optedIn: persistedAnalyticsState.optedIn ?? defaultState.optedIn,
     consentDecisionMade:
-      persistedAnalyticsState?.consentDecisionMade ??
+      persistedAnalyticsState.consentDecisionMade ??
       defaultState.consentDecisionMade,
     analyticsId,
   };

@@ -38,30 +38,20 @@ describe('LimitOrderCostToleranceInfoSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the cost tolerance body with the minimum received percentage', () => {
+  it('renders the price tolerance body', () => {
     const { getByTestId } = renderWithProvider(
-      <LimitOrderCostToleranceInfoSheet
-        minReceivedPercentage={98}
-        goBack={jest.fn()}
-      />,
+      <LimitOrderCostToleranceInfoSheet goBack={jest.fn()} />,
     );
 
     expect(
       getByTestId(LimitOrderCostToleranceInfoSheetSelectorsIDs.BODY),
-    ).toHaveTextContent(
-      strings('bridge.cost_tolerance_tooltip_content', {
-        minReceivedPercentage: 98,
-      }),
-    );
+    ).toHaveTextContent(strings('bridge.cost_tolerance_tooltip_content'));
   });
 
   it('goes back when the header close button is pressed', () => {
     const goBack = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <LimitOrderCostToleranceInfoSheet
-        minReceivedPercentage={98}
-        goBack={goBack}
-      />,
+      <LimitOrderCostToleranceInfoSheet goBack={goBack} />,
     );
 
     fireEvent.press(

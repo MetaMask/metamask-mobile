@@ -78,6 +78,14 @@ on:
         required: false
         type: boolean
         default: false
+      cache_mode:
+        description: >-
+          The caller's effective `cache-mode` (none, read, write or write-only). Namespace runners
+          do not expose ACTIONS_CACHE_MODE, so callers that may use caches must pass it. The
+          default, `none`, skips the Namespace cache.
+        required: false
+        type: string
+        default: 'none'
     outputs:
       artifact-name:
         description: 'The actual artifact name used'
@@ -141,11 +149,26 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
+      # The Namespace cache is not governed by the caller's `cache-mode` and always both restores
+      # and commits, so it only runs when the mode is `write`.
+      - name: Resolve cache mode
+        id: cache-mode
+        env:
+          CACHE_MODE_INPUT: ${{ inputs.cache_mode }}
+        run: |
+          mode="${ACTIONS_CACHE_MODE:-${CACHE_MODE_INPUT:-none}}"
+          case "$mode" in
+            none|read|write|write-only) ;;
+            *) echo "::error::Unknown cache mode '${mode}'"; exit 1 ;;
+          esac
+          echo "Cache mode: ${mode}"
+          echo "mode=${mode}" >> "$GITHUB_OUTPUT"
+
       # node_modules must not be cached here: nscloud-cache-action mounts cached paths as
       # symlinks into /Volumes/cache, and the cache/tarball this workflow produces would
       # then hold that symlink instead of the real tree.
       - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.cache-mode.outputs.mode == 'write' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -170,14 +193,17 @@ jobs:
 
       - name: Set artifact name
         id: set-artifact-name
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          BASE_ARTIFACT_NAME: ${{ inputs.artifact-name }}
         run: |
-          if [ -n "${{ inputs.platform }}" ]; then
-            echo "artifact-name=${{ inputs.artifact-name }}" >> "$GITHUB_OUTPUT"
-            echo "📦 Artifact name: ${{ inputs.artifact-name }}"
+          if [ -n "${PLATFORM}" ]; then
+            echo "artifact-name=${BASE_ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
+            echo "📦 Artifact name: ${BASE_ARTIFACT_NAME}"
           else
             NODE_VERSION=$(node --version | sed 's/v//')
             OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-            ARTIFACT_NAME="${{ inputs.artifact-name }}-node${NODE_VERSION}-${OS_NAME}"
+            ARTIFACT_NAME="${BASE_ARTIFACT_NAME}-node${NODE_VERSION}-${OS_NAME}"
             echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
             echo "📦 Artifact name: $ARTIFACT_NAME"
           fi
@@ -185,9 +211,12 @@ jobs:
       - name: Compute cache key
         id: cache-key
         if: inputs.use-cache
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+          PLATFORM: ${{ inputs.platform }}
         run: |
           NODE_VERSION=$(node --version | sed 's/v//')
-          KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ inputs.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          KEY="node-modules-${{ env.CACHE_GENERATION }}-${BUILD_NAME}-${PLATFORM}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
           echo "key=${KEY}" >> "$GITHUB_OUTPUT"
           echo "Cache key: ${KEY}"
 
@@ -198,8 +227,10 @@ jobs:
 
       - name: Apply build config (for setup)
         if: inputs.build_name != ''
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
 
       - name: Restore .metamask folder
         id: restore-metamask
@@ -299,15 +330,17 @@ jobs:
 
       - name: Create tarball (preserves symlinks)
         if: inputs.upload-artifact && inputs.use-tarball
+        env:
+          PLATFORM: ${{ inputs.platform }}
         run: |
           echo "📦 Creating zstd tarball to preserve symlinks..."
           tar --use-compress-program 'zstd -10 -T0' \
-            -cf node-modules-${{ inputs.platform }}.tar.zst \
+            -cf "node-modules-${PLATFORM}.tar.zst" \
             node_modules \
             app/util/termsOfUse/termsOfUseContent.ts \
             app/core/InpageBridgeWeb3.js \
             scripts/inpage-bridge/dist
-          echo "✅ Tarball created: $(du -h node-modules-${{ inputs.platform }}.tar.zst)"
+          echo "✅ Tarball created: $(du -h "node-modules-${PLATFORM}.tar.zst")"
 
       - name: Upload node_modules tarball
         if: inputs.upload-artifact && inputs.use-tarball

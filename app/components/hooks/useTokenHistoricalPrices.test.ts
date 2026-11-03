@@ -1,12 +1,39 @@
-import { waitFor } from '@testing-library/react-native';
+import React from 'react';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getAssetId } from '@metamask/assets-controllers';
-import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import { TokenI } from '../UI/Tokens/types';
 import useTokenHistoricalPrices, {
   hasInsufficientTimeCoverage,
+  historicalPricesQueryOptions,
   type TimePeriod,
   type TokenPrice,
 } from './useTokenHistoricalPrices';
+import { PRICE_API_BASE_URL } from '../../constants/urls';
+
+const DEV_HOST = 'https://price.dev-api.cx.metamask.io';
+
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+
+const renderHistoricalPrices = (
+  callback: () => ReturnType<typeof useTokenHistoricalPrices>,
+) => {
+  const queryClient = createQueryClient();
+  return {
+    ...renderHook(callback, {
+      wrapper: ({ children }) =>
+        React.createElement(
+          QueryClientProvider,
+          { client: queryClient },
+          children,
+        ),
+    }),
+    queryClient,
+  };
+};
 
 jest.mock('@metamask/assets-controllers', () => ({
   ...jest.requireActual('@metamask/assets-controllers'),
@@ -47,10 +74,16 @@ describe('hasInsufficientTimeCoverage', () => {
     expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(false);
   });
 
-  it('returns true when 1d data covers only 4 hours', () => {
+  it('returns true when 1d data covers only 2 hours', () => {
+    const twoHours = 2 * HOUR_MS;
+    const prices = makeTimeSeries(now, 120, twoHours / 119);
+    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(true);
+  });
+
+  it('returns false when 1d data covers 4 hours (~16.7%)', () => {
     const fourHours = 4 * HOUR_MS;
     const prices = makeTimeSeries(now, 120, fourHours / 119);
-    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(true);
+    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(false);
   });
 
   it('returns false when 1d data covers exactly 50% of expected duration', () => {
@@ -59,10 +92,16 @@ describe('hasInsufficientTimeCoverage', () => {
     expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(false);
   });
 
-  it('returns true when 1d data covers only 15% of expected duration', () => {
+  it('returns true when 1d data covers only 5% of expected duration', () => {
+    const fivePct = 0.05 * 24 * HOUR_MS;
+    const prices = makeTimeSeries(now, 50, fivePct / 49);
+    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(true);
+  });
+
+  it('returns false when 1d data covers 15% of expected duration', () => {
     const fifteenPct = 0.15 * 24 * HOUR_MS;
     const prices = makeTimeSeries(now, 50, fifteenPct / 49);
-    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(true);
+    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(false);
   });
 
   it('returns false when 1d data covers 80% of expected duration', () => {
@@ -89,15 +128,15 @@ describe('hasInsufficientTimeCoverage', () => {
     expect(hasInsufficientTimeCoverage(prices, '1w')).toBe(false);
   });
 
-  it('returns true when 1w data covers only 1 day', () => {
-    const oneDay = 1 * 24 * HOUR_MS;
-    const prices = makeTimeSeries(now, 100, oneDay / 99);
+  it('returns true when 1w data covers only 12 hours', () => {
+    const twelveHours = 12 * HOUR_MS;
+    const prices = makeTimeSeries(now, 100, twelveHours / 99);
     expect(hasInsufficientTimeCoverage(prices, '1w')).toBe(true);
   });
 
   it('handles 7d alias the same as 1w', () => {
-    const oneDay = 1 * 24 * HOUR_MS;
-    const prices = makeTimeSeries(now, 100, oneDay / 99);
+    const twelveHours = 12 * HOUR_MS;
+    const prices = makeTimeSeries(now, 100, twelveHours / 99);
     expect(hasInsufficientTimeCoverage(prices, '7d')).toBe(true);
   });
 
@@ -107,9 +146,9 @@ describe('hasInsufficientTimeCoverage', () => {
     expect(hasInsufficientTimeCoverage(prices, '1m')).toBe(false);
   });
 
-  it('returns true for 1m with only 5 days of data', () => {
-    const fiveDays = 5 * 24 * HOUR_MS;
-    const prices = makeTimeSeries(now, 100, fiveDays / 99);
+  it('returns true for 1m with only 2 days of data', () => {
+    const twoDays = 2 * 24 * HOUR_MS;
+    const prices = makeTimeSeries(now, 100, twoDays / 99);
     expect(hasInsufficientTimeCoverage(prices, '1m')).toBe(true);
   });
 
@@ -154,7 +193,7 @@ describe('useTokenHistoricalPrices fetch URL', () => {
     mockGetAssetId.mockImplementation(
       jest.requireActual('@metamask/assets-controllers').getAssetId,
     );
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,
@@ -172,7 +211,7 @@ describe('useTokenHistoricalPrices fetch URL', () => {
   it('falls back to legacy URL params when getAssetId returns undefined', async () => {
     mockGetAssetId.mockReturnValue(undefined);
 
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,
@@ -185,6 +224,66 @@ describe('useTokenHistoricalPrices fetch URL', () => {
     await waitFor(() => expect(mockFetch).toHaveBeenCalled());
     const url = mockFetch.mock.calls[0][0] as string;
     expect(url).toContain('/historical-prices/eip155:1/erc20:0x6B1754'); // legacy path uses `address` param verbatim
+  });
+
+  // Every caller outside Token Details V1 reaches this hook without a
+  // provider, so prod has to be what it asks for by default.
+  it('requests prod outside a PriceApiHostProvider', async () => {
+    mockGetAssetId.mockImplementation(
+      jest.requireActual('@metamask/assets-controllers').getAssetId,
+    );
+
+    renderHistoricalPrices(() =>
+      useTokenHistoricalPrices({
+        asset: baseAsset,
+        address: baseAsset.address,
+        chainId: '0x1',
+        timePeriod: '1d',
+        vsCurrency: 'usd',
+      }),
+    );
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
+    const url = mockFetch.mock.calls[0][0] as string;
+    expect(url.startsWith(`${PRICE_API_BASE_URL}/v3/`)).toBe(true);
+  });
+
+  // The hook feeds `baseUrl` in from context; this is the half that turns it
+  // into a request. The provider half is covered in PriceApiHostContext.test.
+  it('requests the given host instead of prod', async () => {
+    mockGetAssetId.mockImplementation(
+      jest.requireActual('@metamask/assets-controllers').getAssetId,
+    );
+
+    await historicalPricesQueryOptions({
+      assetChainId: '0x1',
+      assetAddress: baseAsset.address,
+      address: baseAsset.address,
+      chainId: '0x1',
+      timePeriod: '1d',
+      vsCurrency: 'usd',
+      baseUrl: DEV_HOST,
+    }).queryFn?.({} as never);
+
+    const url = mockFetch.mock.calls[0][0] as string;
+    expect(url.startsWith(`${DEV_HOST}/v3/`)).toBe(true);
+  });
+
+  // Two hosts can disagree about the same asset, so they must not share an
+  // entry in the cache.
+  it('keys the query by host', () => {
+    const request = {
+      assetChainId: '0x1',
+      assetAddress: baseAsset.address,
+      address: baseAsset.address,
+      chainId: '0x1' as const,
+      timePeriod: '1d' as const,
+      vsCurrency: 'usd',
+    };
+
+    expect(
+      historicalPricesQueryOptions({ ...request, baseUrl: DEV_HOST }).queryKey,
+    ).not.toEqual(historicalPricesQueryOptions(request).queryKey);
   });
 });
 
@@ -216,7 +315,7 @@ describe('useTokenHistoricalPrices apiDurationMs', () => {
   } as unknown as TokenI;
 
   const renderPrices = () =>
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,
@@ -288,5 +387,40 @@ describe('useTokenHistoricalPrices apiDurationMs', () => {
     );
 
     jest.useRealTimers();
+  });
+
+  it('keeps previously fetched prices when a refetch fails', async () => {
+    mockFetch.mockResolvedValue({
+      status: 200,
+      json: async () => ({
+        prices: [
+          ['1', 100],
+          ['2', 101],
+        ],
+      }),
+    });
+
+    const { result, queryClient } = renderPrices();
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([
+        ['1', 100],
+        ['2', 101],
+      ]);
+    });
+
+    mockFetch.mockRejectedValue(new Error('network error'));
+    await act(async () => {
+      await queryClient.refetchQueries({
+        queryKey: ['token-details', 'historical-prices'],
+      });
+    });
+
+    expect(result.current.data).toEqual([
+      ['1', 100],
+      ['2', 101],
+    ]);
+    expect(result.current.isLoading).toBe(false);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 });

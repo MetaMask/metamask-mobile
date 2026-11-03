@@ -336,7 +336,9 @@ describe('NotificationSettingsSection', () => {
 
     await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SETTINGS.NOTIFICATIONS),
+        StackActions.replace(Routes.SETTINGS.NOTIFICATIONS, {
+          section: 'socialAI',
+        }),
       );
     });
     expect(screen.queryByText('Trading Signals')).toBeNull();

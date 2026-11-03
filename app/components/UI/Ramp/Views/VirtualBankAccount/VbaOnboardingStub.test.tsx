@@ -5,6 +5,14 @@ import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
   VbaOnboardingStubSelectorsIDs,
 } from './VbaOnboardingStub';
+import { VbaOnboardingErrorSelectorsIDs } from '../../../KYC/components/OnboardingError';
+import { strings } from '../../../../../../locales/i18n';
+import { trackVbaEvent } from './vbaAnalytics';
+
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
 const mockOnContinue = jest.fn();
@@ -23,8 +31,6 @@ describe('VbaOnboardingStub', () => {
   });
 
   it.each([
-    ['kyc_pending', 'vba-onboarding-stub-container-kyc_pending'],
-    ['kyc_rejected', 'vba-onboarding-stub-container-kyc_rejected'],
     [
       'account_provisioning_error',
       'vba-onboarding-stub-container-account_provisioning_error',
@@ -41,9 +47,26 @@ describe('VbaOnboardingStub', () => {
     expect(getByTestId(testId)).toBeOnTheScreen();
   });
 
+  it('renders the account details failure without checklist rows', () => {
+    const { getByText, queryByTestId } = renderWithProvider(
+      <VbaOnboardingStub variant="error" onContinue={mockOnContinue} />,
+    );
+
+    expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
+    expect(
+      getByText(strings('virtual_bank_account.error.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('virtual_bank_account.error.description')),
+    ).toBeOnTheScreen();
+  });
+
   it('reports continue to its adapter', async () => {
     const { getByTestId } = renderWithProvider(
-      <VbaOnboardingStub variant="kyc_pending" onContinue={mockOnContinue} />,
+      <VbaOnboardingStub
+        variant="account_provisioning_error"
+        onContinue={mockOnContinue}
+      />,
     );
 
     fireEvent.press(getByTestId(VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON));
@@ -62,4 +85,24 @@ describe('VbaOnboardingStub', () => {
 
     expect(mockGoBack).toHaveBeenCalled();
   });
+
+  it.each([
+    ['error', 'vba_error'],
+    ['account_provisioning_error', 'vba_account_provisioning_error'],
+  ] as const)(
+    'tracks Money VBA Error Viewed once for the %s stub',
+    (variant, screenName) => {
+      const { rerender } = renderWithProvider(
+        <VbaOnboardingStub variant={variant} onContinue={mockOnContinue} />,
+      );
+      rerender(
+        <VbaOnboardingStub variant={variant} onContinue={mockOnContinue} />,
+      );
+
+      expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({ category: 'Money VBA Error Viewed' });
+      expect(buildProperties()).toMatchObject({ screen_name: screenName });
+    },
+  );
 });

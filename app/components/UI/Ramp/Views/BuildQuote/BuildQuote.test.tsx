@@ -11,6 +11,7 @@ import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuot
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { TextColor } from '@metamask/design-system-react-native';
 
 jest.mock('../../../../Base/Keypad', () => {
   const ReactActual = jest.requireActual('react');
@@ -49,6 +50,17 @@ jest.mock('../../../../Base/Keypad', () => {
             onChange({
               value: '99.99',
               valueAsNumber: 42,
+              pressedKey: '0',
+            }),
+        }),
+        ReactActual.createElement(Button, {
+          key: 'grouped-value',
+          testID: 'keypad-trigger-grouped-value',
+          title: 'GroupedValue',
+          onPress: () =>
+            onChange({
+              value: '1234.56',
+              valueAsNumber: 1234.56,
               pressedKey: '0',
             }),
         }),
@@ -158,8 +170,12 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: jest.fn((value: unknown) => value),
 }));
 
-jest.mock('../../hooks/useBlinkingCursor', () => ({
-  useBlinkingCursor: () => 1,
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => 'HIGH'),
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(() => 'WIFI'),
 }));
 
 const mockUseRampsController = jest.requireMock(
@@ -406,41 +422,6 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('amount param initialization', () => {
-    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
-      mockUseParams.mockReturnValue({});
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('100');
-    });
-
-    it('uses amount param as initial value when provided via route params', () => {
-      mockUseParams.mockReturnValue({ amount: 30 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('30');
-    });
-
-    it('does not override amount with region default when amount param is provided', () => {
-      mockUseParams.mockReturnValue({ amount: 50 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
-    });
-  });
-
   describe('updateAmount', () => {
     it('updates amount from string input (empty string maps to "0")', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
@@ -452,7 +433,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(amountInput).toHaveTextContent('$0');
     });
 
     it('updates amount from string input with parsed valueAsNumber', async () => {
@@ -465,7 +446,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('250');
+      expect(amountInput).toHaveTextContent('$250');
     });
 
     it('uses valueAsNumber when provided with string input', async () => {
@@ -478,24 +459,21 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('99.99');
+      expect(amountInput).toHaveTextContent('$99.99');
     });
 
-    it('updates amount from number input via QuickAmounts', async () => {
+    it('groups integer digits while preserving the keypad decimal separator', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
       await act(async () => {
-        fireEvent.press(getByTestId('keypad-trigger-empty'));
+        fireEvent.press(getByTestId('keypad-trigger-grouped-value'));
       });
 
-      await act(async () => {
-        fireEvent.press(getByTestId('quick-amount-50'));
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '$1,234.56',
+      );
     });
 
     it('clears rampsError when amount is updated', async () => {
@@ -510,7 +488,11 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId('keypad-trigger-string'));
       });
 
-      expect(amountInput.props.color).toBeUndefined();
+      expect(
+        amountInput.findAll(
+          ({ props }) => props.color === TextColor.ErrorDefault,
+        ),
+      ).toHaveLength(0);
     });
 
     it('clears amount to 0 when Back key pressed and keyboard not dirty', async () => {
@@ -523,7 +505,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(amountInput).toHaveTextContent('$0');
     });
 
     it('updates amount when Back key pressed and keyboard is dirty', async () => {
@@ -539,7 +521,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('10');
+      expect(amountInput).toHaveTextContent('$10');
     });
   });
 
@@ -623,29 +605,6 @@ describe('BuildQuote', () => {
   });
 
   describe('client-side buy limits', () => {
-    it('shows a below-min inline error and skips quote fetching', () => {
-      const providerWithLimits = buildProviderWithLimits({
-        minAmount: 120,
-        maxAmount: 1000,
-      });
-      mockUseRampsController.mockReturnValue(
-        buildRampsControllerResult({
-          providers: [providerWithLimits, NATIVE_PROVIDER],
-          selectedProvider: providerWithLimits,
-        }),
-      );
-
-      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Minimum purchase is $120.00')).toBeOnTheScreen();
-      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
-
-      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
-      expect(continueButton).toBeDisabled();
-    });
-
     it('shows an above-max inline error and skips quote fetching', () => {
       const providerWithLimits = buildProviderWithLimits({
         minAmount: 10,

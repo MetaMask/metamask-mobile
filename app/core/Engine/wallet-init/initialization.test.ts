@@ -8,6 +8,8 @@ import {
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
+import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
+import { unrestrictedMethods } from '../../Permissions/specifications';
 import { getLedgerDmkMode, initializeLedgerDmkMode } from '../../Ledger/dmk';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 
@@ -99,6 +101,14 @@ describe('initializeWallet', () => {
         claimsService: 'claims-service-options',
         configRegistryApiService: 'config-registry-api-service-options',
         networkController: 'network-options',
+        permissionController: {
+          caveatSpecifications: expect.any(Object),
+          permissionSpecifications: expect.any(Object),
+          unrestrictedMethods,
+        },
+        selectedNetworkController: {
+          domainProxyMap: new DomainProxyMap(),
+        },
         transactionController: 'transaction-options',
       },
     });

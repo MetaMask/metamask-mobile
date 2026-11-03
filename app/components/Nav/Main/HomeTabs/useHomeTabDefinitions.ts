@@ -24,6 +24,8 @@ import type { HomeTabDefinition } from './homeTabs.types';
 export interface UseHomeTabDefinitionsParams {
   isMoneyAccountVisible: boolean;
   showSocialTab: boolean;
+  isSocialV1Enabled: boolean;
+  showSocialTabNewBadge: boolean;
   trackMoneyTabPress: () => void;
 }
 
@@ -46,6 +48,8 @@ export interface UseHomeTabDefinitionsResult {
 export const useHomeTabDefinitions = ({
   isMoneyAccountVisible,
   showSocialTab,
+  isSocialV1Enabled,
+  showSocialTabNewBadge,
   trackMoneyTabPress,
 }: UseHomeTabDefinitionsParams): UseHomeTabDefinitionsResult => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -155,21 +159,34 @@ export const useHomeTabDefinitions = ({
       rootScreenName: Routes.SOCIAL.TAB,
       nativeIcon: NATIVE_TAB_ICONS.social,
       freezeOnBlur: false,
+      showNewBadge: showSocialTabNewBadge,
     };
+
+    if (isSocialV1Enabled) {
+      return [
+        home,
+        explore,
+        browser,
+        isMoneyAccountVisible ? money : activity,
+        social,
+      ];
+    }
 
     return [
       home,
       explore,
       browser,
       isMoneyAccountVisible ? money : activity,
-      showSocialTab ? social : rewards,
+      ...(showSocialTab ? [social] : [rewards]),
     ];
   }, [
     accountsLength,
     chainId,
     createEventBuilder,
     isMoneyAccountVisible,
+    isSocialV1Enabled,
     showSocialTab,
+    showSocialTabNewBadge,
     trackEvent,
     trackMoneyTabPress,
   ]);

@@ -381,6 +381,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         ref={flashListRef}
         data={flatData}
         renderItem={renderFlatItem}
+        getItemType={(item) => item.type}
         keyExtractor={keyExtractor}
         contentContainerStyle={tw.style(`px-4 pb-[${floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}

@@ -162,6 +162,62 @@ describe('usePredictPlaceOrder', () => {
       expect(typeof result.current.placeOrder).toBe('function');
       expect(typeof result.current.invalidateOrderQueries).toBe('function');
     });
+
+    it('starts in the unknown retry order state', () => {
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      expect(result.current.retryOrderState).toBe('unknown');
+    });
+  });
+
+  describe('retryOrderState', () => {
+    it("returns 'pending' while a submission is in flight", async () => {
+      type MockOrderResult = Result<{ transactionHash: string }>;
+      let resolvePlaceOrder!: (result: MockOrderResult) => void;
+      mockPlaceOrder.mockImplementation(
+        () =>
+          new Promise<MockOrderResult>((resolve) => {
+            resolvePlaceOrder = resolve;
+          }),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let placing!: Promise<PlaceOrderOutcome>;
+      await act(async () => {
+        placing = result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.retryOrderState).toBe('pending');
+
+      await act(async () => {
+        resolvePlaceOrder(mockSuccessResult);
+        await placing;
+      });
+
+      expect(result.current.retryOrderState).toBe('filled');
+    });
+
+    it("returns 'filled' after a successful submission", async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.retryOrderState).toBe('filled');
+    });
+
+    it("returns 'unknown' after a failed submission", async () => {
+      mockPlaceOrder.mockRejectedValue(new Error('Order not fully filled'));
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.retryOrderState).toBe('unknown');
+    });
   });
 
   describe('placeOrder - success scenario', () => {
@@ -785,6 +841,9 @@ describe('usePredictPlaceOrder', () => {
       act(() => {
         pendingOrder = result.current.placeOrder(mockOrderParams);
       });
+      await act(async () => {
+        await Promise.resolve();
+      });
       const isLoadingDuringRefetch = result.current.isLoading;
       const refetchCallsDuringRefetch = mockRefetchBalance.mock.calls.length;
       const orderCallsDuringRefetch = mockPlaceOrder.mock.calls.length;
@@ -858,6 +917,23 @@ describe('usePredictPlaceOrder', () => {
       });
 
       expect(mockOnError).not.toHaveBeenCalled();
+    });
+
+    it('keeps the submitted preview recorded when the order is not filled', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      // The recorded preview is the 1-tick baseline for the retry flow: it
+      // must be written before the submit attempt and survive a not-filled
+      // failure. Without it, a retry treats the fresh quote as zero ticks
+      // worse and submits on a single confirmation.
+      expect(result.current.lastSubmittedPreview).toBe(mockOrderParams.preview);
     });
 
     it('resets isOrderNotFilled and error when resetOrderNotFilled is called', async () => {

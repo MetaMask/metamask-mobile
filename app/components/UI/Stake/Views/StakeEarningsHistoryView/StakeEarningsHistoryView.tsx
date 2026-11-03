@@ -3,17 +3,21 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import React from 'react';
 import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './StakeEarningsHistoryView.styles';
 import { StakeEarningsHistoryViewRouteParams } from './StakeEarningsHistoryView.types';
 import EarningsHistory from '../../../Earn/components/Earnings/EarningsHistory/EarningsHistory';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const STAKE_EARNINGS_HISTORY_VIEW_BACK_BUTTON_TEST_ID =
   'stake-earnings-history-header-back-button';
 
 const StakeEarningsHistoryView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<StakeEarningsHistoryViewRouteParams>();
   const { styles } = useStyles(styleSheet, {});
@@ -21,7 +25,9 @@ const StakeEarningsHistoryView = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('stake.earnings_history_title', {
           ticker: asset.ticker || asset.symbol,
         })}

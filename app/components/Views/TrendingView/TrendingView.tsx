@@ -34,6 +34,8 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectExploreBrandRefreshEnabled } from '../../../selectors/featureFlagController/exploreBrandRefresh';
+import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
@@ -233,6 +235,9 @@ export const ExploreFeed: React.FC = () => {
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
   const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
+  const isSearchGlass = useIsGlassSurfaceEnabled(
+    selectExploreBrandRefreshEnabled,
+  );
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -329,9 +334,13 @@ export const ExploreFeed: React.FC = () => {
       />
 
       <Box twClassName="gap-4 flex-1">
-        <Box twClassName="mt-2 mb-2 flex-row items-center gap-2 px-4">
+        <Box twClassName="mt-4 mb-2 flex-row items-center gap-2 px-4">
           <Box twClassName="flex-1">
-            <ExploreSearchBar type="button" onPress={handleSearchPress} />
+            <ExploreSearchBar
+              type="button"
+              onPress={handleSearchPress}
+              isGlass={isSearchGlass}
+            />
           </Box>
 
           {isHeaderRefreshEnabled && browserTabsCount > 0 ? (
@@ -339,6 +348,7 @@ export const ExploreFeed: React.FC = () => {
               tabCount={browserTabsCount}
               onPress={handleBrowserPress}
               testID="trending-view-browser-button"
+              isGlass={isSearchGlass}
             />
           ) : (
             <TouchableOpacity

@@ -36,16 +36,13 @@ import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BridgeToken, BridgeViewMode } from '../../types';
-import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
+import { BridgeToken } from '../../types';
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
   StatusTypes,
-  MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
-import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 /* eslint-disable import-x/no-restricted-paths -- reuse the redesigned Activity-details row components instead of duplicating them; route-isolation backlog */
 import {
   ActivityDetailsDualAmountHeader,
@@ -76,6 +73,10 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
 import { useNativeCurrencySymbol } from '../../../../Views/confirmations/hooks/useNativeCurrencySymbol';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../hooks/useSwapBridgeNavigation';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -370,21 +371,14 @@ export const BridgeTransactionDetails = (
     getBridgeDestinationCaipChainId(destinationTokenModel) ??
     formatChainIdToCaip(quote.destChainId);
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: 'BridgeTransactionDetails',
+    sourceToken,
+    destToken: destinationToken,
+    location: SwapBridgeNavigationLocation.TransactionDetails,
+  });
   const handleBridgeAgain = () => {
-    dispatch(setSourceAmount(undefined));
-    const params = startSwapBridgePageLoadTrace({
-      sourcePage: 'BridgeTransactionDetails',
-      bridgeViewMode: isBridge ? BridgeViewMode.Bridge : BridgeViewMode.Swap,
-      sourceToken,
-      destToken: destinationToken,
-      location: MetaMetricsSwapsEventSource.MainView,
-      scrollToTopOnNav: true,
-    });
-
-    navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
+    goToSwaps(undefined, undefined, undefined, true);
   };
 
   return (

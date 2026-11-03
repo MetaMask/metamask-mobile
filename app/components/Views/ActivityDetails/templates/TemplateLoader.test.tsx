@@ -45,6 +45,16 @@ jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [],
 }));
 
+jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => {
+  const actual = jest.requireActual(
+    '../../../UI/Bridge/hooks/useSwapBridgeNavigation',
+  );
+  return {
+    ...actual,
+    useSwapBridgeNavigation: () => ({ goToSwaps: jest.fn() }),
+  };
+});
+
 jest.mock('../../../UI/Earn/hooks/useEarnTokens', () => ({
   __esModule: true,
   default: () => ({ earnTokensByChainIdAndAddress: {} }),

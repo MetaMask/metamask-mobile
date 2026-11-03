@@ -11,6 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { playSelection } from '../../../../../../util/haptics';
 
 export interface FilterChipOption<T extends string> {
   id: T;
@@ -46,7 +47,10 @@ const FilterChipSection = <T extends string>({
   testID,
 }: FilterChipSectionProps<T>) => {
   const handleChange = useCallback(
-    (next: string) => onChange(next as T),
+    (next: string) => {
+      playSelection().catch(() => undefined);
+      onChange(next as T);
+    },
     [onChange],
   );
 

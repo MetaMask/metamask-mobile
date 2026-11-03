@@ -13,10 +13,31 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import type { CaipChainId } from '@metamask/utils';
+import { BridgeTabKey } from '../../../../UI/Bridge/Views/BridgeView/BridgeView.constants';
+import { getDefaultTokenPairForChains } from '../../../../UI/Bridge/utils/tokenUtils';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => {
+  const { MetaMetricsSwapsEventSource: swapsEventSource } = jest.requireActual(
+    '@metamask/bridge-controller',
+  );
+  return {
+    SwapBridgeNavigationLocation: {
+      MainView: swapsEventSource.MainView,
+    },
+    useSwapBridgeNavigation: (args: unknown) =>
+      mockUseSwapBridgeNavigation(args),
+  };
+});
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => true),
@@ -94,6 +115,54 @@ describe('ActivityEmptyState', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Swap tokens')).toBeOnTheScreen();
   });
+
+  it('opens swaps from the funded transactions empty state', () => {
+    render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Transactions} />);
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'ActivityEmptyState',
+      location: MetaMetricsSwapsEventSource.MainView,
+    });
+    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
+
+    expect(mockGoToSwaps).toHaveBeenCalledWith();
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['all networks', null, '0x1'],
+    ['an empty network filter', [], '0x1'],
+    ['Linea', ['eip155:59144'], '0xe708'],
+  ] as [string, CaipChainId[] | null, string][])(
+    'opens swaps on the Limit tab with the default pair for %s',
+    (_label, networkFilter, expectedChainId) => {
+      const expectedPair = getDefaultTokenPairForChains([
+        networkFilter?.[0] ?? 'eip155:1',
+      ]);
+      render(
+        <ActivityEmptyState
+          typeFilter={ActivityTypeFilter.LimitOrders}
+          networkFilter={networkFilter}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+      );
+
+      expect(expectedPair?.sourceToken.chainId).toBe(expectedChainId);
+      expect(expectedPair?.destToken?.chainId).toBe(expectedChainId);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expectedPair?.sourceToken,
+        expectedPair?.destToken,
+        undefined,
+        undefined,
+        undefined,
+        BridgeTabKey.Limit,
+      );
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it('routes each CTA to the expected destination', async () => {
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Predictions} />);

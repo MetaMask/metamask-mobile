@@ -39,7 +39,7 @@ describe('SwapsFeatureIdProvider', () => {
     const { getByTestId } = render(
       <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
         <FeatureIdConsumer testID="outer" />
-        <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_BUY}>
+        <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_ORDER}>
           <FeatureIdConsumer testID="inner" />
         </SwapsFeatureIdProvider>
       </SwapsFeatureIdProvider>,
@@ -48,7 +48,7 @@ describe('SwapsFeatureIdProvider', () => {
     expect(getByTestId('outer')).toHaveTextContent(
       FeatureId.UNIFIED_SWAP_BRIDGE,
     );
-    expect(getByTestId('inner')).toHaveTextContent(FeatureId.RECURRING_BUY);
+    expect(getByTestId('inner')).toHaveTextContent(FeatureId.RECURRING_ORDER);
   });
 
   it('leaves a consumer with no feature id when rendered outside any provider', () => {

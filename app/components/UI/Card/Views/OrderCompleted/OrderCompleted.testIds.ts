@@ -5,4 +5,5 @@ export enum OrderCompletedSelectors {
   SUBTITLE = 'order-completed-subtitle',
   DESCRIPTION = 'order-completed-description',
   SET_UP_CARD_BUTTON = 'order-completed-set-up-card-button',
+  NOT_NOW_BUTTON = 'order-completed-not-now-button',
 }

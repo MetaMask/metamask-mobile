@@ -3,7 +3,13 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { parseCaipAssetType, type CaipChainId } from '@metamask/utils';
+import {
+  isCaipAccountId,
+  isCaipAssetType,
+  parseCaipAccountId,
+  parseCaipAssetType,
+  type CaipChainId,
+} from '@metamask/utils';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import {
   Box,
@@ -16,8 +22,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import type {
   Status,
   TokenAmount,
@@ -48,12 +52,15 @@ import {
 import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
-import { BridgeViewMode, type BridgeToken } from '../../types';
+import { type BridgeToken } from '../../types';
 import { getRecurringOrderTokens } from '../../utils/recurringOrders';
-import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
 import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
 import type { RecurringSwapDetailsRouteParams } from './RecurringSwapDetailsView.types';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../hooks/useSwapBridgeNavigation';
 
 interface RecurringSwapStatusDisplay {
   status: Status;
@@ -71,18 +78,29 @@ function getRecurringSwapStatusDisplay(
     return { status: 'failed' };
   }
 
+  if (swap.status === RecurringSwapStatus.Submitted) {
+    return {
+      status: 'pending',
+      label: strings('bridge.limit.submitted'),
+    };
+  }
+
   return {
     status: 'pending',
     label: strings('bridge.recurring.skipped'),
   };
 }
 
-function getSkipReason(swap: RecurringSwap): string | undefined {
-  if (swap.status !== RecurringSwapStatus.Skipped || !swap.skipReason) {
-    return undefined;
+function getReason(swap: RecurringSwap): string | undefined {
+  if (swap.status === RecurringSwapStatus.Failed) {
+    return swap.failureReason;
   }
 
-  return strings(`bridge.recurring.${swap.skipReason}`);
+  if (swap.status === RecurringSwapStatus.Skipped && swap.skipReason) {
+    return strings(`bridge.recurring.${swap.skipReason}`);
+  }
+
+  return undefined;
 }
 
 function RecurringSwapFeesAndTotal({
@@ -193,37 +211,22 @@ export function RecurringSwapAgainButton({
   sourceToken: BridgeToken;
   destinationToken: BridgeToken;
 }) {
-  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { setSelectedTab, setRenderedTab } = useBridgeSession();
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: 'RecurringSwapDetails',
+    sourceToken,
+    destToken: destinationToken,
+    // TODO: Add a recurring source to MetaMetricsSwapsEventSource in @metamask/bridge-controller.
+    location: SwapBridgeNavigationLocation.TransactionDetails,
+  });
+
   const handleSwapAgain = useCallback(() => {
-    dispatch(setSourceAmount(undefined));
     setSelectedTab(BridgeTabKey.Market);
     setRenderedTab(BridgeTabKey.Market);
-
-    const params = startSwapBridgePageLoadTrace({
-      sourcePage: 'RecurringSwapDetails',
-      bridgeViewMode: BridgeViewMode.Unified,
-      sourceToken,
-      destToken: destinationToken,
-      // TODO: Add a recurring source to MetaMetricsSwapsEventSource in @metamask/bridge-controller.
-      location: MetaMetricsSwapsEventSource.TransactionDetails,
-      scrollToTopOnNav: true,
-    });
-
-    navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
-  }, [
-    destinationToken,
-    dispatch,
-    navigation,
-    setRenderedTab,
-    setSelectedTab,
-    sourceToken,
-  ]);
+    goToSwaps(undefined, undefined, undefined, true);
+  }, [setRenderedTab, setSelectedTab, goToSwaps]);
 
   return (
     <ActivityDetailsDoItAgainButton
@@ -248,8 +251,12 @@ function RecurringSwapDetailsView() {
     showAddFundsCta = false,
   } = useParams<RecurringSwapDetailsRouteParams>();
   const { sourceToken, destinationToken } = getRecurringOrderTokens(order);
-  const chainId = parseCaipAssetType(order.src.asset.assetId).chainId;
-  const networkName = useActivityNetworkName(chainId);
+  const sourceAssetId = order.src.asset.assetId;
+  const chainId = isCaipAssetType(sourceAssetId)
+    ? parseCaipAssetType(sourceAssetId).chainId
+    : undefined;
+  const displayChainId = chainId ?? sourceAssetId;
+  const networkName = useActivityNetworkName(displayChainId);
   const hasZeroAmounts = swap.status !== RecurringSwapStatus.Filled;
   const statusDisplay = getRecurringSwapStatusDisplay(swap);
   const sourceTokenAmount: TokenAmount = {
@@ -266,8 +273,13 @@ function RecurringSwapDetailsView() {
     assetId: order.dest.asset.assetId,
     direction: 'in',
   };
-  const executionTimestamp = Date.parse(swap.executedAt ?? swap.scheduledAt);
-  const skipReason = getSkipReason(swap);
+  const executionTimestamp = Date.parse(
+    swap.timingData.executedAt ?? swap.timingData.scheduledAt,
+  );
+  const accountAddress = isCaipAccountId(order.account)
+    ? parseCaipAccountId(order.account).address
+    : order.account;
+  const reason = getReason(swap);
   const shouldOfferDelegation =
     swap.status === RecurringSwapStatus.Skipped &&
     swap.skipReason === 'needs_smart_account';
@@ -323,7 +335,7 @@ function RecurringSwapDetailsView() {
                   />
                   <ActivityDetailRow
                     label={strings('bridge.recurring.reason')}
-                    value={skipReason}
+                    value={reason}
                     testID={RecurringSwapDetailsViewSelectorsIDs.REASON_ROW}
                   />
                   <ActivityDetailRow
@@ -335,8 +347,8 @@ function RecurringSwapDetailsView() {
                     label={strings('activity_details.account')}
                     value={
                       <ActivityDetailsAccountValue
-                        address={order.src.walletAddress}
-                        chainId={chainId}
+                        address={accountAddress}
+                        chainId={displayChainId}
                       />
                     }
                     testID={RecurringSwapDetailsViewSelectorsIDs.ACCOUNT_ROW}
@@ -345,7 +357,7 @@ function RecurringSwapDetailsView() {
                     label={strings('activity_details.network')}
                     value={
                       <ActivityDetailsNetworkValue
-                        chainId={chainId}
+                        chainId={displayChainId}
                         name={networkName}
                       />
                     }
@@ -363,7 +375,7 @@ function RecurringSwapDetailsView() {
                     }
                   />
                 </ActivityDetailSection>
-                {swap.txHash ? (
+                {swap.txHash && chainId ? (
                   <RecurringSwapFeesAndTotal
                     chainId={chainId}
                     txHash={swap.txHash}
@@ -375,10 +387,12 @@ function RecurringSwapDetailsView() {
             footer={
               swap.txHash ? (
                 <>
-                  <ActivityDetailsBlockExplorerButton
-                    chainId={chainId}
-                    hash={swap.txHash}
-                  />
+                  {chainId ? (
+                    <ActivityDetailsBlockExplorerButton
+                      chainId={chainId}
+                      hash={swap.txHash}
+                    />
+                  ) : null}
                   {shouldOfferSwapAgain ? (
                     <RecurringSwapAgainButton
                       sourceToken={sourceToken}
@@ -388,7 +402,7 @@ function RecurringSwapDetailsView() {
                 </>
               ) : shouldOfferDelegation ? (
                 <RecurringSwapDelegationButton
-                  address={order.src.walletAddress}
+                  address={accountAddress}
                   chainId={chainId}
                 />
               ) : showAddFundsCta ? (

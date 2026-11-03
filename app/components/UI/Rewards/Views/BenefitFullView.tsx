@@ -210,7 +210,7 @@ const BenefitFullView = () => {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handleClaim}
-            endIconName={IconName.Export}
+            endIconName={IconName.ArrowSquareOut}
             twClassName="w-full"
             testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION}
           >

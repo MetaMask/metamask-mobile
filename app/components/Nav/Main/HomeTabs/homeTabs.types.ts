@@ -35,6 +35,7 @@ export interface HomeTabDefinition {
   onLeave?: () => void;
   freezeOnBlur?: boolean;
   isHidden?: boolean;
+  showNewBadge?: boolean;
   isSelected?: (rootScreenName: string) => boolean;
   hidesTabBarFor?: (route: HomeTabRoute) => boolean;
 }

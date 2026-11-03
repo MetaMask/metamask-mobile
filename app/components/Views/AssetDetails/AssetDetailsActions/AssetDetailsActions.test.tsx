@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { MAINACTIONBUTTON_GLASS_TEST_ID } from '../../../../component-library/components-temp/MainActionButton/MainActionButton.constants';
 import AssetDetailsActions from './AssetDetailsActions';
 import { strings } from '../../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../UI/AssetOverview/TokenOverview.testIds';
@@ -12,6 +13,21 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
+import { SwapBridgeNavigationLocation } from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import {
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../util/analytics/actionButtonTracking';
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  ...jest.requireActual('../../../UI/Bridge/hooks/useSwapBridgeNavigation'),
+  useSwapBridgeNavigation: (args: unknown) => mockUseSwapBridgeNavigation(args),
+}));
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
@@ -63,7 +79,6 @@ jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
 
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
-  const mockGoToSwaps = jest.fn();
   const mockOnSend = jest.fn();
   const mockOnReceive = jest.fn();
 
@@ -71,7 +86,6 @@ describe('AssetDetailsActions', () => {
     displayBuyButton: true,
     displaySwapsButton: true,
     chainId: '0x1' as const,
-    goToSwaps: mockGoToSwaps,
     onSend: mockOnSend,
     onReceive: mockOnReceive,
   };
@@ -103,6 +117,24 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
     expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('keeps opaque buttons by default', () => {
+    const { queryAllByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
+
+    expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
+  });
+
+  it('renders every button on glass when isGlass is set', () => {
+    const { getAllByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} isGlass />,
+      { state: initialRootState },
+    );
+
+    expect(getAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(4);
   });
 
   it('renders correctly with all buttons displayed', () => {
@@ -176,21 +208,47 @@ describe('AssetDetailsActions', () => {
     expect(mockEventBuilder.build).toHaveBeenCalled();
   });
 
-  it('calls goToSwaps when the swap button is pressed', () => {
-    // Given swaps are enabled
+  it('opens swaps from the token details entry point when the swap button is pressed', () => {
     jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
 
-    // Given a state with an account that can sign transactions
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
       { state: createStateWithSigningCapability() },
     );
 
-    // When the button is pressed
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: SwapBridgeNavigationLocation.MainView,
+      sourcePage: 'MainView',
+      skipActionButtonClickTracking: true,
+    });
+
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
 
-    // Then the goToSwaps callback should be called
-    expect(mockGoToSwaps).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+    expect(mockGoToSwaps).toHaveBeenCalledWith();
+  });
+
+  it('tracks home location when the swap button is pressed', () => {
+    jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: createStateWithSigningCapability() },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.SWAP,
+      action_position: ActionPosition.SECOND_POSITION,
+      button_label: strings('asset_overview.swap'),
+      location: ActionLocation.HOME,
+    });
+    expect(mockEventBuilder.build).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('calls onSend when the send button is pressed', () => {

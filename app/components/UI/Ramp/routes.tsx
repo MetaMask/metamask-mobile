@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import reactQueryService from '../../../core/ReactQueryService/ReactQueryService';
@@ -29,7 +29,6 @@ import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import PhoneCountrySelectorModal from './Views/Modals/PhoneCountrySelectorModal';
 import RampsOrderDetails from './Views/OrderDetails';
-import LockManagerService from '../../../core/LockManagerService';
 import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
@@ -229,38 +228,26 @@ const TokenListModalsRoutes = () => (
   </ModalsStack.Navigator>
 );
 
-const TokenListRoutes = () => {
-  // Disable auto-lock during Ramps unified buy v2 flow
-  // This allows users to minimize the app to check personal details or complete
-  // verification steps without being locked out and redirected to wallet home
-  useEffect(() => {
-    LockManagerService.stopListening();
-    return () => {
-      LockManagerService.startListening();
-    };
-  }, []);
-
-  return (
-    <QueryClientProvider client={reactQueryService.queryClient}>
-      <RootStack.Navigator
-        initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
-        screenOptions={{ headerShown: false }}
-      >
-        <RootStack.Screen
-          name={Routes.RAMP.TOKEN_SELECTION_ROOT}
-          component={MainRoutes}
-        />
-        <RootStack.Screen
-          name={Routes.RAMP.MODALS.ID}
-          component={TokenListModalsRoutes}
-          options={{
-            ...clearNativeStackNavigatorOptions,
-            ...transparentModalScreenOptions,
-          }}
-        />
-      </RootStack.Navigator>
-    </QueryClientProvider>
-  );
-};
+const TokenListRoutes = () => (
+  <QueryClientProvider client={reactQueryService.queryClient}>
+    <RootStack.Navigator
+      initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
+      screenOptions={{ headerShown: false }}
+    >
+      <RootStack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION_ROOT}
+        component={MainRoutes}
+      />
+      <RootStack.Screen
+        name={Routes.RAMP.MODALS.ID}
+        component={TokenListModalsRoutes}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
+    </RootStack.Navigator>
+  </QueryClientProvider>
+);
 
 export default TokenListRoutes;

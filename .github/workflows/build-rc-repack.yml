@@ -273,10 +273,12 @@ jobs:
       # code-signing certificate from it, and repack regenerates EXConstants.bundle/app.config
       # and Expo.plist from the Expo config.
       - name: Apply build config
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
-          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
+          eval "$(node scripts/apply-build-config.js "${BUILD_NAME}" --export)"
+          node scripts/apply-build-config.js "${BUILD_NAME}" --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js "${BUILD_NAME}" --write-build-env || true
 
       - name: Validate secrets
         env:

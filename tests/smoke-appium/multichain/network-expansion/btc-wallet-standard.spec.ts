@@ -64,10 +64,7 @@ appiumTest.describe(SmokeNetworkExpansion('Bitcoin Wallet Standard'), () => {
     },
   );
 
-  // Locally the test passes always and the app shows connected within 1 sec.
-  // On CI it passes fine on iOS. But on Android it still sometimes fails the
-  // first attempt with: timed out after 30s, status still "Not connected".
-  appiumTest.skip(
+  appiumTest(
     'Stays connected after page refresh',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(

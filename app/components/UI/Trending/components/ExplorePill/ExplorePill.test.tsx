@@ -60,22 +60,6 @@ describe('ExplorePill', () => {
     expect(queryByText('+1.00%')).toBeNull();
   });
 
-  it('marks the pill selected when isSelected is set', () => {
-    const { getByTestId } = render(
-      <ExplorePill
-        onPress={jest.fn()}
-        testID="pill"
-        leading={<Text>L</Text>}
-        title="BTC"
-        isSelected
-      />,
-    );
-
-    expect(getByTestId('pill').props.accessibilityState).toEqual({
-      selected: true,
-    });
-  });
-
   it('renders a trailing accessory after the label', () => {
     const { getByTestId } = render(
       <ExplorePill
@@ -88,5 +72,19 @@ describe('ExplorePill', () => {
     );
 
     expect(getByTestId('trailing')).toBeTruthy();
+  });
+
+  it('applies a custom title color', () => {
+    const { UNSAFE_getByProps } = render(
+      <ExplorePill
+        onPress={jest.fn()}
+        testID="pill"
+        leading={<Text>L</Text>}
+        title="BTC"
+        titleTextColor={TextColor.InfoInverse}
+      />,
+    );
+
+    expect(UNSAFE_getByProps({ color: TextColor.InfoInverse })).toBeTruthy();
   });
 });

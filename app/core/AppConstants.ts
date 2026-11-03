@@ -34,8 +34,7 @@ const SECURITY_ALERTS_API_URL =
   'https://security-alerts.api.cx.metamask.io';
 
 const PRICE_ALERTS_API_URL =
-  process.env.PRICE_ALERTS_API_URL ??
-  'https://price-alerts.dev-api.cx.metamask.io';
+  process.env.PRICE_ALERTS_API_URL ?? 'https://price-alerts.api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -218,9 +217,9 @@ export default {
       ACH_DARK:
         'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
     },
-    TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
+    TERMS_AND_CONDITIONS: 'https://metamask.com/terms-of-use',
     TERMS_OF_USE: 'https://metamask.io/terms',
-    PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
+    PRIVACY_POLICY: 'https://metamask.com/privacy-notice',
     PROFILE_SYNC: PROFILE_SYNC_URL,
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
@@ -231,15 +230,15 @@ export default {
     TESTNET_ETH_SCAMS: TESTNET_ETH_SCAMS_URL,
     WHAT_IS_SRP:
       'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
-    PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
+    PRIVACY_POLICY_2024: 'https://metamask.com/privacy-notice',
     PRIVACY_BEST_PRACTICES: PRIVACY_BEST_PRACTICES_URL,
     SMART_TXS: SMART_TXS_URL,
     SMART_ACCOUNTS: SMART_ACCOUNTS_URL,
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
     EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
     ADD_SOLANA_ACCOUNT_PRIVACY_POLICY: ADD_SOLANA_ACCOUNT_PRIVACY_POLICY_URL,
-    TERMS_OF_USE_URL: 'https://consensys.io/terms-of-use',
-    PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
+    TERMS_OF_USE_URL: 'https://metamask.com/terms-of-use',
+    PRIVACY_NOTICE: 'https://metamask.com/privacy-notice',
     MULTICHAIN_ACCOUNTS: MULTICHAIN_ACCOUNTS_URL,
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
@@ -348,8 +347,7 @@ export default {
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
     TERMS_ACCEPTED: 'ToU Accepted',
-    TERMS_OF_USE_URL_WITHOUT_COOKIES:
-      'https://legal.consensys.io/plain/terms-of-use/',
+    TERMS_OF_USE_URL_WITHOUT_COOKIES: 'https://metamask.com/terms-of-use',
   },
   FAVICON_CACHE_MAX_SIZE: 100,
   BASIC_FUNCTIONALITY_BLOCK_LIST: [

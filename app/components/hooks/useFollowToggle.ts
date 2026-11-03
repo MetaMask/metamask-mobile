@@ -14,6 +14,12 @@ import {
 } from '../Views/SocialLeaderboard/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { hasRealAvatar } from '../UI/SocialFeed/utils/avatarFallback';
+import {
+  clearOptimisticFollowerCounts,
+  commitOptimisticFollowerCount,
+  recordOptimisticFollowerCount,
+  rollbackOptimisticFollowerCount,
+} from './optimisticFollowerCount';
 
 /**
  * Analytics context attached to a follow/unfollow action so the
@@ -49,6 +55,11 @@ export interface UseFollowToggleManyResult {
 }
 
 const FOLLOWING_QUERY_KEY = ['SocialService:fetchFollowing'] as const;
+const MY_FOLLOWERS_QUERY_KEY = ['SocialService:fetchMyFollowers'] as const;
+const FOLLOWERS_QUERY_KEY = ['SocialService:fetchFollowers'] as const;
+const TRADER_FOLLOWING_QUERY_KEY = [
+  'SocialService:fetchTraderFollowing',
+] as const;
 
 type OptimisticFollowListener = () => void;
 
@@ -98,6 +109,7 @@ const getFollowToggleSessionKey = (
 
 const clearFollowToggleSharedState = (): void => {
   inflightIds.clear();
+  clearOptimisticFollowerCounts();
   if (Object.keys(optimisticFollowState).length === 0) {
     return;
   }
@@ -129,16 +141,29 @@ export const resetFollowToggleSharedStateForTests = (): void => {
 };
 
 /**
- * Invalidates the followed-traders query without importing ReactQueryService at
+ * Invalidates follow-list queries without importing ReactQueryService at
  * module load (that import pulls in Engine and breaks tests that mock Engine).
+ * Prefix keys for fetchFollowers / fetchTraderFollowing also match
+ * per-trader and mutuals variants.
  */
 const invalidateFollowingQuery = async (): Promise<void> => {
   const { default: ReactQueryService } = await import(
     '../../core/ReactQueryService'
   );
-  await ReactQueryService.queryClient.invalidateQueries({
-    queryKey: FOLLOWING_QUERY_KEY,
-  });
+  await Promise.all([
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: FOLLOWING_QUERY_KEY,
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: MY_FOLLOWERS_QUERY_KEY,
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: FOLLOWERS_QUERY_KEY,
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: TRADER_FOLLOWING_QUERY_KEY,
+    }),
+  ]);
 };
 
 /**
@@ -196,6 +221,10 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
       }
       inflightIds.add(addressOrId);
 
+      // Same turn as the button flip. The profile query still has the old
+      // followerCount until it refetches; the displayed count adds this delta
+      // and drops it once that refetch includes the change.
+      recordOptimisticFollowerCount(addressOrId, nextValue ? 1 : -1);
       updateOptimisticFollowState((prev) => ({
         ...prev,
         [addressOrId]: nextValue,
@@ -213,6 +242,10 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
           return;
         }
         await invalidateFollowingQuery();
+        if (requestEpoch !== followToggleSessionEpoch) {
+          return;
+        }
+        commitOptimisticFollowerCount(addressOrId);
         if (analyticsContext) {
           track(MetaMetricsEvents.SOCIAL_TRADER_FOLLOW_INTERACTION, {
             [SocialLeaderboardEventProperties.ACTION]: nextValue
@@ -231,6 +264,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         }
       } catch (err) {
         if (requestEpoch === followToggleSessionEpoch) {
+          rollbackOptimisticFollowerCount(addressOrId);
           updateOptimisticFollowState((prev) => {
             const next = { ...prev };
             delete next[addressOrId];

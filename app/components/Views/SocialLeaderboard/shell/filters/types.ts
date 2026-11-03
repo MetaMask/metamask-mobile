@@ -8,7 +8,7 @@ export type SocialFilterType = 'all' | 'tokens' | 'perps' | 'predictions';
 
 /**
  * Trader cohort filter. `following` is tab-specific; `verified` is a
- * Leaderboard Traders chip (Following / Live trades use `verification`).
+ * Leaderboard Traders chip (Following / Live use `verification`).
  */
 export type SocialTraderCohort =
   | 'all'
@@ -19,6 +19,12 @@ export type SocialTraderCohort =
   | 'verified';
 
 export type SocialFilterVerification = 'all' | 'verified' | 'unverified';
+
+/**
+ * Open versus closed positions. `all` leaves both in the feed. Composer
+ * `spotShare` cards match neither Open nor Closed.
+ */
+export type SocialFilterPositionStatus = 'all' | 'open' | 'closed';
 
 /**
  * Trailing window for the unified Filters sheet. The V0 sheet only offered
@@ -57,6 +63,11 @@ export interface SocialShellFilters {
   type: SocialFilterType;
   traderCohort: SocialTraderCohort;
   verification: SocialFilterVerification;
+  /**
+   * Trending-only. Other tabs keep the default and the sheet does not show
+   * the section, so a leftover value must not light their filter icon.
+   */
+  positionStatus: SocialFilterPositionStatus;
   timeframe: SocialFilterTimeframe;
   network: SocialFilterNetwork;
   marketCap: SocialRangeFilter;

@@ -221,7 +221,7 @@ const PerpsServiceInterruptionBanner: React.FC<
             title: strings(SUPPORT_CONFIG.TitleKey),
           },
         }),
-      SUPPORT_CONFIG.Url,
+      SERVICE_INTERRUPTION_CONFIG.SupportUrl,
     );
   }, [navigation, openSupportWithConsent]);
 

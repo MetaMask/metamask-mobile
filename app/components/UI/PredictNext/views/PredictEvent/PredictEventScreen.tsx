@@ -20,25 +20,18 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { PREDICT_MARKET_TYPES } from '../../constants';
 import {
   findWinnerMarketQuotes,
   getEventGame,
-  type GameSelectionQuote,
+  getGameMoneylineMarkets,
 } from '../../events/game';
-import {
-  MarketFooterCard,
-  MarketList,
-  MarketStandardCard,
-  SpreadMarketGroupCard,
-  TotalMarketGroupCard,
-} from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
+import { getOutcomeName } from '../../utils/entryCopy';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
-import type { PredictEvent, PredictMarket } from '../../types';
+import type { PredictEvent, PredictMarket, PredictPosition } from '../../types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -51,10 +44,8 @@ import {
   StandardEventHeader,
 } from './internal/EventHeaders';
 import RulesBottomSheet from './internal/RulesBottomSheet';
-import {
-  createMarketGroupProjection,
-  type MarketGroupProjection,
-} from './internal/createMarketGroupProjection';
+import { EventMarketList } from './internal/EventMarketList';
+import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 
 const styles = StyleSheet.create({
@@ -73,18 +64,13 @@ type RulesTarget =
 
 type WinnerQuotes = NonNullable<ReturnType<typeof findWinnerMarketQuotes>>;
 
-const getProjectionKey = (projection: MarketGroupProjection) =>
-  projection.type === 'group' ? projection.key : projection.market.id;
-
 const EventScreenChrome = ({
   children,
-  footer,
   onBack,
   title,
   onRulesPress,
 }: {
   children: React.ReactNode;
-  footer?: React.ReactNode;
   onBack: () => void;
   title?: string;
   onRulesPress?: () => void;
@@ -117,7 +103,6 @@ const EventScreenChrome = ({
       }
     />
     {children}
-    {footer}
   </Box>
 );
 
@@ -152,33 +137,21 @@ const EventLoadedHeader = ({
   winnerQuotes,
   historyMarket,
   selectedMarketId,
-  showPredictTitle,
   onSelectMarket,
 }: {
   event: PredictEvent;
   winnerQuotes?: WinnerQuotes;
   historyMarket?: PredictMarket;
   selectedMarketId?: string;
-  showPredictTitle: boolean;
   onSelectMarket: (marketId: string) => void;
 }) => {
   const game = getEventGame(event);
+  const chartMarkets = getGameMoneylineMarkets(event);
+  const selectedChartMarket = chartMarkets.find(
+    (market) => market.id === selectedMarketId,
+  );
 
   const renderMarketHistory = () => {
-    if (selectedMarketId) {
-      const selectedMarket = event.markets.find(
-        (market) => market.id === selectedMarketId,
-      );
-      if (selectedMarket) {
-        return (
-          <PredictMarketHistory
-            venueId={event.venueId}
-            market={selectedMarket}
-          />
-        );
-      }
-    }
-
     if (game && winnerQuotes) {
       return (
         <PredictGameMarketHistory
@@ -197,10 +170,9 @@ const EventLoadedHeader = ({
       );
     }
 
-    if (historyMarket) {
-      return (
-        <PredictMarketHistory venueId={event.venueId} market={historyMarket} />
-      );
+    const market = selectedChartMarket ?? historyMarket;
+    if (market) {
+      return <PredictMarketHistory venueId={event.venueId} market={market} />;
     }
 
     return null;
@@ -213,14 +185,14 @@ const EventLoadedHeader = ({
       ) : (
         <StandardEventHeader event={event} />
       )}
-      {event.markets.length > 1 && !winnerQuotes ? (
+      {!game && !winnerQuotes && chartMarkets.length > 1 ? (
         <FilterButtonGroup
           value={historyMarket?.id ?? ''}
           onChange={onSelectMarket}
           variant={FilterButtonVariant.Secondary}
           testID={PredictEventScreenTestIds.MARKETS}
         >
-          {event.markets.map((market) => (
+          {chartMarkets.map((market) => (
             <FilterButton
               key={market.id}
               value={market.id}
@@ -238,22 +210,11 @@ const EventLoadedHeader = ({
         </FilterButtonGroup>
       ) : null}
       <Box twClassName="mt-4 mb-6">{renderMarketHistory()}</Box>
-      {showPredictTitle ? (
-        <Box
-          testID={PredictEventScreenTestIds.PREDICT_SECTION}
-          twClassName="mt-2 pb-[14px]"
-        >
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('wallet.predict')}
-          </Text>
-        </Box>
-      ) : null}
     </Box>
   );
 };
 
 export const PredictEventScreen = () => {
-  const tw = useTailwind();
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const { venueId, eventId, titleSnapshot } =
@@ -264,36 +225,14 @@ export const PredictEventScreen = () => {
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [selectedMarketId, setSelectedMarketId] = useState<string>();
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
-  const [selectedMarketIds, setSelectedMarketIds] = useState<
-    Record<string, PredictMarket['id']>
-  >({});
   const winnerQuotes = useMemo(
     () => (liveEvent ? findWinnerMarketQuotes(liveEvent) : undefined),
     [liveEvent],
   );
-  const winnerMarketIds = useMemo(
-    () =>
-      new Set(
-        winnerQuotes
-          ? [
-              winnerQuotes.away.market.id,
-              winnerQuotes.home.market.id,
-              ...(winnerQuotes.draw ? [winnerQuotes.draw.market.id] : []),
-            ]
-          : [],
-      ),
-    [winnerQuotes],
-  );
   const marketProjection = useMemo(
-    () =>
-      createMarketGroupProjection(
-        (liveEvent?.markets ?? []).filter(
-          (market) => !winnerMarketIds.has(market.id),
-        ),
-      ),
-    [liveEvent?.markets, winnerMarketIds],
+    () => createMarketGroupProjection(liveEvent?.markets ?? []),
+    [liveEvent?.markets],
   );
-  const listContentContainerStyle = useMemo(() => tw.style('px-4'), [tw]);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
     conditions: [!query.isLoading],
@@ -313,7 +252,6 @@ export const PredictEventScreen = () => {
   }, [query.data, query.isError]);
   useEffect(() => {
     setSelectedMarketId(undefined);
-    setSelectedMarketIds({});
     setRulesTarget(null);
   }, [eventId]);
   const handleBack = useCallback(
@@ -329,57 +267,47 @@ export const PredictEventScreen = () => {
   const handleMarketRulesPress = useCallback((market: PredictMarket) => {
     setRulesTarget({ type: 'market', marketId: market.id });
   }, []);
-  const handleGroupMarketSelect = useCallback(
-    (groupKey: string, marketId: PredictMarket['id']) => {
-      setSelectedMarketIds((current) => ({
-        ...current,
-        [groupKey]: marketId,
-      }));
-      setSelectedMarketId(marketId);
-    },
-    [],
-  );
-  const handleMarketSelect = useCallback(
-    (marketId: string) => {
-      setSelectedMarketId(marketId);
-      const market = liveEvent?.markets.find(
-        (candidate) => candidate.id === marketId,
-      );
-      const groupKey =
-        market?.group?.groupType === 'marketSelector'
-          ? market.group.key
-          : undefined;
-      if (groupKey !== undefined && market !== undefined) {
-        setSelectedMarketIds((current) => ({
-          ...current,
-          [groupKey]: market.id,
-        }));
-      }
-    },
-    [liveEvent?.markets],
-  );
+  const handleMarketSelect = useCallback((marketId: string) => {
+    setSelectedMarketId(marketId);
+  }, []);
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
-  const handleWinnerOrder = useCallback(
-    (quote: GameSelectionQuote) => {
+  /** Opens the shared Order flow as a Cash Out: a sell bounded by the
+   * Position's whole-contract size. Canonical identity comes from the
+   * presented Event; display context falls back to the Position's catalog
+   * context only when the live Event cannot supply it. */
+  const handlePositionCashOut = useCallback(
+    (position: PredictPosition) => {
+      if (!liveEvent) {
+        return;
+      }
+      const market = liveEvent.markets.find(
+        (candidate) => candidate.id === position.marketId,
+      );
+      const outcome = market?.outcomes.find(
+        (candidate) => candidate.side === position.side,
+      );
       openOrderFlow({
-        action: 'buy',
+        action: 'sell',
+        eventId,
         venueId,
-        marketId: quote.market.id,
-        side: quote.outcome.side,
-        outcomeLabel: quote.outcome.label,
-        eventTitle: liveEvent?.title ?? '',
-        eventImageUrl: liveEvent?.imageUrl,
-        askPrice: quote.outcome.askPrice,
+        marketId: position.marketId,
+        side: position.side,
+        outcomeLabel:
+          outcome?.label ?? getOutcomeName(position.side, position.context),
+        eventTitle: liveEvent.title,
+        eventImageUrl: liveEvent.imageUrl,
+        maxContracts: Math.floor(Number(position.shares)),
       });
     },
-    [liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
+    [eventId, liveEvent, openOrderFlow, venueId],
   );
   const handleMarketOrder = useCallback(
     (market: PredictMarket, outcome: (typeof market.outcomes)[number]) => {
       openOrderFlow({
         action: 'buy',
+        eventId,
         venueId,
         marketId: market.id,
         side: outcome.side,
@@ -389,52 +317,8 @@ export const PredictEventScreen = () => {
         askPrice: outcome.askPrice,
       });
     },
-    [liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
+    [eventId, liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
   );
-  const renderMarket = useCallback(
-    (projection: MarketGroupProjection) => {
-      if (projection.type === 'standard') {
-        return (
-          <MarketStandardCard
-            market={projection.market}
-            onRulesPress={handleMarketRulesPress}
-            onOrder={handleMarketOrder}
-          />
-        );
-      }
-
-      const activeMarket =
-        projection.markets.find(
-          (market) => market.id === selectedMarketIds[projection.key],
-        ) ?? projection.markets[0];
-      if (!activeMarket) {
-        return null;
-      }
-
-      const groupProps = {
-        groupKey: projection.key,
-        markets: projection.markets,
-        selectedMarket: activeMarket,
-        onSelectMarket: (marketId: PredictMarket['id']) =>
-          handleGroupMarketSelect(projection.key, marketId),
-        onRulesPress: handleMarketRulesPress,
-        onOrder: handleMarketOrder,
-      };
-
-      return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
-        <TotalMarketGroupCard {...groupProps} />
-      ) : (
-        <SpreadMarketGroupCard {...groupProps} />
-      );
-    },
-    [
-      handleGroupMarketSelect,
-      handleMarketRulesPress,
-      handleMarketOrder,
-      selectedMarketIds,
-    ],
-  );
-
   if (liveEvent) {
     const event = liveEvent;
     const eventRules = event.rules?.trim();
@@ -442,15 +326,16 @@ export const PredictEventScreen = () => {
       marketProjection[0]?.type === 'group'
         ? marketProjection[0].markets[0]
         : marketProjection[0]?.market;
+    const moneylineMarkets = getGameMoneylineMarkets(event);
     const historyMarket =
-      event.markets.find((market) => market.id === selectedMarketId) ??
+      moneylineMarkets.find((market) => market.id === selectedMarketId) ??
+      moneylineMarkets[0] ??
       firstProjectedMarket ??
       event.markets[0];
     const rulesMarket =
       rulesTarget?.type === 'market'
         ? event.markets.find((market) => market.id === rulesTarget.marketId)
         : undefined;
-    const game = getEventGame(event);
 
     return (
       <>
@@ -458,35 +343,21 @@ export const PredictEventScreen = () => {
           title={event.title}
           onBack={handleBack}
           onRulesPress={eventRules ? handleEventRulesPress : undefined}
-          footer={
-            game && winnerQuotes ? (
-              <MarketFooterCard
-                game={game}
-                awayQuote={winnerQuotes.away}
-                homeQuote={winnerQuotes.home}
-                drawQuote={winnerQuotes.draw}
-                onOrder={handleWinnerOrder}
-              />
-            ) : undefined
-          }
         >
-          <MarketList
-            data={marketProjection}
-            extraData={selectedMarketIds}
-            keyExtractor={getProjectionKey}
-            renderItem={renderMarket}
-            contentContainerStyle={listContentContainerStyle}
-            ListHeaderComponent={
-              <EventLoadedHeader
-                event={event}
-                winnerQuotes={winnerQuotes}
-                historyMarket={historyMarket}
-                selectedMarketId={selectedMarketId}
-                showPredictTitle={marketProjection.length > 0}
-                onSelectMarket={handleMarketSelect}
-              />
-            }
-          />
+          <EventMarketList
+            event={event}
+            onOrder={handleMarketOrder}
+            onRulesPress={handleMarketRulesPress}
+            onCashOut={handlePositionCashOut}
+          >
+            <EventLoadedHeader
+              event={event}
+              winnerQuotes={winnerQuotes}
+              historyMarket={historyMarket}
+              selectedMarketId={selectedMarketId}
+              onSelectMarket={handleMarketSelect}
+            />
+          </EventMarketList>
         </EventScreenChrome>
         <RulesBottomSheet
           isVisible={rulesTarget !== null}

@@ -187,26 +187,22 @@ describe('DeleteWalletModal', () => {
       expect(wrapper.queryByText(strings('login.are_you_sure'))).toBeNull();
     });
 
-    it('shows back button when not coming from params', () => {
+    it('hides the back button on the confirmation screen', () => {
       const wrapper = renderComponent(mockInitialState, {
         isResetWallet: false,
       });
 
-      // Click the reset wallet button to show confirmation screen
       const resetButton = wrapper.getByRole('button', {
         name: strings('login.reset_wallet'),
       });
       fireEvent.press(resetButton);
 
-      // Should show the confirmation screen with back button
-      const title = wrapper.getByText(strings('login.are_you_sure'));
-      expect(title).toBeOnTheScreen();
-
-      // Should show the back button when not coming from params
-      const backButton = wrapper.getByTestId(
-        ForgotPasswordModalSelectorsIDs.BACK_BUTTON,
-      );
-      expect(backButton).toBeTruthy();
+      expect(
+        wrapper.getByText(strings('login.are_you_sure')),
+      ).toBeOnTheScreen();
+      expect(
+        wrapper.queryByTestId(ForgotPasswordModalSelectorsIDs.BACK_BUTTON),
+      ).toBeNull();
     });
   });
 
