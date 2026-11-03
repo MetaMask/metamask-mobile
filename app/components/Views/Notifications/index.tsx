@@ -9,7 +9,8 @@ import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { sortNotifications } from '../../../util/notifications';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useTheme } from '../../../util/theme';
 
 import {
@@ -88,6 +89,7 @@ const NotificationsView = ({
 }) => {
   const { colors } = useTheme();
   const { isLoading } = useListNotifications();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -127,7 +129,9 @@ const NotificationsView = ({
       edges={['top']}
       style={[styles.wrapper, { backgroundColor: colors.background.default }]}
     >
-      <HeaderCompactStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.notifications_title')}
         titleProps={{ testID: NotificationMenuViewSelectorsIDs.TITLE }}
         onBack={handleClose}
