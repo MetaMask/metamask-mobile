@@ -44,6 +44,7 @@ import {
   // TransactionControllerInitMessenger uses the full actions union.
   type CurrencyRateControllerActions,
   type MultichainAssetsControllerGetStateAction,
+  type NftDetectionControllerDetectNftsAction,
 } from '@metamask/assets-controllers';
 import {
   AssetsController,
@@ -516,10 +517,12 @@ import {
   ProofOfOwnershipServiceEvents,
 } from '@metamask/profile-metrics-controller';
 
-type NftDetectionControllerActions = ControllerGetStateAction<
-  'NftDetectionController',
-  NftDetectionController['state']
->;
+type NftDetectionControllerActions =
+  | ControllerGetStateAction<
+      'NftDetectionController',
+      NftDetectionController['state']
+    >
+  | NftDetectionControllerDetectNftsAction;
 
 type NftDetectionControllerEvents = ControllerStateChangeEvent<
   'NftDetectionController',
