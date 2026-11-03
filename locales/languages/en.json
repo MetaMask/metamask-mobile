@@ -6381,7 +6381,7 @@
         },
         "volume_flags": {
           "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
         },
         "listed_on_exchange": {
           "title": "Listed on exchange",
