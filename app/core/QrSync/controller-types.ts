@@ -24,6 +24,7 @@ export const QR_SYNC_CONTROLLER_NAME = 'QrSyncController';
 
 /** Addresses and names for the accounts-imported screen. No secret material. */
 export interface QrSyncAccountsReview {
+  [key: string]: 'new-user' | 'existing-user' | ImportedAccountSection[];
   mode: 'new-user' | 'existing-user';
   sections: ImportedAccountSection[];
 }

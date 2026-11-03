@@ -15,6 +15,7 @@ import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
 
 import {
   QR_SYNC_CONTROLLER_NAME,
+  type QrSyncAccountsReview,
   type QrSyncControllerMessenger,
   type QrSyncControllerState,
 } from './controller-types';
@@ -278,7 +279,7 @@ export class QrSyncController extends BaseController<
    * Throws when no account address can be shown.
    */
   public async prepareAccountsReview(
-    mode: NonNullable<QrSyncControllerState['accountsReview']>['mode'],
+    mode: QrSyncAccountsReview['mode'],
   ): Promise<void> {
     const sections = await buildImportedAccountSections(
       this.state.provisioningMetadata,
@@ -287,18 +288,20 @@ export class QrSyncController extends BaseController<
     if (!importedAccountSectionsAreComplete(sections)) {
       throw new Error('QR sync account review has no addresses');
     }
-    this.update((state) => {
-      state.accountsReview = { mode, sections };
-    });
+    this.update((state) => ({
+      ...state,
+      accountsReview: { mode, sections },
+    }));
   }
 
   public clearAccountsReview(): void {
     if (!this.state.accountsReview) {
       return;
     }
-    this.update((state) => {
-      state.accountsReview = null;
-    });
+    this.update((state) => ({
+      ...state,
+      accountsReview: null,
+    }));
   }
 
   /**

@@ -13,12 +13,14 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 const MAX_ACCOUNTS_PER_SRP = 128;
 
 export interface ImportedAccountRow {
+  [key: string]: string;
   id: string;
   name: string;
   address: string;
 }
 
 export interface ImportedAccountSection {
+  [key: string]: string | ImportedAccountRow[];
   id: string;
   walletName: string;
   accounts: ImportedAccountRow[];
