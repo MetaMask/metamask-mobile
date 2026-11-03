@@ -41,6 +41,7 @@ import {
   claimToastText,
   claimTypeForRoute,
   isClaimSubmittable,
+  isTaxDeterminationRefusal,
   isPendingClaimRow,
   mergeInFlightClaims,
   runEarningsClaim,
@@ -505,6 +506,41 @@ describe('claimToastKey', () => {
         ]),
       ).toBe('claimSuccessToast');
     }
+  });
+});
+
+describe('isTaxDeterminationRefusal', () => {
+  it('is true only when nothing was submitted and a route needs tax documentation', () => {
+    expect(
+      isTaxDeterminationRefusal([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'TAX_DETERMINATION_REQUIRED',
+        },
+      ]),
+    ).toBe(true);
+    expect(
+      isTaxDeterminationRefusal([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: true,
+          opened: true,
+          reason: 'TAX_DETERMINATION_REQUIRED',
+        },
+      ]),
+    ).toBe(false);
+    expect(
+      isTaxDeterminationRefusal([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'UNDER_REVIEW',
+        },
+      ]),
+    ).toBe(false);
   });
 });
 

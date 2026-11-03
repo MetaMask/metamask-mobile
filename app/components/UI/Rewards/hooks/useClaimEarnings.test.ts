@@ -269,6 +269,7 @@ describe('useClaimEarnings', () => {
   const onOpened = jest.fn();
   const onSubmitted = jest.fn();
   const onClaimsPaused = jest.fn();
+  const onTaxRequired = jest.fn();
 
   beforeEach(() => {
     storedClaimWait = undefined;
@@ -290,6 +291,7 @@ describe('useClaimEarnings', () => {
     onOpened.mockReset();
     onSubmitted.mockReset();
     onClaimsPaused.mockReset();
+    onTaxRequired.mockReset();
     (selectReferralMeLocalizedText as jest.Mock).mockReturnValue(localizedText);
     (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
       address: MONEY_ACCOUNT,
@@ -348,6 +350,7 @@ describe('useClaimEarnings', () => {
         onOpened,
         onSubmitted,
         onClaimsPaused,
+        onTaxRequired,
       }),
     );
   }
@@ -1343,9 +1346,25 @@ describe('useClaimEarnings', () => {
     expect(onOpened).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the tax flow instead of the paused sheet when tax documentation is required', async () => {
+    mockEngineCall.mockRejectedValue(
+      new RewardsMoneyClaimRefusalError(422, 'TAX_DETERMINATION_REQUIRED'),
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(onTaxRequired).toHaveBeenCalledTimes(1);
+    expect(onClaimsPaused).not.toHaveBeenCalled();
+    expect(mockErrorToast).not.toHaveBeenCalled();
+    expect(mockSuccessToast).not.toHaveBeenCalled();
+    expect(onSubmitted).not.toHaveBeenCalled();
+  });
+
   it.each([
     'SUSPENDED',
-    'TAX_DETERMINATION_REQUIRED',
     'MECHANISM_NOT_CLAIMABLE',
     'EARNING_ADDRESS_UNSCREENABLE',
     'UNDER_REVIEW',
@@ -1363,6 +1382,7 @@ describe('useClaimEarnings', () => {
       });
 
       expect(onClaimsPaused).toHaveBeenCalledTimes(1);
+      expect(onTaxRequired).not.toHaveBeenCalled();
       expect(mockErrorToast).not.toHaveBeenCalled();
       expect(mockSuccessToast).not.toHaveBeenCalled();
       expect(onSubmitted).not.toHaveBeenCalled();

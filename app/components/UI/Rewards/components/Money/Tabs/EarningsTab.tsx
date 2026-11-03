@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   AvatarIcon,
@@ -43,6 +43,8 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { navigateToRewardsRoute } from '../../../utils';
+import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
+import { incomeHeldOnlyForTax } from '../../../utils/taxDocumentation';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
@@ -572,6 +574,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const last7 = useLast7DaysEarnings(profileId);
   const historyList = useEarningsHistory(profileId);
   const inFlight = useInFlightClaims(profileId);
+  const { prefetchTaxMe, onClaimPress, openAfterClaimRefusal } =
+    useTaxDocumentation(profileId);
+  useFocusEffect(
+    useCallback(() => {
+      prefetchTaxMe();
+    }, [prefetchTaxMe]),
+  );
   const { claim, isClaiming, isClaimWaiting } = useClaimEarnings(profileId, {
     persona,
     summary: earningsSummaryEntry?.data ?? null,
@@ -585,6 +594,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       if (!refreshed) {
         throw new Error('Earnings summary refresh did not finish');
       }
+    },
+    onTaxRequired: () => {
+      void openAfterClaimRefusal().catch(() => {
+        openClaimsPaused();
+      });
     },
     onClaimsPaused: () => {
       // The sheet copies these totals into route params, so it has to open
@@ -664,6 +678,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               isSummaryLoading={summary.loading}
               isLast7Loading={last7Loading}
               canClaim={claimEnabled}
+              taxHeld={incomeHeldOnlyForTax(summary.data)}
               isClaiming={isClaiming}
               isClaimWaiting={isClaimWaiting}
               onClaim={
@@ -673,7 +688,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                       if (!summaryData) {
                         return;
                       }
-                      claim(summaryData).catch(() => undefined);
+                      void onClaimPress(summaryData, () =>
+                        claim(summaryData).catch(() => undefined),
+                      );
                     }
                   : undefined
               }

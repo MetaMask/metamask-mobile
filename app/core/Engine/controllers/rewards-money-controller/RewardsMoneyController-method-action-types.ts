@@ -142,6 +142,34 @@ export type RewardsMoneyControllerInitiateClaimAction = {
   handler: RewardsMoneyController['initiateClaim'];
 };
 
+/**
+ * `GET /tax/me`. Not cached: the route is `no-store`, and a Claim press
+ * has to see the determination that was just written.
+ */
+export type RewardsMoneyControllerGetTaxMeAction = {
+  type: `RewardsMoneyController:getTaxMe`;
+  handler: RewardsMoneyController['getTaxMe'];
+};
+
+export type RewardsMoneyControllerSubmitTaxAttestationAction = {
+  type: `RewardsMoneyController:submitTaxAttestation`;
+  handler: RewardsMoneyController['submitTaxAttestation'];
+};
+
+export type RewardsMoneyControllerSubmitTaxUsActivityAction = {
+  type: `RewardsMoneyController:submitTaxUsActivity`;
+  handler: RewardsMoneyController['submitTaxUsActivity'];
+};
+
+/**
+ * Mints one form token. The token is returned to the caller and is not
+ * written into controller state.
+ */
+export type RewardsMoneyControllerMintTaxFormTokenAction = {
+  type: `RewardsMoneyController:mintTaxFormToken`;
+  handler: RewardsMoneyController['mintTaxFormToken'];
+};
+
 export type RewardsMoneyControllerGetClaimByIdAction = {
   type: `RewardsMoneyController:getClaimById`;
   handler: RewardsMoneyController['getClaimById'];
@@ -168,4 +196,8 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerGetClaimHistoryAction
   | RewardsMoneyControllerGetCommissionsAction
   | RewardsMoneyControllerInitiateClaimAction
+  | RewardsMoneyControllerGetTaxMeAction
+  | RewardsMoneyControllerSubmitTaxAttestationAction
+  | RewardsMoneyControllerSubmitTaxUsActivityAction
+  | RewardsMoneyControllerMintTaxFormTokenAction
   | RewardsMoneyControllerGetClaimByIdAction;

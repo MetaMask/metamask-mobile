@@ -52,6 +52,7 @@ import {
   claimToastText,
   claimTypeForRoute,
   isClaimsPausedRefusal,
+  isTaxDeterminationRefusal,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   solanaAddressFromEarningAddress,
@@ -170,6 +171,7 @@ export function useClaimEarnings(
     onOpened,
     onSubmitted,
     onClaimsPaused,
+    onTaxRequired,
     summary: liveSummary = null,
   }: {
     persona?: MoneyDashboardPersona;
@@ -179,6 +181,12 @@ export function useClaimEarnings(
      * caller opens the Claims paused sheet. No error toast.
      */
     onClaimsPaused?: () => void;
+    /**
+     * Nothing was submitted and a route refused with
+     * `TAX_DETERMINATION_REQUIRED`. The caller opens the tax flow. No
+     * paused sheet and no error toast.
+     */
+    onTaxRequired?: () => void;
     /**
      * Runs after a confirmed claim, before Claim is enabled again. A rejection
      * means the balance on screen is still the pre-claim one, so Claim stays
@@ -444,7 +452,9 @@ export function useClaimEarnings(
             outcome.reason === 'CONFIRMATION_FAILED' ||
             outcome.reason === 'CONFIRMATION_TIMEOUT',
         );
-        if (isClaimsPausedRefusal(outcomes)) {
+        if (isTaxDeterminationRefusal(outcomes)) {
+          onTaxRequired?.();
+        } else if (isClaimsPausedRefusal(outcomes)) {
           onClaimsPaused?.();
         } else if (
           key === 'claimSuccessToast' ||
@@ -552,6 +562,7 @@ export function useClaimEarnings(
       onOpened,
       onSubmitted,
       onClaimsPaused,
+      onTaxRequired,
       showToast,
       RewardsToastOptions,
       dispatch,

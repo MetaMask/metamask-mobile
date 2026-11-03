@@ -37,6 +37,9 @@ import {
   type ReferrerOriginType,
   type RegisterRefereeDto,
   type RewardsMoneyControllerState,
+  type TaxAnswerResultDto,
+  type TaxFormTokenDto,
+  type TaxMeDto,
 } from './types';
 
 export type { RewardsMoneyControllerMessenger };
@@ -223,6 +226,10 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSwapsRebateQuote',
   'getPerpsRebateQuote',
   'initiateClaim',
+  'getTaxMe',
+  'submitTaxAttestation',
+  'submitTaxUsActivity',
+  'mintTaxFormToken',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
@@ -805,6 +812,54 @@ export class RewardsMoneyController extends BaseController<
       });
     }
     return result;
+  }
+
+  /**
+   * `GET /tax/me`. Not cached: the route is `no-store`, and a Claim press
+   * has to see the determination that was just written.
+   */
+  async getTaxMe(): Promise<TaxMeDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call('RewardsMoneyDataService:getTaxMe');
+  }
+
+  async submitTaxAttestation(
+    usPersonOrActivity: boolean,
+  ): Promise<TaxAnswerResultDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call(
+      'RewardsMoneyDataService:submitTaxAttestation',
+      usPersonOrActivity,
+    );
+  }
+
+  async submitTaxUsActivity(usActivity: boolean): Promise<TaxAnswerResultDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call(
+      'RewardsMoneyDataService:submitTaxUsActivity',
+      usActivity,
+    );
+  }
+
+  /**
+   * Mints one form token. The token is returned to the caller and is not
+   * written into controller state.
+   */
+  async mintTaxFormToken(): Promise<TaxFormTokenDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call('RewardsMoneyDataService:mintTaxFormToken');
   }
 
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {

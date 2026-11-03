@@ -8,6 +8,10 @@ import type { ToastRef } from '../../../app/component-library/components/Toast/T
 import Engine from '../../../app/core/Engine';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
+import TaxFormQuestionSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormQuestionSheet';
+import TaxFormOpenFormSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormOpenFormSheet';
+import TaxFormContactUsSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormContactUsSheet';
+import RewardsInfoSheetModal from '../../../app/components/UI/Rewards/components/RewardsInfoSheetModal';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
 import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
@@ -18,6 +22,7 @@ import RewardsSettingsView from '../../../app/components/UI/Rewards/Views/Reward
 import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views/RewardsEarningsHistoryView';
 import RewardsMoneyReferralAcceptedSplashView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import type { MoneyReferralEntryType } from '../../../app/components/UI/Rewards/types/navigation';
+import RewardsTaxFormView from '../../../app/components/UI/Rewards/Views/RewardsTaxFormView';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import type {
   ClaimDto,
@@ -48,6 +53,16 @@ import {
 } from '../presets/rewardsMoney';
 
 const engineCall = Engine.controllerMessenger.call as jest.Mock;
+
+/** A payee who can claim. Prefetch and Claim both read this unless a test overrides it. */
+const CLEARED_TAX_ME = {
+  state: 'COMPLETE_OR_VERIFIED',
+  next_action: 'NONE',
+  reason: null,
+  clears_until: null,
+  cleared: true,
+  can_change_answer: false,
+};
 const baseEngineCall = engineCall.getMockImplementation();
 
 type EngineHandler = (...args: unknown[]) => unknown;
@@ -162,6 +177,7 @@ export function installRewardsMoneyEngine({
         has_more: false,
         cursor: null,
       }),
+    'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED_TAX_ME),
     'RewardsMoneyController:initiateClaim': () => {
       if (initiateClaim === 'under_review') {
         refused = true;
@@ -271,9 +287,40 @@ function rewardsFlowRoutes() {
     },
     {
       name: Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-      Component: createRouteParamsProbe(Routes.MODAL.REWARDS_INFO_SHEET_MODAL),
+      Component: RewardsInfoSheetModal,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+      Component: TaxFormQuestionSheet,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+      Component: TaxFormOpenFormSheet,
+    },
+    {
+      name: Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,
+      Component: TaxFormContactUsSheet,
+    },
+    {
+      name: Routes.REWARDS_TAX_FORM_VIEW,
+      Component: RewardsTaxFormView,
+    },
+    {
+      name: Routes.WEBVIEW.MAIN,
+      Component: SupportWebviewStack,
     },
   ];
+}
+
+function SupportWebviewStack() {
+  return (
+    <FlowStack.Navigator>
+      <FlowStack.Screen
+        name={Routes.WEBVIEW.SIMPLE}
+        component={createRouteParamsProbe(Routes.WEBVIEW.SIMPLE)}
+      />
+    </FlowStack.Navigator>
+  );
 }
 
 export type RenderRewardsMoneyOptions = RewardsMoneyEngineOptions &
@@ -290,18 +337,16 @@ function renderMoneyScreen(
   });
   const state = rewardsMoneyViewState(options);
 
-  function ScreenWithToast() {
-    return (
-      <RewardsMoneyToastHost>
-        <Component />
-      </RewardsMoneyToastHost>
-    );
-  }
-
   return {
-    ...renderScreenWithRoutes(ScreenWithToast, { name }, rewardsFlowRoutes(), {
-      state,
-    }),
+    ...renderScreenWithRoutes(
+      Component,
+      { name },
+      rewardsFlowRoutes(),
+      { state },
+      undefined,
+      undefined,
+      (children) => <RewardsMoneyToastHost>{children}</RewardsMoneyToastHost>,
+    ),
     engine,
   };
 }

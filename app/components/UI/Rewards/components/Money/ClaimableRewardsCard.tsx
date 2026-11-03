@@ -42,8 +42,16 @@ export function claimButtonState(
   canClaim = false,
   held?: string,
   blocked?: string,
+  /**
+   * Income is held only until tax documentation is done. The button stays
+   * Claim. A blocked balance still shows Paused.
+   */
+  taxHeld = false,
 ): ClaimButtonState {
   if (canClaim && isPositiveBaseUnits(claimable)) {
+    return 'claim';
+  }
+  if (taxHeld && isPositiveBaseUnits(held) && !isPositiveBaseUnits(blocked)) {
     return 'claim';
   }
   if (isPositiveBaseUnits(held) || isPositiveBaseUnits(blocked)) {
@@ -83,6 +91,11 @@ export interface ClaimableRewardsCardProps {
   isLast7Loading: boolean;
   /** The cashback family reaches the summary minimum, so the press can call a claim route. */
   canClaim?: boolean;
+  /**
+   * The only held balance is income waiting on tax documentation. Claim
+   * stays Claim and still calls `onClaim`.
+   */
+  taxHeld?: boolean;
   isClaiming?: boolean;
   /** A Retry-After window. The button stays disabled without a spinner. */
   isClaimWaiting?: boolean;
@@ -164,6 +177,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   isSummaryLoading,
   isLast7Loading,
   canClaim = false,
+  taxHeld = false,
   isClaiming = false,
   isClaimWaiting = false,
   onClaim,
@@ -183,7 +197,14 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     );
   }
 
-  const button = claimButtonState(claimable, claimed, canClaim, held, blocked);
+  const button = claimButtonState(
+    claimable,
+    claimed,
+    canClaim,
+    held,
+    blocked,
+    taxHeld,
+  );
   const paused = button === 'paused';
   const showLast7Skeleton = isLast7Loading && last7Amount === null;
   const heading = amountHeading(

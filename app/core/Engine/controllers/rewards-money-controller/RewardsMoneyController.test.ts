@@ -318,6 +318,10 @@ describe('RewardsMoneyController', () => {
           'getSwapsRebateQuote',
           'getPerpsRebateQuote',
           'isRewardsMoneyFeatureEnabled',
+          'getTaxMe',
+          'submitTaxAttestation',
+          'submitTaxUsActivity',
+          'mintTaxFormToken',
           'setRewardsMoneyEnvUrl',
         ]),
       );

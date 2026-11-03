@@ -57,6 +57,9 @@ describe('claimButtonState', () => {
       claimButtonState('1000000', '50', true, '100000000', '12000000'),
     ).toBe('claim');
     expect(claimButtonState('0', '0', false, '100000000')).toBe('paused');
+    expect(claimButtonState('0', '0', false, '100000000', '0', true)).toBe(
+      'claim',
+    );
     expect(claimButtonState('0', '50', false, '0', '12000000')).toBe('paused');
     expect(claimButtonState('0', '50', false, '0', '0')).toBe('claimed');
   });

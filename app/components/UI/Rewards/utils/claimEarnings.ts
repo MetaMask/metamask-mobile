@@ -79,12 +79,27 @@ const TERMINAL_REASONS = new Set(['SUSPENDED', 'UNDER_REVIEW', 'VOIDED']);
  */
 const CLAIMS_PAUSED_REASONS = new Set([
   'SUSPENDED',
-  'TAX_DETERMINATION_REQUIRED',
   'MECHANISM_NOT_CLAIMABLE',
   'EARNING_ADDRESS_UNSCREENABLE',
   'UNDER_REVIEW',
   'EARNING_ADDRESS_MISSING',
 ]);
+
+/**
+ * True when nothing was paid and a route refused because tax documentation
+ * is still required. That opens the tax flow. A paid claim that only names
+ * the reason in `excluded[]` is not one of these.
+ */
+export function isTaxDeterminationRefusal(
+  outcomes: ClaimRouteOutcome[],
+): boolean {
+  if (outcomes.some((outcome) => outcome.submitted)) {
+    return false;
+  }
+  return outcomes.some(
+    (outcome) => outcome.reason === 'TAX_DETERMINATION_REQUIRED',
+  );
+}
 
 /**
  * True when nothing was submitted and every refusal is a held or blocked
@@ -625,7 +640,10 @@ export function claimFailureReason(reason: string): string {
   if (reason === 'MECHANISM_NOT_CLAIMABLE') {
     return 'not_claimable';
   }
-  if (CLAIMS_PAUSED_REASONS.has(reason)) {
+  if (
+    reason === 'TAX_DETERMINATION_REQUIRED' ||
+    CLAIMS_PAUSED_REASONS.has(reason)
+  ) {
     return 'paused';
   }
   if (reason === 'UNSUPPORTED_EARNING_ADDRESS') {
