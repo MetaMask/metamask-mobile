@@ -397,6 +397,9 @@ declare module '@sentry/react-native' {
     close,
     withScope,
     crashedLastRun,
+    extendAppStart,
+    getExtendedAppStartSpan,
+    finishExtendedAppStart,
   } from '@sentry/react-native/dist/js/sdk';
   export {
     TouchEventBoundary,
