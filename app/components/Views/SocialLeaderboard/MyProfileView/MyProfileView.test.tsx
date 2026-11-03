@@ -15,6 +15,7 @@ import type {
 } from '@metamask/social-controllers';
 import { CommonActions } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../locales/i18n';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import { ProfileOptionsSheetSelectorsIDs } from '../TraderProfileView/components/ProfileOptionsSheet.testIds';
@@ -820,7 +821,9 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('social_leaderboard.my_profile.empty_title')),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toHaveStyle({ paddingTop: 16 });
@@ -828,6 +831,33 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByText(
         "You'll get 15% of the fees if someone copies your moves.",
+      ),
+    ).toBeNull();
+    expect(strings('social_leaderboard.my_profile.empty_title')).toBe(
+      'Post your first trade',
+    );
+    expect(strings('social_leaderboard.my_profile.empty_description')).toBe(
+      'If someone copies your trade, you get 15% of the fees.',
+    );
+    expect(strings('social_leaderboard.my_profile.share_first_trade')).toBe(
+      'Post to MetaMask',
+    );
+    expect(strings('social_leaderboard.my_profile.first_trade_prompt')).toBe(
+      'First trade?',
+    );
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.my_profile.empty_description'),
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.my_profile.share_first_trade'),
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.my_profile.first_trade_prompt'),
       ),
     ).toBeNull();
   });
@@ -1213,7 +1243,9 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
     ).toBeOnTheScreen();
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('social_leaderboard.my_profile.empty_title')),
+    ).toBeOnTheScreen();
     expect(screen.queryByText('Your feed starts here')).toBeNull();
     expect(
       screen.queryByText('When they share a trade, it will show up here.'),

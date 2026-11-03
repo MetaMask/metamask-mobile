@@ -860,7 +860,7 @@ describe('TraderProfileView', () => {
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
     );
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(screen.getByText('Post your first trade')).toBeOnTheScreen();
     expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
   });
 
@@ -871,7 +871,7 @@ describe('TraderProfileView', () => {
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
     );
     expect(screen.getByText('post-1')).toBeOnTheScreen();
-    expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Post your first trade')).not.toBeOnTheScreen();
   });
 
   it('requests the next posts page when a scroll settles near the end', () => {

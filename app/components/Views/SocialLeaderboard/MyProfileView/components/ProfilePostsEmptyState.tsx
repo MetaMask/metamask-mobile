@@ -10,7 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 
 export interface ProfilePostsEmptyStateProps {
-  /** Defaults to "No posts yet". Open and Closed pass their own line. */
+  /** Defaults to "Post your first trade". Open and Closed pass their own line. */
   message?: string;
 }
 
