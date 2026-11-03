@@ -14,8 +14,9 @@ import {
 import React, { useCallback } from 'react';
 import { Linking, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
-import ProfileAvatar from './ProfileAvatar';
+import EditableProfileAvatar from './EditableProfileAvatar';
 
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
@@ -28,49 +29,85 @@ interface MyProfileHeaderProps {
   overlayedStats: OverlayedMyProfileStats;
   followingCount: number;
   isOwner?: boolean;
+  onEditAvatar?: () => void;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
 }
+
+/** A muted icon and label in the row under the follower counts. */
+const ProfileMetaItem: React.FC<{
+  iconName: IconName;
+  label: string;
+  testID?: string;
+}> = ({ iconName, label, testID }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    gap={1}
+    testID={testID}
+  >
+    <Icon
+      name={iconName}
+      size={IconSize.Sm}
+      color={IconColor.IconAlternative}
+    />
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+    >
+      {label}
+    </Text>
+  </Box>
+);
 
 const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   profile,
   overlayedStats,
   followingCount,
   isOwner = true,
+  onEditAvatar,
   onFollowersPress,
   onFollowingPress,
 }) => {
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
-      Linking.openURL(`https://x.com/${profile.xHandle}`);
+      Linking.openURL(`https://x.com/${profile.xHandle}`).catch(
+        (error: Error) => {
+          Logger.error(error, 'MyProfileHeader: failed to open the X profile');
+        },
+      );
     }
   }, [profile.xHandle]);
 
   const joinedLabel = formatJoinedLabel(profile.joinedAt);
+  const thesis = profile.bio?.trim() || '';
 
   return (
-    <Box paddingHorizontal={4} paddingBottom={4}>
+    <Box paddingHorizontal={4} paddingTop={3} paddingBottom={4}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={4}
       >
-        {isOwner ? (
-          <ProfileAvatar
+        {isOwner && onEditAvatar ? (
+          <EditableProfileAvatar
             imageUrl={profile.imageUrl}
             avatarPresetId={profile.avatarPresetId}
             avatarBackgroundId={profile.avatarBackgroundId}
-            size="lg"
+            diameter={56}
+            onPress={onEditAvatar}
+            avatarTestID={MyProfileViewSelectorsIDs.AVATAR}
+            showEditIcon={false}
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.avatar_accessibility_label',
             )}
-            testID={MyProfileViewSelectorsIDs.AVATAR}
           />
         ) : (
           <TraderAvatar
             imageUrl={profile.imageUrl}
             address={profile.linkedAccountAddress ?? undefined}
-            size={64}
+            size={56}
             recyclingKey={profile.profileId}
             testID={MyProfileViewSelectorsIDs.AVATAR}
           />
@@ -91,23 +128,12 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             >
               {profile.displayName}
             </Text>
-            {profile.xHandle ? (
-              <Pressable
-                onPress={handleXPress}
-                accessibilityRole="link"
-                accessibilityLabel={strings(
-                  'social_leaderboard.trader_profile.twitter_link',
-                )}
-                testID={MyProfileViewSelectorsIDs.X_LINK}
-              >
-                <Icon name={IconName.X} size={IconSize.Md} twClassName="mt-1" />
-              </Pressable>
-            ) : null}
           </Box>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             numberOfLines={1}
+            twClassName="-mt-2"
             testID={MyProfileViewSelectorsIDs.HANDLE}
           >
             @{profile.handle}
@@ -115,21 +141,22 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Box>
       </Box>
 
-      {profile.bio ? (
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="pt-4"
-          testID={MyProfileViewSelectorsIDs.BIO}
-        >
-          {profile.bio}
-        </Text>
+      {thesis ? (
+        <Box twClassName="pt-[14px] pb-[10px]">
+          <Text
+            variant={TextVariant.BodyMd}
+            testID={MyProfileViewSelectorsIDs.BIO}
+          >
+            {thesis}
+          </Text>
+        </Box>
       ) : null}
 
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        paddingTop={6}
+        paddingTop={thesis ? 0 : 4}
       >
         <Pressable
           onPress={onFollowersPress}
@@ -146,20 +173,26 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             gap={2}
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               testID={MyProfileViewSelectorsIDs.FOLLOWERS_COUNT}
             >
               {overlayedStats.followerCount}
             </Text>
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {strings('social_leaderboard.my_profile.followers')}
             </Text>
           </Box>
         </Pressable>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           ·
         </Text>
         <Pressable
@@ -177,13 +210,15 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             gap={2}
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               testID={MyProfileViewSelectorsIDs.FOLLOWING_COUNT}
             >
               {followingCount}
             </Text>
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {strings('social_leaderboard.my_profile.following')}
@@ -192,22 +227,36 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Pressable>
       </Box>
 
-      {joinedLabel ? (
+      {profile.xHandle || joinedLabel ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={2}
+          gap={4}
           paddingTop={2}
-          testID={MyProfileViewSelectorsIDs.JOINED}
+          testID={MyProfileViewSelectorsIDs.META_ROW}
         >
-          <Icon
-            name={IconName.Clock}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {joinedLabel}
-          </Text>
+          {profile.xHandle ? (
+            <Pressable
+              onPress={handleXPress}
+              accessibilityRole="link"
+              accessibilityLabel={strings(
+                'social_leaderboard.trader_profile.twitter_link',
+              )}
+              testID={MyProfileViewSelectorsIDs.X_LINK}
+            >
+              <ProfileMetaItem
+                iconName={IconName.Link}
+                label={strings('social_leaderboard.my_profile.x_link')}
+              />
+            </Pressable>
+          ) : null}
+          {joinedLabel ? (
+            <ProfileMetaItem
+              iconName={IconName.Calendar}
+              label={joinedLabel}
+              testID={MyProfileViewSelectorsIDs.JOINED}
+            />
+          ) : null}
         </Box>
       ) : null}
     </Box>

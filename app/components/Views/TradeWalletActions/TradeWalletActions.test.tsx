@@ -2,8 +2,6 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { BackHandler, Platform, StyleSheet } from 'react-native';
 import type { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../constants/navigation/Routes';
-import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
-import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -30,10 +28,11 @@ import {
   selectIsFirstTimePerpsUser,
   selectPerpsMode,
 } from '../../UI/Perps/selectors/perpsController';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../UI/PredictNext';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { isHardwareAccount } from '../../../util/address';
-import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import { selectNativeTabBarEnabled } from '../../../selectors/featureFlagController/nativeTabBar';
 import TradeWalletActions, {
   TRADE_FOCUSED_BORDER_OPACITY,
@@ -167,8 +166,16 @@ jest.mock('../../UI/Perps/utils/perpsModeSelectionStorage', () => ({
   hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
 }));
 
-jest.mock('../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(),
+// The PredictNext entry point's PredictRoot loads the whole Predict stack,
+// which this suite's navigation mocks cannot satisfy.
+jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../../UI/PredictNext', () => ({
+  ...jest.requireActual('../../UI/PredictNext'),
+  selectPredictAvailability: jest.fn(),
 }));
 
 jest.mock('../../UI/Earn/selectors/eligibility', () => ({
@@ -409,15 +416,6 @@ jest.mock('../../../selectors/featureFlagController/nativeTabBar', () => ({
   selectNativeTabBarEnabled: jest.fn(),
 }));
 
-jest.mock('../../../selectors/featureFlagController/batchSell', () => ({
-  selectBatchSellEnabled: jest.fn().mockReturnValue(true),
-}));
-
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  isHardwareAccount: jest.fn(),
-}));
-
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
@@ -551,8 +549,6 @@ describe('TradeWalletActions', () => {
       remove: jest.fn(),
     });
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(true);
-    jest.mocked(isHardwareAccount).mockReturnValue(false);
-
     mockCreateEventBuilder.mockReturnValue(mockLegacyEventBuilder);
     mockLegacyEventBuilder.addProperties.mockReturnValue(
       mockLegacyEventBuilder,
@@ -568,7 +564,6 @@ describe('TradeWalletActions', () => {
       },
     });
 
-    jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
     jest.mocked(selectNativeTabBarEnabled).mockReturnValue(true);
   });
 
@@ -592,8 +587,8 @@ describe('TradeWalletActions', () => {
     );
 
     expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeDefined();
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeNull();
     expect(queryByText('New')).toBeNull();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
@@ -1175,45 +1170,6 @@ describe('TradeWalletActions', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not render Batch Sell for hardware wallets', () => {
-    jest.mocked(isHardwareAccount).mockReturnValue(true);
-
-    const { getByTestId, queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeNull();
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    ).toBeDefined();
-  });
-
-  it('does not render Batch Sell when feature flag is disabled', () => {
-    jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
-
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeNull();
-  });
-
   it('should render the Perpetuals button if the Perps feature flag is enabled', () => {
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
@@ -1267,8 +1223,8 @@ describe('TradeWalletActions', () => {
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
     (
-      selectPredictEnabledFlag as jest.MockedFunction<
-        typeof selectPredictEnabledFlag
+      selectPredictAvailability as jest.MockedFunction<
+        typeof selectPredictAvailability
       >
     ).mockReturnValue(true);
 
@@ -1353,8 +1309,8 @@ describe('TradeWalletActions', () => {
       >
     ).mockReturnValue(true);
     (
-      selectPredictEnabledFlag as jest.MockedFunction<
-        typeof selectPredictEnabledFlag
+      selectPredictAvailability as jest.MockedFunction<
+        typeof selectPredictAvailability
       >
     ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
@@ -1398,9 +1354,6 @@ describe('TradeWalletActions', () => {
     const swapButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
-    const batchSellButton = getByTestId(
-      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON,
-    );
     const earnButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
@@ -1413,7 +1366,6 @@ describe('TradeWalletActions', () => {
 
     // Test that disabled buttons don't execute their actions when pressed
     fireEvent.press(swapButton);
-    fireEvent.press(batchSellButton);
     fireEvent.press(earnButton);
     fireEvent.press(perpsButton);
     fireEvent.press(predictButton);
@@ -1424,8 +1376,8 @@ describe('TradeWalletActions', () => {
 
   it('should show Predict button on non-EVM networks', () => {
     (
-      selectPredictEnabledFlag as jest.MockedFunction<
-        typeof selectPredictEnabledFlag
+      selectPredictAvailability as jest.MockedFunction<
+        typeof selectPredictAvailability
       >
     ).mockReturnValue(true);
     (
@@ -1469,27 +1421,6 @@ describe('TradeWalletActions', () => {
       expect(mockOnDismiss).toHaveBeenCalled();
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockGoToSwaps).toHaveBeenCalled();
-    });
-
-    it('navigates to batch sell token select after dismissing RootModalFlow', async () => {
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      await pressActionButton(
-        getByTestId,
-        WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON,
-      );
-
-      expect(mockParentGoBack).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
-        params: {
-          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
-        },
-      });
     });
 
     it('navigates to Perps home after dismissing RootModalFlow for returning users', async () => {
@@ -1674,8 +1605,8 @@ describe('TradeWalletActions', () => {
 
     it('navigates to Predict markets after dismissing RootModalFlow', async () => {
       (
-        selectPredictEnabledFlag as jest.MockedFunction<
-          typeof selectPredictEnabledFlag
+        selectPredictAvailability as jest.MockedFunction<
+          typeof selectPredictAvailability
         >
       ).mockReturnValue(true);
 

@@ -481,8 +481,17 @@ describe('PerpsProChartPanel', () => {
 
     renderChartPanel({ isAdvancedChartEnabled: false });
 
+    const skeleton = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.CHART_SKELETON,
+    );
+
+    expect(skeleton).toBeOnTheScreen();
+    expect(skeleton.props.width).toBeUndefined();
+    expect(StyleSheet.flatten(skeleton.props.style).height).toBe(288);
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_SKELETON),
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.CHART_SKELETON}-candle-0`,
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -792,7 +801,9 @@ describe('PerpsProChartPanel', () => {
       screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_OHLCV),
     ).not.toBeOnTheScreen();
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_SKELETON),
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.CHART_SKELETON}-candle-0`,
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId('mock-perps-fullscreen-chart'),

@@ -4,6 +4,7 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
+import { Text } from 'react-native';
 import {
   act,
   cleanup,
@@ -31,6 +32,7 @@ import {
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   PerpsLimitPriceBottomSheetSelectorsIDs,
+  PerpsAmountDisplaySelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
@@ -47,6 +49,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { resetPerpsCufTraceForTests } from '../../utils/perpsCufTrace';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 
 const TIMEOUT_MS = 5000;
@@ -151,6 +154,16 @@ describe('PerpsOrderView', () => {
     jest
       .mocked(Engine.context.PerpsController.subscribeToOrderBook)
       .mockImplementation(() => () => undefined);
+    (Engine.context.PerpsController.placeOrder as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({
+        success: true,
+        orderId: 'component-view-order',
+      });
+    // Place-order confirmation waits on a module-level resolver. A prior case
+    // that leaves that waiter pending blocks the next submit, so the TP/SL
+    // error toast never replaces "Order submitted".
+    resetPerpsCufTraceForTests();
     (
       Engine.context.PerpsController.calculateFees as jest.Mock
     ).mockResolvedValue({});
@@ -245,6 +258,125 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
   });
 
+  describe('Fee Display Format A/B test', () => {
+    const withFeeDisplayVariant = (variant: 'control' | 'treatment') => ({
+      engine: {
+        backgroundState: {
+          ...eligibleOverrides.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsTAT4046AbtestFeeDisplayFormat: variant,
+            },
+          },
+        },
+      },
+    });
+
+    it('keeps the $ fee row and requests a single quote for control', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      calculateFees.mockResolvedValue({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.00005,
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: withFeeDisplayVariant('control'),
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+        ).toHaveTextContent('$0.06');
+      });
+      expect(calculateFees).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_TAKER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("requests the opposite side as a limit execution (not this market order's own type) and renders both rates for treatment", async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      // Distinct taker/maker quotes, keyed on `isMaker`. A real HyperLiquid
+      // market order is always charged taker regardless of the `isMaker`
+      // flag it is sent — so if the opposite-side request kept `orderType:
+      // 'market'`, it would get this same taker quote back a second time,
+      // and the maker rate below would never be reachable from a market
+      // order. Keying the mock on `isMaker` (not `orderType`) reproduces
+      // that real provider behavior and proves the fix actually asks for
+      // `orderType: 'limit'` to reach the maker quote.
+      calculateFees.mockImplementation(
+        ({ isMaker }: { isMaker: boolean }) =>
+          Promise.resolve(
+            isMaker
+              ? { protocolFeeRate: 0.0009, metamaskFeeRate: 0.00024 } // maker: 0.114%
+              : { protocolFeeRate: 0.00118, metamaskFeeRate: 0.00025 }, // taker: 0.143%
+          ) as Promise<Record<string, unknown>>,
+      );
+      const { stream } = renderPerpsOrderView({
+        overrides: withFeeDisplayVariant('treatment'),
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_TAKER),
+        ).toHaveTextContent('Taker 0.143% /');
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_MAKER),
+        ).toHaveTextContent('Maker 0.114%');
+      });
+      expect(calculateFees).toHaveBeenNthCalledWith(1, {
+        orderType: 'market',
+        isMaker: false,
+        amount: '120',
+        symbol: 'ETH',
+      });
+      expect(calculateFees).toHaveBeenNthCalledWith(2, {
+        orderType: 'limit',
+        isMaker: true,
+        amount: '120',
+        symbol: 'ETH',
+      });
+      // The base FEES_VALUE id stays mounted (on the row container) so an
+      // E2E readiness wait keyed on it still resolves under treatment.
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('shows promotional pricing when Core returns a grant fee quote', async () => {
     const calculateFees = Engine.context.PerpsController
       .calculateFees as jest.Mock;
@@ -275,7 +407,10 @@ describe('PerpsOrderView', () => {
 
     expect(
       await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
-    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsOrderViewSelectorsIDs.ORIGINAL_FEES_VALUE),
     ).toHaveTextContent('$1.45');
@@ -296,7 +431,9 @@ describe('PerpsOrderView', () => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
       const updatePositionTPSL = Engine.context.PerpsController
         .updatePositionTPSL as jest.Mock;
-      updatePositionTPSL.mockResolvedValueOnce({ success: false, error });
+      // Once is consumed by any earlier call in the same case, and the
+      // following call then resolves success and never shows the error toast.
+      updatePositionTPSL.mockResolvedValue({ success: false, error });
       const { stream } = renderPerpsOrderView({
         includeToasts: true,
         overrides: {
@@ -340,6 +477,18 @@ describe('PerpsOrderView', () => {
         expect(
           screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
         ).not.toBeDisabled();
+      });
+      // The separate TP/SL update runs only after pending take-profit is on
+      // the form. The place button can enable first; pressing then leaves the
+      // in-progress "Order submitted" toast up and never shows the error.
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            new RegExp(
+              `${strings('perps.order.tp')} (?!${strings('perps.order.off')})`,
+            ),
+          ),
+        ).toBeOnTheScreen();
       });
 
       await act(async () => {
@@ -727,6 +876,28 @@ describe('PerpsOrderView', () => {
       return submitButton;
     };
 
+    it('shows promotional pricing when Core returns a grant fee quote', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+      const { stream } = renderTradeSheet();
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.FEE_TEXT,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(
+        strings('perps.trade_sheet.includes_fee_after_promo', {
+          originalFeePercentage: '0.145',
+          feePercentage: '0.070',
+        }),
+      );
+    });
+
     it('shows the spendable Perps balance on the pay with row when it differs from the total', async () => {
       const spendableBalance = '250.5';
       const totalBalance = '5000';
@@ -1041,6 +1212,194 @@ describe('PerpsOrderView', () => {
       expect(
         screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('fee-adjusted max size', () => {
+    const LEVERAGE = 4;
+    const BALANCE = 1000;
+    // Far above the ceiling, so the form settles on the max (the 100% slider).
+    const ABOVE_MAX_AMOUNT = '100000';
+    // Reserving 0.5% of notional at 4x leaves this ceiling; unreserved is ~3980.
+    const LOW_FEE_QUOTE = { protocolFeeRate: 0.0045, metamaskFeeRate: 0.0005 };
+    const HIGH_FEE_QUOTE = { protocolFeeRate: 0.0095, metamaskFeeRate: 0.0005 };
+    const budgetCeiling = (feeRate: number) =>
+      BALANCE / (1 / LEVERAGE + feeRate);
+
+    const mockQuote = (quote: object) =>
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue(quote);
+
+    const renderWithAmount = async (amount: string) => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount,
+          leverage: LEVERAGE,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+    };
+
+    const renderAtMax = () => renderWithAmount(ABOVE_MAX_AMOUNT);
+
+    // The amount renders as one animated Text per glyph, so join their text.
+    const readDisplayedAmount = () =>
+      Number(
+        screen
+          .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
+          .findAllByType(Text)
+          .map((glyph) => glyph.props.children)
+          .join('')
+          .replace(/[^0-9.]/g, ''),
+      );
+
+    // Runs while the order form is still mounted, before the order is placed.
+    const expectNoBalanceError = () => {
+      const fundsMessage = strings(
+        'perps.order.validation.insufficient_funds_to_cover_trade',
+      );
+      expect(fundsMessage).not.toMatch(/^\[missing/);
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+      expect(screen.queryByText(fundsMessage)).toBeNull();
+    };
+
+    const waitForDisplayedAmount = (matches: (amount: number) => boolean) =>
+      waitFor(() => expect(matches(readDisplayedAmount())).toBe(true), {
+        timeout: TIMEOUT_MS,
+      });
+
+    const placeOrderAndReadAmount = async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const button = await waitForEnabledPlaceOrderButton();
+      expectNoBalanceError();
+      await act(async () => {
+        fireEvent.press(button);
+      });
+      await waitFor(() => expect(placeOrder).toHaveBeenCalledTimes(1));
+      return Number(placeOrder.mock.calls[0][0].usdAmount);
+    };
+
+    it('sizes the max so margin plus fee fits the balance and keeps the CTA enabled', async () => {
+      mockQuote(LOW_FEE_QUOTE);
+
+      await renderAtMax();
+      await waitForDisplayedAmount(
+        (amount) => amount <= budgetCeiling(0.005) && amount > 3800,
+      );
+      const displayedAmount = readDisplayedAmount();
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount).toBe(displayedAmount);
+      expect(usdAmount / LEVERAGE + usdAmount * 0.005).toBeLessThanOrEqual(
+        BALANCE,
+      );
+    });
+
+    it('keeps a partial size untouched by the fee reservation', async () => {
+      mockQuote(LOW_FEE_QUOTE);
+
+      await renderWithAmount('2000');
+      await waitForEnabledPlaceOrderButton();
+
+      expect(readDisplayedAmount()).toBe(2000);
+      expect(await placeOrderAndReadAmount()).toBe(2000);
+    });
+
+    it('shrinks the max again when a refreshed quote raises the fee while at max', async () => {
+      mockQuote(LOW_FEE_QUOTE);
+      await renderAtMax();
+      await waitForDisplayedAmount(
+        (amount) =>
+          amount <= budgetCeiling(0.005) && amount > budgetCeiling(0.01),
+      );
+      const lowFeeMax = readDisplayedAmount();
+
+      // A new quote arrives with the next amount edit (the quote is keyed on it).
+      mockQuote(HIGH_FEE_QUOTE);
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+        );
+      });
+      await act(async () => {
+        fireEvent.press(
+          await screen.findByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT),
+        );
+      });
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_MAX),
+        );
+      });
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
+        );
+      });
+
+      await waitForDisplayedAmount(
+        (amount) => amount < lowFeeMax && amount <= budgetCeiling(0.01),
+      );
+      const usdAmount = await placeOrderAndReadAmount();
+      expect(usdAmount / LEVERAGE + usdAmount * 0.01).toBeLessThanOrEqual(
+        BALANCE,
+      );
+    });
+
+    it('holds the unreserved max while the quote is pending and shrinks it once it resolves', async () => {
+      let resolveQuote: (quote: object) => void = () => undefined;
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveQuote = resolve;
+          }),
+      );
+
+      await renderAtMax();
+      await waitForDisplayedAmount((amount) => amount > 3900);
+      expect(await waitForEnabledPlaceOrderButton()).toBeOnTheScreen();
+      expectNoBalanceError();
+
+      await act(async () => {
+        resolveQuote(HIGH_FEE_QUOTE);
+      });
+      await waitForDisplayedAmount(
+        (amount) => amount <= budgetCeiling(0.01) && amount > 3700,
+      );
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount / LEVERAGE + usdAmount * 0.01).toBeLessThanOrEqual(
+        BALANCE,
+      );
+    });
+
+    it('falls back to the unreserved max when the quote is rejected', async () => {
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockRejectedValue(new Error('fee quote unavailable'));
+
+      await renderAtMax();
+      await waitForDisplayedAmount((amount) => amount > 3900);
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount).toBeGreaterThan(3900);
     });
   });
 

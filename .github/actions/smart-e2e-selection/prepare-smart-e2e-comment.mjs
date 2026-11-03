@@ -3,7 +3,8 @@
  *
  * The shared comment renderer omits empty arrays, so a chosen-nothing
  * selection disappears from the PR comment. Replace that empty E2E tag
- * list with a sentence. CI still reads the original analyzer JSON.
+ * list with a sentence. Drop performance_tests so the Smart E2E comment
+ * does not list performance tags. CI still reads the original analyzer JSON.
  */
 
 import { pathToFileURL } from 'node:url';
@@ -30,15 +31,21 @@ export function prepareCommentResultJson(raw) {
     return raw;
   }
 
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return raw;
+  }
+
+  const hadPerformanceTests = Object.hasOwn(parsed, 'performance_tests');
+  if (hadPerformanceTests) {
+    delete parsed.performance_tests;
+  }
+
   if (
-    parsed === null ||
-    typeof parsed !== 'object' ||
-    Array.isArray(parsed) ||
     !Object.hasOwn(parsed, 'selected_tags') ||
     !Array.isArray(parsed.selected_tags) ||
     hasChosenTag(parsed.selected_tags)
   ) {
-    return raw;
+    return hadPerformanceTests ? JSON.stringify(parsed) : raw;
   }
 
   return JSON.stringify({
@@ -51,7 +58,5 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-  process.stdout.write(
-    prepareCommentResultJson(process.env.RESULT_JSON ?? ''),
-  );
+  process.stdout.write(prepareCommentResultJson(process.env.RESULT_JSON ?? ''));
 }

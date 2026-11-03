@@ -132,10 +132,17 @@ export function useOHLCVRealtime({
   const contextBaseUrl = usePriceApiHost();
   const latestBaseUrl = baseUrl ?? contextBaseUrl;
 
-  const [latestBar, setLatestBar] = useState<WSOHLCVBar | null>(null);
+  const [latest, setLatest] = useState<{
+    channel: string;
+    bar: WSOHLCVBar;
+  } | null>(null);
   // Skips the state update (and re-render) when the bar hasn't changed.
-  const updateLatestBar = useCallback((bar: WSOHLCVBar) => {
-    setLatestBar((prev) => (areBarsEqual(prev, bar) ? prev : bar));
+  const updateLatestBar = useCallback((channel: string, bar: WSOHLCVBar) => {
+    setLatest((prev) =>
+      prev?.channel === channel && areBarsEqual(prev.bar, bar)
+        ? prev
+        : { channel, bar },
+    );
   }, []);
   const subscribedRef = useRef(false);
   const cancelledRef = useRef(false);
@@ -161,7 +168,7 @@ export function useOHLCVRealtime({
     const channel = buildChannel();
     channelRef.current = channel;
     cancelledRef.current = false;
-    setLatestBar(null);
+    setLatest(null);
     lastMessageTimeRef.current = 0;
     chainDownRef.current = false;
 
@@ -182,7 +189,7 @@ export function useOHLCVRealtime({
         );
         if (bar) {
           lastMessageTimeRef.current = Date.now();
-          updateLatestBar(bar);
+          updateLatestBar(channel, bar);
         }
       } catch {
         // no-op
@@ -196,7 +203,7 @@ export function useOHLCVRealtime({
       if (payload.channel === channelRef.current) {
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
-        updateLatestBar(payload.bar);
+        updateLatestBar(payload.channel, payload.bar);
       }
     };
 
@@ -325,6 +332,10 @@ export function useOHLCVRealtime({
     buildChannel,
     updateLatestBar,
   ]);
+
+  // The effect only clears the previous asset's bar after the render in which
+  // the asset changes, so that render must not report it as the new asset's.
+  const latestBar = latest?.channel === buildChannel() ? latest.bar : null;
 
   return { latestBar };
 }

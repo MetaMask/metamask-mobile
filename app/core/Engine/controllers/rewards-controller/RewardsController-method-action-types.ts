@@ -348,7 +348,6 @@ export type RewardsControllerGetReferralDetailsAction = {
 /**
  * Perform the complete opt-in process for rewards
  * @param accounts - Array of internal accounts to opt in
- * @param referralCode - Optional referral code
  */
 export type RewardsControllerOptInAction = {
   type: `RewardsController:optIn`;
@@ -379,16 +378,6 @@ export type RewardsControllerLogoutAction = {
 export type RewardsControllerGetGeoRewardsMetadataAction = {
   type: `RewardsController:getGeoRewardsMetadata`;
   handler: RewardsController['getGeoRewardsMetadata'];
-};
-
-/**
- * Validate a referral code
- * @param code - The referral code to validate
- * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
- */
-export type RewardsControllerValidateReferralCodeAction = {
-  type: `RewardsController:validateReferralCode`;
-  handler: RewardsController['validateReferralCode'];
 };
 
 /**
@@ -755,18 +744,6 @@ export type RewardsControllerPostBenefitImpressionAction = {
 };
 
 /**
- * Apply a referral code to an existing subscription.
- * @param referralCode - The referral code to apply.
- * @param subscriptionId - The subscription ID for authentication.
- * @returns Promise that resolves when the referral code is applied successfully.
- * @throws Error with the error message from the API response.
- */
-export type RewardsControllerApplyReferralCodeAction = {
-  type: `RewardsController:applyReferralCode`;
-  handler: RewardsController['applyReferralCode'];
-};
-
-/**
  * Apply a bonus code to a subscription.
  * @param bonusCode - The bonus code to apply.
  * @param subscriptionId - The subscription ID to apply the bonus code to.
@@ -787,15 +764,6 @@ export type RewardsControllerApplyBonusCodeAction = {
 export type RewardsControllerGetClientVersionRequirementsAction = {
   type: `RewardsController:getClientVersionRequirements`;
   handler: RewardsController['getClientVersionRequirements'];
-};
-
-/**
- * Invalidate referral details cache for a subscription
- * @param subscriptionId - The subscription ID to invalidate cache for
- */
-export type RewardsControllerInvalidateReferralDetailsCacheAction = {
-  type: `RewardsController:invalidateReferralDetailsCache`;
-  handler: RewardsController['invalidateReferralDetailsCache'];
 };
 
 /**
@@ -996,7 +964,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerResetAllAction
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
-  | RewardsControllerValidateReferralCodeAction
   | RewardsControllerValidateBonusCodeAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionCandidateAction
@@ -1032,10 +999,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetVipEquityMultiplierAction
   | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
-  | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
-  | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
   | RewardsControllerGetPredictThePitchLeaderboardPositionAction

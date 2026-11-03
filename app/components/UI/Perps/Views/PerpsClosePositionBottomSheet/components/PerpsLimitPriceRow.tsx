@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
-import { useBlinkingCursor } from '../../../../Ramp/hooks/useBlinkingCursor';
+import { useBlinkingCursor } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 
 /** Muted stand-in that reads as an input the keypad is waiting to fill. */
 const EMPTY_LIMIT_PRICE_DISPLAY = '0.00';

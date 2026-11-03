@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -12,6 +12,9 @@ import type { LinkableSocialAccount } from '../../hooks/useLinkableSocialAccount
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
 import ManageProfileLinkedAccountView from './ManageProfileLinkedAccountView';
+
+const SOLANA_MAINNET_SCOPE = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const MOCK_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 
 const mockGoBack = jest.fn();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
@@ -37,6 +40,13 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     AvatarAccount: () => null,
+    Checkbox: ({ isSelected }: { isSelected: boolean }) => {
+      const { View } = jest.requireActual('react-native');
+      const { createElement } = jest.requireActual('react');
+      return createElement(View, {
+        testID: isSelected ? 'radio-checked' : 'radio-unchecked',
+      });
+    },
   };
 });
 
@@ -55,12 +65,17 @@ const linkableAccounts: LinkableSocialAccount[] = [
     name: 'Main Wallet',
     address: internalAccount1.address,
     balanceLabel: '$1,234.56',
+    linkedAddresses: [
+      `eip155:1:${internalAccount1.address}`,
+      `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+    ],
   },
   {
     id: internalAccount2.id,
     name: 'Trading',
     address: internalAccount2.address,
     balanceLabel: '',
+    linkedAddresses: [`eip155:1:${internalAccount2.address}`],
   },
 ];
 
@@ -105,6 +120,27 @@ describe('ManageProfileLinkedAccountView', () => {
     );
   });
 
+  it('selects the linked account even when its Solana address is stored first', () => {
+    mockUseProfileController.mockReturnValue(
+      controllerResult({
+        isControllerBacked: true,
+        linkedAddresses: [
+          `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+          `eip155:1:${internalAccount2.address}`,
+        ],
+      }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    expect(
+      within(getRow(internalAccount2.id)).getByTestId('radio-checked'),
+    ).toBeOnTheScreen();
+    expect(
+      within(getRow(internalAccount1.id)).getByTestId('radio-unchecked'),
+    ).toBeOnTheScreen();
+  });
+
   it('does not update the profile when not controller backed', () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     mockUseProfileController.mockReturnValue(
@@ -118,7 +154,7 @@ describe('ManageProfileLinkedAccountView', () => {
     expect(updateProfile).not.toHaveBeenCalled();
   });
 
-  it('updates the profile with the selected EVM account', async () => {
+  it('updates the profile with every address in the selected account', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     mockUseProfileController.mockReturnValue(
       controllerResult({ isControllerBacked: true, updateProfile }),
@@ -131,7 +167,10 @@ describe('ManageProfileLinkedAccountView', () => {
     });
 
     expect(updateProfile).toHaveBeenCalledWith({
-      linked_addresses: [`eip155:1:${internalAccount1.address}`],
+      linked_addresses: [
+        `eip155:1:${internalAccount1.address}`,
+        `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+      ],
     });
   });
 });

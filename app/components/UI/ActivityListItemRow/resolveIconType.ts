@@ -38,6 +38,7 @@ export function resolveIconType(type: ActivityKind): string {
     case 'perpsWithdraw':
     case 'predictionsWithdrawFunds':
     case 'predictionClaimWinnings':
+    case 'predictionSettled':
     case 'predictionCashedOut':
     case 'predictionPlaced':
     case 'perpsReceivedFundingFees':

@@ -18,6 +18,7 @@ import {
 import AppiumAssertions from '../../framework/AppiumAssertions.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
@@ -60,6 +61,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
+      await enableHermesAppProfiling();
       await WalletView.scrollAndTapPerpsSection();
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',

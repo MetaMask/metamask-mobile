@@ -18,7 +18,9 @@ import {
 } from '../../../../../../selectors/featureFlagController/confirmations';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import { NoDepositFeeTag } from '../../../components/UI/no-fee-tag';
+import { ApyTag } from '../../../components/UI/apy-tag';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { getTransactionType } from '../../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
@@ -52,6 +54,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const { withdrawableFiatFormatted } = useMoneyAccountBalance();
   const { isAvailable: isMoneyAccountAvailable } =
     usePayMoneyAccountAvailable();
+  const { apyPercent } = useMoneyVaultApy();
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -63,18 +66,15 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const isEnabled = Boolean(
     transactionType && enableMoneyAccountTransactions[transactionType],
   );
-  const showPerpsDepositNoFeeTag =
+  // Perps deposits only. Predict deposits are not subsidised, so they must
+  // never show the tag. The gate is the Monad mUSD -> Hyperliquid fixed-spread
+  // route in `confirmations_relay_fixed_spread`.
+  const showNoDepositFeeTag =
     isPerpsMoneyAccountNoFeeRouteEnabled &&
     hasTransactionType(transactionMeta, [
       TransactionType.perpsDeposit,
       TransactionType.perpsDepositAndOrder,
     ]);
-  const showPredictDepositNoFeeTag = hasTransactionType(transactionMeta, [
-    TransactionType.predictDeposit,
-    TransactionType.predictDepositAndOrder,
-  ]);
-  const showNoDepositFeeTag =
-    showPerpsDepositNoFeeTag || showPredictDepositNoFeeTag;
 
   const handlePress = useCallback(() => {
     if (transactionId) {
@@ -107,14 +107,28 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      ...(showNoDepositFeeTag
+      ...(showNoDepositFeeTag || apyPercent !== undefined
         ? {
             tagRenderers: [
-              () => (
-                <NoDepositFeeTag
-                  testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`}
-                />
-              ),
+              ...(apyPercent !== undefined
+                ? [
+                    () => (
+                      <ApyTag
+                        apyPercent={apyPercent}
+                        testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-apy-tag`}
+                      />
+                    ),
+                  ]
+                : []),
+              ...(showNoDepositFeeTag
+                ? [
+                    () => (
+                      <NoDepositFeeTag
+                        testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`}
+                      />
+                    ),
+                  ]
+                : []),
             ],
           }
         : {}),
@@ -136,5 +150,6 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     isMoneyAccountSelected,
     showNoDepositFeeTag,
     withdrawableFiatFormatted,
+    apyPercent,
   ]);
 }

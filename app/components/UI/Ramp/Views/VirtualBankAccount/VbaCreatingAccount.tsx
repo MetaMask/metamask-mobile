@@ -1,17 +1,24 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from './vbaScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaCreatingAccountSelectorsIDs = {
   CONTAINER: 'vba-creating-account-container',
@@ -30,7 +37,13 @@ const VbaCreatingAccount = ({
   onBack,
   awaitingProviderApproval = false,
 }: VbaCreatingAccountProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.ACCOUNT_CREATION,
+    contentReady: true,
+  });
   const title = strings(
     awaitingProviderApproval
       ? 'virtual_bank_account.creating_account.awaiting_provider'
@@ -43,20 +56,24 @@ const VbaCreatingAccount = ({
       style={tw.style('flex-1 bg-default')}
       testID={VbaCreatingAccountSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={onBack}
         backButtonProps={{ testID: VbaCreatingAccountSelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />
       <Box
-        twClassName="flex-1 gap-4 px-4"
+        gap={4}
+        paddingHorizontal={4}
+        twClassName="flex-1"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         accessible
         accessibilityRole="progressbar"
         accessibilityLabel={title}
       >
-        <ActivityIndicator testID={VbaCreatingAccountSelectorsIDs.SPINNER} />
+        <Spinner testID={VbaCreatingAccountSelectorsIDs.SPINNER} />
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}

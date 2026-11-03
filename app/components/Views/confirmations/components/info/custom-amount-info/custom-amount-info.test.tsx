@@ -93,6 +93,12 @@ jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
 }));
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/gas/usePredictWithdrawGasFeeToken', () => ({
+  usePredictWithdrawGasFeeToken: () => ({
+    isPending: false,
+    isUnavailable: false,
+  }),
+}));
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
@@ -1003,7 +1009,11 @@ describe('CustomAmountInfo', () => {
         getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
       expect(
-        getByText(strings('confirm.deposit_edit_amount_done')),
+        getByText(
+          strings('confirm.deposit_edit_amount_convert_token', {
+            symbol: 'TST',
+          }),
+        ),
       ).toBeOnTheScreen();
       expect(
         queryByText(strings('confirm.preparing_order')),
@@ -1084,7 +1094,11 @@ describe('CustomAmountInfo', () => {
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
       expect(
-        view.getByText(strings('confirm.deposit_edit_amount_done')),
+        view.getByText(
+          strings('confirm.deposit_edit_amount_convert_token', {
+            symbol: 'TST',
+          }),
+        ),
       ).toBeOnTheScreen();
       expect(
         view.queryByText(strings('confirm.preparing_order')),
@@ -2077,7 +2091,11 @@ describe('CustomAmountInfo', () => {
       );
       await act(async () => {
         fireEvent.press(
-          view.getByText(strings('confirm.deposit_edit_amount_done')),
+          view.getByText(
+            strings('confirm.deposit_edit_amount_convert_token', {
+              symbol: 'TST',
+            }),
+          ),
         );
       });
 
