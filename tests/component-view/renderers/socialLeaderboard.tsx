@@ -12,6 +12,8 @@
 import '../mocks';
 import React from 'react';
 import { View } from 'react-native';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -255,29 +257,40 @@ const SECOND_ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/1`;
  * though it only ever shows EVM accounts. The Solana account is deliberately
  * left out of the tree, matching a snap wallet onboarding must not offer.
  */
-const buildOnboardingAccountTree = (includeSecondEvmAccount: boolean) => ({
+const buildOnboardingAccountTree = (
+  includeSecondEvmAccount: boolean,
+): DeepPartial<AccountTreeControllerState> => ({
   accountTree: {
     wallets: {
       [ONBOARDING_WALLET_ID]: {
         id: ONBOARDING_WALLET_ID,
-        type: 'Entropy',
+        type: AccountWalletType.Entropy,
+        status: 'ready',
         metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
         groups: {
           [ONBOARDING_ACCOUNT_GROUP_ID]: {
             id: ONBOARDING_ACCOUNT_GROUP_ID,
-            type: 'MultipleAccount',
-            metadata: { name: 'Account 1', pinned: false, hidden: false },
+            type: AccountGroupType.MultichainAccount,
+            metadata: {
+              name: 'Account 1',
+              pinned: false,
+              hidden: false,
+              lastSelected: 0,
+              entropy: { groupIndex: 0 },
+            },
             accounts: ['acc-1'],
           },
           ...(includeSecondEvmAccount
             ? {
                 [SECOND_ONBOARDING_ACCOUNT_GROUP_ID]: {
                   id: SECOND_ONBOARDING_ACCOUNT_GROUP_ID,
-                  type: 'MultipleAccount',
+                  type: AccountGroupType.MultichainAccount,
                   metadata: {
                     name: SECOND_ONBOARDING_EVM_ACCOUNT.name,
                     pinned: false,
                     hidden: false,
+                    lastSelected: 0,
+                    entropy: { groupIndex: 1 },
                   },
                   accounts: [SECOND_ONBOARDING_EVM_ACCOUNT.id],
                 },
