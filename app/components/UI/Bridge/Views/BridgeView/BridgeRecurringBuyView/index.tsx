@@ -17,7 +17,8 @@ import {
   selectRecurringPriceRange,
   selectRecurringScheduleValidation,
 } from '../../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../../../Earn/constants/networks';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
@@ -98,9 +99,10 @@ const BridgeRecurringBuyViewContent = ({
   } = useRecurringBuySwapInputs();
 
   const priceRange = useSelector(selectRecurringPriceRange);
-  const walletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const walletAddress = getSelectedAccountByScope(EVM_SCOPE)?.address;
   const ordersNetworkFilter = useSelector(selectOrdersNetworkFilter);
   const scheduleValidation = useSelector(selectRecurringScheduleValidation);
   const { activeQuote, isLoading } = useBridgeQuoteDataContext();
