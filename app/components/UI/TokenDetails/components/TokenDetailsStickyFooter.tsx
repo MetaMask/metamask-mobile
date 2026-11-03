@@ -568,7 +568,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   // position sheet. Only set on position-capable pages, so other footers are
   // unaffected.
   if (traderPositionPnlLoading) return null;
-  if (!tradingOpen && !isTokenDetailsV1 && !hasTraderPosition) return null;
+  if (!tradingOpen && !isTokenDetailsV1) return null;
 
   const moneyDepositButton = showMoneyDepositButton ? (
     <Button
