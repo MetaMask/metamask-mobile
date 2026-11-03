@@ -52,6 +52,10 @@ import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { deduplicateSeriesMarkets } from '../../utils/feed';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
+import {
+  registerPredictHeaderSearch,
+  registerPredictHeaderSearchClose,
+} from '../../hooks/predictHeaderSearch';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictCategory,
@@ -685,6 +689,32 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     });
     showSearch();
   }, [tabs, activeIndex, listEntryPoint, showSearch]);
+
+  useEffect(() => {
+    registerPredictHeaderSearch(() => {
+      if (!navigation.isFocused()) {
+        return false;
+      }
+      handleShowSearch();
+      return true;
+    });
+    return () => registerPredictHeaderSearch(null);
+  }, [handleShowSearch, navigation]);
+
+  useEffect(() => {
+    registerPredictHeaderSearchClose(clearSearchAndClose);
+    return () => registerPredictHeaderSearchClose(null);
+  }, [clearSearchAndClose]);
+
+  const searchNonce = route.params?.searchNonce;
+  const requestedOpen = route.params?.openSearch;
+  const handleShowSearchRef = useRef(handleShowSearch);
+  handleShowSearchRef.current = handleShowSearch;
+  useEffect(() => {
+    if (requestedOpen === true || typeof searchNonce === 'number') {
+      handleShowSearchRef.current();
+    }
+  }, [requestedOpen, searchNonce]);
 
   return (
     <SafeAreaView

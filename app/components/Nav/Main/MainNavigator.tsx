@@ -192,17 +192,17 @@ import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
-  PerpsScreenStack,
   PerpsModalStackWithErrorGate,
   PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import ContextualPerpsRoot from './contextualNav/ContextualPerpsRoot';
 import {
   PredictModalStack,
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
-import { PredictRoot } from '../../UI/PredictNext';
+import ContextualPredictRoot from './contextualNav/ContextualPredictRoot';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -1450,7 +1450,7 @@ const MainNavigator = () => {
         <>
           <NativeStack.Screen
             name={Routes.PERPS.ROOT}
-            component={PerpsScreenStack}
+            component={ContextualPerpsRoot}
             options={slideFromRightNativeOptions}
           />
           <NativeStack.Screen
@@ -1488,7 +1488,7 @@ const MainNavigator = () => {
         <>
           <NativeStack.Screen
             name={Routes.PREDICT.ROOT}
-            component={PredictRoot}
+            component={ContextualPredictRoot}
             options={slideFromRightNativeOptions}
           />
           <NativeStack.Screen

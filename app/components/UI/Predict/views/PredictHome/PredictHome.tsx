@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
@@ -20,6 +20,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
+import {
+  registerPredictHeaderSearch,
+  registerPredictHeaderSearchClose,
+} from '../../hooks/predictHeaderSearch';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import { usePredictSectionImpressions } from '../../hooks/usePredictSectionImpressions';
 import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
@@ -126,6 +130,32 @@ const PredictHome: React.FC = () => {
     });
     showSearch();
   }, [entryPoint, showSearch]);
+
+  useEffect(() => {
+    registerPredictHeaderSearch(() => {
+      if (!navigation.isFocused()) {
+        return false;
+      }
+      handleShowSearch();
+      return true;
+    });
+    return () => registerPredictHeaderSearch(null);
+  }, [handleShowSearch, navigation]);
+
+  useEffect(() => {
+    registerPredictHeaderSearchClose(clearSearchAndClose);
+    return () => registerPredictHeaderSearchClose(null);
+  }, [clearSearchAndClose]);
+
+  const searchNonce = route.params?.searchNonce;
+  const requestedOpen = route.params?.openSearch;
+  const handleShowSearchRef = useRef(handleShowSearch);
+  handleShowSearchRef.current = handleShowSearch;
+  useEffect(() => {
+    if (requestedOpen === true || typeof searchNonce === 'number') {
+      handleShowSearchRef.current();
+    }
+  }, [requestedOpen, searchNonce]);
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {

@@ -4,6 +4,7 @@
  * ticket migrates a real caller. See docs/public-api-contract.md.
  */
 export { default as PredictRoot } from './navigation/root/PredictRoot';
+export { usePredictSectionActions } from './navigation/usePredictSectionActions';
 export {
   PredictActivityDetails,
   usePredictActivityDetailsItem,

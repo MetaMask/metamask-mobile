@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import type { PredictNavigationParamList } from '../types/navigation';
 
@@ -16,10 +16,12 @@ export const usePredictSearch = (): UsePredictSearchResult => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
 
   const requestedQuery = route.params?.query;
+  const requestedOpen = route.params?.openSearch;
+  const searchNonce = route.params?.searchNonce;
   const lastProcessedQueryRef = useRef<string | undefined>(requestedQuery);
 
   const [isSearchVisible, setIsSearchVisible] = useState(
-    Boolean(requestedQuery),
+    Boolean(requestedQuery) || requestedOpen === true,
   );
   const [searchQuery, setSearchQuery] = useState(requestedQuery ?? '');
 
@@ -43,6 +45,17 @@ export const usePredictSearch = (): UsePredictSearchResult => {
   }, [requestedQuery]);
 
   useFocusEffect(onQueryChange);
+
+  useEffect(() => {
+    if (requestedOpen === false) {
+      setSearchQuery('');
+      setIsSearchVisible(false);
+      return;
+    }
+    if (requestedOpen === true || typeof searchNonce === 'number') {
+      setIsSearchVisible(true);
+    }
+  }, [requestedOpen, searchNonce]);
 
   const showSearch = useCallback(() => {
     setIsSearchVisible(true);

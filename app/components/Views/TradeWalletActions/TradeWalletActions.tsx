@@ -92,6 +92,10 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import {
+  enterPerpsSection,
+  enterPredictSection,
+} from '../../Nav/Main/contextualNav/contextualSection';
 import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
 import {
   MORPH_COLLAPSE,
@@ -379,6 +383,7 @@ function TradeWalletActions() {
 
   const onPerps = useCallback(() => {
     postCallback.current = async () => {
+      enterPerpsSection();
       if (isPerpsProModeEnabled) {
         const hasCompletedModeSelection =
           await hasCompletedPerpsModeSelection();
@@ -409,6 +414,7 @@ function TradeWalletActions() {
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
+      enterPredictSection();
       navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
         params: {
