@@ -486,8 +486,13 @@ export class PredictOrderService {
   }
 
   /** Crosses the submission boundary (if not already across) and commits
-   * and observes the operation once. */
-  #dispatch(operation: OrderOperation): Promise<PredictOrderReceipt> {
+   * and observes the operation once. A caller's Commit observes with the
+   * bounded loop; a background tick sends a single re-POST, because its
+   * own schedule is the loop. */
+  #dispatch(
+    operation: OrderOperation,
+    maxObservations = MAX_COMMIT_OBSERVATIONS,
+  ): Promise<PredictOrderReceipt> {
     const { previewId } = operation;
     const generation = this.#commitGeneration;
     const startedAt = Date.now();
@@ -509,6 +514,7 @@ export class PredictOrderService {
         generation,
         startedAt,
         transport.signal,
+        maxObservations,
       ),
       abandonment,
     ]);
@@ -536,6 +542,7 @@ export class PredictOrderService {
     generation: number,
     startedAt: number,
     signal: AbortSignal,
+    maxObservations: number,
   ): Promise<PredictOrderReceipt> {
     let receipt: PredictOrderReceipt;
     try {
@@ -546,7 +553,7 @@ export class PredictOrderService {
           op: TraceOperation.PredictOrderSubmission,
           tags: { venueId: this.#venueId },
         },
-        () => this.#observe(operation, generation, signal),
+        () => this.#observe(operation, generation, signal, maxObservations),
       );
     } catch (error) {
       if (generation === this.#commitGeneration) {
@@ -571,13 +578,11 @@ export class PredictOrderService {
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
+    maxObservations: number,
   ): Promise<PredictOrderReceipt> {
     let receipt = await this.#commitOnce(operation, generation, signal);
     let observations = 0;
-    while (
-      isInProgressReceipt(receipt) &&
-      observations < MAX_COMMIT_OBSERVATIONS
-    ) {
+    while (isInProgressReceipt(receipt) && observations < maxObservations) {
       await sleep(this.#observationDelayMs);
       receipt = await this.#commitOnce(operation, generation, signal);
       observations += 1;
@@ -701,7 +706,7 @@ export class PredictOrderService {
           return;
         }
         // Failures are handled inside; the background has no caller.
-        this.#dispatch(operation).catch(() => undefined);
+        this.#dispatch(operation, 0).catch(() => undefined);
       },
       Math.max(delay, earliest - now),
     );

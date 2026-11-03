@@ -1050,7 +1050,8 @@ describe('PredictOrderService', () => {
       const calls = trading.commitOrder.mock.calls.length;
       await jest.advanceTimersByTimeAsync(60_000);
       expect(trading.commitOrder.mock.calls.length).toBe(calls);
-      expect(calls).toBeGreaterThan(4);
+      // The bounded loop's 4, then one re-POST per background tick.
+      expect(calls).toBe(8);
       expect(orderResolved).not.toHaveBeenCalled();
     });
   });
