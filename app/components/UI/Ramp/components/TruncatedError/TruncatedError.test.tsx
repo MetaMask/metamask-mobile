@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import TruncatedError from './TruncatedError';
 import { createErrorDetailsModalNavDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
@@ -82,6 +83,20 @@ describe('TruncatedError', () => {
       triggerFitsMeasurement(getByText, shortError);
 
       expect(getByText(shortError)).toBeOnTheScreen();
+    });
+
+    it('renders visible (not opacity-hidden) before onTextLayout ever fires', () => {
+      // Regression test: onTextLayout is not reliably fired by React Native
+      // for short, single-line text that needs no truncation (unlike longer
+      // text, which reliably triggers a layout pass). Gating visibility on
+      // that event left short error messages permanently invisible.
+      const shortError = 'Minimum buy amount should be more than or equal to 30 USD';
+      const { getByText } = render(<TruncatedError error={shortError} />);
+
+      const textElement = getByText(shortError);
+
+      expect(textElement).toBeOnTheScreen();
+      expect(StyleSheet.flatten(textElement.props.style).opacity).not.toBe(0);
     });
   });
 
