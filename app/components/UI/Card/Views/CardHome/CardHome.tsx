@@ -16,7 +16,6 @@ import {
   ButtonVariant,
   ButtonSize,
   TextButton,
-  HeaderStandard,
   Icon,
   IconColor,
   IconSize,
@@ -129,6 +128,8 @@ import {
 } from '../../util/metrics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -625,6 +626,7 @@ const CardHome = () => {
   ]);
 
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
@@ -640,7 +642,9 @@ const CardHome = () => {
   if (isError) {
     return (
       <Box twClassName="flex-1 bg-background-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
@@ -681,7 +685,9 @@ const CardHome = () => {
   // --- Main render ---
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}
