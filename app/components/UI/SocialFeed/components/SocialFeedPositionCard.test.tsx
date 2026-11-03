@@ -577,7 +577,7 @@ describe('SocialFeedPositionCard', () => {
         StyleSheet.flatten(
           screen.getByTestId('position-card-shell').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('hides copy trade on an open card when showCopyTrade is false', () => {
@@ -667,7 +667,7 @@ describe('SocialFeedPositionCard', () => {
         StyleSheet.flatten(
           screen.getByTestId('position-card-shell').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('keeps only the header on a closed card without a comment', () => {
@@ -695,7 +695,7 @@ describe('SocialFeedPositionCard', () => {
         StyleSheet.flatten(
           screen.getByTestId('position-card-shell').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('captions a closed spot card without a comment as sold and keeps no side tag', () => {

@@ -1510,7 +1510,7 @@
         "kols": "KOLs (Líderes de Opinião Chave)"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Aplicar",
         "apply": "Aplicar",
         "reset": "Redefinir",
