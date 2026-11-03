@@ -20,6 +20,11 @@ jest.mock('../../../../core/Engine', () => ({
     controllerMessenger: {
       call: jest.fn(),
     },
+    context: {
+      PredictPortfolioService: {
+        invalidateQueries: jest.fn().mockResolvedValue(undefined),
+      },
+    },
   },
 }));
 
@@ -35,6 +40,8 @@ jest.mock('./internal/kalshiDebugInfo', () => ({
 }));
 
 const messengerCall = Engine.controllerMessenger.call as jest.Mock;
+const invalidateQueries = Engine.context.PredictPortfolioService
+  .invalidateQueries as jest.Mock;
 const profileId = '2245ae33-2695-4bfe-be45-d01e38de0955';
 
 const renderPanel = () =>
@@ -56,6 +63,22 @@ describe('KalshiDebugPanel', () => {
 
     expect(Clipboard.setString).toHaveBeenCalledTimes(1);
     expect(Clipboard.setString).toHaveBeenCalledWith(profileId);
+  });
+
+  it('refreshes the cached balance the app is showing', async () => {
+    messengerCall.mockResolvedValue(profileId);
+    const view = renderPanel();
+
+    fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
+    await view.findByText('active');
+    fireEvent.press(view.getByText('Refresh'));
+
+    await waitFor(() => {
+      expect(invalidateQueries).toHaveBeenCalledTimes(2);
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['PredictPortfolioService:getBalance', 'kalshi'],
+    });
   });
 
   it('omits the copy button when the profile id is missing', async () => {

@@ -18,6 +18,8 @@ import {
 } from '@metamask/design-system-react-native';
 
 import Engine from '../../../../core/Engine';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
+import { portfolioQueries } from '../queries/portfolioQueries';
 import type { PredictBalance } from '../types';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
 import { isKalshiDemoOnboardingEnabled } from './internal/demoOnboardingConfig';
@@ -126,17 +128,26 @@ export const KalshiDebugPanel = ({
     } catch (error) {
       next.statusError = `a2t: ${describeError(error)}`;
     }
-    try {
-      // Reads Kalshi's balance and current intent, so it can hit the
-      // device-lane rate limit when tapped right after a balance read.
-      const status = await createKalshiOnboardingClient().getStatus();
+    // Status reads Kalshi's balance and drops the amount. The figure below is
+    // the portfolio query, which stays put until it is invalidated. Start both
+    // together so they share one Kalshi read.
+    const [statusResult, balanceResult] = await Promise.allSettled([
+      createKalshiOnboardingClient().getStatus(),
+      Engine.context.PredictPortfolioService.invalidateQueries({
+        queryKey: portfolioQueries.getBalance(KALSHI_VENUE_ID).queryKey,
+      }),
+    ]);
+    if (statusResult.status === 'fulfilled') {
       next.status = {
-        state: status.state,
-        intentStatus: status.intentStatus,
-        expireTs: status.expireTs,
+        state: statusResult.value.state,
+        intentStatus: statusResult.value.intentStatus,
+        expireTs: statusResult.value.expireTs,
       };
-    } catch (error) {
-      next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}status: ${describeError(error)}`;
+    } else {
+      next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}status: ${describeError(statusResult.reason)}`;
+    }
+    if (balanceResult.status === 'rejected') {
+      next.statusError = `${next.statusError ? `${next.statusError}; ` : ''}balance: ${describeError(balanceResult.reason)}`;
     }
     setSnapshot(next);
     setLoading(false);
