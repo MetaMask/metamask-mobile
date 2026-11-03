@@ -163,7 +163,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         isFloating={false}
         onBack={navigation.goBack}
       />
-      <ScrollView style={styles.container}>
+      <ScrollView style={[styles.container, styles.notificationsList]}>
         <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
           {strings('app_settings.notifications_title')}
         </Text>
