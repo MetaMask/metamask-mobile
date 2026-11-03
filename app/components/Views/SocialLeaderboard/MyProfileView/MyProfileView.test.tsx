@@ -1492,6 +1492,60 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('loads later pages when a filter hides every loaded post', () => {
+    const loadMore = jest.fn();
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: true,
+      loadMore,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+
+    expect(loadMore).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('No token activity')).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeNull();
+  });
+
+  it('shows the posts error when a filter hides every loaded post', () => {
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: 'failed',
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_ERROR),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("The feed didn't load")).toBeOnTheScreen();
+  });
+
   it('shows closed empty copy when only the open fetch failed', () => {
     mockUseTraderPositions.mockReturnValue({
       openPositions: [],

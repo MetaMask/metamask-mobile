@@ -28,7 +28,13 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -480,9 +486,32 @@ const MyProfileView: React.FC = () => {
     [activeTab, hasNextPage, loadMore],
   );
 
-  const showInitialPostSkeletons = isPostsLoading && posts.length === 0;
+  // A Tokens or Perps filter only sees posts already loaded. Keep paging
+  // until a match shows up, the feed ends, or the request fails.
+  const showFilteredPostLoading =
+    assetFilter !== 'all' &&
+    visiblePosts.length === 0 &&
+    !postsError &&
+    (isPostsLoading || isFetchingNextPage || hasNextPage);
+  const showInitialPostSkeletons =
+    (isPostsLoading && posts.length === 0) || showFilteredPostLoading;
   const showPostsEmptyState =
-    !isPostsLoading && visiblePosts.length === 0 && !postsError;
+    !isPostsLoading &&
+    !isFetchingNextPage &&
+    visiblePosts.length === 0 &&
+    !postsError &&
+    !showFilteredPostLoading;
+  useEffect(() => {
+    if (!showFilteredPostLoading || isPostsLoading || isFetchingNextPage) {
+      return;
+    }
+    loadMore();
+  }, [
+    isFetchingNextPage,
+    isPostsLoading,
+    loadMore,
+    showFilteredPostLoading,
+  ]);
   const postsEmptyMessage =
     posts.length > 0 && assetFilter !== 'all'
       ? strings(
@@ -834,7 +863,7 @@ const MyProfileView: React.FC = () => {
                   <ProfilePostsLoadingState />
                 ) : showPostsEmptyState ? (
                   <ProfilePostsEmptyState message={postsEmptyMessage} />
-                ) : postsError && posts.length === 0 ? (
+                ) : postsError && visiblePosts.length === 0 ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
                     justifyContent={BoxJustifyContent.Center}
@@ -880,7 +909,9 @@ const MyProfileView: React.FC = () => {
                     />
                   </Box>
                 )}
-                {activeTab === 'posts' && isFetchingNextPage ? (
+                {activeTab === 'posts' &&
+                isFetchingNextPage &&
+                visiblePosts.length > 0 ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
                     twClassName="px-4"
