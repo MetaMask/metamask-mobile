@@ -73,6 +73,8 @@ import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPo
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
+import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
+import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
 import {
   addPendingPost,
   requestPostsTabFocus,
@@ -525,7 +527,12 @@ const SocialPostComposerView: React.FC = () => {
         // Replace so Back from the profile skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
       }
-    } catch {
+    } catch (error) {
+      // The social API refuses a banned author's post with a 403, the same
+      // status as a wallet they don't own; the status tells the two apart.
+      if (extractHttpStatus(error) === 403) {
+        invalidateModerationStatus().catch(() => undefined);
+      }
       trackInteraction(Interaction.POST_FAILED, {
         outcome: Outcome.FAILED,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),

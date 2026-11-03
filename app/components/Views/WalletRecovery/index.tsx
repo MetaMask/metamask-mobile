@@ -6,7 +6,6 @@ import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -36,6 +35,8 @@ import { AppThemeKey } from '../../../util/theme/models';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { capitalize } from 'lodash';
 import { colors as commonColors } from '../../../styles/common';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const SocialNotLinked = () => {
   const { colors } = useTheme();
@@ -201,6 +202,7 @@ const SocialLinked = ({
 };
 
 const WalletRecovery = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
@@ -306,7 +308,9 @@ const WalletRecovery = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.manage_recovery_method')}
         titleProps={{ color: TextColor.PrimaryDefault }}
         onBack={handleBack}

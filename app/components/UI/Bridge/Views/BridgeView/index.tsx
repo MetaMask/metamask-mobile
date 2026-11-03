@@ -13,11 +13,7 @@ import {
 } from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  Box,
-  HeaderStandard,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Box, IconName } from '@metamask/design-system-react-native';
 import {
   TabsBar,
   type TabItem,
@@ -61,8 +57,11 @@ import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileI
 import { OrdersTabKey } from '../../components/OrdersTabs';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const BridgeView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     selectedTab,
     renderedTab,
@@ -363,7 +362,9 @@ const BridgeView = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleBack}
         backButtonProps={{

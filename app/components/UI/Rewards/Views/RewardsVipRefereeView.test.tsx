@@ -37,6 +37,10 @@ let mockIsVipReferee = true;
 let mockIsVipProgramEnabled = true;
 let mockVipRefereeSplashAccepted: Record<string, boolean> = {};
 
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
+}));
+
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
   useSelector: jest.fn(),
