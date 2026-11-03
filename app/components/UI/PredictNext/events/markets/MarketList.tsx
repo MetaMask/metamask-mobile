@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import {
   FlatList,
+  type FlatListProps,
   type ListRenderItemInfo,
   type StyleProp,
   type ViewStyle,
@@ -11,7 +12,11 @@ import { MarketListTestIds } from './MarketList.testIds';
 
 const MarketSeparator = () => <Box twClassName="h-[14px]" />;
 
-export interface MarketListProps<T> {
+export interface MarketListProps<T>
+  extends Pick<
+    FlatListProps<T>,
+    'initialNumToRender' | 'maxToRenderPerBatch' | 'windowSize'
+  > {
   data: readonly T[];
   keyExtractor: (item: T) => string;
   renderItem: (item: T) => React.ReactElement | null;
@@ -29,6 +34,9 @@ export const MarketList = <T,>({
   extraData,
   testID = MarketListTestIds.ROOT,
   contentContainerStyle,
+  initialNumToRender,
+  maxToRenderPerBatch,
+  windowSize,
 }: MarketListProps<T>) => {
   const tw = useTailwind();
   const listContentContainerStyle = useMemo(
@@ -45,6 +53,9 @@ export const MarketList = <T,>({
       testID={testID}
       style={tw.style('flex-1')}
       data={data as T[]}
+      initialNumToRender={initialNumToRender}
+      maxToRenderPerBatch={maxToRenderPerBatch}
+      windowSize={windowSize}
       extraData={extraData}
       renderItem={handleRenderItem}
       keyExtractor={keyExtractor}

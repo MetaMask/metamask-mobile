@@ -1510,7 +1510,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Aplicar",
         "apply": "Aplicar",
         "reset": "Restablecer",
@@ -5106,7 +5106,7 @@
     "card_update_badge": "Actualizar",
     "settings": "Configuración",
     "networks": "Redes",
-    "log_out": "Cerrar sesión",
+    "log_out": "Bloquear",
     "notifications": "Notificaciones",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Únete a MetaMask Orange",
@@ -10124,7 +10124,6 @@
       "perps_withdraw": "Retirar",
       "predict_deposit": "Añadir fondos de Predicciones",
       "predict_withdraw": "Retirar",
-      "money_account_add_money": "Agregar fondos",
       "money_account_send": "Enviar"
     },
     "sub_title": {

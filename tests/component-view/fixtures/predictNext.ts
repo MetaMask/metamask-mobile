@@ -19,14 +19,19 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
+  PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
   PredictMarket,
+  PredictMarketLayout,
   PredictOutcome,
+  PredictPosition,
   PredictSignedAmount,
+  PredictSignedPercent,
   PredictTimestamp,
+  PredictVenueId,
 } from '../../../app/components/UI/PredictNext/types';
 
 interface GameEventOptions {
@@ -344,6 +349,83 @@ export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   };
 };
 
+const gameLinesLayout = (
+  section: { key: string; order: number },
+  subgroup: { key: string; order: number },
+): PredictMarketLayout => ({
+  tab: { key: 'game_lines', order: 0 },
+  section,
+  subgroup,
+});
+const MONEYLINE = { key: 'moneyline', order: 0 };
+const FULL_GAME = { key: 'full_game', order: 0 };
+const FIRST_HALF = { key: 'first_half', order: 1 };
+
+/**
+ * The composite Game as the backend composes it (PRED-1424): every moneyline
+ * is a `choice` group with an Event screen layout, and a first-half moneyline
+ * with a tie claims the same Game Selections as the full-game one.
+ */
+export const makePredictNextLaidOutGameEvent = (): PredictEvent => {
+  const event = makePredictNextCompositeGameEvent();
+  const markets = event.markets.map((market): PredictMarket => {
+    if (market.group !== undefined) {
+      const section =
+        market.group.marketType === PREDICT_MARKET_TYPES.TOTAL
+          ? { key: 'total_points', order: 2 }
+          : { key: 'spread', order: 1 };
+      return { ...market, layout: gameLinesLayout(section, FULL_GAME) };
+    }
+    const isAway = market.outcomes[0].gameSelection === 'away';
+    return {
+      ...market,
+      group: {
+        key: `${event.id}:moneyline`,
+        groupType: 'choice',
+        displayOrder: isAway ? 0 : 1,
+      },
+      layout: gameLinesLayout(MONEYLINE, FULL_GAME),
+    };
+  });
+  const [template] = event.markets;
+  const firstHalf = (
+    suffix: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    displayOrder: number,
+  ): PredictMarket => ({
+    ...template,
+    id: `${event.id}-1h-${suffix}` as PredictEntityId,
+    outcomes: [
+      {
+        ...template.outcomes[0],
+        id: `${event.id}-1h-${suffix}-yes` as PredictEntityId,
+        gameSelection,
+      },
+      {
+        ...template.outcomes[1],
+        id: `${event.id}-1h-${suffix}-no` as PredictEntityId,
+      },
+    ],
+    group: {
+      key: `${event.id}-1h:moneyline`,
+      groupType: 'choice',
+      displayOrder,
+    },
+    layout: gameLinesLayout(MONEYLINE, FIRST_HALF),
+  });
+
+  return {
+    ...event,
+    markets: [
+      // Period moneylines first, so a lookup by order alone would pick them.
+      firstHalf('away', 'away', 0),
+      firstHalf('tie', undefined, 1),
+      firstHalf('home', 'home', 2),
+      ...markets,
+    ],
+  };
+};
+
 export const nflEvents = [
   makePredictNextGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL', {
     askPrices: { away: '0.41', home: '0.59' },
@@ -535,20 +617,21 @@ const lakersContext = {
 /** A valued open Position, valid against the C1 Positions contract. */
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
-) => ({
-  venueId: 'kalshi',
-  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
-  side: 'yes' as const,
-  status: 'open' as const,
-  shares: '75.00',
-  averagePrice: '0.55' as PredictDecimal,
-  costBasis: '41.25',
-  currentValue: '45.00',
-  unrealizedPnl: '3.75' as PredictSignedAmount,
-  unrealizedPnlPercent: '9.09',
-  context: lakersContext,
-  ...overrides,
-});
+): PredictPosition =>
+  ({
+    venueId: 'kalshi' as PredictVenueId,
+    marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+    side: 'yes' as const,
+    status: 'open' as const,
+    shares: '75.00' as PredictAmount,
+    averagePrice: '0.55' as PredictDecimal,
+    costBasis: '41.25' as PredictAmount,
+    currentValue: '45.00' as PredictAmount,
+    unrealizedPnl: '3.75' as PredictSignedAmount,
+    unrealizedPnlPercent: '9.09' as PredictSignedPercent,
+    context: lakersContext,
+    ...overrides,
+  }) as PredictPosition;
 
 /** A sell Trade, valid against the C1 Activity contract. */
 export const makePredictNextTrade = (

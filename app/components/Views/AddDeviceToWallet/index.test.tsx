@@ -30,7 +30,10 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
+const mockBeforeRemoveListeners = new Set<() => void>();
+const mockGoBack = jest.fn(() => {
+  mockBeforeRemoveListeners.forEach((listener) => listener());
+});
 let mockIsQrTabSwitcherOpen = false;
 
 jest.mock('@react-navigation/native', () => {
@@ -40,6 +43,15 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      addListener: (event: string, callback: () => void) => {
+        if (event === 'beforeRemove') {
+          mockBeforeRemoveListeners.add(callback);
+        }
+
+        return () => {
+          mockBeforeRemoveListeners.delete(callback);
+        };
+      },
     }),
   };
 });
@@ -92,6 +104,7 @@ const renderComponent = (
 describe('AddDeviceToWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBeforeRemoveListeners.clear();
     mockIsQrTabSwitcherOpen = false;
     clearQrSyncAccountsReview();
     mockHasPendingSecretImports.mockResolvedValue(false);
@@ -205,9 +218,22 @@ describe('AddDeviceToWallet', () => {
       fireEvent.press(getByTestId('button-icon'));
 
       await waitFor(() => {
-        expect(mockResetState).toHaveBeenCalled();
+        expect(mockResetState).toHaveBeenCalledTimes(1);
         expect(mockGoBack).toHaveBeenCalled();
       });
+    });
+
+    it('resets QR sync state when the screen is removed without the header', async () => {
+      renderComponent({
+        phase: QrSyncPhases.DISPLAYING_OTP,
+      });
+
+      mockBeforeRemoveListeners.forEach((listener) => listener());
+
+      await waitFor(() => {
+        expect(mockResetState).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 
@@ -422,6 +448,29 @@ describe('AddDeviceToWallet', () => {
       fireEvent.press(getByTestId(AccountsImportedTestIds.CONTINUE));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    });
+
+    it('keeps QR sync secrets when the screen is removed for import', () => {
+      renderComponent({
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports,
+      });
+
+      mockBeforeRemoveListeners.forEach((listener) => listener());
+
+      expect(mockResetState).not.toHaveBeenCalled();
+    });
+
+    it('keeps provisioning metadata when the screen is removed during Phase C', () => {
+      renderComponent({
+        provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
+        provisioningMetadata: pendingSecretImports,
+        pendingSecretImports: null,
+      });
+
+      mockBeforeRemoveListeners.forEach((listener) => listener());
+
+      expect(mockResetState).not.toHaveBeenCalled();
     });
 
     it('does not navigate to import when sync failed with stale secret data', async () => {

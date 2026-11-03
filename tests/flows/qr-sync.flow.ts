@@ -6,7 +6,6 @@ import { openE2EUrl } from '../framework/DeepLink';
 import Assertions from '../framework/Assertions';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
-import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import CreatePasswordView from '../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import AddDeviceToWalletView from '../page-objects/Onboarding/AddDeviceToWalletView';
@@ -87,7 +86,7 @@ export const applyQrSyncSrpReadyPayload = async ({
 };
 
 /**
- * New-user path: onboarding → Import SRP → scan menu → extension option → inject sync-ready
+ * New-user path: onboarding → Import from MetaMask extension → inject sync-ready
  * → accounts imported → create password → MetaMetrics → wallet home.
  */
 export const completeNewUserQrSyncSrp = async ({
@@ -110,13 +109,9 @@ export const completeNewUserQrSyncSrp = async ({
   await OnboardingView.tapHaveAnExistingWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {
-    await OnboardingSheet.tapImportSeedButton();
+    await OnboardingSheet.tapImportFromExtensionButton();
   }
 
-  await Assertions.expectElementToBeVisible(ImportWalletView.container, {
-    description: 'Import from seed screen should be visible',
-  });
-  await ImportWalletView.tapImportFromExtensionLink();
   await AddDeviceToWalletView.expectScreenVisible();
 
   await applyQrSyncSrpReadyPayload({

@@ -5,13 +5,17 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
-import { ActivityListSelectorsIDs } from './ActivityList.testIds';
+import {
+  ActivityListSelectorsIDs,
+  activityListLimitOrderRowTestId,
+} from './ActivityList.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
-import { usePredictActivityItems } from './hooks/usePredictActivityItems';
+import { usePredictActivityItems } from '../../UI/PredictNext';
+import { useFilledLimitOrders } from './hooks/useFilledLimitOrders';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
@@ -509,12 +513,6 @@ jest.mock('../../UI/Perps', () => ({
   ),
 }));
 
-jest.mock('../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(
-    (state: { predictEnabled: boolean }) => state.predictEnabled,
-  ),
-}));
-
 let mockPerpsSourceState: {
   items: unknown[];
   isLoading: boolean;
@@ -539,12 +537,46 @@ jest.mock('./hooks/usePerpsActivityItems', () => ({
   usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
 }));
 
-jest.mock('./hooks/usePredictActivityItems', () => ({
-  usePredictActivityItems: jest.fn(() => mockPredictSourceState),
+const mockIsInactivePredictVenueItem = jest.fn((_item: unknown) => false);
+
+jest.mock('../../UI/PredictNext', () => ({
+  selectPredictAvailability: jest.fn(
+    (state: { predictEnabled: boolean }) => state.predictEnabled,
+  ),
+  usePredictActivityItems: jest.fn(() => ({
+    isInactiveVenueItem: mockIsInactivePredictVenueItem,
+    ...mockPredictSourceState,
+  })),
 }));
+
+const mockLimitOrdersRefetch = jest.fn(() => Promise.resolve());
+const mockLimitOrdersFetchNextPage = jest.fn();
+let mockFilledLimitOrdersState: {
+  orders: { id: string; timingData: { closedAt?: string } }[];
+  isLoading: boolean;
+  isFetchingNextPage: boolean;
+} = { orders: [], isLoading: false, isFetchingNextPage: false };
+
+jest.mock('./hooks/useFilledLimitOrders', () => ({
+  useFilledLimitOrders: jest.fn(() => ({
+    ...mockFilledLimitOrdersState,
+    refetch: mockLimitOrdersRefetch,
+    fetchNextPage: mockLimitOrdersFetchNextPage,
+  })),
+}));
+
+jest.mock('../../UI/Bridge/components/LimitOrderTabRow', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    LimitOrderTabRow: ({ order }: { order: { id: string } }) => (
+      <Text>{`limit-order-row-${order.id}`}</Text>
+    ),
+  };
+});
 
 const usePerpsActivityItemsMock = jest.mocked(usePerpsActivityItems);
 const usePredictActivityItemsMock = jest.mocked(usePredictActivityItems);
+const useFilledLimitOrdersMock = jest.mocked(useFilledLimitOrders);
 
 const mockUseActivityScreenViewed = jest.fn();
 jest.mock('../ActivityScreen/hooks/useActivityScreenViewed', () => ({
@@ -626,6 +658,11 @@ describe('ActivityList', () => {
     selectorValues.fiatOrders = [];
     mockPerpsSourceState = { items: [], isLoading: false, error: null };
     mockPredictSourceState = { items: [], isLoading: false, error: null };
+    mockFilledLimitOrdersState = {
+      orders: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+    };
     selectorValues.selectedGroupAccounts = [
       { address: '0xevm', type: 'eip155:eoa' },
     ];
@@ -1619,6 +1656,46 @@ describe('ActivityList', () => {
     expect(usePredictActivityItemsMock).toHaveBeenCalledWith({ enabled: true });
   });
 
+  it.each([
+    [ActivityTypeFilter.Predictions, false],
+    [ActivityTypeFilter.All, true],
+  ])('under %s, shows an inactive Venue row: %s', (typeFilter, isShown) => {
+    selectorValues.predictEnabled = true;
+    mockPredictSourceState = {
+      items: [
+        {
+          type: 'predictionPlaced',
+          chainId: 'kalshi:mainnet',
+          status: 'success',
+          timestamp: 7,
+          hash: 'active-venue-row',
+          data: { token: { symbol: 'USD' } },
+        },
+        {
+          type: 'predictionPlaced',
+          chainId: 'eip155:137',
+          status: 'success',
+          timestamp: 6,
+          hash: 'inactive-venue-row',
+          data: { token: { symbol: 'USDC' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+    mockIsInactivePredictVenueItem.mockImplementation(
+      (item) => (item as { hash?: string }).hash === 'inactive-venue-row',
+    );
+
+    render(<ActivityList typeFilter={typeFilter} />);
+
+    expect(screen.getByTestId('row-active-venue-row')).toBeOnTheScreen();
+    expect(Boolean(screen.queryByTestId('row-inactive-venue-row'))).toBe(
+      isShown,
+    );
+    mockIsInactivePredictVenueItem.mockImplementation(() => false);
+  });
+
   it('does not enable the predict query on the Transactions tab', () => {
     selectorValues.predictEnabled = true;
 
@@ -1918,5 +1995,195 @@ describe('ActivityList', () => {
     expect(screen.getByTestId('row-status-solanaCross')).toHaveTextContent(
       'failed',
     );
+  });
+
+  describe('Limit orders filter', () => {
+    const filledOrder = {
+      id: 'filled-1',
+      timingData: { closedAt: '2026-09-04T13:00:00.000Z' },
+    };
+
+    it('fetches filled limit orders only while the filter is active', () => {
+      const { rerender } = render(
+        <ActivityList
+          header={<></>}
+          typeFilter={ActivityTypeFilter.Transactions}
+        />,
+      );
+      expect(useFilledLimitOrdersMock).toHaveBeenLastCalledWith({
+        walletAddress: '0xevm',
+        chainId: undefined,
+        enabled: false,
+      });
+
+      rerender(
+        <ActivityList
+          header={<></>}
+          typeFilter={ActivityTypeFilter.LimitOrders}
+          networkFilter={['eip155:1']}
+        />,
+      );
+
+      expect(useFilledLimitOrdersMock).toHaveBeenLastCalledWith({
+        walletAddress: '0xevm',
+        chainId: 'eip155:1',
+        enabled: true,
+      });
+    });
+
+    it('renders filled limit orders in place of transaction rows', () => {
+      mockFilledLimitOrdersState.orders = [filledOrder];
+
+      render(
+        <ActivityList
+          header={<></>}
+          typeFilter={ActivityTypeFilter.LimitOrders}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(ActivityListSelectorsIDs.LIMIT_ORDERS_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(activityListLimitOrderRowTestId('filled-1')),
+      ).toHaveTextContent('limit-order-row-filled-1');
+      expect(screen.queryByTestId('row-kind-0xconfirmed')).toBeNull();
+      expect(
+        screen.queryByTestId(ActivityListSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('shows the loading indicator while filled orders load', () => {
+      mockFilledLimitOrdersState = {
+        orders: [filledOrder],
+        isLoading: true,
+        isFetchingNextPage: false,
+      };
+
+      render(
+        <ActivityList
+          header={<></>}
+          typeFilter={ActivityTypeFilter.LimitOrders}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(activityListLimitOrderRowTestId('filled-1')),
+      ).toBeNull();
+    });
+
+    it('shows the Limit orders empty state when there are no filled orders', () => {
+      render(
+        <ActivityList
+          header={<></>}
+          typeFilter={ActivityTypeFilter.LimitOrders}
+        />,
+      );
+
+      expect(screen.getByTestId('activity-empty-state')).toHaveTextContent(
+        `empty:${ActivityTypeFilter.LimitOrders}`,
+      );
+    });
+
+    it('shows the load-more indicator while the next page loads', () => {
+      mockFilledLimitOrdersState = {
+        orders: [filledOrder],
+        isLoading: false,
+        isFetchingNextPage: true,
+      };
+
+      render(
+        <ActivityList
+          header={<></>}
+          typeFilter={ActivityTypeFilter.LimitOrders}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(ActivityListSelectorsIDs.LOAD_MORE_INDICATOR),
+      ).toBeOnTheScreen();
+    });
+
+    it('refetches filled orders on pull to refresh', async () => {
+      render(
+        <ActivityList
+          header={<></>}
+          typeFilter={ActivityTypeFilter.LimitOrders}
+        />,
+      );
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('mock-refresh'));
+      });
+
+      expect(mockLimitOrdersRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not refetch filled orders on refresh under other filters', async () => {
+      render(
+        <ActivityList
+          header={<></>}
+          typeFilter={ActivityTypeFilter.Transactions}
+        />,
+      );
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('mock-refresh'));
+      });
+
+      expect(mockRefetch).toHaveBeenCalled();
+      expect(mockLimitOrdersRefetch).not.toHaveBeenCalled();
+    });
+
+    it('reports screen viewed as empty or non-empty from the filled orders', () => {
+      const { rerender } = render(
+        <ActivityList
+          header={<></>}
+          trackScreenViewed
+          typeFilter={ActivityTypeFilter.LimitOrders}
+        />,
+      );
+      expect(mockUseActivityScreenViewed).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isSettled: true,
+          isEmpty: true,
+          typeFilter: ActivityTypeFilter.LimitOrders,
+        }),
+      );
+
+      mockFilledLimitOrdersState.orders = [filledOrder];
+      rerender(
+        <ActivityList
+          header={<></>}
+          trackScreenViewed
+          typeFilter={ActivityTypeFilter.LimitOrders}
+        />,
+      );
+
+      expect(mockUseActivityScreenViewed).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isSettled: true, isEmpty: false }),
+      );
+    });
+
+    it('scrolls the limit orders list to the top through the handle', () => {
+      const ref = React.createRef<ActivityListHandle>();
+      render(
+        <ActivityList
+          ref={ref}
+          header={<></>}
+          typeFilter={ActivityTypeFilter.LimitOrders}
+        />,
+      );
+
+      ref.current?.scrollToTop();
+
+      expect(mockScrollToOffset).toHaveBeenCalledWith({
+        offset: 0,
+        animated: true,
+      });
+    });
   });
 });

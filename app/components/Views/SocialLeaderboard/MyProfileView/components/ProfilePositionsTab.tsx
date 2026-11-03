@@ -18,6 +18,7 @@ import React, { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import PositionRow from '../../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../../TraderProfileView/components/Skeletons';
+import { getPositionFlagLabelKey } from '../../TraderProfileView/utils/positionFlags';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import {
   getFilteredPositionSections,
@@ -39,6 +40,7 @@ export interface ProfilePositionsTabProps {
   onFilterChange: (filter: ProfileAssetFilter) => void;
   onPositionPress: (position: Position) => void;
   onRetry: () => void;
+  showFlaggedState?: boolean;
 }
 
 const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
@@ -50,6 +52,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   onFilterChange,
   onPositionPress,
   onRetry,
+  showFlaggedState,
 }) => {
   const { tokens, perps } = useMemo(
     () => getFilteredPositionSections(positions, filter),
@@ -68,7 +71,12 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
         position={position}
         isClosed={isClosed}
         showTradeDate={isClosed}
-        onPress={onPositionPress}
+        showFlaggedState={showFlaggedState}
+        onPress={
+          showFlaggedState && getPositionFlagLabelKey(position)
+            ? undefined
+            : onPositionPress
+        }
       />
     ));
 

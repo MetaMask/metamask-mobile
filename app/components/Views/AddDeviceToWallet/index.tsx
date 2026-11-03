@@ -47,6 +47,7 @@ import {
   selectQrSyncAccountsReview,
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
+  selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
   selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
@@ -124,8 +125,11 @@ const AddDeviceToWallet = () => {
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
   );
+  const needsProvisioning = useSelector(selectQrSyncNeedsProvisioning);
   const holdInstructions = useQrSyncInstructionsHold();
-  const shouldResetOnLeave = Boolean(review) || shouldNavigateToImport;
+  // Import and existing-user Phase C remove this screen while they still read
+  // pending secrets and provisioning metadata. A user back press still resets.
+  const shouldKeepQrSyncState = shouldNavigateToImport || needsProvisioning;
 
   useEffect(() => {
     if (presentation === 'instructions') {
@@ -133,32 +137,42 @@ const AddDeviceToWallet = () => {
     }
   }, [presentation]);
 
-  useEffect(() => {
-    if (typeof navigation.addListener !== 'function' || !shouldResetOnLeave) {
-      return undefined;
-    }
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
-    return navigation.addListener('beforeRemove', (event) => {
-      if (event.data.action.type !== 'GO_BACK') {
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      if (event?.data?.action?.type === 'GO_BACK') {
+        if (review) {
+          void leaveQrSyncSession(async () => {
+            try {
+              await messenger.call('QrSyncController:clearAccountsReview');
+            } catch {
+              // Review clear is best-effort when the action is unavailable.
+            }
+            await messenger.call('QrSyncController:resetState');
+          });
+          return;
+        }
+
+        Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+          () => undefined,
+        );
         return;
       }
-      void leaveQrSyncSession(async () => {
-        try {
-          await messenger.call('QrSyncController:clearAccountsReview');
-        } catch {
-          // Review clear is best-effort when the action is unavailable.
-        }
-        await messenger.call('QrSyncController:resetState');
-      });
-    });
-  }, [messenger, navigation, shouldResetOnLeave]);
 
-  const handleBack = useCallback(() => {
-    Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-      () => undefined,
-    );
-    navigation.goBack();
-  }, [messenger, navigation]);
+      if (shouldKeepQrSyncState) {
+        return;
+      }
+
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
+    });
+
+    return unsubscribe;
+  }, [messenger, navigation, review, shouldKeepQrSyncState]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -312,7 +326,7 @@ const AddDeviceToWallet = () => {
         ) : null}
 
         <FooterGlass
-          twClassName="mt-auto py-4"
+          twClassName="mt-auto py-2"
           primaryButtonProps={{
             children: strings('app_settings.add_device.scan_qr_code_button'),
             onPress: openQRScanner,

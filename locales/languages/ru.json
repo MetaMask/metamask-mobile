@@ -1510,7 +1510,7 @@
         "kols": "Лидеры мнений"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Применить",
         "apply": "Применить",
         "reset": "Сброс",
@@ -5106,7 +5106,7 @@
     "card_update_badge": "Обновить",
     "settings": "Настройки",
     "networks": "Сети",
-    "log_out": "Выйти",
+    "log_out": "Заблокировать",
     "notifications": "Уведомления",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Подключить MetaMask Orange",
@@ -10124,7 +10124,6 @@
       "perps_withdraw": "Вывести средства",
       "predict_deposit": "Внести средства для прогнозирования",
       "predict_withdraw": "Вывести средства",
-      "money_account_add_money": "Внести средства",
       "money_account_send": "Отправить"
     },
     "sub_title": {

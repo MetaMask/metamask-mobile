@@ -133,19 +133,21 @@ const pickGroupProperties = (value: unknown, keys: readonly string[]) => {
   );
 };
 
+const displayOrder = optional(
+  refine(
+    number(),
+    'PredictMarketDisplayOrder',
+    (value) => Number.isInteger(value) && value >= 0,
+  ),
+);
+
 const marketSelectorGroupSchema = coerce(
   structType({
     key: nonEmptyGroupString('PredictMarketGroupKey'),
     groupType: literal('marketSelector'),
     marketType: nonEmptyGroupString('PredictMarketType'),
     option: PredictMarketOptionSchema,
-    displayOrder: optional(
-      refine(
-        number(),
-        'PredictMarketDisplayOrder',
-        (value) => Number.isInteger(value) && value >= 0,
-      ),
-    ),
+    displayOrder,
   }),
   unknown(),
   (value) =>
@@ -156,6 +158,17 @@ const marketSelectorGroupSchema = coerce(
       'option',
       'displayOrder',
     ]),
+);
+
+/** One option per Market, such as a moneyline's teams and tie. */
+const choiceGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: literal('choice'),
+    displayOrder,
+  }),
+  unknown(),
+  (value) => pickGroupProperties(value, ['key', 'groupType', 'displayOrder']),
 );
 
 const unsupportedMarketGroupSchema = coerce(
@@ -173,8 +186,36 @@ const unsupportedMarketGroupSchema = coerce(
 
 export const PredictMarketGroupSchema = union([
   marketSelectorGroupSchema,
+  choiceGroupSchema,
   unsupportedMarketGroupSchema,
 ]);
+
+const layoutLevelSchema = object({
+  key: nonEmptyGroupString('PredictMarketLayoutKey'),
+  order: refine(number(), 'PredictMarketLayoutOrder', Number.isInteger),
+});
+
+const marketLayoutStruct = object({
+  tab: layoutLevelSchema,
+  section: layoutLevelSchema,
+  subgroup: optional(layoutLevelSchema),
+});
+
+/**
+ * Event screen placement. Presentation only, so a malformed layout is dropped
+ * rather than rejecting the response; unknown keys are valid.
+ */
+const marketLayoutSchema = coerce(
+  optional(marketLayoutStruct),
+  unknown(),
+  (value) => {
+    try {
+      return mask(value, marketLayoutStruct);
+    } catch {
+      return undefined;
+    }
+  },
+);
 
 const binaryOutcomes = refine(
   tuple([outcomeSchema, outcomeSchema]),
@@ -189,6 +230,7 @@ const marketSchema = object({
   outcomes: binaryOutcomes,
   status,
   group: optional(PredictMarketGroupSchema),
+  layout: marketLayoutSchema,
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),

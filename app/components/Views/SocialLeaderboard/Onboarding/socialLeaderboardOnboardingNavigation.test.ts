@@ -16,6 +16,7 @@ import {
   shouldShowSocialLeaderboardOnboarding,
 } from './socialLeaderboardOnboardingNavigation';
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../../../../core/redux', () => ({
   __esModule: true,
   default: { store: { getState: jest.fn() } },
