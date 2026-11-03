@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AnimationDuration } from '@metamask/design-tokens';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  HeaderStandard,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { ButtonIconSize, IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Animated, {
   type SharedValue,
@@ -20,6 +15,10 @@ import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
+import { useSelector } from 'react-redux';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const COMPACT_TITLE_ENTER_OFFSET_PX = 8;
 const END_ACCESSORY_SPACER_SIZE = 40;
@@ -75,6 +74,7 @@ const TraderPositionAnimatedHeader: React.FC<
   onTraderPress,
   onShare,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const compactTokenProgress = useDerivedValue(() => {
     const hasMeasured = titleSectionHeight.value > 0;
     const isTokenSectionHidden =
@@ -115,14 +115,17 @@ const TraderPositionAnimatedHeader: React.FC<
   );
 
   return (
-    <HeaderStandard
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
       onBack={onBack}
       backButtonProps={{
         testID: TraderPositionViewSelectorsIDs.BACK_BUTTON,
       }}
       endAccessory={
         onShare ? (
-          <ButtonIcon
+          <ButtonIconGlass
+            isCapsule={isGlassHeader}
             iconName={IconName.Share}
             size={ButtonIconSize.Md}
             onPress={onShare}
@@ -167,7 +170,7 @@ const TraderPositionAnimatedHeader: React.FC<
           />
         </Animated.View>
       </View>
-    </HeaderStandard>
+    </HeaderStandardGlass>
   );
 };
 
