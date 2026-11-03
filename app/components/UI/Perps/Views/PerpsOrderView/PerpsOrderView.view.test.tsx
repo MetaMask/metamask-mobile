@@ -13,6 +13,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import {
+  calculatePositionSize,
   CandlePeriod,
   PERPS_ERROR_CODES,
   PERPS_EVENT_PROPERTY,
@@ -27,6 +28,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   defaultPositionForViews,
   renderPerpsOrderView,
@@ -49,6 +51,7 @@ import {
 import {
   formatPercentage,
   formatPerpsFiat,
+  formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -1712,6 +1715,20 @@ describe('PerpsOrderView', () => {
       name: string,
     ) => events.filter((event) => event.name === name);
 
+    const orderBookCurrency = (store: {
+      getState: () => {
+        engine: {
+          backgroundState: {
+            PerpsController?: {
+              orderBookPreferences?: { currency?: string };
+            };
+          };
+        };
+      };
+    }) =>
+      store.getState().engine.backgroundState.PerpsController
+        ?.orderBookPreferences?.currency;
+
     it('shows USD and reports usd before the price, then coin once the price can project it', async () => {
       const events: { name: string; properties: Record<string, unknown> }[] =
         [];
@@ -1862,6 +1879,96 @@ describe('PerpsOrderView', () => {
       );
 
       trackEventSpy.mockRestore();
+    });
+
+    it('keeps coin sizing after leaving the trade sheet for a tooltip', async () => {
+      const amount = '100';
+      const price = 2500;
+      const szDecimals = 2;
+      const coinAmount = formatPositionSize(
+        calculatePositionSize({
+          amount,
+          price,
+          szDecimals,
+        }),
+      );
+      const { stream, store } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount,
+          leverage: 4,
+          useBottomSheet: true,
+          defaultSzDecimals: szDecimals,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+      const unwire = wirePerpsControllerForStore(store);
+
+      try {
+        emitEthPrice(stream, '2', String(price));
+        // The header can paint a cached mid before order sizing has a price.
+        // The coin subtitle appears only once that price can project USD, which
+        // is also when the toggle is allowed to persist coin.
+        await screen.findByText(
+          `${coinAmount} ETH`,
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_TOGGLE),
+        );
+
+        expect(
+          await screen.findByRole('button', {
+            name: strings('perps.trade_sheet.show_fiat_value'),
+          }),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+        ).toHaveTextContent(coinAmount);
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+        ).toHaveTextContent('ETH');
+        expect(orderBookCurrency(store)).toBe('base');
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_ROW),
+        );
+
+        expect(
+          await screen.findByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+        ).toBeOnTheScreen();
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+        );
+
+        expect(
+          await screen.findByRole('button', {
+            name: strings('perps.trade_sheet.show_fiat_value'),
+          }),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+        ).toHaveTextContent(coinAmount);
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+        ).toHaveTextContent('ETH');
+        expect(orderBookCurrency(store)).toBe('base');
+        expect(
+          screen.queryByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+        ).not.toBeOnTheScreen();
+      } finally {
+        unwire();
+      }
     });
 
     it('reports usd on the full-screen form when coin is saved', async () => {
