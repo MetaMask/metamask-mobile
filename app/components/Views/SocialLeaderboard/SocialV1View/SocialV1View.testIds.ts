@@ -1,7 +1,6 @@
 export const SocialV1ViewSelectorsIDs = {
   CONTAINER: 'social-v1-view-container',
   HEADER: 'social-v1-view-header',
-  HEADER_INSET: 'social-v1-view-header-inset',
   HEADER_TITLE: 'social-v1-view-header-title',
   TITLE: 'social-v1-view-title',
   TABS: 'social-v1-view-tabs',

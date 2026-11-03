@@ -693,10 +693,7 @@ const SocialV1ViewContent: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={SocialV1ViewSelectorsIDs.CONTAINER}
       >
-        <View
-          style={{ paddingTop: safeAreaInsets.top }}
-          testID={SocialV1ViewSelectorsIDs.HEADER_INSET}
-        >
+        <View style={{ paddingTop: safeAreaInsets.top }}>
           <HeaderStandardAnimated
             scrollY={scrollY}
             titleSectionHeight={titleHeightSv}
