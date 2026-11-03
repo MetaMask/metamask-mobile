@@ -6314,8 +6314,7 @@
           "description": "The main trading pool reported for this token."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "title": "Volume flags"
         },
         "listed_on_exchange": {
           "title": "Borsada listelenmiş",
