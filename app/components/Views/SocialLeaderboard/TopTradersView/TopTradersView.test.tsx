@@ -54,6 +54,7 @@ const selectSort = (sort: LeaderboardSort) => {
   fireEvent.press(screen.getByTestId(getSortFilterOptionTestId(sort)));
 };
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -375,7 +376,6 @@ describe('TopTradersView', () => {
         profileId: 'current-user',
         displayName: 'Giga Whale',
         handle: 'giga-whale',
-        shareUrl: 'https://metamask.io/social/giga-whale',
         pnlUsd: 7100,
       },
       isLoading: false,
@@ -887,7 +887,6 @@ describe('TopTradersView', () => {
           profileId: fixtureTraders[0].id,
           displayName: fixtureTraders[0].username,
           handle: fixtureTraders[0].username,
-          shareUrl: '',
           linkedAccountAddress: fixtureTraders[0].address,
         },
         isLoading: false,

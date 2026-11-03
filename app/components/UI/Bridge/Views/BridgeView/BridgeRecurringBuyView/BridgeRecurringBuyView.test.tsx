@@ -11,6 +11,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { createBridgeTestState } from '../../../testUtils';
 import { OrderType } from '../../../types/advancedOrders';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
+import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
@@ -41,6 +42,10 @@ jest.mock('../../../hooks/useRecurringOrders', () => ({
   useRecurringOrders: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(),
+}));
+
 jest.mock('./useRecurringBuySwapInputs', () => ({
   useRecurringBuySwapInputs: jest.fn(),
 }));
@@ -52,8 +57,10 @@ jest.mock('./useRecurringBuyKeypad', () => ({
 jest.mock('./BridgeRecurringBuyFooterView', () => ({
   BridgeRecurringBuyFooterView: ({
     onPreviewOrder,
+    isPreviewDisabled,
   }: {
     onPreviewOrder: () => void;
+    isPreviewDisabled?: boolean;
   }) => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const { Pressable, Text } =
@@ -61,7 +68,12 @@ jest.mock('./BridgeRecurringBuyFooterView', () => ({
 
     return ReactModule.createElement(
       Pressable,
-      { testID: 'preview-order', onPress: onPreviewOrder },
+      {
+        testID: 'preview-order',
+        onPress: onPreviewOrder,
+        disabled: isPreviewDisabled,
+        accessibilityState: { disabled: isPreviewDisabled },
+      },
       ReactModule.createElement(Text, null, 'Preview'),
     );
   },
@@ -163,6 +175,10 @@ describe('BridgeRecurringBuyView', () => {
       isLoading: false,
       refetch: jest.fn(),
     } as never);
+    jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
+      isValid: true,
+      retry: jest.fn(),
+    });
     jest.mocked(useRecurringBuySwapInputs).mockReturnValue({
       destToken,
       destTokenAmount: '10',
@@ -224,5 +240,38 @@ describe('BridgeRecurringBuyView', () => {
       feature_id: FeatureId.RECURRING_ORDER,
       order_type: OrderType.SELL_BELOW,
     });
+  });
+
+  it('does not preview an order while the fee-token pair is unsupported', () => {
+    jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
+      isValid: false,
+      reason: 'unsupported-pair',
+      supportedTokenSymbols: ['USDC'],
+      retry: jest.fn(),
+    });
+    const { getByTestId } = renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      {
+        state: createBridgeTestState({
+          bridgeReducerOverrides: {
+            sourceToken,
+            destToken,
+            recurring: {
+              everyValue: '2',
+              everyUnit: 'day',
+              repeatCount: '4',
+            },
+          },
+        }),
+      },
+    );
+
+    const previewButton = getByTestId('preview-order');
+    fireEvent.press(previewButton);
+
+    expect(previewButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

@@ -29,7 +29,6 @@ import {
   FontWeight,
   Icon,
   IconName,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 
 import styleSheet from './RegionSelector.styles';
@@ -41,6 +40,9 @@ import { Country, State } from '@metamask/ramps-controller';
 import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
 import { useRampsCountries } from '../../../hooks/useRampsCountries';
 import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -83,6 +85,7 @@ function isRegionSupported(supported: unknown): boolean {
 }
 
 function RegionSelector() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useAppTheme();
   const listRef = useRef<FlatList<ListItem>>(null);
@@ -631,7 +634,9 @@ function RegionSelector() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleHeaderBack}
         backButtonProps={{ testID: headerBackTestId }}

@@ -7,7 +7,6 @@ import {
   Box,
   ContentVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -37,6 +36,8 @@ import { getMethodLabel } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
 import { useMoneyMfa } from '../../../UI/Money/hooks/useMoneyMfa';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const ROW_TEST_IDS: Record<MfaMethod, string> = {
   passkey: MfaSettingsSelectorsIDs.PASSKEY_ROW,
@@ -63,6 +64,7 @@ const ADD_SUCCESS_MESSAGE_KEYS: Record<MfaMethod, string> = {
  * second factor.
  */
 const MfaSettings = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation();
@@ -155,7 +157,12 @@ const MfaSettings = () => {
       style={tw.style('flex-1 bg-default')}
       testID={MfaSettingsSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard onBack={() => navigation.goBack()} includesTopInset />
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
       <ScrollView contentContainerStyle={tw.style('pb-4')}>
         <Text variant={TextVariant.HeadingLg} twClassName="px-4 pb-2">
           {strings('mfa.settings.title')}

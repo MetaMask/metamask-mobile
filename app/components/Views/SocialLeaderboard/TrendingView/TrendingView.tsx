@@ -1,4 +1,4 @@
-import { Box, TextColor } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
   useEffect,
@@ -13,7 +13,6 @@ import {
   type SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
 import SocialFeed, {
-  type SocialFeedHeaderProps,
   type SocialFeedInlineRow,
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
@@ -28,7 +27,6 @@ import {
   useSocialInteraction,
 } from '../analytics';
 import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
-import PendingPostsButton from '../LiveView/components/PendingPostsButton';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
@@ -55,8 +53,9 @@ const TRENDING_INLINE_ROWS: readonly SocialFeedInlineRow[] = [
     key: 'popular-traders',
     afterIndex: TRENDING_POPULAR_TRADERS_INSERT_AFTER,
     render: () => (
-      // The rail pulls itself 16px up; this leaves 8px above its header, the
-      // same gap a post keeps between its card and the divider.
+      // The rail pulls itself 16px up and the header has no vertical padding,
+      // so 8px sits above the title. With the divider's 4px margin, that reads
+      // as 12px, the same gap a post keeps above its content.
       <Box twClassName="pt-6 pb-2">
         <PopularTradersCarousel />
       </Box>
@@ -175,19 +174,10 @@ const TrendingView: React.FC<TrendingViewProps> = ({
 
   const { tokens, isLoading: isRailLoading } = hotTokens;
   const renderHeader = useCallback(
-    ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
+    () => (
       // The filter rail cancels 16px of the space under it, which leaves 8px
       // above the first post's own 8px.
       <Box twClassName="pt-4 pb-6">
-        {pendingNewCount > 0 ? (
-          <Box twClassName="flex-row px-4 pb-2">
-            <PendingPostsButton
-              pendingNewCount={pendingNewCount}
-              onPress={onRevealPending}
-              textColor={TextColor.SuccessDefault}
-            />
-          </Box>
-        ) : null}
         <TrendingFilterRail
           onOpenFilters={onOpenFilters}
           isFilterActive={isFilterActive}
