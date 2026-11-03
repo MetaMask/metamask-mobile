@@ -1062,6 +1062,24 @@ describe('MyProfileView', () => {
     ).toBeNull();
   });
 
+  it('spaces the other trader header actions like the home capsule', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_ACTIONS_CAPSULE),
+    ).toHaveStyle({
+      gap: 8,
+      paddingLeft: 8,
+      paddingRight: 8,
+    });
+  });
+
   it('shows the profile options button only for another trader', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
