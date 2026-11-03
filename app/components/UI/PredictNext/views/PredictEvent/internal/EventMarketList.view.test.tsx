@@ -1800,6 +1800,32 @@ describe('EventMarketList', () => {
       ).not.toHaveStyle({ paddingTop: 12 });
       expect(view.getAllByTestId(MarketListTestIds.SEPARATOR)).toHaveLength(1);
     });
+
+    it('spaces the standard cards of a card with no group card 12px apart', async () => {
+      const event = makePredictNextLaidOutGameEvent();
+      const { view } = renderLaidOut({
+        ...event,
+        markets: event.markets.map(
+          (market): PredictMarket =>
+            market.group?.key === 'nfl-spreads'
+              ? {
+                  ...market,
+                  group: { ...market.group, marketType: 'unknown_line' },
+                }
+              : market,
+        ),
+      });
+
+      const cardRow = await view.findByTestId(
+        EventMarketLayoutSectionTestIds.card('spread', 'nfl-spreads'),
+      );
+
+      expect(
+        within(cardRow).getAllByTestId(MarketStandardCardTestIds.TITLE_PATTERN)
+          .length,
+      ).toBeGreaterThan(1);
+      expect(cardRow).toHaveStyle({ gap: 12 });
+    });
   });
 
   describe('with player props', () => {
