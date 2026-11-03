@@ -44,7 +44,10 @@ import type {
 import { strings } from '../../../../../../../locales/i18n';
 import { navigateToRewardsRoute } from '../../../utils';
 import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
-import { incomeHeldOnlyForTax } from '../../../utils/taxDocumentation';
+import {
+  incomeHeldOnlyForTax,
+  isTaxFlowEnabled,
+} from '../../../utils/taxDocumentation';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
@@ -641,7 +644,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   // One earning type does not need a split. The section appears only when
   // two rows remain after the role and Social V1 filters.
   const showBreakdown = summary.show && rows.length >= 2;
-  const routeOptions = claimRouteOptions(followTradeClaimOpen);
+  const taxFlowEnabled = isTaxFlowEnabled(localizedText?.taxFormUrl);
+  const routeOptions = claimRouteOptions(
+    localizedText?.taxFormUrl,
+    followTradeClaimOpen,
+  );
   const claimEnabled = canClaimEarnings(summary.data, persona, routeOptions);
 
   return (
@@ -679,7 +686,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               isSummaryLoading={summary.loading}
               isLast7Loading={last7Loading}
               canClaim={claimEnabled}
-              taxHeld={incomeHeldOnlyForTax(summary.data)}
+              taxHeld={taxFlowEnabled && incomeHeldOnlyForTax(summary.data)}
               isClaiming={isClaiming}
               isClaimWaiting={isClaimWaiting}
               onClaim={

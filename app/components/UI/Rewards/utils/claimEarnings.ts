@@ -31,6 +31,7 @@ import {
   buildMoneyAccountDepositBatch,
   getMoneyAccountDepositAssetAddress,
 } from '../../Money/utils/moneyAccountTransactions';
+import { isTaxFlowEnabled } from './taxDocumentation';
 
 const RETRY_REASONS = new Set([
   'PROOF_INVALID',
@@ -166,15 +167,26 @@ export function meetsClaimMinimum(
 }
 
 export interface ClaimRouteOptions {
-  /** Follow-trade claims need an open claim route. Omitted leaves the route off. */
+  /**
+   * Follow-trade claims need the tax form and an open claim route. Omitted
+   * leaves the route off.
+   */
   includeFollowTrade?: boolean;
 }
 
-/** Follow-trade is included only when this session has seen `claim_open`. */
+/**
+ * Follow-trade is included only when the tax form is on and commissions
+ * reports `SOCIAL_FOLLOW_TRADE.claim_open`. An unknown route stays off.
+ * Cashback does not use this: commissions has no cashback `claim_open`.
+ */
 export function claimRouteOptions(
+  taxFormUrl: string | undefined,
   followTradeClaimOpen: boolean | undefined,
 ): ClaimRouteOptions {
-  return { includeFollowTrade: followTradeClaimOpen === true };
+  return {
+    includeFollowTrade:
+      isTaxFlowEnabled(taxFormUrl) && followTradeClaimOpen === true,
+  };
 }
 
 /**

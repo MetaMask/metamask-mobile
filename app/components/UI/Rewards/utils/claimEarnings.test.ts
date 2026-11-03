@@ -267,9 +267,14 @@ describe('claimRoutesForSummary', () => {
     expect(claimRoutesForSummary(followTrade, 'referee')).toEqual([]);
     expect(canClaimEarnings(followTrade, 'referrer')).toBe(false);
     expect(canClaimEarnings(followTrade, 'referrer', open)).toBe(true);
-    expect(claimRouteOptions(true).includeFollowTrade).toBe(true);
-    expect(claimRouteOptions(false).includeFollowTrade).toBe(false);
-    expect(claimRouteOptions(undefined).includeFollowTrade).toBe(false);
+    const formUrl = 'https://tax.example/form';
+    expect(claimRouteOptions(formUrl, true).includeFollowTrade).toBe(true);
+    expect(claimRouteOptions(formUrl, false).includeFollowTrade).toBe(false);
+    expect(claimRouteOptions(formUrl, undefined).includeFollowTrade).toBe(
+      false,
+    );
+    expect(claimRouteOptions('', true).includeFollowTrade).toBe(false);
+    expect(claimRouteOptions(undefined, true).includeFollowTrade).toBe(false);
   });
 });
 

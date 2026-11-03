@@ -152,12 +152,12 @@ const RewardsMoneyDashboard: React.FC = () => {
   const panelScrollRef = useRef<ScrollView>(null);
   const referralMe = referralMeEntry?.data;
   const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
+  const localizedText = referralMe?.localized_text;
   const showEarningsDot = canClaimEarnings(
     earningsSummaryEntry?.data,
     moneyDashboardPersona(referralMe),
-    claimRouteOptions(followTradeClaimOpen),
+    claimRouteOptions(localizedText?.taxFormUrl, followTradeClaimOpen),
   );
-  const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   // The three panels share this scroller. A tab press returns to the top so a
   // long Ways to earn page cannot leave Performance opened mid-list. Pressing

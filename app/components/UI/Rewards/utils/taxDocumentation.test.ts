@@ -9,6 +9,7 @@ import {
   minutesFromRetryAfter,
   mintRateLimitRemainingMs,
   readMintRateLimit,
+  isTaxFlowEnabled,
   resolveTaxFormUrl,
   taxRefusalAction,
   taxSheetFor,
@@ -273,6 +274,15 @@ describe('minutesFromRetryAfter', () => {
     expect(minutesFromRetryAfter(61)).toBe(2);
     expect(withMinutes('Wait {minutes} minutes.', 120)).toBe('Wait 2 minutes.');
     expect(withMinutes('No placeholder.', 120)).toBe('No placeholder.');
+  });
+});
+
+describe('isTaxFlowEnabled', () => {
+  it('is on only for a form page the WebView may open', () => {
+    expect(isTaxFlowEnabled('https://tax.example/form')).toBe(true);
+    expect(isTaxFlowEnabled('')).toBe(false);
+    expect(isTaxFlowEnabled(undefined)).toBe(false);
+    expect(isTaxFlowEnabled('http://tax.example/form')).toBe(false);
   });
 });
 

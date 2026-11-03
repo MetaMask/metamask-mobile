@@ -26,6 +26,7 @@ import Logger from '../../../../util/Logger';
 import {
   holdMintRateLimit,
   holdTaxFormSession,
+  isTaxFlowEnabled,
   resolveTaxFormUrl,
   taxRefusalAction,
   taxSheetFor,
@@ -66,6 +67,7 @@ export function useTaxDocumentation(profileId: string) {
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
+  const taxFlowEnabled = isTaxFlowEnabled(localizedText?.taxFormUrl);
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const pressBusy = useRef(false);
@@ -462,6 +464,10 @@ export function useTaxDocumentation(profileId: string) {
       }
       pressBusy.current = true;
       try {
+        if (!taxFlowEnabled) {
+          await claim();
+          return;
+        }
         let taxMe: TaxMeDto | null = null;
         try {
           taxMe = await readTaxMe();
@@ -489,15 +495,25 @@ export function useTaxDocumentation(profileId: string) {
         pressBusy.current = false;
       }
     },
-    [localizedText, openSheet, readTaxMe, refreshSummary, showError],
+    [
+      localizedText,
+      openSheet,
+      readTaxMe,
+      refreshSummary,
+      showError,
+      taxFlowEnabled,
+    ],
   );
 
   const openAfterClaimRefusal = useCallback(async () => {
+    if (!taxFlowEnabled) {
+      throw new Error('Tax flow is disabled');
+    }
     const taxMe = await readTaxMe(true);
     if (!showTaxMe(taxMe)) {
       throw new Error('Tax determination did not open a sheet');
     }
-  }, [readTaxMe, showTaxMe]);
+  }, [readTaxMe, showTaxMe, taxFlowEnabled]);
 
   return {
     prefetchTaxMe,

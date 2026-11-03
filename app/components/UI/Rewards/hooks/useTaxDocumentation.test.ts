@@ -213,6 +213,19 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledTimes(1);
     });
 
+    it('still prefetches the determination when the form URL is hidden', async () => {
+      mockLocalizedText.mockReturnValue({ ...localizedText, taxFormUrl: '' });
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        result.current.prefetchTaxMe();
+        await Promise.resolve();
+      });
+
+      expect(mockCall).toHaveBeenCalledWith('RewardsMoneyController:getTaxMe');
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('swallows a failed prefetch', async () => {
       mockCall.mockRejectedValue(new Error('offline'));
       const { result } = renderTaxHook();

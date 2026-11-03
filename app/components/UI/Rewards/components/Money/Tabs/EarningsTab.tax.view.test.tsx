@@ -431,32 +431,84 @@ describe('EarningsTab tax documentation', () => {
     ).toHaveLength(2);
   });
 
-  it('does not mint when the form URL is empty', async () => {
-    const { findByTestId, findByText, engine } = renderEarningsTab({
+  it('keeps the tax flow and follow-trade claims off when the form URL is hidden', async () => {
+    const followTrade = earningsSummaryFixture({
+      claimable: '1000000',
+      cashbackClaimable: '0',
+    });
+    followTrade.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE = {
+      lifetime: '1000000',
+      claimable: '1000000',
+      held: '0',
+      blocked: '0',
+      voided: '0',
+      pending: '0',
+      claimed: '0',
+    };
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary: followTrade,
+      claimReady: true,
+      referralMe: {
+        ...referralMeFixture('referrer'),
+        localized_text: { ...COPY, taxFormUrl: '' },
+      },
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(OPEN_FORM),
+      },
+    });
+
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
+    ).toBeNull();
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getTaxMe').length,
+      ).toBeGreaterThan(0);
+    });
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
+  it('claims cashback without the tax flow when the form URL is hidden', async () => {
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
       persona: 'referee',
-      summary: HELD_ONLY,
+      summary: CASHBACK_AND_HELD,
+      claimReady: true,
+      initiateClaim: 'hang',
       referralMe: {
         ...referralMeFixture('referee'),
         localized_text: { ...COPY, taxFormUrl: '' },
       },
       handlers: {
-        'RewardsMoneyController:getTaxMe': () => Promise.resolve(OPEN_FORM),
-        'RewardsMoneyController:mintTaxFormToken': () =>
-          Promise.resolve({ token: TOKEN, expires_at: '2026-12-01T00:00:00Z' }),
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(ATTESTATION),
       },
     });
 
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
-    fireEvent.press(
-      await findByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
-    );
 
-    expect(await findByText(COPY.taxDeterminationTitle)).toBeOnTheScreen();
     expect(
-      callsFor(engine, 'RewardsMoneyController:mintTaxFormToken'),
-    ).toHaveLength(0);
+      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
+          (call) => call[1],
+        ),
+      ).toEqual(['referral-trade-fee-cashback']);
+    });
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getTaxMe').length,
+    ).toBeGreaterThan(0);
   });
 
   it('shows the determination sheet for a provider 503 and does not retry', async () => {

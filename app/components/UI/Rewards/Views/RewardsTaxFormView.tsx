@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   WebView,
   type WebViewMessageEvent,
@@ -66,6 +68,7 @@ function allowsNavigation(requestUrl: string, origin: string): boolean {
 }
 
 const RewardsTaxFormView: React.FC = () => {
+  const tw = useTailwind();
   const route = useRoute();
   const { url, profileId: paramProfileId } =
     route.params as RewardsTaxFormViewParams;
@@ -154,8 +157,9 @@ const RewardsTaxFormView: React.FC = () => {
   );
 
   return (
-    <Box
-      twClassName="flex-1 bg-default"
+    <SafeAreaView
+      edges={['top']}
+      style={tw.style('flex-1 bg-default')}
       testID={REWARDS_TAX_FORM_VIEW_TEST_IDS.CONTAINER}
     >
       <Box twClassName="items-end px-4 pt-4">
@@ -180,7 +184,7 @@ const RewardsTaxFormView: React.FC = () => {
         cacheEnabled={false}
         testID={REWARDS_TAX_FORM_VIEW_TEST_IDS.WEBVIEW}
       />
-    </Box>
+    </SafeAreaView>
   );
 };
 

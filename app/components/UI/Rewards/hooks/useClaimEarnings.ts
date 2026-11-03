@@ -279,8 +279,11 @@ export function useClaimEarnings(
   const followTradeClaimOpen = useFollowTradeClaimOpen(profileId);
   const claim = useCallback(
     async (summary: EarningsSummaryDto) => {
-      const routeOptions = claimRouteOptions(followTradeClaimOpen);
       const waitingUntil = claimWaitingUntilRef.current;
+      const routeOptions = claimRouteOptions(
+        localizedText?.taxFormUrl,
+        followTradeClaimOpen,
+      );
       if (
         !localizedText ||
         isClaimingRef.current ||

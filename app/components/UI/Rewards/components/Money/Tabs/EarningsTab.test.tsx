@@ -121,6 +121,7 @@ const LOCALIZED_TEXT = {
   copyTradingEmptyDescription:
     'Share a trade to start earning from copies of it.',
   copyTradingEmptyAction: 'Start sharing',
+  taxFormUrl: 'https://tax-form.test/form',
 } as unknown as ReferralLocalizedText;
 
 const branch = (lifetime: string) => ({
@@ -222,6 +223,7 @@ const renderTab = (
     historyError = null as string | null,
     onViewPerformance = jest.fn(),
     roles,
+    localizedText = LOCALIZED_TEXT,
   }: {
     summary?: EarningsSummaryDto | null;
     summaryLoading?: boolean;
@@ -234,6 +236,7 @@ const renderTab = (
     historyError?: string | null;
     onViewPerformance?: () => void;
     roles?: ReferralRole[];
+    localizedText?: ReferralLocalizedText;
   } = {},
 ) => {
   (useEarningsSummary as jest.Mock).mockReturnValue({ fetchEarningsSummary });
@@ -265,7 +268,7 @@ const renderTab = (
               loading: false,
               error: false,
               data: {
-                localized_text: LOCALIZED_TEXT,
+                localized_text: localizedText,
                 roles,
               } as ReferralMeDto,
             },
