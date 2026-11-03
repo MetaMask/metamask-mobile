@@ -698,6 +698,8 @@
     "@babel/preset-env": "^7.25.3",
     "@babel/register": "^7.24.6",
     "@babel/runtime": "^7.25.0",
+    "@ethereumjs/common": "^4.4.0",
+    "@ethereumjs/tx": "^5.4.0",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@expo/metro-config": "~57.0.0",
