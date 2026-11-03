@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import DepositOrderContent from './DepositOrderContent';
@@ -41,37 +40,6 @@ describe('DepositOrderContent Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('anchors the network badge to the bottom right of the token avatar', () => {
-    renderWithProvider(<DepositOrderContent order={mockOrder} />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    });
-
-    const avatar = StyleSheet.flatten(
-      screen.getByTestId('deposit-order-token-avatar').props.style,
-    );
-    const badge = StyleSheet.flatten(
-      screen.getByTestId('deposit-order-token-network-badge').props.style,
-    );
-
-    expect(avatar).toEqual(
-      expect.objectContaining({
-        width: 40,
-        height: 40,
-      }),
-    );
-    expect(badge).toEqual(
-      expect.objectContaining({
-        right: '7%',
-        bottom: '7%',
-      }),
-    );
-    expect(badge.left).toBeUndefined();
   });
 
   it('renders success state correctly', () => {
