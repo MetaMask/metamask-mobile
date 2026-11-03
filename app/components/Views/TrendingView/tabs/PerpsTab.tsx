@@ -44,6 +44,7 @@ import TopTradersSection from '../../Homepage/Sections/TopTraders/TopTradersSect
 import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useTheme } from '../../../../util/theme';
 import type { TabProps } from '../hooks/useExploreRefresh';
+import { PerpsTabSelectorsIDs } from './PerpsTab.testIds';
 
 /**
  * Header rendered above the market list. Contains the top-traders carousel
@@ -65,7 +66,7 @@ const PerpsTabListHeader: React.FC<{ showTopTraders: boolean }> = ({
     )}
     <SectionHeader
       title={strings('trending.perps_trending_lists')}
-      testID="section-header-perps-trending-lists"
+      testID={PerpsTabSelectorsIDs.TRENDING_LISTS_HEADER}
     />
   </Box>
 );
@@ -234,7 +235,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   const emptyComponent = useMemo(() => {
     if (isLoading) {
       return (
-        <View testID="perps-tab-loading">
+        <View testID={PerpsTabSelectorsIDs.LOADING}>
           <PerpsRowSkeleton count={8} />
         </View>
       );
@@ -288,7 +289,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
           onWatchlistToggle={handleWatchlistToggle}
           showCategoryRow
           showSortRow
-          testID="perps-tab-filters"
+          testID={PerpsTabSelectorsIDs.FILTERS}
         />
       </Box>
     ),
@@ -323,7 +324,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         showBadge={false}
         filterKey={`${marketTypeFilter}|${showFavoritesOnly}`}
         refreshControl={refreshControl}
-        testID="perps-tab-market-list"
+        testID={PerpsTabSelectorsIDs.MARKET_LIST}
       />
       {isSortSheetVisible && (
         // Rendered in a Modal so the sheet and backdrop cover the whole screen
@@ -344,7 +345,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
                 selectedOptionId={selectedOptionId}
                 sortDirection={direction}
                 onOptionSelect={handleSortChange}
-                testID="perps-tab-sort-sheet"
+                testID={PerpsTabSelectorsIDs.SORT_SHEET}
               />
             </ModalSafeAreaProvider>
           </Modal>

@@ -5,12 +5,19 @@
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { renderPerpsComponent } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { getPerpsMarketRowItemSelector } from '../../../UI/Perps/Perps.testIds';
+import {
+  getPerpsMarketRowItemSelector,
+  PerpsWatchlistSelectorsIDs,
+} from '../../../UI/Perps/Perps.testIds';
 import PerpsTab from './PerpsTab';
-
-const FILTERS_ID = 'perps-tab-filters';
+import { PerpsTabSelectorsIDs } from './PerpsTab.testIds';
 
 const enabledFlag = { enabled: true, minimumVersion: '0.0.0' };
 const disabledFlag = { enabled: false, minimumVersion: '0.0.0' };
@@ -41,12 +48,36 @@ const renderPerpsTab = (extraFlags: Record<string, unknown> = {}) =>
 
 // FlashList renders the sticky filter bar twice (in-flow + overlay); use the first.
 const findFilter = async (suffix: string) =>
-  (await screen.findAllByTestId(`${FILTERS_ID}-${suffix}`))[0];
+  (
+    await screen.findAllByTestId(`${PerpsTabSelectorsIDs.FILTERS}-${suffix}`)
+  )[0];
 
 const rowLabel = (symbol: string) =>
   getPerpsMarketRowItemSelector.assetLabel(symbol);
 
 describe('PerpsTab', () => {
+  it('renders every mocked market with its symbol, price and change', async () => {
+    renderPerpsTab();
+
+    const btcRow = await screen.findByTestId(
+      getPerpsMarketRowItemSelector.rowItem('BTC'),
+    );
+    const ethRow = await screen.findByTestId(
+      getPerpsMarketRowItemSelector.rowItem('ETH'),
+    );
+
+    expect(within(btcRow).getByTestId(rowLabel('BTC'))).toHaveTextContent(
+      'BTC',
+    );
+    expect(within(btcRow).getByText('$45,000.00')).toBeOnTheScreen();
+    expect(within(btcRow).getByText('+2.5%')).toBeOnTheScreen();
+    expect(within(ethRow).getByTestId(rowLabel('ETH'))).toHaveTextContent(
+      'ETH',
+    );
+    expect(within(ethRow).getByText('$2,500.00')).toBeOnTheScreen();
+    expect(within(ethRow).getByText('+1.8%')).toBeOnTheScreen();
+  });
+
   it('selects a category pill without persisting it to settings', async () => {
     const { store } = renderPerpsTab();
 
@@ -60,7 +91,7 @@ describe('PerpsTab', () => {
       expect(screen.getByTestId(rowLabel('BTC'))).toBeOnTheScreen();
     });
     expect(
-      screen.queryByTestId('perps-watchlist-suggested-section'),
+      screen.queryByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION),
     ).not.toBeOnTheScreen();
     expect(
       store.getState().settings.perpsMarketListPreferences?.marketTypeFilter,
@@ -70,17 +101,23 @@ describe('PerpsTab', () => {
   it('opens the sort sheet from the sort control', async () => {
     renderPerpsTab();
 
-    expect(screen.queryByTestId('perps-tab-sort-sheet')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsTabSelectorsIDs.SORT_SHEET),
+    ).not.toBeOnTheScreen();
     fireEvent.press(await findFilter('sort-sort-field'));
 
-    expect(await screen.findByTestId('perps-tab-sort-sheet')).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(PerpsTabSelectorsIDs.SORT_SHEET),
+    ).toBeOnTheScreen();
   });
 
   it('shows the watchlist pill only when the watchlist flag is enabled', async () => {
     renderPerpsTab({ perpsWatchlistV2Enabled: disabledFlag });
     await findFilter('categories-all');
     expect(
-      screen.queryByTestId(`${FILTERS_ID}-categories-watchlist`),
+      screen.queryByTestId(
+        `${PerpsTabSelectorsIDs.FILTERS}-categories-watchlist`,
+      ),
     ).not.toBeOnTheScreen();
   });
 
@@ -88,12 +125,12 @@ describe('PerpsTab', () => {
     renderPerpsTab({ perpsWatchlistV2Enabled: enabledFlag });
 
     expect(
-      screen.queryByTestId('perps-watchlist-suggested-section'),
+      screen.queryByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION),
     ).not.toBeOnTheScreen();
     fireEvent.press(await findFilter('categories-watchlist'));
 
     expect(
-      await screen.findByTestId('perps-watchlist-suggested-section'),
+      await screen.findByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION),
     ).toBeOnTheScreen();
     // The empty watchlist replaces the main list, so the market count drops.
     expect(await findFilter('market-count')).toHaveTextContent(/^0 /);
