@@ -68,7 +68,6 @@ import type { TokenI } from '../../../../UI/Tokens/types';
 interface AddCustomTokenProps {
   chainId: string;
   isTokenDetectionSupported?: boolean;
-  tabLabel?: string;
 }
 
 // --- Pure validation helpers ---

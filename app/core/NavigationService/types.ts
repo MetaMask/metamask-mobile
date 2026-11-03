@@ -183,6 +183,7 @@ import type { WalletCreationErrorParams } from '../../components/Views/WalletCre
 
 // Add asset params
 import type { AddAssetParams } from '../../components/Views/AddAsset/AddAsset';
+import type { TokenNetworkFilterSheetParams } from '../../components/Views/AddAsset/components/NetworkFilterSheet/NetworkFilterSheet';
 import type { ImportAsset } from '../../components/Views/AddAsset/utils/utils';
 
 // Contact form params
@@ -1261,6 +1262,9 @@ export type RootStackParamList = {
 
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
+  AddCustomToken: undefined;
+  HiddenTokens: undefined;
+  TokenNetworkFilterSheet: TokenNetworkFilterSheetParams;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
   // Asset detail stack routes (siblings of `Asset` inside `AssetStackFlow`)

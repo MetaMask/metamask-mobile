@@ -2,14 +2,10 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import AddAsset from './AddAsset';
-import {
-  ImportTokenViewSelectorsIDs,
-  NFTImportScreenSelectorsIDs,
-} from './ImportAssetView.testIds';
+import { NFTImportScreenSelectorsIDs } from './ImportAssetView.testIds';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { useSearchRequest } from '../../UI/Trending/hooks/useSearchRequest/useSearchRequest';
 
 const mockSetOptions = jest.fn();
 
@@ -66,15 +62,6 @@ jest.mock(
     ({ children }: { children: React.ReactNode }) => <>{children}</>,
 );
 
-jest.mock('../../UI/Trending/hooks/useSearchRequest/useSearchRequest', () => ({
-  useSearchRequest: jest.fn(() => ({
-    results: [],
-    isLoading: false,
-    error: null,
-    search: jest.fn(),
-  })),
-}));
-
 jest.mock('../../../core/Multichain/utils', () => ({
   ...jest.requireActual('../../../core/Multichain/utils'),
   isNonEvmChainId: jest.fn(),
@@ -99,7 +86,6 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
 const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
   typeof isNonEvmChainId
 >;
-const mockUseSearchRequest = jest.mocked(useSearchRequest);
 
 const initialState = {
   engine: {
@@ -127,16 +113,6 @@ describe('AddAsset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsNonEvmChainId.mockReturnValue(false);
-    mockUseSearchRequest.mockReturnValue({
-      results: [],
-      isLoading: false,
-      error: null,
-      search: jest.fn(),
-      loadMore: jest.fn(),
-      isLoadingMore: false,
-      hasNextPage: false,
-      totalCount: undefined,
-    });
   });
 
   describe('view routing', () => {
@@ -153,79 +129,7 @@ describe('AddAsset', () => {
     });
   });
 
-  describe('search support probe', () => {
-    beforeEach(() => {
-      mockUseParamsValues.assetType = 'token';
-    });
-
-    it('shows loading indicator and hides tabs while probing search support', () => {
-      mockUseSearchRequest.mockReturnValue({
-        results: [],
-        isLoading: true,
-        error: null,
-        search: jest.fn(),
-        loadMore: jest.fn(),
-        isLoadingMore: false,
-        hasNextPage: false,
-        totalCount: undefined,
-      });
-
-      const { getByTestId, queryByTestId } = renderComponent();
-
-      expect(getByTestId('add-asset-loading-indicator')).toBeOnTheScreen();
-      expect(queryByTestId('add-asset-tabs-container')).toBeNull();
-    });
-
-    it('shows search tab when chain supports search', () => {
-      const { getByTestId, queryByTestId } = renderComponent();
-
-      expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
-      expect(queryByTestId('add-searched-token-screen')).toBeTruthy();
-      expect(queryByTestId('add-asset-loading-indicator')).toBeNull();
-    });
-
-    it('hides search tab when search probe returns error', () => {
-      mockUseSearchRequest.mockReturnValue({
-        results: [],
-        isLoading: false,
-        error: new Error('Bad Request'),
-        search: jest.fn(),
-        loadMore: jest.fn(),
-        isLoadingMore: false,
-        hasNextPage: false,
-        totalCount: undefined,
-      });
-
-      const { getByTestId, queryByTestId } = renderComponent();
-
-      expect(getByTestId('add-asset-tabs-container')).toBeOnTheScreen();
-      expect(queryByTestId('add-searched-token-screen')).toBeNull();
-    });
-  });
-
   describe('EVM and non-EVM chain handling', () => {
-    it('shows AddCustomToken for EVM chains', () => {
-      mockUseParamsValues.assetType = 'token';
-      mockIsNonEvmChainId.mockReturnValue(false);
-
-      const { queryByTestId } = renderComponent();
-
-      expect(
-        queryByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
-      ).toBeTruthy();
-    });
-
-    it('hides AddCustomToken for non-EVM chains', () => {
-      mockUseParamsValues.assetType = 'token';
-      mockIsNonEvmChainId.mockReturnValue(true);
-
-      const { queryByTestId } = renderComponent();
-
-      expect(
-        queryByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
-      ).toBeNull();
-    });
-
     it('shows AddCustomCollectible for EVM chains', () => {
       mockUseParamsValues.assetType = 'collectible';
       mockIsNonEvmChainId.mockReturnValue(false);
