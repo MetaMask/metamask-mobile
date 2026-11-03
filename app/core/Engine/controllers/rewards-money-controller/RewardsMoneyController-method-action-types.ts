@@ -143,8 +143,11 @@ export type RewardsMoneyControllerInitiateClaimAction = {
 };
 
 /**
- * `GET /tax/me`. Not cached: the route is `no-store`, and a Claim press
- * has to see the determination that was just written.
+ * `GET /tax/me`, cached for five minutes per profile.
+ *
+ * `forceFresh` does not join a read already running, and its result wins
+ * if that older read lands last. A tax POST drops the entry, so the next
+ * read cannot return the determination that POST replaced.
  */
 export type RewardsMoneyControllerGetTaxMeAction = {
   type: `RewardsMoneyController:getTaxMe`;
@@ -163,7 +166,8 @@ export type RewardsMoneyControllerSubmitTaxUsActivityAction = {
 
 /**
  * Mints one form token. The token is returned to the caller and is not
- * written into controller state.
+ * written into controller state. Minting closes `can_change_answer`, so
+ * the cached determination is dropped with the other tax writes.
  */
 export type RewardsMoneyControllerMintTaxFormTokenAction = {
   type: `RewardsMoneyController:mintTaxFormToken`;

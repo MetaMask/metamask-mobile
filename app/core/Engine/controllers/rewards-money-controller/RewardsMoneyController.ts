@@ -63,8 +63,8 @@ export const REFERRAL_FUNNEL_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_SUMMARY_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_LEDGER_CACHE_THRESHOLD_MS = 60_000;
 /**
- * Claim history, when a screen reads it, uses this cache on focus and
- * refreshes behind the cached page. A focus visit does not pass forceFresh.
+ * Claim history first page. A focus visit reads through this cache. A claim
+ * that opens drops the entry. `forceFresh` does not join a read already running.
  */
 export const CLAIM_HISTORY_CACHE_THRESHOLD_MS = 60_000;
 export const COMMISSIONS_CACHE_THRESHOLD_MS = 60_000;
@@ -865,7 +865,11 @@ export class RewardsMoneyController extends BaseController<
       'RewardsMoneyDataService:submitTaxAttestation',
       usPersonOrActivity,
     );
-    this.#invalidateTaxMe(profileId);
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
     return result;
   }
 
@@ -879,7 +883,11 @@ export class RewardsMoneyController extends BaseController<
       'RewardsMoneyDataService:submitTaxUsActivity',
       usActivity,
     );
-    this.#invalidateTaxMe(profileId);
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
     return result;
   }
 
@@ -897,7 +905,11 @@ export class RewardsMoneyController extends BaseController<
     const result = await this.messenger.call(
       'RewardsMoneyDataService:mintTaxFormToken',
     );
-    this.#invalidateTaxMe(profileId);
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
     return result;
   }
 

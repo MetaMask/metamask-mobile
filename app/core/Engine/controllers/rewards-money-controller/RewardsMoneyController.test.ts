@@ -1038,7 +1038,7 @@ describe('RewardsMoneyController', () => {
 
       expect(
         dataServiceCalls(mockMessenger.call).filter(
-          (call) => call[0] === 'RewardsMoneyDataService:getTaxMe',
+          (call: unknown[]) => call[0] === 'RewardsMoneyDataService:getTaxMe',
         ),
       ).toHaveLength(2);
     });

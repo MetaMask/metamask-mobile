@@ -203,7 +203,7 @@ describe('useTaxDocumentation', () => {
       });
 
       const taxReads = mockCall.mock.calls.filter(
-        (call) => call[0] === 'RewardsMoneyController:getTaxMe',
+        (call: unknown[]) => call[0] === 'RewardsMoneyController:getTaxMe',
       );
       expect(taxReads).toEqual([
         ['RewardsMoneyController:getTaxMe'],
