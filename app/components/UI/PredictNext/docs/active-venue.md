@@ -68,7 +68,7 @@ PRED-1401. `PredictVenueSelectorButton` (`venueSelection/`) sits next to the sea
 
 Its bottom sheet lists the selectable Venues and marks the Active Venue. Choosing one does two things, in order:
 
-1. It navigates to the root `Predict` route without legacy market-list parameters. Otherwise an entry that pinned Polymarket (`resolvePinnedVenue`, for example Explore's "view all") would stay on the legacy home.
+1. It navigates to the root `Predict` route at its home, without legacy market-list parameters.
 2. It calls `PredictVenueController:setVenueSelectionPreference`. The root route then remounts on the chosen Venue's home.
 
 The picker only writes the preference. Availability, Account Readiness, eligibility, rollout and kill switches keep applying unchanged, and a preference that is no longer honored is ignored as described above. The selection is the point where B3 (PRED-1383) hooks cross-Venue lifecycle handling.
