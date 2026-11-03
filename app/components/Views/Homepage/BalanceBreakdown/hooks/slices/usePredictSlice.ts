@@ -1,37 +1,47 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { usePredictPortfolio } from '../../../../../UI/Predict/hooks/usePredictPortfolio';
-import { selectPredictEnabledFlag } from '../../../../../UI/Predict/selectors/featureFlags';
-import type { BalanceSlice, FiatConverter } from '../../types';
+import {
+  usePredictAvailability,
+  usePredictPortfolioValue,
+} from '../../../../../UI/PredictNext';
+import type { BalanceSlice, FiatConverter, SliceStatus } from '../../types';
 
+/**
+ * Predict's share of the balance breakdown. A value we do not have is never
+ * shown as zero: a `ready` portfolio value without a finite amount, or one
+ * that cannot be converted to the user's currency, is an error, and an
+ * `unavailable` one leaves the slice ineligible.
+ */
 export function usePredictSlice(toUserCurrency: FiatConverter): BalanceSlice {
-  const isEnabled = useSelector(selectPredictEnabledFlag);
-  const { portfolioValue, isLoading, error } = usePredictPortfolio({
-    enabled: isEnabled,
-    // PredictionsSection owns the homepage live-price subscription and updates
-    // the shared positions query cache consumed by this aggregate.
-    livePriceUpdates: false,
-  });
+  const isAvailable = usePredictAvailability();
+  const { status: valueStatus, valueUsd } = usePredictPortfolioValue();
 
-  const convertedValue = toUserCurrency(portfolioValue);
-
-  const status = useMemo(() => {
-    if (!isEnabled) return 'ineligible' as const;
-    if (error) return 'error' as const;
-    if (isLoading) return 'loading' as const;
-    if (convertedValue === undefined) return 'error' as const;
-    return 'ready' as const;
-  }, [convertedValue, error, isEnabled, isLoading]);
-
-  const valueFiat = status === 'ready' ? (convertedValue ?? 0) : 0;
+  const { status, valueFiat } = useMemo((): {
+    status: SliceStatus;
+    valueFiat: number;
+  } => {
+    if (!isAvailable || valueStatus === 'unavailable') {
+      return { status: 'ineligible', valueFiat: 0 };
+    }
+    if (valueStatus !== 'ready') {
+      return { status: valueStatus, valueFiat: 0 };
+    }
+    const converted =
+      typeof valueUsd === 'number' && Number.isFinite(valueUsd)
+        ? toUserCurrency(valueUsd)
+        : undefined;
+    if (converted === undefined || !Number.isFinite(converted)) {
+      return { status: 'error', valueFiat: 0 };
+    }
+    return { status: 'ready', valueFiat: converted };
+  }, [isAvailable, toUserCurrency, valueStatus, valueUsd]);
 
   return useMemo(
     () => ({
       key: 'predict' as const,
-      isVisible: isEnabled,
+      isVisible: status !== 'ineligible',
       valueFiat,
       status,
     }),
-    [isEnabled, status, valueFiat],
+    [status, valueFiat],
   );
 }

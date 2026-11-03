@@ -1274,6 +1274,12 @@
     }
   },
   "social_leaderboard": {
+    "account_disabled": {
+      "title": "Your account is temporarily disabled",
+      "reason": "Reason: {{reason}}",
+      "contact_support_description": "Contact support at {{email}} or in the app for help.",
+      "contact_support": "Contact support"
+    },
     "entry_options": {
       "title": "Options",
       "report": "Report",
@@ -3709,6 +3715,14 @@
     },
     "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
+    "venue_selector": {
+      "button_label": "Choose a prediction market",
+      "title": "Prediction market",
+      "venues": {
+        "polymarket": "Polymarket",
+        "kalshi": "Kalshi"
+      }
+    },
     "home_sections": {
       "error": "Markets couldn’t be loaded.",
       "retry": "Retry",
@@ -3717,7 +3731,7 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcome": "Outcome"
+      "outcomes": "Outcomes"
     },
     "search": {
       "placeholder": "Search markets",
@@ -3892,7 +3906,8 @@
       "line_unavailable": "line unavailable",
       "price_unavailable": "price unavailable",
       "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
-      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
+      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}",
+      "choice_accessibility_label": "{{option}}, {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",
@@ -4551,6 +4566,9 @@
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
+    "search_tokens": "Search tokens",
+    "no_tokens_match_search": "No tokens match your search",
+    "clear_search": "Clear search",
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
@@ -4591,8 +4609,14 @@
     "current_network": "Current network",
     "popular_networks": "Popular networks",
     "all_networks": "All networks",
-    "declining_balance": "Declining balance ({{currency}} high-low)",
-    "alphabetically": "Alphabetically (A-Z)",
+    "sort_balance": "Balance",
+    "sort_name": "Name",
+    "sort_high_to_low": "High to low",
+    "sort_low_to_high": "Low to high",
+    "sort_a_to_z": "A to Z",
+    "sort_z_to_a": "Z to A",
+    "sort_apply": "Apply",
+    "sort_reset": "Reset",
     "add_to_get_started": "Add crypto to get started",
     "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
     "fund_your_wallet": "Fund your wallet",
@@ -4732,6 +4756,7 @@
       "all": "All types",
       "transactions": "Transactions",
       "buy_sell": "Buy/Sell",
+      "limit_orders": "Limit orders",
       "perps": "Perps",
       "predictions": "Predictions",
       "metamask_card": "Card"
@@ -4774,6 +4799,10 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
+      },
+      "limit_orders": {
+        "description": "Your filled limit orders will show up here.",
+        "action": "Swap tokens"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",
@@ -5187,7 +5216,7 @@
     "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
     "x_account_disconnect_body": "Disconnecting removes your X handle from your MetaMask profile. You can reconnect at any time.",
     "x_account_disconnect_sheet_title": "Disconnect X account?",
-    "x_account_disconnect_sheet_body": "{{handle}} will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_sheet_body": "{{handle}} on X will no longer be connected to your MetaMask profile. Your username, posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
@@ -8670,7 +8699,6 @@
       "resend": "Resend code",
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
-      "paste": "Paste",
       "verifying": "Verifying code",
       "get_new_code": "Get new code"
     },
@@ -9739,6 +9767,9 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
+      "microdeposit": "Test Deposit",
+      "microdeposit_from": "From {{name}}",
+      "microdeposit_from_bank": "From your bank",
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
@@ -10172,7 +10203,7 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_add_money": "Add funds",
+      "money_account_deposit_header": "Add to MetaMask Money",
       "money_account_send": "Send"
     },
     "sub_title": {
@@ -10312,6 +10343,7 @@
     "available_balance": "Available balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
+    "deposit_edit_amount_convert_token": "Convert {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
     "deposit_edit_amount_money_account_send": "Send",
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
@@ -10463,6 +10495,9 @@
       "confirm": "Confirm",
       "preview_order": "Preview Order",
       "confirm_title": "Confirm recurring order",
+      "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
+      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "try_again": "Try again",
       "order_created_toast_title": "Order created",
       "order_created_toast_body": "We'll let you know when it's filled.",
       "order_canceled_toast_title": "Order canceled",
@@ -13183,6 +13218,8 @@
     "membership_label": "Pro",
     "membership_status": {
       "active": "Active",
+      "processing": "Processing",
+      "free_trial": "Free trial",
       "overdue": "Overdue",
       "deactivated": "Deactivated",
       "cancelled": "Cancelled",
@@ -13397,8 +13434,17 @@
         "description": "Get priority customer support from a real human—anytime, any day."
       }
     },
+    "payment": {
+      "processing_title": "Processing payment",
+      "processing_body": "This may take a few minutes.",
+      "active_title": "Your membership is active",
+      "view_membership": "View membership",
+      "failed_title": "Payment failed",
+      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "try_again": "Try again"
+    },
     "success": {
-      "title": "You just leveled up, {{name}}",
+      "title": "You just leveled up",
       "description": "Time to start earning.",
       "cta": "Continue"
     }

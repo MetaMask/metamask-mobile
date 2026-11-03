@@ -1171,12 +1171,12 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
-  it('creates the profile with the signed-in session id', async () => {
+  it('creates the profile with the canonical profile id of a merged session', async () => {
     jest
       .mocked(Engine.context.AuthenticationController.getSessionProfile)
       .mockResolvedValue({
         ...SIGNED_OUT_SESSION,
-        profileId: 'signed-in-profile',
+        profileId: 'alias-profile',
         canonicalProfileId: 'signed-in-profile',
       });
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);

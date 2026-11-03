@@ -111,8 +111,7 @@ const Routes = {
   TRANSACTIONS_VIEW: 'TransactionsView',
   NFT_DETAILS: 'NftDetails',
   TRANSACTION_DETAILS: 'TransactionDetails',
-  // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
-  // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
+  // Activity details screen. Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
   ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
   REWARDS_FLOW: 'RewardsFlow',
