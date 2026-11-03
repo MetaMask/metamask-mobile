@@ -13,7 +13,7 @@ export type ExploreSearchRequestFeedId = Extract<
   'tokens' | 'stocks' | 'predictions'
 >;
 
-export type FeedSource = 'network' | 'cache' | 'local';
+export type FeedSource = 'network' | 'cache' | 'local_filter';
 
 type RequestFeedStatus =
   | 'not_started'
@@ -44,7 +44,6 @@ export interface ActiveSearchMeasurement {
     string,
     {
       feedId: ExploreSearchRequestFeedId;
-      query: string;
       startedAt: number;
       ended: boolean;
     }
@@ -56,32 +55,23 @@ export interface ActiveSearchMeasurement {
 }
 
 export interface FeedReadyResult {
-  status: 'ready';
   feedId: ExploreSearchFeedId;
-  loadedResultCount: number;
   readyMs: number;
   requestToReadyMs?: number;
   source: FeedSource;
 }
 
-export interface FeedPendingResult {
-  status: 'pending';
-  feedId: ExploreSearchFeedId;
-}
+type EffectiveSearchRequestOutcome = SearchRequestOutcome | 'superseded';
 
 export interface RequestCompletionResult {
   durationMs: number;
-  effectiveOutcome: SearchRequestOutcome;
+  effectiveOutcome: EffectiveSearchRequestOutcome;
   feedId: ExploreSearchRequestFeedId;
-  pageResultCount: number;
 }
 
 export interface FinishedMeasurement {
-  endTime: number;
   measurement: ActiveSearchMeasurement;
-  reason?: string;
   resultCount: number;
-  success: boolean;
 }
 
 const QUERY_FEED_IDS = new Set<ExploreSearchRequestFeedId>([
@@ -214,7 +204,6 @@ export class ExploreSearchPerformanceState {
     measurement.feedSources.delete(feedId);
     measurement.requests.set(requestId, {
       feedId,
-      query: query.trim(),
       startedAt,
       ended: false,
     });
@@ -227,12 +216,10 @@ export class ExploreSearchPerformanceState {
   completeRequest({
     endedAt,
     outcome,
-    pageResultCount,
     requestId,
   }: {
     endedAt: number;
     outcome: SearchRequestOutcome;
-    pageResultCount: number;
     requestId: string;
   }): RequestCompletionResult | undefined {
     const request = this.activeMeasurement?.requests.get(requestId);
@@ -256,10 +243,7 @@ export class ExploreSearchPerformanceState {
 
     const durationMs = Math.max(0, endedAt - request.startedAt);
     const effectiveOutcome =
-      request.query === measurement.query &&
-      requestFeedState.requestId === requestId
-        ? outcome
-        : 'superseded';
+      requestFeedState.requestId === requestId ? outcome : 'superseded';
 
     if (effectiveOutcome === 'superseded') {
       measurement.supersededRequestCount += 1;
@@ -276,14 +260,12 @@ export class ExploreSearchPerformanceState {
       durationMs,
       effectiveOutcome,
       feedId: request.feedId,
-      pageResultCount,
     };
   }
 
   markCachedResult(
     feedId: ExploreSearchRequestFeedId,
     query: string,
-    resultCount: number,
     timestamp: number,
   ): boolean {
     const measurement = this.activeMeasurement;
@@ -310,7 +292,7 @@ export class ExploreSearchPerformanceState {
     isReady: boolean,
     loadedResultCount: number,
     timestamp: number,
-  ): FeedReadyResult | FeedPendingResult | undefined {
+  ): FeedReadyResult | undefined {
     const measurement = this.activeMeasurement;
 
     if (!measurement || measurement.completed) {
@@ -318,10 +300,8 @@ export class ExploreSearchPerformanceState {
     }
 
     if (!isReady) {
-      if (measurement.readyFeeds.delete(feedId)) {
-        measurement.resultCounts.delete(feedId);
-        return { status: 'pending', feedId };
-      }
+      measurement.readyFeeds.delete(feedId);
+      measurement.resultCounts.delete(feedId);
       return undefined;
     }
 
@@ -351,7 +331,7 @@ export class ExploreSearchPerformanceState {
       ? requestFeedState.status === 'cache'
         ? 'cache'
         : 'network'
-      : 'local';
+      : 'local_filter';
     measurement.feedSources.set(feedId, source);
 
     const readyMs = Math.max(0, timestamp - measurement.firstInputAt);
@@ -362,9 +342,7 @@ export class ExploreSearchPerformanceState {
         : undefined;
 
     return {
-      status: 'ready',
       feedId,
-      loadedResultCount,
       readyMs,
       ...(requestToReadyMs === undefined ? {} : { requestToReadyMs }),
       source,
@@ -397,11 +375,7 @@ export class ExploreSearchPerformanceState {
     );
   }
 
-  finish(
-    success: boolean,
-    reason: string | undefined,
-    endTime: number,
-  ): FinishedMeasurement | undefined {
+  finish(reason: string | undefined): FinishedMeasurement | undefined {
     const measurement = this.activeMeasurement;
 
     if (!measurement || measurement.completed) {
@@ -411,11 +385,8 @@ export class ExploreSearchPerformanceState {
     measurement.completed = true;
 
     return {
-      endTime,
       measurement,
-      ...(reason === undefined ? {} : { reason }),
       resultCount: getTotalResultCount(measurement.resultCounts),
-      success,
     };
   }
 }

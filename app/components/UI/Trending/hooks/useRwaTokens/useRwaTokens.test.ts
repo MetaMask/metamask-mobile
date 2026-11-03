@@ -328,7 +328,7 @@ describe('useRwaTokens', () => {
     });
 
     expect(performance.startRequest).toHaveBeenCalledWith('eth');
-    expect(requestEnd).toHaveBeenCalledWith('success', 1);
+    expect(requestEnd).toHaveBeenCalledWith('success');
   });
 
   it('returns empty data and stops loading on fetch error', async () => {

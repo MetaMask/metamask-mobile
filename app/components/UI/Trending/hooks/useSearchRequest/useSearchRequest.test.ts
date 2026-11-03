@@ -77,7 +77,7 @@ describe('useSearchRequest', () => {
     });
 
     expect(performance.startRequest).toHaveBeenCalledWith('ETH');
-    expect(requestEnd).toHaveBeenCalledWith('success', 0);
+    expect(requestEnd).toHaveBeenCalledWith('success');
 
     unmount();
   });

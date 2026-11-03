@@ -129,10 +129,8 @@ export const useRwaTokens = (opts?: {
     setIsLoading(true);
     const requestHandle = performance?.startRequest(searchQuery ?? '');
     let outcome: SearchRequestOutcome = 'success';
-    let resultCount = 0;
     try {
       const response = await fetchPage();
-      resultCount = response.data.length;
       if (requestId === requestIdRef.current) {
         setData(response.data.map(normalizeRwaToken));
         setNextCursor(response.pageInfo.nextCursor || undefined);
@@ -152,10 +150,7 @@ export const useRwaTokens = (opts?: {
         isLoadingRef.current = false;
         setIsLoading(false);
       }
-      requestHandle?.end(
-        requestId === requestIdRef.current ? outcome : 'superseded',
-        resultCount,
-      );
+      requestHandle?.end(outcome);
     }
   }, [fetchPage, performance, searchQuery]);
 

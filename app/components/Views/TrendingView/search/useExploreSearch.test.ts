@@ -25,6 +25,11 @@ const mockFetchMore = jest.fn();
 const mockTokensLoadMore = jest.fn();
 const mockStocksLoadMore = jest.fn();
 const mockMarkFeedReady = jest.fn();
+const mockMarkCachedTokens = jest.fn();
+const mockMarkCachedStocks = jest.fn();
+const mockMarkCachedPredictions = jest.fn();
+const mockOnFocus = jest.fn();
+const mockOnBlur = jest.fn();
 let mockIsExploreEarnSectionVisible = false;
 
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
@@ -106,9 +111,20 @@ jest.mock('../../../UI/Perps', () => ({
 
 jest.mock('./useExploreSearchPerformance', () => ({
   useExploreSearchPerformance: jest.fn(() => ({
-    tokens: { startRequest: jest.fn() },
-    stocks: { startRequest: jest.fn() },
-    predictions: { startRequest: jest.fn() },
+    tokens: {
+      startRequest: jest.fn(),
+      markCachedResult: mockMarkCachedTokens,
+    },
+    stocks: {
+      startRequest: jest.fn(),
+      markCachedResult: mockMarkCachedStocks,
+    },
+    predictions: {
+      startRequest: jest.fn(),
+      markCachedResult: mockMarkCachedPredictions,
+    },
+    onFocus: mockOnFocus,
+    onBlur: mockOnBlur,
     markFeedReady: mockMarkFeedReady,
   })),
 }));
@@ -416,6 +432,32 @@ describe('useExploreSearch', () => {
         true,
         mockTokensData.length,
       );
+    });
+
+    it('rechecks readiness and cache state when Search regains focus', () => {
+      const { rerender } = renderHook(
+        ({ isFocused }: { isFocused: boolean }) =>
+          useExploreSearch('eth', {
+            exposePagination: true,
+            isFocused,
+          }),
+        { initialProps: { isFocused: false } },
+      );
+
+      mockMarkFeedReady.mockClear();
+      mockMarkCachedTokens.mockClear();
+      mockMarkCachedStocks.mockClear();
+      mockMarkCachedPredictions.mockClear();
+      rerender({ isFocused: true });
+
+      expect(mockMarkFeedReady).toHaveBeenCalledWith(
+        'tokens',
+        true,
+        mockTokensData.length,
+      );
+      expect(mockMarkCachedTokens).toHaveBeenCalledWith('eth');
+      expect(mockMarkCachedStocks).toHaveBeenCalledWith('eth');
+      expect(mockMarkCachedPredictions).toHaveBeenCalledWith('eth');
     });
 
     it('passes undefined total when the tokens feed has no totalCount', () => {

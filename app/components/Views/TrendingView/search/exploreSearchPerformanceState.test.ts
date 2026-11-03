@@ -26,24 +26,44 @@ describe('ExploreSearchPerformanceState', () => {
       state.completeRequest({
         requestId: 'request-1',
         outcome: 'success',
-        pageResultCount: 2,
         endedAt: 200,
       }),
     ).toEqual({
       durationMs: 100,
       effectiveOutcome: 'success',
       feedId: 'tokens',
-      pageResultCount: 2,
     });
 
     expect(state.markFeedReady('tokens', true, 2, 260)).toEqual({
-      status: 'ready',
       feedId: 'tokens',
-      loadedResultCount: 2,
       readyMs: 260,
       requestToReadyMs: 60,
       source: 'network',
     });
+  });
+
+  it('matches a normalized request by identity within the active generation', () => {
+    const state = new ExploreSearchPerformanceState();
+
+    state.startGeneration({
+      id: 'generation-1',
+      query: '$laptop',
+      firstInputAt: 0,
+    });
+    state.startRequest({
+      feedId: 'tokens',
+      query: 'laptop',
+      requestId: 'request-1',
+      startedAt: 10,
+    });
+
+    const completion = state.completeRequest({
+      requestId: 'request-1',
+      outcome: 'success',
+      endedAt: 20,
+    });
+
+    expect(completion?.effectiveOutcome).toBe('success');
   });
 
   it('distinguishes cached query results from local feed results', () => {
@@ -54,12 +74,13 @@ describe('ExploreSearchPerformanceState', () => {
       query: 'eth',
       firstInputAt: 0,
     });
-    expect(state.markCachedResult('tokens', 'eth', 2, 20)).toBe(true);
+    expect(state.markCachedResult('tokens', 'other', 20)).toBe(false);
+    expect(state.markCachedResult('tokens', 'eth', 20)).toBe(true);
     expect(state.markFeedReady('tokens', true, 2, 30)).toMatchObject({
       source: 'cache',
     });
     expect(state.markFeedReady('perps', true, 1, 40)).toMatchObject({
-      source: 'local',
+      source: 'local_filter',
     });
   });
 
@@ -79,7 +100,6 @@ describe('ExploreSearchPerformanceState', () => {
       state.completeRequest({
         requestId: 'request-1',
         outcome: 'success',
-        pageResultCount: 1,
         endedAt: 100,
       }),
     ).toMatchObject({

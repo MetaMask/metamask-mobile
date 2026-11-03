@@ -15,6 +15,7 @@ import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/vi
 import {
   useExploreSearchPerformance,
   type ExploreSearchFeedId,
+  type ExploreSearchPerformance,
 } from './useExploreSearchPerformance';
 import type { SearchEntryPoint } from './analytics';
 
@@ -37,18 +38,21 @@ export interface SearchFeedSection<T = unknown> {
 
 export interface ExploreSearchResult {
   sections: SearchFeedSection[];
+  performanceLifecycle: Pick<ExploreSearchPerformance, 'onFocus' | 'onBlur'>;
 }
 
 export interface UseExploreSearchOptions {
   /** Forward fetchMore / hasMore / total on sections that support it. */
   exposePagination?: boolean;
   entryPoint?: SearchEntryPoint;
+  /** Enables performance measurement for the focused Explore Search screen. */
+  isFocused?: boolean;
 }
 export const useExploreSearch = (
   query: string,
   options: UseExploreSearchOptions = {},
 ): ExploreSearchResult => {
-  const { exposePagination = false, entryPoint } = options;
+  const { exposePagination = false, entryPoint, isFocused = false } = options;
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -79,6 +83,7 @@ export const useExploreSearch = (
     enabledFeeds,
     configuredDebounceMs: DEBOUNCE_MS,
     entryPoint,
+    isFocused,
   });
 
   const tokens = useTokensFeed({
@@ -169,7 +174,7 @@ export const useExploreSearch = (
       },
     );
 
-    return { sections };
+    return { sections, performanceLifecycle: searchPerformance };
   }, [
     isDebouncing,
     isPerpsEnabled,
@@ -200,17 +205,28 @@ export const useExploreSearch = (
     sites.isLoading,
     earn.data,
     earn.isLoading,
+    searchPerformance,
   ]);
 
   useEffect(() => {
     result.sections.forEach((section) => {
+      if (query.trim() && !section.isLoading) {
+        if (section.feedId === 'tokens') {
+          searchPerformance.tokens.markCachedResult?.(query);
+        } else if (section.feedId === 'stocks') {
+          searchPerformance.stocks.markCachedResult?.(query);
+        } else if (section.feedId === 'predictions') {
+          searchPerformance.predictions.markCachedResult?.(query);
+        }
+      }
+
       searchPerformance.markFeedReady(
         section.feedId,
         !section.isLoading,
         section.items.length,
       );
     });
-  }, [result.sections, searchPerformance]);
+  }, [isFocused, query, result.sections, searchPerformance]);
 
   return result;
 };

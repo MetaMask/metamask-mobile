@@ -60,16 +60,15 @@ export const usePredictSearchMarketData = ({
       const requestHandle =
         pageParam === 1 ? performance?.startRequest(trimmedQuery) : undefined;
       let outcome: SearchRequestOutcome = 'success';
-      let resultCount = 0;
 
       if (!Engine?.context) {
-        requestHandle?.end('error', resultCount);
+        requestHandle?.end('error');
         throw new Error('Engine not initialized');
       }
 
       const controller = Engine.context.PredictController;
       if (!controller) {
-        requestHandle?.end('error', resultCount);
+        requestHandle?.end('error');
         throw new Error('Predict controller not available');
       }
 
@@ -79,13 +78,12 @@ export const usePredictSearchMarketData = ({
           limit: pageSize,
           page: pageParam as number,
         });
-        resultCount = result.markets.length;
         return result;
       } catch (requestError) {
         outcome = 'error';
         throw requestError;
       } finally {
-        requestHandle?.end(outcome, resultCount);
+        requestHandle?.end(outcome);
       }
     },
     getNextPageParam: (lastPage, allPages) => {
@@ -108,11 +106,7 @@ export const usePredictSearchMarketData = ({
       return;
     }
 
-    const resultCount = data.pages.reduce(
-      (count, page) => count + page.markets.length,
-      0,
-    );
-    performance.markCachedResult(trimmedQuery, resultCount);
+    performance.markCachedResult(trimmedQuery);
   }, [data, enabled, isFetching, performance, trimmedQuery]);
 
   useEffect(() => {

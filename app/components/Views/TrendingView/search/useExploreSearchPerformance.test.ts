@@ -108,12 +108,12 @@ describe('useExploreSearchPerformance', () => {
 
     const request = result.current.tokens.startRequest('eth');
     expect(request).toBeDefined();
-    result.current.stocks.markCachedResult?.('eth', 1);
-    result.current.predictions.markCachedResult?.('eth', 3);
+    result.current.stocks.markCachedResult?.('eth');
+    result.current.predictions.markCachedResult?.('eth');
 
     now = 350;
     act(() => {
-      request?.end('success', 2);
+      request?.end('success');
     });
 
     now = 400;
@@ -155,12 +155,6 @@ describe('useExploreSearchPerformance', () => {
     );
     expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
       { name: 'Explore Search Query', id: 'search-trace-id' },
-      'search.feed.tokens.request_to_commit_ms',
-      50,
-      'millisecond',
-    );
-    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
-      { name: 'Explore Search Query', id: 'search-trace-id' },
       'search.feed.tokens.request_to_painted_ms',
       50,
       'millisecond',
@@ -169,6 +163,18 @@ describe('useExploreSearchPerformance', () => {
       { name: 'Explore Search Query', id: 'search-trace-id' },
       'search.feed.tokens.painted_ms',
       400,
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).not.toHaveBeenCalledWith(
+      expect.anything(),
+      'search.first_input_to_results_ms',
+      expect.anything(),
+      'millisecond',
+    );
+    expect(mockSetTraceMeasurement).not.toHaveBeenCalledWith(
+      expect.anything(),
+      'search.feed.tokens.request_to_commit_ms',
+      expect.anything(),
       'millisecond',
     );
     expect(mockEndTrace).toHaveBeenCalledWith(
@@ -182,9 +188,9 @@ describe('useExploreSearchPerformance', () => {
           result_count: 6,
           input_count: 1,
           collapsed_input_count: 0,
-          tokens_source: 'network',
-          stocks_source: 'cache',
-          predictions_source: 'cache',
+          tokens_search_mode: 'network',
+          stocks_search_mode: 'cache',
+          predictions_search_mode: 'cache',
         }),
       }),
     );
@@ -204,7 +210,7 @@ describe('useExploreSearchPerformance', () => {
 
     now = 350;
     act(() => {
-      request?.end('success', 1);
+      request?.end('success');
     });
 
     now = 400;
@@ -271,7 +277,7 @@ describe('useExploreSearchPerformance', () => {
     const request = result.current.tokens.startRequest('eth');
 
     act(() => {
-      request?.end('success', 2);
+      request?.end('success');
       result.current.markFeedReady('tokens', true, 2);
     });
 
@@ -286,6 +292,75 @@ describe('useExploreSearchPerformance', () => {
       frameCallbacks.shift()?.(0);
     });
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('finishes the trace when Search loses focus', () => {
+    const frameCallbacks: ((timestamp: number) => void)[] = [];
+    global.requestAnimationFrame = jest.fn((callback: FrameRequestCallback) => {
+      frameCallbacks.push(callback);
+      return frameCallbacks.length;
+    });
+
+    const { result } = renderHook(() =>
+      useExploreSearchPerformance({
+        query: 'eth',
+        isDebouncing: false,
+        enabledFeeds: ['tokens'],
+        isFocused: true,
+      }),
+    );
+    const request = result.current.tokens.startRequest('eth');
+
+    act(() => {
+      request?.end('success');
+      result.current.markFeedReady('tokens', true, 2);
+    });
+
+    act(() => {
+      result.current.onBlur();
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          reason: 'blurred',
+          success: false,
+        }),
+      }),
+    );
+    act(() => {
+      frameCallbacks.shift()?.(0);
+    });
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      result.current.onFocus();
+    });
+    expect(mockTrace).toHaveBeenCalledTimes(2);
+  });
+
+  it('completes a trace when the request query is normalized', () => {
+    const { result } = renderHook(() =>
+      useExploreSearchPerformance({
+        query: '$laptop',
+        isDebouncing: false,
+        enabledFeeds: ['tokens'],
+      }),
+    );
+    const request = result.current.tokens.startRequest('laptop');
+
+    act(() => {
+      request?.end('success');
+      result.current.markFeedReady('tokens', true, 1);
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          success: true,
+        }),
+      }),
+    );
   });
 
   it('cancels pending paint completion when the query changes', () => {
@@ -307,7 +382,7 @@ describe('useExploreSearchPerformance', () => {
     const request = result.current.tokens.startRequest('eth');
 
     act(() => {
-      request?.end('success', 1);
+      request?.end('success');
       result.current.markFeedReady('tokens', true, 1);
     });
 
@@ -338,7 +413,7 @@ describe('useExploreSearchPerformance', () => {
     const request = result.current.tokens.startRequest('eth');
 
     act(() => {
-      request?.end('success', 1);
+      request?.end('success');
       result.current.markFeedReady('tokens', true, 1);
     });
 
@@ -388,7 +463,7 @@ describe('useExploreSearchPerformance', () => {
     const request = result.current.tokens.startRequest('eth');
 
     act(() => {
-      result.current.stocks.markCachedResult?.('eth', 2);
+      result.current.stocks.markCachedResult?.('eth');
       request?.end('error');
       result.current.markFeedReady('tokens', true, 0);
       result.current.markFeedReady('stocks', true, 2);
@@ -436,9 +511,9 @@ describe('useExploreSearchPerformance', () => {
 
     now = 100;
     act(() => {
-      tokenRequest?.end('success', 2);
-      stocksRequest?.end('success', 1);
-      predictionsRequest?.end('success', 3);
+      tokenRequest?.end('success');
+      stocksRequest?.end('success');
+      predictionsRequest?.end('success');
       result.current.markFeedReady('tokens', true, 2);
       result.current.markFeedReady('stocks', true, 1);
       result.current.markFeedReady('predictions', true, 3);
@@ -447,7 +522,7 @@ describe('useExploreSearchPerformance', () => {
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
   });
 
-  it('labels local feed readiness as local', () => {
+  it('labels locally filtered feed readiness as local_filter', () => {
     const allEnabledFeeds = [
       'tokens',
       'perps',
@@ -465,9 +540,9 @@ describe('useExploreSearchPerformance', () => {
     );
 
     act(() => {
-      result.current.tokens.markCachedResult?.('eth', 1);
-      result.current.stocks.markCachedResult?.('eth', 1);
-      result.current.predictions.markCachedResult?.('eth', 1);
+      result.current.tokens.markCachedResult?.('eth');
+      result.current.stocks.markCachedResult?.('eth');
+      result.current.predictions.markCachedResult?.('eth');
       result.current.markFeedReady('tokens', true, 1);
       result.current.markFeedReady('perps', true, 1);
       result.current.markFeedReady('earn', true, 1);
@@ -479,9 +554,9 @@ describe('useExploreSearchPerformance', () => {
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          perps_source: 'local',
-          earn_source: 'local',
-          sites_source: 'local',
+          perps_search_mode: 'local_filter',
+          earn_search_mode: 'local_filter',
+          sites_search_mode: 'local_filter',
         }),
       }),
     );
@@ -508,9 +583,9 @@ describe('useExploreSearchPerformance', () => {
     rerender({ query: 'eth', isDebouncing: false });
 
     act(() => {
-      result.current.tokens.markCachedResult?.('eth', 1);
-      result.current.stocks.markCachedResult?.('eth', 0);
-      result.current.predictions.markCachedResult?.('eth', 0);
+      result.current.tokens.markCachedResult?.('eth');
+      result.current.stocks.markCachedResult?.('eth');
+      result.current.predictions.markCachedResult?.('eth');
       result.current.markFeedReady('tokens', true, 1);
       result.current.markFeedReady('stocks', true, 0);
       result.current.markFeedReady('predictions', true, 0);
@@ -547,12 +622,12 @@ describe('useExploreSearchPerformance', () => {
     now = 250;
     rerender({ query: 'eth', isDebouncing: false });
     const currentRequest = result.current.tokens.startRequest('eth');
-    result.current.stocks.markCachedResult?.('eth', 0);
-    result.current.predictions.markCachedResult?.('eth', 0);
+    result.current.stocks.markCachedResult?.('eth');
+    result.current.predictions.markCachedResult?.('eth');
 
     act(() => {
       request?.end('success');
-      currentRequest?.end('success', 1);
+      currentRequest?.end('success');
       result.current.markFeedReady('tokens', true, 1);
       result.current.markFeedReady('stocks', true, 0);
       result.current.markFeedReady('predictions', true, 0);

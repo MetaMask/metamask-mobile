@@ -1,12 +1,10 @@
-export type SearchRequestOutcome = 'success' | 'error' | 'superseded';
+export type SearchRequestOutcome = 'success' | 'error';
 
 export interface SearchRequestHandle {
-  /** Number of results returned by this request page. */
-  end: (outcome: SearchRequestOutcome, resultCount?: number) => void;
+  end: (outcome: SearchRequestOutcome) => void;
 }
 
 export interface SearchRequestPerformance {
   startRequest: (query: string) => SearchRequestHandle | undefined;
-  /** Number of results currently available from the cached data source. */
-  markCachedResult?: (query: string, resultCount: number) => void;
+  markCachedResult?: (query: string) => void;
 }

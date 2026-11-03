@@ -159,7 +159,7 @@ describe('usePredictSearchMarketData', () => {
     await waitFor(() => expect(result.current.isFetching).toBe(false));
 
     expect(performance.startRequest).toHaveBeenCalledWith('bitcoin');
-    expect(requestEnd).toHaveBeenCalledWith('success', mockMarketData.length);
+    expect(requestEnd).toHaveBeenCalledWith('success');
   });
 
   it('exposes totalResults from the first page', async () => {

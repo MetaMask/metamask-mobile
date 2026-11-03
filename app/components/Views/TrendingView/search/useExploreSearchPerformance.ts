@@ -57,6 +57,8 @@ export interface ExploreSearchPerformance {
   tokens: SearchRequestPerformance;
   stocks: SearchRequestPerformance;
   predictions: SearchRequestPerformance;
+  onFocus: () => void;
+  onBlur: () => void;
   markFeedReady: (
     feedId: ExploreSearchFeedId,
     isReady: boolean,
@@ -70,6 +72,7 @@ interface UseExploreSearchPerformanceOptions {
   enabledFeeds: ExploreSearchFeedId[];
   configuredDebounceMs?: number;
   entryPoint?: SearchEntryPoint;
+  isFocused?: boolean;
 }
 
 export const useExploreSearchPerformance = ({
@@ -78,6 +81,7 @@ export const useExploreSearchPerformance = ({
   enabledFeeds,
   configuredDebounceMs = DEFAULT_SEARCH_DEBOUNCE_MS,
   entryPoint,
+  isFocused = true,
 }: UseExploreSearchPerformanceOptions): ExploreSearchPerformance => {
   const [hardwareTier] = useState(() => getHardwareTier());
   const networkTier = useNetworkTier();
@@ -95,6 +99,8 @@ export const useExploreSearchPerformance = ({
   const networkTierRef = useRef(networkTier);
   const entryPointRef = useRef(entryPoint);
   const configuredDebounceMsRef = useRef(configuredDebounceMs);
+  const queryRef = useRef(query);
+  const isFocusedRef = useRef(isFocused);
 
   enabledFeedsRef.current = enabledFeeds;
   isDebouncingRef.current = isDebouncing;
@@ -102,6 +108,8 @@ export const useExploreSearchPerformance = ({
   networkTierRef.current = networkTier;
   entryPointRef.current = entryPoint;
   configuredDebounceMsRef.current = configuredDebounceMs;
+  queryRef.current = query;
+  isFocusedRef.current = isFocused;
 
   const cancelPendingFeedPaints = useCallback(() => {
     pendingFeedPaintsRef.current.forEach((cancel) => cancel());
@@ -112,11 +120,7 @@ export const useExploreSearchPerformance = ({
   const finishMeasurement = useCallback(
     (completed: boolean, reason?: string) => {
       const endTime = getPerformanceTimestamp();
-      const finished = performanceStateRef.current.finish(
-        completed,
-        reason,
-        endTime,
-      );
+      const finished = performanceStateRef.current.finish(reason);
 
       if (!finished) {
         return;
@@ -175,13 +179,6 @@ export const useExploreSearchPerformance = ({
         measurement.errorCount,
         'none',
       );
-      setTraceMeasurement(
-        traceContext,
-        'search.first_input_to_results_ms',
-        Math.max(0, endTime - measurement.firstInputAt),
-        'millisecond',
-      );
-
       endTrace({
         name: TraceName.ExploreSearchQuery,
         id: measurement.id,
@@ -194,13 +191,15 @@ export const useExploreSearchPerformance = ({
           query_length_bucket: getQueryLengthBucket(measurement.query.length),
           input_count: measurement.inputCount,
           collapsed_input_count: Math.max(0, measurement.inputCount - 1),
-          tokens_source: measurement.feedSources.get('tokens') ?? 'unknown',
-          stocks_source: measurement.feedSources.get('stocks') ?? 'unknown',
-          predictions_source:
+          tokens_search_mode:
+            measurement.feedSources.get('tokens') ?? 'unknown',
+          stocks_search_mode:
+            measurement.feedSources.get('stocks') ?? 'unknown',
+          predictions_search_mode:
             measurement.feedSources.get('predictions') ?? 'unknown',
-          perps_source: measurement.feedSources.get('perps') ?? 'unknown',
-          earn_source: measurement.feedSources.get('earn') ?? 'unknown',
-          sites_source: measurement.feedSources.get('sites') ?? 'unknown',
+          perps_search_mode: measurement.feedSources.get('perps') ?? 'unknown',
+          earn_search_mode: measurement.feedSources.get('earn') ?? 'unknown',
+          sites_search_mode: measurement.feedSources.get('sites') ?? 'unknown',
         },
       });
     },
@@ -250,6 +249,27 @@ export const useExploreSearchPerformance = ({
     [cancelPendingFeedPaints, finishMeasurement],
   );
 
+  const onFocus = useCallback(() => {
+    isFocusedRef.current = true;
+    const activeMeasurement = performanceStateRef.current.currentMeasurement;
+
+    if (
+      (!activeMeasurement || activeMeasurement.completed) &&
+      queryRef.current.trim()
+    ) {
+      startMeasurement(queryRef.current.trim());
+    }
+  }, [startMeasurement]);
+
+  const onBlur = useCallback(() => {
+    isFocusedRef.current = false;
+    const activeMeasurement = performanceStateRef.current.currentMeasurement;
+
+    if (activeMeasurement && !activeMeasurement.completed) {
+      finishMeasurement(false, 'blurred');
+    }
+  }, [finishMeasurement]);
+
   const updateSearchInput = useCallback(
     (searchQuery: string) => {
       const updated = performanceStateRef.current.updateInput(
@@ -261,11 +281,6 @@ export const useExploreSearchPerformance = ({
       }
 
       cancelPendingFeedPaints();
-
-      const measurement = performanceStateRef.current.currentMeasurement;
-      if (!measurement) {
-        return;
-      }
     },
     [cancelPendingFeedPaints],
   );
@@ -288,17 +303,11 @@ export const useExploreSearchPerformance = ({
         return undefined;
       }
 
-      const measurement = performanceStateRef.current.currentMeasurement;
-      if (!measurement) {
-        return undefined;
-      }
-
       return {
-        end: (outcome: SearchRequestOutcome, resultCount = 0) => {
+        end: (outcome: SearchRequestOutcome) => {
           const completion = performanceStateRef.current.completeRequest({
             requestId,
             outcome,
-            pageResultCount: resultCount,
             endedAt: getPerformanceTimestamp(),
           });
           if (!completion) {
@@ -329,15 +338,10 @@ export const useExploreSearchPerformance = ({
   );
 
   const markCachedResult = useCallback(
-    (
-      feedId: ExploreSearchRequestFeedId,
-      searchQuery: string,
-      resultCount: number,
-    ) => {
+    (feedId: ExploreSearchRequestFeedId, searchQuery: string) => {
       performanceStateRef.current.markCachedResult(
         feedId,
         searchQuery,
-        resultCount,
         getPerformanceTimestamp(),
       );
     },
@@ -356,7 +360,7 @@ export const useExploreSearchPerformance = ({
         loadedResultCount,
         getPerformanceTimestamp(),
       );
-      if (ready?.status === 'ready') {
+      if (ready) {
         const measurement = performanceStateRef.current.currentMeasurement;
         if (!measurement) {
           return;
@@ -375,12 +379,6 @@ export const useExploreSearchPerformance = ({
             ready.requestToReadyMs,
             'millisecond',
           );
-          setTraceMeasurement(
-            { name: TraceName.ExploreSearchQuery, id: measurement.id },
-            `search.feed.${feedId}.request_to_commit_ms`,
-            ready.requestToReadyMs,
-            'millisecond',
-          );
         }
         const generationId = measurement.id;
         const requestSettledAt =
@@ -396,7 +394,8 @@ export const useExploreSearchPerformance = ({
           if (
             !currentMeasurement ||
             currentMeasurement.id !== generationId ||
-            currentMeasurement.completed
+            currentMeasurement.completed ||
+            !isFocusedRef.current
           ) {
             return;
           }
@@ -479,6 +478,13 @@ export const useExploreSearchPerformance = ({
     const searchQuery = query.trim();
     const activeMeasurement = performanceStateRef.current.currentMeasurement;
 
+    if (!isFocusedRef.current) {
+      if (activeMeasurement && !activeMeasurement.completed) {
+        finishMeasurement(false, 'blurred');
+      }
+      return;
+    }
+
     if (!searchQuery) {
       if (activeMeasurement && !activeMeasurement.completed) {
         finishMeasurement(false, 'cleared');
@@ -504,6 +510,7 @@ export const useExploreSearchPerformance = ({
     startMeasurement(searchQuery);
   }, [
     finishMeasurement,
+    isFocused,
     isDebouncing,
     query,
     startMeasurement,
@@ -565,44 +572,21 @@ export const useExploreSearchPerformance = ({
     [finishMeasurement],
   );
 
-  const tokens = useMemo<SearchRequestPerformance>(
-    () => ({
-      startRequest: (searchQuery) => startRequest('tokens', searchQuery),
-    }),
-    [startRequest],
-  );
-  const stocks = useMemo<SearchRequestPerformance>(
-    () => ({
-      startRequest: (searchQuery) => startRequest('stocks', searchQuery),
-    }),
-    [startRequest],
-  );
-  const predictions = useMemo<SearchRequestPerformance>(
-    () => ({
-      startRequest: (searchQuery) => startRequest('predictions', searchQuery),
-    }),
-    [startRequest],
-  );
+  return useMemo(() => {
+    const createFeedPerformance = (
+      feedId: ExploreSearchRequestFeedId,
+    ): SearchRequestPerformance => ({
+      startRequest: (searchQuery) => startRequest(feedId, searchQuery),
+      markCachedResult: (searchQuery) => markCachedResult(feedId, searchQuery),
+    });
 
-  return useMemo(
-    () => ({
-      tokens: {
-        ...tokens,
-        markCachedResult: (searchQuery: string, resultCount: number) =>
-          markCachedResult('tokens', searchQuery, resultCount),
-      },
-      stocks: {
-        ...stocks,
-        markCachedResult: (searchQuery: string, resultCount: number) =>
-          markCachedResult('stocks', searchQuery, resultCount),
-      },
-      predictions: {
-        ...predictions,
-        markCachedResult: (searchQuery: string, resultCount: number) =>
-          markCachedResult('predictions', searchQuery, resultCount),
-      },
+    return {
+      tokens: createFeedPerformance('tokens'),
+      stocks: createFeedPerformance('stocks'),
+      predictions: createFeedPerformance('predictions'),
+      onFocus,
+      onBlur,
       markFeedReady,
-    }),
-    [markCachedResult, markFeedReady, predictions, stocks, tokens],
-  );
+    };
+  }, [markCachedResult, markFeedReady, onBlur, onFocus, startRequest]);
 };

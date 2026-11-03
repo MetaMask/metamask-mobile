@@ -102,7 +102,6 @@ export const useSearchRequest = (options: {
 
     const requestHandle = performance?.startRequest(debouncedQuery);
     let outcome: SearchRequestOutcome = 'success';
-    let resultCount = 0;
 
     try {
       const searchResults = await searchTokens(stableChainIds, debouncedQuery, {
@@ -110,9 +109,6 @@ export const useSearchRequest = (options: {
         includeMarketData,
         includeTokenSecurityData: true,
       });
-      resultCount = Array.isArray(searchResults?.data)
-        ? searchResults.data.length
-        : 0;
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setResults((searchResults?.data as SearchResult[]) || []);
@@ -140,10 +136,7 @@ export const useSearchRequest = (options: {
       if (currentRequestId === requestIdRef.current) {
         setIsFetching(false);
       }
-      requestHandle?.end(
-        currentRequestId === requestIdRef.current ? outcome : 'superseded',
-        resultCount,
-      );
+      requestHandle?.end(outcome);
     }
   }, [stableChainIds, debouncedQuery, limit, includeMarketData, performance]);
 

@@ -34,7 +34,12 @@ import {
 import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  RouteProp,
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
@@ -317,9 +322,11 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
-  const { sections } = useExploreSearch(searchQuery, {
+  const isFocused = useIsFocused();
+  const { sections, performanceLifecycle } = useExploreSearch(searchQuery, {
     exposePagination: true,
     entryPoint,
+    isFocused,
   });
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
@@ -329,13 +336,21 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   // A focus counter, not useIsFocused: frozen screens never render the blurred value.
   const navigation = useNavigation();
   const [focusCount, setFocusCount] = useState(0);
-  useEffect(
-    () =>
-      navigation.addListener('focus', () =>
-        setFocusCount((count) => count + 1),
-      ),
-    [navigation],
-  );
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      setFocusCount((count) => count + 1);
+      performanceLifecycle.onFocus();
+    });
+    const unsubscribeBlur = navigation.addListener(
+      'blur',
+      performanceLifecycle.onBlur,
+    );
+
+    return () => {
+      unsubscribeFocus();
+      unsubscribeBlur();
+    };
+  }, [navigation, performanceLifecycle]);
 
   const pills = useMemo<PillOption[]>(
     () => [
