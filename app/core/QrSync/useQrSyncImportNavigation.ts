@@ -10,6 +10,7 @@ import { useMessenger } from '../../hooks/useMessenger';
 import { QrSyncSyncFlows } from './constants';
 import type { RouteMessengerInstance } from './route-messenger';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
+import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 import Logger from '../../util/Logger';
 import {
@@ -137,6 +138,11 @@ export const useQrSyncImportNavigation = ({
       }
 
       if (!completedOnboarding) {
+        // A missing review must not trap the user on the waiting screen.
+        // The password step still imports the pending secrets.
+        if (!reviewReady) {
+          navigateToQrSyncImport(navigation);
+        }
         return;
       }
 

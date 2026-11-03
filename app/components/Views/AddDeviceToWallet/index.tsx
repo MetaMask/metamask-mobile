@@ -43,10 +43,12 @@ import {
   releaseQrSyncAccountsReviewHold,
   useQrSyncInstructionsHold,
 } from '../../../core/QrSync/qrSyncAccountsReview';
-import { selectQrSyncAccountsReview ,
+import {
+  selectQrSyncAccountsReview,
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
   selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
@@ -119,7 +121,11 @@ const AddDeviceToWallet = () => {
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
   const review = useSelector(selectQrSyncAccountsReview);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
   const holdInstructions = useQrSyncInstructionsHold();
+  const shouldResetOnLeave = Boolean(review) || shouldNavigateToImport;
 
   useEffect(() => {
     if (presentation === 'instructions') {
@@ -128,7 +134,7 @@ const AddDeviceToWallet = () => {
   }, [presentation]);
 
   useEffect(() => {
-    if (typeof navigation.addListener !== 'function' || !review) {
+    if (typeof navigation.addListener !== 'function' || !shouldResetOnLeave) {
       return undefined;
     }
 
@@ -145,7 +151,7 @@ const AddDeviceToWallet = () => {
         await messenger.call('QrSyncController:resetState');
       });
     });
-  }, [messenger, navigation, review]);
+  }, [messenger, navigation, shouldResetOnLeave]);
 
   const handleBack = useCallback(() => {
     Promise.resolve(messenger.call('QrSyncController:resetState')).catch(

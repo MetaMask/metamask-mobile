@@ -14,7 +14,8 @@ import {
   releaseQrSyncAccountsReviewHold,
   useQrSyncInstructionsHold,
 } from '../../../core/QrSync/qrSyncAccountsReview';
-import { selectQrSyncAccountsReview ,
+import {
+  selectQrSyncAccountsReview,
   selectQrSyncError,
   selectQrSyncIsSessionActive,
   selectQrSyncPhase,

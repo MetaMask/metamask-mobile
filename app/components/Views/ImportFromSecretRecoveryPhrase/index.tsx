@@ -465,22 +465,33 @@ const ImportFromSecretRecoveryPhrase = () => {
     });
   }, [messenger]);
 
-  useEffect(() => navigation.addListener('beforeRemove', (event) => {
-      if (event.data.action.type !== 'GO_BACK') {
-        return;
-      }
-      if (!isQrSyncImport || currentStep !== 1) {
-        return;
-      }
-      leaveQrSyncImport();
-    }), [currentStep, isQrSyncImport, leaveQrSyncImport, navigation]);
+  const returnToAddDeviceFromQrSync = useCallback(() => {
+    leaveQrSyncImport();
+    navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET, undefined, {
+      pop: true,
+    });
+  }, [leaveQrSyncImport, navigation]);
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (event) => {
+        if (event.data.action.type !== 'GO_BACK') {
+          return;
+        }
+        if (!isQrSyncImport || currentStep !== 1) {
+          return;
+        }
+        // A plain pop lands on the scanner. Match the header and return to
+        // Add this device.
+        event.preventDefault();
+        returnToAddDeviceFromQrSync();
+      }),
+    [currentStep, isQrSyncImport, navigation, returnToAddDeviceFromQrSync],
+  );
 
   const onBackPress = () => {
     if (isQrSyncImport && currentStep === 1) {
-      leaveQrSyncImport();
-      navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET, undefined, {
-        pop: true,
-      });
+      returnToAddDeviceFromQrSync();
       return;
     }
 

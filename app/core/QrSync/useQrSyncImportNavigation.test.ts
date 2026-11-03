@@ -388,7 +388,7 @@ describe('useQrSyncImportNavigation', () => {
     expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
   });
 
-  it('reports a failed review and leaves a new user on add device', async () => {
+  it('opens the password screen when a new-user review cannot be built', async () => {
     mockCompletedOnboarding = false;
     mockShouldNavigateToImport = true;
     mockPrepareAccountsReview.mockRejectedValueOnce(
@@ -400,11 +400,18 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
-      expect(reportQrSyncFailure).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        {
+          initialStep: 1,
+          qrSyncImport: true,
+        },
+      );
     });
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(reportQrSyncFailure).toHaveBeenCalled();
     expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
+    expect(mockResetState).not.toHaveBeenCalled();
   });
 
   it('sends an existing user home when the review cannot be built', async () => {
