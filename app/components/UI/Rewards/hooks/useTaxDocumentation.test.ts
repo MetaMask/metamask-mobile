@@ -113,9 +113,9 @@ const localizedText = {
   taxDeterminationDescription: 'Determination body',
   claimFailureWaitMinutesToast: 'Try again in {minutes} minutes.',
   taxFormUrl: FORM_URL,
-} as ReferralLocalizedText;
+} as unknown as ReferralLocalizedText;
 
-const summary = {} as EarningsSummaryDto;
+const summary = {} as unknown as EarningsSummaryDto;
 
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
 const mockNavigate = jest.fn();

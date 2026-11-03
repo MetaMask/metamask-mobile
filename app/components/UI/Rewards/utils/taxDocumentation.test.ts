@@ -45,7 +45,7 @@ function heldSummary(options: {
         },
       },
     },
-  } as EarningsSummaryDto;
+  } as unknown as EarningsSummaryDto;
 }
 
 describe('taxSheetFor', () => {

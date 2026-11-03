@@ -341,7 +341,10 @@ function renderMoneyScreen(
     ...renderScreenWithRoutes(
       Component,
       { name },
-      rewardsFlowRoutes(),
+      rewardsFlowRoutes() as unknown as {
+        name: string;
+        Component?: React.ComponentType<object>;
+      }[],
       { state },
       undefined,
       undefined,

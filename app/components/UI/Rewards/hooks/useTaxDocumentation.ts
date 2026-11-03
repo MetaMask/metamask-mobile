@@ -100,7 +100,10 @@ export function useTaxDocumentation(profileId: string) {
         navigation.dispatch(StackActions.replace(name, params));
         return;
       }
-      navigation.navigate(name as never, params as never);
+      (navigation.navigate as (screen: string, params?: object) => void)(
+        name,
+        params,
+      );
     },
     [navigation, route.name],
   );

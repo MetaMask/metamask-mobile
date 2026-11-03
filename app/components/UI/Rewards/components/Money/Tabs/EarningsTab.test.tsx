@@ -58,6 +58,13 @@ jest.mock('../../../hooks/useLast7DaysEarnings');
 jest.mock('../../../hooks/useEarningsHistory');
 const mockClaimEarningsHandlers: { onClaimsPaused?: () => void } = {};
 
+jest.mock('../../../hooks/useTaxDocumentation', () => ({
+  useTaxDocumentation: () => ({
+    prefetchTaxMe: jest.fn(),
+    onClaimPress: (_summary: unknown, claim: () => Promise<void>) => claim(),
+    openAfterClaimRefusal: jest.fn(),
+  }),
+}));
 jest.mock('../../../hooks/useClaimEarnings', () => ({
   useClaimEarnings: (
     _profileId: string,

@@ -1530,7 +1530,7 @@ describe('RewardsMoneyDataService', () => {
             status: 200,
             headers: { get: () => null },
             text: async () => JSON.stringify({ review: 'NONE' }),
-          } as Response);
+          } as unknown as Response);
 
         const pending = service.submitTaxAttestation(false);
         await jest.advanceTimersByTimeAsync(3000);
