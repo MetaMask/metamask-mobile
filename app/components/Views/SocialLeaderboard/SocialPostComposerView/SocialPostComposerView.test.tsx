@@ -1,5 +1,11 @@
 import React from 'react';
-import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
+import {
+  AccessibilityInfo,
+  Keyboard,
+  Platform,
+  StyleSheet,
+  TextInput,
+} from 'react-native';
 import {
   fireEvent,
   screen,
@@ -19,7 +25,6 @@ import {
   getPendingPostsSnapshot,
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
-import { isComposerCommentValid } from './commentValidation';
 import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import type { HardwareTier } from '../../../../util/deviceCapability';
 import type { NetworkTier } from '../../../../hooks/useNetworkTier';
@@ -343,8 +348,98 @@ describe('SocialPostComposerView', () => {
     ).toBeEnabled();
   });
 
-  it('rejects comments that contain a url', () => {
-    expect(isComposerCommentValid('this is https://phish.test')).toBe(false);
+  it.each(['this is https://phish.test', 'visit example.com today'])(
+    'disables Post and explains the rule when the caption contains a link (%s)',
+    (caption) => {
+      renderWithProvider(<SocialPostComposerView />);
+
+      fireEvent.changeText(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+        caption,
+      );
+      fireEvent.press(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+      );
+      fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+      expect(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.URL_ERROR),
+      ).toHaveTextContent('social_leaderboard.composer.links_not_allowed');
+      expect(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.URL_ERROR).props
+          .accessibilityLiveRegion,
+      ).toBe('polite');
+      expect(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+      ).toBeDisabled();
+    },
+  );
+
+  describe('link error announcement', () => {
+    const originalOS = Platform.OS;
+    const linksNotAllowed = 'social_leaderboard.composer.links_not_allowed';
+    let announceSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      announceSpy = jest
+        .spyOn(AccessibilityInfo, 'announceForAccessibility')
+        .mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      Platform.OS = originalOS;
+      announceSpy.mockRestore();
+    });
+
+    const typeCaption = (caption: string) => {
+      fireEvent.changeText(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+        caption,
+      );
+    };
+
+    it('announces the link error once when a caption gains a URL on iOS', () => {
+      Platform.OS = 'ios';
+      renderWithProvider(<SocialPostComposerView />);
+
+      typeCaption('hello');
+
+      expect(announceSpy).not.toHaveBeenCalled();
+
+      typeCaption('hello example.com');
+
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+      expect(announceSpy).toHaveBeenCalledWith(linksNotAllowed);
+
+      typeCaption('hello example.com now');
+
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+
+      typeCaption('hello again');
+
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(SocialPostComposerViewSelectorsIDs.URL_ERROR),
+      ).toBeNull();
+
+      typeCaption('hello example.com again');
+
+      expect(announceSpy).toHaveBeenCalledTimes(2);
+      expect(announceSpy).toHaveBeenLastCalledWith(linksNotAllowed);
+    });
+
+    it('does not announce the link error on Android', () => {
+      Platform.OS = 'android';
+      renderWithProvider(<SocialPostComposerView />);
+
+      typeCaption('hello example.com');
+
+      expect(announceSpy).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.URL_ERROR).props
+          .accessibilityLiveRegion,
+      ).toBe('polite');
+    });
   });
 
   it('enables Post after a valid comment and selected position', () => {

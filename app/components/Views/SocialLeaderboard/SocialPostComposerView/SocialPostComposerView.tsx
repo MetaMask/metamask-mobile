@@ -34,6 +34,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  AccessibilityInfo,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -83,7 +84,11 @@ import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
-import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
+import {
+  commentContainsUrl,
+  COMPOSER_COMMENT_MAX_LENGTH,
+  isComposerCommentValid,
+} from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
@@ -311,9 +316,20 @@ const SocialPostComposerView: React.FC = () => {
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
   const isOverCharacterLimit = text.length > COMPOSER_COMMENT_MAX_LENGTH;
+  const captionContainsUrl = commentContainsUrl(text);
+  // TalkBack reads the polite live region. VoiceOver stays in the field, so
+  // announce only when a link first appears, not on later keystrokes.
+  useEffect(() => {
+    if (Platform.OS !== 'ios' || !captionContainsUrl) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('social_leaderboard.composer.links_not_allowed'),
+    );
+  }, [captionContainsUrl]);
   const canSubmit =
     (selectedPosition != null || isTradeInFlightLocked) &&
-    !isOverCharacterLimit;
+    isComposerCommentValid(text);
   const hasComment = text.trim().length > 0;
 
   const handleClose = useCallback(() => {
@@ -667,6 +683,16 @@ const SocialPostComposerView: React.FC = () => {
                   onImageChange: handleImageInsert,
                 }}
               />
+              {captionContainsUrl ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  accessibilityLiveRegion="polite"
+                  testID={SocialPostComposerViewSelectorsIDs.URL_ERROR}
+                >
+                  {strings('social_leaderboard.composer.links_not_allowed')}
+                </Text>
+              ) : null}
             </Box>
 
             {previewItem ? (
