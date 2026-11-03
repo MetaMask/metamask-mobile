@@ -1681,19 +1681,20 @@ describe('EventMarketList', () => {
         ...event,
         markets: [
           ...event.markets,
-          ...totals.map((market) => ({
-            ...withSection(market, { key: 'team_total', order: 3 }),
-            group: market.group && {
-              ...market.group,
-              key: 'team-total-ne',
-              marketType: 'team_total',
-            },
-            outcomes: market.outcomes.map((outcome) =>
-              outcome.side === 'yes'
-                ? { ...outcome, gameSelection: 'away' as const }
-                : outcome,
-            ),
-          })),
+          ...totals.map(
+            (market): PredictMarket => ({
+              ...withSection(market, { key: 'team_total', order: 3 }),
+              group: market.group && {
+                ...market.group,
+                key: 'team-total-ne',
+                marketType: 'team_total',
+              },
+              outcomes: [
+                { ...market.outcomes[0], gameSelection: 'away' },
+                market.outcomes[1],
+              ],
+            }),
+          ),
           ...spreads.map((market) =>
             withSection(market, { key: 'alt_spread', order: 4 }),
           ),
