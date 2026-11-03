@@ -13,8 +13,7 @@ const mockedValidate =
   >;
 
 describe('isMoneyAccountEnabled', () => {
-  const originalAgenticFlag =
-    process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
+  const originalAgenticFlag = process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
   const originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
 
   beforeEach(() => {
