@@ -27,7 +27,7 @@ export interface MainActionButtonProps extends PressableProps {
   isDisabled?: boolean;
   /**
    * Accepted for existing call sites. Tiles no longer paint the glass sheen;
-   * they stay the flat muted control. See docs/glass-guidelines.md.
+   * they stay the flat muted control. See docs/design-audits/glass-guidelines.md.
    */
   isGlass?: boolean;
 }

@@ -31,7 +31,7 @@ Libraries: `expo-glass-effect` (`GlassView`, `isLiquidGlassAvailable`) and `expo
 The gradient on the tiles is not a separate elevation. It is `BoxGlass`'s `hasSheen` overlay:
 
 - A `LinearGradient` of `background.muted` at three stops. Dark opacities `0.04 / 0.10 / 0.07`. Light opacities `0.075 / 0.20 / 0.10`.
-- The gradient sits on an opaque `bg-default` layer painted over the `GlassView`, so at rest you see the gradient, not the glass. The comment in `BoxGlass` says the glass shows up in the press response.
+- The gradient sits on an opaque `bg-default` layer painted over the `GlassView`, so at rest you see the gradient, not the glass. The comment in `BoxGlass` says the glass shows up in the press response. That layer is a background on a child of the glass. Never give a child of a `GlassView` or a `BlurView` a background color. It covers the material. The opaque fallback (`background.section` + `border.muted`) is a different branch, not a child fill.
 - With the sheen on, the border is `0.6px`. In dark mode that border is `border.muted` at `0.18` opacity. In light mode it is full `border.muted`.
 
 ### Every sheen call site
@@ -50,7 +50,7 @@ The gradient on the tiles is not a separate elevation. It is `BoxGlass`'s `hasSh
 | `app/components/UI/Perps/components/PerpsCompetitionBanner/PerpsCompetitionBanner.tsx`               | `PerpsCompetitionBanner`  | Banner. Still sheen.                                                                |
 | `app/components/UI/Predict/views/PredictHome/components/PredictPortfolio/PredictPortfolioAction.tsx` | `PredictPortfolioAction`  | Portfolio action. Still sheen.                                                      |
 
-Other `LinearGradient`s (charts, sports team colors, rewards, card art, header scroll fades) are not this sheen. `HeaderGlassBackdrop` fades a blur or a solid gradient as content scrolls under a header. That is a scroll affordance, not a surface elevation.
+Other `LinearGradient`s (charts, sports team colors, rewards, card art, header scroll fades) are not this sheen. `HeaderGlassBackdrop` fades a blur or a solid gradient as content scrolls under a header. That is a scroll affordance, not a surface elevation. Its blur is the ultra-thin material (`systemUltraThinMaterial`). That material is only for the scroll edge. Never put text on it. Current issue: the fade uses `background.default`, the same color as the page behind it, so it never shows. Home, the token list, and most subpages paint that same fill, so scrolling them under the bar does not reveal it either.
 
 ### Does it fit the ladder?
 
@@ -70,24 +70,28 @@ A sheen token would bless a decoration that erases the difference between a butt
 
 ## Refined ladder
 
-Andrew's draft stacked treatments: flat color, then a 1px border, then a drop shadow, then Apple glass, on a `#000` base. `#000` is only the dark value of `background.default`. Light `background.default` is `#FFFFFF`. Light and dark also do not share one cue. In dark mode, elevation is a lighter fill. In light mode, `background.elevated1` and `background.elevated2` are the same white as the page, `border.alternative` is transparent, and the shadow does the work. A single "level 2 = border, level 3 = shadow" ladder fights the tokens.
+Andrew's draft stacked treatments: flat color, then a 1px border, then a drop shadow, then Apple glass, on a `#000` base. `#000` is only the dark value of `background.default`. Light `background.default` is `#FFFFFF`. Light and dark also do not share one cue. In dark mode, elevation is a lighter fill. Light mode has only one real elevation step. `background.default`, `background.elevated1`, and `background.elevated2` are all white, and `border.alternative` is transparent, so a white card on a white page does not separate by fill or by that edge. Separation in light mode comes from the shadow and, for a sheet, from the scrim. A single "level 2 = border, level 3 = shadow" ladder fights the tokens.
 
 Use roles. Map them onto tokens that already exist. Do not add `background-default` or `border-muted`; they are already `bg-default` and `border-muted`.
 
-| Role       | Dark                                                                       | Light                                                                    | Treatment                                                                  | Use it for                                                  |
-| ---------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Base       | `background.default` `#000000`                                             | `background.default` `#FFFFFF`                                           | No container                                                               | App background                                              |
-| Section    | `background.section` `#18181b`                                             | `background.section` `#F3F5F9`                                           | Flat fill. No border. No shadow                                            | Cards, banners, page sections                               |
-| Subsection | `background.subsection` `#222226`                                          | `background.subsection` `#FFFFFF`                                        | Flat fill inside a section                                                 | A group nested in a card                                    |
-| Control    | `background.muted` `#e2e2ff1b`                                             | `background.muted` `#b4b4b528`                                           | Flat wash. Not an elevation step                                           | Tiles and other buttons. Pressed: `background.mutedPressed` |
-| Separator  | `border.muted` `#e2e2ff26`                                                 | `border.muted` `#b4b4b566`                                               | 1px line between siblings that share a fill                                | List dividers, input edges. Not a card border               |
-| Floating   | `background.elevated2` `#18181b` + `border.alternative`                    | `background.elevated2` `#FFFFFF` + transparent border + `shadow.size.md` | Fill step in dark, shadow in light                                         | Toasts, menus, popovers. No scrim                           |
-| Sheet      | `background.elevated1` `#0d0d0f` + `border.alternative` + `shadow.size.lg` | White + transparent border + `shadow.size.lg`                            | Opaque panel over `overlay.default`                                        | Sheets and modals                                           |
-| Glass      | No fill token                                                              | No fill token                                                            | Liquid Glass, else system blur, else `background.section` + `border.muted` | Tab bar, header capsules, a single floating control         |
+| Role       | Dark                                                                        | Light                                                                     | Treatment                                                                  | Use it for                                                  |
+| ---------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Base       | `background.default` `#000000`                                              | `background.default` `#FFFFFF`                                            | No container                                                               | App background                                              |
+| Section    | `background.section` `#18181b`                                              | `background.section` `#F3F5F9`                                            | Flat fill. No border. No shadow                                            | Cards, banners, page sections                               |
+| Subsection | `background.subsection` `#222226`                                           | `background.subsection` `#FFFFFF`                                         | Flat fill inside a section                                                 | A group nested in a card                                    |
+| Control    | `background.muted` `#e2e2ff1b`                                              | `background.muted` `#b4b4b528`                                            | Flat wash. Not an elevation step                                           | Tiles and other buttons. Pressed: `background.mutedPressed` |
+| Separator  | `border.muted` `#e2e2ff26`                                                  | `border.muted` `#b4b4b566`                                                | 1px line between siblings that share a fill                                | List dividers, input edges. Not a card border               |
+| Floating   | `background.elevated2` `#18181b` + `border.alternative`                     | `background.elevated2` `#FFFFFF` + transparent border + `shadows.size.md` | Fill step in dark, shadow in light                                         | Toasts, menus, popovers. No scrim                           |
+| Sheet      | `background.elevated1` `#0d0d0f` + `border.alternative` + `shadows.size.lg` | White + transparent border + `shadows.size.lg`                            | Opaque panel over `overlay.default`                                        | Sheets and modals                                           |
+| Glass      | No fill token                                                               | No fill token                                                             | Liquid Glass, else system blur, else `background.section` + `border.muted` | Tab bar, header capsules, a single floating control         |
 
 List rows stay on the parent fill. A row is not a new level. Add `border.muted` only when two rows would otherwise merge.
 
 `background.elevated2` in dark is the same hex as `background.section`. A toast sitting on a section does not separate by fill. Keep floating UI over the page or over a scrim, and keep the hairline.
+
+`background.alternative` does not separate surfaces in dark mode. Its dark value is `#0d0d0f`, too close to `background.default` (`#000000`) to read as a different plane. Do not use it as a sunken canvas under the page. Dark `elevated1` is that same `#0d0d0f`. A sheet only separates because it sits on the scrim.
+
+`shadows.size.*` (`xs`, `sm`, `md`, `lg`) are iOS-style shadow objects. They do nothing on Android, because MMDS has no Android `elevation` token. That is a gap. Do not hard-code an `elevation` value beside `shadows.size.*` to fill it. Until the token exists, Android separation is the fill step and the hairline.
 
 ### Where each screenshot surface goes
 
@@ -121,8 +125,10 @@ After, in this prototype, same flag:
 Use it when all of these are true:
 
 - The surface is chrome, and content moves underneath it (a bar, a header capsule, one floating control).
-- The thing on it is still legible if the content underneath is a light photo or a white card. If you cannot guarantee that, use the opaque fallback.
+- The thing on it is still legible if the content underneath is a light photo or a white card. If you cannot guarantee that, use the opaque fallback. Text on chrome sits on regular Liquid Glass or on chrome material (`systemChromeMaterial`). The ultra-thin material (`systemUltraThinMaterial`) is only for the scroll edge. Never put text on it.
 - There is a single glass layer. Do not put a glass card on a glass header over a glass tab bar.
+
+On iOS 26, use only one scroll-edge effect per edge. Either UIKit's scroll-edge effect or our header backdrop (`HeaderGlassBackdrop`, including `NativeHeaderBackdrop`), not both. When the screen draws its own backdrop, set `hidesScrollEdgeEffect` so the extra one stays off (`useNativeHeader({ hidesScrollEdgeEffect: true })`).
 
 ## When not to use glass
 
@@ -146,8 +152,12 @@ Don't:
 
 - Paint the sheen, or a new gradient, to fake a level.
 - Stack glass on glass.
+- On iOS 26, stack UIKit's scroll-edge effect and our header backdrop on the same edge. Suppress the extra one with `hidesScrollEdgeEffect`.
+- Give a child of a `GlassView` or a `BlurView` a background color. The fill covers the material. A fill belongs on the opaque fallback (`background.section` + `border.muted`), which is a different branch, not a child of the material.
+- Put text on the ultra-thin material, or use that material for anything other than the scroll edge.
 - Use `text.muted` as the only text on a translucent surface.
-- Invent a parallel shadow, blur, or color scale. `shadows.size.xs | sm | md | lg` and `colors.shadow.default` are the shadow tokens. They are iOS shadow objects. Android does not get a matching `elevation` number from the package today; the fill step and the hairline have to carry Android.
+- Invent a parallel shadow, blur, or color scale. `shadows.size.*` and `colors.shadow.default` are the shadow tokens. `shadows.size.*` are iOS-style shadow objects and do nothing on Android, because there is no Android `elevation` token. That is a gap. Do not hard-code an `elevation` value. The fill step and the hairline carry Android until MMDS defines one.
+- Let network status decide blur. The material is rendered locally.
 - Copy Apple's materials as a brand. `systemChromeMaterial` is a fallback for older iOS, not the MetaMask look.
 
 ## Fallback
@@ -159,7 +169,18 @@ Don't:
 3. System blur, when glass is unavailable and `isBlurEnabled` (older iOS, module linked, Reduce Transparency off). Tint follows the app theme (`systemChromeMaterialDark` / `Light`), not the system theme.
 4. Otherwise, including Android, Reduce Transparency, and a missing native module: the same opaque section.
 
-Network tier is read and does not change the choice. Blur is local. `NONE` is not a reason to drop it, and `null` is not offline.
+Network tier is read and does not change the choice. Blur is rendered locally, so network status must not decide it. `NONE` is not a reason to drop it, and `null` is not offline. Low hardware is opaque on every network tier, including `NONE` and unknown. Unknown hardware (`null`) stays on the product path.
+
+**Rejected alternative.** Turn blur off when the device is offline, and turn it off on low-end hardware only when the network is known, while keeping it on for low-end hardware with an unknown network. An earlier draft did that:
+
+| Hardware \ Network                                            | Blur                                                                                       |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Any hardware, network `NONE`                                  | Off. Treated as local UI only.                                                             |
+| `LOW` and a known network                                     | Off.                                                                                       |
+| `LOW` and network `null`                                      | On. Unknown network stayed on the product default.                                         |
+| `MID`, `HIGH`, or unknown hardware, any network except `NONE` | On, then still subject to `useBlurMaterial` (iOS, module linked, Reduce Transparency off). |
+
+Rejected because blur is a local sample. The network does not make that sample cheaper or more expensive, and `NONE` is not a reason to drop the material. Keeping blur on for low-end hardware with an unknown network was the right half of that draft. Turning it off for offline, and for low-end hardware once the network became known, was not. Do not copy it.
 
 Reduce Transparency already flows through `useBlurMaterial` into `useLiquidGlass`. Do not call `isLiquidGlassAvailable` on its own.
 
@@ -168,17 +189,18 @@ Reduce Transparency already flows through `useBlurMaterial` into `useLiquidGlass
 - **Contrast on glass.** Text needs 4.5:1 and UI chrome 3:1 against the worst content that can scroll underneath, not against the material's average color. Tab labels sit on the blur today. A light card under a thin material can fail. Prefer the chrome material or the opaque fallback wherever text sits. This prototype did not run a contrast meter on device.
 - **The sheen's hairline fails 3:1 in dark mode.** That is one reason to remove it.
 - **Reduce Transparency and Reduce Motion.** Transparency is handled. Motion is handled for the new wrapper's press response. Header scroll-blur in `HeaderGlassBackdrop` still animates intensity. That path was not changed.
-- **Android and older iOS.** No Liquid Glass. Older iOS can blur. Android is opaque. The tab bar's opaque fallback is the same section fill the capsules already use, so the levels still read.
+- **Android and older iOS.** No Liquid Glass. Older iOS can blur. Android is opaque. `shadows.size.*` are iOS-style shadow objects and do nothing on Android, because there is no Android `elevation` token. Do not hard-code an `elevation` value to fill that gap. The tab bar's opaque fallback is the same section fill the capsules already use, so the levels still read from the fill and the hairline.
 - **Low hardware.** Two live blurs on the tab bar (pill and + button) plus header capsules plus sheen gradients is a lot of backdrop work on a 2 GiB phone. Low tier now skips the tab bar's translucent materials. Header capsules do not yet use this wrapper, so they can still blur on a low device.
 - **Stacking.** Home can show header capsules, sheen cards, and a blurred tab bar at once. This prototype takes glass off the tiles, the banner, the promo, and the trade sheet. Header capsules are still glass. Do not add more.
-- **Dark floating fill.** `elevated2` equals `section` in dark mode. Don't put a menu on a section and expect the fill to separate them.
-- **Light mode.** Shadow and scrim do the work, because the elevated fills are white. Checking only a `#000` screenshot will not catch a light-mode regression.
+- **Dark floating fill.** `elevated2` equals `section` in dark mode. Don't put a menu on a section and expect the fill to separate them. Dark `background.alternative` (`#0d0d0f`) is too close to black (`#000000`) to separate a surface from the page either.
+- **Light mode has one elevation step.** `background.default`, `elevated1`, and `elevated2` are all white, and `border.alternative` is transparent. Shadow and scrim are what separate surfaces. Checking only a `#000` screenshot will not catch a light-mode regression.
+- **Header fade.** Current issue: `HeaderGlassBackdrop` paints its gradient in `background.default`, the same color as the page, so the fade never shows. Do not stack a second scroll-edge effect to compensate.
 - **Social header fallback.** `SocialHeaderGlassSurface` skips blur and jumps to opaque. The other capsules blur first. Same component should own that later.
 - **Performance was not measured on device.** The static call is: fewer sheen gradients on the home and money screens, one glass-or-blur decision for the two tab-bar surfaces, and no new list of backdrop views. Confirm on a low device and on Android before this leaves draft.
 
 ## Prototype scope
 
-`ElevationSurface` is the only new container. Fill roles render design-system `Box` with the tokens above. The glass role is the wrapper. It does not replace `CapsuleGlass` yet.
+`ElevationSurface` (`app/component-library/components-temp/ElevationSurface/`) is the only new container. Fill roles render design-system `Box` with the tokens above. The glass role is the wrapper. It does not replace `CapsuleGlass` yet. It should eventually be merged into `CapsuleGlass`, or moved upstream into MMDS ([MetaMask/metamask-design-system](https://github.com/MetaMask/metamask-design-system), `design-system-react-native`), so glass has a single wrapper.
 
 Applied on the three screens:
 
