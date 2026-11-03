@@ -746,7 +746,16 @@ export type RootStackParamList = {
   HomeNav: NavigatorScreenParams<MainStackParamList> | undefined;
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
-  Login: undefined;
+  Login:
+    | {
+        locked?: boolean;
+        /**
+         * Resume authentication failed. Login covers the screen the user left.
+         * Unlock dismisses it instead of navigating Home.
+         */
+        resumeOverlay?: boolean;
+      }
+    | undefined;
   OnboardingNav: undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
