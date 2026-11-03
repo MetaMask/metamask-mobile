@@ -309,7 +309,7 @@ describe('useStartProSubscription', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       batchId: GENERATED_BATCH_ID,
-      amount: '39.99',
+      amount: '39.99041',
       transactionType: TransactionType.membershipSubscription,
       forceBottomSheet: true,
     });
@@ -333,6 +333,29 @@ describe('useStartProSubscription', () => {
     await expect(startPromise).resolves.toEqual({
       outcome: StartProSubscriptionOutcome.Processing,
     });
+  });
+
+  it('tops up a padded 6-decimal amount for a fresh account', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '4990000',
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise(() => undefined),
+      cancel: mockCancelTopUp,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      result.current.startSubscription(MONTHLY_PLAN);
+      await Promise.resolve();
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '4.99006' }),
+    );
   });
 
   it('does not start delegation, log, or set an error when the top-up is rejected', async () => {

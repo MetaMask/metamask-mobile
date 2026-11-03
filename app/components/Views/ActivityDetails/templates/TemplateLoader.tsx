@@ -7,7 +7,7 @@ import { ApprovalDetails } from './ApprovalDetails';
 import { BridgeDetails } from './BridgeDetails';
 import { ContractInteractionDetails } from './ContractInteractionDetails';
 import { DefaultDetails } from './DefaultDetails';
-import { DepositDetails } from './DepositDetails';
+import { DepositDetails } from './Earn/DepositDetails';
 import { NftDetails } from './NftDetails';
 import { SmartAccountUpgradeDetails } from './SmartAccountUpgradeDetails';
 import { PerpsDetails } from './Perps/PerpsDetails';

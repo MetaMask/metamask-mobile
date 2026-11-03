@@ -1247,7 +1247,8 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Sua Money Account é fornecida por [Entity], [regulated status, to confirm]. Os reais são convertidos em mUSD quando chegam.",
+      "provider_disclosure": "Os serviços relacionados a ativos virtuais no Brasil são prestados por um provedor terceirizado regulamentado.",
+      "provider_disclosure_link": "Saiba mais",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Adicionar dinheiro por transferência bancária",
@@ -1510,7 +1511,7 @@
         "kols": "KOLs (Líderes de Opinião Chave)"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Aplicar",
         "apply": "Aplicar",
         "reset": "Redefinir",
@@ -10124,7 +10125,6 @@
       "perps_withdraw": "Sacar",
       "predict_deposit": "Adicionar fundos de previsão",
       "predict_withdraw": "Sacar",
-      "money_account_add_money": "Adicionar fundos",
       "money_account_send": "Enviar"
     },
     "sub_title": {

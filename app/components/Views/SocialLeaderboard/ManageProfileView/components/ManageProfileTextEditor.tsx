@@ -31,6 +31,7 @@ interface ManageProfileTextEditorProps {
   helperText?: string;
   prefix?: string;
   multiline?: boolean;
+  maxLength?: number;
 }
 
 const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
@@ -48,6 +49,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
   helperText,
   prefix,
   multiline = false,
+  maxLength,
 }) => {
   const tw = useTailwind();
   const [value, setValue] = useState(initialValue);
@@ -68,6 +70,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
             <TextArea
               value={value}
               onChangeText={setValue}
+              maxLength={maxLength}
               testID={inputTestID}
             />
           ) : (
@@ -88,6 +91,9 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
                 <TextField
                   value={value}
                   onChangeText={setValue}
+                  // TextField puts the rest of its props on the root Box, so
+                  // the cap has to reach the inner input through `inputProps`.
+                  inputProps={{ maxLength }}
                   testID={inputTestID}
                 />
               </Box>
