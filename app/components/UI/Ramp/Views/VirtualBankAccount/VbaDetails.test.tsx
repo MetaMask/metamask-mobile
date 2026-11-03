@@ -45,6 +45,7 @@ const mockRefreshAutoramp = jest.fn();
 const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
+const mockRefreshCustomerAbilities = jest.fn();
 const mockNavigateToVbaOnboardingDestination = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
@@ -164,6 +165,8 @@ jest.mock('../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
+      refreshCustomerAbilities: (...args: unknown[]) =>
+        mockRefreshCustomerAbilities(...args),
       refreshAutorampTransactions: (...args: unknown[]) =>
         mockRefreshAutorampTransactions(...args),
     },
@@ -263,6 +266,15 @@ describe('VbaDetails', () => {
       id: 'ar-new',
       walletAddress: '0xabc',
       status: 'Created',
+    });
+    mockRefreshCustomerAbilities.mockResolvedValue({
+      fiat_deposit: {
+        brl: { pix: 'Active', pix_thirdparty: 'Active' },
+        usd: { ach: 'Active', ach_thirdparty: 'Active' },
+      },
+      fiat_payout: {},
+      currencies: [],
+      blocking_abilities: {},
     });
     setAutoramps([{ ...approvedAutoramp }]);
     restoreNeoBankService();

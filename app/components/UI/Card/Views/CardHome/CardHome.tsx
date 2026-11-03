@@ -254,6 +254,8 @@ const CardHome = () => {
   useApplePaySplashPrompt({
     canAddToWallet,
     isPushProvisioningLoading,
+    countryCode: data?.walletProvisioning?.countryCode,
+    cardProcessor: data?.walletProvisioning?.cardProcessor,
   });
   const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
   const handleLearnMoreAboutApplePay = useCallback(() => {
@@ -573,14 +575,9 @@ const CardHome = () => {
   const canUnlinkMoneyAccount = useMemo(() => {
     if (!primaryToken?.isMoneyAccountEntry) return false;
 
-    const tokenMoneyAccountAddress = primaryToken.walletAddress;
-    const activeMoneyAccountAddress = primaryMoneyAccount?.address;
-    return Boolean(
-      tokenMoneyAccountAddress &&
-        activeMoneyAccountAddress &&
-        tokenMoneyAccountAddress.toLowerCase() ===
-          activeMoneyAccountAddress.toLowerCase(),
-    );
+    const tokenAddress = primaryToken.walletAddress?.toLowerCase();
+    const activeAddress = primaryMoneyAccount?.address?.toLowerCase();
+    return Boolean(tokenAddress && tokenAddress === activeAddress);
   }, [
     primaryMoneyAccount?.address,
     primaryToken?.isMoneyAccountEntry,

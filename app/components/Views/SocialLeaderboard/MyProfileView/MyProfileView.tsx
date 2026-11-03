@@ -162,8 +162,9 @@ const MyProfileView: React.FC = () => {
     if (isOwner) {
       return myProfile;
     }
-    if (liveProfile.profile) {
-      return traderProfileResponseToMySocialProfile(liveProfile.profile, {
+    const remoteProfile = liveProfile.profile;
+    if (remoteProfile) {
+      return traderProfileResponseToMySocialProfile(remoteProfile, {
         handle: traderName,
         imageUrl: traderAvatarUri,
       });
@@ -196,7 +197,7 @@ const MyProfileView: React.FC = () => {
     isActive: isOwner,
   });
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('open');
   const profileTabs = useMemo<TabItem[]>(
     () => [
       {
@@ -539,7 +540,10 @@ const MyProfileView: React.FC = () => {
           }}
           endAccessory={
             !isOwner && traderId ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
+              <SocialHeaderGlassSurface
+                twClassName="gap-2 px-2"
+                testID={MyProfileViewSelectorsIDs.HEADER_ACTIONS_CAPSULE}
+              >
                 <ButtonIcon
                   iconName={IconName.Share}
                   iconProps={{ color: IconColor.IconDefault }}
