@@ -39,6 +39,11 @@ export interface UseMoneyVaultApyResult {
 
 export interface UseMoneyVaultApyOptions {
   enabled?: boolean;
+  /**
+   * Premium positions poll interval. Omit to keep the five-minute default.
+   * Money home passes false because its positions query already polls that key.
+   */
+  positionsRefetchInterval?: number | false;
 }
 
 /**
@@ -49,11 +54,12 @@ export interface UseMoneyVaultApyOptions {
  * While that rate is still loading the APY stays blank so the base rate does
  * not flash for a newly entitled user.
  *
- * @param options - Optional enable flag for the APY queries.
+ * @param options - Optional enable flag and premium positions poll interval.
  * @returns Effective APY values and the query backing the displayed rate.
  */
 const useMoneyVaultApy = ({
   enabled = true,
+  positionsRefetchInterval,
 }: UseMoneyVaultApyOptions = {}): UseMoneyVaultApyResult => {
   const { vaultApyFallback, vaultApyOverride } = useSelector(
     selectMoneyVaultApyRemoteConfig,
@@ -86,6 +92,9 @@ const useMoneyVaultApy = ({
   const { rate, vaultRateQuery } = useMoneyPremiumVaultRate({
     enabled: enabled && isEntitled,
     vaultAddress: premiumVaultConfig?.boringVault,
+    ...(positionsRefetchInterval !== undefined && {
+      refetchInterval: positionsRefetchInterval,
+    }),
   });
   // Entitled users never fall back to the base APY (including while the
   // premium rate is loading), so the base rate does not flash after subscribe.

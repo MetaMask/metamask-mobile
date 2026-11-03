@@ -278,6 +278,7 @@ describe('useMoneyVaultState', () => {
     expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
       enabled: true,
       vaultAddress: PREMIUM_VAULT,
+      refetchInterval: false,
     });
     expect(result.current.status).toBe('downgrading');
     expect(result.current.apyDecimal).toBe(0.08);
@@ -302,6 +303,12 @@ describe('useMoneyVaultState', () => {
     renderHook(() => useMoneyVaultState());
 
     expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ refetchInterval: false }),
+    );
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({
+      positionsRefetchInterval: false,
+    });
+    expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith(
       expect.objectContaining({ refetchInterval: false }),
     );
   });

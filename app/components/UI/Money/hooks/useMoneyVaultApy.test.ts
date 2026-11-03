@@ -280,6 +280,17 @@ describe('useMoneyVaultApy', () => {
     expect(result.current.apyPercent).toBeUndefined();
   });
 
+  it('pauses the premium positions poll when the caller owns that query', () => {
+    setup({ isEntitled: true, premiumRate: '0.08' });
+
+    renderHook(() => useMoneyVaultApy({ positionsRefetchInterval: false }));
+
+    expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
+      enabled: true,
+      refetchInterval: false,
+    });
+  });
+
   it('disables the premium rate query when the hook is disabled for an entitled user', () => {
     setup({ isEntitled: true, premiumRate: '0.08' });
 

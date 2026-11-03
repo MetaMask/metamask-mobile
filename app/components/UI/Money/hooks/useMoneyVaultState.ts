@@ -93,7 +93,9 @@ const useMoneyVaultState = (): UseMoneyVaultStateResult => {
   const baseVaultAddress = baseVaultConfig?.boringVault;
   const premiumVaultAddress = premiumVaultConfig?.boringVault;
 
-  const { baseApyDecimal, isBaseApyLoading } = useMoneyVaultApy();
+  const { baseApyDecimal, isBaseApyLoading } = useMoneyVaultApy({
+    positionsRefetchInterval: false,
+  });
   const [isMigrating, setIsMigrating] = useState(false);
 
   const refetchInterval = getVaultPositionsRefetchInterval(
@@ -128,6 +130,8 @@ const useMoneyVaultState = (): UseMoneyVaultStateResult => {
   const { rate, vaultRateQuery } = useMoneyPremiumVaultRate({
     enabled: isEntitled || hasPremiumPosition,
     vaultAddress: premiumVaultAddress,
+    // positionsQuery above is the only timer for this shared query key.
+    refetchInterval: false,
   });
   const premiumApyDecimal = parseApy(rate);
 

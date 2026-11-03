@@ -219,6 +219,14 @@ describe('useMoneyPremiumVaultRate', () => {
     expect(result.current.rate).toBe('0.07');
   });
 
+  it('forwards a paused refetch interval to the positions query', () => {
+    renderHook(() => useMoneyPremiumVaultRate({ refetchInterval: false }));
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ refetchInterval: false }),
+    );
+  });
+
   it('disables the positions query when enabled is false', () => {
     renderHook(() => useMoneyPremiumVaultRate({ enabled: false }));
 

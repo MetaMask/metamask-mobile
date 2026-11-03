@@ -21,6 +21,12 @@ export interface UseMoneyPremiumVaultRateOptions {
    * premium funds. Money home passes the premium config `boringVault`.
    */
   vaultAddress?: string;
+  /**
+   * Positions poll interval. Defaults to five minutes. Pass false when another
+   * observer on this query key already polls, so this observer does not keep
+   * a timer of its own.
+   */
+  refetchInterval?: number | false;
 }
 
 interface UseMoneyPremiumVaultRateResult {
@@ -50,6 +56,7 @@ interface UseMoneyPremiumVaultRateResult {
 const useMoneyPremiumVaultRate = ({
   enabled = true,
   vaultAddress: fallbackVaultAddress,
+  refetchInterval = FIVE_MINUTES_MS,
 }: UseMoneyPremiumVaultRateOptions = {}): UseMoneyPremiumVaultRateResult => {
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
@@ -64,7 +71,7 @@ const useMoneyPremiumVaultRate = ({
       address as string,
     ],
     enabled: isEnabled,
-    refetchInterval: FIVE_MINUTES_MS,
+    refetchInterval,
   }) as UseQueryResult<PositionResponse>;
 
   const normalizedVaultAddress = vaultAddress?.toLowerCase();
