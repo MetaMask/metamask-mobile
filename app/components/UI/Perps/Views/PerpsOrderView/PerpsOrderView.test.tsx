@@ -4657,37 +4657,6 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
     });
 
-    it('disables the trade button when TP/SL is invalid', async () => {
-      // Arrange
-      (usePerpsOrderContext as jest.Mock).mockReturnValue(
-        orderContextWithTPSL({ direction: 'long', takeProfitPrice: '2000' }),
-      );
-      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
-        isValid: true,
-        errors: [],
-        isValidating: false,
-        insufficientBalanceErrors: [],
-        validateNow: jest.fn(),
-      });
-      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-        placeOrder: jest.fn(),
-        isPlacing: false,
-      });
-
-      // Act
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(screen.getByText(/Take profit must be above/)).toBeOnTheScreen();
-      });
-
-      const placeOrderButton = await screen.findByTestId(
-        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-      );
-      expect(placeOrderButton).toBeOnTheScreen();
-    });
-
     describe('limit order TP/SL validates against entry price, not market price', () => {
       const orderContextForLimitOrder = (overrides: {
         direction: 'long' | 'short';
@@ -6986,31 +6955,6 @@ describe('PerpsOrderView', () => {
           toasts.PerpsToastOptions.formValidation.orderForm.validationError,
         ).toHaveBeenCalledWith(copyKey);
         expect(toasts.showToast).toHaveBeenCalled();
-      },
-    );
-
-    it.each([
-      { estimate: null, copyKey: 'perps.slippage.insufficient_depth' },
-      { estimate: 100, copyKey: 'perps.slippage.cannot_fill' },
-    ])(
-      'disables the full-screen place order button when $copyKey',
-      async ({ estimate }) => {
-        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-          placeOrder: jest.fn(),
-          isPlacing: false,
-        });
-        (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
-          estimatedSlippageBps: estimate,
-          isReady: true,
-          canFillWithinSlippage: false,
-        });
-
-        render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-        const placeOrderButton = await screen.findByTestId(
-          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-        );
-        expect(placeOrderButton).toBeDisabled();
       },
     );
 

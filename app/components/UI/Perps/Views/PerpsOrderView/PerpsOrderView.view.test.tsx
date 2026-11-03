@@ -520,6 +520,65 @@ describe('PerpsOrderView', () => {
     },
   );
 
+  it('keeps a long order disabled when take profit is below the current price', async () => {
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    const { stream } = renderPerpsOrderView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              ...eligibleOverrides.engine.backgroundState.PerpsController,
+              tradeConfigurations: {
+                mainnet: {
+                  ETH: {
+                    pendingConfig: {
+                      takeProfitPrice: '2000',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByText(
+        strings('perps.tpsl.take_profit_wrong_side_warning', {
+          direction: strings('perps.tpsl.above'),
+          priceType: 'current',
+        }),
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toBeDisabled();
+
+    fireEvent.press(placeOrderButton);
+
+    expect(placeOrder).not.toHaveBeenCalled();
+  });
+
   it('keeps the minimum-order error visible during protocol validation', async () => {
     const validateOrder = Engine.context.PerpsController
       .validateOrder as jest.Mock;

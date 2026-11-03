@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
@@ -69,4 +69,55 @@ describe('PerpsDirectionButton', () => {
       });
     },
   );
+
+  it('calls onPress when the button is pressed', () => {
+    const onPress = jest.fn();
+    const store = mockStore({ user: { appTheme: 'light' } });
+
+    render(
+      <Provider store={store}>
+        <ThemeProvider>
+          <PerpsDirectionButton
+            direction="long"
+            onPress={onPress}
+            testID="perps-direction-button"
+          >
+            long
+          </PerpsDirectionButton>
+        </ThemeProvider>
+      </Provider>,
+    );
+
+    fireEvent.press(screen.getByTestId('perps-direction-button'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onPress when the button is disabled', () => {
+    const onPress = jest.fn();
+    const store = mockStore({ user: { appTheme: 'light' } });
+
+    render(
+      <Provider store={store}>
+        <ThemeProvider>
+          <PerpsDirectionButton
+            direction="short"
+            isDisabled
+            onPress={onPress}
+            testID="perps-direction-button"
+          >
+            short
+          </PerpsDirectionButton>
+        </ThemeProvider>
+      </Provider>,
+    );
+
+    const button = screen.getByTestId('perps-direction-button');
+
+    expect(button).toBeDisabled();
+
+    fireEvent.press(button);
+
+    expect(onPress).not.toHaveBeenCalled();
+  });
 });
