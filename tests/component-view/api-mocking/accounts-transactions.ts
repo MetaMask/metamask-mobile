@@ -8,6 +8,7 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+import { restoreFetchPath, stubFetchPath } from './fetchStub';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -37,62 +38,15 @@ const defaultPageInfo = {
   endCursor: undefined as string | undefined,
 };
 
-let fetchSpyInstalled = false;
-
-const requestUrl = (url: RequestInfo | URL): string => {
-  if (typeof url === 'string') {
-    return url;
-  }
-  if (url instanceof URL) {
-    return url.toString();
-  }
-  return url.url;
-};
-
-/**
- * `useTransactionsQuery` calls global `fetch` (undici). A nock interceptor
- * does not always settle that request, so `isInitialLoading` stays true and
- * the Activity list spinner never leaves. Reply on this path directly and
- * keep nock for any HTTP client that does not use `fetch`.
- */
-const installTransactionsFetchStub = (
+const buildTransactionsResponse = (
   transactions: MockAccountsApiTransaction[],
-): void => {
-  if (fetchSpyInstalled) {
-    jest.mocked(globalThis.fetch).mockRestore();
-    fetchSpyInstalled = false;
-  }
-
-  const originalFetch = globalThis.fetch.bind(globalThis);
-  const body = {
-    data: transactions,
-    pageInfo: {
-      ...defaultPageInfo,
-      count: transactions.length,
-    },
-  };
-
-  jest.spyOn(globalThis, 'fetch').mockImplementation((url, init) => {
-    if (requestUrl(url).includes(TRANSACTIONS_PATH)) {
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        json: () => Promise.resolve(body),
-      } as Response);
-    }
-    return originalFetch(url, init);
-  });
-  fetchSpyInstalled = true;
-};
-
-const restoreTransactionsFetchStub = (): void => {
-  if (!fetchSpyInstalled) {
-    return;
-  }
-  jest.mocked(globalThis.fetch).mockRestore();
-  fetchSpyInstalled = false;
-};
+) => ({
+  data: transactions,
+  pageInfo: {
+    ...defaultPageInfo,
+    count: transactions.length,
+  },
+});
 
 export function setupAccountsTransactionsApiMock(
   transactions: MockAccountsApiTransaction[],
@@ -100,23 +54,20 @@ export function setupAccountsTransactionsApiMock(
   clearAllNockMocks();
   disableNetConnect();
 
+  const body = buildTransactionsResponse(transactions);
+
   nock(ACCOUNTS_API_ORIGIN)
     .persist()
     .get(TRANSACTIONS_PATH)
     .query(true)
-    .reply(200, {
-      data: transactions,
-      pageInfo: {
-        ...defaultPageInfo,
-        count: transactions.length,
-      },
-    });
+    .reply(200, body);
 
-  installTransactionsFetchStub(transactions);
+  // Same payload as nock. undici fetch is not always settled by the interceptor.
+  stubFetchPath(ACCOUNTS_API_ORIGIN, TRANSACTIONS_PATH, body);
 }
 
 export function clearAccountsTransactionsApiMocks(): void {
-  restoreTransactionsFetchStub();
+  restoreFetchPath(ACCOUNTS_API_ORIGIN, TRANSACTIONS_PATH);
   // Re-enable net connect so later suites in the same Jest worker are not left
   // blocked by disableNetConnect from setup.
   teardownNock();
