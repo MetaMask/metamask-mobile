@@ -13,20 +13,23 @@ const mockedValidate =
   >;
 
 describe('isMoneyAccountEnabled', () => {
-  const agenticLocalTestFlag =
+  const originalAgenticFlag =
     process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
+  const originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (globalThis as { __DEV__?: boolean }).__DEV__ = true;
     delete process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
   });
 
   afterEach(() => {
-    if (agenticLocalTestFlag === undefined) {
+    if (originalAgenticFlag === undefined) {
       delete process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED;
     } else {
-      process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED = agenticLocalTestFlag;
+      process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED = originalAgenticFlag;
     }
+    (globalThis as { __DEV__?: boolean }).__DEV__ = originalDev;
   });
 
   it('returns true when remote flag is enabled and version requirement is met', () => {
@@ -64,6 +67,16 @@ describe('isMoneyAccountEnabled', () => {
     const result = isMoneyAccountEnabled({});
 
     expect(result).toBe(true);
+  });
+
+  it('ignores the local agentic flag in release builds', () => {
+    (globalThis as { __DEV__?: boolean }).__DEV__ = false;
+    process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED = 'true';
+    mockedValidate.mockReturnValue(undefined);
+
+    const result = isMoneyAccountEnabled({});
+
+    expect(result).toBe(false);
   });
 
   it('keeps a false remote flag authoritative over the local override', () => {

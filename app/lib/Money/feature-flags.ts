@@ -17,7 +17,10 @@ export const IS_MONEY_MFA_ENABLED_FLAG_NAME = 'isMoneyMfaEnabled';
 export function isMoneyAccountEnabled(
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): boolean {
+  // Agentic/test-only fallback: only read in dev builds so a stray env var
+  // can never enable Money in a release build.
   const agenticLocalTestFlag =
+    __DEV__ &&
     process.env.MM_AGENTIC_TEST_MONEY_ACCOUNT_ENABLED === 'true';
   const remoteFlag = remoteFeatureFlags?.[
     MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME
