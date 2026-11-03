@@ -23,6 +23,7 @@ import {
   selectUsableVbaAutoramp,
 } from '../../../../../../selectors/rampsController';
 import { useVbaEligibility } from './useVbaEligibility';
+import { hasVbaWalletEvidence } from '../vbaWalletEvidence';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 
@@ -95,34 +96,6 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
   [];
 
 /**
- * Case-insensitive wallet match, mirroring how `RampsController` scopes
- * autoramps and registrations to a wallet (`walletAddress.trim().toLowerCase()`).
- */
-const matchesWallet = (walletAddress: string, candidate: string): boolean =>
-  candidate.toLowerCase() === walletAddress.trim().toLowerCase();
-
-/** Whether the wallet has any autoramp row, including dead routes. */
-const hasAnyAutorampForWallet = (
-  walletAddress: string,
-  autoramps: readonly AutorampAccount[],
-): boolean =>
-  autoramps.some((autoramp) =>
-    matchesWallet(walletAddress, autoramp.walletAddress),
-  );
-
-/**
- * Whether the wallet has a Money Account registration row. A `disabled` row
- * still counts as registration evidence.
- */
-const hasWalletRegistration = (
-  walletAddress: string,
-  walletRegistrations: readonly MoneyAccountWalletRegistration[],
-): boolean =>
-  walletRegistrations.some((registration) =>
-    matchesWallet(walletAddress, registration.walletAddress),
-  );
-
-/**
  * Pure decision resolving the single VBA status card for Money home. An
  * approved session always gets `account_is_ready`: the onboarding funnel
  * (`getVbaDestinationForSnapshot`) opens details when a usable autoramp
@@ -174,8 +147,7 @@ export function getVbaHomeCard({
   if (
     !hasAcceptedVendorTerms &&
     !sessionStatus &&
-    !hasAnyAutorampForWallet(walletAddress, autoramps) &&
-    !hasWalletRegistration(walletAddress, walletRegistrations)
+    !hasVbaWalletEvidence(walletAddress, autoramps, walletRegistrations)
   ) {
     return { type: 'get_started' };
   }

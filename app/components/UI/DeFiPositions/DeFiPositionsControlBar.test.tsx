@@ -5,6 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import DeFiPositionsControlBar from './DeFiPositionsControlBar';
 import { strings } from '../../../../locales/i18n';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -85,10 +86,14 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
 }));
 
 jest.mock('../Tokens/TokenSortBottomSheet/TokenSortBottomSheet', () => ({
-  createTokensBottomSheetNavDetails: () => [
-    'RootModalFlow',
-    { screen: 'TokensBottomSheet' },
-  ],
+  getSortOption: () => ({
+    labelKey: 'wallet.sort_balance',
+    orderLabelKeys: {
+      dsc: 'wallet.sort_high_to_low',
+      asc: 'wallet.sort_low_to_high',
+    },
+  }),
+  createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
 }));
 
 jest.mock('../NetworkManager', () => ({
@@ -149,6 +154,11 @@ describe('DeFiPositionsControlBar', () => {
         },
         PreferencesController: {
           selectedAddress: '0x123',
+          tokenSortConfig: {
+            key: 'tokenFiatAmount',
+            order: 'dsc',
+            sortCallback: 'stringNumeric',
+          },
         },
       },
     },
@@ -289,6 +299,11 @@ describe('DeFiPositionsControlBar', () => {
           },
           PreferencesController: {
             selectedAddress: '0x123',
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
           },
         },
       },
@@ -322,7 +337,7 @@ describe('DeFiPositionsControlBar', () => {
     expect(getByTestId('defi-positions-network-filter')).not.toBeDisabled();
   });
 
-  it('should render sort button with filter icon', () => {
+  it('renders the sort button', () => {
     const mockState = createMockState();
     store = mockStore(mockState);
 
@@ -332,6 +347,7 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    expect(getByTestId('defi-positions-network-filter')).toBeDefined();
+    expect(getByTestId('defi-positions-network-filter')).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON)).toBeOnTheScreen();
   });
 });

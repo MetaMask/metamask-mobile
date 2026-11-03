@@ -158,8 +158,8 @@ interface PredictOutcome {
   gameSelection?: 'home' | 'away' | 'draw';
 }
 
-type PredictMarketType = 'spread' | 'total' | (string & {});
-type PredictMarketGroupType = 'marketSelector' | (string & {});
+type PredictMarketType = 'spread' | 'total' | 'team_total' | (string & {});
+type PredictMarketGroupType = 'marketSelector' | 'choice' | (string & {});
 
 interface PredictMarketOption {
   type: 'number';
@@ -176,6 +176,19 @@ interface PredictMarketGroup {
   displayOrder?: number;
 }
 
+// Event screen placement. Keys are stable snake_case IDs the backend
+// documents; mobile maps them to translated labels.
+interface PredictMarketLayoutLevel {
+  key: string;
+  order: number;
+}
+
+interface PredictMarketLayout {
+  tab: PredictMarketLayoutLevel; // e.g. game_lines
+  section: PredictMarketLayoutLevel; // e.g. moneyline, spread, total_points
+  subgroup?: PredictMarketLayoutLevel; // e.g. full_game, first_half, q1
+}
+
 interface PredictMarket {
   id: PredictEntityId;
   question: string;
@@ -183,6 +196,7 @@ interface PredictMarket {
   status: PredictMarketStatus;
   outcomes: readonly [PredictOutcome, PredictOutcome];
   group?: PredictMarketGroup;
+  layout?: PredictMarketLayout;
 
   volume?: PredictAmount;
   volume24h?: PredictAmount;
@@ -257,9 +271,12 @@ interface PredictFeed {
 - `Market.group` is optional. The backend owns its key, group type, market type,
   option value, and display order. Mobile does not parse Market questions,
   titles, labels, slugs, tickers, or strike text to create this metadata.
-- `group.groupType` selects the presentation behavior. The current supported
-  value is `marketSelector`; unknown values remain standard Markets until a
+- `group.groupType` selects the presentation behavior. The supported values are
+  `marketSelector` and `choice`; unknown values remain standard Markets until a
   supported composition exists.
+- A `choice` group has one option per Market, such as a moneyline's away team,
+  tie and home team, ordered by `displayOrder`. It has no `marketType` or
+  `option`. A malformed `choice` group is kept as an unsupported group.
 - `group.key` identifies one presentation group within the Event. Markets with
   the same key may share one selector; different keys must remain separate.
 - A `marketSelector` group has a `marketType` and a numeric `option`. For a
@@ -276,8 +293,19 @@ interface PredictFeed {
   signed value or define a second ordering rule.
 - A missing or unsupported group falls back to the standard Market
   presentation. Malformed known group fields fail runtime validation.
-- Winner UI uses unique ungrouped `gameSelection` quotes. Markets that carry
-  `group` are not winner Markets.
+- `marketType: 'team_total'` is a `marketSelector` line picker per Team. It
+  parses but has no supported composition yet.
+- `Market.layout` is optional. The backend places a Market on the Event screen
+  as tab › section › optional subgroup, each a key and an `order` among its
+  siblings. Unknown keys are valid. A malformed `layout` is dropped and the
+  Market still parses, because layout is presentation only.
+- Game winner UI (cards, live subscriptions, header and chart) reads the Game's
+  full-game moneyline: the `choice` Markets laid out under `moneyline` ›
+  `full_game`, then their unique `gameSelection` quotes. Period moneylines share
+  the `choice` type and Game Selections, so the layout tells them apart; mobile
+  never parses group keys. An Event with no such Markets falls back to its
+  unique ungrouped `gameSelection` quotes, which covers Events stored before
+  the backend grouped moneylines.
 
 ## Series and rolling Events
 

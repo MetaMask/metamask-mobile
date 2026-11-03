@@ -21,7 +21,7 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
 import { useStyles } from '../../../../hooks/useStyles';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   MetaMetricsEvents,
@@ -53,6 +53,8 @@ import BN from 'bnjs4';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { EVM_SCOPE } from '../../constants/networks';
 import Logger from '../../../../../util/Logger';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -78,6 +80,7 @@ const Steps = {
 };
 
 const EarnLendingDepositConfirmationView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { params } =
@@ -787,7 +790,9 @@ const EarnLendingDepositConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleHeaderBackPress}
         backButtonProps={{

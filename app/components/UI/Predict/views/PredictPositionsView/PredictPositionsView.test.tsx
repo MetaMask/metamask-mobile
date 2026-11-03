@@ -86,14 +86,31 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
   };
 });
 
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
+
 let mockPrivacyMode = false;
 let mockPredictPortfolioEnabled = true;
+let mockPredictBrandRefreshEnabled = false;
 jest.mock('react-redux', () => {
   const { selectPrivacyMode } = jest.requireActual(
     '../../../../../selectors/preferencesController',
   );
   const { selectPredictPortfolioEnabledFlag } = jest.requireActual(
     '../../selectors/featureFlags',
+  );
+  const { selectPredictBrandRefreshEnabled } = jest.requireActual(
+    '../../../../../selectors/featureFlagController/predictBrandRefresh',
   );
 
   return {
@@ -104,6 +121,10 @@ jest.mock('react-redux', () => {
 
       if (selector === selectPredictPortfolioEnabledFlag) {
         return mockPredictPortfolioEnabled;
+      }
+
+      if (selector === selectPredictBrandRefreshEnabled) {
+        return mockPredictBrandRefreshEnabled;
       }
 
       const selectorName =
@@ -229,6 +250,7 @@ describe('PredictPositionsView', () => {
     jest.clearAllMocks();
     mockPrivacyMode = false;
     mockPredictPortfolioEnabled = true;
+    mockPredictBrandRefreshEnabled = false;
     mockNavigation.canGoBack.mockReturnValue(true);
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
@@ -465,6 +487,29 @@ describe('PredictPositionsView', () => {
 
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('brand refresh header', () => {
+    it('renders the back button without a glass capsule when the brand refresh is off', () => {
+      renderScreen();
+
+      expect(
+        screen.getByTestId(PredictPositionsViewSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('capsule')).toBeNull();
+    });
+
+    it('renders the back button in a glass capsule and navigates back when the brand refresh is on', () => {
+      mockPredictBrandRefreshEnabled = true;
+
+      renderScreen();
+      fireEvent.press(
+        screen.getByTestId(PredictPositionsViewSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(screen.getByTestId('capsule')).toBeOnTheScreen();
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     });
   });
 });

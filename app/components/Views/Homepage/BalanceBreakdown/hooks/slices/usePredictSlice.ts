@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { usePredictPortfolio } from '../../../../../UI/Predict/hooks/usePredictPortfolio';
-import { selectPredictEnabledFlag } from '../../../../../UI/Predict/selectors/featureFlags';
+import { selectPredictAvailability } from '../../../../../UI/PredictNext';
 import type { BalanceSlice, FiatConverter } from '../../types';
 
 export function usePredictSlice(toUserCurrency: FiatConverter): BalanceSlice {
-  const isEnabled = useSelector(selectPredictEnabledFlag);
+  const isEnabled = useSelector(selectPredictAvailability);
   const { portfolioValue, isLoading, error } = usePredictPortfolio({
     enabled: isEnabled,
     // PredictionsSection owns the homepage live-price subscription and updates
