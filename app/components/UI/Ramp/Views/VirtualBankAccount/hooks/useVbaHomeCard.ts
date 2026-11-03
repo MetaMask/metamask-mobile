@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
@@ -16,6 +16,7 @@ import type { RootState } from '../../../../../../reducers';
 import {
   selectKycProviderFlowStatus,
   selectKycSessionStatus,
+  selectKycVendorDisclaimersAccepted,
 } from '../../../../../../selectors/kycController';
 import {
   selectRampsControllerState,
@@ -24,8 +25,8 @@ import {
 } from '../../../../../../selectors/rampsController';
 import { useVbaEligibility } from './useVbaEligibility';
 import { hasVbaWalletEvidence } from '../vbaWalletEvidence';
-import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
+import { VBA_KYC_VENDOR } from '../constants';
 
 /**
  * Identity of the single VBA status card Money home renders, if any. The hook
@@ -201,45 +202,11 @@ export function getVbaHomeCard({
 }
 
 /**
- * Reads local vendor-terms acceptance for `walletAddress` and reports the
- * result unless the caller has already cancelled.
- *
- * @param walletAddress - Wallet the acceptance was stored under.
- * @param onAccepted - Receives whether that wallet has accepted terms.
- * @returns Cleanup that ignores a late resolution.
- */
-const readVendorTermsAcceptance = (
-  walletAddress: string,
-  onAccepted: (accepted: boolean) => void,
-): (() => void) => {
-  let isCancelled = false;
-  hasAcceptedVbaVendorTerms(walletAddress)
-    .then((accepted) => {
-      if (!isCancelled) {
-        onAccepted(accepted);
-      }
-    })
-    .catch((error) => {
-      Logger.error(error as Error, {
-        tags: { feature: 'money-home' },
-        context: {
-          name: 'useVbaHomeCard',
-          data: { step: 'hasAcceptedVbaVendorTerms' },
-        },
-      });
-    });
-  return () => {
-    isCancelled = true;
-  };
-};
-
-/**
  * Source of truth for the single VBA identity-status card on Money home.
  * Reads Redux only — no navigation, no UI, and no network on load.
  *
- * The local vendor-terms acceptance lives in async storage, not Redux. It is
- * read on mount and on wallet change, and treated as not accepted while that
- * read is in flight.
+ * Vendor-terms acceptance comes from the KYC controller's Iron entry, whether
+ * or not Iron has recorded it yet.
  *
  * @example
  * const card = useVbaHomeCard();
@@ -251,8 +218,12 @@ export const useVbaHomeCard = (): VbaHomeCard => {
   const { isEligible, isLoading: isEligibilityLoading } = useVbaEligibility();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const hasUsableAutoramp = Boolean(useSelector(selectUsableVbaAutoramp));
-  const sessionStatus = useSelector(selectKycSessionStatus);
-  const providerFlowStatus = useSelector(selectKycProviderFlowStatus);
+  const sessionStatus = useSelector((state: RootState) =>
+    selectKycSessionStatus(state, VBA_KYC_VENDOR),
+  );
+  const providerFlowStatus = useSelector((state: RootState) =>
+    selectKycProviderFlowStatus(state, VBA_KYC_VENDOR),
+  );
   // Dev-only demo override: honor MM_MONEY_VBA_KYC_STATUS_OVERRIDE for the
   // home card the same way onboarding does (applyVbaDevOverrides), so demos
   // can force the rejected state without vendor-side changes. No-op when the
@@ -283,25 +254,12 @@ export const useVbaHomeCard = (): VbaHomeCard => {
     );
   });
 
-  const [hasAcceptedVendorTerms, setHasAcceptedVendorTerms] = useState(false);
-  // Tracks the wallet the acceptance value was read for, so a wallet switch
-  // resets to not accepted during the render itself (not one frame later in
-  // an effect) and the first render for a new wallet never sees the
-  // previous wallet's value.
-  const [termsWalletAddress, setTermsWalletAddress] = useState(walletAddress);
-  if (termsWalletAddress !== walletAddress) {
-    setTermsWalletAddress(walletAddress);
-    setHasAcceptedVendorTerms(false);
-  }
-
-  useEffect(() => {
-    // Treat as not accepted while the first read for this wallet is in flight.
-    setHasAcceptedVendorTerms(false);
-    if (!walletAddress) {
-      return undefined;
-    }
-    return readVendorTermsAcceptance(walletAddress, setHasAcceptedVendorTerms);
-  }, [walletAddress]);
+  // Terms accepted on this device, whether or not Iron has recorded them yet.
+  const hasAcceptedVendorTerms = Boolean(
+    useSelector((state: RootState) =>
+      selectKycVendorDisclaimersAccepted(state, VBA_KYC_VENDOR),
+    )?.disclaimerIds.length,
+  );
 
   return useMemo(
     () =>
@@ -371,7 +329,9 @@ export const useVbaHomeCardRefresh = (): void => {
       if (!isEligible || !walletAddress || networkTierRef.current === 'NONE') {
         return undefined;
       }
-      const sessionStatus = Engine.context.KycController.state.sessionStatus;
+      const sessionStatus = Engine.context.KycController.readSessionStatus({
+        vendor: VBA_KYC_VENDOR,
+      });
       if (
         !sessionStatus ||
         !shouldRefreshKycSessionOnFocus(sessionStatus.finalStatus)
@@ -379,9 +339,9 @@ export const useVbaHomeCardRefresh = (): void => {
         return undefined;
       }
 
-      Engine.context.KycController.fetchSessionStatusOnce(
-        sessionStatus.id,
-      ).catch((error) => {
+      Engine.context.KycController.fetchSessionStatusOnce({
+        vendor: VBA_KYC_VENDOR,
+      }).catch((error) => {
         if ((error as { httpStatus?: number })?.httpStatus === 404) {
           // Mirrors `hydrateVbaOnboarding`'s own 404 handling: a session
           // the server no longer has (cleared backend-side, or persisted

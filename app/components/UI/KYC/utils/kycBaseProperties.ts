@@ -4,6 +4,7 @@ import {
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import { readAnalyticsRegion } from '../../../../util/analytics/analyticsRegion';
+import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 
 /** Screen name for the VBA onboarding funnel (`metamask-kyc-base`). */
 export const KYC_ANALYTICS_SCREEN_NAME = 'vba_onboarding';
@@ -47,12 +48,15 @@ export interface KycStateInput {
 export function buildKycBaseProperties(
   input: KycStateInput = {},
 ): Record<string, string> {
-  const state = Engine.context.KycController?.state;
+  const kycState = Engine.context.KycController?.state;
+  const entry = kycState?.sessions?.[VBA_KYC_VENDOR];
   const providerFlowStatus =
-    input.providerFlowStatus ?? state?.providerFlowStatus;
+    input.providerFlowStatus ?? entry?.providerFlowStatus;
   const kycStatus =
     input.kycStatus ??
-    (state ? getKycAnalyticsStatus(state.sessionStatus) : undefined);
+    (kycState
+      ? getKycAnalyticsStatus(entry?.sessionStatus ?? null)
+      : undefined);
 
   return {
     screen_name: input.screenName ?? KYC_ANALYTICS_SCREEN_NAME,
