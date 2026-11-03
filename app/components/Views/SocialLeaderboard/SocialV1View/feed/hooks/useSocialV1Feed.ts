@@ -21,12 +21,7 @@ const TAB_TRACE = {
 } as const satisfies Record<SocialV1FeedTab, 'trending' | 'following'>;
 
 export interface UseSocialV1FeedOptions {
-  /**
-   * The viewer's social profile id. On Following, their just-written posts
-   * are pinned on top until the feed returns them.
-   */
-  ownerProfileId?: string;
-  /** Whether the tab is on screen; gates the pending-post refetches. */
+  /** Whether the tab is on screen. */
   isActive?: boolean;
 }
 
@@ -36,12 +31,12 @@ export interface UseSocialV1FeedOptions {
  *
  * Delegates fetching to `useSocialFeed`. Following shares its query key with
  * V0's Following feed (`useTraderFeed`), so either surface warms the cache for
- * the other. The viewer's own new posts appear on Following only: it is the
- * feed that serves them.
+ * the other. A just-written post is not pinned here; it shows when this feed
+ * returns it. The local copy lives on the viewer's Posts tab.
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
-  { ownerProfileId, isActive = true }: UseSocialV1FeedOptions = {},
+  { isActive = true }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
   const query = useMemo(
@@ -64,7 +59,7 @@ export const useSocialV1Feed = (
 
   const overlay = usePendingPostsOverlay({
     surface: 'following',
-    ownerProfileId: tab === 'following' ? ownerProfileId : undefined,
+    ownerProfileId: undefined,
     serverPosts: livePosts,
     refetch,
     isActive,
