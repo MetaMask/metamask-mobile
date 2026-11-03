@@ -17,7 +17,6 @@ import {
   IconName,
   IconSize,
   IconColor,
-  HeaderStandard,
   AvatarAccount,
   AvatarToken,
   AvatarBaseSize,
@@ -59,6 +58,8 @@ import {
 } from '../../constants';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type FundingApprovalMode = 'onboarding' | 'reapprove';
 
@@ -175,6 +176,7 @@ const ImmersveFundingApproval = () => {
   const headerHandlers = useCardHeaderHandlers(
     isReapprove ? 'back' : 'close-direct',
   );
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
   const route = useImmersveOnboardingRouter();
@@ -409,7 +411,9 @@ const ImmersveFundingApproval = () => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
@@ -439,7 +443,9 @@ const ImmersveFundingApproval = () => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
@@ -478,7 +484,9 @@ const ImmersveFundingApproval = () => {
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}
