@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
-import Routes from '../../../../constants/navigation/Routes';
-import type { TokenAmount } from '../../../../util/activity-adapters';
-import { EARN_EXPERIENCES } from '../../../UI/Earn/constants/experiences';
-import useEarnTokens from '../../../UI/Earn/hooks/useEarnTokens';
-import type { EarnTokenDetails } from '../../../UI/Earn/types/lending.types';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { TokenAmount } from '../../../../../util/activity-adapters';
+import { EARN_EXPERIENCES } from '../../../../UI/Earn/constants/experiences';
+import useEarnTokens from '../../../../UI/Earn/hooks/useEarnTokens';
+import type { EarnTokenDetails } from '../../../../UI/Earn/types/lending.types';
 import { useActivityDetailsLendAgain } from './useActivityDetailsLendAgain';
 
 const mockNavigate = jest.fn();
@@ -20,7 +20,7 @@ const mockFindNetworkClientIdByChainId = jest.fn(
   (_chainId: string) => 'arbitrum-client-id',
 );
 const mockSetActiveNetwork = jest.fn((_clientId: string) => undefined);
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: (chainId: string) =>
@@ -31,7 +31,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: () => ({
@@ -42,12 +42,12 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../../util/trace', () => ({
+jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: { EarnDepositScreen: 'Earn Deposit Screen' },
 }));
 
-jest.mock('../../../UI/Earn/hooks/useEarnTokens');
+jest.mock('../../../../UI/Earn/hooks/useEarnTokens');
 const mockUseEarnTokens = jest.mocked(useEarnTokens);
 
 const ARBITRUM_CAIP_CHAIN_ID = 'eip155:42161';

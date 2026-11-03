@@ -29,7 +29,7 @@ export {
 export {
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
-} from './adapters/staking-activity';
+} from './adapters/earn/staking-activity';
 export {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,

@@ -12,7 +12,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconName,
   ListItem,
   ListItemVariant,
@@ -42,6 +41,9 @@ import {
   VBA_SCREEN_PERFORMANCE_CONFIG,
   type VbaScreenContentState,
 } from './vbaScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const VENDOR_TERMS_SCREEN_NAME = 'vba_vendor_terms';
 
@@ -83,6 +85,7 @@ interface CreateVirtualBankAccountProps {
 const CreateVirtualBankAccount = ({
   onSuccess,
 }: CreateVirtualBankAccountProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [isAdvancing, setIsAdvancing] = useState(false);
@@ -174,7 +177,9 @@ const CreateVirtualBankAccount = ({
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON,

@@ -4,7 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
   Spinner,
   Text,
   TextColor,
@@ -17,6 +16,9 @@ import {
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
 } from './vbaScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaCreatingAccountSelectorsIDs = {
   CONTAINER: 'vba-creating-account-container',
@@ -35,6 +37,7 @@ const VbaCreatingAccount = ({
   onBack,
   awaitingProviderApproval = false,
 }: VbaCreatingAccountProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   useScreenPerformance({
     config: VBA_SCREEN_PERFORMANCE_CONFIG,
@@ -53,7 +56,9 @@ const VbaCreatingAccount = ({
       style={tw.style('flex-1 bg-default')}
       testID={VbaCreatingAccountSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={onBack}
         backButtonProps={{ testID: VbaCreatingAccountSelectorsIDs.BACK_BUTTON }}
         includesTopInset

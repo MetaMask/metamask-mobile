@@ -17,6 +17,8 @@ PredictNext/
     NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
   availability/
     index.ts                   # Venue-aware selectPredictAvailability / usePredictAvailability
+  analytics/
+    index.ts                   # Analytics vocabulary, re-exported unchanged from legacy
   activity/
     index.ts                   # Activity projections for the shared Activity list and details
     usePredictActivityItems.ts # Activity as shared ActivityListItems
