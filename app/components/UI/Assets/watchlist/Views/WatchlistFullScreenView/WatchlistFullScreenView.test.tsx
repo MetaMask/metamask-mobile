@@ -9,6 +9,11 @@ const mockUseTokenWatchlistQuery = jest.fn();
 const mockUpdateListMutate = jest.fn();
 const mockUseTrackWatchlistPageViewed = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,

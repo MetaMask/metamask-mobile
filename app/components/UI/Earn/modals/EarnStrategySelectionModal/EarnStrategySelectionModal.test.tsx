@@ -25,8 +25,9 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BOTTOM_SHEET_NAMES,
-  EARN_MODULE_SCREEN_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
   EARN_MODULE_REDIRECT_TARGETS,
+  EARN_MODULE_SCREEN_NAMES,
 } from '../../constants/earnModuleEvents';
 import type {
   EarnAsset,
@@ -740,8 +741,8 @@ describe('EarnStrategySelectionModal', () => {
         params: {
           earnAsset,
           analyticsContext: {
-            entry_point: 'homepage',
-            screen_name: EARN_MODULE_SCREEN_NAMES.WALLET_HOME,
+            entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+            screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
             asset_position: 2,
             assets_in_list: 5,
           },
@@ -774,8 +775,8 @@ describe('EarnStrategySelectionModal', () => {
         expect.objectContaining({
           bottom_sheet_name:
             EARN_MODULE_BOTTOM_SHEET_NAMES.STRATEGY_SELECTION_MODAL,
-          entry_point: 'homepage',
-          screen_name: EARN_MODULE_SCREEN_NAMES.WALLET_HOME,
+          entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+          screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
         }),
       );
       expect(mockTrackButtonClicked).toHaveBeenCalledWith(

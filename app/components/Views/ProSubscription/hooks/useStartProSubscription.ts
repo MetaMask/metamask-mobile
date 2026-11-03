@@ -31,6 +31,7 @@ import {
   resolveProSubscriptionStartOutcome,
   type StartProSubscriptionOutcome,
 } from '../utils/proSubscriptionPaymentStatus';
+import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
 
 const PAYMENT_UNAVAILABLE_ERROR =
@@ -44,17 +45,17 @@ function isHexAddress(value: string | undefined): value is Hex {
 
 /**
  * Converts an mUSD base-unit shortfall into a USD amount string for MM Pay.
- * Rounds up to cents so the funded balance is never below the required amount.
+ * Pads the shortfall to cover vault deposit rounding losses and keeps full
+ * 6-decimal precision (no rounding to cents).
  *
  * @param balance - Current mUSD balance in base units (6 decimals).
  * @param requiredBalance - Required mUSD balance in base units (6 decimals).
- * @returns Shortfall in USD as a decimal string with up to 2 fractional digits.
+ * @returns Padded shortfall in USD as a decimal string with up to 6 fractional digits.
  */
 function getTopUpAmountUsd(balance: string, requiredBalance: string): string {
-  return new BigNumber(requiredBalance)
-    .minus(balance)
+  const shortfall = BigInt(requiredBalance) - BigInt(balance);
+  return new BigNumber(getMembershipFundingAmount(shortfall).toString())
     .shiftedBy(-MUSD_DECIMALS)
-    .decimalPlaces(2, BigNumber.ROUND_UP)
     .toFixed();
 }
 
