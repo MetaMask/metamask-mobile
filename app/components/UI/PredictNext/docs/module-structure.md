@@ -17,6 +17,12 @@ PredictNext/
     NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
   availability/
     index.ts                   # Venue-aware selectPredictAvailability / usePredictAvailability
+  venueSelection/
+    index.ts                   # Venue picker for the Predict home headers (PRED-1401)
+    PredictVenueSelectorButton.tsx
+    internal/                  # Picker sheet and the preference-writing hook
+  analytics/
+    index.ts                   # Analytics vocabulary, re-exported unchanged from legacy
   activity/
     index.ts                   # Activity projections for the shared Activity list and details
     usePredictActivityItems.ts # Activity as shared ActivityListItems
@@ -25,6 +31,11 @@ PredictNext/
     internal/
       legacy/                  # Legacy list hook, mapper and details templates, moved as-is
       next/                    # Canonical Activity mapper, list hook, details lookup and templates
+  portfolio/
+    index.ts                   # Portfolio value projection for the wallet balance breakdown
+    usePredictPortfolioValue.ts
+    internal/
+      legacy/                  # usePredictPortfolio pass-through, unchanged
   events/
     cards/
       index.ts                 # Supported Event-card API

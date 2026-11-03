@@ -8,6 +8,7 @@ export const MyProfileViewSelectorsIDs = {
   HEADER_COMPACT_PNL: 'my-profile-view-header-compact-pnl',
   TITLE_SECTION_WRAPPER: 'my-profile-view-title-section-wrapper',
   BACK_BUTTON: 'my-profile-view-back-button',
+  HEADER_ACTIONS_CAPSULE: 'my-profile-view-header-actions-capsule',
   SHARE_TRADER_BUTTON: 'my-profile-view-share-trader-button',
   MORE_BUTTON: 'my-profile-view-more-button',
   CREATE_POST_BUTTON: 'my-profile-view-create-post-button',

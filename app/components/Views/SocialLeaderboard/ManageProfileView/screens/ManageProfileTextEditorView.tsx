@@ -14,6 +14,7 @@ import {
   getHandleLocalRuleError,
 } from './handleAvailabilityError';
 import { MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG } from './manageProfileTextEditorFields';
+import { getProfileSaveError } from './saveProfileError';
 import { normalizeUsername } from '../../ProfileOnboarding/profileOnboardingDraft';
 import { useProfileController } from '../hooks/useProfileController';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
@@ -70,9 +71,10 @@ const ManageProfileTextEditorView: React.FC = () => {
 
         trackProfileEdited();
         navigation.goBack();
-      } catch {
+      } catch (error) {
         setErrorMessage(
-          strings('social_leaderboard.manage_profile.save_error'),
+          getProfileSaveError(error, route.params.field) ??
+            strings('social_leaderboard.manage_profile.save_error'),
         );
       } finally {
         setIsSaving(false);
@@ -100,6 +102,7 @@ const ManageProfileTextEditorView: React.FC = () => {
       helperText={config.helperKey ? strings(config.helperKey) : undefined}
       prefix={config.prefix}
       multiline={config.multiline}
+      maxLength={config.maxLength}
       containerTestID={config.testIDs.container}
       headerTestID={config.testIDs.header}
       backTestID={config.testIDs.back}
