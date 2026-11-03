@@ -55,6 +55,7 @@ import {
 import { resetPerpsCufTraceForTests } from '../../utils/perpsCufTrace';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PERPS_ANALYTICS_SIZE_UNIT } from '../../constants/perpsAnalytics';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 
 const TIMEOUT_MS = 5000;
 
@@ -1796,6 +1797,69 @@ describe('PerpsOrderView', () => {
           }),
         ]);
       });
+
+      trackEventSpy.mockRestore();
+    });
+
+    it('reports usd on Considered after a pre-price USD edit once the price arrives', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '0',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+      fireEvent.press(await screen.findByTestId(KeypadTestIds.KEY_5));
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_asset_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      await waitFor(
+        () => {
+          const considered = sizeUnitEvents(
+            events,
+            MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
+          );
+          expect(considered.length).toBeGreaterThan(0);
+          expect(
+            considered.every(
+              (event) => event.properties[PERPS_ANALYTICS_SIZE_UNIT] === 'usd',
+            ),
+          ).toBe(true);
+        },
+        { timeout: TIMEOUT_MS },
+      );
 
       trackEventSpy.mockRestore();
     });

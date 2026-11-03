@@ -58,7 +58,10 @@ import {
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
 import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
-import { resolveShownPerpsSizeDenomination } from '../../utils/perpsSizeDenomination';
+import {
+  isPerpsCoinSizePriceReady,
+  resolveShownPerpsSizeDenomination,
+} from '../../utils/perpsSizeDenomination';
 
 interface PerpsTradeScreenProps {
   asset: string;
@@ -348,15 +351,22 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   if (!isInputFocused) {
     usdEditBeforePriceRef.current = false;
   }
+  const holdingPrePriceUsdEdit = usdEditBeforePriceRef.current;
   const showAssetValue =
     resolveShownPerpsSizeDenomination({
       saved: denomination,
       price: amountPrice,
-      holdUsdEdit: usdEditBeforePriceRef.current,
+      holdUsdEdit: holdingPrePriceUsdEdit,
     }) === 'asset';
-  // The shared unit is the persisted order-book currency, so this toggle is
-  // what Pro reads on the next open.
+  // Match Pro: ignore the toggle until a price can show coin, and while a
+  // pre-price USD edit is still open. A tap in those states would persist
+  // coin with no change on screen, and a second tap could not undo it.
+  const canToggleDenomination =
+    isPerpsCoinSizePriceReady(amountPrice) && !holdingPrePriceUsdEdit;
   const onDisplayToggle = () => {
+    if (!canToggleDenomination) {
+      return;
+    }
     setDenomination(showAssetValue ? 'usd' : 'asset');
   };
   const { fireImpact } = useHaptics();
@@ -556,7 +566,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
                   twClassName="flex-1"
-                  testID={PerpsTradeSheetSelectorsIDs.KEYPAD_DONE_BUTTON}
+                  testID={PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON}
                   onPress={onDonePress}
                 >
                   {strings('perps.deposit.done_button')}

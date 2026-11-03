@@ -32,9 +32,11 @@ jest.mock('../../hooks/usePerpsOrderBookPreferences', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const state: {
     currency: 'usd' | 'base';
+    writes: number;
     notify: () => void;
   } = {
     currency: 'usd',
+    writes: 0,
     notify: () => undefined,
   };
 
@@ -52,6 +54,7 @@ jest.mock('../../hooks/usePerpsOrderBookPreferences', () => {
       const setOrderBookPreferences = React.useCallback(
         (patch: { currency?: 'usd' | 'base' }) => {
           if (patch.currency) {
+            state.writes += 1;
             state.currency = patch.currency;
             setCurrency(patch.currency);
           }
@@ -66,6 +69,7 @@ jest.mock('../../hooks/usePerpsOrderBookPreferences', () => {
     },
     resetTestOrderBookCurrency: () => {
       state.currency = 'usd';
+      state.writes = 0;
       state.notify = () => undefined;
     },
     setTestOrderBookCurrency: (currency: 'usd' | 'base') => {
@@ -73,6 +77,7 @@ jest.mock('../../hooks/usePerpsOrderBookPreferences', () => {
       state.notify();
     },
     getTestOrderBookCurrency: () => state.currency,
+    getTestOrderBookWriteCount: () => state.writes,
   };
 });
 
@@ -80,10 +85,12 @@ const {
   resetTestOrderBookCurrency,
   setTestOrderBookCurrency,
   getTestOrderBookCurrency,
+  getTestOrderBookWriteCount,
 } = jest.requireMock('../../hooks/usePerpsOrderBookPreferences') as {
   resetTestOrderBookCurrency: () => void;
   setTestOrderBookCurrency: (currency: 'usd' | 'base') => void;
   getTestOrderBookCurrency: () => 'usd' | 'base';
+  getTestOrderBookWriteCount: () => number;
 };
 
 jest.mock('../../../../../util/haptics');
@@ -499,6 +506,58 @@ describe('PerpsTradeScreen errors', () => {
     expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
   });
 
+  it('ignores the size toggle before a price can project coin', () => {
+    render(<PerpsTradeScreen {...defaultProps} amountPrice={0} />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+
+    expect(getTestOrderBookCurrency()).toBe('usd');
+    expect(getTestOrderBookWriteCount()).toBe(0);
+    expect(
+      screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('ignores the size toggle while a pre-price USD edit is held', () => {
+    setTestOrderBookCurrency('base');
+    const onKeypadChange = jest.fn();
+    const { rerender } = render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        amount="0"
+        tokenAmount="1.5"
+        amountPrice={0}
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+    const writesBeforeToggle = getTestOrderBookWriteCount();
+
+    rerender(
+      <Provider store={store}>
+        <PerpsTradeScreen
+          {...defaultProps}
+          amount="1"
+          tokenAmount="1.5"
+          amountPrice={25}
+          isInputFocused
+          onKeypadChange={onKeypadChange}
+        />
+      </Provider>,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+
+    expect(getTestOrderBookWriteCount()).toBe(writesBeforeToggle);
+    expect(getTestOrderBookCurrency()).toBe('base');
+    expect(
+      screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
+  });
+
   it('applies a keypad digit to the coin amount after the display toggle', () => {
     const onKeypadChange = jest.fn();
     const peoplePrice = 1 / 121;
@@ -877,6 +936,26 @@ describe('PerpsTradeScreen errors', () => {
     fireEvent.press(payWithRow);
     expect(onPayWithPress).not.toHaveBeenCalled();
     expect(mockNavigateTo).not.toHaveBeenCalledWith('payWith');
+  });
+
+  it('closes the amount keypad from its own Done button', () => {
+    const onDonePress = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        isInputFocused
+        onDonePress={onDonePress}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON),
+    );
+
+    expect(onDonePress).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.KEYPAD_DONE_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the reused keypad while editing a limit price', () => {
