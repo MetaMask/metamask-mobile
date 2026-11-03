@@ -871,7 +871,7 @@ describe('PredictNext Order Preview request', () => {
       answerFirstCommit();
 
       await expect(commit).resolves.toMatchObject({ status: 'pending' });
-      await until(() => resolutions.length === 1);
+      await until(() => resolutions.length === 1, 5_000);
 
       // Every request after the switch observes the same operation at the
       // original Venue, with the original Preview and the same person.
@@ -917,7 +917,7 @@ describe('PredictNext Order Preview request', () => {
     it('with a lost response the backend received: observes it only after expiry, with the same Preview, and notifies once', async () => {
       const operations = new Set<string>();
       let commits = 0;
-      const preview = freshPreview(200);
+      const preview = freshPreview(500);
       const harness = buildPredictNextIntegrationHarness((url, init) => {
         if (String(url).endsWith('/orders/preview')) {
           return { body: preview };
@@ -950,11 +950,13 @@ describe('PredictNext Order Preview request', () => {
 
       // Ambiguous, not cancelled: no automatic re-POST inside the validity
       // window, where it could have placed the Order.
-      expect(commits).toBe(1);
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      expect(commits).toBe(1);
+      const expiresAt = Date.parse(preview.expiresAt);
+      while (Date.now() < expiresAt) {
+        expect(commits).toBe(1);
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
 
-      await until(() => resolutions.length === 1);
+      await until(() => resolutions.length === 1, 5_000);
       expect(commits).toBe(2);
       expect(callsTo(harness, '/orders/commit')[1][1]?.body).toBe(
         JSON.stringify({ previewId: previewResponse.previewId }),
@@ -973,7 +975,7 @@ describe('PredictNext Order Preview request', () => {
 
     it('with a lost request the backend never received: concludes "not placed" after expiry, never a second Order', async () => {
       let commits = 0;
-      const preview = freshPreview(200);
+      const preview = freshPreview(500);
       const harness = buildPredictNextIntegrationHarness((url) => {
         if (String(url).endsWith('/orders/preview')) {
           return { body: preview };
@@ -999,7 +1001,7 @@ describe('PredictNext Order Preview request', () => {
       store.selectVenue('polymarket');
       await expect(commit).rejects.toMatchObject({ code: 'NETWORK_ERROR' });
 
-      await until(() => resolutions.length === 1);
+      await until(() => resolutions.length === 1, 5_000);
       expect(resolutions[0]).toMatchObject({
         outcome: { status: 'not_placed', code: 'PREVIEW_EXPIRED' },
         presented: false,
