@@ -20,12 +20,26 @@ release_slack_summaries_concurrency_suffix() {
   fi
 }
 
-strip_all_whitespace() {
-  printf '%s' "$1" | python3 -c 'import sys; sys.stdout.write("".join(ch for ch in sys.stdin.read() if not ch.isspace()))'
+# Preview text for dry runs and non-live runs when the repository variables
+# are unset. These are not the MCRM-155 queries. A live post never uses them.
+PREVIEW_BLOCKER_JQL='type = Bug AND labels = "release-blocker" AND statusCategory != Done'
+PREVIEW_REGRESSION_JQL='type = Bug AND statusCategory != Done'
+
+# Drop characters JavaScript trim() removes and Python isspace() does not,
+# then drop every Unicode space. Used for Slack channels.
+normalize_channel() {
+  printf '%s' "$1" | python3 -c 'import sys
+drop = set("\ufeff\u200b\u2060\u180e")
+sys.stdout.write("".join(ch for ch in sys.stdin.read() if ch not in drop and not ch.isspace()))'
 }
 
-trim_ends() {
-  printf '%s' "$1" | python3 -c 'import sys; sys.stdout.write(sys.stdin.read().strip())'
+# Same invisible characters, then trim ends only. Internal spaces stay so the
+# JQL text is preserved. Emptiness uses this result.
+clean_jql() {
+  printf '%s' "$1" | python3 -c 'import sys
+drop = set("\ufeff\u200b\u2060\u180e")
+text = "".join(ch for ch in sys.stdin.read() if ch not in drop)
+sys.stdout.write(text.strip())'
 }
 
 fail() {
@@ -42,9 +56,9 @@ main() {
   local input_test_channel="${INPUT_TEST_CHANNEL-}"
   local ga_mode="${GA_MODE:-}"
   local test_channel_var="${TEST_CHANNEL_VAR-}"
-  local blocker_jql regression_jql
-  blocker_jql="$(trim_ends "${BLOCKER_JQL-}")"
-  regression_jql="$(trim_ends "${REGRESSION_JQL-}")"
+  # Repository variables. Empty unless the owner set them. Not built-in queries.
+  local raw_blocker="${RELEASE_SUMMARY_BLOCKER_JQL-}"
+  local raw_regression="${RELEASE_SUMMARY_REGRESSION_JQL-}"
 
   local mode
   if [[ "$event_name" == "workflow_dispatch" ]]; then
@@ -87,8 +101,9 @@ main() {
     fail "Refusing test-channel that contains a newline"
   fi
 
-  local test_channel
-  test_channel="$(strip_all_whitespace "$raw_test_channel")"
+  local test_channel validated_test_channel_var
+  test_channel="$(normalize_channel "$raw_test_channel")"
+  validated_test_channel_var="$(normalize_channel "$test_channel_var")"
 
   if [[ "$supplied" == "true" && -z "$test_channel" ]]; then
     fail "Test channel is only whitespace and would fall back to the real release channel"
@@ -101,6 +116,12 @@ main() {
     local lowered="${test_channel,,}"
     if [[ "$live" == "false" && ( "$lowered" == \#release-* || "$lowered" == release-* ) ]]; then
       fail "Refusing release channel ${test_channel} while GA_MODE is not live"
+    fi
+    # A C…/G… id is not checked against release-* names. While GA_MODE is not
+    # live, accept an id only when it is exactly the validated test-channel
+    # variable. Any other id is rejected.
+    if [[ "$live" == "false" && "$test_channel" =~ ^[CG][A-Z0-9]+$ && "$test_channel" != "$validated_test_channel_var" ]]; then
+      fail "Refusing Slack channel ID ${test_channel} while GA_MODE is not live unless it equals RELEASE_SUMMARY_TEST_CHANNEL"
     fi
   fi
 
@@ -124,14 +145,35 @@ main() {
     allow_pr_write="true"
   fi
 
-  # Live posts need the ticket JQL. An empty blocker query makes the action
-  # skip blockers and can publish "no remaining bugs" while labeled bugs are open.
+  # A newline in either variable could append extra key=value lines to
+  # $GITHUB_OUTPUT. Refuse it before anything is written.
+  if [[ "$raw_blocker" == *$'\n'* || "$raw_blocker" == *$'\r'* || "$raw_regression" == *$'\n'* || "$raw_regression" == *$'\r'* ]]; then
+    fail "Refusing JQL that contains a newline"
+  fi
+
+  local cleaned_blocker cleaned_regression blocker_jql regression_jql
+  cleaned_blocker="$(clean_jql "$raw_blocker")"
+  cleaned_regression="$(clean_jql "$raw_regression")"
+
+  # Live posts that are not dry runs use only the repository variables.
+  # Preview strings are not the MCRM-155 queries and are not used here.
   if [[ "$live" == "true" && "$dry_run" == "false" ]]; then
-    if [[ -z "$(strip_all_whitespace "$blocker_jql")" ]]; then
-      fail "Refusing to post: GA_MODE=live requires a non-empty jira-release-blocker-jql"
+    if [[ -z "$cleaned_blocker" ]]; then
+      fail "Refusing to post: GA_MODE=live requires RELEASE_SUMMARY_BLOCKER_JQL (jira-release-blocker-jql) to be set. Built-in queries are not used for a live post."
     fi
-    if [[ -z "$(strip_all_whitespace "$regression_jql")" ]]; then
-      fail "Refusing to post: GA_MODE=live requires a non-empty jira-regression-jql"
+    if [[ -z "$cleaned_regression" ]]; then
+      fail "Refusing to post: GA_MODE=live requires RELEASE_SUMMARY_REGRESSION_JQL (jira-regression-jql) to be set. Built-in queries are not used for a live post."
+    fi
+    blocker_jql="$cleaned_blocker"
+    regression_jql="$cleaned_regression"
+  else
+    blocker_jql="$cleaned_blocker"
+    regression_jql="$cleaned_regression"
+    if [[ -z "$blocker_jql" ]]; then
+      blocker_jql="$PREVIEW_BLOCKER_JQL"
+    fi
+    if [[ -z "$regression_jql" ]]; then
+      regression_jql="$PREVIEW_REGRESSION_JQL"
     fi
   fi
 
@@ -139,13 +181,15 @@ main() {
     fail "GITHUB_OUTPUT is not set"
   fi
 
+  # JQL lines first. mode, dry-run, allow-pr-write, and test-channel are
+  # written after them so a crafted JQL line cannot be the last value.
   {
+    echo "blocker-jql=${blocker_jql}"
+    echo "regression-jql=${regression_jql}"
     echo "mode=${mode}"
     echo "dry-run=${dry_run}"
     echo "allow-pr-write=${allow_pr_write}"
     echo "test-channel=${test_channel}"
-    echo "blocker-jql=${blocker_jql}"
-    echo "regression-jql=${regression_jql}"
   } >> "$GITHUB_OUTPUT"
 
   if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then

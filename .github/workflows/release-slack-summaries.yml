@@ -12,10 +12,13 @@
 # environment. The filename and the environment name are load-bearing.
 #
 # Repository variable GA_MODE:
-#   unset or test — post only to a non-release test channel, no PR write.
+#   unset or test — post only to a test channel, no PR write.
 #     The channel is workflow_dispatch test-channel when that input is
-#     non-empty, otherwise vars.RELEASE_SUMMARY_TEST_CHANNEL. A release-*
-#     or #release-* channel is rejected. A whitespace-only channel fails
+#     non-empty, otherwise vars.RELEASE_SUMMARY_TEST_CHANNEL.
+#     #release-* and release-* names are rejected.
+#     A C…/G… id is accepted only when it equals the validated
+#     RELEASE_SUMMARY_TEST_CHANNEL. Any other id is rejected.
+#     A channel that is only whitespace or invisible characters fails
 #     the job instead of falling through to the real release channel.
 #   live — real release channels when no test channel is set.
 # Any other value is treated as test. A non-live run with no channel
@@ -25,11 +28,12 @@
 # PR rewrite because Zap 597 still rewrites the release PR body during the
 # parallel run. github-tools#306 deviation 3 is not used here.
 #
-# Jira queries are the MCRM-155 ticket text without the per-version label.
-# The action cannot substitute labels = "regression-RC-{V}"; it appends
-# cf[14565] = "V" to the blocker query and cf[16946] = "V" to the regression
-# query. A live run that is not a dry run refuses to post if either query
-# is empty.
+# A live run that is not a dry run does not use built-in Jira queries.
+# It reads vars.RELEASE_SUMMARY_BLOCKER_JQL and
+# vars.RELEASE_SUMMARY_REGRESSION_JQL and fails unless both are set.
+# Dry runs and non-live runs may use preview defaults. Those defaults
+# are not the MCRM-155 queries. The action still appends its own
+# version custom fields to whatever base it receives.
 #
 ################################################################################
 
@@ -57,7 +61,7 @@ on:
         type: boolean
         default: true
       test-channel:
-        description: 'Post only to this Slack channel (#name or C…/G… id). Rejected when it is release-* unless GA_MODE is live. Leave empty to use RELEASE_SUMMARY_TEST_CHANNEL while GA_MODE is not live.'
+        description: 'Post only to this Slack channel. While GA_MODE is not live, #release-* and release-* are rejected, and a C…/G… id is accepted only when it equals RELEASE_SUMMARY_TEST_CHANNEL. Leave empty to use that variable.'
         required: false
         type: string
         default: ''
@@ -102,10 +106,10 @@ jobs:
           INPUT_TEST_CHANNEL: ${{ inputs.test-channel || '' }}
           GA_MODE: ${{ vars.GA_MODE || '' }}
           TEST_CHANNEL_VAR: ${{ vars.RELEASE_SUMMARY_TEST_CHANNEL || '' }}
-          # Closest JQL the action can run. It appends the version custom
-          # field; it does not substitute regression-RC-{V} inside this string.
-          BLOCKER_JQL: 'type = Bug AND labels = "release-blocker" AND statusCategory != Done'
-          REGRESSION_JQL: 'type = Bug AND statusCategory != Done'
+          # Live non-dry runs fail unless both are set. The resolver applies
+          # preview defaults only for dry runs and non-live runs.
+          RELEASE_SUMMARY_BLOCKER_JQL: ${{ vars.RELEASE_SUMMARY_BLOCKER_JQL }}
+          RELEASE_SUMMARY_REGRESSION_JQL: ${{ vars.RELEASE_SUMMARY_REGRESSION_JQL }}
         run: .github/scripts/release-slack-summaries-flags.sh
 
       # Warden F6: every run, including blocker-summary and dry runs, requests

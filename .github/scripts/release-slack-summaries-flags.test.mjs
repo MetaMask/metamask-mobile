@@ -19,6 +19,13 @@ const CRON_BLOCKER = '16 10 * * 1-5';
 const CRON_VALIDATION = '21 10 * * 1-5';
 const SAFE_CHANNEL = '#mm-summary-test';
 const NBSP = '\u00a0';
+const FEFF = '\uFEFF';
+const ZWSP = '\u200B';
+const RELEASE_CHANNEL_ID = 'C0C7GM7J16W';
+const LIVE_JQL = {
+  RELEASE_SUMMARY_BLOCKER_JQL: BLOCKER_JQL,
+  RELEASE_SUMMARY_REGRESSION_JQL: REGRESSION_JQL,
+};
 
 function run(env = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'release-slack-flags-'));
@@ -56,6 +63,7 @@ function run(env = {}) {
     stdout: proc.stdout,
     stderr: proc.stderr,
     outputs,
+    raw: body,
   };
 }
 
@@ -113,6 +121,7 @@ test('F1 whitespace test channels never post while not live', () => {
         SCHEDULE: CRON_BLOCKER,
         GA_MODE: gaMode,
         TEST_CHANNEL_VAR: blank,
+        ...(gaMode === 'live' ? LIVE_JQL : {}),
       });
       const fromDispatch = run({
         EVENT_NAME: 'workflow_dispatch',
@@ -311,6 +320,7 @@ test('allow-pr-write is only the live validation run with no test channel', () =
     EVENT_NAME: 'schedule',
     SCHEDULE: CRON_VALIDATION,
     GA_MODE: 'live',
+    ...LIVE_JQL,
   });
   assert.equal(write.status, 0);
   assert.equal(write.outputs['allow-pr-write'], 'true');
@@ -323,6 +333,7 @@ test('allow-pr-write is only the live validation run with no test channel', () =
     EVENT_NAME: 'schedule',
     SCHEDULE: CRON_BLOCKER,
     GA_MODE: 'live',
+    ...LIVE_JQL,
   });
   assert.equal(blocker.outputs['allow-pr-write'], 'false');
 
@@ -332,6 +343,7 @@ test('allow-pr-write is only the live validation run with no test channel', () =
     INPUT_DRY_RUN: 'false',
     GA_MODE: 'live',
     INPUT_TEST_CHANNEL: SAFE_CHANNEL,
+    ...LIVE_JQL,
   });
   assert.equal(withChannel.status, 0);
   assert.equal(withChannel.outputs['allow-pr-write'], 'false');
@@ -358,4 +370,151 @@ test('F2 and F4 workflow wiring', () => {
     workflow,
     /github-tools-ref: f99347bfb23bbbd352d199be7b58b3d7cb9f9bb9/,
   );
+});
+
+test('F3 live non-dry runs require both repository JQL variables', () => {
+  for (const schedule of [CRON_BLOCKER, CRON_VALIDATION]) {
+    const missing = run({
+      EVENT_NAME: 'schedule',
+      SCHEDULE: schedule,
+      GA_MODE: 'live',
+    });
+    assertFailedClosed(missing);
+  }
+
+  const blockerOnly = run({
+    EVENT_NAME: 'schedule',
+    SCHEDULE: CRON_VALIDATION,
+    GA_MODE: 'live',
+    RELEASE_SUMMARY_BLOCKER_JQL: 'labels = "release-blocker"',
+  });
+  assertFailedClosed(blockerOnly);
+  assert.match(blockerOnly.stdout, /RELEASE_SUMMARY_REGRESSION_JQL/);
+
+  const regressionOnly = run({
+    EVENT_NAME: 'schedule',
+    SCHEDULE: CRON_BLOCKER,
+    GA_MODE: 'live',
+    RELEASE_SUMMARY_REGRESSION_JQL: 'labels = "regression-RC-8.16.0"',
+  });
+  assertFailedClosed(regressionOnly);
+  assert.match(regressionOnly.stdout, /RELEASE_SUMMARY_BLOCKER_JQL/);
+
+  for (const blank of [FEFF, ZWSP, ` \t${FEFF}`]) {
+    const result = run({
+      EVENT_NAME: 'schedule',
+      SCHEDULE: CRON_VALIDATION,
+      GA_MODE: 'live',
+      RELEASE_SUMMARY_BLOCKER_JQL: blank,
+      RELEASE_SUMMARY_REGRESSION_JQL: 'labels = "regression-RC-8.16.0"',
+    });
+    assertFailedClosed(result);
+  }
+
+  const blockerQuery =
+    'type = Bug AND labels = "release-blocker" AND labels = "regression-RC-8.16.0" AND statusCategory != Done';
+  const regressionQuery =
+    'type = Bug AND labels = "regression-RC-8.16.0" AND statusCategory != Done';
+  const posted = run({
+    EVENT_NAME: 'schedule',
+    SCHEDULE: CRON_VALIDATION,
+    GA_MODE: 'live',
+    RELEASE_SUMMARY_BLOCKER_JQL: blockerQuery,
+    RELEASE_SUMMARY_REGRESSION_JQL: regressionQuery,
+  });
+  assert.equal(posted.status, 0);
+  assert.equal(posted.outputs['blocker-jql'], blockerQuery);
+  assert.equal(posted.outputs['regression-jql'], regressionQuery);
+  assert.equal(posted.outputs['dry-run'], 'false');
+  assert.ok(posted.raw.indexOf('blocker-jql=') < posted.raw.indexOf('\nmode='));
+  assert.ok(
+    posted.raw.indexOf('regression-jql=') < posted.raw.indexOf('\nallow-pr-write='),
+  );
+
+  const dry = run({
+    EVENT_NAME: 'workflow_dispatch',
+    INPUT_MODE: 'release-validation',
+    INPUT_DRY_RUN: 'true',
+    GA_MODE: 'live',
+  });
+  assert.equal(dry.status, 0);
+  assert.equal(dry.outputs['dry-run'], 'true');
+  assert.equal(dry.outputs['blocker-jql'], BLOCKER_JQL);
+  assert.equal(dry.outputs['regression-jql'], REGRESSION_JQL);
+});
+
+test('F3 JQL with a newline writes nothing', () => {
+  for (const raw of [
+    'x\nallow-pr-write=true\ndry-run=false',
+    'x\rallow-pr-write=true',
+  ]) {
+    const result = run({
+      EVENT_NAME: 'schedule',
+      SCHEDULE: CRON_VALIDATION,
+      GA_MODE: 'live',
+      RELEASE_SUMMARY_BLOCKER_JQL: raw,
+      RELEASE_SUMMARY_REGRESSION_JQL: 'labels = "regression-RC-8.16.0"',
+    });
+    assert.notEqual(result.status, 0);
+    assert.equal(result.raw, '');
+    assert.match(result.stdout, /::error::/);
+  }
+});
+
+test('F1 invisible characters cannot disguise a release channel', () => {
+  const disguised = [
+    FEFF,
+    ZWSP,
+    `${FEFF}#release-mobile-8-16-0`,
+    `#release-mobile-8-16-0${FEFF}`,
+  ];
+  for (const channel of disguised) {
+    for (const source of ['dispatch', 'variable']) {
+      const env = { GA_MODE: 'test', INPUT_DRY_RUN: 'false' };
+      if (source === 'dispatch') {
+        env.EVENT_NAME = 'workflow_dispatch';
+        env.INPUT_MODE = 'release-validation';
+        env.INPUT_TEST_CHANNEL = channel;
+      } else {
+        env.EVENT_NAME = 'schedule';
+        env.SCHEDULE = CRON_VALIDATION;
+        env.TEST_CHANNEL_VAR = channel;
+      }
+      assertFailedClosed(run(env));
+    }
+  }
+});
+
+test('F7 a non-live channel id must equal the configured variable', () => {
+  const foreign = run({
+    EVENT_NAME: 'workflow_dispatch',
+    INPUT_MODE: 'release-validation',
+    INPUT_DRY_RUN: 'false',
+    GA_MODE: 'test',
+    INPUT_TEST_CHANNEL: RELEASE_CHANNEL_ID,
+    TEST_CHANNEL_VAR: SAFE_CHANNEL,
+  });
+  assertFailedClosed(foreign);
+
+  const configured = run({
+    EVENT_NAME: 'schedule',
+    SCHEDULE: CRON_VALIDATION,
+    GA_MODE: 'test',
+    TEST_CHANNEL_VAR: RELEASE_CHANNEL_ID,
+  });
+  assert.equal(configured.status, 0);
+  assert.equal(configured.outputs['test-channel'], RELEASE_CHANNEL_ID);
+  assert.equal(configured.outputs['dry-run'], 'false');
+  assert.equal(configured.outputs['allow-pr-write'], 'false');
+
+  const sameId = run({
+    EVENT_NAME: 'workflow_dispatch',
+    INPUT_MODE: 'blocker-summary',
+    INPUT_DRY_RUN: 'false',
+    GA_MODE: 'test',
+    INPUT_TEST_CHANNEL: RELEASE_CHANNEL_ID,
+    TEST_CHANNEL_VAR: RELEASE_CHANNEL_ID,
+  });
+  assert.equal(sameId.status, 0);
+  assert.equal(sameId.outputs['test-channel'], RELEASE_CHANNEL_ID);
 });
