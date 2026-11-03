@@ -36,6 +36,20 @@ describeForPlatforms('OnboardingSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('hides import from extension when no handler is passed', async () => {
+    const { findByTestId, queryByTestId } = renderOnboardingSheet({
+      addDeviceSyncEnabled: true,
+    });
+
+    expect(
+      await findByTestId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON),
+    ).toBeOnTheScreen();
+
+    expect(
+      queryByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('calls import from extension when the add-device button is pressed', async () => {
     const onPressImportFromExtension = jest.fn();
 

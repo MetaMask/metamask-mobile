@@ -114,10 +114,17 @@ const AddDeviceToWallet = () => {
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
 
   const handleBack = useCallback(() => {
-    Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-      () => undefined,
-    );
     navigation.goBack();
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
+    });
+
+    return unsubscribe;
   }, [messenger, navigation]);
 
   const showVerificationSheet = useCallback(() => {

@@ -101,12 +101,6 @@ const OnboardingSheet = ({
   const onPressContinueWithTelegramAction = () =>
     onPressContinueWithTelegram?.(createWallet);
 
-  const onPressImportFromExtensionAction = () => {
-    if (onPressImportFromExtension) {
-      onPressImportFromExtension();
-    }
-  };
-
   const goTo = useCallback(
     (url: string, title: string) => {
       navigation.navigate(Routes.WEBVIEW.SIMPLE, {
@@ -257,11 +251,13 @@ const OnboardingSheet = ({
           </Text>
           <Box twClassName="flex-1 h-px bg-border-muted" />
         </Box>
-        {!createWallet && isAddDeviceSyncEnabled ? (
+        {!createWallet &&
+        isAddDeviceSyncEnabled &&
+        onPressImportFromExtension ? (
           <ButtonGlass
             isGlass={false}
             variant={ButtonVariant.Secondary}
-            onPress={onPressImportFromExtensionAction}
+            onPress={onPressImportFromExtension}
             testID={OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON}
             isFullWidth
             size={ButtonSize.Lg}
