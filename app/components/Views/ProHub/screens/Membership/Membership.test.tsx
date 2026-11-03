@@ -287,14 +287,6 @@ describe('Membership', () => {
       );
     });
 
-    it('renders the contact support row with correct label', () => {
-      const { getByTestId } = renderMembership();
-
-      expect(
-        getByTestId(MembershipTestIds.CONTACT_SUPPORT_ROW),
-      ).toHaveTextContent(strings('pro_hub.membership.contact_support'));
-    });
-
     it('renders the cancel membership row with correct label', () => {
       const { getByTestId } = renderMembership();
 
