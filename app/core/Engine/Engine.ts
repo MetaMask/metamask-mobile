@@ -157,6 +157,7 @@ import { nftDetectionControllerInit } from './controllers/nft-detection-controll
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
+import { mfaRecoveryControllerInit } from './controllers/mfa-recovery-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
@@ -354,6 +355,7 @@ export class Engine {
         AuthenticationController: authenticationControllerInit,
         UserStorageController: userStorageControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        MfaRecoveryController: mfaRecoveryControllerInit,
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
@@ -709,6 +711,7 @@ export class Engine {
       KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
+      MfaRecoveryController: messengerClientsByName.MfaRecoveryController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1638,6 +1641,7 @@ export default {
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
+      MfaRecoveryController,
       QrSyncController,
     } = instance.context;
 
@@ -1719,6 +1723,7 @@ export default {
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
+      MfaRecoveryController: MfaRecoveryController.state,
       QrSyncController: QrSyncController.state,
     };
   },
@@ -1748,6 +1753,17 @@ export default {
     state: Partial<EngineState> | undefined = {},
     keyringState?: KeyringControllerState,
   ) {
+    // Dev: Fast Refresh can keep a pre-MFA Engine singleton. Rebuild if the
+    // left-hand social unlock controller is missing from context.
+    if (
+      typeof __DEV__ !== 'undefined' &&
+      __DEV__ &&
+      Engine.instance &&
+      !Engine.instance.context?.MfaRecoveryController
+    ) {
+      Engine.instance = null;
+      instance = null;
+    }
     instance = Engine.instance || new Engine(analyticsId, state, keyringState);
     Object.freeze(instance);
     return instance;
