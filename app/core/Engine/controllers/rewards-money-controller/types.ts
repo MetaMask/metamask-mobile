@@ -278,7 +278,11 @@ export type TaxDocumentationReason =
   | 'GATE_OFF'
   | (string & {});
 
-/** `GET /tax/me`. Nothing here is cached. */
+/**
+ * `GET /tax/me`. The controller keeps this for five minutes per profile.
+ * A tax POST drops that entry. A read after the form, or after a claim
+ * refusal, passes `forceFresh`.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type TaxMeDto = {
   state: TaxDocumentationState;
@@ -717,6 +721,10 @@ export interface GetReferralMeDto {
   forceFresh?: boolean;
 }
 
+export interface GetTaxMeDto {
+  forceFresh?: boolean;
+}
+
 export interface GetReferralFunnelDto {
   forceFresh?: boolean;
 }
@@ -899,6 +907,8 @@ export type RewardsMoneyControllerState = {
   commissionsFirstPage: { [scopeKey: string]: CacheEntry<CommissionsPageDto> };
   /** Keyed by `${profileId}:${claimId}`. */
   claimById: { [scopeKey: string]: CacheEntry<ClaimDto> };
+  /** Keyed by Hydra profileId. */
+  taxMe: { [profileId: string]: CacheEntry<TaxMeDto> };
   /** Persisted env URL override (non-production builds only). */
   rewardsMoneyEnvUrl: string | null;
 };

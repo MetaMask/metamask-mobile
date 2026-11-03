@@ -935,6 +935,7 @@
     "claimHistoryFirstPage": {},
     "commissionsFirstPage": {},
     "claimById": {},
+    "taxMe": {},
     "rewardsMoneyEnvUrl": null
   },
   "PredictVenueController": {

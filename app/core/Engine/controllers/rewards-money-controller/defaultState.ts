@@ -13,6 +13,7 @@ export const getRewardsMoneyControllerDefaultState =
     claimHistoryFirstPage: {},
     commissionsFirstPage: {},
     claimById: {},
+    taxMe: {},
     rewardsMoneyEnvUrl: null,
   });
 

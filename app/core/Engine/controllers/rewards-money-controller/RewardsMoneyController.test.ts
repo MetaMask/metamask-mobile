@@ -9,6 +9,7 @@ import {
   profileCacheKey,
   REFERRAL_ME_CACHE_THRESHOLD_MS,
   EARNINGS_SUMMARY_CACHE_THRESHOLD_MS,
+  TAX_ME_CACHE_THRESHOLD_MS,
 } from './RewardsMoneyController';
 import type { RewardsMoneyControllerMessenger } from '../../messengers/rewards-money-controller-messenger';
 import { RewardsMoneyRebateQuoteError } from './services/rewards-money-data-service';
@@ -24,6 +25,7 @@ import type {
   ReferralLocalizedText,
   ReferralMeDto,
   RewardsMoneyControllerState,
+  TaxMeDto,
 } from './types';
 
 const mockReferralMe: ReferralMeDto = {
@@ -972,6 +974,99 @@ describe('RewardsMoneyController', () => {
       await controller.getEarningsSummary();
 
       expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
+    });
+
+    const taxMe = (cleared: boolean): TaxMeDto => ({
+      state: cleared ? 'COMPLETE_OR_VERIFIED' : 'ACTION_REQUIRED',
+      next_action: cleared ? 'NONE' : 'ANSWER_ATTESTATION',
+      reason: cleared ? null : 'NO_ATTESTATION',
+      clears_until: null,
+      cleared,
+      can_change_answer: false,
+    });
+
+    it('caches getTaxMe for five minutes', async () => {
+      withProfileAndData('RewardsMoneyDataService:getTaxMe', taxMe(false));
+
+      const first = await controller.getTaxMe();
+      const second = await controller.getTaxMe();
+
+      expect(first).toEqual(taxMe(false));
+      expect(second).toEqual(taxMe(false));
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(1);
+      expect(controller.state.taxMe[PROFILE_A]?.payload).toEqual(taxMe(false));
+    });
+
+    it('refetches getTaxMe after the tax TTL', async () => {
+      withProfileAndData('RewardsMoneyDataService:getTaxMe', taxMe(false));
+
+      await controller.getTaxMe();
+      jest.advanceTimersByTime(TAX_ME_CACHE_THRESHOLD_MS + 1);
+      await controller.getTaxMe();
+
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
+    });
+
+    it('forceFresh bypasses the tax cache', async () => {
+      withProfileAndData('RewardsMoneyDataService:getTaxMe', taxMe(false));
+
+      await controller.getTaxMe();
+      await controller.getTaxMe({ forceFresh: true });
+
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
+    });
+
+    it('drops the tax cache after an attestation so the next read fetches', async () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getTaxMe') {
+          return Promise.resolve(taxMe(false));
+        }
+        if (action === 'RewardsMoneyDataService:submitTaxAttestation') {
+          return Promise.resolve({ review: 'NOT_NEEDED' });
+        }
+        return undefined;
+      });
+
+      await controller.getTaxMe();
+      await controller.submitTaxAttestation(false);
+      expect(controller.state.taxMe[PROFILE_A]).toBeUndefined();
+
+      await controller.getTaxMe();
+
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call) => call[0] === 'RewardsMoneyDataService:getTaxMe',
+        ),
+      ).toHaveLength(2);
+    });
+
+    it('does not let a read that started before the attestation refill the cache', async () => {
+      let resolveRead: (value: TaxMeDto) => void = () => undefined;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getTaxMe') {
+          return new Promise<TaxMeDto>((resolve) => {
+            resolveRead = resolve;
+          });
+        }
+        if (action === 'RewardsMoneyDataService:submitTaxAttestation') {
+          return Promise.resolve({ review: 'NOT_NEEDED' });
+        }
+        return undefined;
+      });
+
+      const pending = controller.getTaxMe();
+      await Promise.resolve();
+      await controller.submitTaxAttestation(false);
+      resolveRead(taxMe(false));
+      await expect(pending).resolves.toEqual(taxMe(false));
+
+      expect(controller.state.taxMe[PROFILE_A]).toBeUndefined();
     });
   });
 

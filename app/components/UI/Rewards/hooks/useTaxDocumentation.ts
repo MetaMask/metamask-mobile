@@ -56,7 +56,9 @@ function copy(
 
 /**
  * Reads `GET /tax/me`, answers the two questions, and mints the form token.
- * Sheets and the Claim press share it. Nothing is cached.
+ * Sheets and the Claim press share it. The controller caches the read for
+ * five minutes. A read after an answer, the form, or a claim refusal asks
+ * for a fresh determination.
  */
 export function useTaxDocumentation(profileId: string) {
   const navigation = useNavigation<AppNavigationProp>();
@@ -187,10 +189,17 @@ export function useTaxDocumentation(profileId: string) {
     [closeTaxFlow, openSheet, refreshSummary],
   );
 
-  const readTaxMe = useCallback(
-    () => Engine.controllerMessenger.call('RewardsMoneyController:getTaxMe'),
-    [],
-  );
+  const readTaxMe = useCallback((force = false) => {
+    if (force) {
+      return Engine.controllerMessenger.call(
+        'RewardsMoneyController:getTaxMe',
+        {
+          forceFresh: true,
+        },
+      );
+    }
+    return Engine.controllerMessenger.call('RewardsMoneyController:getTaxMe');
+  }, []);
 
   const prefetchTaxMe = useCallback(() => {
     void readTaxMe().catch(() => undefined);
@@ -236,7 +245,7 @@ export function useTaxDocumentation(profileId: string) {
       fallback: Extract<TaxRefusalAction, { kind: 'reroute' }>['fallback'],
     ) => {
       try {
-        const taxMe = await readTaxMe();
+        const taxMe = await readTaxMe(true);
         const sheet = taxSheetFor(taxMe);
         if (sheet.kind === 'none') {
           closeTaxFlow();
@@ -346,7 +355,7 @@ export function useTaxDocumentation(profileId: string) {
           return;
         }
         try {
-          const taxMe = await readTaxMe();
+          const taxMe = await readTaxMe(true);
           const sheet = taxSheetFor(taxMe);
           if (sheet.kind === 'none') {
             closeTaxFlow();
@@ -443,7 +452,7 @@ export function useTaxDocumentation(profileId: string) {
   const openPendingReview = useCallback(() => {
     openInfo('taxFormPendingTitle', 'taxFormPendingDescription');
     refreshSummary();
-    void readTaxMe().catch(() => undefined);
+    void readTaxMe(true).catch(() => undefined);
   }, [openInfo, readTaxMe, refreshSummary]);
 
   const onClaimPress = useCallback(
@@ -484,7 +493,7 @@ export function useTaxDocumentation(profileId: string) {
   );
 
   const openAfterClaimRefusal = useCallback(async () => {
-    const taxMe = await readTaxMe();
+    const taxMe = await readTaxMe(true);
     if (!showTaxMe(taxMe)) {
       throw new Error('Tax determination did not open a sheet');
     }

@@ -4,6 +4,7 @@ import type {
   TaxFormTokenDto,
   TaxMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { isPositiveBaseUnits } from './formatUtils';
 
 const PENDING_TITLE: ReferralLocalizedTextKey = 'taxFormPendingTitle';
 const PENDING_DESCRIPTION: ReferralLocalizedTextKey =
@@ -299,17 +300,6 @@ export function withMinutes(
     '{minutes}',
     String(minutesFromRetryAfter(seconds)),
   );
-}
-
-function isPositiveBaseUnits(value: string | undefined): boolean {
-  if (!value) {
-    return false;
-  }
-  try {
-    return BigInt(value) > 0n;
-  } catch {
-    return false;
-  }
 }
 
 /**

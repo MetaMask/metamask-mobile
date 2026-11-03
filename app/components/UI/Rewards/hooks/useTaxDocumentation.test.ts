@@ -192,6 +192,27 @@ describe('useTaxDocumentation', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('asks the controller for the cached read on prefetch and claim', async () => {
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        result.current.prefetchTaxMe();
+        result.current.prefetchTaxMe();
+        await result.current.onClaimPress(summary, claim);
+      });
+
+      const taxReads = mockCall.mock.calls.filter(
+        (call) => call[0] === 'RewardsMoneyController:getTaxMe',
+      );
+      expect(taxReads).toEqual([
+        ['RewardsMoneyController:getTaxMe'],
+        ['RewardsMoneyController:getTaxMe'],
+        ['RewardsMoneyController:getTaxMe'],
+      ]);
+      expect(claim).toHaveBeenCalledTimes(1);
+    });
+
     it('swallows a failed prefetch', async () => {
       mockCall.mockRejectedValue(new Error('offline'));
       const { result } = renderTaxHook();
@@ -742,7 +763,9 @@ describe('useTaxDocumentation', () => {
       expect(mockFetchEarningsSummary).toHaveBeenCalledWith({
         forceFresh: true,
       });
-      expect(mockCall).toHaveBeenCalledWith('RewardsMoneyController:getTaxMe');
+      expect(mockCall).toHaveBeenCalledWith('RewardsMoneyController:getTaxMe', {
+        forceFresh: true,
+      });
     });
   });
 });

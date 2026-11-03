@@ -5,6 +5,7 @@
  */
 import '../../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { WebView } from '@metamask/react-native-webview';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -106,6 +107,34 @@ const HELD_ONLY = withTaxHeldIncome(
   }),
 );
 
+function buttonProp(node: ReactTestInstance, name: string): unknown {
+  let current: ReactTestInstance | null = node;
+  while (current) {
+    if (current.props[name] !== undefined) {
+      return current.props[name];
+    }
+    current = current.parent;
+  }
+  return undefined;
+}
+
+function testIdOrder(root: ReactTestInstance): string[] {
+  const ids: string[] = [];
+  const walk = (node: ReactTestInstance) => {
+    const testID = node.props.testID;
+    if (typeof testID === 'string') {
+      ids.push(testID);
+    }
+    node.children.forEach((child) => {
+      if (typeof child !== 'string') {
+        walk(child);
+      }
+    });
+  };
+  walk(root);
+  return ids;
+}
+
 function pageMessage(view: ReactTestInstance, type: string) {
   fireEvent(view, 'message', {
     nativeEvent: { data: JSON.stringify({ type }) },
@@ -118,12 +147,16 @@ describe('EarningsTab tax documentation', () => {
     clearMintRateLimit();
   });
 
-  it('keeps Claim when the only balance is income held for tax', async () => {
-    const { findByTestId, queryByTestId } = renderEarningsTab({
+  it('shows the held balance and Claim when the only balance is income held for tax', async () => {
+    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
       persona: 'referee',
       summary: HELD_ONLY,
     });
 
+    expect(await findByText('Held • mUSD')).toBeOnTheScreen();
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeOnTheScreen();
@@ -182,9 +215,26 @@ describe('EarningsTab tax documentation', () => {
       await findByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
     ).toBeOnTheScreen();
     expect(await findByText(COPY.taxFormRequiredDescription)).toBeOnTheScreen();
+    const changeAnswer = await findByTestId(
+      TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CHANGE_ANSWER,
+    );
+    const notNow = await findByTestId(
+      TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.NOT_NOW,
+    );
+    const sheet = await findByTestId(
+      TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTAINER,
+    );
+    const order = testIdOrder(sheet);
+    expect(changeAnswer).toBeOnTheScreen();
+    expect(notNow).toBeOnTheScreen();
+    expect(buttonProp(notNow, 'variant')).toBe(ButtonVariant.Secondary);
+    expect(buttonProp(changeAnswer, 'variant')).toBe(ButtonVariant.Tertiary);
+    expect(buttonProp(changeAnswer, 'isFullWidth')).toBe(true);
     expect(
-      await findByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CHANGE_ANSWER),
-    ).toBeOnTheScreen();
+      order.indexOf(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.NOT_NOW),
+    ).toBeLessThan(
+      order.indexOf(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CHANGE_ANSWER),
+    );
   });
 
   it('shows the not-needed toast after No', async () => {

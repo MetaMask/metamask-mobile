@@ -75,9 +75,13 @@ export interface ClaimableRewardsCardProps {
   isReferrer?: boolean;
   /**
    * Base units in `held`. A positive value, or a positive `blocked`, shows
-   * Balance and Paused. Omitted for anyone who is not a referee.
+   * Balance and Paused. Omitted for anyone who is not a referee. When the only
+   * hold is tax documentation and nothing is claimable, the row shows this
+   * balance under Held instead.
    */
   held?: string;
+  /** Formatted `held` balance. Shown when tax documentation is the only hold. */
+  heldAmount?: string;
   /**
    * Base units in `blocked`. A positive value, or a positive `held`, shows
    * Balance and Paused. Omitted for anyone who is not a referee.
@@ -161,8 +165,8 @@ const ClaimableRewardsCardSkeleton: React.FC<{
 };
 
 /**
- * Available-to-claim card. Claim is enabled only when `canClaim` is set,
- * which means the cashback family reaches the summary minimum.
+ * Available-to-claim card. Claim is enabled when cashback or follow-trade
+ * reaches the summary minimum, and when the only hold is tax documentation.
  */
 const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   localizedText,
@@ -171,6 +175,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   claimableAmount,
   isReferrer = false,
   held,
+  heldAmount,
   blocked,
   recordedAmount,
   last7Amount,
@@ -206,11 +211,27 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     taxHeld,
   );
   const paused = button === 'paused';
+  // Nothing is payable yet, and the hold is only tax documentation. Show the
+  // held balance and keep Claim so the press opens the tax flow.
+  const taxHeldOnly =
+    button === 'claim' &&
+    taxHeld &&
+    isPositiveBaseUnits(held) &&
+    !isPositiveBaseUnits(claimable);
   const showLast7Skeleton = isLast7Loading && last7Amount === null;
   const heading = amountHeading(
-    paused ? localizedText.balance : localizedText.availableToClaim,
+    paused
+      ? localizedText.balance
+      : taxHeldOnly
+        ? localizedText.held
+        : localizedText.availableToClaim,
     localizedText.mUSD,
   );
+  const amount = paused
+    ? recordedAmount
+    : taxHeldOnly
+      ? (heldAmount ?? claimableAmount)
+      : claimableAmount;
   const claimInProgress = button === 'claim' && isClaiming;
   const claimCoolingDown =
     button === 'claim' && isClaimWaiting && !claimInProgress;
@@ -254,7 +275,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
                 variant={TextVariant.HeadingLg}
                 testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT}
               >
-                {paused ? recordedAmount : claimableAmount}
+                {amount}
               </Text>
               {onBalanceBreakdown ? (
                 <ButtonIcon

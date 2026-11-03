@@ -534,6 +534,23 @@ export function isPositiveBaseUnits(value: string | undefined): boolean {
 }
 
 /**
+ * True when a Money API base-unit string is a positive integer.
+ * Missing, zero, and unreadable values are false.
+ */
+export const isPositiveBaseUnits = (
+  value: string | null | undefined,
+): boolean => {
+  if (!value) {
+    return false;
+  }
+  try {
+    return BigInt(value) > 0n;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Formats a Money API mUSD amount as USD. Amounts cross that boundary as
  * base-unit integer strings, because they exceed what a JSON number holds
  * exactly, so they are shifted by {@link MUSD_DECIMALS} before formatting.

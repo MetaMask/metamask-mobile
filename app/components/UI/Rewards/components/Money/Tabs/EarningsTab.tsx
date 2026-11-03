@@ -672,6 +672,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                 persona === 'referee' ? summary.data?.blocked : undefined
               }
               claimableAmount={musdAmount(summary.data?.claimable)}
+              heldAmount={musdAmount(summary.data?.held)}
               isReferrer={persona === 'referrer'}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               last7Amount={last7Amount}

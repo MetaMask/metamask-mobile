@@ -37,6 +37,7 @@ import {
   type ReferrerOriginType,
   type RegisterRefereeDto,
   type RewardsMoneyControllerState,
+  type GetTaxMeDto,
   type TaxAnswerResultDto,
   type TaxFormTokenDto,
   type TaxMeDto,
@@ -50,6 +51,12 @@ const controllerName = REWARDS_MONEY_CONTROLLER_NAME;
 export const REFERRAL_ME_CACHE_THRESHOLD_MS = 300_000;
 export const REFERRAL_CODES_CACHE_THRESHOLD_MS = 300_000;
 export const CLAIM_BY_ID_CACHE_THRESHOLD_MS = 300_000;
+/**
+ * Tax determination. A tax POST drops the entry. The form coming back, and a
+ * claim the server refused for tax, pass `forceFresh` because that change
+ * did not come from a POST this app made.
+ */
+export const TAX_ME_CACHE_THRESHOLD_MS = 300_000;
 
 /** Money / funnel cadence — moves with enrollments and fills. */
 export const REFERRAL_FUNNEL_CACHE_THRESHOLD_MS = 60_000;
@@ -106,6 +113,12 @@ const metadata: StateMetadata<RewardsMoneyControllerState> = {
     usedInUi: true,
   },
   claimById: {
+    includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  taxMe: {
     includeInStateLogs: false,
     persist: true,
     includeInDebugSnapshot: false,
@@ -366,6 +379,7 @@ export class RewardsMoneyController extends BaseController<
   readonly #isDisabled: () => boolean;
   readonly #referralMeReads = createLatestReadTrackers<ReferralMeDto>();
   readonly #claimHistoryReads = createLatestReadTrackers<ClaimHistoryPageDto>();
+  readonly #taxMeReads = createLatestReadTrackers<TaxMeDto>();
   readonly #earningsSummaryInFlight = new Map<
     string,
     Promise<EarningsSummaryDto>
@@ -815,15 +829,28 @@ export class RewardsMoneyController extends BaseController<
   }
 
   /**
-   * `GET /tax/me`. Not cached: the route is `no-store`, and a Claim press
-   * has to see the determination that was just written.
+   * `GET /tax/me`, cached for five minutes per profile.
+   *
+   * `forceFresh` does not join a read already running, and its result wins
+   * if that older read lands last. A tax POST drops the entry, so the next
+   * read cannot return the determination that POST replaced.
    */
-  async getTaxMe(): Promise<TaxMeDto> {
+  async getTaxMe(params: GetTaxMeDto = {}): Promise<TaxMeDto> {
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
     }
 
-    return this.messenger.call('RewardsMoneyDataService:getTaxMe');
+    const profileId = await this.#getProfileId();
+
+    return readLatest({
+      trackers: this.#taxMeReads,
+      key: profileId,
+      forceFresh: params.forceFresh === true,
+      ttl: TAX_ME_CACHE_THRESHOLD_MS,
+      readCache: (key) => this.state.taxMe[key],
+      load: () => this.messenger.call('RewardsMoneyDataService:getTaxMe'),
+      write: (key, payload) => this.#writeTaxMe(key, payload),
+    });
   }
 
   async submitTaxAttestation(
@@ -833,10 +860,13 @@ export class RewardsMoneyController extends BaseController<
       throw new Error('Rewards Money is disabled');
     }
 
-    return this.messenger.call(
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
       'RewardsMoneyDataService:submitTaxAttestation',
       usPersonOrActivity,
     );
+    this.#invalidateTaxMe(profileId);
+    return result;
   }
 
   async submitTaxUsActivity(usActivity: boolean): Promise<TaxAnswerResultDto> {
@@ -844,22 +874,31 @@ export class RewardsMoneyController extends BaseController<
       throw new Error('Rewards Money is disabled');
     }
 
-    return this.messenger.call(
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
       'RewardsMoneyDataService:submitTaxUsActivity',
       usActivity,
     );
+    this.#invalidateTaxMe(profileId);
+    return result;
   }
 
   /**
    * Mints one form token. The token is returned to the caller and is not
-   * written into controller state.
+   * written into controller state. Minting closes `can_change_answer`, so
+   * the cached determination is dropped with the other tax writes.
    */
   async mintTaxFormToken(): Promise<TaxFormTokenDto> {
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
     }
 
-    return this.messenger.call('RewardsMoneyDataService:mintTaxFormToken');
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
+      'RewardsMoneyDataService:mintTaxFormToken',
+    );
+    this.#invalidateTaxMe(profileId);
+    return result;
   }
 
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {
@@ -925,6 +964,25 @@ export class RewardsMoneyController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
     }
+  }
+
+  /**
+   * Forget a profile's tax determination. The generation moves first so a
+   * read that started before the POST cannot refill the entry after it is
+   * removed. The in-flight promise is dropped so a later read does not join it.
+   */
+  #invalidateTaxMe(profileId: string): void {
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
+  }
+
+  #writeTaxMe(profileId: string, payload: TaxMeDto): void {
+    this.update((draft) => {
+      draft.taxMe[profileId] = { payload, lastFetched: Date.now() };
+    });
   }
 
   #writeReferralFunnel(profileId: string, payload: ReferralFunnelDto): void {

@@ -166,17 +166,16 @@ const TaxFormOpenFormSheet: React.FC = () => {
           {params.notNowLabel}
         </Button>
         {params.changeAnswerLabel ? (
-          <Box twClassName="items-center">
-            <Button
-              variant={ButtonVariant.Tertiary}
-              size={ButtonSize.Md}
-              isDisabled={submitting}
-              onPress={handleChangeAnswer}
-              testID={TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CHANGE_ANSWER}
-            >
-              {params.changeAnswerLabel}
-            </Button>
-          </Box>
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={submitting}
+            onPress={handleChangeAnswer}
+            testID={TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CHANGE_ANSWER}
+          >
+            {params.changeAnswerLabel}
+          </Button>
         ) : null}
       </Box>
     </BottomSheet>

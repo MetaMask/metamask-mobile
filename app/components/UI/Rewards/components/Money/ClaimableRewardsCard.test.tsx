@@ -192,6 +192,43 @@ describe('ClaimableRewardsCard', () => {
     expect(onPaused).toHaveBeenCalledTimes(1);
   });
 
+  it('shows the held balance and Claim when tax documentation is the only hold', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={{
+          ...LOCALIZED_TEXT,
+          held: 'Held',
+        }}
+        claimable="0"
+        claimed="0"
+        held="2000000"
+        heldAmount="$2.00"
+        taxHeld
+        claimableAmount="$0.00"
+        recordedAmount="$2.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps Claim when cashback is claimable and some money is held or blocked', () => {
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
