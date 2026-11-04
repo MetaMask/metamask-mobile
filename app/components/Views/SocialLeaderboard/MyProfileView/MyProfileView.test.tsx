@@ -231,9 +231,20 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: { id: string } }) => (
+    default: ({
+      post,
+      showCopyTrade = true,
+    }: {
+      post: { id: string };
+      showCopyTrade?: boolean;
+    }) => (
       <View testID={`my-profile-post-${post.id}`}>
         <Text>{post.id}</Text>
+        {showCopyTrade ? (
+          <Text testID={`my-profile-post-copy-trade-${post.id}`}>
+            Copy trade
+          </Text>
+        ) : null}
       </View>
     ),
   };
@@ -810,8 +821,37 @@ describe('MyProfileView', () => {
     ).toHaveStyle({ paddingTop: 16 });
     expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
     expect(
+      screen.queryByTestId('my-profile-post-copy-trade-post-1'),
+    ).toBeNull();
+    expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('keeps copy trade on another trader posts', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(
+      screen.getByTestId('my-profile-post-copy-trade-post-1'),
+    ).toBeOnTheScreen();
   });
 
   it('renders a centered Posts empty line without a create action', () => {
