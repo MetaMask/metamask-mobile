@@ -1,14 +1,12 @@
 import React, { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { selectCanSignTransactions } from '../../../../../../selectors/accountsController';
 import {
   PredictEventValues,
   selectPredictAvailability,
+  usePredictEntryActions,
 } from '../../../../../UI/PredictNext';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -24,7 +22,7 @@ const PredictButton = ({
   actionPosition,
   allowTwoLineLabel,
 }: HomepageActionButtonSlotProps) => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isPredictEnabled = useSelector(selectPredictAvailability);
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -39,13 +37,11 @@ const PredictButton = ({
       location: ActionLocation.HOME,
     });
 
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMESCREEN_PILL,
-      },
+    openPredict({
+      type: 'home',
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMESCREEN_PILL,
     });
-  }, [actionPosition, createEventBuilder, label, navigation, trackEvent]);
+  }, [actionPosition, createEventBuilder, label, openPredict, trackEvent]);
 
   return (
     <HomepageActionButton
