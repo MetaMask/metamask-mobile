@@ -2511,6 +2511,10 @@ describe('PerpsOrderView', () => {
       expect(placeOrder).not.toHaveBeenCalled();
     });
 
+    // Unit fallback. Unmounting in a view test sets isDismissedRef, and
+    // handlePlaceOrder returns on that flag before it reads an unmounted
+    // support result. This keeps the sheet mounted so only that result is
+    // under test. The hook itself is covered in usePerpsAccountSupport.test.ts.
     it('does not place an order when the support check resolves unmounted', async () => {
       const { placeOrder, settleAccountSupport } =
         await arrangePendingAccountSupport();
@@ -2828,8 +2832,10 @@ describe('PerpsOrderView', () => {
       expect(placeOrder).toHaveBeenCalledTimes(1);
     });
 
-    // The support hook reports unmounted once this view is gone. Funds
-    // arriving later still re-enter `handlePlaceOrder(true)` and must place.
+    // Unit fallback. A view test cannot fire the deposit tracker's credit
+    // callback after this screen unmounts. The hook's unmounted result is
+    // covered in usePerpsAccountSupport.test.ts; this checks the forced
+    // re-entry still places when that result arrives.
     it('places the order when support resolves unmounted after the deposit view is gone', async () => {
       mockCheckAccountSupport
         .mockResolvedValueOnce('supported')
