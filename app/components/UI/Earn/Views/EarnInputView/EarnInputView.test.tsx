@@ -562,7 +562,7 @@ describe('EarnInputView', () => {
     });
   };
 
-  const renderTronComponent = () => {
+  const renderTronComponent = (balance = '100') => {
     const tronToken = {
       ...MOCK_ETH_MAINNET_ASSET,
       name: 'TRON',
@@ -573,11 +573,11 @@ describe('EarnInputView', () => {
       isETH: false,
       decimals: 6,
       address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
-      balance: '100',
-      balanceFiat: '$100',
-      balanceMinimalUnit: '100000000',
-      balanceFormatted: '100 TRX',
-      balanceFiatNumber: 100,
+      balance,
+      balanceFiat: `$${balance}`,
+      balanceMinimalUnit: new BigNumber(balance).shiftedBy(6).toFixed(0),
+      balanceFormatted: `${balance} TRX`,
+      balanceFiatNumber: Number(balance),
       tokenUsdExchangeRate: 1,
       experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
       experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
@@ -759,7 +759,7 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(
@@ -778,7 +778,7 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(
@@ -799,7 +799,7 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(
@@ -821,7 +821,7 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(
@@ -923,7 +923,7 @@ describe('EarnInputView', () => {
       expect(getByTestId('resource-toggle-bandwidth')).toBeOnTheScreen();
     });
 
-    it('replaces Max button with Done when non-zero amount is entered', async () => {
+    it('replaces quick amounts with Review when a non-zero amount is entered', async () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
       const TRX_TOKEN = {
@@ -961,16 +961,29 @@ describe('EarnInputView', () => {
       });
 
       expect(getByText('Max')).toBeOnTheScreen();
-      expect(
-        queryByText(strings('onboarding_success.done')),
-      ).not.toBeOnTheScreen();
+      expect(queryByText(strings('stake.review'))).not.toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
       expect(queryByText('Max')).not.toBeOnTheScreen();
-      expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.review'))).toBeOnTheScreen();
+    });
+
+    it('shows Not enough TRX in the button when the amount exceeds the balance', async () => {
+      const { getByRole, getByText } = renderTronComponent('0.5');
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', {
+          name: strings('stake.not_enough_token', { ticker: 'TRX' }),
+        }),
+      ).toBeDisabled();
     });
 
     it('reopens keypad editing when the amount is pressed during preview', async () => {
@@ -981,17 +994,19 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByRole('button', { name: '1 TRX' }));
       });
 
-      expect(getByText('25%')).toBeOnTheScreen();
-      expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.review'))).toBeOnTheScreen();
+      expect(queryByText(strings('stake.stake'))).not.toBeOnTheScreen();
     });
 
     it('does not show MaxInputModal when Max button is pressed for TRX', async () => {
