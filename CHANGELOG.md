@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Kept Money Account identity verification pending until the provider gives final approval
+
 ## [8.18.0]
 
 ### Added

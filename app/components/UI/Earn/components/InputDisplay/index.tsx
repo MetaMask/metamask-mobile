@@ -1,14 +1,19 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
+  FontFamily,
+  Text as DesignText,
   TextColor as DesignTextColor,
   TextVariant as DesignTextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  AnimatedAmountDisplay,
+  getFontSizeForInputLength,
+} from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -30,13 +35,9 @@ import CurrencyToggle from '../CurrencySwitch';
 import FadeInView from '../FadeInView';
 import { INPUT_DISPLAY_TEST_IDS } from './InputDisplay.testIds';
 
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
+
 export interface InputDisplayProps {
-  isOverMaximum: {
-    isOverMaximumEth: boolean;
-    isOverMaximumToken: boolean;
-  };
-  balanceText: string;
-  balanceValue: string;
   asset: TokenI;
   isFiat: boolean;
   amountToken: string;
@@ -45,14 +46,12 @@ export interface InputDisplayProps {
   handleCurrencySwitch: () => void;
   currencyToggleValue: string;
   maxWithdrawalAmount?: string;
-  error?: string;
   onPressAmount?: () => void;
 }
 
 const createStyles = (
   colors: Colors,
   params: {
-    isStablecoinLendingEnabled: boolean;
     shouldShowLendingMaxSafeWithdrawalMessage: boolean;
   },
 ) =>
@@ -70,14 +69,6 @@ const createStyles = (
       flexDirection: 'row',
       gap: 4,
     },
-    amountText: params?.isStablecoinLendingEnabled
-      ? {
-          fontSize: 40,
-          lineHeight: 50,
-          letterSpacing: 0,
-          fontWeight: '500',
-        }
-      : {},
     maxWithdrawalContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -95,9 +86,6 @@ const createStyles = (
   });
 
 const InputDisplay = ({
-  isOverMaximum,
-  balanceText,
-  balanceValue,
   isFiat,
   asset,
   amountToken,
@@ -106,7 +94,6 @@ const InputDisplay = ({
   handleCurrencySwitch,
   currencyToggleValue,
   maxWithdrawalAmount,
-  error,
   onPressAmount,
 }: InputDisplayProps) => {
   const { colors } = useTheme();
@@ -131,32 +118,20 @@ const InputDisplay = ({
   }, [maxWithdrawalAmount, outputToken]);
 
   const styles = createStyles(colors, {
-    isStablecoinLendingEnabled,
     shouldShowLendingMaxSafeWithdrawalMessage,
   });
   const ticker = asset.ticker ?? asset.symbol;
-
-  const balanceInfo = useMemo(() => {
-    if (error) return error;
-
-    if (isOverMaximum.isOverMaximumToken) {
-      return strings('stake.not_enough_token', { ticker });
-    }
-    if (isOverMaximum.isOverMaximumEth) {
-      return strings('stake.not_enough_eth');
-    }
-
-    if (isStablecoinLendingEnabled) return '\u00A0';
-    return `${balanceText}: ${balanceValue}`;
-  }, [
-    balanceText,
-    balanceValue,
-    error,
-    isOverMaximum.isOverMaximumEth,
-    isOverMaximum.isOverMaximumToken,
-    isStablecoinLendingEnabled,
-    ticker,
-  ]);
+  const amountValue = isFiat ? amountFiatNumber : amountToken;
+  const amountSuffix = isFiat ? currentCurrency.toUpperCase() : ticker;
+  const amountFontSize = getFontSizeForInputLength(
+    amountValue.length +
+      amountSuffix.length +
+      INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
+  );
+  const amountTextStyle = {
+    fontSize: amountFontSize,
+    lineHeight: amountFontSize,
+  };
 
   const onNavigateToLendingMaxWithdrawModal = () => {
     navigation.navigate(Routes.EARN.MODALS.ROOT, {
@@ -188,40 +163,50 @@ const InputDisplay = ({
             />
           </View>
         </FadeInView>
-
-        <Text
-          variant={TextVariant.BodySM}
-          color={
-            isOverMaximum.isOverMaximumToken ||
-            isOverMaximum.isOverMaximumEth ||
-            error
-              ? TextColor.Error
-              : undefined
-          }
-        >
-          {balanceInfo}
-        </Text>
       </View>
       <View style={styles.amountRow}>
         <AnimatedAmountDisplay
-          accessibilityLabel={`${isFiat ? amountFiatNumber : amountToken} ${
-            isFiat ? currentCurrency.toUpperCase() : ticker
-          }`}
+          accessibilityLabel={`${amountValue} ${amountSuffix}`}
           animated
           color={DesignTextColor.TextDefault}
           containerStyle={styles.amountRow}
           cursor={
             isStablecoinLendingEnabled
-              ? { animated: true, testID: INPUT_DISPLAY_TEST_IDS.AMOUNT_CURSOR }
+              ? {
+                  animated: true,
+                  style: {
+                    width: 1,
+                    height: Math.round(amountFontSize * 0.95),
+                    backgroundColor: colors.text.muted,
+                    // Android renders glyphs lower than iOS in a line box equal to fontSize.
+                    transform: [
+                      {
+                        translateY: Math.round(
+                          amountFontSize *
+                            (Platform.OS === 'android' ? 0.02 : -0.04),
+                        ),
+                      },
+                    ],
+                  },
+                  testID: INPUT_DISPLAY_TEST_IDS.AMOUNT_CURSOR,
+                }
               : false
           }
           onPress={onPressAmount}
-          style={styles.amountText}
-          suffix={isFiat ? currentCurrency.toUpperCase() : ticker}
-          suffixColor={DesignTextColor.TextMuted}
-          suffixStyle={styles.amountText}
-          value={isFiat ? amountFiatNumber : amountToken}
-          variant={DesignTextVariant.DisplayMd}
+          style={amountTextStyle}
+          suffix={
+            <DesignText
+              color={DesignTextColor.TextMuted}
+              fontFamily={FontFamily.Hero}
+              style={amountTextStyle}
+              testID={INPUT_DISPLAY_TEST_IDS.AMOUNT_SUFFIX}
+              variant={DesignTextVariant.DisplayLg}
+            >
+              {amountSuffix}
+            </DesignText>
+          }
+          value={amountValue}
+          variant={DesignTextVariant.DisplayLg}
         />
       </View>
       <View>

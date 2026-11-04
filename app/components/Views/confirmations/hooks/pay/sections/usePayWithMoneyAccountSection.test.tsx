@@ -427,27 +427,111 @@ describe('usePayWithMoneyAccountSection', () => {
   });
 
   describe('tag renderers', () => {
-    it('renders the APY tag when apyPercent is defined', () => {
-      useMoneyVaultApyMock.mockReturnValue({
-        apyPercent: 4,
-      } as never);
+    describe('apy tag', () => {
+      it.each([TransactionType.perpsWithdraw, TransactionType.predictWithdraw])(
+        'renders the APY tag for %s when apyPercent is defined',
+        (txType) => {
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: 'tx-1',
+            type: txType,
+            txParams: {},
+          } as never);
+          useMoneyVaultApyMock.mockReturnValue({
+            apyPercent: 4,
+          } as never);
 
-      const { result } = renderHook(() => usePayWithMoneyAccountSection());
-      const tag = result.current?.rows[0].tagRenderers?.[0]?.();
-      const { getByTestId } = render(<>{tag}</>);
+          const { result } = renderHook(() => usePayWithMoneyAccountSection());
+          const tag = result.current?.rows[0].tagRenderers?.[0]?.();
+          const { getByTestId } = render(<>{tag}</>);
 
-      expect(
-        getByTestId(`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-apy-tag`),
-      ).toBeOnTheScreen();
-    });
+          expect(
+            getByTestId(`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-apy-tag`),
+          ).toBeOnTheScreen();
+        },
+      );
 
-    it('omits the APY tag when apyPercent is undefined', () => {
-      useMoneyVaultApyMock.mockReturnValue({
-        apyPercent: undefined,
-      } as never);
+      it('omits the APY tag for a withdraw when apyPercent is undefined', () => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type: TransactionType.perpsWithdraw,
+          txParams: {},
+        } as never);
+        useMoneyVaultApyMock.mockReturnValue({
+          apyPercent: undefined,
+        } as never);
 
-      const { result } = renderHook(() => usePayWithMoneyAccountSection());
-      expect(result.current?.rows[0].tagRenderers).toBeUndefined();
+        const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+        expect(result.current?.rows[0].tagRenderers).toBeUndefined();
+      });
+
+      it.each([
+        TransactionType.perpsDeposit,
+        TransactionType.perpsDepositAndOrder,
+        TransactionType.predictDeposit,
+        TransactionType.predictDepositAndOrder,
+        TransactionType.moneyAccountWithdraw,
+      ])(
+        'omits the APY tag for %s even when apyPercent is defined',
+        (txType) => {
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: 'tx-1',
+            type: txType,
+            txParams: {},
+          } as never);
+          useSelectorMock.mockImplementation((selector) => {
+            if (selector === selectPrimaryMoneyAccount) {
+              return moneyAccountMock;
+            }
+            if (selector === selectMetaMaskPayFlags) {
+              return {
+                enableMoneyAccountTransactions: {
+                  moneyAccountWithdraw: true,
+                  perpsDeposit: true,
+                  perpsDepositAndOrder: true,
+                  predictDeposit: true,
+                  predictDepositAndOrder: true,
+                },
+              };
+            }
+            return undefined;
+          });
+          useMoneyVaultApyMock.mockReturnValue({
+            apyPercent: 4,
+          } as never);
+
+          const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+          expect(result.current?.rows[0].tagRenderers).toBeUndefined();
+        },
+      );
+
+      it.each([TransactionType.perpsWithdraw, TransactionType.predictWithdraw])(
+        'requests the vault APY for %s',
+        (txType) => {
+          useTransactionMetadataRequestMock.mockReturnValue({
+            id: 'tx-1',
+            type: txType,
+            txParams: {},
+          } as never);
+
+          renderHook(() => usePayWithMoneyAccountSection());
+
+          expect(useMoneyVaultApyMock).toHaveBeenCalledWith({ enabled: true });
+        },
+      );
+
+      it('skips the vault APY request for a transaction that cannot show the tag', () => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type: TransactionType.perpsDeposit,
+          txParams: {},
+        } as never);
+
+        renderHook(() => usePayWithMoneyAccountSection());
+
+        expect(useMoneyVaultApyMock).toHaveBeenCalledWith({ enabled: false });
+      });
     });
 
     describe('no deposit fee tag', () => {
@@ -525,6 +609,27 @@ describe('usePayWithMoneyAccountSection', () => {
           expect(result.current?.rows[0].tagRenderers).toBeUndefined();
         },
       );
+
+      it('renders only the "no deposit fee" tag on a perps deposit when an APY is available', () => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type: TransactionType.perpsDeposit,
+          txParams: {},
+        } as never);
+        useMoneyVaultApyMock.mockReturnValue({
+          apyPercent: 4,
+        } as never);
+        mockNoFeeRoute(true);
+
+        const { result } = renderHook(() => usePayWithMoneyAccountSection());
+        const tags = result.current?.rows[0].tagRenderers;
+        const { getByTestId } = render(<>{tags?.[0]?.()}</>);
+
+        expect(tags).toHaveLength(1);
+        expect(
+          getByTestId(`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`),
+        ).toBeOnTheScreen();
+      });
 
       it('omits the tag for perps when the fixed-spread route is absent', () => {
         useTransactionMetadataRequestMock.mockReturnValue({

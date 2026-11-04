@@ -1,4 +1,8 @@
-import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
+import {
+  buildMusdAutorampRequest,
+  getMusdAutorampDepositRailReadiness,
+  type MusdAutorampDepositRailReadiness,
+} from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { TraceName } from '../../../../../util/trace';
@@ -31,7 +35,8 @@ const trackAutorampCreateFailed = (sourceCurrency: VbaSourceCurrency) => {
 };
 
 /**
- * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
+ * `awaiting_provider`: KYC is approved, but the MoonPay customer or the
+ * deposit rail for the requested fiat is not Active yet.
  * `terminal`: only Rejected or Cancelled autoramps, and no replacement asked.
  */
 export type MusdAutorampSetupOutcome =
@@ -173,6 +178,44 @@ const createAutoramp = async (
   }
 };
 
+const getRailReadiness = async (
+  sourceCurrency: VbaSourceCurrency,
+): Promise<MusdAutorampDepositRailReadiness> => {
+  try {
+    const abilities =
+      await Engine.context.RampsController.refreshCustomerAbilities();
+    return getMusdAutorampDepositRailReadiness(abilities, sourceCurrency);
+  } catch (error) {
+    // Fail open: a closed rail still comes back from create as a 422.
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: { name: 'getRailReadiness', data: { sourceCurrency } },
+    });
+    return 'active';
+  }
+};
+
+/**
+ * Creates the autoramp only once its deposit rail is Active, so MoonPay never
+ * answers the create with a 422. A pending rail keeps the user waiting.
+ */
+const createAutorampWhenRailActive = async (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): Promise<MusdAutorampSetupOutcome> => {
+  const readiness = await getRailReadiness(sourceCurrency);
+  if (readiness === 'pending') {
+    return 'awaiting_provider';
+  }
+  if (readiness === 'blocked') {
+    // Reported and thrown like MoonPay's 422, without sending the create.
+    trackAutorampCreateFailed(sourceCurrency);
+    throw new AccountCreateRegistrationError({ kind: 'http', status: 422 });
+  }
+  await createAutoramp(walletAddress, sourceCurrency);
+  return 'ready';
+};
+
 const runSetup = async (
   walletAddress: string,
   sourceCurrency: VbaSourceCurrency,
@@ -205,8 +248,7 @@ const runSetup = async (
   // Hydrate reports ready when any fiat is usable. A different known fiat
   // does not satisfy this request, so create one for the requested currency.
   if (snapshot.autorampStatus === 'ready') {
-    await createAutoramp(walletAddress, sourceCurrency);
-    return 'ready';
+    return await createAutorampWhenRailActive(walletAddress, sourceCurrency);
   }
 
   if (
@@ -268,8 +310,7 @@ const runSetup = async (
     return 'ready';
   }
 
-  await createAutoramp(walletAddress, sourceCurrency);
-  return 'ready';
+  return await createAutorampWhenRailActive(walletAddress, sourceCurrency);
 };
 
 /**

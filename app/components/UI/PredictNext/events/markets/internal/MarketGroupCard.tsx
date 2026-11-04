@@ -27,11 +27,13 @@ export interface MarketGroupOutcomeAppearance {
 
 export interface MarketGroupCardProps {
   groupKey: string;
-  title: string;
+  /** Omitted when a section header already names the card. */
+  title?: string;
   markets: readonly PredictMarket[];
   selectedMarket: PredictMarket;
   onSelectMarket: (marketId: PredictMarket['id']) => void;
-  onRulesPress: (market: PredictMarket) => void;
+  /** Shows a rules button for the selected line when it has rules. */
+  onRulesPress?: (market: PredictMarket) => void;
   onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
   /** Supplied by the spread or total composition. */
   describeOutcome: (
@@ -132,6 +134,7 @@ export function MarketGroupCard({
   orderSides,
 }: MarketGroupCardProps): React.JSX.Element | null {
   const rules = selectedMarket.rules?.trim();
+  const showRules = Boolean(rules && onRulesPress);
   const yesOutcome = findOutcome(selectedMarket, 'yes');
   const noOutcome = findOutcome(selectedMarket, 'no');
 
@@ -141,26 +144,30 @@ export function MarketGroupCard({
 
   return (
     <MarketCard.Root testID={MarketGroupCardTestIds.card(groupKey)}>
-      <Box twClassName="flex-row items-center gap-2">
-        <Box twClassName="min-w-0 flex-1">
-          <MarketCard.Title testID={MarketGroupCardTestIds.title(groupKey)}>
-            {title}
-          </MarketCard.Title>
+      {title || showRules ? (
+        <Box twClassName="flex-row items-center gap-2">
+          <Box twClassName="min-w-0 flex-1">
+            {title ? (
+              <MarketCard.Title testID={MarketGroupCardTestIds.title(groupKey)}>
+                {title}
+              </MarketCard.Title>
+            ) : null}
+          </Box>
+          {showRules ? (
+            <ButtonIcon
+              iconName={IconName.Question}
+              size={ButtonIconSize.Sm}
+              iconProps={{ color: IconColor.IconAlternative }}
+              onPress={() => onRulesPress?.(selectedMarket)}
+              testID={MarketGroupCardTestIds.rulesButton(groupKey)}
+              accessibilityLabel={strings(
+                'predict.rules.market_accessibility_label',
+              )}
+              accessibilityRole="button"
+            />
+          ) : null}
         </Box>
-        {rules ? (
-          <ButtonIcon
-            iconName={IconName.Question}
-            size={ButtonIconSize.Sm}
-            iconProps={{ color: IconColor.IconAlternative }}
-            onPress={() => onRulesPress(selectedMarket)}
-            testID={MarketGroupCardTestIds.rulesButton(groupKey)}
-            accessibilityLabel={strings(
-              'predict.rules.market_accessibility_label',
-            )}
-            accessibilityRole="button"
-          />
-        ) : null}
-      </Box>
+      ) : null}
       <Box twClassName="gap-3">
         {orderSides(selectedMarket).map((side) => {
           const outcome = side === 'yes' ? yesOutcome : noOutcome;
