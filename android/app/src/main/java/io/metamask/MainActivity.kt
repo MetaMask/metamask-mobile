@@ -79,6 +79,15 @@ class MainActivity : ReactActivity() {
         BrazeReactUtils.populateInitialPushPayloadFromIntent(intent)
 
         super.onNewIntent(intent)
+
+        // `metamask://` links already carry their destination and are consumed
+        // by React Native Linking. Sending them through Branch adds an
+        // avoidable network round-trip before JS can handle them. Keep Branch
+        // for the other custom schemes until they are migrated too.
+        if (intent.data?.scheme.equals("metamask", ignoreCase = true)) {
+            return
+        }
+
         /*
          * if activity is in foreground (or in backstack but partially visible) launch the same
          * activity will skip onStart, handle this case with reInit
