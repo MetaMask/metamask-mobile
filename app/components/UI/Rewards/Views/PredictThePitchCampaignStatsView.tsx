@@ -13,18 +13,16 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import PredictThePitchStatsHeader from '../components/Campaigns/PredictThePitchStatsHeader';
 import { StatCell } from '../components/Campaigns/OndoCampaignStatsSummary';
 import { useGetPredictThePitchLeaderboardPosition } from '../hooks/useGetPredictThePitchLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import { selectCampaignById } from '../../../../reducers/rewards/selectors';
-import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import {
   formatPercentChange,
   formatRewardsTimeOnly,
@@ -135,22 +133,13 @@ const PredictThePitchCampaignStatsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
+        <CampaignViewHeader
           title={strings('rewards.predict_the_pitch_campaign.stats_title')}
-          titleProps={{ variant: TextVariant.HeadingSm }}
-          onBack={() => navigation.goBack()}
-          backButtonProps={{ testID: 'predict-the-pitch-stats-back-button' }}
-          endButtonIconProps={getCampaignMechanicsButtonProps(
-            campaign != null,
-            () =>
-              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-                campaignId,
-              }),
-            'predict-the-pitch-stats-mechanics-button',
-          )}
-          includesTopInset
+          backButtonTestID="predict-the-pitch-stats-back-button"
+          mechanicsButtonTestID="predict-the-pitch-stats-mechanics-button"
+          hasCampaign={campaign != null}
+          campaignId={campaignId}
+          isGlass={isGlassHeader}
         />
         <ScrollView
           showsVerticalScrollIndicator={false}

@@ -22,6 +22,56 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
   REWARDS_CAMPAIGN_MECHANICS: 'REWARDS_CAMPAIGN_MECHANICS',
 }));
 
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        title,
+        onBack,
+        backButtonProps,
+        endButtonIconProps,
+        isGlass,
+        isFloating,
+      }: {
+        title: string;
+        onBack: () => void;
+        backButtonProps?: { testID?: string };
+        endButtonIconProps?: { testID?: string; onPress?: () => void }[];
+        isGlass?: boolean;
+        isFloating?: boolean;
+      }) =>
+        ReactActual.createElement(
+          View,
+          {
+            testID: isGlass ? 'campaign-header-glass' : 'campaign-header-plain',
+          },
+          ReactActual.createElement(Text, null, title),
+          ReactActual.createElement(View, {
+            testID:
+              isFloating === false
+                ? 'campaign-header-docked'
+                : 'campaign-header-floating',
+          }),
+          ReactActual.createElement(Pressable, {
+            onPress: onBack,
+            testID: backButtonProps?.testID,
+          }),
+          ...(endButtonIconProps ?? []).map((btn, i) =>
+            ReactActual.createElement(Pressable, {
+              key: i,
+              onPress: btn.onPress,
+              testID: btn.testID,
+            }),
+          ),
+        ),
+    };
+  },
+);
+
 const defaultProps = {
   title: 'Test Title',
   backButtonTestID: 'test-back-button',
@@ -64,5 +114,19 @@ describe('CampaignViewHeader', () => {
     expect(mockNavigate).toHaveBeenCalledWith('REWARDS_CAMPAIGN_MECHANICS', {
       campaignId: 'campaign-123',
     });
+  });
+
+  it('renders the plain docked header when isGlass is omitted', () => {
+    const { getByTestId } = render(<CampaignViewHeader {...defaultProps} />);
+    expect(getByTestId('campaign-header-plain')).toBeDefined();
+    expect(getByTestId('campaign-header-docked')).toBeDefined();
+  });
+
+  it('renders the glass header when isGlass is true', () => {
+    const { getByTestId } = render(
+      <CampaignViewHeader {...defaultProps} isGlass />,
+    );
+    expect(getByTestId('campaign-header-glass')).toBeDefined();
+    expect(getByTestId('campaign-header-docked')).toBeDefined();
   });
 });

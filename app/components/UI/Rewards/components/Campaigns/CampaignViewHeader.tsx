@@ -1,10 +1,8 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import {
-  HeaderStandard,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { TextVariant } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getCampaignMechanicsButtonProps } from '../../utils/campaignHeaderUtils';
 
@@ -14,6 +12,11 @@ interface CampaignViewHeaderProps {
   mechanicsButtonTestID: string;
   hasCampaign: boolean;
   campaignId: string;
+  /**
+   * When true, the header follows the glass treatment. Callers pass the
+   * glass-headers flag. Omit it to keep the plain compact header.
+   */
+  isGlass?: boolean;
 }
 
 const CampaignViewHeader: React.FC<CampaignViewHeaderProps> = ({
@@ -22,10 +25,13 @@ const CampaignViewHeader: React.FC<CampaignViewHeaderProps> = ({
   mechanicsButtonTestID,
   hasCampaign,
   campaignId,
+  isGlass = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   return (
-    <HeaderStandard
+    <HeaderStandardGlass
+      isGlass={isGlass}
+      isFloating={false}
       title={title}
       titleProps={{ variant: TextVariant.HeadingSm }}
       onBack={() => navigation.goBack()}

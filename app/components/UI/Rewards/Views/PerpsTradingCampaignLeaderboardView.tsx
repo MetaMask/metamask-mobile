@@ -2,25 +2,23 @@ import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { Box, TextVariant } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import PerpsTradingCampaignLeaderboard from '../components/Campaigns/PerpsTradingCampaignLeaderboard';
 import PerpsTradingCampaignStatsHeader from '../components/Campaigns/PerpsTradingCampaignStatsHeader';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import {
   selectReferralCode,
   selectCampaignById,
 } from '../../../../reducers/rewards/selectors';
-import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -91,22 +89,13 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PERPS_CAMPAIGN_LEADERBOARD_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
+        <CampaignViewHeader
           title={strings('rewards.perps_trading_campaign.leaderboard_title')}
-          titleProps={{ variant: TextVariant.HeadingSm }}
-          onBack={() => navigation.goBack()}
-          backButtonProps={{ testID: 'perps-leaderboard-back-button' }}
-          endButtonIconProps={getCampaignMechanicsButtonProps(
-            campaign != null,
-            () =>
-              navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-                campaignId,
-              }),
-            'perps-leaderboard-mechanics-button',
-          )}
-          includesTopInset
+          backButtonTestID="perps-leaderboard-back-button"
+          mechanicsButtonTestID="perps-leaderboard-mechanics-button"
+          hasCampaign={campaign != null}
+          campaignId={campaignId}
+          isGlass={isGlassHeader}
         />
         <ScrollView
           showsVerticalScrollIndicator={false}
