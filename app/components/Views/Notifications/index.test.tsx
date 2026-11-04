@@ -72,22 +72,6 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-const mockGlassHeadersEnabledState: DeepPartial<RootState> = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          glassHeaders: {
-            enabled: true,
-            minimumVersion: '0.0.0',
-          },
-        },
-      },
-    },
-  },
-};
-
 const mockNotificationsDisabledState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
@@ -271,14 +255,12 @@ describe('useMarkAsReadCallback', () => {
     expect(Logger.error).not.toHaveBeenCalled();
   });
 
-  it('leaves mark-all-as-read rejections unlogged when glass headers are off', async () => {
+  it('logs mark-all-as-read rejections when glass headers are off', async () => {
     const mocks = arrangeMocks();
-    const markFailure = Promise.reject(new Error('mark failed'));
-    const badgeFailure = Promise.reject(new Error('badge failed'));
-    void markFailure.catch(() => undefined);
-    void badgeFailure.catch(() => undefined);
-    mocks.mockMarkNotificationsAsRead.mockReturnValue(markFailure);
-    mocks.mockSetBadgeCount.mockReturnValue(badgeFailure);
+    const markFailure = new Error('mark failed');
+    const badgeFailure = new Error('badge failed');
+    mocks.mockMarkNotificationsAsRead.mockRejectedValue(markFailure);
+    mocks.mockSetBadgeCount.mockRejectedValue(badgeFailure);
     const notifications = [
       processNotification(createMockNotificationEthSent()),
     ];
@@ -291,9 +273,14 @@ describe('useMarkAsReadCallback', () => {
       hook.result.current.handleMarkAllAsRead();
     });
 
-    expect(mocks.mockMarkNotificationsAsRead).toHaveBeenCalled();
-    expect(mocks.mockSetBadgeCount).toHaveBeenCalled();
-    expect(Logger.error).not.toHaveBeenCalled();
+    expect(Logger.error).toHaveBeenCalledWith(
+      markFailure,
+      'Failed to mark all notifications as read',
+    );
+    expect(Logger.error).toHaveBeenCalledWith(
+      badgeFailure,
+      'Failed to clear the notification badge',
+    );
   });
 
   it('logs when marking notifications as read rejects', async () => {
@@ -305,7 +292,7 @@ describe('useMarkAsReadCallback', () => {
     ];
     const hook = renderHookWithProvider(
       () => useMarkAsReadCallback({ notifications }),
-      { state: mockGlassHeadersEnabledState },
+      { state: mockInitialState },
     );
 
     await act(async () => {
@@ -328,7 +315,7 @@ describe('useMarkAsReadCallback', () => {
     ];
     const hook = renderHookWithProvider(
       () => useMarkAsReadCallback({ notifications }),
-      { state: mockGlassHeadersEnabledState },
+      { state: mockInitialState },
     );
 
     await act(async () => {
