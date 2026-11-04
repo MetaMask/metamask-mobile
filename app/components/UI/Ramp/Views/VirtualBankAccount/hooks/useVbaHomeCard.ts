@@ -121,8 +121,8 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
  * every session rule, whatever the eligibility gate says, but only until the
  * account details have been viewed once (unknown while loading counts as
  * viewed). After that the Money home Details button is the way back, and the
- * card is `none`. An approved session without a usable autoramp still gets
- * the card, because its CTA is how the account gets created.
+ * card is `none`. The flag only applies once a usable autoramp exists; an
+ * approved session without one falls through to the session rules unchanged.
  *
  * Rules 1–2 (none and get_started) short-circuit before the session rules, so
  * an approved session always reaches rule 3 and a fresh user without any

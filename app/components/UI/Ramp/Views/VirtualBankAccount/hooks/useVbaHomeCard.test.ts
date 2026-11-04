@@ -515,18 +515,28 @@ describe('getVbaHomeCard', () => {
     },
   );
 
-  it('keeps account_is_ready for an approved session without a usable autoramp even after details were viewed', () => {
-    // Its CTA is how the account gets (re)created, so it must stay.
-    const card = getVbaHomeCard({
+  it('ignores the details-viewed flag for an approved session without a usable autoramp', () => {
+    // Its CTA is how the account gets (re)created, so the flag must not hide
+    // it. Compared against the not-viewed result so this holds whichever card
+    // the session rules pick for that state.
+    const approvedWithoutAccount = {
       ...baseInputs,
-      hasViewedAccountDetails: true,
       sessionStatus: makeSession({
         finalStatus: 'approved',
         kycStatus: 'approved',
       }),
+    };
+    const notViewedCard = getVbaHomeCard({
+      ...approvedWithoutAccount,
+      hasViewedAccountDetails: false,
     });
 
-    expect(card).toEqual({ type: 'account_is_ready' });
+    expect(notViewedCard).not.toEqual({ type: 'none' });
+    for (const hasViewedAccountDetails of [true, null]) {
+      expect(
+        getVbaHomeCard({ ...approvedWithoutAccount, hasViewedAccountDetails }),
+      ).toEqual(notViewedCard);
+    }
   });
 
   it.each([
