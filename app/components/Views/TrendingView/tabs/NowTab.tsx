@@ -15,7 +15,10 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictAvailability } from '../../../UI/PredictNext';
+import {
+  selectPredictAvailability,
+  usePredictEntryActions,
+} from '../../../UI/PredictNext';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -219,6 +222,7 @@ const NowTabContent: React.FC<TabProps> = ({
   onRefresh,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -307,7 +311,7 @@ const NowTabContent: React.FC<TabProps> = ({
             testIdPrefix="predict-market-row-item"
             idPrefix="predictions"
             onViewAll={() =>
-              navigateToExplorePredictionsList(navigation, 'trending')
+              navigateToExplorePredictionsList(openPredict, 'trending')
             }
             isEnabled={isPredictEnabled}
           />
@@ -433,6 +437,7 @@ const NowTabContent: React.FC<TabProps> = ({
     displayedPredictions,
     isPredictEnabled,
     navigation,
+    openPredict,
     cryptoMovers.data,
     cryptoMovers.isLoading,
     refresh,
