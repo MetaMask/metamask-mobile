@@ -278,6 +278,7 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
+app/components/Views/SocialLeaderboard/ManageProfileView         @MetaMask/accounts-engineers
 
 # Predict Team
 app/components/UI/Predict/                                              @MetaMask/predict
@@ -292,7 +293,6 @@ app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts            @MetaMas
 app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts @MetaMask/predict
 **/Predict/**                                                           @MetaMask/predict
 **/predict/**                                                           @MetaMask/predict
-app/components/Views/Homepage/Sections/Predictions/                     @MetaMask/predict
 
 # Assets Team
 app/*/assets/** @MetaMask/metamask-assets
@@ -487,6 +487,8 @@ app/core/Analytics/events/activity/                         @MetaMask/mobile-cor
 # Feature-specific Activity templates (co-owned)
 app/components/Views/ActivityDetails/templates/Perps/       @MetaMask/perps @MetaMask/mobile-core-ux
 app/components/Views/ActivityDetails/templates/Ramps/       @MetaMask/money-movement @MetaMask/mobile-core-ux
+app/components/Views/ActivityDetails/templates/Earn/        @MetaMask/earn @MetaMask/mobile-core-ux
+app/util/activity-adapters/adapters/earn/                   @MetaMask/earn @MetaMask/mobile-core-ux
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

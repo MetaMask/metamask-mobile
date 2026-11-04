@@ -21,7 +21,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import {
   useCardHeaderHandlers,
@@ -50,6 +49,8 @@ import AccountRow from './components/AccountRow';
 import TokenRow from './components/TokenRow';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
 import { SpendingLimitSelectors } from './SpendingLimit.testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const ONBOARDING_LOAD_TIMEOUT_MS = 30_000;
 
@@ -88,6 +89,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     ? 'close-reset-home'
     : 'back';
   const headerHandlers = useCardHeaderHandlers(headerMode);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const selectedTokenFromRoute = route?.params?.selectedToken;
   const {
     primaryToken,
@@ -259,7 +261,9 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
@@ -287,7 +291,9 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
@@ -336,7 +342,9 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}

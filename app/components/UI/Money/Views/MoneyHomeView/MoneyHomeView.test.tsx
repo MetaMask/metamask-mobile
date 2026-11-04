@@ -42,6 +42,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import {
   type MoneyHomeSegment,
   useMoneyHomePerformance,
@@ -480,6 +481,7 @@ const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
+const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard',
   () => ({
@@ -487,6 +489,10 @@ jest.mock(
     useVbaHomeCardRefresh: jest.fn(),
   }),
 );
+
+jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
+  useVbaTransactionRefresh: jest.fn(),
+}));
 
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
 jest.mock(
@@ -1057,6 +1063,16 @@ describe('MoneyHomeView', () => {
       expect(mockUseVbaHomeCardRefresh).toHaveBeenCalledTimes(1);
     });
 
+    it('wires the VBA autoramp transaction refresh on mount', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'none',
+      } as VbaHomeCard);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseVbaTransactionRefresh).toHaveBeenCalledTimes(1);
+    });
+
     it('remounts the card with fresh dismiss state when the variant changes', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_decision',
@@ -1625,12 +1641,12 @@ describe('MoneyHomeView', () => {
         });
       });
 
-      it('disables Transfer button for sub-cent (dust) balance', () => {
+      it('enables Transfer button for sub-cent (dust) balance', () => {
         const { getByTestId } = renderWithProvider(<MoneyHomeView />);
         const transferButton = getByTestId(
           MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
         );
-        expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+        expect(transferButton.props.accessibilityState?.disabled).toBeFalsy();
       });
 
       it('hides MoneyEarnings for dust balance', () => {
@@ -2049,7 +2065,7 @@ describe('MoneyHomeView', () => {
       expect(transferButton.props.accessibilityState?.disabled).toBe(true);
     });
 
-    it('disables Transfer button when account has zero balance', () => {
+    it('enables Transfer button when account has zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
@@ -2063,10 +2079,10 @@ describe('MoneyHomeView', () => {
         MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
       );
 
-      expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+      expect(transferButton.props.accessibilityState?.disabled).toBeFalsy();
     });
 
-    it('does not navigate to Transfer sheet when Transfer button is pressed while disabled', () => {
+    it('navigates to Transfer sheet when Transfer button is pressed with zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
@@ -2079,7 +2095,7 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
       });
     });

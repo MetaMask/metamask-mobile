@@ -25,10 +25,11 @@ import {
   FontWeight,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import HeaderSubpageGlass from '../../../../component-library/components-temp/HeaderSubpageGlass';
-import { formatAddress } from '../../../../util/address';
+import { toFormattedAddress } from '../../../../util/address';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenDetails';
@@ -40,6 +41,20 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
+
+const COMPACT_ADDRESS_EDGE_LENGTH = 4;
+
+const formatCompactContractAddress = (address: string): string => {
+  const formatted = toFormattedAddress(address);
+  const tail = formatted.slice(-COMPACT_ADDRESS_EDGE_LENGTH);
+  if (formatted.toLowerCase().startsWith('0x')) {
+    return `0x..${tail}`;
+  }
+  if (formatted.length <= COMPACT_ADDRESS_EDGE_LENGTH * 2) {
+    return formatted;
+  }
+  return `${formatted.slice(0, COMPACT_ADDRESS_EDGE_LENGTH)}..${tail}`;
+};
 
 export const TokenDetailsInlineHeader = ({
   token,
@@ -86,6 +101,7 @@ export const TokenDetailsInlineHeader = ({
   /** The page's scroll offset, which fades the glass backdrop in. */
   scrollY?: SharedValue<number>;
 }) => {
+  const tw = useTailwind();
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData, tdpVersion);
@@ -198,8 +214,14 @@ export const TokenDetailsInlineHeader = ({
     );
   }, [starButton, onPriceAlertPress, onSharePress, isGlass]);
 
+  const tokenName = token.name?.trim() || token.ticker || token.symbol;
+  const tokenTicker = token.ticker || token.symbol;
+  const showTickerBelowName = Boolean(
+    tokenTicker && tokenName && tokenTicker !== tokenName,
+  );
+
   const inlineDescription = useMemo(() => {
-    if (!contractAddress) {
+    if (!showTickerBelowName && !contractAddress) {
       return undefined;
     }
 
@@ -207,43 +229,91 @@ export const TokenDetailsInlineHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        twClassName="w-full min-w-0 gap-1"
+        testID="token-details-subtitle"
       >
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          {formatAddress(contractAddress, 'short')}
-        </Text>
-        <ButtonIcon
-          iconName={IconName.Copy}
-          size={ButtonIconSize.Xs}
-          onPress={handleCopyContractAddress}
-          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-          testID="copy-contract-address-button"
-          accessibilityLabel={strings('token.contract_address')}
-        />
+        {showTickerBelowName ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            twClassName="shrink min-w-0"
+            testID="token-details-ticker"
+          >
+            {tokenTicker}
+          </Text>
+        ) : null}
+        {contractAddress ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="shrink-0 gap-1"
+            testID="token-details-address"
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {formatCompactContractAddress(contractAddress)}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Copy}
+              size={ButtonIconSize.Xs}
+              onPress={handleCopyContractAddress}
+              iconProps={{
+                color: IconColor.IconAlternative,
+                size: IconSize.Sm,
+              }}
+              testID="copy-contract-address-button"
+              accessibilityLabel={strings('token.contract_address')}
+            />
+          </Box>
+        ) : null}
       </Box>
     );
-  }, [contractAddress, handleCopyContractAddress]);
+  }, [
+    contractAddress,
+    handleCopyContractAddress,
+    showTickerBelowName,
+    tokenTicker,
+  ]);
 
   const headerDescription = useMemo(() => {
-    const content = description ?? inlineDescription;
-    if (!content) {
+    if (description) {
+      return (
+        <Animated.View
+          key="live-price"
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
+        >
+          {description}
+        </Animated.View>
+      );
+    }
+
+    return inlineDescription ? <Box /> : undefined;
+  }, [description, inlineDescription]);
+
+  const subtitleAccessory = useMemo(() => {
+    if (description || !inlineDescription) {
       return undefined;
     }
 
     return (
       <Animated.View
-        key={description ? 'live-price' : 'contract-address'}
+        key="contract-address"
         entering={FadeIn.duration(AnimationDuration.Fast)}
         exiting={FadeOut.duration(AnimationDuration.Fast)}
+        style={tw.style('min-w-0 flex-1 -ml-1')}
       >
-        {content}
+        {inlineDescription}
       </Animated.View>
     );
-  }, [description, inlineDescription]);
+  }, [description, inlineDescription, tw]);
 
   return (
     <HeaderSubpageGlass
@@ -273,9 +343,10 @@ export const TokenDetailsInlineHeader = ({
           <AssetLogo asset={token} />
         </BadgeWrapper>
       }
-      title={token.ticker || token.symbol}
+      title={tokenName}
       titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
       description={headerDescription}
+      descriptionEndAccessory={subtitleAccessory}
     />
   );
 };

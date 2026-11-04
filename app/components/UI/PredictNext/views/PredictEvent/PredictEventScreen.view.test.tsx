@@ -4,6 +4,7 @@ import {
   composePredictNextPortfolioTrading,
   configurePredictNextFeeds,
   makePredictNextCompositeGameEvent,
+  makePredictNextLaidOutGameEvent,
   makePredictNextMultiMarketEvent,
   makePredictNextPosition,
   makePredictNextSellPreview,
@@ -1016,6 +1017,37 @@ describe('PredictEventScreen', () => {
     );
   });
 
+  it('loads Game history from the full-game choice group when period moneylines come first', async () => {
+    resolveEventForRoute(makePredictNextLaidOutGameEvent());
+
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+    expect(messengerCall.mock.calls).toEqual(
+      expect.arrayContaining([
+        [
+          'PredictMarketDataService:getMarketHistory',
+          venueId,
+          'nfl-composite-away-market',
+          'ALL',
+        ],
+        [
+          'PredictMarketDataService:getMarketHistory',
+          venueId,
+          'nfl-composite-home-market',
+          'ALL',
+        ],
+      ]),
+    );
+    const requestedMarketIds = messengerCall.mock.calls
+      .filter(
+        ([action]) => action === 'PredictMarketDataService:getMarketHistory',
+      )
+      .map(([, , marketId]) => marketId);
+    expect(requestedMarketIds).not.toContain('nfl-composite-1h-away');
+    expect(requestedMarketIds).not.toContain('nfl-composite-1h-home');
+  });
+
   it('keeps winner Market history when a grouped Game line is selected', async () => {
     resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
@@ -1976,9 +2008,12 @@ describe('PredictEventScreen', () => {
         await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB),
       );
 
-      expect(
-        view.getByTestId(EventMarketListTestIds.positionRow('market-1', 'yes')),
-      ).toBeOnTheScreen();
+      // The held row is on the second Positions page. The tab can paint
+      // before that page is appended, so wait for the row itself.
+      const laterPageRow = await view.findByTestId(
+        EventMarketListTestIds.positionRow('market-1', 'yes'),
+      );
+      expect(laterPageRow).toBeOnTheScreen();
       expect(
         view.getByTestId(
           EventMarketListTestIds.positionCashOut('market-1', 'yes'),

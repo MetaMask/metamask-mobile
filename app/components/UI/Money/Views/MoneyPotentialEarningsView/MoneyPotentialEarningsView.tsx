@@ -8,7 +8,6 @@ import { BigNumber } from 'bignumber.js';
 import {
   Box,
   Button,
-  ButtonIcon,
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
@@ -19,7 +18,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -48,8 +46,12 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MoneyNavigationParamList } from '../../types/navigation';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 
 const MoneyPotentialEarningsView = () => {
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
@@ -275,13 +277,16 @@ const MoneyPotentialEarningsView = () => {
       style={[styles.safeArea, { paddingTop: insets.top }]}
       testID={MoneyPotentialEarningsViewTestIds.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBackPress}
         backButtonProps={{
           testID: MoneyPotentialEarningsViewTestIds.BACK_BUTTON,
         }}
         endAccessory={
-          <ButtonIcon
+          <ButtonIconGlass
+            isCapsule={isGlassHeader}
             iconName={IconName.Info}
             size={ButtonIconSize.Md}
             onPress={handleInfoPress}
