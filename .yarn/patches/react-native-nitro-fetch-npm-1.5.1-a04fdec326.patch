@@ -17,8 +17,8 @@ index 0d91c71368388fa1eed6c1b97993539657ac086c..a470f7da8760d5dc7d16ae1c7f0e0c8e
    try {
 -    const dynamicRequire = require;
 -    const mod = dynamicRequire('react-native-nitro-text-decoder');
-+    // MetaMask patch: static require so Metro bundles it. An aliased require with a
-+    // string id is reported as fatal by metro-runtime in release builds (#38849).
++    // MetaMask patch (#38849, test: app/core/NitroFetchDataUrl.test.ts): static require so Metro
++    // bundles it; an aliased require is fatal in release builds. Drop once fixed upstream.
 +    const mod = require('react-native-nitro-text-decoder');
      if (mod && typeof mod.TextDecoder === 'function') {
        _decoder = new mod.TextDecoder('utf-8', {
@@ -42,8 +42,8 @@ index e61e64b562f260be7f51cb7f90badf538ccbab2d..340727ec6119ce0bec82534a645c1e56
    try {
 -    const dynamicRequire = require;
 -    const mod = dynamicRequire('react-native-nitro-text-decoder') as {
-+    // MetaMask patch: static require so Metro bundles it. An aliased require with a
-+    // string id is reported as fatal by metro-runtime in release builds (#38849).
++    // MetaMask patch (#38849, test: app/core/NitroFetchDataUrl.test.ts): static require so Metro
++    // bundles it; an aliased require is fatal in release builds. Drop once fixed upstream.
 +    const mod = require('react-native-nitro-text-decoder') as {
        TextDecoder?: TextDecoderCtor;
      };

@@ -44819,7 +44819,7 @@ __metadata:
 
 "react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.5.1#~/.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch":
   version: 1.5.1
-  resolution: "react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.5.1#~/.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch::version=1.5.1&hash=6af52f"
+  resolution: "react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.5.1#~/.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch::version=1.5.1&hash=aa3682"
   dependencies:
     web-streams-polyfill: "npm:^4.2.0"
   peerDependencies:
@@ -44830,7 +44830,7 @@ __metadata:
   peerDependenciesMeta:
     react-native-worklets:
       optional: true
-  checksum: 10/18bce2b6e69f2ef0820abe4a04d6aac579012db3cba7cae34a43ced5271382c9e6a9f36ad76489744b7c0997ed620cbda6bae89cede37784166068fd0f0ad77d
+  checksum: 10/ed8d92d3072aec7f26567155e8244e9c62bcb7d6b44590bf18f21b6db6ac4a83b3c9c30a034a2ddbf657031154bdf371da764346fa4304f27cc67fdc7a7f63cd
   languageName: node
   linkType: hard
 

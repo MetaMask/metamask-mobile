@@ -11,7 +11,11 @@
  *
  * Jest does not use Metro, so this test runs the installed (patched) decoder
  * code through Metro's real dependency collection, module wrapping and
- * release (`__DEV__ = false`) require runtime.
+ * release (`__DEV__ = false`) require runtime. The collectDependencies /
+ * wrapModule options mirror metro-transform-worker@0.84.5 (release build) and
+ * the source slicing targets react-native-nitro-fetch@1.5.1: revisit this test
+ * and the yarn patch when bumping either, and delete both once nitro-fetch
+ * ships a static require upstream.
  */
 /* eslint-disable import-x/no-nodejs-modules, import-x/no-extraneous-dependencies */
 import fs from 'fs';
@@ -59,7 +63,11 @@ const readDataUrlHelpers = (): string => {
   const start = source.indexOf('function base64ToBytes(');
   const end = source.indexOf('async function fetchLocalResource(');
   if (start < 0 || end < 0) {
-    throw new Error('nitro-fetch data: URL helpers not found');
+    throw new Error(
+      'nitro-fetch data: URL helpers not found in lib/module/fetch.js. ' +
+        'react-native-nitro-fetch was likely bumped: re-check the yarn patch ' +
+        'for #38849 and update this test.',
+    );
   }
   return `${source.slice(start, end)}\nexports.decodeDataUrl = decodeDataUrl;\n`;
 };
@@ -177,10 +185,12 @@ describe('react-native-nitro-fetch data: URL decoding in a release Metro bundle'
   });
 
   it('reports a fatal error for the unpatched aliased require (guards the harness)', () => {
-    const unpatched = readDataUrlHelpers().replace(
+    const patched = readDataUrlHelpers();
+    const unpatched = patched.replace(
       `require('${TEXT_DECODER_MODULE}')`,
       `(() => { const dynamicRequire = require; return dynamicRequire('${TEXT_DECODER_MODULE}'); })()`,
     );
+    expect(unpatched).not.toBe(patched);
     const { dataUrlModule, dependencyNames, reportFatalError } =
       loadInReleaseMetroRuntime(unpatched);
 
