@@ -61,7 +61,7 @@ const DefaultSettings = () => {
         onBack={() => navigation.goBack()}
       />
       <ScrollView style={[tw.style('flex-1'), { marginTop: headerInset }]}>
-        <Box twClassName="px-4">
+        <Box twClassName="px-4 pt-2">
           <Text variant={TextVariant.BodyMd}>
             {strings('default_settings.description')}{' '}
             <TextButton onPress={handleLink}>
