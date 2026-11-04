@@ -1620,7 +1620,20 @@ describe('PredictEventScreen', () => {
   });
 
   it('renders the observed score, period, and clock for an in-progress Game', async () => {
-    resolveEvent(createGameEvent());
+    resolveEvent(
+      createGameEvent({
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          primaryColor: homeTeamColor,
+          logoUrl: 'https://example.com/car.png' as NonNullable<
+            NonNullable<
+              NonNullable<PredictEvent['sports']>['game']
+            >['homeTeam']['logoUrl']
+          >,
+        },
+      }),
+    );
     const view = renderPredictEventScreen(routeParams);
 
     const header = await view.findByTestId(
@@ -1646,10 +1659,15 @@ describe('PredictEventScreen', () => {
       within(header).getByTestId(PredictEventScreenTestIds.GAME_METADATA),
     ).toHaveTextContent('Q4 · 12:22');
     expect(
-      within(header).getByTestId(
-        PredictEventScreenTestIds.teamLogoFallback('home'),
-      ),
-    ).toHaveTextContent('CAR');
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('away'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+    ).toHaveStyle({ transform: [{ scaleX: -1 }] });
   });
 
   it('applies live Game updates to the Event header', async () => {

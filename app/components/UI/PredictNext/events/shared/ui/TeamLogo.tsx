@@ -22,6 +22,8 @@ export interface TeamLogoProps {
   /** Shown when the Team has no logo or it fails to load. */
   abbreviation: string;
   size?: TeamLogoSize;
+  /** Mirror horizontally so a helmet on the right faces its opponent. */
+  flipped?: boolean;
   testID?: string;
   fallbackTestID?: string;
 }
@@ -31,6 +33,7 @@ export const TeamLogo = ({
   team,
   abbreviation,
   size = 'small',
+  flipped = false,
   testID,
   fallbackTestID,
 }: TeamLogoProps) => {
@@ -48,7 +51,11 @@ export const TeamLogo = ({
       {showImage ? (
         <ExpoImage
           source={team.logoUrl}
-          style={tw.style(sizeClassName)}
+          style={
+            flipped
+              ? [tw.style(sizeClassName), { transform: [{ scaleX: -1 }] }]
+              : tw.style(sizeClassName)
+          }
           contentFit="contain"
           recyclingKey={team.logoUrl}
           onError={() => setFailed(true)}
