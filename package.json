@@ -188,12 +188,6 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/transaction-pay-controller": {
-      "type": "non-breaking",
-      "previewVersion": "30.3.3-preview-543acb9"
-    }
-  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -484,7 +478,7 @@
     "@metamask/superstruct": "^3.4.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^72.3.0",
-    "@metamask/transaction-pay-controller": "^30.3.1",
+    "@metamask/transaction-pay-controller": "^30.4.1",
     "@metamask/tron-wallet-snap": "^4.3.0",
     "@metamask/utils": "^12.0.0",
     "@metamask/wallet": "^18.0.0",
