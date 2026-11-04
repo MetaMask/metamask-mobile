@@ -2261,10 +2261,7 @@ export class CardController extends BaseController<
         this.#linkWalletSignInIfMissing(pid, linkAddress, tokenSet);
       }
 
-      if (
-        this.#isCardLinkApiEnabled() &&
-        this.state.cardLinks?.length === 0
-      ) {
+      if (this.#isCardLinkApiEnabled() && this.state.cardLinks?.length === 0) {
         this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_MISSED_AT_LOGIN, {
           provider: pid,
         });
@@ -2446,7 +2443,9 @@ export class CardController extends BaseController<
     } | null;
     this.#recordProviderLoginWithLogging(
       CardProviderIds.Baanx,
-      home?.account?.verificationStatus === 'VERIFIED' ? 'active' : 'onboarding',
+      home?.account?.verificationStatus === 'VERIFIED'
+        ? 'active'
+        : 'onboarding',
     );
   }
 

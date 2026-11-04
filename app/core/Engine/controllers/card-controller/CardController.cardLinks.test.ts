@@ -913,17 +913,19 @@ describe('CardController card links', () => {
       jest.spyOn(controller, 'validateAndRefreshSession').mockResolvedValue({
         isAuthenticated: true,
       });
-      jest.spyOn(controller, 'fetchCardHomeData').mockImplementation(async () => {
-        (
-          controller as unknown as {
-            update: (fn: (state: { cardHomeData: unknown }) => void) => void;
-          }
-        ).update((state) => {
-          state.cardHomeData = {
-            account: { verificationStatus: 'VERIFIED' },
-          };
+      jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockImplementation(async () => {
+          (
+            controller as unknown as {
+              update: (fn: (state: { cardHomeData: unknown }) => void) => void;
+            }
+          ).update((state) => {
+            state.cardHomeData = {
+              account: { verificationStatus: 'VERIFIED' },
+            };
+          });
         });
-      });
 
       await controller.syncSessionAfterExternalAuth();
       await flush();
@@ -1561,10 +1563,7 @@ describe('CardController card links', () => {
       },
     };
 
-    const resolve = (
-      controller: CardController,
-      country = 'US',
-    ) =>
+    const resolve = (controller: CardController, country = 'US') =>
       controller.resolveSignIn({
         country,
         candidateAddresses: [SELECTED_ADDRESS],
