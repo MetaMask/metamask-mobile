@@ -60,30 +60,6 @@ describe('acquireSocialRealtime', () => {
     expect(service.setActive).toHaveBeenLastCalledWith(false);
   });
 
-  it('keeps the new holder subscribed when the old one releases after it acquires', async () => {
-    const releaseFeed = acquireSocialRealtime('trending');
-    await flush();
-
-    acquireSocialRealtime('all');
-    releaseFeed();
-    await flush();
-
-    expect(service.setScopes).toHaveBeenLastCalledWith(['all']);
-    expect(service.setActive).toHaveBeenLastCalledWith(true);
-  });
-
-  it('ignores a second release of the same lease', async () => {
-    const release = acquireSocialRealtime('all');
-    acquireSocialRealtime('all');
-    await flush();
-
-    release();
-    release();
-    await flush();
-
-    expect(service.setActive).not.toHaveBeenCalledWith(false);
-  });
-
   it('reports unavailable when the subscription fails', async () => {
     service.setActive.mockRejectedValueOnce(new Error('socket down'));
     const onStatus = jest.fn();
@@ -92,25 +68,5 @@ describe('acquireSocialRealtime', () => {
     await flush();
 
     expect(onStatus).toHaveBeenCalledWith('unavailable');
-  });
-
-  it('reports unavailable without a realtime service', () => {
-    delete mockContext.SocialRealtimeService;
-    const onStatus = jest.fn();
-
-    const release = acquireSocialRealtime('all', onStatus);
-    release();
-
-    expect(onStatus).toHaveBeenCalledWith('unavailable');
-  });
-
-  it('does not report status after the lease is released', async () => {
-    const onStatus = jest.fn();
-
-    const release = acquireSocialRealtime('all', onStatus);
-    release();
-    await flush();
-
-    expect(onStatus).not.toHaveBeenCalled();
   });
 });

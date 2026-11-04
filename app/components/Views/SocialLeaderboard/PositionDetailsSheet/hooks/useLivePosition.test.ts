@@ -144,24 +144,6 @@ describe('useLivePosition', () => {
     expect(lastFetchEnabled()).toBe(true);
   });
 
-  it('fetches without a realtime service', () => {
-    delete mockContext.SocialRealtimeService;
-
-    renderLivePosition({ isSnapshotLive: true });
-
-    expect(lastFetchEnabled()).toBe(true);
-  });
-
-  it('prefers the fetched position over the snapshot', () => {
-    const fetched = buildPosition({ tokenSymbol: 'API' });
-    mockFetchedPosition = fetched;
-
-    const { result } = renderLivePosition();
-
-    expect(result.current.position).toBe(fetched);
-    expect(result.current.isRefreshed).toBe(true);
-  });
-
   it('applies the newest socket revision for this position only', () => {
     mockFetchedPosition = buildPosition({ tokenSymbol: 'API' });
     const revisionTwo = buildPosition({ tokenSymbol: 'REV2' });

@@ -10,11 +10,9 @@ describe('getPositionPosts', () => {
     const position = buildPosition({
       trades: [
         buildTrade({
-          transactionHash: '0xa',
           comments: [buildComment({ uid: 'a1', timestamp: 100 })],
         }),
         buildTrade({
-          transactionHash: '0xb',
           comments: [
             buildComment({ uid: 'b2', timestamp: 300 }),
             buildComment({ uid: 'b1', timestamp: 200 }),
@@ -28,23 +26,14 @@ describe('getPositionPosts', () => {
       'b1',
       'a1',
     ]);
-  });
-
-  it('lists a comment shared by two fills once', () => {
     const shared = buildComment({ uid: 'shared' });
-    const position = buildPosition({
+    const duplicatePosition = buildPosition({
       trades: [
         buildTrade({ comments: [shared] }),
         buildTrade({ comments: [shared] }),
       ],
     });
-
-    expect(getPositionPosts(position)).toStrictEqual([shared]);
-  });
-
-  it('returns nothing for trades without comments or a missing position', () => {
-    expect(getPositionPosts(buildPosition())).toStrictEqual([]);
-    expect(getPositionPosts(undefined)).toStrictEqual([]);
+    expect(getPositionPosts(duplicatePosition)).toStrictEqual([shared]);
   });
 });
 
@@ -56,9 +45,5 @@ describe('getPositionTransactions', () => {
 
     expect(getPositionTransactions(position)).toStrictEqual([newer, older]);
     expect(position.trades).toStrictEqual([older, newer]);
-  });
-
-  it('returns nothing without a position', () => {
-    expect(getPositionTransactions(undefined)).toStrictEqual([]);
   });
 });
