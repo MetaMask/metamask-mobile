@@ -11,13 +11,14 @@ import { createLoginHandler } from '../OAuthService/OAuthLoginHandlers';
 import {
   AuthConnectionConfig,
   AuthServerUrl,
-  GoogleWebGID,
-  SupportedPlatforms,
   web3AuthNetwork,
 } from '../OAuthService/OAuthLoginHandlers/constants';
 import { fromBase64UrlSafe } from '../OAuthService/OAuthLoginHandlers/utils';
+import { OAuthError, OAuthErrorType } from '../OAuthService/error';
+import { getAuthConnectionIdFromClientId } from '../OAuthService/OAuthService';
 import { toByteArray } from 'react-native-quick-base64';
-import Device from '../../util/device';
+import ReduxService from '../redux';
+import { selectTelegramLoginEnabled } from '../../selectors/featureFlagController/seedlessTelegramLogin';
 import type {
   Identifier,
   KeyBoundIdentifierLogin,
@@ -84,22 +85,6 @@ const decodeJwtPayload = (jwt: string): Record<string, unknown> => {
 
 const trimTrailingSlash = (value: string) => value.replace(/\/$/u, '');
 
-/**
- * Match {@link OAuthService} `getAuthConnectionIdFromClientId`: modern iOS
- * Google uses `GoogleWebGID` and must map to the Android auth connection IDs
- * that existing wallets were created with.
- */
-const resolveAuthConnectionConfig = (
-  authConnection: AuthConnection,
-  clientId: string,
-) => {
-  const platform =
-    Device.isAndroid() || clientId === GoogleWebGID
-      ? SupportedPlatforms.Android
-      : SupportedPlatforms.IOS;
-  return AuthConnectionConfig[platform][authConnection];
-};
-
 const buildSeedlessAuthData = (
   authConnection: AuthConnection,
   authResponse: AuthResponse,
@@ -107,23 +92,47 @@ const buildSeedlessAuthData = (
   clientId: string,
   socialLoginEmail?: string,
 ): SeedlessAuthData => {
-  const config = resolveAuthConnectionConfig(authConnection, clientId);
+  const config = getAuthConnectionIdFromClientId({
+    clientId,
+    authConnection,
+    authConnectionConfig: AuthConnectionConfig,
+  });
   if (!authResponse.id_token) {
-    throw new Error('MFA recovery: auth server did not return id_token');
+    throw new OAuthError(
+      'MFA recovery: auth server did not return id_token',
+      OAuthErrorType.LoginError,
+    );
   }
   if (!authResponse.access_token) {
-    throw new Error('MFA recovery: auth server did not return access_token');
+    throw new OAuthError(
+      'MFA recovery: auth server did not return access_token',
+      OAuthErrorType.LoginError,
+    );
   }
   if (!authResponse.metadata_access_token) {
-    throw new Error(
+    throw new OAuthError(
       'MFA recovery: auth server did not return metadata_access_token',
+      OAuthErrorType.LoginError,
     );
   }
   if (!authResponse.refresh_token) {
-    throw new Error('MFA recovery: auth server did not return refresh_token');
+    throw new OAuthError(
+      'MFA recovery: auth server did not return refresh_token',
+      OAuthErrorType.LoginError,
+    );
+  }
+  // Match OAuthService.handleSeedlessAuthenticate — revoke_token is required.
+  if (!authResponse.revoke_token) {
+    throw new OAuthError(
+      'MFA recovery: auth server did not return revoke_token',
+      OAuthErrorType.LoginError,
+    );
   }
   if (!userId) {
-    throw new Error('MFA recovery: auth server response missing user id');
+    throw new OAuthError(
+      'MFA recovery: auth server response missing user id',
+      OAuthErrorType.LoginError,
+    );
   }
 
   return {
@@ -131,9 +140,7 @@ const buildSeedlessAuthData = (
     accessToken: authResponse.access_token,
     metadataAccessToken: authResponse.metadata_access_token,
     refreshToken: authResponse.refresh_token,
-    ...(authResponse.revoke_token
-      ? { revokeToken: authResponse.revoke_token }
-      : {}),
+    revokeToken: authResponse.revoke_token,
     authConnection,
     authConnectionId: config.authConnectionId,
     ...(config.groupedAuthConnectionId
@@ -158,37 +165,56 @@ export const loginWithNonceAndSeedlessAuthViaHandlers: LoginWithNonceAndSeedless
     const useBrowserFallback =
       Platform.OS === 'android' && authConnection === AuthConnection.Google;
 
+    // Pass the remote flag through — do not hardcode true (Tyler).
+    const telegramLoginEnabled =
+      authConnection === AuthConnection.Telegram
+        ? selectTelegramLoginEnabled(ReduxService.store.getState())
+        : undefined;
+
     const handler = createLoginHandler(
       Platform.OS,
       authConnection,
       useBrowserFallback,
       {
         nonce,
-        ...(authConnection === AuthConnection.Telegram
-          ? { telegramLoginEnabled: true }
-          : {}),
+        ...(telegramLoginEnabled !== undefined ? { telegramLoginEnabled } : {}),
       },
     );
     const result = await handler.login();
     if (!result) {
-      throw new Error(`MFA recovery: ${authConnection} login was cancelled`);
+      throw new OAuthError(
+        `MFA recovery: ${authConnection} login was cancelled`,
+        OAuthErrorType.UserCancelled,
+      );
     }
 
-    const authResponse = await handler.getAuthTokens(
-      {
-        ...result,
-        web3AuthNetwork: web3AuthNetwork as Web3AuthNetwork,
-      } as HandleFlowParams,
-      AuthServerUrl,
-      'offline',
-    );
+    let authResponse: AuthResponse;
+    try {
+      authResponse = await handler.getAuthTokens(
+        {
+          ...result,
+          web3AuthNetwork: web3AuthNetwork as Web3AuthNetwork,
+        } as HandleFlowParams,
+        AuthServerUrl,
+        'offline',
+      );
+    } catch (error) {
+      if (error instanceof OAuthError) {
+        throw error;
+      }
+      throw new OAuthError(
+        error instanceof Error ? error : 'Unknown error',
+        OAuthErrorType.LoginError,
+      );
+    }
 
     const providerIdToken =
       authResponse.provider_id_token ??
       ('idToken' in result ? result.idToken : undefined);
     if (!providerIdToken) {
-      throw new Error(
+      throw new OAuthError(
         `MFA recovery: auth server did not return the ${authConnection} ID token`,
+        OAuthErrorType.LoginError,
       );
     }
 

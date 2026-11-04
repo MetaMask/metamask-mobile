@@ -1,14 +1,16 @@
-import type { AuthConnection as SeedlessAuthConnection } from '@metamask/seedless-onboarding-controller';
-import { setSeedlessOnboarding } from '../../actions/onboarding';
-import { store } from '../../store';
 import Engine from '../Engine';
-import { AuthConnection } from '../OAuthService/OAuthInterface';
+import {
+  AuthConnection,
+  type AuthResponse,
+  OAuthLoginResultType,
+} from '../OAuthService/OAuthInterface';
 import OAuthLoginService from '../OAuthService/OAuthService';
 import { AUTH_CONNECTION_OIDC_ISSUERS } from './identifierAuthProvider';
 import type {
   Identifier,
   MfaRecoveryControllerLike,
   MfaRecoveryAuthenticateIdentifierSession,
+  SeedlessAuthData,
 } from './types';
 
 export interface SeedlessPasswordUnlockResult {
@@ -29,6 +31,11 @@ export interface AuthenticateSeedlessViaMfaIdentifierOptions {
    * different social account. Not the provider ID-token `sub`.
    */
   expectedSeedlessUserId?: string;
+  /**
+   * OAuth client id from the login handler (same value {@link OAuthService}
+   * persists via `setSeedlessOnboarding`). Required for iOS Google refresh.
+   */
+  clientId: string;
 }
 
 const getMfaRecoveryController = (): MfaRecoveryControllerLike => {
@@ -43,23 +50,46 @@ const getMfaRecoveryController = (): MfaRecoveryControllerLike => {
   return controller;
 };
 
+const toAuthResponse = (seedlessAuthData: SeedlessAuthData): AuthResponse => {
+  const idToken = seedlessAuthData.idTokens[0];
+  if (!idToken) {
+    throw new Error('MFA recovery: seedlessAuthData is missing idTokens');
+  }
+  if (!seedlessAuthData.revokeToken) {
+    throw new Error('MFA recovery: seedlessAuthData is missing revokeToken');
+  }
+
+  return {
+    id_token: idToken,
+    access_token: seedlessAuthData.accessToken,
+    metadata_access_token: seedlessAuthData.metadataAccessToken,
+    refresh_token: seedlessAuthData.refreshToken,
+    revoke_token: seedlessAuthData.revokeToken,
+    indexes: [],
+    endpoints: {},
+    ...(seedlessAuthData.socialLoginEmail
+      ? { account_name: seedlessAuthData.socialLoginEmail }
+      : {}),
+  };
+};
+
 /**
  * Seedless + password unlock start (social unlock work plan, left-hand path):
  * one `authenticateIdentifier` login with `requireSeedlessAuthData`, then
- * `SeedlessOnboardingController.authenticate` from `session.seedlessAuthData`.
+ * {@link OAuthService.handleSeedlessAuthenticate}.
  *
- * Does not open the password screen; callers continue with existing typed-password UX.
- * Does not call `OAuthService.handleOAuthLogin` (no second social start).
+ * Does not manage `oauthLoginSuccess` / `setSeedlessOnboarding` — callers
+ * (prefer {@link OAuthService.handleMfaSeedlessPasswordUnlock}) own that
+ * lifecycle so success is only marked after authenticate completes.
  *
  * Requires `Engine.context.MfaRecoveryController` (preview package wired locally
  * for testing; not committed to CI).
  */
 export async function authenticateSeedlessViaMfaIdentifier(
   identifier: Identifier,
-  options: AuthenticateSeedlessViaMfaIdentifierOptions = {},
+  options: AuthenticateSeedlessViaMfaIdentifierOptions,
 ): Promise<SeedlessPasswordUnlockResult> {
   const MfaRecoveryController = getMfaRecoveryController();
-  const { SeedlessOnboardingController } = Engine.context;
 
   const session = await MfaRecoveryController.authenticateIdentifier(
     identifier,
@@ -79,32 +109,29 @@ export async function authenticateSeedlessViaMfaIdentifier(
     throw new Error('MFA recovery: signed in with a different account');
   }
 
-  const { authConnection, ...seedlessAuthFields } = session.seedlessAuthData;
+  const { authConnection, socialLoginEmail, userId } = session.seedlessAuthData;
+  const typedAuthConnection = authConnection as AuthConnection;
 
+  // handleSeedlessAuthenticate reads userId / accountName from localState.
   OAuthLoginService.updateLocalState({
-    userId: seedlessAuthFields.userId,
-    accountName: seedlessAuthFields.socialLoginEmail,
-    loginInProgress: false,
-    oauthLoginSuccess: true,
-    oauthLoginError: null,
+    userId,
+    accountName: socialLoginEmail,
   });
 
-  const result = await SeedlessOnboardingController.authenticate({
-    ...seedlessAuthFields,
-    authConnection: authConnection as SeedlessAuthConnection,
-  });
-
-  store.dispatch(
-    setSeedlessOnboarding({
-      clientId: seedlessAuthFields.authConnectionId,
-      authConnection: authConnection as AuthConnection,
-    }),
+  const result = await OAuthLoginService.handleSeedlessAuthenticate(
+    toAuthResponse(session.seedlessAuthData),
+    typedAuthConnection,
+    options.clientId,
   );
+
+  if (result.type !== OAuthLoginResultType.SUCCESS) {
+    throw new Error(result.error ?? 'Seedless authenticate failed');
+  }
 
   return {
     type: 'success',
-    existingUser: !result.isNewUser,
-    accountName: seedlessAuthFields.socialLoginEmail,
+    existingUser: result.existingUser,
+    accountName: socialLoginEmail,
     session,
   };
 }

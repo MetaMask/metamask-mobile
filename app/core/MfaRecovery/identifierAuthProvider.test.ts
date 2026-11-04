@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { bytesToHex, stringToBytes } from '@metamask/utils';
 import { sha256 } from '@noble/hashes/sha2';
 import { AuthConnection } from '../OAuthService/OAuthInterface';
+import { OAuthError, OAuthErrorType } from '../OAuthService/error';
 import { createLoginHandler } from '../OAuthService/OAuthLoginHandlers';
 import {
   computeKeyBoundNonce,
@@ -50,6 +51,47 @@ jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
         authConnectionId: 'android-telegram',
         groupedAuthConnectionId: 'g-telegram',
       },
+    },
+  },
+}));
+
+jest.mock('../OAuthService/OAuthService', () => ({
+  getAuthConnectionIdFromClientId: jest.fn(
+    ({
+      clientId,
+      authConnection,
+      authConnectionConfig,
+    }: {
+      clientId: string;
+      authConnection: string;
+      authConnectionConfig: Record<
+        string,
+        Record<
+          string,
+          { authConnectionId: string; groupedAuthConnectionId?: string }
+        >
+      >;
+    }) => {
+      const platform = clientId === 'mock-google-web-gid' ? 'android' : 'ios';
+      return authConnectionConfig[platform][authConnection];
+    },
+  ),
+}));
+
+const mockSelectTelegramLoginEnabled = jest.fn(() => true);
+jest.mock(
+  '../../selectors/featureFlagController/seedlessTelegramLogin',
+  () => ({
+    selectTelegramLoginEnabled: (...args: unknown[]) =>
+      mockSelectTelegramLoginEnabled(...args),
+  }),
+);
+
+jest.mock('../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({})),
     },
   },
 }));
@@ -129,6 +171,7 @@ describe('computeKeyBoundNonce', () => {
 describe('loginWithNonceAndSeedlessAuthViaHandlers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectTelegramLoginEnabled.mockReturnValue(true);
   });
 
   it('returns provider ID token and seedless auth data from one login', async () => {
@@ -232,7 +275,95 @@ describe('loginWithNonceAndSeedlessAuthViaHandlers', () => {
         authConnection: AuthConnection.Apple,
         nonce: '0xabc',
       }),
-    ).rejects.toThrow('MFA recovery: auth server did not return refresh_token');
+    ).rejects.toMatchObject({
+      code: OAuthErrorType.LoginError,
+      message: expect.stringContaining(
+        'MFA recovery: auth server did not return refresh_token',
+      ),
+    });
+  });
+
+  it('requires revoke_token like OAuthService', async () => {
+    const providerIdToken = tokenFor('0xabc');
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({ idToken: providerIdToken }),
+      getAuthTokens: jest.fn().mockResolvedValue({
+        id_token: 'auth-server-jwt',
+        provider_id_token: providerIdToken,
+        access_token: 'access',
+        metadata_access_token: 'metadata',
+        refresh_token: 'refresh',
+        indexes: [],
+        endpoints: {},
+      }),
+      getUserInfo: () => ({ userId: 'u', accountName: '' }),
+      options: { clientId: 'ios-apple-client' },
+    } as never);
+
+    await expect(
+      loginWithNonceAndSeedlessAuthViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toMatchObject({
+      code: OAuthErrorType.LoginError,
+      message: expect.stringContaining(
+        'MFA recovery: auth server did not return revoke_token',
+      ),
+    });
+  });
+
+  it('throws OAuthError UserCancelled when login returns empty', async () => {
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue(undefined),
+      getAuthTokens: jest.fn(),
+      getUserInfo: jest.fn(),
+      options: { clientId: 'ios-apple-client' },
+    } as never);
+
+    await expect(
+      loginWithNonceAndSeedlessAuthViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toBeInstanceOf(OAuthError);
+
+    await expect(
+      loginWithNonceAndSeedlessAuthViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toMatchObject({
+      code: OAuthErrorType.UserCancelled,
+    });
+  });
+
+  it('passes the telegramLoginEnabled remote flag through', async () => {
+    mockSelectTelegramLoginEnabled.mockReturnValue(false);
+    const providerIdToken = tokenFor('0xabc');
+    mockCreateLoginHandler.mockReturnValue({
+      login: jest.fn().mockResolvedValue({ idToken: providerIdToken }),
+      getAuthTokens: jest
+        .fn()
+        .mockResolvedValue(authServerResponse(providerIdToken)),
+      getUserInfo: jest.fn().mockReturnValue({
+        userId: 'auth-sub',
+        accountName: '',
+      }),
+      options: { clientId: 'ios-telegram-client' },
+    } as never);
+
+    await loginWithNonceAndSeedlessAuthViaHandlers({
+      authConnection: AuthConnection.Telegram,
+      nonce: '0xabc',
+    });
+
+    expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+      Platform.OS,
+      AuthConnection.Telegram,
+      false,
+      { nonce: '0xabc', telegramLoginEnabled: false },
+    );
   });
 });
 
@@ -313,6 +444,7 @@ describe('createOidcIdentifierAuthProvider', () => {
           accessToken: 'access',
           metadataAccessToken: 'metadata',
           refreshToken: 'refresh',
+          revokeToken: 'revoke',
           authConnection: AuthConnection.Google,
           authConnectionId: 'ios-google',
           userId: 'auth-sub',

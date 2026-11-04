@@ -107,10 +107,7 @@ import {
   startOAuthLifecycleTracking,
 } from '../../../core/OAuthService/oauthLifecycleTracking';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
-import {
-  authenticateSeedlessViaMfaIdentifier,
-  buildOidcIdentifier,
-} from '../../../core/MfaRecovery';
+import { buildOidcIdentifier } from '../../../core/MfaRecovery';
 import Engine from '../../../core/Engine';
 import { selectMoneyEnableMfaFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
@@ -1135,7 +1132,7 @@ const Onboarding = () => {
         beginSocialLoginLoading(provider);
         const loginHandlerOptions =
           provider === AuthConnection.Telegram
-            ? { telegramLoginEnabled: true }
+            ? { telegramLoginEnabled: isTelegramLoginEnabled }
             : undefined;
         try {
           const loginHandler = createLoginHandler(
@@ -1166,13 +1163,14 @@ const Onboarding = () => {
           });
 
           // Money MFA password unlock (left-hand social unlock plan): one
-          // authenticateIdentifier login → seedless authenticate. Keep the
-          // existing OAuth start when the flag is off, for create-wallet
-          // (provider subject not known yet), or when seedless state cannot
-          // supply the OIDC subject for this provider.
+          // authenticateIdentifier login → seedless authenticate, routed
+          // through OAuthService so loginInProgress / rehydration / TOPRF /
+          // Sentry spans match handleOAuthLogin. Keep the existing OAuth start
+          // when the flag is off, for create-wallet, or when Engine has no
+          // MfaRecoveryController (preview wire is local-only until the
+          // package is published — see .local-mfa-preview-testing/).
           const seedlessState =
             Engine.context.SeedlessOnboardingController?.state;
-          // Preview package + Engine wire are local-only for testing (not in CI).
           const hasMfaRecoveryController = Boolean(
             (Engine.context as { MfaRecoveryController?: unknown })
               .MfaRecoveryController,
@@ -1186,14 +1184,20 @@ const Onboarding = () => {
 
           try {
             const result = canUseMfaPasswordUnlock
-              ? await authenticateSeedlessViaMfaIdentifier(
-                  // Provider OIDC subject is discovered from the ID token after
-                  // login. Seedless userId is the auth-server subject and must
-                  // not be used as identifier.value.
-                  buildOidcIdentifier({ authConnection: provider }),
+              ? await OAuthLoginService.handleMfaSeedlessPasswordUnlock(
                   {
+                    // Provider OIDC subject is discovered from the ID token
+                    // after login. Seedless userId is the auth-server subject
+                    // and must not be used as identifier.value.
+                    identifier: buildOidcIdentifier({
+                      authConnection: provider,
+                    }),
                     expectedSeedlessUserId: seedlessState.userId as string,
+                    authConnection: provider,
+                    clientId: loginHandler.options.clientId,
                   },
+                  !createWallet,
+                  socialLoginTraceCtx.current,
                 )
               : await OAuthLoginService.handleOAuthLogin(
                   loginHandler,
