@@ -82,8 +82,8 @@ const mockSelectTelegramLoginEnabled = jest.fn(() => true);
 jest.mock(
   '../../selectors/featureFlagController/seedlessTelegramLogin',
   () => ({
-    selectTelegramLoginEnabled: (...args: unknown[]) =>
-      mockSelectTelegramLoginEnabled(...args),
+    selectTelegramLoginEnabled: (state: unknown) =>
+      mockSelectTelegramLoginEnabled(state),
   }),
 );
 
