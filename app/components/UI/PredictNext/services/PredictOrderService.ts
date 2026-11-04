@@ -134,7 +134,7 @@ const isTerminalReceipt = (receipt: PredictOrderReceipt): boolean =>
  * one as a pre-operation failure: it revalidates before it creates the
  * operation, so nothing was submitted to the Venue.
  */
-const PRE_OPERATION_COMMIT_CODES: readonly string[] = [
+const PRE_OPERATION_COMMIT_CODES: ReadonlySet<string> = new Set([
   'preview_not_found',
   'preview_expired',
   'market_not_found',
@@ -144,7 +144,7 @@ const PRE_OPERATION_COMMIT_CODES: readonly string[] = [
   'insufficient_balance',
   'insufficient_position',
   'venue_unavailable',
-];
+]);
 
 /**
  * The Commit route answered with a canonical failure code. It looks the
@@ -154,8 +154,7 @@ const PRE_OPERATION_COMMIT_CODES: readonly string[] = [
 const isCanonicalCommitFailure = (error: PredictError): boolean => {
   const { bodyCode } = error.metadata ?? {};
   return (
-    typeof bodyCode === 'string' &&
-    PRE_OPERATION_COMMIT_CODES.includes(bodyCode)
+    typeof bodyCode === 'string' && PRE_OPERATION_COMMIT_CODES.has(bodyCode)
   );
 };
 
@@ -585,14 +584,12 @@ export class PredictOrderService {
     signal: AbortSignal,
     maxObservations: number,
   ): Promise<PredictOrderReceipt> {
-    let receipt = await this.#commitOnce(operation, generation, signal);
-    let observations = 0;
-    while (isInProgressReceipt(receipt) && observations < maxObservations) {
-      await sleep(this.#observationDelayMs);
-      receipt = await this.#commitOnce(operation, generation, signal);
-      observations += 1;
+    const receipt = await this.#commitOnce(operation, generation, signal);
+    if (!isInProgressReceipt(receipt) || maxObservations <= 0) {
+      return receipt;
     }
-    return receipt;
+    await sleep(this.#observationDelayMs);
+    return this.#observe(operation, generation, signal, maxObservations - 1);
   }
 
   /** One observation POST. The generation is checked before the request, so
@@ -667,7 +664,7 @@ export class PredictOrderService {
       outcome,
     };
     const presented = operation.presenters.size > 0;
-    for (const presenter of [...operation.presenters]) {
+    for (const presenter of operation.presenters) {
       try {
         presenter(resolution);
       } catch (error) {
