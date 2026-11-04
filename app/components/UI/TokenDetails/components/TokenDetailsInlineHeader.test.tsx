@@ -269,6 +269,34 @@ describe('TokenDetailsInlineHeader', () => {
       expect(queryByTestId('stock-badge')).toBeNull();
     });
 
+    it('ellipsizes a long token name so the verified badge stays clear of the header actions', () => {
+      const longName = 'SPDR S&P 500 ETF Trust (Robinhood)';
+      const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+          chainId: '0x1237',
+          name: longName,
+          ticker: 'SPY',
+          symbol: 'SPY',
+        },
+        securityData: createMockSecurityData('Verified'),
+        starButton: <Text testID="watchlist-star">star</Text>,
+      });
+
+      const title = getByTestId('token-details-title');
+      const titleStyle = StyleSheet.flatten(title.props.style);
+
+      expect(title.props.children).toBe(longName);
+      expect(title.props.numberOfLines).toBe(1);
+      expect(title.props.ellipsizeMode).toBe('tail');
+      expect(titleStyle?.flexShrink).toBe(1);
+      expect(titleStyle?.minWidth).toBe(0);
+      expect(getByTestId('security-badge-verified')).toBeOnTheScreen();
+      expect(getByTestId('watchlist-star')).toBeOnTheScreen();
+    });
+
     it('renders both verified and stock badges when applicable', () => {
       mockIsStockToken.mockReturnValue(true);
 

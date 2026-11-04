@@ -5,6 +5,7 @@ import {
   getCustomAssets,
   getAssetsBalance,
   getAssetsInfo,
+  selectErc20MetadataLookup,
 } from './assets-controller';
 
 type DeepPartial<T> = T extends object
@@ -123,5 +124,67 @@ describe('getAssetsInfo', () => {
     expect(getAssetsInfo({} as unknown as RootState)).toStrictEqual(
       defaultAssetsControllerState.assetsInfo,
     );
+  });
+});
+
+describe('selectErc20MetadataLookup', () => {
+  const usdc = '0x754704bc059f8c67012fed69bc8a327a5aafb603';
+  // USDC is absent from assetsBalance, as after sending the full balance.
+  const assetsInfo = {
+    [`eip155:143/erc20:${usdc}`]: {
+      type: 'erc20' as const,
+      symbol: 'USDC',
+      decimals: 6,
+    },
+    'eip155:143/slip44:268435456': {
+      type: 'native' as const,
+      symbol: 'MON',
+      decimals: 18,
+    },
+  };
+  const state = buildState({ assetsInfo, assetsBalance: {} });
+
+  it('resolves symbol and decimals by hex chain id and contract address', () => {
+    const lookup = selectErc20MetadataLookup(state as unknown as RootState);
+
+    expect(lookup('0x8f', usdc)).toStrictEqual({
+      symbol: 'USDC',
+      decimals: 6,
+    });
+  });
+
+  it('matches the contract address case-insensitively', () => {
+    const lookup = selectErc20MetadataLookup(state as unknown as RootState);
+
+    expect(
+      lookup('0x8f', usdc.toUpperCase().replace('0X', '0x')),
+    ).toStrictEqual({ symbol: 'USDC', decimals: 6 });
+  });
+
+  it('returns undefined for an unknown token, another chain, or a native asset', () => {
+    const lookup = selectErc20MetadataLookup(state as unknown as RootState);
+
+    expect(lookup('0x8f', '0x0000000000000000000000000000000000000001')).toBe(
+      undefined,
+    );
+    expect(lookup('0x1', usdc)).toBeUndefined();
+    expect(lookup('0x8f', '268435456')).toBeUndefined();
+  });
+
+  it('finds metadata stored under an EIP-55 checksummed asset id, as the controller writes it', () => {
+    const assetsInfo = {
+      'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+        type: 'erc20' as const,
+        symbol: 'USDC',
+        decimals: 6,
+      },
+    };
+    const lookup = selectErc20MetadataLookup(
+      buildState({ assetsInfo }) as unknown as RootState,
+    );
+
+    expect(
+      lookup('0x1', '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'),
+    ).toStrictEqual({ symbol: 'USDC', decimals: 6 });
   });
 });

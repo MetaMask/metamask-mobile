@@ -5,6 +5,10 @@ import { fireEvent } from '@testing-library/react-native';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { Linking, Platform } from 'react-native';
 
+jest.mock('../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => true,
+}));
+
 // Mock ReusableModal so that dismissModal immediately invokes its callback,
 // allowing tests to verify Linking.canOpenURL is called on button press.
 jest.mock('../ReusableModal', () => {
@@ -58,6 +62,9 @@ describe('UpdateNeeded', () => {
 
     const closeButton = getByTestId('update-needed-modal-close-button');
     expect(closeButton).toBeDefined();
+    expect(getByTestId('update-needed-modal-header')).toHaveStyle({
+      alignSelf: 'stretch',
+    });
 
     const primaryButton = getByText('Update to latest version');
     expect(primaryButton).toBeDefined();

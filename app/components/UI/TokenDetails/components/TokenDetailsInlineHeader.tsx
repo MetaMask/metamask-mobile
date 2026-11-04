@@ -44,6 +44,13 @@ import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 
 const COMPACT_ADDRESS_EDGE_LENGTH = 4;
 
+const TITLE_PROPS = {
+  numberOfLines: 1,
+  ellipsizeMode: 'tail',
+  twClassName: 'shrink min-w-0',
+  testID: 'token-details-title',
+} as const;
+
 const formatCompactContractAddress = (address: string): string => {
   const formatted = toFormattedAddress(address);
   const tail = formatted.slice(-COMPACT_ADDRESS_EDGE_LENGTH);
@@ -344,6 +351,9 @@ export const TokenDetailsInlineHeader = ({
         </BadgeWrapper>
       }
       title={tokenName}
+      // Long names (e.g. Robinhood stock tokens) would otherwise keep their full
+      // width and push the title badges under the watchlist star.
+      titleProps={TITLE_PROPS}
       titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
       description={headerDescription}
       descriptionEndAccessory={subtitleAccessory}

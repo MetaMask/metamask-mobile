@@ -418,7 +418,7 @@ const ImmersveFundingApproval = () => {
           twClassName="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 justify-center items-center px-6">
+        <Box twClassName="flex-1 justify-center items-center px-4">
           <ActivityIndicator
             testID="immersve-funding-approval-spinner"
             size="large"
@@ -450,7 +450,7 @@ const ImmersveFundingApproval = () => {
           twClassName="bg-background-default"
           {...headerHandlers}
         />
-        <Box twClassName="flex-1 justify-center items-center px-6">
+        <Box twClassName="flex-1 justify-center items-center px-4">
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
