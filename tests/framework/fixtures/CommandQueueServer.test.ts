@@ -91,12 +91,15 @@ describe('CommandQueueServer', () => {
     await commandQueueServer.start();
     const port = listeningPort(commandQueueServer);
     const appState = {
-      loggedIn: true,
-      engine: {
-        backgroundState: {
-          KeyringController: { vaultExists: true, keyrings: [] },
+      stateLogs: {
+        loggedIn: true,
+        engine: {
+          backgroundState: {
+            KeyringController: { vaultExists: true, keyrings: [] },
+          },
         },
       },
+      omittedFields: { KeyringController: ['vault'] },
     };
 
     commandQueueServer.requestAppStateExport();
@@ -113,9 +116,14 @@ describe('CommandQueueServer', () => {
       },
     );
 
+    const rawStateResponse = await fetch(
+      `http://localhost:${port}/exported-state.json`,
+    );
+
     await expect(commandQueueServer.getExportedAppState()).resolves.toEqual(
       appState,
     );
+    expect(rawStateResponse.status).toBe(404);
     expect(queueBody.queue).toEqual([{ type: 'export-app-state', args: {} }]);
     expect(postResponse.status).toBe(200);
     await expect(postResponse.json()).resolves.toEqual({ success: true });

@@ -85,16 +85,20 @@ function assertValueAbsent(serialized: string, value: string, label: string) {
   }
 }
 
+/**
+ * @param background - Engine background state from the state log export.
+ * @param omittedFields - Fields the app's controller metadata leaves out.
+ * @returns `Controller.field` paths that are still in the export.
+ */
 function omittedFieldsPresent(
   background: Record<string, unknown> | undefined,
+  omittedFields: Record<string, string[]>,
 ): string[] {
   if (!background) {
     return [];
   }
   const present: string[] = [];
-  for (const [controllerName, fields] of Object.entries(
-    STATE_LOG_OMITTED_FIELDS,
-  )) {
+  for (const [controllerName, fields] of Object.entries(omittedFields)) {
     const controller = background[controllerName];
     if (!controller || typeof controller !== 'object') {
       continue;
@@ -106,6 +110,28 @@ function omittedFieldsPresent(
     }
   }
   return present;
+}
+
+/**
+ * @param omittedFields - Fields the app reports as left out of state logs.
+ * @returns Seeded `Controller.field` paths the app did not report. Any entry
+ * means the app's list is incomplete or the seeds are out of date.
+ */
+function seededFieldsMissingFromOmittedList(
+  omittedFields: Record<string, string[]>,
+): string[] {
+  const missing: string[] = [];
+  for (const [controllerName, fields] of Object.entries(
+    STATE_LOG_OMITTED_FIELDS,
+  )) {
+    const reported = omittedFields[controllerName] ?? [];
+    for (const field of fields) {
+      if (!reported.includes(field)) {
+        missing.push(`${controllerName}.${field}`);
+      }
+    }
+  }
+  return missing;
 }
 
 function fixtureKeyringVault(): string {
@@ -177,8 +203,16 @@ export async function assertInAppStateExportOmitsSensitiveFields(
 ): Promise<void> {
   const vault = fixtureKeyringVault();
   commandQueueServer.requestAppStateExport();
-  const appExport = await commandQueueServer.getExportedAppState(20000);
+  const { stateLogs: appExport, omittedFields } =
+    await commandQueueServer.getExportedAppState(20000);
   const serialized = JSON.stringify(appExport);
+
+  const unreported = seededFieldsMissingFromOmittedList(omittedFields);
+  if (unreported.length > 0) {
+    throw new Error(
+      `App did not report seeded fields as omitted from state logs: ${unreported.join(', ')}`,
+    );
+  }
 
   const appBackground = (
     appExport.engine as {
@@ -219,7 +253,7 @@ export async function assertInAppStateExportOmitsSensitiveFields(
   }
   assertValueAbsent(serialized, vault, 'Keyring vault');
 
-  const stillExported = omittedFieldsPresent(appBackground);
+  const stillExported = omittedFieldsPresent(appBackground, omittedFields);
   if (stillExported.length > 0) {
     throw new Error(
       `State export includes fields excluded from state logs: ${stillExported.join(', ')}`,

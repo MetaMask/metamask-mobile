@@ -119,4 +119,23 @@ describe('FixtureBuilder state log fields', () => {
     expect(card.activeProviderId).toBe('baanx');
     expect(card.providerUserId).toBe('state-export-card-user');
   });
+
+  it('keeps existing rewards money fields while seeding excluded ones', () => {
+    const builder = new FixtureBuilder();
+    const background = (
+      builder as unknown as {
+        fixture: {
+          state: { engine: { backgroundState: Record<string, unknown> } };
+        };
+      }
+    ).fixture.state.engine.backgroundState;
+    background.RewardsMoneyController = { existingField: 'kept' };
+
+    const fixture = builder.withStateLogOmittedFields().build();
+    const rewardsMoney = fixture.state.engine.backgroundState
+      .RewardsMoneyController as Record<string, unknown>;
+
+    expect(rewardsMoney.existingField).toBe('kept');
+    expect(rewardsMoney.referralMe).toBeDefined();
+  });
 });

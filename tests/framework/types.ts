@@ -261,6 +261,19 @@ export enum LocalNodeType {
   bitcoin = 'bitcoin',
 }
 
+/**
+ * Body the app POSTs for the export-app-state command.
+ */
+export interface ExportedAppState {
+  /** The in-app state log document, parsed. */
+  stateLogs: Record<string, unknown>;
+  /**
+   * Fields, per controller, that controller metadata leaves out of state logs.
+   * Read from the running app, so it covers every Engine controller.
+   */
+  omittedFields: Record<string, string[]>;
+}
+
 export enum E2ECommandTypes {
   pushPrice = 'push-price',
   forceLiquidation = 'force-liquidation',

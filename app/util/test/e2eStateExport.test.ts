@@ -27,6 +27,7 @@ import { generateStateLogs } from '../logs';
 import {
   captureAppState,
   captureExportedAppState,
+  captureStateLogOmittedFields,
   handleExportAppStateCommand,
   handleExportStateCommand,
 } from './e2eStateExport';
@@ -434,8 +435,67 @@ describe('e2eStateExport', () => {
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         'http://localhost:2446/exported-app-state',
-        JSON.parse(generateStateLogs(state)),
+        {
+          stateLogs: JSON.parse(generateStateLogs(state)),
+          omittedFields: captureStateLogOmittedFields(),
+        },
       );
+    });
+  });
+
+  describe('captureStateLogOmittedFields', () => {
+    const fakeControllers = {
+      FakeController: {
+        metadata: {
+          secret: { includeInStateLogs: false },
+          shown: { includeInStateLogs: true },
+          reduced: { includeInStateLogs: () => 'reduced' },
+        },
+      },
+      CardController: {
+        metadata: {
+          providerUserId: { includeInStateLogs: false },
+          cardHomeData: { includeInStateLogs: false },
+          cardHomeDataAddress: { includeInStateLogs: false },
+        },
+      },
+      SeedlessOnboardingController: {
+        metadata: { accessToken: { includeInStateLogs: false } },
+      },
+      NoMetadataController: { state: {} },
+    };
+    const context = Engine.context as unknown as Record<string, unknown>;
+    let originals: Record<string, unknown>;
+
+    beforeEach(() => {
+      originals = Object.fromEntries(
+        Object.keys(fakeControllers).map((name) => [name, context[name]]),
+      );
+      Object.assign(context, fakeControllers);
+    });
+
+    afterEach(() => {
+      for (const [name, original] of Object.entries(originals)) {
+        if (original === undefined) {
+          Reflect.deleteProperty(context, name);
+        } else {
+          context[name] = original;
+        }
+      }
+    });
+
+    it('lists includeInStateLogs false fields from controller metadata', () => {
+      const omitted = captureStateLogOmittedFields();
+
+      expect(omitted.FakeController).toEqual(['secret']);
+      expect(omitted.NoMetadataController).toBeUndefined();
+    });
+
+    it('leaves out fields and controllers the state log rewrites', () => {
+      const omitted = captureStateLogOmittedFields();
+
+      expect(omitted.CardController).toEqual(['providerUserId']);
+      expect(omitted.SeedlessOnboardingController).toBeUndefined();
     });
   });
 });

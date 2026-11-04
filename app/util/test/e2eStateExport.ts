@@ -1,51 +1,10 @@
 import axios from 'axios';
+import Engine from '../../core/Engine';
 import { store } from '../../store';
+import type { ExportedAppState } from '../../../tests/framework/types';
 import { generateStateLogs } from '../logs';
 import { getCommandQueueServerPortInApp } from './utils';
-
-const REDACTED_VALUE = '[redacted]';
-const SECRET_VALUE_KEYS = new Set([
-  'accesstoken',
-  'authtoken',
-  'bearertoken',
-  'encryptedkeyringencryptionkey',
-  'encryptedseedlessencryptionkey',
-  'encryptionkey',
-  'encryptionsalt',
-  'idtoken',
-  'jwt',
-  'metadataaccesstoken',
-  'mnemonic',
-  'otp',
-  'pendingsecretimports',
-  'privatekey',
-  'refreshtoken',
-  'revoketoken',
-  'vault',
-  'vaultencryptionkey',
-  'vaultencryptionsalt',
-]);
-const JWT_PATTERN = /eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+/g;
-
-function redactExportedValues(value: unknown): unknown {
-  if (typeof value === 'string') {
-    return value.replace(JWT_PATTERN, REDACTED_VALUE);
-  }
-  if (Array.isArray(value)) {
-    return value.map((entry) => redactExportedValues(entry));
-  }
-  if (!value || typeof value !== 'object') {
-    return value;
-  }
-
-  const redacted: Record<string, unknown> = {};
-  for (const [key, entry] of Object.entries(value)) {
-    redacted[key] = SECRET_VALUE_KEYS.has(key.toLowerCase())
-      ? null
-      : redactExportedValues(entry);
-  }
-  return redacted;
-}
+import { redactSecretValues } from './stateExportSecrets';
 
 /**
  * Captures the current app state (Redux + Engine/Controller state).
@@ -55,7 +14,7 @@ export function captureAppState(): Record<string, unknown> {
   const fullState = store.getState();
   const serialized = JSON.parse(JSON.stringify(fullState));
   const { engine, ...redux } = serialized;
-  return redactExportedValues({
+  return redactSecretValues({
     redux,
     engine: engine?.backgroundState ?? {},
   }) as Record<string, unknown>;
@@ -74,6 +33,56 @@ export function captureExportedAppState(): Record<string, unknown> {
 }
 
 /**
+ * Controllers that generateStateLogs replaces with a hand-written sanitized
+ * shape after metadata filtering, so metadata does not describe their export.
+ */
+const REPLACED_IN_STATE_LOGS = new Set(['SeedlessOnboardingController']);
+
+/**
+ * Fields that metadata drops and generateStateLogs then writes back in a
+ * reduced form.
+ */
+const REWRITTEN_IN_STATE_LOGS: Record<string, readonly string[]> = {
+  CardController: ['cardHomeData', 'cardHomeDataAddress'],
+};
+
+/**
+ * Lists, for every Engine controller, the fields whose metadata sets
+ * includeInStateLogs to `false`. Function sanitizers are not listed: those
+ * fields stay in the export in a reduced form.
+ *
+ * @returns Omitted field names keyed by controller name.
+ */
+export function captureStateLogOmittedFields(): Record<string, string[]> {
+  const omitted: Record<string, string[]> = {};
+  for (const [name, controller] of Object.entries(Engine.context)) {
+    if (
+      REPLACED_IN_STATE_LOGS.has(name) ||
+      !controller ||
+      typeof controller !== 'object' ||
+      !('metadata' in controller)
+    ) {
+      continue;
+    }
+    const metadata = controller.metadata as Record<
+      string,
+      { includeInStateLogs?: unknown } | undefined
+    >;
+    const rewritten = REWRITTEN_IN_STATE_LOGS[name] ?? [];
+    const fields = Object.entries(metadata)
+      .filter(
+        ([field, entry]) =>
+          entry?.includeInStateLogs === false && !rewritten.includes(field),
+      )
+      .map(([field]) => field);
+    if (fields.length > 0) {
+      omitted[name] = fields;
+    }
+  }
+  return omitted;
+}
+
+/**
  * Handles the export-state command by capturing app state and POSTing it
  * to the CommandQueueServer.
  */
@@ -84,10 +93,14 @@ export async function handleExportStateCommand(): Promise<void> {
 }
 
 /**
- * Handles the export-app-state command by posting the in-app state log export.
+ * Handles the export-app-state command by posting the in-app state log export
+ * and the fields controller metadata leaves out of it.
  */
 export async function handleExportAppStateCommand(): Promise<void> {
-  const state = captureExportedAppState();
+  const body: ExportedAppState = {
+    stateLogs: captureExportedAppState(),
+    omittedFields: captureStateLogOmittedFields(),
+  };
   const port = getCommandQueueServerPortInApp();
-  await axios.post(`http://localhost:${port}/exported-app-state`, state);
+  await axios.post(`http://localhost:${port}/exported-app-state`, body);
 }

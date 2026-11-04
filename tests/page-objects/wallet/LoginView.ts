@@ -63,9 +63,11 @@ class LoginView {
   async tapLoginButton(): Promise<void> {
     // Dismissing the keyboard can also submit the password field.
     await Gestures.hideKeyboard();
+    // Check the login screen first: it is one probe on the usual path, while
+    // the wallet-home check runs several lookups that each wait when absent.
     if (
-      (await isWalletHomeReadyOnAppium()) &&
-      !(await isLoginScreenDisplayed())
+      !(await isLoginScreenDisplayed()) &&
+      (await isWalletHomeReadyOnAppium())
     ) {
       return;
     }

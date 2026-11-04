@@ -399,6 +399,46 @@ describe('fixture-validation', () => {
       expect(formatSchemaDiff(diff)).toContain('mergeFixtureChanges()');
     });
 
+    it('prints expected and received values for non-secret mismatches', () => {
+      const diff: FixtureSchemaDiff = {
+        ...emptyDiff,
+        valueMismatches: [
+          {
+            key: 'engine.backgroundState.NetworkController.selectedNetworkClientId',
+            expected: 'mainnet',
+            received: 'linea-mainnet',
+          },
+        ],
+      };
+
+      const output = formatSchemaDiff(diff);
+
+      expect(output).toContain(
+        '~ engine.backgroundState.NetworkController.selectedNetworkClientId: expected "mainnet", received "linea-mainnet"',
+      );
+    });
+
+    it('hides JWTs nested inside non-secret mismatch values', () => {
+      const jwt =
+        'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJlMmUtZml4dHVyZSJ9.e2e-signature';
+      const diff: FixtureSchemaDiff = {
+        ...emptyDiff,
+        valueMismatches: [
+          {
+            key: 'engine.backgroundState.SomeController.session',
+            expected: { label: 'old' },
+            received: { label: 'new', token: { idToken: 'opaque' }, note: jwt },
+          },
+        ],
+      };
+
+      const output = formatSchemaDiff(diff);
+
+      expect(output).toContain('"label":"new"');
+      expect(output).not.toContain(jwt);
+      expect(output).not.toContain('opaque');
+    });
+
     it('leaves secret values out of the fixture diff report', () => {
       const jwt =
         'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJlMmUtZml4dHVyZSJ9.e2e-signature';

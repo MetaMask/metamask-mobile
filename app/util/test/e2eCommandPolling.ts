@@ -90,25 +90,17 @@ async function pollOnce(): Promise<void> {
       if (!item || typeof item !== 'object') continue;
 
       switch (item.type) {
-        case E2ECommandTypes.exportState: {
-          try {
-            await handleExportStateCommand();
-          } catch (e) {
-            DevLogger.log(
-              '[E2E Command Server Polling] Error handling export-state',
-              e instanceof Error ? e.message : 'export failed',
-            );
-          }
-          break;
-        }
+        case E2ECommandTypes.exportState:
         case E2ECommandTypes.exportAppState: {
           try {
-            await handleExportAppStateCommand();
+            await (item.type === E2ECommandTypes.exportState
+              ? handleExportStateCommand()
+              : handleExportAppStateCommand());
           } catch (e) {
-            const message = e instanceof Error ? e.message : 'export failed';
+            // Log only the message: request errors carry the posted state.
             DevLogger.log(
-              '[E2E Command Server Polling] Error handling export-app-state',
-              message,
+              `[E2E Command Server Polling] Error handling ${item.type}`,
+              e instanceof Error ? e.message : 'export failed',
             );
           }
           break;

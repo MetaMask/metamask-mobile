@@ -1,5 +1,8 @@
 /**
- * Controller fields whose metadata sets includeInStateLogs to false.
+ * Fields this fixture seeds whose controller metadata sets includeInStateLogs
+ * to `false`. The smoke checks every controller against the list the app
+ * reports at runtime; this list is the subset seeded with marker values, so
+ * the smoke can also prove those values stay out of the export.
  * cardHomeData and cardHomeDataAddress are reduced before export, so they are
  * not in this list.
  */
@@ -38,12 +41,19 @@ export const STATE_LOG_OMITTED_FIELDS = {
   ],
 } as const;
 
+/**
+ * Seeded rewards API override. It must stay a host the default rewards mocks
+ * match, so rewards traffic during the smoke is still mocked. The dev host is
+ * not the e2e default, so it only appears in state through this seed.
+ */
+export const SEEDED_REWARDS_ENV_URL = 'https://rewards.dev-api.cx.metamask.io';
+
 export const STATE_LOG_SEEDED_MARKERS = [
   'state-export-card-user',
   'state-export-linked-account',
   'state-export-referral-code',
   'state-export-claim-signature',
-  'state-export-rewards-env',
+  SEEDED_REWARDS_ENV_URL,
   'state-export-ui-slot',
 ] as const;
 
@@ -107,6 +117,7 @@ export function applyStateLogOmittedFields(
   };
 
   background.RewardsMoneyController = {
+    ...existingController(background, 'RewardsMoneyController'),
     referralMe: {
       'profile-id': {
         lastFetched: 1,
@@ -145,7 +156,7 @@ export function applyStateLogOmittedFields(
 
   background.RewardsController = {
     ...existingController(background, 'RewardsController'),
-    rewardsEnvUrl: 'http://127.0.0.1:9/state-export-rewards-env',
+    rewardsEnvUrl: SEEDED_REWARDS_ENV_URL,
   };
 
   background.UiSlotsController = {
