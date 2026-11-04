@@ -260,14 +260,14 @@ export const PredictMarketHistory = ({
   const extendPoints = (
     field: 'yesPrice' | 'noPrice',
     trail: readonly PredictMarketChartPoint[],
-  ) =>
-    isStandardEvent
-      ? appendLiveEndpoint(
-          toChartPoints(points, field),
-          market,
-          field === 'noPrice' ? 'no' : 'yes',
-        )
-      : appendLiveQuoteTrail(toChartPoints(points, field), trail);
+  ) => {
+    const chartPoints = toChartPoints(points, field);
+    if (!isStandardEvent) {
+      return appendLiveQuoteTrail(chartPoints, trail);
+    }
+    const side = field === 'noPrice' ? 'no' : 'yes';
+    return appendLiveEndpoint(chartPoints, market, side);
+  };
   const series: MarketHistorySeries[] = [
     ...(yesOutcome
       ? [
@@ -377,10 +377,9 @@ export const PredictGameMarketHistory = ({
         (homeHistory.isLoading || awayHistory.isLoading) && !hasCompleteData
       }
       isError={(homeHistory.isError || awayHistory.isError) && !hasCompleteData}
-      onRetry={() => {
-        homeHistory.refetch();
-        awayHistory.refetch();
-      }}
+      onRetry={() =>
+        [homeHistory, awayHistory].forEach((history) => history.refetch())
+      }
     />
   );
 };
