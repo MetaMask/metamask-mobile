@@ -38,12 +38,17 @@ export const MPC_MFA_WHITELIST_CONFIG: MfaWhitelistConfig = {
     ValueLteEnforcer: '0x92Bf12322527cAA612fd31a0e810472BBB106A8F',
   },
   musdTokenAddress: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-  chompDelegateAddress: '0x923BfB282a77265b5374AAd0314CB27fEB1917F7',
+  chompDelegateAddress: '0xb4827A2a066CD2Ef88560EFdf063dD05C6c41cC7',
   vaults: [
     {
-      boringVault: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
-      tellerAddress: '0xB30755C750E0A7E5BeD3dDAf0D9948Cf2b1CDc87',
-      vedaVaultAdapterAddress: '0x8E6baE671D7406898D958B9799C37B96058aBA01',
+      boringVault: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
+      tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
+      vedaVaultAdapterAddress: '0xaD4c09d065fDb6320FA8ADf69460CDd9d472C25A',
+    },
+    {
+      boringVault: '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7',
+      tellerAddress: '0xB0025a2eBc0474d4F28E975F0D3E70471246ebae',
+      vedaVaultAdapterAddress: '0x9AF808DA682aC92AA23CF40509F5A3694445e2b7',
     },
   ],
   cardSignInDomain: 'link.metamask.io',
