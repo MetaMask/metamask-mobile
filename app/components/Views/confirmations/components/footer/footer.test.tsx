@@ -140,6 +140,8 @@ describe('Footer', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
@@ -267,6 +269,8 @@ describe('Footer', () => {
       isTransactionValueUpdating: true,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
@@ -440,6 +444,8 @@ describe('Footer', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
@@ -482,6 +488,8 @@ describe('Footer', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
@@ -524,6 +532,8 @@ describe('Footer', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
@@ -649,11 +659,15 @@ describe('Footer', () => {
       },
     );
 
-    it('calls trackAlertMetrics when alerts change', () => {
+    // Alert metrics are owned by `ConfirmationAlertMetrics`, mounted inside
+    // `ConfirmationAlerts`. The footer must not track them: it renders `null`
+    // for every type in HIDE_FOOTER_BY_DEFAULT_TYPES, which silently dropped
+    // alert metrics for those flows while this effect lived here.
+    it('does not track alert metrics', () => {
       renderWithProvider(<Footer />, {
         state: personalSignatureConfirmationState,
       });
-      expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
+      expect(mockTrackAlertMetrics).not.toHaveBeenCalled();
     });
 
     it('renders standard button label even if alerts if quotes loading', async () => {

@@ -55,6 +55,7 @@ import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
 import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
 import { ConfirmationAlerts } from '../alerts/confirmation-alerts';
+import { ConfirmationAlertMetrics } from '../alerts/confirmation-alert-metrics';
 
 const DEFAULT_BOTTOM_SHEET_HEIGHT = 60;
 
@@ -164,6 +165,7 @@ const ConfirmWrapped = ({
       >
         <ConfirmationAssetPollingProvider>
           <ConfirmationAlerts>
+            <ConfirmationAlertMetrics />
             <QRHardwareContextProvider>
               <Title />
               <ScrollView
