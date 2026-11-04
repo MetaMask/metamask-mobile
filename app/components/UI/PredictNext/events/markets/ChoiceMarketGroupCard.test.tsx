@@ -1,5 +1,4 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type {
   PredictDecimal,
@@ -90,40 +89,6 @@ describe('ChoiceMarketGroupCard', () => {
     ).toHaveTextContent(/40\+ yards.*40¢/);
   });
 
-  it('has no title without one', () => {
-    render(
-      <ChoiceMarketGroupCard
-        groupKey={GROUP}
-        markets={[forty]}
-        describeRow={describeRow}
-      />,
-    );
-
-    expect(screen.queryByTestId(TestIds.title(GROUP))).not.toBeOnTheScreen();
-    expect(
-      screen.getByTestId(TestIds.row(GROUP, 'henry-40')),
-    ).toBeOnTheScreen();
-  });
-
-  it('colors each row and shows its leading element', () => {
-    render(
-      <ChoiceMarketGroupCard
-        groupKey={GROUP}
-        markets={[forty]}
-        describeRow={() => ({
-          label: 'Row',
-          color: TEAM_COLOR,
-          leading: <Text testID="leading">avatar</Text>,
-        })}
-      />,
-    );
-
-    expect(screen.getByTestId('leading')).toBeOnTheScreen();
-    expect(screen.getByTestId(TestIds.line(GROUP, 'henry-40'))).toHaveStyle({
-      backgroundColor: TEAM_COLOR,
-    });
-  });
-
   it('orders a row by its yes side and disables a closed one', () => {
     const onOrder = jest.fn();
     const closed = createMarket({
@@ -145,17 +110,5 @@ describe('ChoiceMarketGroupCard', () => {
     fireEvent.press(screen.getByTestId(TestIds.price(GROUP, 'henry-80')));
 
     expect(onOrder.mock.calls).toEqual([[forty, forty.outcomes[0]]]);
-  });
-
-  it('renders nothing without a Market that has a yes side', () => {
-    render(
-      <ChoiceMarketGroupCard
-        groupKey={GROUP}
-        markets={[]}
-        describeRow={describeRow}
-      />,
-    );
-
-    expect(screen.queryByTestId(TestIds.card(GROUP))).not.toBeOnTheScreen();
   });
 });

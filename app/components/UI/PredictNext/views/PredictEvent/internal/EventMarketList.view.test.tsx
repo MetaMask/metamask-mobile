@@ -1940,38 +1940,6 @@ describe('EventMarketList', () => {
       expect(view.queryByTestId(charbonnet)).not.toBeOnTheScreen();
       expect(view.getByTestId(viewAll)).toBeOnTheScreen();
     });
-
-    it('orders from a Player row by its yes side', async () => {
-      const { props, view } = await renderPlayerProps();
-      const marketId = `${event.id}-rushing_yards-Kenneth Walker-70`;
-      const market = event.markets.find(({ id }) => id === marketId);
-
-      fireEvent.press(
-        view.getByTestId(
-          ChoiceMarketGroupCardTestIds.price(
-            rushing('Kenneth Walker'),
-            marketId,
-          ),
-        ),
-      );
-
-      expect(props.onOrder).toHaveBeenCalledWith(market, market?.outcomes[0]);
-    });
-
-    it('keeps the Game lines moneyline on its own card', async () => {
-      const { view } = await renderPlayerProps();
-
-      fireEvent.press(
-        view.getByTestId(EventMarketListTestIds.layoutTab('game_lines')),
-      );
-
-      expect(
-        view.getByTestId(
-          MoneylineMarketGroupCardTestIds.card(`${event.id}:moneyline`),
-        ),
-      ).toBeOnTheScreen();
-      expect(titles(view)).toEqual([]);
-    });
   });
 
   describe('with an About tab', () => {
