@@ -611,7 +611,7 @@ export function useQuickBuyQuotes({
       return;
     }
 
-    debouncedFetchQuotes();
+    debouncedFetchQuotes()?.catch(() => undefined);
     return () => {
       debouncedFetchQuotes.cancel();
     };
@@ -638,7 +638,7 @@ export function useQuickBuyQuotes({
     }
     prevImmediateFetchTokenRef.current = immediateFetchToken;
     debouncedFetchQuotes.cancel();
-    fetchQuotes();
+    fetchQuotes().catch(() => undefined);
   }, [
     isBridgeControllerActive,
     immediateFetchToken,
@@ -667,7 +667,7 @@ export function useQuickBuyQuotes({
     const delay = Math.max(0, quoteRefreshRateMs - elapsed);
 
     const timer = setTimeout(() => {
-      fetchQuotes();
+      fetchQuotes().catch(() => undefined);
     }, delay);
 
     return () => clearTimeout(timer);
@@ -682,7 +682,7 @@ export function useQuickBuyQuotes({
   /** Reset the refresh counter and re-fetch immediately (for "Get new quote" CTA). */
   const refetchQuotes = useCallback(() => {
     setRefreshCount(0);
-    fetchQuotes();
+    fetchQuotes().catch(() => undefined);
   }, [fetchQuotes]);
 
   useEffect(
