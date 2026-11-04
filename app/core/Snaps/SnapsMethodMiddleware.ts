@@ -55,6 +55,14 @@ const HANDLED_SNAP_FALLBACK_PATTERNS: HandledSnapFallbackPattern[] = [
   },
 ];
 
+function matchHandledSnapFallbackPattern(
+  candidate: Error,
+): HandledSnapFallbackPattern | undefined {
+  return HANDLED_SNAP_FALLBACK_PATTERNS.find((pattern) =>
+    pattern.matcher(candidate),
+  );
+}
+
 function findHandledSnapFallbackPattern(
   origin: string,
   error: Error,
@@ -63,20 +71,16 @@ function findHandledSnapFallbackPattern(
     return undefined;
   }
 
-  const candidates = [error];
-  if (error.cause instanceof Error) {
-    candidates.push(error.cause);
+  const errorMatch = matchHandledSnapFallbackPattern(error);
+  if (errorMatch) {
+    return errorMatch;
   }
 
-  for (const candidate of candidates) {
-    for (const pattern of HANDLED_SNAP_FALLBACK_PATTERNS) {
-      if (pattern.matcher(candidate)) {
-        return pattern;
-      }
-    }
+  if (!(error.cause instanceof Error)) {
+    return undefined;
   }
 
-  return undefined;
+  return matchHandledSnapFallbackPattern(error.cause);
 }
 
 export const trackSnapEvent = (eventPayload: {
