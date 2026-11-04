@@ -130,6 +130,9 @@
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"
     },
+    "money_account_no_funds": {
+      "message": "You don't have funds in your Money account to send yet. Add funds first."
+    },
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
     },
@@ -3325,7 +3328,7 @@
       "gainers": "Gainers",
       "losers": "Losers",
       "recently_added": "Recently added",
-      "social_feed": "Social feed",
+      "social_feed": "Social",
       "trending": "Trending",
       "top_traders": "Top traders"
     },
@@ -9509,8 +9512,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Add money from your bank",
-        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "title": "Convert to digital dollars",
+        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
@@ -9783,7 +9786,7 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
-      "microdeposit": "Test Deposit",
+      "microdeposit": "Verification deposit",
       "microdeposit_from": "From {{name}}",
       "microdeposit_from_bank": "From your bank",
       "received": "Received",
@@ -10400,7 +10403,8 @@
     "tabs": {
       "market": "Market",
       "limit": "Limit",
-      "recurring": "Recurring"
+      "recurring": "Recurring",
+      "new_badge": "New"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",
@@ -10772,6 +10776,7 @@
     "quote_stream_complete_rwa_market_unavailable": "The market for this asset is currently unavailable. Try again later.",
     "max": "Max",
     "approval_needed": "Approves token for swap.",
+    "tooltip_accessibility_hint": "Shows more information",
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
