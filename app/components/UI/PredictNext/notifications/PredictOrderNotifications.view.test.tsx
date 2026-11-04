@@ -81,6 +81,10 @@ const makePreview = () => ({
   totalDebit: '20.86',
   potentialPayout: '43.00',
   potentialProfit: '22.14',
+  // Signed fields the order check requires before Review enables. One
+  // contract at one cent fits the $20 the probe types, fees included.
+  price: '0.0100',
+  count: '1.00',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
 });
 

@@ -489,64 +489,66 @@ const checkBinaryLimitOrder = (
   body: string,
   context: RenderContext,
 ): InvariantDisplay => {
-  const fail = (): never => {
-    throw new TemplateError('invariant', implementation);
-  };
+  // Copy index-signature fields out before the checks. TypeScript does not
+  // narrow `params[key]`, so a later read would still be `string | number | boolean`.
+  const amountInput = params?.amountInput;
+  const contractsInput = params?.contractsInput;
+  const feeCeilingCentsPerContract = params?.feeCeilingCentsPerContract;
   if (
     !params ||
     params.pricing !== 'yes-leg' ||
-    typeof params.feeCeilingCentsPerContract !== 'number' ||
-    !Number.isSafeInteger(params.feeCeilingCentsPerContract) ||
-    params.feeCeilingCentsPerContract < 0 ||
-    typeof params.amountInput !== 'string' ||
-    typeof params.contractsInput !== 'string'
+    typeof feeCeilingCentsPerContract !== 'number' ||
+    !Number.isSafeInteger(feeCeilingCentsPerContract) ||
+    feeCeilingCentsPerContract < 0 ||
+    typeof amountInput !== 'string' ||
+    typeof contractsInput !== 'string'
   ) {
-    fail();
+    throw new TemplateError('invariant', implementation);
   }
   const price = scaled(bodyField(body, 'price', implementation), 4);
   const count = scaled(bodyField(body, 'count', implementation), 2);
   const outcome = inputString(context, 'outcome');
   const action = inputString(context, 'action');
   if (price === undefined || count === undefined || !outcome || !action) {
-    fail();
+    throw new TemplateError('invariant', implementation);
   }
   const outcomeLimit =
     outcome === 'no' ? 10_000n - price : outcome === 'yes' ? price : undefined;
   if (outcomeLimit === undefined || outcomeLimit <= 0n) {
-    fail();
+    throw new TemplateError('invariant', implementation);
   }
   const floorName = params.minOutcomePriceInput;
   if (typeof floorName === 'string' && has(context.inputs, floorName)) {
     const floorText = inputString(context, floorName);
     const floor = floorText === undefined ? undefined : scaled(floorText, 4);
     if (floor === undefined || outcomeLimit < floor) {
-      fail();
+      throw new TemplateError('invariant', implementation);
     }
   }
-  const fee = BigInt(params.feeCeilingCentsPerContract) * 100n;
+  const fee = BigInt(feeCeilingCentsPerContract) * 100n;
   const proceeds = count * outcomeLimit;
   const cost = count * (outcomeLimit + fee);
   if (action === 'buy') {
-    const amount = context.inputs[params.amountInput];
+    const amount = context.inputs[amountInput];
     if (
       typeof amount !== 'number' ||
       !Number.isSafeInteger(amount) ||
       amount < 0
     ) {
-      fail();
+      throw new TemplateError('invariant', implementation);
     }
     // `amount` is cents. One cent is 10_000 units of `cost`.
     if (cost > BigInt(amount) * 10_000n) {
-      fail();
+      throw new TemplateError('invariant', implementation);
     }
   } else if (action === 'sell') {
-    const contracts = inputString(context, params.contractsInput);
+    const contracts = inputString(context, contractsInput);
     const offered = contracts === undefined ? undefined : scaled(contracts, 2);
     if (offered === undefined || offered !== count) {
-      fail();
+      throw new TemplateError('invariant', implementation);
     }
   } else {
-    fail();
+    throw new TemplateError('invariant', implementation);
   }
   return {
     maxCost: dollarsFromCents((cost + 9_999n) / 10_000n),

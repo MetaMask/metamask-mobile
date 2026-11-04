@@ -211,6 +211,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'buy',
       amount: '20.00' as never,
+      idempotencyKey: ORDER_KEY,
     });
 
   const quoteSell = (orderService: PredictOrderService) =>
@@ -219,6 +220,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'sell',
       contracts: '70' as never,
+      idempotencyKey: ORDER_KEY,
     });
 
   it('requests a Preview through the authenticated transport chain', async () => {

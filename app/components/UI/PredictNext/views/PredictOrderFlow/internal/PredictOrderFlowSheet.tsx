@@ -389,23 +389,36 @@ export const PredictOrderFlowSheet = ({
     if (!preview?.price || !preview.count) {
       return undefined;
     }
-    const cents = intent.action === 'buy' ? amountToCents(amount) : undefined;
-    if (intent.action === 'buy' && cents === undefined) {
-      return undefined;
-    }
+    const quote = {
+      price: preview.price,
+      count: preview.count,
+    };
     try {
+      if (intent.action === 'buy') {
+        const cents = amountToCents(amount);
+        if (cents === undefined) {
+          return undefined;
+        }
+        return readOrderCommitDisplay(
+          {
+            action: 'buy',
+            outcome: intent.side,
+            marketId: intent.marketId,
+            idempotencyKey: idempotencyKeyRef.current,
+            amountCents: cents,
+          },
+          quote,
+        );
+      }
       return readOrderCommitDisplay(
         {
-          action: intent.action,
+          action: 'sell',
           outcome: intent.side,
           marketId: intent.marketId,
           idempotencyKey: idempotencyKeyRef.current,
-          ...(intent.action === 'buy' ? { amountCents: cents } : { contracts }),
+          contracts,
         },
-        {
-          price: preview.price,
-          count: preview.count,
-        },
+        quote,
       );
     } catch (error) {
       if (error instanceof TemplateError) {
