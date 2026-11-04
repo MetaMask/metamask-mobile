@@ -135,6 +135,12 @@ export const EventPositionCard = ({
   );
   const title = getTitle(position, heldOutcome, market);
   const chance = getAskPricePercent(heldOutcome?.askPrice);
+  const chanceText =
+    chance === undefined
+      ? undefined
+      : strings('predict_next.event.position.chance_to_win', {
+          percent: chance,
+        });
   const price = formatAskPrice(heldOutcome?.askPrice);
   const canBuy =
     market !== undefined &&
@@ -160,9 +166,9 @@ export const EventPositionCard = ({
         <Box
           twClassName="min-w-0 flex-1"
           accessible
-          accessibilityLabel={
-            holding === undefined ? title : `${title}, ${holding}`
-          }
+          accessibilityLabel={[title, chanceText, holding]
+            .filter(Boolean)
+            .join(', ')}
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -171,15 +177,13 @@ export const EventPositionCard = ({
           >
             {title}
           </Text>
-          {chance === undefined ? null : (
+          {chanceText === undefined ? null : (
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-alternative"
               testID={testIds.chance}
             >
-              {strings('predict_next.event.position.chance_to_win', {
-                percent: chance,
-              })}
+              {chanceText}
             </Text>
           )}
         </Box>

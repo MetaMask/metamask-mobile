@@ -2049,6 +2049,14 @@ describe('EventMarketList', () => {
       expect(
         card.getByTestId(ids(EventMarketListTestIds.positionChance)),
       ).toHaveTextContent('42% to win');
+      // Screen readers hear the chance as part of the title's label.
+      expect(
+        card.getByLabelText(
+          new RegExp(
+            `^${positionTitle(position, 'New England')}, 42% to win, `,
+          ),
+        ),
+      ).toBeOnTheScreen();
       expect(
         card.getByTestId(ids(EventMarketListTestIds.positionValue)),
       ).toHaveTextContent('$45.00');
