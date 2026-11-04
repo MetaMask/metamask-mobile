@@ -14,6 +14,11 @@ const CAMPAIGN_ID = 'predict-portfolio-campaign-1';
 const VIEW_TEST_IDS = PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW_TEST_IDS;
 const PORTFOLIO_TEST_IDS = PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS;
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({

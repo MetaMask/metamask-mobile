@@ -54,6 +54,13 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));
@@ -514,18 +521,17 @@ describe('SocialV1View', () => {
       });
     });
 
-    it('pins the new post on top of Following', () => {
+    it('does not pin the new post on Following', () => {
       renderWithProvider(<SocialV1View />);
       fireEvent.press(
         screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
       );
 
-      const followingCards = within(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-      ).getAllByTestId(/^social-v1-feed-card-/);
-      expect(followingCards[0].props.testID).toBe(
-        getSocialFeedPositionCardTestId(PENDING_ITEM_ID),
-      );
+      expect(
+        within(
+          screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+        ).queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+      ).toBeNull();
     });
 
     it('stays on Trending, without the post, when no post was just written', () => {

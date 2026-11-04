@@ -41,7 +41,7 @@ import {
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from '../TopTradersView/TopTradersView.testIds';
 import {
-  DEFAULT_FILTERS,
+  DEFAULT_LEADERBOARD_FILTERS,
   SocialTabFilterBar,
   toLeaderboardTimeframe,
   toLeaderboardTypeFilter,
@@ -93,7 +93,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   onScroll,
   pageRef,
   containerTestID,
-  appliedFilters = DEFAULT_FILTERS,
+  appliedFilters = DEFAULT_LEADERBOARD_FILTERS,
   onOpenFilters,
   isFilterActive = false,
   onClearFilters,

@@ -18,3 +18,11 @@ export {
   usePredictAvailability,
 } from './availability';
 export { PredictEventProperties, PredictEventValues } from './analytics';
+export {
+  usePredictPortfolioValue,
+  type PredictPortfolioValue,
+} from './portfolio';
+export {
+  PredictHomeSection,
+  type PredictHomeSectionProps,
+} from './homeSection';
