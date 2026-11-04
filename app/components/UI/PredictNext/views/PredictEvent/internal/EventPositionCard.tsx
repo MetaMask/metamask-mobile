@@ -212,7 +212,7 @@ export const EventPositionCard = ({
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          twClassName="h-12 min-w-0 flex-1 rounded-xl bg-muted"
+          twClassName="h-12 min-w-0 flex-1 rounded-full bg-muted"
           isDisabled={!canBuy}
           accessibilityState={{ disabled: !canBuy }}
           onPress={
@@ -229,7 +229,7 @@ export const EventPositionCard = ({
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          twClassName="h-12 min-w-0 flex-1 rounded-xl bg-muted"
+          twClassName="h-12 min-w-0 flex-1 rounded-full bg-muted"
           onPress={() => onCashOut(position)}
           testID={testIds.cashOut}
         >
