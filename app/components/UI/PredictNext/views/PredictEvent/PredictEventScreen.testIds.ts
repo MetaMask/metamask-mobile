@@ -14,12 +14,15 @@ export const PredictEventScreenTestIds = {
   GAME_METADATA: 'predict-next-event-game-metadata',
   MARKETS: 'predict-next-event-markets',
   market: (marketId: string) => `predict-next-event-market-${marketId}`,
+  LIVE_DOT: 'predict-next-event-game-live-dot',
   EVENT_RULES_BUTTON: 'predict-next-event-rules-button',
   team: (selection: 'away' | 'home') => `predict-next-event-team-${selection}`,
   teamLogo: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-logo`,
   teamLogoFallback: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-logo-fallback`,
+  teamAbbreviation: (selection: 'away' | 'home') =>
+    `predict-next-event-team-${selection}-abbreviation`,
   teamName: (selection: 'away' | 'home') =>
     `predict-next-event-team-${selection}-name`,
   teamScore: (selection: 'away' | 'home') =>

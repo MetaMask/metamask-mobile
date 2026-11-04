@@ -17,7 +17,7 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../../types';
-import { useGameTeamColors } from '../../game';
+import { isMirroredTeamLogo, useGameTeamColors } from '../../game';
 import { TeamLogo as SharedTeamLogo } from '../../shared/ui';
 import { EventCard } from './EventCard';
 import {
@@ -217,14 +217,14 @@ const CompactTeamRow = ({ selection }: { selection: GameSelection }) => {
 };
 
 const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
-  const { team } = useTeam(selection);
+  const { event, team } = useTeam(selection);
 
   return (
     <Box twClassName="w-14 items-center gap-1">
       <TeamLogo
         selection={selection}
         size="large"
-        flipped={selection === 'home'}
+        flipped={isMirroredTeamLogo(event, selection)}
       />
       <Text
         variant={TextVariant.BodyXs}

@@ -9,6 +9,7 @@ export {
   type GameSelectionQuote,
 } from './findGameSelectionQuote';
 export { getGameMoneylineMarkets } from './getGameMoneylineMarkets';
+export { isFootballEvent, isMirroredTeamLogo } from './football';
 export {
   findGameTradingQuote,
   findWinnerMarketQuotes,
