@@ -1,11 +1,13 @@
 import {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useSyncExternalStore,
 } from 'react';
 import type { View } from 'react-native';
+import { TraderStatRotationContext } from '../components/TraderStatRotationContext';
 import { computeLivePositionFigures } from './computeLivePositionFigures';
 import { useSocialLivePrices } from './SocialLivePricesContext';
 import type { SocialLivePositionFigures, SocialLivePriceSource } from './types';
@@ -32,13 +34,17 @@ export function useSocialLivePrice(
   const context = useSocialLivePrices();
   const trackRef = useRef<View>(null);
   const key = live?.key;
+  // False for cards on a pager page that is not the selected tab. Those cards
+  // are off screen, so measuring them (a native round trip each) and streaming
+  // their prices is wasted work.
+  const isPageOnScreen = useContext(TraderStatRotationContext);
 
   useEffect(() => {
-    if (!context || !key) {
+    if (!context || !key || !isPageOnScreen) {
       return undefined;
     }
     return context.register(id, key, trackRef);
-  }, [context, id, key]);
+  }, [context, id, key, isPageOnScreen]);
 
   const subscribe = useCallback(
     (listener: () => void) =>
