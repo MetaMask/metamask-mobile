@@ -298,6 +298,9 @@ jest.mock('../../app/core/Engine', () => {
         startSession: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Fired, fire-and-forget, once the vendor-terms screen's initial
+        // disclaimers request settles (CreateVirtualBankAccount).
+        ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {
