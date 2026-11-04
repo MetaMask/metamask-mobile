@@ -1,3 +1,23 @@
+// Bounded value-keyed memo for parseCaipAssetType: it is pure (regex parse of
+// the raw id) and every selector re-parses the same recurring asset ids on
+// every state change. Invalid ids are not cached (parse throws each time,
+// matching uncached behavior). Mirrors the value-keyed memoization
+// controller-utils already applies to toChecksumHexAddress.
+const parseCaipAssetTypeCache = new Map();
+const PARSE_CACHE_LIMIT = 8192;
+function parseCaipAssetTypeCached(caipAssetType) {
+    const cached = parseCaipAssetTypeCache.get(caipAssetType);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const parsed = parseCaipAssetType(caipAssetType);
+    if (parseCaipAssetTypeCache.size >= PARSE_CACHE_LIMIT) {
+        parseCaipAssetTypeCache.clear();
+    }
+    parseCaipAssetTypeCache.set(caipAssetType, parsed);
+    return parsed;
+}
+
 // CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
 // vault token that should never surface as regular ERC-20 tokens in the wallet
 // token list or balance maps. Staking is only supported on Ethereum mainnet
@@ -11,7 +31,7 @@ const STAKED_TOKEN_ASSET_IDS_TO_FILTER = new Set([
 // AssetIds may carry the contract address in any case, so normalize the asset
 // reference to its checksummed form before matching against the filter set.
 const isStakedTokenAssetId = (assetId) => {
-    const { chainId, assetNamespace, assetReference } = parseCaipAssetType(assetId);
+    const { chainId, assetNamespace, assetReference } = parseCaipAssetTypeCached(assetId);
     return STAKED_TOKEN_ASSET_IDS_TO_FILTER.has(`${chainId}/${assetNamespace}:${toChecksumHexAddress(assetReference)}`);
 };
 // ChainId (hex) -> AccountAddress (hex checksummed) -> Balance (hex)
@@ -31,7 +51,7 @@ const getAccountTrackerControllerAccountsByChainId = makeDirect([
         const checksummedAddress = toChecksumHexAddress(internalAccount.address);
         for (const [assetId, balanceData] of Object.entries(accountBalances)) {
             const metadata = assetsInfo[assetId];
-            const assetType = parseCaipAssetType(assetId);
+            const assetType = parseCaipAssetTypeCached(assetId);
             if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
                 continue;
             }
@@ -98,7 +118,7 @@ const getTokensControllerAllTokens = makeDirect([
             if (!metadata || metadata.type === 'native') {
                 continue;
             }
-            const assetType = parseCaipAssetType(assetId);
+            const assetType = parseCaipAssetTypeCached(assetId);
             if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
                 continue;
             }
@@ -133,7 +153,7 @@ const getTokensControllerAllIgnoredTokens = makeDirect([
         if (!hidden) {
             continue;
         }
-        const assetType = parseCaipAssetType(assetId);
+        const assetType = parseCaipAssetTypeCached(assetId);
         if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
             continue;
         }
@@ -172,7 +192,7 @@ const getTokenBalancesControllerTokenBalances = makeDirect([
             if (!metadata) {
                 continue;
             }
-            const assetType = parseCaipAssetType(assetId);
+            const assetType = parseCaipAssetTypeCached(assetId);
             // TokenBalancesController is EVM-only; skip non-eip155 assets (e.g.
             // Solana) that can appear under the same account in unified state.
             // Otherwise `decimalToPrefixedHex` on a non-decimal reference yields
@@ -213,7 +233,7 @@ const getTokenBalancesControllerTokenBalances = makeDirect([
             if (!metadata || metadata.type === 'native') {
                 continue;
             }
-            const assetType = parseCaipAssetType(assetId);
+            const assetType = parseCaipAssetTypeCached(assetId);
             if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
                 continue;
             }
@@ -260,7 +280,7 @@ const getMultiChainAssetsControllerAccountsAssets = makeDirect([
         }
         result[accountId] = [];
         for (const assetId of assetIds) {
-            const assetType = parseCaipAssetType(assetId);
+            const assetType = parseCaipAssetTypeCached(assetId);
             if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
                 continue;
             }
@@ -276,7 +296,7 @@ const getMultiChainAssetsControllerAssetsMetadata = makeDirect([
 ], (assetsInfo) => {
     const result = {};
     for (const [assetId, metadata] of Object.entries(assetsInfo)) {
-        const assetType = parseCaipAssetType(assetId);
+        const assetType = parseCaipAssetTypeCached(assetId);
         if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
             continue;
         }
@@ -313,7 +333,7 @@ const getMultiChainAssetsControllerAllIgnoredAssets = makeDirect([
             if (!hidden) {
                 continue;
             }
-            const assetType = parseCaipAssetType(assetId);
+            const assetType = parseCaipAssetTypeCached(assetId);
             if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
                 continue;
             }
@@ -337,7 +357,7 @@ const getMultiChainBalancesControllerBalances = makeDirect([
         }
         result[accountId] = {};
         for (const [assetId, balance] of Object.entries(chainIdBalances)) {
-            const assetType = parseCaipAssetType(assetId);
+            const assetType = parseCaipAssetTypeCached(assetId);
             const metadata = assetsInfo[assetId];
             if (!metadata ||
                 assetType.chain.namespace === KnownCaipNamespace.Eip155) {
@@ -366,7 +386,7 @@ const getCurrencyRateControllerCurrencyRates = makeDirect([
         if (result[metadata.symbol]) {
             continue;
         }
-        const assetType = parseCaipAssetType(assetId);
+        const assetType = parseCaipAssetTypeCached(assetId);
         // Skip if not a native asset or not evm
         if (metadata.type !== 'native' ||
             assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
@@ -394,7 +414,7 @@ const getTokenRatesControllerMarketData = makeDirect([
 ], (assetsPrice, assetsInfo, currencyRates, networkConfigurationsByChainId) => {
     const result = {};
     for (const [assetId, price] of Object.entries(assetsPrice)) {
-        const assetType = parseCaipAssetType(assetId);
+        const assetType = parseCaipAssetTypeCached(assetId);
         if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
             continue;
         }
@@ -446,7 +466,7 @@ const getMultichainAssetsRatesControllerConversionRates = makeDirect([
 ], (assetsPrice) => {
     const result = {};
     for (const [assetId, assetPrice] of Object.entries(assetsPrice)) {
-        const assetType = parseCaipAssetType(assetId);
+        const assetType = parseCaipAssetTypeCached(assetId);
         if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
             continue;
         }
