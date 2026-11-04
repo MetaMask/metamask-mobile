@@ -15,7 +15,9 @@ import {
 
 export type HeaderBaseGlassProps = HeaderBaseProps &
   HeaderGlassOptions &
-  Pick<HeaderGlassProps, 'containerStyle'>;
+  Pick<HeaderGlassProps, 'containerStyle'> & {
+    applyStyleToContainer?: boolean;
+  };
 
 /**
  * MMDS `HeaderBase` with optional glass treatment.
@@ -29,6 +31,7 @@ const HeaderBaseGlass = ({
   backdrop,
   fadeInDistance,
   containerStyle,
+  applyStyleToContainer = false,
   isFloating,
   onLayout,
   ...props
@@ -37,10 +40,15 @@ const HeaderBaseGlass = ({
     return <HeaderBase {...props} onLayout={onLayout} />;
   }
 
+  // Some headers need the same layout styles on both glass layers. Keep this
+  // opt-in so styles such as margins are not applied twice elsewhere.
+  const resolvedContainerStyle =
+    containerStyle ?? (applyStyleToContainer ? props.style : undefined);
+
   return (
     <HeaderGlass
       onLayout={onLayout}
-      containerStyle={containerStyle}
+      containerStyle={resolvedContainerStyle}
       backdrop={backdrop}
       fadeInDistance={fadeInDistance}
       isFloating={isFloating}

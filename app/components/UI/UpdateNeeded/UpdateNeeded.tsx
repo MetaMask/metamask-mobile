@@ -98,9 +98,11 @@ const UpdateNeeded = () => {
       <HeaderBaseGlass
         isGlass={isGlassHeader}
         isFloating={false}
+        applyStyleToContainer
         style={styles.header}
         includesTopInset
         twClassName="h-auto"
+        testID="update-needed-modal-header"
         endButtonIconProps={[
           {
             onPress: triggerClose,

@@ -151,8 +151,17 @@ describe('MultipleAlertModal', () => {
 
   it('renders PageNavigation when there are multiple alerts', () => {
     const { getByTestId } = renderModal();
+    const header = getByTestId('header');
+
     expect(getByTestId('multiple-alert-modal-icon')).toBeDefined();
-    expect(getByTestId('header')).toBeDefined();
+    expect(header).toBeDefined();
+    expect(header.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          flex: 1,
+        }),
+      ]),
+    );
   });
 
   it('returns null when no alert is selected', () => {

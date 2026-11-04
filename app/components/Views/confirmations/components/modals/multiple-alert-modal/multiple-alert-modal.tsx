@@ -59,6 +59,7 @@ const NavigationAlertHeader: React.FC<NavigationAlertHeaderProps> = ({
       {...props}
       isGlass={isGlassHeader}
       isFloating={false}
+      applyStyleToContainer
       testID="header"
       startButtonIconProps={startButtonIconProps}
       endButtonIconProps={endButtonIconProps}

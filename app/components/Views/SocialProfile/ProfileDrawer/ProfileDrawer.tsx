@@ -60,6 +60,9 @@ const formatProfileHandle = (profile: MySocialProfile): string => {
 const ProfileDrawer = () => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const headerButtonVariant = isGlassHeader
+    ? undefined
+    : ButtonIconVariant.Filled;
   const navigation = useNavigation<AppNavigationProp>();
   const { openQRScanner } = useQRScanner();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -206,7 +209,7 @@ const ProfileDrawer = () => {
         testID={ProfileDrawerSelectorsIDs.HEADER}
         startButtonIconProps={{
           iconName: IconName.Close,
-          variant: ButtonIconVariant.Filled,
+          variant: headerButtonVariant,
           onPress: handleClose,
           accessibilityLabel: strings('profile_drawer.close'),
           testID: ProfileDrawerSelectorsIDs.CLOSE_BUTTON,
@@ -214,7 +217,7 @@ const ProfileDrawer = () => {
         endButtonIconProps={[
           {
             iconName: IconName.QrCode,
-            variant: ButtonIconVariant.Filled,
+            variant: headerButtonVariant,
             onPress: openQRScanner,
             accessibilityLabel: strings('profile_drawer.scan'),
             testID: ProfileDrawerSelectorsIDs.SCAN_BUTTON,

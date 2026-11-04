@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import HeaderBaseGlass from './HeaderBaseGlass';
-import { FLOATING_HEADER_FADE_TEST_ID } from '../HeaderGlass';
+import HeaderGlass, { FLOATING_HEADER_FADE_TEST_ID } from '../HeaderGlass';
 
 jest.mock('../CapsuleGlass', () => {
   const { View } = jest.requireActual('react-native');
@@ -117,5 +117,16 @@ describe('HeaderBaseGlass', () => {
 
     expect(getByText('Accounts')).toBeOnTheScreen();
     expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
+  });
+
+  it('uses the header style for the glass container when requested', () => {
+    const style = { flex: 1 };
+    const { UNSAFE_getByType } = render(
+      <HeaderBaseGlass isFloating={false} applyStyleToContainer style={style}>
+        Accounts
+      </HeaderBaseGlass>,
+    );
+
+    expect(UNSAFE_getByType(HeaderGlass).props.containerStyle).toBe(style);
   });
 });
