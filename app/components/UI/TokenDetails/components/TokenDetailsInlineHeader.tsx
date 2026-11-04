@@ -67,6 +67,7 @@ export const TokenDetailsInlineHeader = ({
   titleEndAccessory,
   description,
   tdpVersion,
+  hideContractAddress = false,
   isGlass = false,
   onLayout,
   scrollY,
@@ -92,6 +93,12 @@ export const TokenDetailsInlineHeader = ({
    */
   tdpVersion?: TdpVersion;
   /**
+   * When `true`, omits the contract address (and copy button) from the header
+   * subtitle. The memecoin TDP V1 sets this because the address lives in the
+   * security-social row instead; the legacy TDP leaves it `false`.
+   */
+  hideContractAddress?: boolean;
+  /**
    * Floats the header over the page on its glass backdrop, with the buttons in
    * capsules, as on the brand refresh.
    */
@@ -108,11 +115,11 @@ export const TokenDetailsInlineHeader = ({
 
   const isNativeToken = token.isETH || token.isNative;
   const contractAddress = useMemo(() => {
-    if (isNativeToken) {
+    if (hideContractAddress || isNativeToken) {
       return null;
     }
     return resolveTokenContractAddress(token);
-  }, [token, isNativeToken]);
+  }, [token, isNativeToken, hideContractAddress]);
   const handleCopyContractAddress = useCopyTokenContractAddress(
     contractAddress,
     onCopyAddress,
