@@ -14,8 +14,12 @@ import type { RootState } from '../reducers';
  * @returns The EVM address, or null when none is linked.
  */
 export const getLinkedEvmAddress = (
-  linkedAddresses: CaipAccountId[],
+  linkedAddresses?: CaipAccountId[] | null,
 ): string | null => {
+  if (!Array.isArray(linkedAddresses)) {
+    return null;
+  }
+
   for (const linkedAddress of linkedAddresses) {
     try {
       const { address, chainId } = parseCaipAccountId(linkedAddress);

@@ -495,6 +495,7 @@ describe('TraderProfileView', () => {
     );
 
     expect(shareSpy).toHaveBeenCalledWith({
+      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
       url: 'https://link.metamask.io/social/profile?traderId=trader-1',
     });
     expect(

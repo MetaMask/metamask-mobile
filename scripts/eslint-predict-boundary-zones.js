@@ -106,8 +106,6 @@ const predictImportBurndownFiles = [
   'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionsCarouselSection.tsx',
   'app/components/Views/TrendingView/feeds/predictions/PredictionsSkeleton.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/predictionsNavigation.test.ts',
-  'app/components/Views/TrendingView/feeds/predictions/predictionsNavigation.ts',
   'app/components/Views/TrendingView/feeds/predictions/usePredictionsFeed.ts',
   'app/components/Views/TrendingView/feeds/predictions/useSportsMarketsFeed.test.ts',
   'app/components/Views/TrendingView/feeds/predictions/useSportsMarketsFeed.ts',
@@ -146,7 +144,6 @@ const predictImportBurndownFiles = [
   'app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts',
   'app/core/Engine/controllers/ui-slots-controller/UiSlotsController.test.ts',
   'app/core/Engine/controllers/ui-slots-controller/contracts/v1.test.ts',
-  'app/core/NavigationService/types.ts',
   'app/selectors/featureFlagController/mocks.ts',
 ];
 
