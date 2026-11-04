@@ -90,25 +90,25 @@ export const buildImportedAccountSections = async (
   const sourceWallets =
     metadataWallets.length > 0 ? metadataWallets : secretWallets;
 
-  const sections: ImportedAccountSection[] = [];
+  return Promise.all(
+    sourceWallets.map(async (wallet) => {
+      const secretWallet = secretWallets.find(
+        (entry) => entry.id === wallet.id,
+      );
+      const addresses = await deriveAddressesForGroups(
+        secretWallet?.value ?? wallet.value,
+        wallet.groups.map((group) => group.groupIndex),
+      );
 
-  for (const wallet of sourceWallets) {
-    const secretWallet = secretWallets.find((entry) => entry.id === wallet.id);
-    const addresses = await deriveAddressesForGroups(
-      secretWallet?.value ?? wallet.value,
-      wallet.groups.map((group) => group.groupIndex),
-    );
-
-    sections.push({
-      id: wallet.id,
-      walletName: wallet.metadata?.name ?? 'Wallet',
-      accounts: wallet.groups.map((group) => ({
-        id: group.id,
-        name: group.metadata?.name ?? `Account ${group.groupIndex + 1}`,
-        address: addresses.get(group.groupIndex) ?? '',
-      })),
-    });
-  }
-
-  return sections;
+      return {
+        id: wallet.id,
+        walletName: wallet.metadata?.name ?? 'Wallet',
+        accounts: wallet.groups.map((group) => ({
+          id: group.id,
+          name: group.metadata?.name ?? `Account ${group.groupIndex + 1}`,
+          address: addresses.get(group.groupIndex) ?? '',
+        })),
+      };
+    }),
+  );
 };
