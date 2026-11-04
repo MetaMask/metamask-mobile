@@ -35,6 +35,8 @@ internal object PerfProfiles {
     private const val JS_CPU_TRIGGER = 80.0
     private const val SUSTAINED_WINDOWS = 3
     private const val HOUR_MS = 3_600_000L
+    private const val EMPTY_TRACE_MAX_BYTES = 16_384L
+    private val EMPTY_SAMPLES = Regex("\"samples\"\\s*:\\s*\\[\\s*]")
 
     private class Segment(val file: File, val startT: Long, val startMono: Long, val endT: Long, val endMono: Long,
                           val trigger: String?, val screen: String, var queued: Boolean = false)
@@ -124,13 +126,29 @@ internal object PerfProfiles {
         if (!dumped || !file.exists()) return
         val segment = Segment(file, segmentStartT, segmentStartMono, System.currentTimeMillis(), PerfSession.monoUs(),
             trigger, PerfSession.screen)
+        // Hermes takes no samples while the JS thread is idle. An empty segment has
+        // nothing to show and mustn't use up the hourly cap, but the previous one
+        // may still explain the trigger.
+        val empty = hasNoSamples(file)
         if (segment.trigger != null) {
             // The cause often starts before the trigger fires, so send the previous segment too.
             previous?.takeIf { !it.queued }?.let { enqueue(it, segment.trigger) }
-            enqueue(segment, segment.trigger)
+            if (!empty) enqueue(segment, segment.trigger)
         }
-        previous?.takeIf { it !== segment }?.file?.delete()
-        previous = segment
+        // Queued segments were already copied into the upload queue.
+        previous?.file?.delete()
+        previous = if (empty) {
+            file.delete()
+            null
+        } else {
+            segment
+        }
+    }
+
+    /** An empty trace is a few hundred bytes of metadata with `"samples":[]`. */
+    private fun hasNoSamples(file: File): Boolean {
+        if (file.length() > EMPTY_TRACE_MAX_BYTES) return false
+        return EMPTY_SAMPLES.containsMatchIn(file.readText())
     }
 
     /** Clears the sampler's buffer without keeping the data. */

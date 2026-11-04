@@ -54,7 +54,9 @@ object PerfSession {
     private const val SAMPLES_PER_BATCH = 10
     private const val MAX_EVENTS_PER_BATCH = 250
     private const val MAX_SPANS_PER_BATCH = 150
-    private const val MAX_STALLS_PER_BATCH = 5
+    // The contract's limit. Stalls never force a flush: a screen that stalls every
+    // second would otherwise upload every few seconds. Extra stalls are dropped.
+    private const val MAX_STALLS_PER_BATCH = 20
     private const val MAX_UNCONFIRMED_SAMPLES = 60
     private const val MAX_BATCH_CHARS = 240_000
     private const val FROZEN_FRAME_NS = 700_000_000L
@@ -296,7 +298,7 @@ object PerfSession {
             if (foreground && recording != Recording.OFF) sample()
             PerfProfiles.tick(foreground && recording == Recording.ON && features.profiles)
             if (samples.length() >= SAMPLES_PER_BATCH || events.length() >= MAX_EVENTS_PER_BATCH ||
-                spans.length() >= MAX_SPANS_PER_BATCH || stalls.length() >= MAX_STALLS_PER_BATCH
+                spans.length() >= MAX_SPANS_PER_BATCH
             ) flush()
             // Still waiting for the first status answer: keep the buffer within one batch's limits.
             if (recording == Recording.UNKNOWN) {
@@ -513,7 +515,7 @@ object PerfSession {
             batchFeatures.add("uiStalls")
             val frames = JSONArray()
             stack.take(40).forEach { frame -> PerfSanitize.text(frame, 200)?.let { frames.put(it) } }
-            if (stalls.length() < MAX_STALLS_PER_BATCH * 2) {
+            if (stalls.length() < MAX_STALLS_PER_BATCH) {
                 stalls.put(
                     JSONObject().put("t", t).put("mono", mono).put("durationMs", durationMs)
                         .put("screen", screen).put("stack", frames)
