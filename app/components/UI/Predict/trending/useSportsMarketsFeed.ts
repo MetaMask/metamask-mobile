@@ -41,6 +41,8 @@ export interface UseSportsMarketsFeedResult {
 
 interface UseSportsMarketsFeedOptions {
   refresh?: RefreshConfig;
+  /** When false, fetches nothing and ignores refreshes. @default true */
+  enabled?: boolean;
 }
 
 /**
@@ -49,6 +51,7 @@ interface UseSportsMarketsFeedOptions {
  */
 export const useSportsMarketsFeed = ({
   refresh,
+  enabled = true,
 }: UseSportsMarketsFeedOptions = {}): UseSportsMarketsFeedResult => {
   const [activeKey, setActiveKey] = useState<string>(SOCCER.key);
   const [loadedKeys, setLoadedKeys] = useState<Set<string>>(
@@ -59,19 +62,19 @@ export const useSportsMarketsFeed = ({
     category: 'sports',
     customQueryParams: SOCCER.customQueryParams,
     pageSize: PAGE_SIZE,
-    enabled: loadedKeys.has(SOCCER.key),
+    enabled: enabled && loadedKeys.has(SOCCER.key),
   });
   const basketball = usePredictMarketData({
     category: 'sports',
     customQueryParams: BASKETBALL.customQueryParams,
     pageSize: PAGE_SIZE,
-    enabled: loadedKeys.has(BASKETBALL.key),
+    enabled: enabled && loadedKeys.has(BASKETBALL.key),
   });
   const tennis = usePredictMarketData({
     category: 'sports',
     customQueryParams: TENNIS.customQueryParams,
     pageSize: PAGE_SIZE,
-    enabled: loadedKeys.has(TENNIS.key),
+    enabled: enabled && loadedKeys.has(TENNIS.key),
   });
 
   const marketsByKey: Record<string, UsePredictMarketDataResult> = useMemo(
@@ -101,7 +104,7 @@ export const useSportsMarketsFeed = ({
     await Promise.all(tasks);
   }, [loadedKeys, refetchSoccer, refetchBasketball, refetchTennis]);
 
-  useFeedRefresh(refresh, refetch);
+  useFeedRefresh(enabled ? refresh : undefined, refetch);
 
   const active = marketsByKey[activeKey];
   const isLoading = active.isFetching && active.marketData.length === 0;
