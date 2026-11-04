@@ -358,6 +358,64 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByTestId('card-transaction-details-copy-id')).toBeTruthy();
     });
 
+    it.each([
+      ['declined', CardTransactionStatus.Failed, 'money.transaction.failed'],
+      [
+        'reversed',
+        CardTransactionStatus.Reversed,
+        'card.transactions.reversed',
+      ],
+    ])(
+      'reports a settled but %s purchase using the provider status',
+      (_label, status: CardTransactionStatus, expectedLabel: string) => {
+        // The transfer is on-chain, so the Accounts-API row alone reads as
+        // completed. The provider outcome is the truthful one.
+        mockRouteParams = {
+          activity: card,
+          enrichment: {
+            id: 'baanx-id',
+            providerId: 'baanx',
+            timestamp: card.time,
+            status,
+            type: CardTransactionType.Purchase,
+            isDebit: true,
+            billingAmount: { value: '5.38', currency: 'USD' },
+            fundingSources: [],
+          },
+        };
+
+        const { getByText, queryByText } = render(
+          <MoneyApiActivityDetailsView />,
+        );
+
+        expect(getByText(expectedLabel)).toBeTruthy();
+        expect(queryByText('money.api_activity_details.completed')).toBeNull();
+      },
+    );
+
+    it('still reports a completed purchase as completed', () => {
+      mockRouteParams = {
+        activity: card,
+        enrichment: {
+          id: 'baanx-id',
+          providerId: 'baanx',
+          timestamp: card.time,
+          status: CardTransactionStatus.Completed,
+          type: CardTransactionType.Purchase,
+          isDebit: true,
+          billingAmount: { value: '5.38', currency: 'USD' },
+          fundingSources: [],
+        },
+      };
+
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText('money.api_activity_details.completed')).toBeTruthy();
+      expect(queryByText('money.transaction.failed')).toBeNull();
+    });
+
     it('hides the transaction ID row when enrichment has no reference', () => {
       const { queryByTestId, queryByText } = render(
         <MoneyApiActivityDetailsView />,
