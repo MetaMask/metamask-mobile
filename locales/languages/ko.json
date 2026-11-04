@@ -1247,7 +1247,6 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Money account는 [Entity], [regulated status, to confirm]에서 제공합니다. 헤알은 입금 시 mUSD로 전환됩니다.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "은행 송금으로 자금 추가",
@@ -1510,7 +1509,7 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "적용",
         "apply": "적용",
         "reset": "초기화",
