@@ -24,6 +24,7 @@ export const BridgeViewSelectorsIDs = {
   TABS_BAR: 'bridge-tabs-bar',
   TABS_CONTENT: 'bridge-tabs-content',
   TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
+  TAB_PAGE_SKELETON: 'bridge-tab-page-skeleton',
   MARKET_TAB: 'bridge-market-tab',
   LIMIT_TAB: 'bridge-limit-tab',
   LIMIT_TAB_NEW_BADGE: 'bridge-limit-tab-new-badge',
