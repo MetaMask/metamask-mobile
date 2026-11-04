@@ -42,6 +42,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
+  addDeviceToWalletPageOptions,
   slideFromRightNativeOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -1246,7 +1247,7 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
         component={AddDeviceToWalletWithMessenger}
-        options={{ headerShown: false }}
+        options={addDeviceToWalletPageOptions}
       />
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}

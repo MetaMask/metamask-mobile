@@ -1510,7 +1510,7 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "应用",
         "apply": "应用",
         "reset": "重设",

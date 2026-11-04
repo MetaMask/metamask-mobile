@@ -1,7 +1,9 @@
 import type { Position } from '@metamask/social-controllers';
 import {
+  filterPositionsByAsset,
   getFilteredPositionSections,
   getProfilePositionsEmptyMessageKey,
+  matchesProfileAssetFilter,
   splitPositionsByType,
 } from './splitPositionsByType';
 
@@ -37,6 +39,24 @@ describe('splitPositionsByType', () => {
 
     expect(result.tokens).toEqual([tokensInput]);
     expect(result.perps).toEqual([perpsInput]);
+  });
+});
+
+describe('filterPositionsByAsset', () => {
+  it('keeps API order for All and drops the other asset type', () => {
+    const perp = perpPosition('perp');
+    const spot = spotPosition('spot');
+    const positions = [perp, spot];
+
+    expect(filterPositionsByAsset(positions, 'all')).toEqual(positions);
+    expect(filterPositionsByAsset(positions, 'tokens')).toEqual([spot]);
+    expect(filterPositionsByAsset(positions, 'perps')).toEqual([perp]);
+  });
+
+  it('keeps a post with no position only for All', () => {
+    expect(matchesProfileAssetFilter(undefined, 'all')).toBe(true);
+    expect(matchesProfileAssetFilter(undefined, 'tokens')).toBe(false);
+    expect(matchesProfileAssetFilter(undefined, 'perps')).toBe(false);
   });
 });
 

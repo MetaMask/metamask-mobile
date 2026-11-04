@@ -36,6 +36,9 @@ PredictNext/
     usePredictPortfolioValue.ts
     internal/
       legacy/                  # usePredictPortfolio pass-through, unchanged
+  homeSection/
+    index.ts                   # Wallet Homepage Predictions section
+    PredictHomeSection.tsx     # Legacy section, moved as-is to Predict/homeSection; next renders nothing yet
   events/
     cards/
       index.ts                 # Supported Event-card API

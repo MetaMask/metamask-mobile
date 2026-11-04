@@ -1510,7 +1510,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "लागू करें",
         "apply": "लागू करें",
         "reset": "रीसेट करें",
