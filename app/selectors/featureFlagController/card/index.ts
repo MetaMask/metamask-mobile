@@ -85,9 +85,18 @@ export const selectApplePayLearnMoreUrl = createSelector(
   },
 );
 
+const selectBasicFunctionalityForCardLink = (state: {
+  settings?: { basicFunctionalityEnabled?: boolean } | null;
+}): boolean => {
+  if (!('settings' in state) || state.settings == null) return true;
+  return Boolean(state.settings.basicFunctionalityEnabled);
+};
+
 export const selectCardLinkApiEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
+  selectBasicFunctionalityForCardLink,
+  (remoteFeatureFlags, basicFunctionalityEnabled) =>
+    basicFunctionalityEnabled &&
     readCardLinkApiEnabled(remoteFeatureFlags as CardRemoteFeatureFlags),
 );
 
