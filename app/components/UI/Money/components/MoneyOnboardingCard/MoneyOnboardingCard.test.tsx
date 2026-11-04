@@ -195,7 +195,6 @@ describe('MoneyOnboardingCard', () => {
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       });
-      return 'depositStarted';
     });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackOnboardingEvent: mockTrackOnboardingEvent,

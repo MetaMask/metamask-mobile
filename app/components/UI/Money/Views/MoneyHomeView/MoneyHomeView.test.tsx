@@ -834,7 +834,6 @@ describe('MoneyHomeView', () => {
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       });
-      return 'depositStarted';
     });
     mockUseMoneyDepositNavigation.mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
