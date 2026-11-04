@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, Platform } from 'react-native';
+import { Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import Logger from '../../../util/Logger';
@@ -153,17 +153,10 @@ jest.mock(
 );
 
 describe('AgenticCliApproval', () => {
-  const originalPlatformOS = Platform.OS;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockGlassHeadersEnabled = false;
     mockWebViewProps = {};
-    Platform.OS = originalPlatformOS;
-  });
-
-  afterAll(() => {
-    Platform.OS = originalPlatformOS;
   });
 
   it('renders the localized header title after the WebView loads', async () => {
@@ -182,25 +175,7 @@ describe('AgenticCliApproval', () => {
     );
   });
 
-  it('drops the top inset on iOS when glass headers are enabled', async () => {
-    Platform.OS = 'ios';
-    mockGlassHeadersEnabled = true;
-    render(<AgenticCliApproval />);
-
-    await waitFor(() =>
-      expect(HeaderStandardGlass).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isGlass: true,
-          isFloating: false,
-          includesTopInset: false,
-        }),
-        undefined,
-      ),
-    );
-  });
-
-  it('keeps the top inset on Android when glass headers are enabled', async () => {
-    Platform.OS = 'android';
+  it('keeps the top inset when glass headers are enabled', async () => {
     mockGlassHeadersEnabled = true;
     render(<AgenticCliApproval />);
 
