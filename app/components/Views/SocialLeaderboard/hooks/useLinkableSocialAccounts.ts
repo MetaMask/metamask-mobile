@@ -7,12 +7,10 @@ import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
+import { selectBalanceForAllWalletsAndChains } from '../../../../selectors/assets/balances';
+import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
 import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
-import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
-import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../util/address';
@@ -61,29 +59,34 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
   const seedAddressByGroupId = useSelector(
     selectAllAccountGroupIconSeedAddresses,
   );
-  const enabledChains = useSelector(selectEVMEnabledNetworks);
-  const currency = useSelector(selectCurrentCurrency);
-  const formattedTokens = useGetFormattedTokensPerChain(
-    evmAccounts,
-    true,
-    enabledChains,
-  );
-  const totals = useGetTotalFiatBalanceCrossChains(
-    evmAccounts,
-    formattedTokens,
-  );
+  const accountsToGroupMap = useSelector(selectAccountToGroupMap);
+  const allBalances = useSelector(selectBalanceForAllWalletsAndChains);
 
   return useMemo(() => {
-    const currencyCode = (currency || 'usd').toUpperCase();
-    const balanceLabelFor = (address: string): string => {
-      const fiat = totals[address]?.totalFiatBalance;
-      return typeof fiat === 'number'
-        ? formatWithThreshold(fiat, 0.01, I18n.locale, {
-            style: 'currency',
-            currency: currencyCode,
-          })
-        : '';
+    const balanceByGroupId = new Map<
+      string,
+      { total: number; currency: string }
+    >();
+    for (const wallet of Object.values(allBalances.wallets ?? {})) {
+      for (const group of Object.values(wallet.groups ?? {})) {
+        balanceByGroupId.set(group.groupId, {
+          total: group.totalBalanceInUserCurrency,
+          currency: group.userCurrency,
+        });
+      }
+    }
+
+    const balanceLabelFor = (groupId: string): string => {
+      const balance = balanceByGroupId.get(groupId);
+      if (!balance?.total || !balance.currency) {
+        return '';
+      }
+      return formatWithThreshold(balance.total, 0.01, I18n.locale, {
+        style: 'currency',
+        currency: balance.currency.toUpperCase(),
+      });
     };
+
     const accountsByAddress = new Map(
       Object.values(accountsById).map((account) => [
         account.address.toLowerCase(),
@@ -112,7 +115,7 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
             name:
               groupName || accountLabel(account.metadata.name, account.address),
             address: account.address,
-            balanceLabel: balanceLabelFor(account.address),
+            balanceLabel: balanceLabelFor(group.id),
             linkedAddresses: [
               evmCaipId,
               ...groupAddresses.filter((id) => id !== evmCaipId),
@@ -130,15 +133,15 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
       id: account.id,
       name: accountLabel(account.metadata.name, account.address),
       address: account.address,
-      balanceLabel: balanceLabelFor(account.address),
+      balanceLabel: balanceLabelFor(accountsToGroupMap[account.id]?.id ?? ''),
       linkedAddresses: [`eip155:1:${account.address}` as CaipAccountId],
     }));
   }, [
     accountSections,
     accountsById,
-    currency,
+    accountsToGroupMap,
+    allBalances,
     evmAccounts,
     seedAddressByGroupId,
-    totals,
   ]);
 };

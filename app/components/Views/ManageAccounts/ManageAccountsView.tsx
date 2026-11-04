@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { AccountGroupId, AccountWalletId } from '@metamask/account-api';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -18,6 +18,9 @@ import {
   ManageAccountsViewSelectorsIDs,
   getManageAccountAddAccountFooterId,
 } from './ManageAccounts.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 /** One wallet section of the management list. */
 export interface ManageAccountsSection {
@@ -87,6 +90,7 @@ const ManageAccountsView = ({
   onBack,
   testID = ManageAccountsViewSelectorsIDs.CONTAINER,
 }: ManageAccountsViewProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
 
   const renderRows = useCallback(
@@ -114,7 +118,9 @@ const ManageAccountsView = ({
       style={tw.style('flex-1 bg-default')}
       testID={testID}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('multichain_accounts.manage_accounts.title')}
         onBack={onBack}
         backButtonProps={{ testID: ManageAccountsViewSelectorsIDs.BACK_BUTTON }}
