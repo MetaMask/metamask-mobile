@@ -7,13 +7,14 @@ import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { clearTrackedABTestExposureForTests } from '../../../../../hooks/useABTest';
 import { analytics } from '../../../../../util/analytics/analytics';
+import { DesignSystemBottomSheetMockSelectorsIDs } from '../../../../../../tests/component-view/designSystemBottomSheetMock.testIds';
 import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
 import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../Perps.testIds';
@@ -68,34 +69,15 @@ const isHeaderExperimentViewed = (event: {
   event.name === MetaMetricsEvents.EXPERIMENT_VIEWED.category &&
   event.properties?.experiment_id === PERPS_HEADER_AB_TEST_KEY;
 
-interface BottomSheetMockHandle {
-  onCloseBottomSheet?: () => void;
-}
-
 /**
- * View tests replace the design-system sheet with a stub that has no backdrop.
- * Closing through the stub handle runs this screen's `goBack` (`handleClose`):
- * dismiss, continue as the pre-selected mode, and do not arm exposure.
+ * Backdrop dismiss. The shared design-system sheet stub renders a pressable
+ * close control that runs this screen's `goBack` (`handleClose`): dismiss,
+ * continue as the pre-selected mode, and do not arm exposure.
  */
 const dismissModeChooser = () => {
-  const sheet = screen.UNSAFE_root.findAll((node) => {
-    const type = node.type as { displayName?: string } | string;
-    return typeof type !== 'string' && type.displayName === 'BottomSheet';
-  })[0] as
-    | {
-        _fiber?: {
-          ref?: { current?: BottomSheetMockHandle | null };
-        };
-      }
-    | undefined;
-  const close = sheet?._fiber?.ref?.current?.onCloseBottomSheet;
-  if (!close) {
-    throw new Error('Mode chooser close handle was not found');
-  }
-
-  act(() => {
-    close();
-  });
+  fireEvent.press(
+    screen.getByTestId(DesignSystemBottomSheetMockSelectorsIDs.CLOSE),
+  );
 };
 
 describe('PerpsModeSelectionView', () => {
