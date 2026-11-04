@@ -126,10 +126,13 @@ import {
   RampsControllerEvents,
   RampsService,
   RampsServiceActions,
+  RampsServiceEvents,
   TransakService,
   TransakServiceActions,
+  TransakServiceEvents,
   NeoBankService,
   NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -887,7 +890,10 @@ export type GlobalEvents =
   | KycServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
-  | SentinelApiServiceEvents;
+  | SentinelApiServiceEvents
+  | RampsServiceEvents
+  | TransakServiceEvents
+  | NeoBankServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
