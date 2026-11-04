@@ -15,7 +15,10 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CaipChainId } from '@metamask/utils';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  AnimatedAmountDisplay,
+  getFontSizeForInputLength,
+} from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
@@ -39,7 +42,6 @@ import useCurrency from '../../../../Base/Keypad/useCurrency';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
