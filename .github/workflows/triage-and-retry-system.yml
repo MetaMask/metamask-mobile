@@ -13,39 +13,21 @@
 #   1. Emits a lightweight "cancelled" event to Sentry and exits
 #      (no full classification needed)
 #
-# Retry has two budgets for events that have an originating PR:
+# Phase 1 (stealth mode): retry-ci label required for PR retries.
 #
-#   - pull_request / merge_group:
-#     Retry retryable failures once by default (attempt 1 → attempt 2).
-#     If the `retry-ci` label is present, retryable failures can retry up
-#     to attempt 4. Label-funded retries consume/remove the label.
-#     For merge_group, the PR number is extracted from the branch name
-#     (gh-readonly-queue/{base}/pr-{N}-{sha}).
+#   - pull_request:
+#     Requires `retry-ci` label for any retry. Label-funded retries can
+#     go up to attempt 4. Each retry consumes/removes the label.
 #
 #   - push to main/stable:
 #     Observation only — no retry.
 #
 #   - push to release/*:
-#     Retry retryable failures once by default (attempt 1 → attempt 2).
+#     Retry retryable failures once (attempt 1 → attempt 2).
 #     There is no PR label, so attempts 3 and 4 are unavailable.
 #
 # Reruns call `gh run rerun --failed`, which triggers a new ci.yml
-# completion → workflow_run fires again. The default budget allows attempt 2;
-# retry-ci extends PR retries through attempt 4. Release pushes stop at attempt
-# 2 because they have no PR label. Keep these limits in sync with
-# classify-failures.mts and ci-status-gate.yml.
-#
-# Merge queue interaction:
-#   Mobile uses ALLGREEN merge queue strategy. The merge queue monitors
-#   check suites directly — when ci.yml fails, the queue ejects.
-#
-#   NOTE: Unlike Extension, Mobile does not currently use commit status
-#   deferral to delay merge queue ejection during retries. This means
-#   merge_group retries may race with ejection. Future work may add
-#   commit status deferral to ci-status-gate action if needed.
-#
-#   When triage calls `gh run rerun --failed`, it resets ci.yml's check
-#   suite to in_progress and triggers a new attempt.
+# completion → workflow_run fires again.
 
 name: Triage and Retry System
 
@@ -63,23 +45,25 @@ jobs:
     # Pseudocode:
     #   if run.conclusion not in ['failure','cancelled'] → skip
     #   if run.repo != run.head_repo          → skip (cross-repo — no permissions)
-    #   if run.event == 'merge_group'         → run  (retry budget via PR)
-    #   if run.event == 'pull_request'        → run  (retry budget via PR)
+    #   if run.event == 'pull_request'        → run  (label-gated retry)
     #   if run.event == 'push'
     #     and run.branch in ['main','stable'] → run  (observation only — no retry)
-    #     and starts with 'release/'          → run  (default retry budget, no label extension)
-    #   else                                  → skip (workflow_dispatch, etc.)
+    #     and starts with 'release/'          → run  (automatic retry once)
+    #   else                                  → skip (workflow_dispatch, merge_group, etc.)
     #
     # Cancelled runs are included so that preempted retries (attempt > 1,
     # cancelled before completion) can emit a lightweight Sentry event.
     # The classifier handles cancelled runs with an early exit.
+    #
+    # NOTE: merge_group is excluded because Mobile lacks the commit-status
+    # deferral infrastructure that Extension uses to hold the queue open
+    # during retries. Add it later with a Mobile equivalent of #41177.
     if: >-
       ${{
         contains(fromJson('["failure","cancelled"]'), github.event.workflow_run.conclusion) &&
         github.event.workflow_run.head_repository.full_name == github.event.workflow_run.repository.full_name &&
         (
-          github.event.workflow_run.event == 'merge_group'
-          || github.event.workflow_run.event == 'pull_request'
+          github.event.workflow_run.event == 'pull_request'
           || (github.event.workflow_run.event == 'push'
               && (contains(fromJson('["main","stable"]'), github.event.workflow_run.head_branch)
                   || startsWith(github.event.workflow_run.head_branch, 'release/')))
@@ -105,16 +89,13 @@ jobs:
       checks: write
       contents: read
       pull-requests: write
-      statuses: write
     env:
       GH_TOKEN: ${{ github.token }}
       MAIN_RUN_ID: ${{ github.event.workflow_run.id }}
       RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
       HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
       HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-      # Only populated for pull_request events; empty for merge_group/push.
-      # The "Resolve PR number" step also extracts PR from the branch name
-      # for merge_group events, so this env var is not the only source.
+      # Only populated for pull_request events; empty for push.
       PR_NUMBER_FROM_EVENT: ${{ github.event.workflow_run.pull_requests[0].number }}
       REPO: ${{ github.repository }}
       SENTRY_DSN_PERFORMANCE: ${{ vars.SENTRY_DSN_PERFORMANCE }}
@@ -152,38 +133,15 @@ jobs:
         id: classify
         run: node .github/scripts/classify-failures.mts
 
-      - name: Verify current merge queue entry
-        id: verify-queue-entry
-        # The verifier posts a terminal failure status for stale or
-        # unverified entries; run it only after classification has authorized
-        # a merge-group retry so ordinary failures avoid the extra API calls.
-        if: >-
-          ${{
-            steps.classify.outputs.will-retry == 'true'
-            && env.WORKFLOW_EVENT == 'merge_group'
-          }}
-        env:
-          PR_NUMBER: ${{ steps.classify.outputs.pr-number }}
-        run: node .github/scripts/verify-merge-queue-entry.mts
-
       # -- Retry retryable failures when a retry budget is available --
-      # The classify step decides whether this is an automatic retry or a
-      # retry-ci-funded retry, then outputs whether retry-ci should be consumed.
-      # Release pushes can use only the automatic attempt 1 -> 2 retry.
-      # A stale or unverified merge-queue entry is terminal: rerunning its
-      # detached synthetic SHA could interfere with a newer queue run.
+      # PRs require retry-ci label (Phase 1). Release pushes get one auto-retry.
       #
       # Order matters: rerun BEFORE removing the label. If the rerun API
       # call fails, the label stays on the PR — signaling that the retry
       # was attempted but didn't go through.
       - name: Retry (if retry budget available)
         id: retry
-        if: >-
-          ${{
-            steps.classify.outputs.will-retry == 'true'
-            && (env.WORKFLOW_EVENT != 'merge_group'
-              || steps.verify-queue-entry.outputs.state == 'current')
-          }}
+        if: ${{ steps.classify.outputs.will-retry == 'true' }}
         run: |
           PR="${{ steps.classify.outputs.pr-number }}"
           CONSUME_RETRY_LABEL="${{ steps.classify.outputs.consume-retry-label }}"
@@ -249,23 +207,3 @@ jobs:
           else
             echo "Retry did not consume retry-ci label."
           fi
-
-      # -- Rescue: post failure status when triage job fails --
-      #
-      # NOTE: Mobile does not currently use commit status deferral, so this
-      # step is a no-op safety net. It's preserved for future compatibility
-      # if commit status deferral is added to Mobile's ci-status-gate.
-      #
-      # Posts a failure commit status so the merge queue can eject if this
-      # triage job crashes or times out.
-      - name: Post deferred failure status (rescue)
-        if: ${{ (failure() || cancelled()) && env.WORKFLOW_EVENT == 'merge_group' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api "repos/$REPO/statuses/$HEAD_SHA" \
-            --method POST \
-            -f state=failure \
-            -f context="All jobs pass" \
-            -f description="Triage failed — posting deferred failure status"
-          echo "Posted rescue failure commit status on $HEAD_SHA"

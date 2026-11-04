@@ -24,10 +24,10 @@
  *   HEAD_SHA                 — Commit SHA of the triggering run
  *   HEAD_BRANCH              — Branch name of the triggering run
  *   PR_NUMBER_FROM_EVENT      — PR number (from workflow_run.pull_requests[0];
- *                               empty for merge_group/push events)
+ *                               empty for push events)
  *   RUN_ATTEMPT              — Attempt number of the triggering run
- *   VERSION                  — Extension version (from package.json via curl)
- *   WORKFLOW_EVENT           — Triggering event type (e.g. merge_group, push)
+ *   VERSION                  — App version (from package.json via curl)
+ *   WORKFLOW_EVENT           — Triggering event type (pull_request or push)
  *   WORKFLOW_CONCLUSION      — Conclusion of the triggering run (e.g. failure,
  *                               cancelled); used for cancelled-run early exit
  *   CI                       — Enables Check Run creation when 'true'
@@ -62,10 +62,6 @@ import {
   RETRY_CI_LABEL_MAX_ATTEMPT,
   type RetryBudgetDecision,
 } from './shared/retry-budget.mts';
-import {
-  E2E_QUALITY_GATE_FAILURE_ANNOTATION_TITLE,
-  hasE2eQualityGateFailure,
-} from './shared/e2e-quality-gate.mts';
 import { partitionRetryableBlockerCascadeJobs } from './shared/failure-classification.mts';
 
 // ---------------------------------------------------------------------------
@@ -153,9 +149,9 @@ if (!MAIN_RUN_ID) {
   process.exit(1);
 }
 
-// Retry limits are 1-indexed and shared with ci-status-gate.yml's merge queue
-// deferral rules: default retries can create attempt 2, and retry-ci can create
-// attempts 3 and 4.
+// Retry limits are 1-indexed. Phase 1 (stealth mode): pull requests require
+// the retry-ci label for any retry; adding the label funds attempts 2–4.
+// release/* pushes get one automatic retry (attempt 1 → 2).
 
 const [owner, repo] = REPO.split('/');
 const repoApi = `/repos/${owner}/${repo}`;
@@ -398,34 +394,6 @@ function classifyJob(job: Job): JobClassification {
   }
 
   if (category === 'alwaysRetryable') {
-    const annotationResult = getAnnotations(jobId);
-    if (!annotationResult.available) {
-      // E2E jobs are normally retryable, but absent annotation evidence must
-      // fail closed so an unavailable API cannot bypass a terminal gate.
-      return {
-        jobName,
-        jobId,
-        category,
-        jobRetryable: false,
-        reason: 'Could not verify E2E quality-gate annotations',
-        unmatched,
-        deterministic: true,
-      };
-    }
-
-    if (hasE2eQualityGateFailure(annotationResult.annotations)) {
-      return {
-        jobName,
-        jobId,
-        category,
-        jobRetryable: false,
-        reason: 'Changed or new E2E test failed its quality gate',
-        errorSnippet: E2E_QUALITY_GATE_FAILURE_ANNOTATION_TITLE,
-        unmatched,
-        deterministic: true,
-      };
-    }
-
     return {
       jobName,
       jobId,
@@ -447,12 +415,70 @@ function classifyJob(job: Job): JobClassification {
     };
   }
 
-  // retryableOnTransientError: check annotations, then logs
+  // retryableOnTransientError: gather annotations and logs, then check patterns.
+  // IMPORTANT: Check deterministic patterns BEFORE transient — deterministic
+  // errors should never be retried, even if they happen to match a transient pattern.
   const { annotations } = getAnnotations(jobId);
   const annotationText = annotations
     .map((a) => `${a.message ?? ''} ${a.title ?? ''}`)
     .join('\n');
 
+  console.log(`  Downloading logs for ${jobName} (${jobId})...`);
+  const logs = getJobLogs(jobId);
+
+  // Check for deterministic (non-transient) failure signals FIRST.
+  //
+  // STRUCTURAL: If any annotation references a source file (has a real
+  // path + line number), this is a compiler/linter error — deterministic
+  // by nature. This catches ALL TypeScript, ESLint, and Stylelint errors
+  // without needing to enumerate every possible error message.
+  // Prefer "failure"-level annotations over "warning"-level ones —
+  // warnings (e.g. React Hook missing dependency) don't cause the job
+  // to fail and shouldn't be reported as the root cause.
+  const isSourceAnnotation = (a: (typeof annotations)[number]) =>
+    a.path &&
+    a.path !== '.github' &&
+    a.start_line != null &&
+    a.start_line > 0 &&
+    a.message?.trim() &&
+    !/^Process completed with exit code \d+/.test(a.message.trim());
+  const sourceFileAnnotation =
+    annotations.find(
+      (a) => isSourceAnnotation(a) && a.annotation_level === 'failure',
+    ) ?? annotations.find(isSourceAnnotation);
+  if (sourceFileAnnotation) {
+    return {
+      jobName,
+      jobId,
+      category,
+      jobRetryable: false,
+      reason: `Deterministic: code error in ${sourceFileAnnotation.path}:${sourceFileAnnotation.start_line}`,
+      errorSnippet: sourceFileAnnotation.message!.trim().slice(0, 200),
+      unmatched,
+      deterministic: true,
+    };
+  }
+
+  // Log-only deterministic signals (no source-file annotation).
+  // Patterns live in retry-config.jsonc → deterministicErrorPatterns.
+  const combinedText = [annotationText, logs ?? ''].join('\n');
+  for (const re of deterministicErrorRegexes) {
+    const deterministicMatch = re.exec(combinedText);
+    if (deterministicMatch) {
+      return {
+        jobName,
+        jobId,
+        category,
+        jobRetryable: false,
+        reason: `Deterministic: ${deterministicMatch[0]}`,
+        errorSnippet: deterministicMatch[0],
+        unmatched,
+        deterministic: true,
+      };
+    }
+  }
+
+  // No deterministic error found — check for transient errors.
   let transientMatch = findTransientError(annotationText);
   if (transientMatch) {
     return {
@@ -466,9 +492,6 @@ function classifyJob(job: Job): JobClassification {
     };
   }
 
-  // Fall back to log download
-  console.log(`  Downloading logs for ${jobName} (${jobId})...`);
-  const logs = getJobLogs(jobId);
   if (logs) {
     transientMatch = findTransientError(logs);
     if (transientMatch) {
@@ -524,58 +547,6 @@ function classifyJob(job: Job): JobClassification {
     }
   }
 
-  // Check for deterministic (non-transient) failure signals.
-  //
-  // STRUCTURAL: If any annotation references a source file (has a real
-  // path + line number), this is a compiler/linter error — deterministic
-  // by nature. This catches ALL TypeScript, ESLint, and Stylelint errors
-  // without needing to enumerate every possible error message.
-  // Prefer "failure"-level annotations over "warning"-level ones —
-  // warnings (e.g. React Hook missing dependency) don't cause the job
-  // to fail and shouldn't be reported as the root cause.
-  const isSourceAnnotation = (a: (typeof annotations)[number]) =>
-    a.path &&
-    a.path !== '.github' &&
-    a.start_line != null &&
-    a.start_line > 0 &&
-    a.message?.trim() &&
-    !/^Process completed with exit code \d+/.test(a.message.trim());
-  const sourceFileAnnotation =
-    annotations.find(
-      (a) => isSourceAnnotation(a) && a.annotation_level === 'failure',
-    ) ?? annotations.find(isSourceAnnotation);
-  if (sourceFileAnnotation) {
-    return {
-      jobName,
-      jobId,
-      category,
-      jobRetryable: false,
-      reason: `Deterministic: code error in ${sourceFileAnnotation.path}:${sourceFileAnnotation.start_line}`,
-      errorSnippet: sourceFileAnnotation.message!.trim().slice(0, 200),
-      unmatched,
-      deterministic: true,
-    };
-  }
-
-  // Log-only deterministic signals (no source-file annotation).
-  // Patterns live in retry-config.jsonc → deterministicErrorPatterns.
-  const combinedText = [annotationText, logs ?? ''].join('\n');
-  for (const re of deterministicErrorRegexes) {
-    const deterministicMatch = re.exec(combinedText);
-    if (deterministicMatch) {
-      return {
-        jobName,
-        jobId,
-        category,
-        jobRetryable: false,
-        reason: `Deterministic: ${deterministicMatch[0]}`,
-        errorSnippet: deterministicMatch[0],
-        unmatched,
-        deterministic: true,
-      };
-    }
-  }
-
   return {
     jobName,
     jobId,
@@ -591,10 +562,6 @@ function resolvePrNumber(): string {
   if (WORKFLOW_EVENT === 'pull_request' && PR_NUMBER_FROM_EVENT) {
     return PR_NUMBER_FROM_EVENT;
   }
-  const match = HEAD_BRANCH.match(/gh-readonly-queue\/[^/]+\/pr-(\d+)-/);
-  if (WORKFLOW_EVENT === 'merge_group' && match) {
-    return match[1];
-  }
   return '';
 }
 
@@ -602,18 +569,13 @@ function resolveTargetBranch(prNum: string): {
   targetBranch: string;
   verified: boolean;
 } {
-  const mergeQueueBranch = HEAD_BRANCH.match(/^gh-readonly-queue\/([^/]+)\//);
-  if (WORKFLOW_EVENT === 'merge_group' && mergeQueueBranch) {
-    return { targetBranch: mergeQueueBranch[1], verified: true };
-  }
-
   if (WORKFLOW_EVENT !== 'pull_request' || !prNum) {
     return { targetBranch: HEAD_BRANCH, verified: true };
   }
 
   try {
     // workflow_run does not reliably expose the originating PR base, so query
-    // it directly before applying the stricter direct-to-main E2E policy.
+    // it directly.
     const pullRequest = JSON.parse(ghApi(`${repoApi}/pulls/${prNum}`)) as {
       base?: { ref?: string };
     };
@@ -621,9 +583,7 @@ function resolveTargetBranch(prNum: string): {
       return { targetBranch: pullRequest.base.ref, verified: true };
     }
   } catch {
-    console.warn(
-      `Could not resolve the target branch for PR #${prNum}; requiring retry-ci for E2E failures.`,
-    );
+    console.warn(`Could not resolve the target branch for PR #${prNum}.`);
   }
 
   return { targetBranch: '', verified: false };
@@ -655,27 +615,6 @@ if (WORKFLOW_CONCLUSION === 'cancelled' && Number(ATTEMPT) > 1) {
     `Run ${MAIN_RUN_ID} was cancelled on attempt ${ATTEMPT} — emitting cancelled event.`,
   );
 
-  // If ci-status-gate deferred the "All jobs pass" commit status on an
-  // earlier attempt (merge_group + retry-ci), it's still pending. Post a
-  // failure status so the merge queue can eject instead of stalling.
-  // Harmless if the queue already moved past this SHA (preemption).
-  if (WORKFLOW_EVENT === 'merge_group') {
-    const headSha = getRunHeadSha();
-    try {
-      ghApi(`${repoApi}/statuses/${headSha}`, {
-        method: 'POST',
-        body: {
-          state: 'failure',
-          context: 'All jobs pass',
-          description: `Retry attempt ${ATTEMPT} was cancelled`,
-        },
-      });
-      console.log(`Posted deferred failure commit status on ${headSha}`);
-    } catch (err) {
-      console.warn('Failed to post deferred failure commit status:', err);
-    }
-  }
-
   writeNoRetryOutput();
 
   const Sentry = initSentry();
@@ -698,75 +637,6 @@ if (WORKFLOW_CONCLUSION === 'cancelled' && Number(ATTEMPT) > 1) {
   process.exit(0);
 }
 
-// ---------------------------------------------------------------------------
-// Manual-dequeue early exit
-// ---------------------------------------------------------------------------
-// When a user manually removes a PR from the merge queue, GitHub cancels
-// the merge_group run and the workflow concludes as 'failure' (because
-// get-requirements fails with "not in the merge queue"). There's nothing
-// to triage — the user intentionally abandoned this queue entry.
-//
-// Detection: the PR timeline's `removed_from_merge_queue` event has the
-// actor who did it.  If it's a real user (not github-merge-queue[bot]),
-// it was a manual dequeue.
-if (WORKFLOW_EVENT === 'merge_group') {
-  const prNum = resolvePrNumber();
-  if (prNum) {
-    try {
-      const raw = ghApi(`${repoApi}/issues/${prNum}/events?per_page=100`);
-      const events = JSON.parse(raw) as Array<{
-        event: string;
-        actor: { login: string };
-        created_at: string;
-      }>;
-      const lastRemoval = events
-        .filter((e) => e.event === 'removed_from_merge_queue')
-        .pop();
-      const lastAdded = events
-        .filter((e) => e.event === 'added_to_merge_queue')
-        .pop();
-      if (
-        lastRemoval &&
-        (!lastAdded || lastRemoval.created_at > lastAdded.created_at) &&
-        lastRemoval.actor?.login !== 'github-merge-queue[bot]'
-      ) {
-        console.log(
-          `PR #${prNum} was manually dequeued by ${lastRemoval.actor?.login} — skipping triage.`,
-        );
-
-        // The PR is already out of the queue at this point, so this status
-        // is purely defensive: it ensures the orphaned merge-group commit
-        // doesn't keep an "All jobs pass" check stuck in pending if
-        // ci-status-gate was cancelled before it could post.
-        const headSha = getRunHeadSha();
-        if (headSha) {
-          try {
-            ghApi(`${repoApi}/statuses/${headSha}`, {
-              method: 'POST',
-              body: {
-                state: 'failure',
-                context: 'All jobs pass',
-                description: `Manually dequeued by ${lastRemoval.actor?.login}`,
-              },
-            });
-            console.log(
-              `Posted failure commit status on ${headSha} to unblock merge queue.`,
-            );
-          } catch (err) {
-            console.warn('Failed to post failure commit status:', err);
-          }
-        }
-
-        writeNoRetryOutput();
-        process.exit(0);
-      }
-    } catch (err) {
-      console.warn('Could not check merge queue removal events:', err);
-      // Fall through to normal classification
-    }
-  }
-}
-
 console.log(`Classifying failures for run ${MAIN_RUN_ID}...`);
 
 const failedJobs = getFailedJobs();
@@ -774,35 +644,7 @@ const failedJobs = getFailedJobs();
 if (failedJobs.length === 0) {
   // No jobs with conclusion === 'failure'. This happens when the run was
   // cancelled (jobs get conclusion 'cancelled', not 'failure').
-  //
-  // IMPORTANT: if this was a merge_group run, ci-status-gate was likely
-  // skipped by the cancellation (its `if: !cancelled()` condition becomes
-  // false). That means no "All jobs pass" commit status was posted. The
-  // merge queue requires that status, so it will stall until the 60-minute
-  // timeout unless we post a failure status here to unblock ejection.
   console.log('No failed jobs found.');
-
-  if (WORKFLOW_EVENT === 'merge_group' && WORKFLOW_CONCLUSION === 'cancelled') {
-    const headSha = getRunHeadSha();
-    if (headSha) {
-      try {
-        ghApi(`${repoApi}/statuses/${headSha}`, {
-          method: 'POST',
-          body: {
-            state: 'failure',
-            context: 'All jobs pass',
-            description:
-              'Run was cancelled — posting failure to unblock merge queue',
-          },
-        });
-        console.log(
-          `Posted failure commit status on ${headSha} to unblock merge queue.`,
-        );
-      } catch (err) {
-        console.warn('Failed to post failure commit status:', err);
-      }
-    }
-  }
 
   writeNoRetryOutput();
   process.exit(0);
@@ -813,9 +655,6 @@ console.log(`Found ${failedJobs.length} failed job(s):\n`);
 const prNumber = resolvePrNumber();
 const { targetBranch, verified: isTargetBranchVerified } =
   resolveTargetBranch(prNumber);
-const requiresRetryCiForE2e =
-  WORKFLOW_EVENT === 'pull_request' &&
-  (!isTargetBranchVerified || targetBranch === 'main');
 
 // Partition into blockers and non-blockers. If any blocker fails
 // non-transiently, stop early and tag all remaining jobs as cascade.
@@ -873,9 +712,8 @@ if (blockedBy) {
       getCategory: (jobName) => matchCategory(jobName).category,
     });
 
-  // A structured quality-gate annotation is deterministic evidence that a
-  // changed/new E2E test failed. It must still veto a retry when an unrelated
-  // blocker is retryable, so inspect E2E jobs before cascading the rest.
+  // Always-retryable jobs (E2E) are classified individually for logging,
+  // but they always return retryable when a blocker is also retryable.
   for (const job of alwaysRetryableJobs) {
     console.log(`  Classifying after retryable blocker: ${job.name}`);
     const result = classifyJob(job);
@@ -932,20 +770,14 @@ const retryContext = hasPR
     ? 'release-push'
     : 'observation';
 const hasRetryLabel = checkRetryLabel(prNumber);
-const hasMainTargetE2eFailure =
-  requiresRetryCiForE2e &&
-  classifications.some((job) => job.jobName.startsWith('e2e-'));
-// Reducing the automatic ceiling to the current attempt makes this first
-// direct-to-main E2E failure label-funded without introducing another retry
-// flow. Non-main PRs and merge groups retain the default ceiling.
+// Phase 1 (stealth mode): PRs require retry-ci label for any retry.
+// Release pushes get one automatic retry since they have no PR/label.
 const retryBudget = getRetryBudget({
   attempt: ATTEMPT,
   context: retryContext,
   hasRetryLabel,
   isRetryable,
-  automaticRetryLimit: hasMainTargetE2eFailure
-    ? 1
-    : DEFAULT_RETRY_MAX_ATTEMPT,
+  automaticRetryLimit: retryContext === 'release-push' ? 2 : 1,
 });
 const atRetryCiLimit = retryBudget.labelRetryLimitReached;
 const willRetry = retryBudget.willRetry;
@@ -956,10 +788,12 @@ const willRetry = retryBudget.willRetry;
 //   isRetryable    — did classification determine all failures are retryable?
 //   hasPR          — is there an originating PR? (false for push events)
 //   retryContext   — PRs and release pushes can retry; other events observe
-//   retryBudget    — default retries through attempt 2, retry-ci through attempt 4
+//   retryBudget    — PRs require retry-ci for any retry; release pushes get
+//                    one automatic retry (attempt 1 → 2)
 //
-// Attempt 1 retries automatically. Attempts 2 and 3 require retry-ci and
-// consume the label after the rerun is triggered.
+// Phase 1 (stealth mode): PRs require retry-ci label for any retry. Adding
+// the label funds retries through attempt 4, consuming the label each time.
+// Release pushes retry automatically once without a label.
 //
 // Note: hasRetryLabel implies hasPR (can't have a label without a PR),
 // so the retryable=*,hasPR=false,hasLabel=true combination never occurs.
@@ -973,26 +807,9 @@ function resolveDecision(
   hasLabel: boolean,
   budget: RetryBudgetDecision,
   pr: string,
-  hasMainTargetE2eFailure: boolean,
 ): { key: string; label: string } {
-  // Keep the direct-to-main E2E exception ahead of generic budget messages so
-  // reviewers see the required retry-ci action instead of a vague limit note.
   if (retryable) {
-    if (
-      hasPr &&
-      hasMainTargetE2eFailure &&
-      budget.automaticRetryLimitReached &&
-      !hasLabel
-    )
-      return {
-        key: 'e2e-retry-ci-required',
-        label: `⏸️ Retryable E2E failure targeting main requires retry-ci on PR #${pr}`,
-      };
-    if (hasPr && budget.willRetry && budget.retryMode === 'automatic')
-      return {
-        key: 'will-retry',
-        label: `♻️ Will retry automatically (default retry budget: attempt ${budget.attemptNumber} of ${DEFAULT_RETRY_MAX_ATTEMPT})`,
-      };
+    // PR with label: will retry or hit the label ceiling
     if (hasPr && budget.willRetry && budget.retryMode === 'label')
       return {
         key: 'will-retry',
@@ -1003,16 +820,19 @@ function resolveDecision(
         key: 'max-attempts-reached',
         label: `🛑 Retryable, but attempt ${budget.attemptNumber} reached the retry-ci limit of ${budget.labelRetryLimit}`,
       };
-    if (hasPr && budget.automaticRetryLimitReached)
+    // PR without label: tell user to add retry-ci (Phase 1 stealth mode)
+    if (hasPr && !hasLabel)
       return {
         key: 'retryable-no-label',
-        label: `⏸️ Retryable, but the automatic retry budget ended at attempt ${budget.automaticRetryLimit}`,
+        label: `⏸️ Retryable — add the retry-ci label to PR #${pr} to retry`,
       };
-    if (hasPr)
+    // PR with automatic retry (Phase 2 — not used in Phase 1)
+    if (hasPr && budget.willRetry && budget.retryMode === 'automatic')
       return {
-        key: 'retryable-no-label',
-        label: `⏸️ Retryable, but no retry-ci label on PR #${pr}`,
+        key: 'will-retry',
+        label: `♻️ Will retry automatically (default retry budget: attempt ${budget.attemptNumber} of ${DEFAULT_RETRY_MAX_ATTEMPT})`,
       };
+    // Non-PR contexts (release-push, observation)
     if (budget.willRetry && budget.retryMode === 'automatic')
       return {
         key: 'will-retry',
@@ -1052,7 +872,6 @@ const { key: decision, label: decisionLabel } = resolveDecision(
   hasRetryLabel,
   retryBudget,
   prNumber,
-  hasMainTargetE2eFailure,
 );
 
 if (atRetryCiLimit && isRetryable) {
@@ -1067,53 +886,6 @@ if (atRetryCiLimit && isRetryable) {
         ? `Release branch ${HEAD_BRANCH}: retry-mode=${retryBudget.retryMode} → will-retry=${willRetry}`
         : `No originating PR for event '${WORKFLOW_EVENT}' → will-retry=false`,
   );
-}
-
-// ---------------------------------------------------------------------------
-// Post deferred failure commit status (merge queue only)
-//
-// ci-status-gate.yml defers the "All jobs pass" commit status for merge queue
-// failures while a retry budget is still available, giving triage time to
-// retry. If we decide NOT to retry (non-retryable failures, or retry limit
-// reached), we must post the failure status here to unblock the merge queue
-// for ejection.
-//
-// The merge queue requires two checks (ruleset or classic branch protection):
-//   Rule 1 — Merge queue > ALLGREEN (monitors check suites directly)
-//   Rule 2 — Status checks > "All jobs pass" (monitors commit status)
-// Without this fallback post, Rule 2 stays pending forever and the queue
-// can't eject the PR.
-// ---------------------------------------------------------------------------
-
-// The gate defers when a merge_group failure is under either the default or
-// retry-ci retry budget. We can't rely on re-checking labels here because the
-// API call might fail (rate limit, transient outage), and if it does, the
-// deferred status would never post — leaving the queue stuck. Instead, post on
-// any merge_group where we won't retry. If the gate didn't actually defer, this
-// posts a redundant failure status — harmless, since ci-status-gate already
-// posted one.
-if (WORKFLOW_EVENT === 'merge_group' && !willRetry) {
-  const headSha = getRunHeadSha();
-  const description = retryBudget.labelRetryLimitReached
-    ? `Retry-ci limit reached (attempt ${retryBudget.attemptNumber} of ${retryBudget.labelRetryLimit})`
-    : retryBudget.automaticRetryLimitReached
-      ? `Automatic retry limit reached (attempt ${retryBudget.attemptNumber} of ${retryBudget.automaticRetryLimit})`
-    : isRetryable
-      ? 'Retryable failures, but no retry budget available'
-      : 'Non-retryable failures detected';
-  try {
-    ghApi(`${repoApi}/statuses/${headSha}`, {
-      method: 'POST',
-      body: {
-        state: 'failure',
-        context: 'All jobs pass',
-        description,
-      },
-    });
-    console.log(`Posted deferred failure commit status on ${headSha}`);
-  } catch (err) {
-    console.warn('Failed to post deferred failure commit status:', err);
-  }
 }
 
 // ---------------------------------------------------------------------------

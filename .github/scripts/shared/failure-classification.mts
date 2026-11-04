@@ -19,9 +19,8 @@ export function partitionRetryableBlockerCascadeJobs<JobType extends FailureJob>
     jobsToCascade: JobType[];
   }>(
     (partition, job) => {
-      // E2E jobs normally retry after a transient blocker, but a structured
-      // quality-gate annotation can veto that retry. Keep them inspectable;
-      // cascade-classify only jobs that cannot contain that terminal signal.
+      // Always-retryable jobs (E2E) are classified individually even when a
+      // blocker failed transiently. Other jobs cascade with the blocker.
       if (getCategory(job.name) === "alwaysRetryable") {
         partition.jobsToClassify.push(job);
       } else {

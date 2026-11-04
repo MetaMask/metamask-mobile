@@ -14,75 +14,33 @@ describe('parseAttempt', () => {
 });
 
 describe('getRetryBudget', () => {
-  it('retries retryable PR failures on attempt 1 without a label', () => {
-    expect(
-      getRetryBudget({
-        attempt: 1,
-        context: 'pr',
-        hasRetryLabel: false,
-        isRetryable: true,
-      }),
-    ).toStrictEqual({
-      attemptNumber: 1,
-      automaticRetryLimit: 2,
-      automaticRetryLimitReached: false,
-      consumeRetryLabel: false,
-      labelRetryLimit: 4,
-      labelRetryLimitReached: false,
-      retryMode: 'automatic',
-      willRetry: true,
-    });
-  });
-
-  it('does not consume retry-ci when attempt 1 is inside the default budget', () => {
-    const decision = getRetryBudget({
-      attempt: 1,
-      context: 'pr',
-      hasRetryLabel: true,
-      isRetryable: true,
-    });
-
-    expect(decision.retryMode).toBe('automatic');
-    expect(decision.consumeRetryLabel).toBe(false);
-    expect(decision.willRetry).toBe(true);
-  });
-
-  it('requires retry-ci before retrying a main-targeting PR E2E failure', () => {
-    // A limit of one means attempt one has no automatic rerun available; the
-    // same retry can proceed only through the ordinary retry-ci budget.
-    const withoutLabel = getRetryBudget({
-      attempt: 1,
-      context: 'pr',
-      hasRetryLabel: false,
-      isRetryable: true,
-      automaticRetryLimit: 1,
-    });
-    const withLabel = getRetryBudget({
-      attempt: 1,
-      context: 'pr',
-      hasRetryLabel: true,
-      isRetryable: true,
-      automaticRetryLimit: 1,
-    });
-
-    expect(withoutLabel.willRetry).toBe(false);
-    expect(withoutLabel.retryMode).toBe('none');
-    expect(withLabel.willRetry).toBe(true);
-    expect(withLabel.retryMode).toBe('label');
-    expect(withLabel.consumeRetryLabel).toBe(true);
-  });
-
-  it('keeps the automatic retry for non-E2E failures on a main-targeting PR', () => {
+  // Phase 1 (stealth mode): PRs require retry-ci label for any retry.
+  it('does not retry PR failures on attempt 1 without a label (Phase 1)', () => {
     const decision = getRetryBudget({
       attempt: 1,
       context: 'pr',
       hasRetryLabel: false,
       isRetryable: true,
+      automaticRetryLimit: 1, // Phase 1: no automatic retry for PRs
+    });
+
+    expect(decision.willRetry).toBe(false);
+    expect(decision.retryMode).toBe('none');
+    expect(decision.automaticRetryLimitReached).toBe(true);
+  });
+
+  it('retries PR failures on attempt 1 with retry-ci label (Phase 1)', () => {
+    const decision = getRetryBudget({
+      attempt: 1,
+      context: 'pr',
+      hasRetryLabel: true,
+      isRetryable: true,
+      automaticRetryLimit: 1, // Phase 1: no automatic retry for PRs
     });
 
     expect(decision.willRetry).toBe(true);
-    expect(decision.retryMode).toBe('automatic');
-    expect(decision.consumeRetryLabel).toBe(false);
+    expect(decision.retryMode).toBe('label');
+    expect(decision.consumeRetryLabel).toBe(true);
   });
 
   it('stops at attempt 2 without retry-ci', () => {

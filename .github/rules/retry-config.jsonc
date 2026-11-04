@@ -1,8 +1,7 @@
 // Configuration for classify-failures.mts — determines whether a failed
 // workflow run should be retried.
 //
-// Based on analysis of 50 recent CI failures in MetaMask Mobile.
-// See: .github/scripts/analyze-ci-failures.sh for analysis methodology.
+// Patterns adapted from Extension's retry-config.jsonc plus Mobile job names.
 {
   "defaults": {
     // Jobs not matching any pattern use this category. Unmatched jobs trigger
@@ -148,7 +147,6 @@
     "Could not start.*session",
     "session.*deleted",
     "An unknown server-side error occurred",
-    "Original error:",
 
     // === Mobile-specific: Metro Bundler ===
     "Metro.*error",
@@ -157,9 +155,6 @@
 
     // === Mobile-specific: Xcode/iOS Build ===
     "xcodebuild.*timeout",
-    "Code signing.*error",
-    "Provisioning profile.*expired",
-    "Build.*timed out",
 
     // === Mobile-specific: Gradle/Android Build ===
     "Gradle.*daemon.*crash",
@@ -219,6 +214,10 @@
     "compiled with \\d+ errors?",
     "Build failed",
 
+    // === iOS/Xcode deterministic errors ===
+    "Provisioning profile.*expired",
+    "Code signing.*error",
+
     // === Workflow lint errors ===
     "\\.github/workflows/.*\\.yml:\\d+:\\d+:",
     "shellcheck reported issue",
@@ -229,6 +228,13 @@
 
     // === Audit failures ===
     "yarn audit FAILED",
-    "BASELINE VIOLATIONS DETECTED"
+    "BASELINE VIOLATIONS DETECTED",
+
+    // === Mobile CI quality gates ===
+    // SonarCloud: "Quality Gate failed" is deterministic; "Could not determine"
+    // stays retryable (transient Sonar API issue).
+    "Quality Gate failed",
+    // JS bundle size budget exceeded
+    "JS bundle exceeds baseline"
   ]
 }
