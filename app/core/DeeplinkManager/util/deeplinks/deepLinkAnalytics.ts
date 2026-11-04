@@ -481,6 +481,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_POST]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
@@ -631,6 +632,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SOCIAL_TRADER;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
+    case ACTIONS.SOCIAL_POST:
+      return DeepLinkRoute.SOCIAL_POST;
     case ACTIONS.CARD_ONBOARDING:
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
