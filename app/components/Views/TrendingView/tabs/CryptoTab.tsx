@@ -22,8 +22,8 @@ import PerpsTileRowItem from '../feeds/perps/PerpsTileRowItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
+import PredictionsCarouselSection from '../../../UI/Predict/trending/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import { usePredictEntryActions } from '../../../UI/PredictNext';
 import CardList from '../components/CardList';

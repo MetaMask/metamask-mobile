@@ -2,11 +2,11 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   usePredictMarketData,
   type UsePredictMarketDataResult,
-} from '../../../../UI/Predict/hooks/usePredictMarketData';
-import { strings } from '../../../../../../locales/i18n';
-import { useFeedRefresh } from '../../hooks/useFeedRefresh';
-import type { RefreshConfig } from '../../hooks/useExploreRefresh';
-import type { PillOption } from '../../components/PillRow';
+} from '../hooks/usePredictMarketData';
+import { strings } from '../../../../../locales/i18n';
+import { useFeedRefresh } from '../../../Views/TrendingView/hooks/useFeedRefresh';
+import type { RefreshConfig } from '../../../Views/TrendingView/hooks/useExploreRefresh';
+import type { PillOption } from '../../../Views/TrendingView/components/PillRow';
 
 const PAGE_SIZE = 20;
 

@@ -30,13 +30,13 @@ import {
 } from '../../../UI/PredictNext';
 import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import { strings } from '../../../../../locales/i18n';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
 import {
   useSportsMarketsFeed,
   type UseSportsMarketsFeedResult,
-} from '../feeds/predictions/useSportsMarketsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
+} from '../../../UI/Predict/trending/useSportsMarketsFeed';
+import PredictionsCarouselSection from '../../../UI/Predict/trending/PredictionsCarouselSection';
+import PredictionsSkeleton from '../../../UI/Predict/trending/PredictionsSkeleton';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import PillRow from '../components/PillRow';
 import type { TabProps } from '../hooks/useExploreRefresh';

@@ -5,7 +5,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
 import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';

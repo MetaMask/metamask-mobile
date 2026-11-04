@@ -107,7 +107,7 @@ jest.mock('../feeds/perps/PerpsRowItem', () => ({
   ),
 }));
 
-jest.mock('../feeds/predictions/PredictionRowItem', () => ({
+jest.mock('../../../UI/Predict/trending/PredictionRowItem', () => ({
   PredictionSearchRowItem: ({ market }: { market: PredictMarketType }) => (
     <MockText testID="stub-predict-row">{market.id}</MockText>
   ),

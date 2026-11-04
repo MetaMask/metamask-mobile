@@ -4,7 +4,7 @@ import {
   type PredictEntryPoint,
   type PredictFeedCategory,
 } from '../../../../UI/PredictNext';
-import type { PredictionsVariant } from './usePredictionsFeed';
+import type { PredictionsVariant } from '../../../../UI/Predict/trending/usePredictionsFeed';
 
 const VARIANT_TO_FEED: Record<PredictionsVariant, PredictFeedCategory> = {
   trending: 'trending',

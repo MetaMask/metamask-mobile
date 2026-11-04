@@ -40,8 +40,8 @@ import { useExploreActiveTab } from '../ExploreActiveTabContext';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
+import PredictionsCarouselSection from '../../../UI/Predict/trending/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import {
   STOCKS_FEED_PREVIEW_PAGE_SIZE,

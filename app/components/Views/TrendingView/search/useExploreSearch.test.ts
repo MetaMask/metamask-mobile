@@ -51,7 +51,7 @@ jest.mock('../feeds/stocks/useStocksFeed', () => ({
   })),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
+jest.mock('../../../UI/Predict/trending/usePredictionsFeed', () => ({
   usePredictionsFeed: jest.fn(() => ({
     data: mockPredictionsData,
     isLoading: false,
@@ -110,7 +110,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
 import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 

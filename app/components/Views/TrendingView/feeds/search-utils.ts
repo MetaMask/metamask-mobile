@@ -1,14 +1,13 @@
 import Fuse, { type FuseOptions } from 'fuse.js';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import {
   TimeOption,
   PriceChangeOption,
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 
-const BASE_FUSE_OPTIONS = {
+export const BASE_FUSE_OPTIONS = {
   shouldSort: true,
   threshold: 0.2,
   location: 0,
@@ -25,11 +24,6 @@ export const TOKEN_FUSE_OPTIONS: FuseOptions<TrendingAsset> = {
 export const PERPS_FUSE_OPTIONS: FuseOptions<PerpsMarketData> = {
   ...BASE_FUSE_OPTIONS,
   keys: ['symbol', 'name'],
-};
-
-export const PREDICTIONS_FUSE_OPTIONS: FuseOptions<PredictMarketType> = {
-  ...BASE_FUSE_OPTIONS,
-  keys: ['title', 'description'],
 };
 
 export const fuseSearch = <T>(

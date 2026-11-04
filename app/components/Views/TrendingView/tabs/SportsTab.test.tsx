@@ -44,7 +44,7 @@ const mockUsePredictionsFeed = jest.fn<
   data: [],
   isLoading: false,
 }));
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
+jest.mock('../../../UI/Predict/trending/usePredictionsFeed', () => ({
   usePredictionsFeed: () => mockUsePredictionsFeed(),
 }));
 
@@ -60,7 +60,7 @@ const mockUseSportsMarketsFeed = jest.fn(() => ({
     fetchMore: jest.fn(),
   },
 }));
-jest.mock('../feeds/predictions/useSportsMarketsFeed', () => ({
+jest.mock('../../../UI/Predict/trending/useSportsMarketsFeed', () => ({
   useSportsMarketsFeed: () => mockUseSportsMarketsFeed(),
 }));
 

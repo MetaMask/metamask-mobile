@@ -67,9 +67,9 @@ jest.mock('../feeds/stocks/useStocksFeed', () => ({
   useStocksFeed: jest.fn(),
   STOCKS_FEED_PREVIEW_PAGE_SIZE: 3,
 }));
-jest.mock('../feeds/predictions/usePredictionsFeed');
+jest.mock('../../../UI/Predict/trending/usePredictionsFeed');
 
-jest.mock('../feeds/predictions/PredictionsCarouselSection', () => {
+jest.mock('../../../UI/Predict/trending/PredictionsCarouselSection', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPredictionsCarouselSection() {
     return <View testID="predictions-carousel" />;
@@ -150,7 +150,7 @@ import type { PerpsMarketData } from '@metamask/perps-controller';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
 import RwasTab from './RwasTab';
 
 const mockUsePerpsFeed = jest.mocked(usePerpsFeed);

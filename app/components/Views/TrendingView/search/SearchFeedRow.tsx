@@ -8,7 +8,7 @@ import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowI
 import { TokenSearchRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsRowItem from '../feeds/perps/PerpsRowItem';
-import { PredictionSearchRowItem } from '../feeds/predictions/PredictionRowItem';
+import { PredictionSearchRowItem } from '../../../UI/Predict/trending/PredictionRowItem';
 import { SiteRowItem } from '../feeds/sites/SiteRowItem';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import type { SearchFeedId } from './useExploreSearch';

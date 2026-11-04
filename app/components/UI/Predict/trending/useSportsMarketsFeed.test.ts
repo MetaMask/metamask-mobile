@@ -3,11 +3,11 @@ import {
   usePredictMarketData,
   type UsePredictMarketDataOptions,
   type UsePredictMarketDataResult,
-} from '../../../../UI/Predict/hooks/usePredictMarketData';
-import { strings } from '../../../../../../locales/i18n';
+} from '../hooks/usePredictMarketData';
+import { strings } from '../../../../../locales/i18n';
 import { useSportsMarketsFeed } from './useSportsMarketsFeed';
 
-jest.mock('../../../../UI/Predict/hooks/usePredictMarketData');
+jest.mock('../hooks/usePredictMarketData');
 
 const mockUsePredictMarketData = jest.mocked(usePredictMarketData);
 

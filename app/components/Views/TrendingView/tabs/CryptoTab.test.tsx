@@ -7,7 +7,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
@@ -55,7 +55,7 @@ jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
+jest.mock('../../../UI/Predict/trending/usePredictionsFeed', () => ({
   usePredictionsFeed: jest.fn(),
 }));
 

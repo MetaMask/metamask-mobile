@@ -33,8 +33,8 @@ import PerpsToggleBlock, {
 } from '../feeds/perps/PerpsToggleBlock';
 import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
+import PredictionsCarouselSection from '../../../UI/Predict/trending/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';

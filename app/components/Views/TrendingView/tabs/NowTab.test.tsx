@@ -90,11 +90,11 @@ jest.mock('../feeds/perps/perpsNavigation', () => ({
   ) => mockNavigateToPerpsMarketList(nav, filter, sortOptionId, options),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
+jest.mock('../../../UI/Predict/trending/usePredictionsFeed', () => ({
   usePredictionsFeed: jest.fn(),
 }));
 
-jest.mock('../feeds/predictions/PredictionRowItem', () => {
+jest.mock('../../../UI/Predict/trending/PredictionRowItem', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createElement } = require('react');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -206,7 +206,7 @@ const mockPredictionsCarouselSection = jest.fn(
   },
 );
 
-jest.mock('../feeds/predictions/PredictionsCarouselSection', () => ({
+jest.mock('../../../UI/Predict/trending/PredictionsCarouselSection', () => ({
   __esModule: true,
   default: (props: {
     idPrefix?: string;
@@ -237,7 +237,7 @@ import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import type { ExploreTabName } from '../search/analytics';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictionsFeed } from '../../../UI/Predict/trending/usePredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
 import {
