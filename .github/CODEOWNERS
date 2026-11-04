@@ -293,7 +293,6 @@ app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts            @MetaMas
 app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts @MetaMask/predict
 **/Predict/**                                                           @MetaMask/predict
 **/predict/**                                                           @MetaMask/predict
-app/components/Views/Homepage/Sections/Predictions/                     @MetaMask/predict
 
 # Assets Team
 app/*/assets/** @MetaMask/metamask-assets

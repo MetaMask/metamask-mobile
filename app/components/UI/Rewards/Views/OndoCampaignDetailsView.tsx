@@ -21,7 +21,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -68,6 +67,8 @@ import {
 } from '../components/Campaigns/OndoLeaderboard.utils';
 import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -87,6 +88,7 @@ export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
 }
 
 const OndoCampaignDetailsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -298,7 +300,9 @@ const OndoCampaignDetailsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_DETAILS_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={campaign?.name ?? ''}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-details-back-button' }}

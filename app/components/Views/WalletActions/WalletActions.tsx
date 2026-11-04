@@ -34,6 +34,7 @@ import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
   PredictEventValues,
   selectPredictAvailability,
+  usePredictEntryActions,
 } from '../../UI/PredictNext';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
@@ -65,6 +66,7 @@ const WalletActions = () => {
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
+  const { openPredict } = usePredictEntryActions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
@@ -135,14 +137,12 @@ const WalletActions = () => {
 
   const onPredict = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
+      openPredict({
+        type: 'home',
+        entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
       });
     });
-  }, [closeBottomSheetAndNavigate, navigate]);
+  }, [closeBottomSheetAndNavigate, openPredict]);
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (

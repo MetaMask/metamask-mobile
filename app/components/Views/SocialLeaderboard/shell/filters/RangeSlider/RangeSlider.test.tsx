@@ -1,6 +1,5 @@
-/* eslint-disable @metamask/design-tokens/color-no-hex */
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { playImpact } from '../../../../../../util/haptics';
 import RangeSlider from './RangeSlider';
 
@@ -62,15 +61,6 @@ jest.mock('../../../../../../util/haptics', () => ({
   ImpactMoment: { SliderGrip: 'SliderGrip', SliderTick: 'SliderTick' },
 }));
 
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#fff', muted: '#eee' },
-      icon: { default: '#000' },
-    },
-  }),
-}));
-
 const defaultProps = {
   minimumValue: 0,
   maximumValue: 100,
@@ -81,6 +71,12 @@ const defaultProps = {
 const layoutSlider = (testID = 'range-slider', width = 200) => {
   fireEvent(screen.getByTestId(testID), 'layout', {
     nativeEvent: { layout: { width, height: 40, x: 0, y: 0 } },
+  });
+};
+
+const flushScheduledUpdates = async () => {
+  await act(async () => {
+    await Promise.resolve();
   });
 };
 
@@ -107,6 +103,14 @@ describe('RangeSlider', () => {
 
     expect(screen.getByTestId('market-cap-slider-min-thumb')).toBeOnTheScreen();
     expect(screen.getByTestId('market-cap-slider-max-thumb')).toBeOnTheScreen();
+    expect(screen.getByTestId('market-cap-slider-min-thumb')).toHaveStyle({
+      width: 32,
+      height: 32,
+    });
+    expect(screen.getByTestId('market-cap-slider-max-thumb')).toHaveStyle({
+      width: 32,
+      height: 32,
+    });
   });
 
   it('renders the root track with the base testID', () => {
@@ -118,7 +122,9 @@ describe('RangeSlider', () => {
       />,
     );
 
-    expect(screen.getByTestId('market-cap-slider')).toBeOnTheScreen();
+    expect(screen.getByTestId('market-cap-slider')).toHaveStyle({
+      paddingTop: 13,
+    });
   });
 
   it('accepts a default testID when none is provided', () => {
@@ -155,7 +161,136 @@ describe('RangeSlider', () => {
     expect(screen.getByLabelText('Maximum market cap')).toBeOnTheScreen();
   });
 
-  it('emits onValueChange when the min thumb is dragged', () => {
+  it('steps a thumb when an accessibility increment is requested', () => {
+    const onValueChange = jest.fn();
+
+    render(
+      <RangeSlider
+        {...defaultProps}
+        value={{ min: 10, max: 80 }}
+        step={5}
+        onValueChange={onValueChange}
+        minThumbAccessibilityLabel="Minimum market cap"
+      />,
+    );
+
+    fireEvent(
+      screen.getByLabelText('Minimum market cap'),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'increment' } },
+    );
+
+    expect(onValueChange).toHaveBeenCalledWith({ min: 15, max: 80 });
+  });
+
+  it('steps the max thumb down and reports the released range', () => {
+    const onValueChange = jest.fn();
+    const onDragEnd = jest.fn();
+
+    render(
+      <RangeSlider
+        {...defaultProps}
+        value={{ min: 10, max: 80 }}
+        step={5}
+        onValueChange={onValueChange}
+        onDragEnd={onDragEnd}
+        maxThumbAccessibilityLabel="Maximum market cap"
+      />,
+    );
+
+    fireEvent(
+      screen.getByLabelText('Maximum market cap'),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'decrement' } },
+    );
+
+    expect(onValueChange).toHaveBeenCalledWith({ min: 10, max: 75 });
+    expect(onDragEnd).toHaveBeenCalledWith({ min: 10, max: 75 });
+  });
+
+  it('ignores an accessibility action that is not a step', () => {
+    const onValueChange = jest.fn();
+
+    render(
+      <RangeSlider
+        {...defaultProps}
+        value={{ min: 10, max: 80 }}
+        onValueChange={onValueChange}
+        minThumbAccessibilityLabel="Minimum market cap"
+      />,
+    );
+
+    fireEvent(
+      screen.getByLabelText('Minimum market cap'),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'activate' } },
+    );
+
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it('stops the thumbs from crossing when an accessibility step reaches the other thumb', () => {
+    const onValueChange = jest.fn();
+
+    render(
+      <RangeSlider
+        {...defaultProps}
+        value={{ min: 10, max: 15 }}
+        step={10}
+        onValueChange={onValueChange}
+        minThumbAccessibilityLabel="Minimum market cap"
+        maxThumbAccessibilityLabel="Maximum market cap"
+      />,
+    );
+
+    fireEvent(
+      screen.getByLabelText('Minimum market cap'),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'increment' } },
+    );
+    fireEvent(
+      screen.getByLabelText('Maximum market cap'),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'decrement' } },
+    );
+
+    expect(onValueChange).toHaveBeenNthCalledWith(1, { min: 15, max: 15 });
+    expect(onValueChange).toHaveBeenNthCalledWith(2, { min: 10, max: 10 });
+  });
+
+  it('skips a percent sync when the animated range has not changed', () => {
+    const reactions: ((
+      current: { min: number; max: number },
+      previous: { min: number; max: number } | null,
+    ) => void)[] = [];
+    const reanimatedMock = jest.requireMock('react-native-reanimated') as {
+      useAnimatedReaction: (
+        prepare: () => { min: number; max: number },
+        reaction: (
+          current: { min: number; max: number },
+          previous: { min: number; max: number } | null,
+        ) => void,
+      ) => void;
+    };
+    const spy = jest
+      .spyOn(reanimatedMock, 'useAnimatedReaction')
+      .mockImplementation((_prepare, reaction) => {
+        reactions.push(reaction);
+      });
+
+    render(<RangeSlider {...defaultProps} onValueChange={jest.fn()} />);
+
+    const reaction = reactions.at(-1);
+    expect(reaction).toEqual(expect.any(Function));
+    reaction?.({ min: 10, max: 40 }, null);
+    reaction?.({ min: 10, max: 40 }, { min: 0, max: 40 });
+    reaction?.({ min: 10, max: 50 }, { min: 10, max: 40 });
+    reaction?.({ min: 10, max: 50 }, { min: 10, max: 50 });
+
+    spy.mockRestore();
+  });
+
+  it('emits onValueChange when the min thumb is dragged', async () => {
     const onValueChange = jest.fn();
 
     render(<RangeSlider {...defaultProps} onValueChange={onValueChange} />);
@@ -164,6 +299,7 @@ describe('RangeSlider', () => {
     const gesture = getPanGesture();
     gesture.onStart?.({ x: 10 });
     gesture.onUpdate?.({ x: 50 });
+    await flushScheduledUpdates();
 
     expect(onValueChange).toHaveBeenCalled();
     expect(onValueChange.mock.calls.at(-1)?.[0]).toEqual(
@@ -172,7 +308,7 @@ describe('RangeSlider', () => {
     expect(playImpact).toHaveBeenCalled();
   });
 
-  it('emits onValueChange when the max thumb is dragged', () => {
+  it('emits onValueChange when the max thumb is dragged', async () => {
     const onValueChange = jest.fn();
 
     render(
@@ -187,6 +323,7 @@ describe('RangeSlider', () => {
     const gesture = getPanGesture();
     gesture.onStart?.({ x: 190 });
     gesture.onUpdate?.({ x: 150 });
+    await flushScheduledUpdates();
 
     expect(onValueChange).toHaveBeenCalled();
     expect(onValueChange.mock.calls.at(-1)?.[0]).toEqual(
@@ -194,7 +331,7 @@ describe('RangeSlider', () => {
     );
   });
 
-  it('calls onDragEnd with the final range when the drag ends', () => {
+  it('calls onDragEnd with the final range when the drag ends', async () => {
     const onDragEnd = jest.fn();
 
     render(
@@ -211,6 +348,7 @@ describe('RangeSlider', () => {
     gesture.onUpdate?.({ x: 40 });
     gesture.onEnd?.();
     gesture.onFinalize?.();
+    await flushScheduledUpdates();
 
     expect(onDragEnd).toHaveBeenCalledWith(
       expect.objectContaining({ min: expect.any(Number), max: 100 }),
@@ -252,7 +390,7 @@ describe('RangeSlider', () => {
     expect(screen.getByTestId('range-slider-max-thumb')).toBeOnTheScreen();
   });
 
-  it('rounds emitted values to the configured step', () => {
+  it('rounds emitted values to the configured step', async () => {
     const onValueChange = jest.fn();
 
     render(
@@ -269,12 +407,13 @@ describe('RangeSlider', () => {
     const gesture = getPanGesture();
     gesture.onStart?.({ x: 10 });
     gesture.onUpdate?.({ x: 55 });
+    await flushScheduledUpdates();
 
     const lastCall = onValueChange.mock.calls.at(-1)?.[0];
     expect(lastCall?.min % 10).toBe(0);
   });
 
-  it('keeps the min thumb from crossing above the max thumb', () => {
+  it('keeps the min thumb from crossing above the max thumb', async () => {
     const onValueChange = jest.fn();
 
     render(
@@ -289,6 +428,7 @@ describe('RangeSlider', () => {
     const gesture = getPanGesture();
     gesture.onStart?.({ x: 40 });
     gesture.onUpdate?.({ x: 190 });
+    await flushScheduledUpdates();
 
     const lastCall = onValueChange.mock.calls.at(-1)?.[0];
     expect(lastCall?.min).toBeLessThanOrEqual(lastCall?.max);

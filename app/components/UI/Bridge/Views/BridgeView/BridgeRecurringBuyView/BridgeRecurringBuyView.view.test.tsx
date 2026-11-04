@@ -1653,6 +1653,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       await openRecurringTab(renderResult);
 
       expect(
+        renderResult.getByText('Price range (optional)'),
+      ).toBeOnTheScreen();
+      expect(
         renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
       ).toHaveTextContent(strings('bridge.recurring.price_range.not_set'));
       expect(

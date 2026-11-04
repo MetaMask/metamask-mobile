@@ -41,6 +41,7 @@ const PopularTradersCarousel: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
+    requireSocialProfile: true,
   });
   const title = strings('social_leaderboard.popular_traders');
 
