@@ -3,6 +3,7 @@ import {
   type OrderType,
 } from '@metamask/perps-controller';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 import {
   formatTradeUnitPrice,
   formatUsd,
@@ -28,6 +29,22 @@ const resolveProviderId = (activeProvider: string | undefined): string =>
   activeProvider && activeProvider !== PROVIDER_CONFIG.AggregatedProvider
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
+
+/** Returns whether the entered Perps amount reaches the sharing threshold. */
+export const isPerpsPostTradeShareEligible = ({
+  amountUsd,
+  leverage,
+}: {
+  amountUsd?: string;
+  leverage?: number;
+}): boolean => {
+  const amount = Number(amountUsd);
+  const leveragedAmount = amount * (leverage ?? 0);
+  return (
+    Number.isFinite(leveragedAmount) &&
+    leveragedAmount >= MIN_POST_TRADE_SHARE_USD
+  );
+};
 
 export const canBeginPerpsPostTradeShare = ({
   copyTradeOrigin,
@@ -154,7 +171,8 @@ export const beginPerpsPostTradeShare = ({
       copyTradeOrigin,
       orderType,
       activeProvider,
-    })
+    }) ||
+    !isPerpsPostTradeShareEligible({ amountUsd, leverage })
   ) {
     return undefined;
   }
