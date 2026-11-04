@@ -13,9 +13,10 @@ import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
 import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 import { mapAutorampTransactionToNeobankActivity } from '../utils/neobankActivity';
 import { selectMoneyVbaPendingActivityEnabled } from '../selectors/featureFlags';
-
-const POLL_INTERVAL_MS = 10_000;
-const LOW_SLOW_POLL_INTERVAL_MS = 60_000;
+import {
+  MONEY_POLL_INTERVAL_MS,
+  MONEY_SLOW_POLL_INTERVAL_MS,
+} from '../constants/polling';
 
 const EMPTY_AUTORAMPS: AutorampAccount[] = [];
 const EMPTY_ACTIVITY: NeobankBankTransferActivity[] = [];
@@ -225,21 +226,32 @@ export function useNeobankAutorampActivity(
   const query = useQuery({
     queryKey: neobankActivityQueryKey(walletKey, autoramp?.id ?? ''),
     queryFn: async () => {
-      const neoBank = (
+      const { NeoBankService: neoBank, RampsController: ramps } =
         Engine.context as unknown as {
           NeoBankService?: {
             listAutorampTransactions?: ListAutorampTransactions;
           };
-        }
-      ).NeoBankService;
-      if (!neoBank?.listAutorampTransactions || !autoramp) {
+          RampsController?: {
+            refreshAutorampTransactions?: ListAutorampTransactions;
+          };
+        };
+      if (!autoramp) {
         return EMPTY_ACTIVITY;
       }
       const keyAtStart = `${walletKey}:${autoramp.id}`;
       try {
-        const transactions = await neoBank.listAutorampTransactions(
-          autoramp.id,
-        );
+        // Prefer the controller: it records the last-seen status of every
+        // transaction and emits Money VBA Transaction Updated on a new id or
+        // a status change. Fall back to the raw service for an older
+        // controller package that lacks the refresh method.
+        let transactions: AutorampActivityTransaction[];
+        if (ramps?.refreshAutorampTransactions) {
+          transactions = await ramps.refreshAutorampTransactions(autoramp.id);
+        } else if (neoBank?.listAutorampTransactions) {
+          transactions = await neoBank.listAutorampTransactions(autoramp.id);
+        } else {
+          return EMPTY_ACTIVITY;
+        }
         const latestScope = pollScopeRef.current;
         if (
           keyAtStart !== `${latestScope.walletKey}:${latestScope.autorampId}` ||
@@ -264,8 +276,8 @@ export function useNeobankAutorampActivity(
   });
 
   const intervalMs = lowSlowNetwork
-    ? LOW_SLOW_POLL_INTERVAL_MS
-    : POLL_INTERVAL_MS;
+    ? MONEY_SLOW_POLL_INTERVAL_MS
+    : MONEY_POLL_INTERVAL_MS;
   const pollKey = `${walletKey}:${autoramp?.id ?? ''}`;
 
   useEffect(() => {

@@ -26,6 +26,12 @@ import {
   createMarketGroupProjection,
   type MarketGroupProjection,
 } from './createMarketGroupProjection';
+import {
+  createMarketLayoutProjection,
+  type MarketLayoutSection,
+} from './createMarketLayoutProjection';
+import { EventMarketLayoutSection } from './EventMarketLayoutSection';
+import { getMarketLayoutTitle } from './marketLayoutTitles';
 import { EventMarketListTestIds } from './EventMarketList.testIds';
 import { useEventPositions } from './useEventPositions';
 
@@ -40,6 +46,10 @@ const LOW_HARDWARE_LIST_WINDOW = {
   maxToRenderPerBatch: 6,
   windowSize: 5,
 };
+/** Sections a tab opens on first load, by order. */
+const OPEN_SECTION_COUNT = 3;
+const POSITIONS_TAB = 'positions';
+const MARKETS_TAB = 'markets';
 
 export interface EventMarketListProps {
   /** The current canonical Event, including any live-projected Markets. */
@@ -56,10 +66,27 @@ export interface EventMarketListProps {
   testID?: string;
 }
 
-type ContentTab = 'positions' | 'markets';
-type ContentRow =
+type MarketRow =
   | MarketGroupProjection
-  | { type: 'position'; position: PredictPosition };
+  | {
+      type: 'section';
+      /** Unique across tabs; keys the section's UI state. */
+      stateKey: string;
+      section: MarketLayoutSection;
+      index: number;
+    };
+type ContentRow = MarketRow | { type: 'position'; position: PredictPosition };
+
+/** Sections bring their own divider, so two in a row sit flush. */
+const isSeparated = (leadingRow: ContentRow, trailingRow: ContentRow) =>
+  !(leadingRow.type === 'section' && trailingRow.type === 'section');
+
+interface MarketTab {
+  key: string;
+  label: string;
+  testID: string;
+  rows: readonly MarketRow[];
+}
 
 const getRowKey = (row: ContentRow): string => {
   if (row.type === 'position') {
@@ -70,9 +97,57 @@ const getRowKey = (row: ContentRow): string => {
       row.position.side,
     ]);
   }
+  if (row.type === 'section') {
+    return `markets:section:${row.stateKey}`;
+  }
   return row.type === 'group'
     ? `markets:group:${row.key}`
     : `markets:market:${row.market.id}`;
+};
+
+/**
+ * One tab per layout tab, with its sections; Markets without layout follow
+ * the first tab's sections. Without layout, one Markets tab of flat rows.
+ */
+const toMarketTabs = (event: PredictEvent): MarketTab[] => {
+  const { tabs, remainingMarkets } = createMarketLayoutProjection(
+    event.markets,
+  );
+  const flatRows = createMarketGroupProjection(remainingMarkets);
+
+  if (tabs.length === 0) {
+    return flatRows.length === 0
+      ? []
+      : [
+          {
+            key: MARKETS_TAB,
+            label: strings(
+              getEventGame(event)
+                ? 'predict_next.event.game_lines'
+                : 'predict_next.event.outcomes',
+            ),
+            testID: EventMarketListTestIds.MARKETS_TAB,
+            rows: flatRows,
+          },
+        ];
+  }
+
+  return tabs.map((tab, tabIndex) => ({
+    key: `layout:${tab.key}`,
+    label: getMarketLayoutTitle(tab.key),
+    testID: EventMarketListTestIds.layoutTab(tab.key),
+    rows: [
+      ...tab.sections.map(
+        (section, index): MarketRow => ({
+          type: 'section',
+          stateKey: JSON.stringify([tab.key, section.key]),
+          section,
+          index,
+        }),
+      ),
+      ...(tabIndex === 0 ? flatRows : []),
+    ],
+  }));
 };
 
 const EventMarketListContent = ({
@@ -95,22 +170,22 @@ const EventMarketListContent = ({
   const [selectedMarketIds, setSelectedMarketIds] = useState<
     Record<string, PredictMarket['id']>
   >({});
-  const markets = useMemo(
-    () => createMarketGroupProjection(event.markets),
-    [event.markets],
-  );
-  let firstTab: ContentTab | undefined;
+  // Section state lives here, keyed, so it outlives rows the list unmounts.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [selectedPeriods, setSelectedPeriods] = useState<
+    Record<string, string>
+  >({});
+  const marketTabs = useMemo(() => toMarketTabs(event), [event]);
+  let firstTab: string | undefined;
   if (positions.length > 0) {
-    firstTab = 'positions';
-  } else if (markets.length > 0) {
-    firstTab = 'markets';
+    firstTab = POSITIONS_TAB;
+  } else if (marketTabs.length > 0) {
+    firstTab = marketTabs[0].key;
   }
-  const [selectedTab, setSelectedTab] = useState<ContentTab | undefined>(
-    firstTab,
-  );
+  const [selectedTab, setSelectedTab] = useState<string | undefined>(firstTab);
   const activeTab =
-    (selectedTab === 'positions' && positions.length > 0) ||
-    (selectedTab === 'markets' && markets.length > 0)
+    (selectedTab === POSITIONS_TAB && positions.length > 0) ||
+    marketTabs.some((tab) => tab.key === selectedTab)
       ? selectedTab
       : firstTab;
 
@@ -122,16 +197,16 @@ const EventMarketListContent = ({
 
   const rows = useMemo<readonly ContentRow[]>(
     () =>
-      activeTab === 'positions'
+      activeTab === POSITIONS_TAB
         ? positions.map((position) => ({ type: 'position', position }))
-        : markets,
-    [activeTab, markets, positions],
+        : (marketTabs.find((tab) => tab.key === activeTab)?.rows ?? []),
+    [activeTab, marketTabs, positions],
   );
   const tabs = [
     ...(positions.length > 0
       ? [
           {
-            key: 'positions' as const,
+            key: POSITIONS_TAB,
             label: strings('predict_next.portfolio.positions'),
             content: null,
             testID: EventMarketListTestIds.POSITIONS_TAB,
@@ -146,20 +221,12 @@ const EventMarketListContent = ({
           },
         ]
       : []),
-    ...(markets.length > 0
-      ? [
-          {
-            key: 'markets' as const,
-            label: strings(
-              getEventGame(event)
-                ? 'predict_next.event.game_lines'
-                : 'predict_next.event.outcome',
-            ),
-            content: null,
-            testID: EventMarketListTestIds.MARKETS_TAB,
-          },
-        ]
-      : []),
+    ...marketTabs.map((tab) => ({
+      key: tab.key,
+      label: tab.label,
+      content: null,
+      testID: tab.testID,
+    })),
   ];
   const contentContainerStyle = useMemo(() => tw.style('px-4'), [tw]);
   const handleGroupMarketSelect = useCallback(
@@ -168,8 +235,44 @@ const EventMarketListContent = ({
     },
     [],
   );
+  const handleSectionToggle = useCallback((stateKey: string, open: boolean) => {
+    setOpenSections((current) => ({ ...current, [stateKey]: open }));
+  }, []);
+  const handlePeriodSelect = useCallback(
+    (stateKey: string, periodKey: string) => {
+      setSelectedPeriods((current) => ({ ...current, [stateKey]: periodKey }));
+    },
+    [],
+  );
+  const game = getEventGame(event);
+  const extraData = useMemo(
+    () => ({ selectedMarketIds, openSections, selectedPeriods }),
+    [openSections, selectedMarketIds, selectedPeriods],
+  );
   const renderMarket = useCallback(
-    (projection: MarketGroupProjection) => {
+    (projection: MarketRow) => {
+      if (projection.type === 'section') {
+        return (
+          <EventMarketLayoutSection
+            stateKey={projection.stateKey}
+            section={projection.section}
+            showDivider={projection.index > 0}
+            initialOpen={
+              openSections[projection.stateKey] ??
+              projection.index < OPEN_SECTION_COUNT
+            }
+            onToggle={handleSectionToggle}
+            selectedPeriodKey={selectedPeriods[projection.stateKey]}
+            onSelectPeriod={handlePeriodSelect}
+            selectedMarketIds={selectedMarketIds}
+            onSelectMarket={handleGroupMarketSelect}
+            game={game}
+            onOrder={onOrder}
+            onRulesPress={onRulesPress}
+          />
+        );
+      }
+
       if (projection.type === 'standard') {
         return (
           <MarketStandardCard
@@ -199,12 +302,29 @@ const EventMarketListContent = ({
       };
 
       return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
-        <TotalMarketGroupCard {...groupProps} />
+        <TotalMarketGroupCard
+          {...groupProps}
+          title={strings('predict.market_groups.total_points')}
+        />
       ) : (
-        <SpreadMarketGroupCard {...groupProps} />
+        <SpreadMarketGroupCard
+          {...groupProps}
+          title={strings('predict.market_groups.spread')}
+          game={game}
+        />
       );
     },
-    [handleGroupMarketSelect, onOrder, onRulesPress, selectedMarketIds],
+    [
+      game,
+      handleGroupMarketSelect,
+      handlePeriodSelect,
+      handleSectionToggle,
+      onOrder,
+      onRulesPress,
+      openSections,
+      selectedMarketIds,
+      selectedPeriods,
+    ],
   );
   const renderRow = useCallback(
     (row: ContentRow) =>
@@ -233,10 +353,11 @@ const EventMarketListContent = ({
       {...listWindow}
       testID={testID}
       data={rows}
-      extraData={selectedMarketIds}
+      extraData={extraData}
       keyExtractor={getRowKey}
       renderItem={renderRow}
       contentContainerStyle={contentContainerStyle}
+      isSeparated={isSeparated}
       ListHeaderComponent={
         <Box>
           {children}

@@ -35,6 +35,7 @@ interface UseSentinelFeeTokenValidationParams {
   chainId?: CaipChainId;
   sourceAssetId?: CaipAssetType;
   destinationAssetId?: CaipAssetType;
+  enabled?: boolean;
 }
 
 /**
@@ -47,11 +48,12 @@ export function useSentinelFeeTokenValidation({
   chainId,
   sourceAssetId,
   destinationAssetId,
+  enabled = true,
 }: UseSentinelFeeTokenValidationParams): SentinelFeeTokenValidationResult {
   const cacheTtlMs = useSelector(selectSentinelFeeTokensCacheTtlMs);
   const descriptor = sentinelFeeTokensQueries.getSentinelFeeTokens(cacheTtlMs);
   const hasCompleteInputs = Boolean(
-    chainId && sourceAssetId && destinationAssetId,
+    enabled && chainId && sourceAssetId && destinationAssetId,
   );
   const { data, isError, refetch } = useQuery<SentinelFeeTokensByChain>({
     queryKey: descriptor.queryKey,

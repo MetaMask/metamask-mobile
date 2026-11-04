@@ -58,6 +58,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
 import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardHeight';
 import { useTheme } from '../../../../util/theme';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import {
   fireImpact,
   ImpactMoment,
@@ -68,8 +70,11 @@ import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
+import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
+import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
+import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
 import {
   addPendingPost,
   requestPostsTabFocus,
@@ -243,6 +248,15 @@ const SocialPostComposerView: React.FC = () => {
     source: analyticsSource,
   });
   const isKeyboardVisible = useKeyboardHeight() > 0;
+  const [hardwareTier] = useState(() => getHardwareTier());
+  const networkTier = useNetworkTier();
+  // UX matrix (app/util/deviceCapability/README.md): offline, and LOW hardware on
+  // a slow network (less animation, rare poll), keep the preview static. Every
+  // other cell stays live and the provider applies reduced motion and throttling.
+  // `null` on either tier is unknown, so it never counts as LOW or offline.
+  const isLivePreview =
+    networkTier !== 'NONE' &&
+    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
 
   const authorName = profile?.displayName || profile?.handle || '';
   const composerAuthor = useMemo(
@@ -261,11 +275,15 @@ const SocialPostComposerView: React.FC = () => {
         return mapPerpsOrderInFlightToFeedItem(
           tradeInFlightPreview,
           text.trim(),
-          { author: composerAuthor },
+          {
+            author: composerAuthor,
+            commentGifUrl: gifUri ?? undefined,
+          },
         );
       }
       return mapTradeInFlightToFeedItem(tradeInFlightPreview, text.trim(), {
         author: composerAuthor,
+        commentGifUrl: gifUri ?? undefined,
       });
     }
     if (!selectedPosition) {
@@ -274,8 +292,17 @@ const SocialPostComposerView: React.FC = () => {
     return mapPositionToFeedItem(selectedPosition.position, text.trim(), {
       isClosed: selectedPosition.isClosed,
       author: composerAuthor,
+      commentGifUrl: gifUri ?? undefined,
+      liveTicks: isLivePreview,
     });
-  }, [composerAuthor, selectedPosition, text, tradeInFlightPreview]);
+  }, [
+    composerAuthor,
+    gifUri,
+    isLivePreview,
+    selectedPosition,
+    text,
+    tradeInFlightPreview,
+  ]);
   const analyticsTradeType = previewItem
     ? previewItem.variant.startsWith('perps')
       ? Trade.PERPS
@@ -287,6 +314,7 @@ const SocialPostComposerView: React.FC = () => {
   const canSubmit =
     (selectedPosition != null || isTradeInFlightLocked) &&
     !isOverCharacterLimit;
+  const hasComment = text.trim().length > 0;
 
   const handleClose = useCallback(() => {
     trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
@@ -369,6 +397,7 @@ const SocialPostComposerView: React.FC = () => {
     if (
       (!selectedPosition && !tradeInFlightParams) ||
       !canSubmit ||
+      !hasComment ||
       isSubmitting
     ) {
       return;
@@ -415,16 +444,22 @@ const SocialPostComposerView: React.FC = () => {
                 ? mapPerpsOrderInFlightToFeedItem(
                     tradeInFlightPreview,
                     caption,
-                    { author, timestamp: timestampMs },
+                    {
+                      author,
+                      timestamp: timestampMs,
+                      commentGifUrl: gifUri ?? undefined,
+                    },
                   )
                 : mapTradeInFlightToFeedItem(tradeInFlightPreview, caption, {
                     author,
                     timestamp: timestampMs,
+                    commentGifUrl: gifUri ?? undefined,
                   });
           } else if (selectedPosition) {
             item = mapPositionToFeedItem(selectedPosition.position, caption, {
               isClosed: selectedPosition.isClosed,
               author,
+              commentGifUrl: gifUri ?? undefined,
             });
           } else {
             return null;
@@ -492,7 +527,12 @@ const SocialPostComposerView: React.FC = () => {
         // Replace so Back from the profile skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
       }
-    } catch {
+    } catch (error) {
+      // The social API refuses a banned author's post with a 403, the same
+      // status as a wallet they don't own; the status tells the two apart.
+      if (extractHttpStatus(error) === 403) {
+        invalidateModerationStatus().catch(() => undefined);
+      }
       trackInteraction(Interaction.POST_FAILED, {
         outcome: Outcome.FAILED,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
@@ -516,6 +556,7 @@ const SocialPostComposerView: React.FC = () => {
     colors.error.default,
     colors.success.default,
     gifUri,
+    hasComment,
     isSubmitting,
     linkedAccountAddress,
     navigation,
@@ -576,7 +617,7 @@ const SocialPostComposerView: React.FC = () => {
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Md}
-                isDisabled={!canSubmit || isSubmitting}
+                isDisabled={!canSubmit || !hasComment || isSubmitting}
                 onPress={handlePost}
                 testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
               >
@@ -630,7 +671,21 @@ const SocialPostComposerView: React.FC = () => {
 
             {previewItem ? (
               <Box twClassName="relative mt-12">
-                <PositionCardBody item={previewItem} />
+                {isLivePreview ? (
+                  <SocialLivePricesProvider>
+                    <PositionCardBody
+                      item={previewItem}
+                      expanded
+                      showCopyTrade={false}
+                    />
+                  </SocialLivePricesProvider>
+                ) : (
+                  <PositionCardBody
+                    item={previewItem}
+                    expanded
+                    showCopyTrade={false}
+                  />
+                )}
                 {isTradeInFlightLocked ? null : (
                   <ComposerAttachmentCloseButton
                     onPress={() => setSelectedPosition(null)}

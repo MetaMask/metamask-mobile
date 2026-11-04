@@ -13,7 +13,6 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   BadgeNetwork,
-  HeaderStandard,
   KeyValueRow,
   Text,
 } from '@metamask/design-system-react-native';
@@ -57,6 +56,8 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -75,6 +76,7 @@ export interface EarnWithdrawalConfirmationViewProps {
 }
 
 const EarnLendingWithdrawalConfirmationView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -455,7 +457,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleHeaderBackPress}
         backButtonProps={{
