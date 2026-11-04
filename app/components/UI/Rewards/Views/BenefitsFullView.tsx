@@ -1,8 +1,4 @@
-import {
-  HeaderStandard,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import React, { useState } from 'react';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { strings } from '../../../../../locales/i18n';
@@ -21,8 +17,11 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import TheMiracleFooter from '../components/Benefits/TheMiracleFooter.tsx';
 import BenefitEmptyList from '../components/Benefits/BenefitEmptyList.tsx';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const BenefitsFullView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -63,7 +62,9 @@ const BenefitsFullView = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.LIST_BENEFIT_VIEW}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.benefits.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

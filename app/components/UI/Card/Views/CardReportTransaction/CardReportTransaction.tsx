@@ -11,7 +11,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -45,6 +44,8 @@ import {
 import { getCardSupportEmail } from '../../util/registrationSettings';
 import { CardActions, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type CardReportTransactionRouteProp = RouteProp<
   CardScreensStackParamList,
@@ -72,6 +73,7 @@ const CardReportTransaction = () => {
   const route = useRoute<CardReportTransactionRouteProp>();
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -176,7 +178,9 @@ const CardReportTransaction = () => {
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title=""
         includesTopInset
         twClassName="bg-background-default"

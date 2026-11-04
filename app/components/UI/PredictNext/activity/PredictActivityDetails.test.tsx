@@ -28,6 +28,24 @@ jest.mock('./internal/legacy/details/PredictFundsDetails', () => {
   };
 });
 
+jest.mock('./internal/legacy/details/PredictSettlementDetails', () => {
+  const { Text: MockText } = jest.requireActual('react-native');
+  return {
+    PredictSettlementDetails: ({ item }: { item: ActivityListItem }) => (
+      <MockText testID="settlement-details">{item.type}</MockText>
+    ),
+  };
+});
+
+jest.mock('./internal/next/details/NextTradeDetails', () => {
+  const { Text: MockText } = jest.requireActual('react-native');
+  return {
+    NextTradeDetails: ({ item }: { item: ActivityListItem }) => (
+      <MockText testID="next-trade-details">{item.type}</MockText>
+    ),
+  };
+});
+
 const buildItem = (type: ActivityListItem['type']) =>
   ({
     type,
@@ -50,7 +68,11 @@ describe('PredictActivityDetails', () => {
     'predictionsAddFunds',
     'predictionsWithdrawFunds',
   ] as const)('renders the legacy templates for %s on legacy', (type) => {
-    givenActiveVenue({ status: 'ready', venue: 'polymarket' });
+    givenActiveVenue({
+      status: 'ready',
+      venue: 'polymarket',
+      source: 'rollout',
+    });
 
     render(<PredictActivityDetails item={buildItem(type)} />);
 
@@ -60,7 +82,7 @@ describe('PredictActivityDetails', () => {
   it.each(['predictionsAddFunds', 'predictionsWithdrawFunds'] as const)(
     'renders the funding template for %s on next',
     (type) => {
-      givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+      givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
 
       render(<PredictActivityDetails item={buildItem(type)} />);
 
@@ -69,24 +91,43 @@ describe('PredictActivityDetails', () => {
     },
   );
 
-  it.each([
-    'predictionPlaced',
-    'predictionCashedOut',
-    'predictionClaimWinnings',
-    'predictionSettled',
-  ] as const)('renders nothing for %s on next until E5', (type) => {
-    givenActiveVenue({ status: 'ready', venue: 'kalshi' });
+  it.each(['predictionPlaced', 'predictionCashedOut'] as const)(
+    'renders the next Trade template for %s on next',
+    (type) => {
+      givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
+
+      render(<PredictActivityDetails item={buildItem(type)} />);
+
+      expect(screen.getByTestId('next-trade-details')).toHaveTextContent(type);
+      expect(screen.queryByTestId('legacy-details')).toBeNull();
+    },
+  );
+
+  it('renders the Settlement template for predictionSettled on next', () => {
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
+
+    render(<PredictActivityDetails item={buildItem('predictionSettled')} />);
+
+    expect(screen.getByTestId('settlement-details')).toHaveTextContent(
+      'predictionSettled',
+    );
+    expect(screen.queryByTestId('legacy-details')).toBeNull();
+  });
+
+  it('renders nothing for a legacy-only Claim on next', () => {
+    givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
 
     render(
       <>
         <Text testID="screen">screen</Text>
-        <PredictActivityDetails item={buildItem(type)} />
+        <PredictActivityDetails item={buildItem('predictionClaimWinnings')} />
       </>,
     );
 
     expect(screen.getByTestId('screen')).toBeOnTheScreen();
     expect(screen.queryByTestId('legacy-details')).toBeNull();
-    expect(screen.queryByTestId('funds-details')).toBeNull();
+    expect(screen.queryByTestId('next-trade-details')).toBeNull();
+    expect(screen.queryByTestId('settlement-details')).toBeNull();
   });
 
   it('renders nothing while the Active Venue resolves', () => {

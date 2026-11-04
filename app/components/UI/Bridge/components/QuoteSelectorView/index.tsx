@@ -1,7 +1,6 @@
 import ScreenView from '../../../../Base/ScreenView';
 import {
   Box,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -32,8 +31,11 @@ import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSorte
 import { fromTokenMinimalUnitString } from '../../../../../util/number/bigint';
 import { sumAmounts } from '@metamask/bridge-controller';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const QuoteSelectorView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
@@ -129,7 +131,9 @@ export const QuoteSelectorView = () => {
       style={styles.screenWrapper}
       edges={['bottom', 'left', 'right']}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('bridge.select_quote')}
         onBack={() => navigation.goBack()}
         includesTopInset

@@ -6,8 +6,10 @@ import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectCanSignTransactions } from '../../../../../../selectors/accountsController';
-import { selectPredictEnabledFlag } from '../../../../../UI/Predict/selectors/featureFlags';
-import { PredictEventValues } from '../../../../../UI/Predict/constants/eventNames';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../../../../UI/PredictNext';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
   ActionButtonType,
@@ -24,7 +26,7 @@ const PredictButton = ({
 }: HomepageActionButtonSlotProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const label = strings('homepage.action_buttons.predict');
   const isDisabled = !isPredictEnabled || !canSignTransactions;
