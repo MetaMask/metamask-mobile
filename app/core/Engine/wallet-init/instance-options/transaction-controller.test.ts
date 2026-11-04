@@ -32,7 +32,10 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from '../../controllers/transaction-controller/event-handlers/metrics';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from '../../controllers/transaction-controller/event-handlers/money-account-override';
-import { handleTransactionConfirmedForPlusChargeRetry } from '../../controllers/transaction-controller/event-handlers/plus-charge-retry';
+import {
+  handleTransactionConfirmedForPlusChargeRetry,
+  handleUnlockForPlusChargeRetry,
+} from '../../controllers/transaction-controller/event-handlers/plus-charge-retry';
 
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('../../../../util/transactions/account-supports-7702');
@@ -340,6 +343,14 @@ describe('setupTransactionControllerListeners', () => {
     expect(handleTransactionConfirmedForPlusChargeRetry).toHaveBeenCalledWith(
       MOCK_TRANSACTION_META,
     );
+  });
+
+  it('retries a queued Plus charge when the keyring unlocks', () => {
+    const { rootMessenger } = setup();
+
+    rootMessenger.publish('KeyringController:unlock');
+
+    expect(handleUnlockForPlusChargeRetry).toHaveBeenCalledTimes(1);
   });
 
   it('records finalized metrics on transactionDropped', () => {

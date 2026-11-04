@@ -17,9 +17,12 @@ import { selectIsSignedIn } from '../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectMoneyAccountPlusSubscription } from '../../../../../selectors/subscriptionController';
-import { retryPlusChargeAfterDeposit } from '../../../../../components/Views/ProHub/utils/retryPlusChargeAfterDeposit';
+import { retryPlusChargeAfterDeposit } from '../retry-plus-charge-after-deposit';
 import Engine from '../../../../Engine';
-import { handleTransactionConfirmedForPlusChargeRetry } from './plus-charge-retry';
+import {
+  handleTransactionConfirmedForPlusChargeRetry,
+  handleUnlockForPlusChargeRetry,
+} from './plus-charge-retry';
 
 jest.mock('../../../../Engine', () => ({
   __esModule: true,
@@ -57,12 +60,9 @@ jest.mock('../../../../../selectors/subscriptionController', () => ({
   selectMoneyAccountPlusSubscription: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../../components/Views/ProHub/utils/retryPlusChargeAfterDeposit',
-  () => ({
-    retryPlusChargeAfterDeposit: jest.fn().mockResolvedValue(undefined),
-  }),
-);
+jest.mock('../retry-plus-charge-after-deposit', () => ({
+  retryPlusChargeAfterDeposit: jest.fn().mockResolvedValue(undefined),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -123,7 +123,9 @@ const makeTx = (overrides: Partial<TransactionMeta> = {}): TransactionMeta =>
   }) as unknown as TransactionMeta;
 
 describe('handleTransactionConfirmedForPlusChargeRetry', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    mockSelectIsSignedIn.mockReturnValue(false);
+    await handleUnlockForPlusChargeRetry();
     jest.clearAllMocks();
     mockSelectIsSignedIn.mockReturnValue(true);
     mockSelectIsUnlocked.mockReturnValue(true);
@@ -174,6 +176,97 @@ describe('handleTransactionConfirmedForPlusChargeRetry', () => {
     mockSelectIsUnlocked.mockReturnValue(false);
 
     await handleTransactionConfirmedForPlusChargeRetry(makeTx());
+
+    expect(mockRetryPlusChargeAfterDeposit).not.toHaveBeenCalled();
+    expect(mockGetSubscriptions).not.toHaveBeenCalled();
+  });
+
+  it('retries a deposit that confirmed while locked after unlock', async () => {
+    mockSelectIsUnlocked.mockReturnValue(false);
+
+    await handleTransactionConfirmedForPlusChargeRetry(
+      makeTx({ blockNumber: '0x10' }),
+    );
+
+    mockSelectIsUnlocked.mockReturnValue(true);
+    await handleUnlockForPlusChargeRetry();
+
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledTimes(1);
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledWith(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+      16,
+    );
+    expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries with the later block when two deposits confirm while locked', async () => {
+    mockSelectIsUnlocked.mockReturnValue(false);
+
+    await handleTransactionConfirmedForPlusChargeRetry(
+      makeTx({ id: 'tx-1', blockNumber: '0x10' }),
+    );
+    await handleTransactionConfirmedForPlusChargeRetry(
+      makeTx({ id: 'tx-2', blockNumber: '0x20' }),
+    );
+
+    mockSelectIsUnlocked.mockReturnValue(true);
+    await handleUnlockForPlusChargeRetry();
+
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledTimes(1);
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledWith(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+      32,
+    );
+  });
+
+  it('retries a locked deposit after the in-flight retry finishes', async () => {
+    let resolveFirstRetry: (() => void) | undefined;
+    mockRetryPlusChargeAfterDeposit.mockImplementation(() => {
+      if (mockRetryPlusChargeAfterDeposit.mock.calls.length > 1) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        resolveFirstRetry = resolve;
+      });
+    });
+
+    const firstCall = handleTransactionConfirmedForPlusChargeRetry(
+      makeTx({ id: 'tx-1' }),
+    );
+    await Promise.resolve();
+
+    mockSelectIsUnlocked.mockReturnValue(false);
+    await handleTransactionConfirmedForPlusChargeRetry(
+      makeTx({ id: 'tx-2', blockNumber: '0x20' }),
+    );
+
+    mockSelectIsUnlocked.mockReturnValue(true);
+    await handleUnlockForPlusChargeRetry();
+
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledTimes(1);
+
+    resolveFirstRetry?.();
+    await firstCall;
+
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenCalledTimes(2);
+    expect(mockRetryPlusChargeAfterDeposit).toHaveBeenLastCalledWith(
+      subscription,
+      MONEY_ACCOUNT_ADDRESS,
+      32,
+    );
+  });
+
+  it('drops a deposit that confirmed while signed out', async () => {
+    mockSelectIsUnlocked.mockReturnValue(false);
+    mockSelectIsSignedIn.mockReturnValue(false);
+
+    await handleTransactionConfirmedForPlusChargeRetry(makeTx());
+
+    mockSelectIsUnlocked.mockReturnValue(true);
+    mockSelectIsSignedIn.mockReturnValue(true);
+    await handleUnlockForPlusChargeRetry();
 
     expect(mockRetryPlusChargeAfterDeposit).not.toHaveBeenCalled();
     expect(mockGetSubscriptions).not.toHaveBeenCalled();

@@ -13,7 +13,7 @@ import { selectMoneyAccountPlusSubscription } from '../../../../../selectors/sub
 import { ensureError } from '../../../../../util/errorUtils';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../Engine';
-import { retryPlusChargeAfterDeposit } from '../../../../../components/Views/ProHub/utils/retryPlusChargeAfterDeposit';
+import { retryPlusChargeAfterDeposit } from '../retry-plus-charge-after-deposit';
 
 const LOG_OPTIONS = {
   tags: {
@@ -23,6 +23,8 @@ const LOG_OPTIONS = {
 } as const;
 
 let isRetrying = false;
+let hasPendingLockedDeposit = false;
+let pendingLockedDepositMinBlock: number | undefined;
 
 /**
  * Confirmed receipts store `blockNumber` as a 0x-prefixed hex quantity. A
@@ -63,30 +65,38 @@ function isDepositEligibleForPlusRetry(
 }
 
 /**
- * Retries a stuck Plus crypto charge after a Money deposit or membership
- * top-up confirms.
+ * Keeps the newest confirmed block. A later deposit is the one the balance
+ * read has to catch up to.
  *
- * Subscribed from Engine for the life of TransactionController. Locked or
- * signed-out sessions and a retry already in flight are ignored. Failures
- * are logged only; the membership banner keeps its Add funds action.
- * Every eligible deposit refreshes subscriptions afterwards, including when
- * the charge is skipped, so Pro Hub sees a server-side status change. The
- * refresh runs after the in-flight flag is cleared.
- *
- * @param transactionMeta - Confirmed transaction from TransactionController.
+ * @param minBlock - Confirmed deposit block, when the transaction has one.
  */
-export async function handleTransactionConfirmedForPlusChargeRetry(
-  transactionMeta: TransactionMeta,
+function rememberLockedDeposit(minBlock: number | undefined): void {
+  if (
+    !hasPendingLockedDeposit ||
+    (minBlock !== undefined &&
+      (pendingLockedDepositMinBlock === undefined ||
+        minBlock > pendingLockedDepositMinBlock))
+  ) {
+    pendingLockedDepositMinBlock = minBlock;
+  }
+  hasPendingLockedDeposit = true;
+}
+
+function clearLockedDeposit(): void {
+  hasPendingLockedDeposit = false;
+  pendingLockedDepositMinBlock = undefined;
+}
+
+/**
+ * Runs the charge retry for the current subscription, then refreshes it.
+ * A retry already in flight is ignored. The refresh runs after that flag
+ * is cleared, including when the charge is skipped.
+ *
+ * @param minBlock - Confirmed deposit block, when the transaction has one.
+ */
+async function retryCurrentPlusCharge(
+  minBlock: number | undefined,
 ): Promise<void> {
-  if (!isDepositEligibleForPlusRetry(transactionMeta)) {
-    return;
-  }
-
-  const state = ReduxService.store.getState();
-  if (!selectIsUnlocked(state) || !selectIsSignedIn(state)) {
-    return;
-  }
-
   if (isRetrying) {
     return;
   }
@@ -94,6 +104,7 @@ export async function handleTransactionConfirmedForPlusChargeRetry(
   isRetrying = true;
 
   try {
+    const state = ReduxService.store.getState();
     const subscription = selectMoneyAccountPlusSubscription(state);
     const moneyAccountAddress = selectPrimaryMoneyAccount(state)?.address;
 
@@ -101,7 +112,7 @@ export async function handleTransactionConfirmedForPlusChargeRetry(
       await retryPlusChargeAfterDeposit(
         subscription,
         moneyAccountAddress,
-        toConfirmedMinBlock(transactionMeta.blockNumber),
+        minBlock,
       );
     }
   } catch (error) {
@@ -121,4 +132,77 @@ export async function handleTransactionConfirmedForPlusChargeRetry(
       LOG_OPTIONS,
     );
   }
+
+  if (!hasPendingLockedDeposit) {
+    return;
+  }
+
+  const latestState = ReduxService.store.getState();
+  if (!selectIsUnlocked(latestState) || !selectIsSignedIn(latestState)) {
+    return;
+  }
+
+  const nextMinBlock = pendingLockedDepositMinBlock;
+  clearLockedDeposit();
+  await retryCurrentPlusCharge(nextMinBlock);
+}
+
+/**
+ * Retries a stuck Plus crypto charge after a Money deposit or membership
+ * top-up confirms.
+ *
+ * Subscribed from Engine for the life of TransactionController. Signed-out
+ * sessions and a retry already in flight are ignored. A deposit that confirms
+ * while the wallet is locked is held until unlock, because this event is not
+ * replayed. Failures are logged only; the membership banner keeps its Add
+ * funds action. Every eligible unlocked deposit refreshes subscriptions
+ * afterwards, including when the charge is skipped.
+ *
+ * @param transactionMeta - Confirmed transaction from TransactionController.
+ */
+export async function handleTransactionConfirmedForPlusChargeRetry(
+  transactionMeta: TransactionMeta,
+): Promise<void> {
+  if (!isDepositEligibleForPlusRetry(transactionMeta)) {
+    return;
+  }
+
+  const state = ReduxService.store.getState();
+  const minBlock = toConfirmedMinBlock(transactionMeta.blockNumber);
+
+  if (!selectIsUnlocked(state)) {
+    if (selectIsSignedIn(state)) {
+      rememberLockedDeposit(minBlock);
+    }
+    return;
+  }
+
+  if (!selectIsSignedIn(state)) {
+    return;
+  }
+
+  await retryCurrentPlusCharge(minBlock);
+}
+
+/**
+ * Runs a deposit retry that was skipped because the wallet was locked.
+ * A signed-out session drops the queued deposit so it cannot charge another
+ * account. Subscribed from Engine on `KeyringController:unlock`.
+ */
+export async function handleUnlockForPlusChargeRetry(): Promise<void> {
+  if (!hasPendingLockedDeposit || isRetrying) {
+    return;
+  }
+
+  const state = ReduxService.store.getState();
+  if (!selectIsUnlocked(state) || !selectIsSignedIn(state)) {
+    if (!selectIsSignedIn(state)) {
+      clearLockedDeposit();
+    }
+    return;
+  }
+
+  const minBlock = pendingLockedDepositMinBlock;
+  clearLockedDeposit();
+  await retryCurrentPlusCharge(minBlock);
 }
