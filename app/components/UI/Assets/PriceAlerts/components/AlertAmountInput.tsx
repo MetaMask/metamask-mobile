@@ -5,6 +5,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import {
   AnimatedAmountDisplay,
+  getAmountCursorStyle,
   getFontSizeForInputLength,
 } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import {
@@ -53,9 +54,8 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
     flexShrink: 0,
     marginHorizontal: 0,
     width: 1,
-    height: Math.round(amountFontSize * 0.95),
     backgroundColor: colors.text.muted,
-    transform: [{ translateY: Math.round(amountFontSize * -0.04) }],
+    ...getAmountCursorStyle(amountFontSize),
   };
 
   return (

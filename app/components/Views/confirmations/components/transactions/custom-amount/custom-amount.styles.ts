@@ -1,4 +1,5 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { getAmountCursorStyle } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Theme } from '../../../../../../util/theme/models';
 
 /** Returns the legacy font size breakpoints used by confirmation amounts. */
@@ -38,16 +39,8 @@ const styleSheet = (params: {
     },
     cursor: {
       width: 1,
-      height: Math.round(fontSize * 0.95),
       backgroundColor: params.theme.colors.text.muted,
-      // Android renders glyphs lower than iOS in a line box equal to fontSize.
-      transform: [
-        {
-          translateY: Math.round(
-            fontSize * (Platform.OS === 'android' ? 0.02 : -0.04),
-          ),
-        },
-      ],
+      ...getAmountCursorStyle(fontSize),
     },
     alertMessage: {
       textAlign: 'center',

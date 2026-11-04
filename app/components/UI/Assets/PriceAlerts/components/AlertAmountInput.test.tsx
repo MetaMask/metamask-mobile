@@ -2,7 +2,10 @@ import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 
-import { getFontSizeForInputLength } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  getAmountCursorStyle,
+  getFontSizeForInputLength,
+} from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { mockTheme } from '../../../../../util/theme';
 import AlertAmountInput from './AlertAmountInput';
 import {
@@ -56,10 +59,9 @@ describe('AlertAmountInput', () => {
 
     expect(getByTestId(getAlertAmountCursorTestId(TEST_ID))).toHaveStyle({
       backgroundColor: mockTheme.colors.text.muted,
-      height: Math.round(fontSize * 0.95),
       marginHorizontal: 0,
-      transform: [{ translateY: Math.round(fontSize * -0.04) }],
       width: 1,
+      ...getAmountCursorStyle(fontSize),
     });
     expect(StyleSheet.flatten(getByText('4').props.style)).toMatchObject({
       fontSize,
