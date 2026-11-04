@@ -10,10 +10,17 @@
  *
  * Metro resolves `@walletconnect/relay-auth` to this file (see
  * `metro.config.js`). Everything is re-exported unchanged except
- * `generateKeyPair` and `signJWT`, which call react-native-quick-crypto
- * (OpenSSL) and produce byte-identical results: ed25519 is deterministic. If the
- * native path throws or returns something malformed, it is turned off for the
- * session and the original JS implementation is used.
+ * `generateKeyPair` and `signJWT`, which produce byte-identical results natively
+ * (ed25519 is deterministic). The public key comes from `@metamask/native-utils`
+ * (`getPublicKeyEd25519`), the same synchronous native library `shimPerf.js` uses
+ * for secp256k1. The signature comes from react-native-quick-crypto (OpenSSL),
+ * because native-utils has no ed25519 signing.
+ * If either native call throws or returns something malformed, that call is
+ * turned off for the session and the original JS implementation is used.
+ *
+ * Why a Metro redirect and not a `shimPerf.js`-style mutation of `@noble/curves`:
+ * relay-auth pins and bundles its own `@noble/curves` (1.8.0), so patching the
+ * app's copy would never reach it (see docs/performance/native-crypto.md).
  *
  * The seed is WalletConnect's client identity key. It is only passed to the
  * native module in memory, the same way it is passed to the JS implementation,
@@ -32,12 +39,8 @@ import {
   signJWT as jsSignJWT,
   type Keypair,
 } from '@walletconnect/relay-auth';
-import {
-  Ed,
-  createPrivateKey,
-  createPublicKey,
-  getRandomValues,
-} from 'react-native-quick-crypto';
+import { getPublicKeyEd25519 } from '@metamask/native-utils';
+import { Ed, getRandomValues } from 'react-native-quick-crypto';
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 export * from '@walletconnect/relay-auth';
@@ -46,33 +49,36 @@ const SEED_LENGTH = 32;
 const PUBLIC_KEY_LENGTH = 32;
 const SIGNATURE_LENGTH = 64;
 
-let nativeAvailable = true;
+type NativeCall = 'publicKey' | 'sign';
+
+// Per call, so a failure in one native library doesn't turn off the other.
+const nativeAvailable: Record<NativeCall, boolean> = {
+  publicKey: true,
+  sign: true,
+};
 
 function nativePublicKey(seed: Uint8Array): Uint8Array {
-  const privateKey = createPrivateKey({
-    key: seed,
-    format: 'raw-private',
-    asymmetricKeyType: 'ed25519',
-  });
-  return new Uint8Array(
-    createPublicKey(privateKey).export({ format: 'raw-public' }),
-  );
+  return new Uint8Array(getPublicKeyEd25519(seed));
 }
 
 function nativeSign(data: Uint8Array, seed: Uint8Array): Uint8Array {
   return new Uint8Array(new Ed('ed25519', {}).signSync(data, seed));
 }
 
-/** Runs the native path; on any failure turns it off for the session. */
-function tryNative<T>(run: () => T, isValid: (result: T) => boolean): T | null {
-  if (!nativeAvailable) return null;
+/** Runs a native call; on any failure turns that call off for the session. */
+function tryNative<T>(
+  call: NativeCall,
+  run: () => T,
+  isValid: (result: T) => boolean,
+): T | null {
+  if (!nativeAvailable[call]) return null;
   try {
     const result = run();
     if (isValid(result)) return result;
   } catch {
     // Fall through to the JS implementation.
   }
-  nativeAvailable = false;
+  nativeAvailable[call] = false;
   return null;
 }
 
@@ -86,6 +92,7 @@ export function generateKeyPair(seed: Uint8Array = randomSeed()): Keypair {
   const publicKey =
     seed.length === SEED_LENGTH
       ? tryNative(
+          'publicKey',
           () => nativePublicKey(seed),
           (key) => key.length === PUBLIC_KEY_LENGTH,
         )
@@ -114,6 +121,7 @@ export async function signJWT(
   const data = encodeData({ header, payload });
   const seed = keyPair.secretKey.slice(0, SEED_LENGTH);
   const signature = tryNative(
+    'sign',
     () => nativeSign(data, seed),
     (sig) => sig.length === SIGNATURE_LENGTH,
   );
@@ -123,10 +131,11 @@ export async function signJWT(
 
 /** Test-only: re-enables the native path after a fallback. */
 export function resetNativeEd25519ForTests(): void {
-  nativeAvailable = true;
+  nativeAvailable.publicKey = true;
+  nativeAvailable.sign = true;
 }
 
-/** Test-only: whether calls still go to the native path. */
+/** Test-only: whether both calls still go to the native path. */
 export function isNativeEd25519ActiveForTests(): boolean {
-  return nativeAvailable;
+  return nativeAvailable.publicKey && nativeAvailable.sign;
 }
