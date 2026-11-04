@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { getAmountCursorStyle } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Theme } from '../../../../../../util/theme/models';
 
 /** Returns the legacy font size breakpoints used by confirmation amounts. */
@@ -37,7 +36,6 @@ const styleSheet = (params: {
     assistive: {
       color: params.theme.colors.text.muted,
     },
-    cursor: getAmountCursorStyle(fontSize, params.theme.colors.text.muted),
     alertMessage: {
       textAlign: 'center',
       marginTop: 16,

@@ -1,5 +1,5 @@
 export { default as AnimatedAmountDisplay } from './AnimatedAmountDisplay';
-export { getAmountCursorStyle } from './getAmountCursorStyle';
+export { useAmountCursorStyle } from './useAmountCursorStyle';
 export { getFontSizeForInputLength } from './getFontSizeForInputLength';
 export type {
   AnimatedAmountCursorProps,

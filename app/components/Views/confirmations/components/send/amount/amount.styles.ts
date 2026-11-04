@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { getAmountCursorStyle } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Theme } from '../../../../../../util/theme/models';
 import {
   AlignItems,
@@ -37,10 +36,6 @@ export const styleSheet = (params: {
     inputText: {
       fontSize: inputFontSize,
       lineHeight: inputFontSize,
-    },
-    cursor: {
-      marginHorizontal: 0,
-      ...getAmountCursorStyle(inputFontSize, theme.colors.text.muted),
     },
     inputWrapper: {
       alignItems: 'center',

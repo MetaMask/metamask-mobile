@@ -1,13 +1,18 @@
 import React from 'react';
 import { Pressable } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet from './custom-amount.styles';
+import styleSheet, {
+  getFontSizeForConfirmationAmount,
+} from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  AnimatedAmountDisplay,
+  useAmountCursorStyle,
+} from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import {
   FontFamily,
   Text,
@@ -50,6 +55,9 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   );
 
   const amountLength = typedText.length + assistiveText.length;
+  const amountCursorStyle = useAmountCursorStyle(
+    getFontSizeForConfirmationAmount(amountLength),
+  );
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -88,7 +96,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
         cursorVisible
           ? {
               animated: true,
-              style: styles.cursor,
+              style: amountCursorStyle,
               testID: 'custom-amount-cursor',
             }
           : false
