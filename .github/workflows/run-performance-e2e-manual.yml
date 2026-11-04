@@ -1,11 +1,12 @@
 name: Run Performance E2E Tests Manually
 
 # Scheduled and manual runs use the selected build and run on TestMu
-# HyperExecute:
-# - 00:00, 06:00, 12:00, 18:00 UTC
+# HyperExecute. Cadence is offset from ci.yml's even-hour E2E schedule
+# (06/08/…/22 UTC) so Android Namespace builds do not stack at the same
+# minute: 01:30, 07:30, 13:30, 19:30 UTC Mon–Sat.
 on:
   schedule:
-    - cron: '0 */6 * * 1-6'
+    - cron: '30 1,7,13,19 * * 1-6'
   workflow_dispatch:
     inputs:
       build_variant:
@@ -57,15 +58,19 @@ permissions:
   contents: read
 
 concurrency:
-  # Manual runs are isolated by ref and variant so they do not block the
-  # scheduled cadence.
-  group: performance-e2e-trigger-${{ github.event_name == 'schedule' && github.event.schedule || github.ref }}-${{ github.event_name == 'schedule' && 'scheduled' || inputs.build_variant }}
+  # Scheduled Android-heavy Namespace work shares one cross-workflow group
+  # with build-android-arm64-scheduled.yml so those pipelines serialize
+  # instead of claiming the linux/amd64 pool together. Manual runs stay
+  # isolated by ref and variant so they do not block the cadence.
+  group: >-
+    ${{ github.event_name == 'schedule' && 'namespace-linux-android-scheduled' ||
+        format('performance-e2e-trigger-{0}-{1}', github.ref, inputs.build_variant) }}
   cancel-in-progress: false
 
 jobs:
   scheduled-e2e:
     name: Scheduled Performance E2E (e2e)
-    if: github.event_name == 'schedule' && github.event.schedule == '0 */6 * * 1-6'
+    if: github.event_name == 'schedule' && github.event.schedule == '30 1,7,13,19 * * 1-6'
     permissions:
       contents: write
       id-token: write # AWS OIDC for signing and keystores in run-performance-e2e.yml
