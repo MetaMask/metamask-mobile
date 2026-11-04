@@ -1198,7 +1198,8 @@
       "button": "Continue"
     },
     "creating_account": {
-      "title": "Creating your bank account",
+      "title": "Creating your account...",
+      "description": "Most accounts are created instantly.",
       "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
     "kyc_rejected": {
@@ -3868,7 +3869,8 @@
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
-      "review": "Review order"
+      "review": "Review order",
+      "venue_changed": "Your prediction market changed. Close this order to continue."
     },
     "order_approval": {
       "title": "Review your order",
@@ -3899,6 +3901,10 @@
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
       "requote": "Try again"
+    },
+    "order_notification": {
+      "not_placed_title": "Order not placed",
+      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
     }
   },
   "predict": {
@@ -10434,7 +10440,8 @@
     "tabs": {
       "market": "Market",
       "limit": "Limit",
-      "recurring": "Recurring"
+      "recurring": "Recurring",
+      "new_badge": "New"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",
@@ -10806,6 +10813,7 @@
     "quote_stream_complete_rwa_market_unavailable": "The market for this asset is currently unavailable. Try again later.",
     "max": "Max",
     "approval_needed": "Approves token for swap.",
+    "tooltip_accessibility_hint": "Shows more information",
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",

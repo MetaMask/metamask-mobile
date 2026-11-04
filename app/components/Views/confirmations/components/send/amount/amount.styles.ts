@@ -20,22 +20,13 @@ export const styleSheet = (params: {
   return StyleSheet.create({
     balanceText: {
       alignSelf: 'center',
-      marginTop: 16,
+      marginTop: 8,
     },
     container: {
       backgroundColor: theme.colors.background.default,
       flex: 1,
       flexDirection: FlexDirection.Column,
       justifyContent: JustifyContent.spaceBetween,
-    },
-    currencyTag: {
-      alignSelf: 'center',
-      backgroundColor: theme.colors.background.section,
-      color: theme.colors.text.alternative,
-      flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.center,
-      marginTop: 8,
-      minWidth: 100,
     },
     inputSection: {
       flexDirection: FlexDirection.Row,
