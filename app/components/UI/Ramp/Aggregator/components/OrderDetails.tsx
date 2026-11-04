@@ -31,15 +31,16 @@ import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { getOrderAmount } from '../utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
+import {
+  FontWeight,
+  KeyValueRow,
+  Text as MmdsText,
+  TextVariant as MmdsTextVariant,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import ListItemColumnEnd from './ListItemColumnEnd';
 
 /* eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
@@ -55,9 +56,6 @@ const createStyles = (colors: any) =>
       paddingVertical: 4,
       paddingBottom: 16,
     },
-    transactionIdFlex: {
-      textAlign: 'right',
-    },
     line: {
       backgroundColor: colors.border.muted,
       height: 1,
@@ -66,9 +64,6 @@ const createStyles = (colors: any) =>
     tokenAmount: {
       fontSize: 24,
       lineHeight: 32,
-    },
-    flexZero: {
-      flex: 0,
     },
     row: {
       marginVertical: 4,
@@ -84,9 +79,6 @@ const createStyles = (colors: any) =>
     },
     underline: {
       textDecorationLine: 'underline',
-    },
-    listItem: {
-      paddingVertical: 0,
     },
   });
 
@@ -105,6 +97,31 @@ const Group: React.FC<{ children: React.ReactNode }> = (props) => {
   const styles = createStyles(colors);
   return <View style={styles.group} {...props} />;
 };
+
+/**
+ * Order-detail key/value line.
+ * `h-auto` drops KeyValueRow's fixed 40px height so the row keeps the
+ * intentional zero vertical padding. Horizontal padding stays the MMDS 16.
+ */
+const OrderDetailRow = ({
+  label,
+  value,
+  valueSelectable = false,
+}: {
+  label: string;
+  value: string;
+  valueSelectable?: boolean;
+}) => (
+  <KeyValueRow
+    twClassName="h-auto"
+    keyLabel={label}
+    value={value}
+    valueTextProps={{
+      numberOfLines: undefined,
+      selectable: valueSelectable,
+    }}
+  />
+);
 
 const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
   const { colors } = useTheme();
@@ -358,68 +375,54 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
             <Account address={order.account} transparent />
           </Row>
           <Row>
-            <ListItem style={styles.listItem}>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodySM}>
-                  {strings('fiat_on_ramp_aggregator.order_details.id')}
-                </Text>
-              </ListItemColumn>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text
-                  variant={TextVariant.BodySMBold}
-                  selectable
-                  style={styles.transactionIdFlex}
-                >
-                  {orderData?.providerOrderId}
-                </Text>
-              </ListItemColumn>
-            </ListItem>
+            <OrderDetailRow
+              label={strings('fiat_on_ramp_aggregator.order_details.id')}
+              value={
+                orderData?.providerOrderId
+                  ? String(orderData.providerOrderId)
+                  : ''
+              }
+              valueSelectable
+            />
           </Row>
-          {Boolean(date) && (
+          {typeof date === 'string' && (
             <Row>
-              <ListItem style={styles.listItem}>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodySM}>
-                    {strings(
-                      'fiat_on_ramp_aggregator.order_details.date_and_time',
-                    )}
-                  </Text>
-                </ListItemColumn>
-                <ListItemColumn>
-                  <Text variant={TextVariant.BodySMBold}>{date}</Text>
-                </ListItemColumn>
-              </ListItem>
+              <OrderDetailRow
+                label={strings(
+                  'fiat_on_ramp_aggregator.order_details.date_and_time',
+                )}
+                value={date}
+              />
             </Row>
           )}
           {Boolean(orderData?.paymentMethod?.name) && (
-            <ListItem style={styles.listItem}>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodySM}>
-                  {strings(
-                    order.orderType === OrderOrderTypeEnum.Buy
-                      ? 'fiat_on_ramp_aggregator.order_details.payment_method'
-                      : 'fiat_on_ramp_aggregator.order_details.destination',
-                  )}
-                </Text>
-              </ListItemColumn>
-              <ListItemColumn>
-                <Text variant={TextVariant.BodySMBold}>
-                  {orderData.paymentMethod.name}
-                </Text>
-              </ListItemColumn>
-            </ListItem>
+            <OrderDetailRow
+              label={strings(
+                order.orderType === OrderOrderTypeEnum.Buy
+                  ? 'fiat_on_ramp_aggregator.order_details.payment_method'
+                  : 'fiat_on_ramp_aggregator.order_details.destination',
+              )}
+              value={orderData.paymentMethod.name}
+            />
           )}
           {Boolean(order.provider) && (
-            <ListItem style={styles.listItem}>
-              <ListItemColumnEnd widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodySM}>
+            <KeyValueRow
+              twClassName="h-auto"
+              keyLabel=""
+              value={
+                <MmdsText
+                  variant={MmdsTextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  style={styles.textRight}
+                >
                   {providerName}
                   {supportLinkUrl ? (
                     <>
                       {' '}
                       •{' '}
-                      <Text
-                        variant={TextVariant.BodySM}
+                      <MmdsText
+                        variant={MmdsTextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
                         style={styles.underline}
                         onPress={() =>
                           handleExplorerLinkPress(supportLinkUrl as string)
@@ -428,160 +431,117 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                         {strings(
                           'fiat_on_ramp_aggregator.order_details.contact_support',
                         )}
-                      </Text>
+                      </MmdsText>
                     </>
                   ) : null}
-                </Text>
-              </ListItemColumnEnd>
-            </ListItem>
+                </MmdsText>
+              }
+            />
           )}
           <Row>
-            <ListItem style={styles.listItem}>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodySM}>
-                  {strings(
-                    order.orderType === OrderOrderTypeEnum.Buy
-                      ? 'fiat_on_ramp_aggregator.order_details.token_amount'
-                      : 'fiat_on_ramp_aggregator.order_details.token_quantity_sold',
-                  )}
-                </Text>
-              </ListItemColumn>
-              <ListItemColumn>
-                {cryptoAmount &&
-                orderData?.cryptoCurrency?.decimals !== undefined ? (
-                  <Text variant={TextVariant.BodySMBold}>
-                    {renderFromTokenMinimalUnit(
+            <OrderDetailRow
+              label={strings(
+                order.orderType === OrderOrderTypeEnum.Buy
+                  ? 'fiat_on_ramp_aggregator.order_details.token_amount'
+                  : 'fiat_on_ramp_aggregator.order_details.token_quantity_sold',
+              )}
+              value={
+                cryptoAmount &&
+                orderData?.cryptoCurrency?.decimals !== undefined
+                  ? `${renderFromTokenMinimalUnit(
                       toTokenMinimalUnit(
                         cryptoAmount,
                         orderData.cryptoCurrency.decimals,
                       ).toString(),
                       orderData.cryptoCurrency.decimals,
-                    )}{' '}
-                    {cryptocurrency}
-                  </Text>
-                ) : (
-                  <Text variant={TextVariant.BodySMBold}>...</Text>
-                )}
-              </ListItemColumn>
-            </ListItem>
+                    )} ${cryptocurrency}`
+                  : '...'
+              }
+            />
           </Row>
           <Group>
             <Row>
-              <ListItem style={styles.listItem}>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodySM}>
-                    {strings(
-                      'fiat_on_ramp_aggregator.order_details.exchange_rate',
-                    )}
-                  </Text>
-                </ListItemColumn>
-                <ListItemColumn style={styles.flexZero}>
-                  {order.cryptocurrency &&
-                  isFinite(exchangeRate) &&
-                  currency ? (
-                    <Text variant={TextVariant.BodySMBold}>
-                      1 {order.cryptocurrency} @{' '}
-                      {renderFiat(exchangeRate, currency)}
-                    </Text>
-                  ) : (
-                    <Text variant={TextVariant.BodySMBold}>...</Text>
-                  )}
-                </ListItemColumn>
-              </ListItem>
+              <OrderDetailRow
+                label={strings(
+                  'fiat_on_ramp_aggregator.order_details.exchange_rate',
+                )}
+                value={
+                  order.cryptocurrency && isFinite(exchangeRate) && currency
+                    ? `1 ${order.cryptocurrency} @ ${renderFiat(
+                        exchangeRate,
+                        currency,
+                      )}`
+                    : '...'
+                }
+              />
             </Row>
             <Row>
-              <ListItem style={styles.listItem}>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodySM}>
-                    {currency}{' '}
-                    {strings(
-                      order.orderType === OrderOrderTypeEnum.Buy
-                        ? 'fiat_on_ramp_aggregator.order_details.amount'
-                        : 'fiat_on_ramp_aggregator.order_details.value',
-                    )}
-                  </Text>
-                </ListItemColumn>
-                <ListItemColumn>
-                  {orderData?.fiatCurrency?.decimals !== undefined &&
+              <OrderDetailRow
+                label={`${currency} ${strings(
+                  order.orderType === OrderOrderTypeEnum.Buy
+                    ? 'fiat_on_ramp_aggregator.order_details.amount'
+                    : 'fiat_on_ramp_aggregator.order_details.value',
+                )}`}
+                value={
+                  orderData?.fiatCurrency?.decimals !== undefined &&
                   amountOut &&
-                  currency ? (
-                    <Text variant={TextVariant.BodySMBold}>
-                      {currencySymbol}
-                      {renderFiat(
+                  currency
+                    ? `${currencySymbol ?? ''}${renderFiat(
                         order.orderType === OrderOrderTypeEnum.Buy
                           ? amountOut
                           : (amount as number),
                         currency,
                         orderData.fiatCurrency.decimals,
-                      )}
-                    </Text>
-                  ) : (
-                    <Text variant={TextVariant.BodySMBold}>...</Text>
-                  )}
-                </ListItemColumn>
-              </ListItem>
+                      )}`
+                    : '...'
+                }
+              />
             </Row>
           </Group>
           <Row>
-            <ListItem style={styles.listItem}>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodySM}>
-                  {strings('fiat_on_ramp_aggregator.order_details.total_fees')}
-                </Text>
-              </ListItemColumn>
-              <ListItemColumn>
-                {cryptoFee &&
+            <OrderDetailRow
+              label={strings(
+                'fiat_on_ramp_aggregator.order_details.total_fees',
+              )}
+              value={
+                cryptoFee &&
                 currency &&
-                orderData?.fiatCurrency?.decimals !== undefined ? (
-                  <Text variant={TextVariant.BodySMBold}>
-                    {currencySymbol}
-                    {renderFiat(
+                orderData?.fiatCurrency?.decimals !== undefined
+                  ? `${currencySymbol ?? ''}${renderFiat(
                       order.orderType === OrderOrderTypeEnum.Buy
                         ? (cryptoFee as number)
                         : orderData.totalFeesFiat,
                       currency,
                       orderData.fiatCurrency.decimals,
-                    )}
-                  </Text>
-                ) : (
-                  <Text variant={TextVariant.BodySMBold}>...</Text>
-                )}
-              </ListItemColumn>
-            </ListItem>
+                    )}`
+                  : '...'
+              }
+            />
           </Row>
 
           <View style={styles.line} />
           <Row>
-            <ListItem style={styles.listItem}>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodySM}>
-                  {strings(
-                    order.orderType === OrderOrderTypeEnum.Buy
-                      ? 'fiat_on_ramp_aggregator.order_details.purchase_amount'
-                      : 'fiat_on_ramp_aggregator.order_details.amount_received_total',
-                  )}
-                </Text>
-              </ListItemColumn>
-              <ListItemColumn>
-                {currencySymbol &&
+            <OrderDetailRow
+              label={strings(
+                order.orderType === OrderOrderTypeEnum.Buy
+                  ? 'fiat_on_ramp_aggregator.order_details.purchase_amount'
+                  : 'fiat_on_ramp_aggregator.order_details.amount_received_total',
+              )}
+              value={
+                currencySymbol &&
                 amount &&
                 currency &&
-                orderData?.fiatCurrency?.decimals !== undefined ? (
-                  <Text variant={TextVariant.BodySMBold}>
-                    {currencySymbol}
-                    {renderFiat(
+                orderData?.fiatCurrency?.decimals !== undefined
+                  ? `${currencySymbol}${renderFiat(
                       order.orderType === OrderOrderTypeEnum.Buy
                         ? (amount as number)
                         : amountOut,
                       currency,
                       orderData.fiatCurrency.decimals,
-                    )}
-                  </Text>
-                ) : (
-                  <Text variant={TextVariant.BodySMBold}>...</Text>
-                )}
-              </ListItemColumn>
-            </ListItem>
+                    )}`
+                  : '...'
+              }
+            />
           </Row>
           {Boolean(order.state === OrderStatusEnum.Completed && txHash) && (
             <Group>

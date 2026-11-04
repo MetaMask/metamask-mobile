@@ -1,19 +1,17 @@
 import React from 'react';
-import Icon, {
+import {
+  Box,
+  BoxAlignItems,
+  BoxBackgroundColor,
+  BoxFlexDirection,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import ListItem, {
-  VerticalAlignment,
-} from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
+  Text,
+  TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import styleSheet from './PrivacySection.styles';
-import { useStyles } from '../../../../hooks/useStyles';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
 interface PrivacySectionProps {
@@ -21,39 +19,41 @@ interface PrivacySectionProps {
 }
 
 function PrivacySection({ children }: Readonly<PrivacySectionProps>) {
-  const { styles, theme } = useStyles(styleSheet, {});
   return (
-    <ListItem
-      style={styles.section}
-      verticalAlignment={VerticalAlignment.Top}
-      gap={8}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Start}
+      gap={2}
+      backgroundColor={BoxBackgroundColor.BackgroundMuted}
+      paddingHorizontal={4}
+      paddingVertical={2}
+      marginVertical={2}
+      twClassName="rounded-lg"
     >
-      <ListItemColumn>
-        <Icon
-          name={IconName.SecurityKey}
-          size={IconSize.Lg}
-          color={theme.colors.icon.alternative}
-        />
-      </ListItemColumn>
-      <ListItemColumn widthType={WidthType.Fill}>
+      <Icon
+        name={IconName.SecurityKey}
+        size={IconSize.Lg}
+        color={IconColor.IconAlternative}
+      />
+      <Box twClassName="min-w-0 flex-1">
         {children ?? (
           <>
             <Text
-              variant={TextVariant.BodyXS}
-              color={theme.colors.text.alternative}
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
             >
               {strings('deposit.privacy_section.transak')}
             </Text>
             <Text
-              variant={TextVariant.BodyXS}
-              color={theme.colors.text.alternative}
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
             >
               {strings('deposit.privacy_section.metamask')}
             </Text>
           </>
         )}
-      </ListItemColumn>
-    </ListItem>
+      </Box>
+    </Box>
   );
 }
 

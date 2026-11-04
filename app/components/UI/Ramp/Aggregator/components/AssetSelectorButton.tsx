@@ -1,18 +1,12 @@
 import React, { ReactNode } from 'react';
-import { View } from 'react-native';
 import Box from './Box';
 import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   AvatarToken,
   AvatarTokenSize,
+  ListItem,
+  ListItemVariant,
 } from '@metamask/design-system-react-native';
 
 export interface Props {
@@ -44,42 +38,29 @@ const AssetSelectorButton: React.FC<Props> = ({
     compact
     {...props}
   >
-    <View>
-      {loading ? (
-        <ListItem>
-          <ListItemColumn>
-            <AvatarToken
-              size={AvatarTokenSize.Xl}
-              twClassName="bg-background-hover"
-            />
-          </ListItemColumn>
-          <ListItemColumn widthType={WidthType.Fill}>
-            <SkeletonText small />
-          </ListItemColumn>
-          <ListItemColumn>
-            <SkeletonText small />
-          </ListItemColumn>
-        </ListItem>
-      ) : (
-        <ListItem>
-          {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
-
-          <ListItemColumn widthType={WidthType.Fill}>
-            <Text
-              variant={TextVariant.BodyLGMedium}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {assetName}
-            </Text>
-          </ListItemColumn>
-
-          <ListItemColumn>
-            <DownChevronText text={assetSymbol} />
-          </ListItemColumn>
-        </ListItem>
-      )}
-    </View>
+    {loading ? (
+      <ListItem
+        variant={ListItemVariant.OneLine}
+        accessoryGap={4}
+        avatar={
+          <AvatarToken
+            size={AvatarTokenSize.Xl}
+            twClassName="bg-background-hover"
+          />
+        }
+        title={<SkeletonText small />}
+        endAccessory={<SkeletonText small />}
+      />
+    ) : (
+      <ListItem
+        variant={ListItemVariant.OneLine}
+        accessoryGap={4}
+        avatar={icon || undefined}
+        title={assetName}
+        titleProps={{ numberOfLines: 1, adjustsFontSizeToFit: true }}
+        endAccessory={<DownChevronText text={assetSymbol} />}
+      />
+    )}
   </Box>
 );
 

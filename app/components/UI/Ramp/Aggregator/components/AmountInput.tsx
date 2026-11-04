@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
+  Box as MmdsBox,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   TextColor,
   TextVariant,
@@ -12,10 +15,6 @@ import {
 import Box from './Box';
 import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
 import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 import { useTheme } from '../../../../../util/theme';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
@@ -42,10 +41,6 @@ const styles = StyleSheet.create({
     height: 24,
     marginHorizontal: 1,
     width: 1,
-  },
-  chevron: {
-    flex: 0,
-    marginLeft: 8,
   },
 });
 
@@ -195,8 +190,14 @@ const AmountInput: React.FC<Props> = ({
 
   return (
     <Box label={label} highlighted={highlighted} compact>
-      <ListItem>
-        <ListItemColumn widthType={WidthType.Fill}>
+      <MmdsBox
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={4}
+        paddingHorizontal={4}
+        paddingVertical={3}
+      >
+        <MmdsBox twClassName="min-w-0 flex-1">
           <TouchableOpacity
             accessible
             accessibilityRole="button"
@@ -208,10 +209,10 @@ const AmountInput: React.FC<Props> = ({
           >
             {renderAmountContent()}
           </TouchableOpacity>
-        </ListItemColumn>
+        </MmdsBox>
 
         {onCurrencyPress ? (
-          <ListItemColumn style={styles.chevron}>
+          <MmdsBox marginLeft={2}>
             {loading ? (
               <SkeletonText small />
             ) : (
@@ -226,9 +227,9 @@ const AmountInput: React.FC<Props> = ({
                 <DownChevronText text={currencyCode} />
               </TouchableOpacity>
             )}
-          </ListItemColumn>
+          </MmdsBox>
         ) : null}
-      </ListItem>
+      </MmdsBox>
     </Box>
   );
 };

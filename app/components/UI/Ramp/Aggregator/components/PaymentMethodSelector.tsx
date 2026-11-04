@@ -4,13 +4,10 @@ import Box from './Box';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import {
+  ListItem,
+  ListItemVariant,
+} from '@metamask/design-system-react-native';
 import DownChevronText from './DownChevronText';
 import RemoteImage from '../../../../Base/RemoteImage';
 import SkeletonText from './SkeletonText';
@@ -69,23 +66,19 @@ const PaymentMethodSelector: React.FC<IProps> = ({
       highlighted={highlighted}
       compact
     >
-      <ListItem>
-        <ListItemColumn>
-          {loading ? <SkeletonText small /> : Boolean(icon) && icon}
-        </ListItemColumn>
-        <ListItemColumn widthType={WidthType.Fill}>
-          {loading ? (
-            <SkeletonText />
-          ) : (
-            <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
-          )}
-        </ListItemColumn>
-        {!loading && (
-          <DownChevronText
-            text={strings('fiat_on_ramp_aggregator.payment_method.change')}
-          />
-        )}
-      </ListItem>
+      <ListItem
+        variant={ListItemVariant.OneLine}
+        accessoryGap={4}
+        startAccessory={loading ? <SkeletonText small /> : icon || undefined}
+        title={loading ? <SkeletonText /> : name}
+        endAccessory={
+          loading ? undefined : (
+            <DownChevronText
+              text={strings('fiat_on_ramp_aggregator.payment_method.change')}
+            />
+          )
+        }
+      />
       <View style={styles.divider} />
       <View style={styles.iconContainer}>
         {loading ? (

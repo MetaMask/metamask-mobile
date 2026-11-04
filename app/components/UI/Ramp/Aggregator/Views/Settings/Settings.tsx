@@ -23,8 +23,11 @@ import Routes from '../../../../../../constants/navigation/Routes';
 
 import ActivationKeys from './ActivationKeys';
 
-import ListItem from '../../../../../../component-library/components/List/ListItem';
-import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
+import {
+  ListItem,
+  ListItemVariant,
+  Text as MmdsText,
+} from '@metamask/design-system-react-native';
 
 import styles from './Settings.styles';
 import { useSelector } from 'react-redux';
@@ -78,18 +81,21 @@ function Settings() {
                   {strings('app_settings.fiat_on_ramp.current_region')}
                 </Text>
 
-                <ListItem>
-                  <ListItemColumn>
-                    <Text>{userRegion?.country?.flag || '🏳️'}</Text>
-                  </ListItemColumn>
-                  <ListItemColumn>
-                    <Text>
-                      {userRegion?.state?.name ||
-                        userRegion?.country?.name ||
-                        strings('app_settings.fiat_on_ramp.no_region_selected')}
-                    </Text>
-                  </ListItemColumn>
-                </ListItem>
+                <ListItem
+                  variant={ListItemVariant.OneLine}
+                  // Content already insets 16. Drop the row's horizontal padding
+                  // so the flag lines up with the title and button.
+                  twClassName="px-0"
+                  accessoryGap={4}
+                  startAccessory={
+                    <MmdsText>{userRegion?.country?.flag || '🏳️'}</MmdsText>
+                  }
+                  title={
+                    userRegion?.state?.name ||
+                    userRegion?.country?.name ||
+                    strings('app_settings.fiat_on_ramp.no_region_selected')
+                  }
+                />
                 <Button
                   variant={ButtonVariants.Primary}
                   size={ButtonSize.Lg}
