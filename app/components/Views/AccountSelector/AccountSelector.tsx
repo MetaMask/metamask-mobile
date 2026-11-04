@@ -17,9 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   IconName,
 } from '@metamask/design-system-react-native';
 
@@ -65,8 +63,12 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import Routes from '../../../constants/navigation/Routes';
 import AccountListBalanceProviders from '../../hooks/AccountListBalanceProviders';
+import ButtonIconGlass from '../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -322,14 +324,17 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             paddingBottom: insets.bottom,
           }}
         >
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('accounts.accounts_title')}
             onBack={handleClose}
             backButtonProps={{
               testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
             }}
             endAccessory={
-              <ButtonIcon
+              <ButtonIconGlass
+                isCapsule={isGlassHeader}
                 iconName={IconName.Setting}
                 size={ButtonIconSize.Md}
                 onPress={handleManageAccountsPress}
@@ -360,7 +365,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               paddingBottom: insets.bottom,
             }}
           >
-            <HeaderStandard
+            <HeaderStandardGlass
+              isGlass={isGlassHeader}
+              isFloating={false}
               title={strings('multichain_accounts.add_wallet')}
               onBack={handleBackToSelector}
               backButtonProps={{

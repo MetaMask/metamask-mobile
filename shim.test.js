@@ -238,6 +238,54 @@ describe('E2E network shim', () => {
     );
   });
 
+  it('fetches data URLs directly on iOS', async () => {
+    loadShim({ platform: 'ios' });
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    await global.fetch(dataUrl).catch(() => undefined);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(dataUrl, undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(
+      proxied(dataUrl),
+      undefined,
+    );
+  });
+
+  it('routes data URLs through the mock server on Android', async () => {
+    loadShim({ platform: 'android' });
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    await global.fetch(dataUrl).catch(() => undefined);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(proxied(dataUrl), undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(dataUrl, undefined);
+  });
+
+  it('still routes unmatched WebSocket URLs through the mock proxy', async () => {
+    const opened = [];
+    global.WebSocket = function MockWebSocket(url, protocols) {
+      opened.push({ url, protocols });
+    };
+    loadShim();
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const wsUrl = 'wss://example.com/socket';
+    // eslint-disable-next-line no-new
+    new global.WebSocket(wsUrl);
+
+    expect(opened).toEqual([
+      {
+        url: `ws://localhost:8000/proxy-ws?url=${encodeURIComponent(wsUrl)}`,
+        protocols: undefined,
+      },
+    ]);
+  });
+
   it('rejects when the proxied fetch fails, without retrying the original URL directly', async () => {
     loadShim();
     answerHealthCheck({ ok: true });

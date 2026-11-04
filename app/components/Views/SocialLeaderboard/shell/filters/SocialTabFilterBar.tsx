@@ -5,6 +5,7 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
@@ -46,7 +47,10 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
       iconName={IconName.Filter}
       size={ButtonIconSize.Lg}
       // Large buttons map to a 32px glyph. This control stays at 24px.
-      iconProps={{ size: IconSize.Lg }}
+      iconProps={{
+        size: IconSize.Lg,
+        color: isFilterActive ? IconColor.IconInverse : IconColor.IconDefault,
+      }}
       onPress={
         onOpenFilters
           ? () => {
@@ -60,8 +64,8 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
       accessibilityState={{ selected: isFilterActive }}
       twClassName={
         isFilterActive
-          ? 'rounded-full bg-primary-muted'
-          : 'rounded-full bg-background-muted'
+          ? 'rounded-full bg-icon-default'
+          : 'rounded-full bg-muted'
       }
     />
   </Box>

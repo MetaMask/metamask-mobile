@@ -20,16 +20,14 @@ export const POSITION_CARD_BLEED_TW_CLASS = '-mx-3';
 export type PositionCardTone = 'neutral' | 'positive' | 'negative';
 
 /**
- * CSS `linear-gradient` angles from the Figma frames. 0° points up. Open cards
- * are ~214°, closed cards ~203°: the tint sits on the top edge, right of
- * center, and is gone 70% of the way toward the bottom. Compact cards, which
- * stop at the header, sit flatter at ~192°.
+ * One wash for every card. 0° points up. 214° puts the tint on the top edge,
+ * right of center — the large open card's diagonal. It is clear at 70% of the
+ * card height, and the stops in between sample that same falloff so a short
+ * card does not band. The gradient fills the card, so a taller card gets a
+ * taller wash.
  */
-const OPEN_WASH_ANGLE = 214.2;
-const CLOSED_WASH_ANGLE = 203.13;
-const COMPACT_LIVE_WASH_ANGLE = 192.41;
-const COMPACT_CLOSED_WASH_ANGLE = 192.76;
-const GRADIENT_LOCATIONS = [0, 0.7];
+const WASH_ANGLE = 214.2;
+const WASH_LOCATIONS = [0, 0.175, 0.35, 0.525, 0.7];
 
 /** Where a unit vector from the box center hits the edge. */
 const pointOnBoxEdge = (vx: number, vy: number) => {
@@ -50,17 +48,7 @@ const washLine = (cssDegrees: number) => {
   };
 };
 
-const OPEN_WASH = washLine(OPEN_WASH_ANGLE);
-const CLOSED_WASH = washLine(CLOSED_WASH_ANGLE);
-const COMPACT_LIVE_WASH = washLine(COMPACT_LIVE_WASH_ANGLE);
-const COMPACT_CLOSED_WASH = washLine(COMPACT_CLOSED_WASH_ANGLE);
-
-const washFor = (emphasizeBorder: boolean, compact: boolean) => {
-  if (compact) {
-    return emphasizeBorder ? COMPACT_CLOSED_WASH : COMPACT_LIVE_WASH;
-  }
-  return emphasizeBorder ? CLOSED_WASH : OPEN_WASH;
-};
+const WASH = washLine(WASH_ANGLE);
 
 const styles = StyleSheet.create({
   // The gradient view is rectangular. On the new architecture its layer is not
@@ -79,52 +67,62 @@ const styles = StyleSheet.create({
 /**
  * `success.muted` / `error.muted` are already a 15% tint. The far stop is the
  * same hue at alpha 0. Fading to `transparent` would fade toward black.
+ * Intermediate stops sample that line so the fade stays smooth on a short card.
  */
-const washColors = (muted: string, base: string): [string, string] => [
-  muted,
-  `${base}00`,
-];
+const hexChannel = (value: number) =>
+  Math.round(value).toString(16).padStart(2, '0');
 
-const borderClassName = (
-  tone: PositionCardTone,
-  emphasizeBorder: boolean,
-): string => {
-  if (emphasizeBorder && tone === 'positive') {
-    return 'border-2 border-success-default';
-  }
-  if (emphasizeBorder && tone === 'negative') {
-    return 'border-2 border-error-default';
-  }
-  return 'border border-muted';
+const hexChannels = (hex: string): [number, number, number, number] => {
+  const value = hex.replace('#', '');
+  const alpha = value.length >= 8 ? value.slice(6, 8) : 'ff';
+  return [
+    parseInt(value.slice(0, 2), 16),
+    parseInt(value.slice(2, 4), 16),
+    parseInt(value.slice(4, 6), 16),
+    parseInt(alpha, 16),
+  ];
 };
+
+const mixHex = (from: string, to: string, amount: number) => {
+  const start = hexChannels(from);
+  const end = hexChannels(to);
+  const mixed = ([0, 1, 2, 3] as const).map((index) =>
+    hexChannel(start[index] + (end[index] - start[index]) * amount),
+  );
+  return `#${mixed.join('')}`;
+};
+
+const washColors = (muted: string, base: string): string[] => {
+  const clear = `${base}00`;
+  const clearAt = WASH_LOCATIONS[WASH_LOCATIONS.length - 1];
+  return WASH_LOCATIONS.map((location, index) => {
+    if (index === 0) {
+      return muted;
+    }
+    if (index === WASH_LOCATIONS.length - 1) {
+      return clear;
+    }
+    return mixHex(muted, clear, location / clearAt);
+  });
+};
+
+const BORDER_CLASS_NAME = 'border border-muted';
 
 export interface PositionCardShellProps {
   tone?: PositionCardTone;
-  /**
-   * Closed cards outline in the P&L colour at 2px. Open cards keep the muted
-   * hairline even when the wash is tinted.
-   */
-  emphasizeBorder?: boolean;
-  /**
-   * Header-only cards (no comment) take the flatter compact wash. The border
-   * rule is still set by `emphasizeBorder`.
-   */
-  compact?: boolean;
   children: React.ReactNode;
 }
 
 /**
- * The surface a position card is drawn on. Dark mode lays a diagonal P&L wash
- * under the content. Light mode has no wash. A closed card's border takes the
- * same hue, heavier, so a win and a loss still read at a glance without it.
+ * The surface a position card is drawn on. Dark mode lays one diagonal P&L
+ * wash under the content, and that wash scales with the card. Light mode has
+ * no wash. Open and closed cards share the muted 1px border.
  *
  * Liquid Glass was tried here and dropped -- a material that samples whatever
  * scrolled behind it reads as noise in a list of cards.
  */
 const PositionCardShell: React.FC<PositionCardShellProps> = ({
   tone = 'neutral',
-  emphasizeBorder = false,
-  compact = false,
   children,
 }) => {
   const { colors, themeAppearance } = useTheme();
@@ -140,7 +138,6 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
       ? flattenedCardRadius.borderRadius
       : undefined;
   const showWash = themeAppearance === AppThemeKey.dark && tone !== 'neutral';
-  const wash = washFor(emphasizeBorder, compact);
   const colorsForWash =
     tone === 'positive'
       ? washColors(colors.success.muted, colors.success.default)
@@ -151,7 +148,7 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
   return (
     <Box
       testID="position-card-shell"
-      twClassName={`rounded-2xl overflow-hidden ${borderClassName(tone, emphasizeBorder)}`}
+      twClassName={`rounded-2xl overflow-hidden ${BORDER_CLASS_NAME}`}
     >
       {showWash && colorsForWash ? (
         <View
@@ -161,9 +158,9 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
         >
           <LinearGradient
             colors={colorsForWash}
-            locations={GRADIENT_LOCATIONS}
-            start={wash.start}
-            end={wash.end}
+            locations={WASH_LOCATIONS}
+            start={WASH.start}
+            end={WASH.end}
             style={styles.surface}
           />
         </View>

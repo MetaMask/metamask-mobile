@@ -8,6 +8,52 @@ export interface GateVersionedFeatureFlag {
   minimumVersion: string;
 }
 
+export type ProvisioningPlatform = 'ios' | 'android';
+export type ProvisioningWallet =
+  | 'apple_wallet'
+  | 'google_wallet'
+  | 'samsung_pay';
+export type ProvisioningDevice = 'phone' | 'watch';
+
+export interface ProvisioningEligibilityRules {
+  cardProcessors?: string[];
+}
+
+export interface ProvisioningWalletRule {
+  enabled: boolean;
+  minimumVersion: string;
+  devices?: ProvisioningDevice[];
+  eligibility?: ProvisioningEligibilityRules;
+}
+
+export interface ProvisioningCountryRule {
+  enabled: boolean;
+  eligibility?: ProvisioningEligibilityRules;
+  ios?: { apple_wallet?: ProvisioningWalletRule };
+  android?: {
+    google_wallet?: ProvisioningWalletRule;
+    samsung_pay?: ProvisioningWalletRule;
+  };
+}
+
+/** One provider's provisioning flag: a gate, then countries, then wallets. */
+export interface CardProvisioningFlag {
+  enabled: boolean;
+  minimumVersion: string;
+  countries: Record<string, ProvisioningCountryRule>;
+}
+
+export interface CardProvisioningFacts {
+  platform: ProvisioningPlatform;
+  countryCode?: string;
+  cardProcessor?: string;
+}
+
+export interface ResolvedProvisioningWallet {
+  wallet: ProvisioningWallet;
+  devices?: ProvisioningDevice[];
+}
+
 export type CardUkMigrationPhase = 'off' | 'soft' | 'forced';
 
 /** Remote `cardUkMigration` flag — version gate plus migration schedule.
