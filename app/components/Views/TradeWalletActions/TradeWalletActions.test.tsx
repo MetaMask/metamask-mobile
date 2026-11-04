@@ -173,10 +173,12 @@ jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
   default: () => null,
 }));
 
-jest.mock('../../UI/PredictNext', () => ({
-  ...jest.requireActual('../../UI/PredictNext'),
-  selectPredictAvailability: jest.fn(),
-}));
+// Mock the selector's own module: a factory spreading the PredictNext entry
+// point re-enters it mid-load through its import cycle with confirmations.
+jest.mock(
+  '../../UI/PredictNext/availability/selectPredictAvailability',
+  () => ({ selectPredictAvailability: jest.fn() }),
+);
 
 jest.mock('../../UI/Earn/selectors/eligibility', () => ({
   selectIsEarnSectionEligible: jest.fn(),
