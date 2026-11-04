@@ -1,4 +1,7 @@
-import { AuthConnection , OAuthLoginResultType } from '../OAuthService/OAuthInterface';
+import {
+  AuthConnection,
+  OAuthLoginResultType,
+} from '../OAuthService/OAuthInterface';
 import Engine from '../Engine';
 import OAuthLoginService from '../OAuthService/OAuthService';
 import {
