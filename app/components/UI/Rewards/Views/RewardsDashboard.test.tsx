@@ -2,7 +2,9 @@ import React from 'react';
 import { InteractionManager } from 'react-native';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import RewardsDashboard, { selectRewardsDashboardReferralMe } from './RewardsDashboard';
+import RewardsDashboard, {
+  selectRewardsDashboardReferralMe,
+} from './RewardsDashboard';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
