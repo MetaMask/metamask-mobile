@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useSocialShellFilters } from './useSocialShellFilters';
 import {
   DEFAULT_FILTERS,
+  DEFAULT_LEADERBOARD_FILTERS,
   MARKET_CAP_RANGE,
   VOLUME_24H_RANGE,
 } from './filterDefaults';
@@ -14,7 +15,11 @@ describe('useSocialShellFilters', () => {
     expect(result.current.openTab).toBeNull();
     expect(result.current.applied.trending).toEqual(DEFAULT_FILTERS);
     expect(result.current.applied.live).toEqual(DEFAULT_FILTERS);
-    expect(result.current.applied.leaderboard).toEqual(DEFAULT_FILTERS);
+    expect(result.current.applied.following).toEqual(DEFAULT_FILTERS);
+    expect(result.current.applied.leaderboard).toEqual(
+      DEFAULT_LEADERBOARD_FILTERS,
+    );
+    expect(result.current.applied.leaderboard.timeframe).toBe('30d');
     expect(result.current.hasActiveFilters('trending')).toBe(false);
     expect(result.current.hasActiveFilters('live')).toBe(false);
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
@@ -84,8 +89,8 @@ describe('useSocialShellFilters', () => {
     act(() => {
       result.current.resetDraftToDefaults();
     });
-    expect(result.current.draft.timeframe).toBe('7d');
-    expect(result.current.applied.leaderboard.timeframe).toBe('7d');
+    expect(result.current.draft.timeframe).toBe('30d');
+    expect(result.current.applied.leaderboard.timeframe).toBe('30d');
   });
 
   it('clears applied filters and keeps the leaderboard type chip', () => {
@@ -115,7 +120,7 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.applied.leaderboard.type).toBe('tokens');
-    expect(result.current.applied.leaderboard.timeframe).toBe('7d');
+    expect(result.current.applied.leaderboard.timeframe).toBe('30d');
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
     expect(result.current.applied.following.type).toBe('all');
     expect(result.current.hasActiveFilters('following')).toBe(false);
@@ -147,7 +152,7 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.draft.type).toBe('tokens');
-    expect(result.current.draft.timeframe).toBe('7d');
+    expect(result.current.draft.timeframe).toBe('30d');
   });
 
   it('does not treat leftover leaderboard ranges as active filters', () => {

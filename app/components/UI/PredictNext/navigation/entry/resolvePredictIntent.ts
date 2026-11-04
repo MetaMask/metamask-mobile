@@ -10,8 +10,10 @@ import { unavailable, type PredictIntentResolution } from './targets';
  * While the Active Venue is resolving, Home and feeds take today's legacy
  * navigation: the root router mounts the Active Venue's stack once it is
  * known, and the PredictNext stack then opens at Home, which is where both
- * intents resolve on that branch too. Every other intent depends on the
- * Venue and opens nothing until it is known.
+ * intents resolve on that branch too. Until the root router's Polymarket
+ * pinning is retired, a feed's legacy `tab` parameter pins that entry to
+ * Polymarket instead, as feed entries are pinned today. Every other intent
+ * depends on the Venue and opens nothing until it is known.
  */
 export const resolvePredictIntent = (
   intent: PredictIntent,

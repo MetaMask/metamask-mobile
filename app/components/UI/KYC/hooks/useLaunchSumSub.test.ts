@@ -1,7 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
+import I18n from '../../../../../locales/i18n';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
 import { useLaunchSumSub } from './useLaunchSumSub';
+
+const originalLocale = I18n.locale;
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -36,12 +39,17 @@ const mockTrack = jest.mocked(trackKycVerificationUpdated);
 describe('useLaunchSumSub analytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    I18n.locale = 'pt';
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
     mockKycController.fetchSessionDisclaimers.mockResolvedValue({
       idOS: [],
       kycProvider: [],
     });
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    I18n.locale = originalLocale;
   });
 
   it('tracks started right before the provider flow launches', async () => {
@@ -52,6 +60,9 @@ describe('useLaunchSumSub analytics', () => {
     renderHook(() => useLaunchSumSub(onSubmitted, onAbandoned));
 
     await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+    expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+      locale: 'pt-BR',
+    });
     expect(mockTrack).toHaveBeenCalledWith({ status: 'started' });
     expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
       mockKycController.launchProviderFlow.mock.invocationCallOrder[0],

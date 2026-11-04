@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PredictGame, PredictMarket, PredictOutcome } from '../../types';
 import {
@@ -15,7 +14,7 @@ import {
 
 export type SpreadMarketGroupCardProps = Omit<
   MarketGroupCardProps,
-  'title' | 'describeOutcome' | 'orderSides'
+  'describeOutcome' | 'orderSides'
 > & {
   /** The Event's Game; its Teams color the rows. */
   game?: PredictGame;
@@ -79,7 +78,6 @@ export const SpreadMarketGroupCard = React.memo(
     return (
       <MarketGroupCard
         {...props}
-        title={strings('predict.market_groups.spread')}
         describeOutcome={describeOutcome}
         orderSides={orderSides}
       />
