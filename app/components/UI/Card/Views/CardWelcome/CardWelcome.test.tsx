@@ -15,6 +15,9 @@ import {
   RiveErrorType,
 } from '../../../../../__mocks__/rive-app-react-native';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '10.0.0'),
+}));
 const mockTrackCardLinkRoutingDisagreement = jest.fn();
 jest.mock('../../util/trackCardLinkRoutingDisagreement', () => ({
   trackCardLinkRoutingDisagreement: (...args: unknown[]) =>

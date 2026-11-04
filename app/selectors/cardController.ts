@@ -240,6 +240,14 @@ export const selectCardEntryRouting = createSelector(
     }),
 );
 
+/** Stored links decide once Card API returned any; until then the selected account's `card_user` label. */
+export const selectHasCard = createSelector(
+  selectCardEntryRouting,
+  selectIsCardholder,
+  (routing, isCardholder) =>
+    routing.source === 'card_links' ? routing.hasCard : isCardholder,
+);
+
 export const selectCardUserLocation = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardLocation | null => {
