@@ -14,7 +14,6 @@ import {
   TransactionPaymentToken,
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
-import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
 import { updateTransaction } from '../../../../../util/transaction-controller';
@@ -70,16 +69,11 @@ const REQUIRED_TOKEN_MOCK = {
   skipIfBalance: false,
 } as unknown as TransactionPayRequiredToken;
 
-const ACCOUNT_OVERRIDE_MOCK =
-  '0x4444444444444444444444444444444444444444' as Hex;
-
 function runHook({
-  accountOverride,
   payToken,
   type,
   requiredTokens,
 }: {
-  accountOverride?: Hex;
   payToken?: TransactionPaymentToken;
   type?: TransactionType;
   requiredTokens?: TransactionPayRequiredToken[];
@@ -89,7 +83,6 @@ function runHook({
   mockState.engine.backgroundState.TransactionPayController = {
     transactionData: {
       [TRANSACTION_ID_MOCK]: {
-        accountOverride,
         isLoading: false,
         paymentToken: payToken,
         tokens: requiredTokens ?? [],
@@ -164,8 +157,8 @@ describe('useTransactionPayToken', () => {
     });
   });
 
-  it('syncs a money account withdrawal transfer with the new token and recipient', async () => {
-    const { result } = runHook({ accountOverride: ACCOUNT_OVERRIDE_MOCK });
+  it('syncs a money account withdrawal transfer with the new token', async () => {
+    const { result } = runHook();
 
     result.current.setPayToken({
       address: PAY_TOKEN_MOCK.address,
@@ -176,8 +169,12 @@ describe('useTransactionPayToken', () => {
 
     expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
       expect.objectContaining({ id: TRANSACTION_ID_MOCK }),
-      ACCOUNT_OVERRIDE_MOCK,
-      { address: PAY_TOKEN_MOCK.address, chainId: PAY_TOKEN_MOCK.chainId },
+      {
+        paymentToken: {
+          address: PAY_TOKEN_MOCK.address,
+          chainId: PAY_TOKEN_MOCK.chainId,
+        },
+      },
     );
   });
 
@@ -185,7 +182,7 @@ describe('useTransactionPayToken', () => {
     updatePaymentTokenMock.mockImplementation(() => {
       throw new Error('Update failed');
     });
-    const { result } = runHook({ accountOverride: ACCOUNT_OVERRIDE_MOCK });
+    const { result } = runHook();
 
     result.current.setPayToken({
       address: PAY_TOKEN_MOCK.address,

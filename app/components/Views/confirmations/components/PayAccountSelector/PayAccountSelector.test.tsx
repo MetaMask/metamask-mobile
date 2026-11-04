@@ -9,7 +9,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
-import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
@@ -17,7 +16,6 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import PayAccountSelector from './PayAccountSelector';
 
-jest.mock('../../hooks/pay/useTransactionPayToken');
 jest.mock('../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../utils/transaction-pay', () => ({
@@ -101,16 +99,11 @@ const replaceAccountInNestedTransactionsMock = jest.mocked(
   replaceAccountInNestedTransactions,
 );
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
-const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 const syncMoneyAccountWithdrawTransferMock = jest.mocked(
   syncMoneyAccountWithdrawTransfer,
 );
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
-const PAY_TOKEN_MOCK = {
-  address: '0x3333333333333333333333333333333333333333',
-  chainId: '0x1',
-};
 
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
@@ -139,10 +132,6 @@ describe('PayAccountSelector', () => {
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
     isHardwareAccountMock.mockReturnValue(false);
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: PAY_TOKEN_MOCK,
-      setPayToken: jest.fn(),
-    } as never);
   });
 
   it('returns null for non-money-account transactions', () => {
@@ -314,8 +303,7 @@ describe('PayAccountSelector', () => {
     expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
     expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
       transactionMeta,
-      '0xSelectedAddress',
-      PAY_TOKEN_MOCK,
+      { recipient: '0xSelectedAddress' },
     );
   });
 

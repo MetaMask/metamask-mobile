@@ -20,7 +20,11 @@ import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
-import { selectTransactionPaymentTokenByTransactionId } from '../../../../selectors/transactionPayController';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import {
+  selectAccountOverrideByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../selectors/transactionPayController';
 import Logger from '../../../../util/Logger';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
@@ -321,13 +325,20 @@ export function getMoneyAccountWithdrawTransferTarget({
 
 /**
  * Re-points the funded mUSD transfer of a withdrawal after its receive token
- * or recipient changes, keeping the amount. Leaves the zero-amount
- * placeholder alone, since the amount commit encodes the target.
+ * or recipient changes, keeping the amount. Re-reads the transaction and
+ * anything not passed from Redux, since callers can run after a slow await.
+ * Leaves the zero-amount placeholder alone, since the amount commit encodes
+ * the target.
  */
 export function syncMoneyAccountWithdrawTransfer(
   transactionMeta: TransactionMeta | undefined,
-  recipientOverride?: Hex,
-  paymentToken?: { address: string; chainId: string },
+  {
+    paymentToken: paymentTokenOverride,
+    recipient: recipientOverride,
+  }: {
+    paymentToken?: { address: string; chainId: string };
+    recipient?: Hex;
+  } = {},
 ): void {
   if (
     !transactionMeta ||
@@ -336,22 +347,36 @@ export function syncMoneyAccountWithdrawTransfer(
     return;
   }
 
+  const { id: transactionId } = transactionMeta;
+  const state = ReduxService.store.getState() as RootState;
+  const latestTransactionMeta = selectTransactionMetadataById(
+    state,
+    transactionId,
+  );
+
+  if (!latestTransactionMeta) {
+    return;
+  }
+
   const transfer = decodeErc20Transfer(
-    transactionMeta.nestedTransactions?.[1]?.data,
+    latestTransactionMeta.nestedTransactions?.[1]?.data,
     TransactionType.tokenMethodTransfer,
   );
   const recipient =
     recipientOverride ??
-    selectEvmAddress(ReduxService.store.getState() as RootState);
+    selectAccountOverrideByTransactionId(state, transactionId) ??
+    selectEvmAddress(state);
 
   if (!transfer || transfer.amount === '0' || !recipient) {
     return;
   }
 
   const target = getMoneyAccountWithdrawTransferTarget({
-    paymentToken,
+    paymentToken:
+      paymentTokenOverride ??
+      selectTransactionPaymentTokenByTransactionId(state, transactionId),
     recipient: recipient as Hex,
-    transactionMeta,
+    transactionMeta: latestTransactionMeta,
   });
 
   if (transfer.recipient === target.toLowerCase()) {
@@ -359,7 +384,7 @@ export function syncMoneyAccountWithdrawTransfer(
   }
 
   updateAtomicBatchData({
-    transactionId: transactionMeta.id,
+    transactionId,
     transactionIndex: 1,
     transactionData: buildErc20TransferData(target, BigInt(transfer.amount)),
   }).catch((error) => {

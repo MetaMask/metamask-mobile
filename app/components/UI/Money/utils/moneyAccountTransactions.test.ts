@@ -24,7 +24,11 @@ import {
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
-import { selectTransactionPaymentTokenByTransactionId } from '../../../../selectors/transactionPayController';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import {
+  selectAccountOverrideByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../selectors/transactionPayController';
 import Logger from '../../../../util/Logger';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
@@ -69,7 +73,12 @@ jest.mock('../../../../selectors/accountsController', () => ({
   selectEvmAddress: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataById: jest.fn(),
+}));
+
 jest.mock('../../../../selectors/transactionPayController', () => ({
+  selectAccountOverrideByTransactionId: jest.fn(),
   selectTransactionPaymentTokenByTransactionId: jest.fn(),
 }));
 
@@ -551,10 +560,20 @@ describe('moneyAccountTransactions', () => {
   });
 
   describe('syncMoneyAccountWithdrawTransfer', () => {
-    const mockGetState = jest.mocked(ReduxService).store.getState as jest.Mock;
     const mockSelectEvmAddress = jest.mocked(selectEvmAddress);
+    const mockSelectTransactionMetadataById = jest.mocked(
+      selectTransactionMetadataById,
+    );
+    const mockSelectAccountOverride = jest.mocked(
+      selectAccountOverrideByTransactionId,
+    );
+    const mockSelectPaymentToken = jest.mocked(
+      selectTransactionPaymentTokenByTransactionId,
+    );
     const mockUpdateAtomicBatchData = jest.mocked(updateAtomicBatchData);
 
+    const STATE_MOCK = { engine: {} };
+    const TRANSACTION_ID = 'tx-1';
     const MONEY_ACCOUNT = '0x2222222222222222222222222222222222222222' as Hex;
     const SELECTED_ACCOUNT =
       '0x4444444444444444444444444444444444444444' as Hex;
@@ -579,7 +598,7 @@ describe('moneyAccountTransactions', () => {
       firstNestedType?: TransactionType;
     } = {}) =>
       ({
-        id: 'tx-1',
+        id: TRANSACTION_ID,
         chainId: MOCK_CHAIN_ID,
         txParams: { from: MONEY_ACCOUNT },
         nestedTransactions: [
@@ -592,85 +611,149 @@ describe('moneyAccountTransactions', () => {
         ],
       }) as unknown as TransactionMeta;
 
+    const expectTransferTo = (target: Hex) =>
+      expect(mockUpdateAtomicBatchData).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 1,
+        transactionData: encodeTransfer(target, AMOUNT),
+      });
+
     beforeEach(() => {
-      mockGetState.mockReturnValue({});
+      // Read at run time: earlier suites replace `ReduxService.store`.
+      (ReduxService.store.getState as jest.Mock).mockReturnValue(STATE_MOCK);
+      mockSelectTransactionMetadataById.mockReturnValue(buildTransactionMeta());
+      mockSelectAccountOverride.mockReturnValue(undefined);
+      mockSelectPaymentToken.mockReturnValue(undefined);
       mockSelectEvmAddress.mockReturnValue(SELECTED_ACCOUNT);
       mockUpdateAtomicBatchData.mockResolvedValue('0x');
     });
 
     it('moves the transfer to the money account when the receive token is quoted', () => {
-      syncMoneyAccountWithdrawTransfer(
-        buildTransactionMeta(),
-        SELECTED_ACCOUNT,
-        QUOTED_TOKEN,
-      );
-
-      expect(mockUpdateAtomicBatchData).toHaveBeenCalledWith({
-        transactionId: 'tx-1',
-        transactionIndex: 1,
-        transactionData: encodeTransfer(MONEY_ACCOUNT, AMOUNT),
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: QUOTED_TOKEN,
+        recipient: SELECTED_ACCOUNT,
       });
+
+      expect(mockSelectTransactionMetadataById).toHaveBeenCalledWith(
+        STATE_MOCK,
+        TRANSACTION_ID,
+      );
+      expectTransferTo(MONEY_ACCOUNT);
     });
 
     it('moves the transfer to the recipient when the receive token becomes same-chain mUSD', () => {
-      syncMoneyAccountWithdrawTransfer(
+      mockSelectTransactionMetadataById.mockReturnValue(
         buildTransactionMeta({ transferTo: MONEY_ACCOUNT }),
-        SELECTED_ACCOUNT,
-        MUSD_TOKEN,
       );
 
-      expect(mockUpdateAtomicBatchData).toHaveBeenCalledWith({
-        transactionId: 'tx-1',
-        transactionIndex: 1,
-        transactionData: encodeTransfer(SELECTED_ACCOUNT, AMOUNT),
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: MUSD_TOKEN,
+        recipient: SELECTED_ACCOUNT,
       });
+
+      expectTransferTo(SELECTED_ACCOUNT);
     });
 
     it('pays a newly selected recipient for a same-chain mUSD withdrawal', () => {
-      syncMoneyAccountWithdrawTransfer(
-        buildTransactionMeta(),
-        OTHER_ACCOUNT,
-        MUSD_TOKEN,
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: MUSD_TOKEN,
+        recipient: OTHER_ACCOUNT,
+      });
+
+      expectTransferTo(OTHER_ACCOUNT);
+    });
+
+    it('re-encodes the latest transfer in state rather than the passed copy', () => {
+      const latestAmount = BigInt(4_000_000);
+      mockSelectTransactionMetadataById.mockReturnValue(
+        buildTransactionMeta({
+          transferTo: MONEY_ACCOUNT,
+          amount: latestAmount,
+        }),
       );
 
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: MUSD_TOKEN,
+        recipient: OTHER_ACCOUNT,
+      });
+
       expect(mockUpdateAtomicBatchData).toHaveBeenCalledWith({
-        transactionId: 'tx-1',
+        transactionId: TRANSACTION_ID,
         transactionIndex: 1,
-        transactionData: encodeTransfer(OTHER_ACCOUNT, AMOUNT),
+        transactionData: encodeTransfer(OTHER_ACCOUNT, latestAmount),
       });
     });
 
-    it('falls back to the selected EVM account when no recipient is given', () => {
-      syncMoneyAccountWithdrawTransfer(
+    it('uses the current account override when no recipient is given', () => {
+      mockSelectTransactionMetadataById.mockReturnValue(
         buildTransactionMeta({ transferTo: MONEY_ACCOUNT }),
-        undefined,
-        MUSD_TOKEN,
+      );
+      mockSelectAccountOverride.mockReturnValue(OTHER_ACCOUNT);
+
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: MUSD_TOKEN,
+      });
+
+      expect(mockSelectAccountOverride).toHaveBeenCalledWith(
+        STATE_MOCK,
+        TRANSACTION_ID,
+      );
+      expectTransferTo(OTHER_ACCOUNT);
+    });
+
+    it('falls back to the selected EVM account when no recipient or override is set', () => {
+      mockSelectTransactionMetadataById.mockReturnValue(
+        buildTransactionMeta({ transferTo: MONEY_ACCOUNT }),
       );
 
-      expect(mockSelectEvmAddress).toHaveBeenCalledWith({});
-      expect(mockUpdateAtomicBatchData).toHaveBeenCalledWith({
-        transactionId: 'tx-1',
-        transactionIndex: 1,
-        transactionData: encodeTransfer(SELECTED_ACCOUNT, AMOUNT),
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: MUSD_TOKEN,
       });
+
+      expect(mockSelectEvmAddress).toHaveBeenCalledWith(STATE_MOCK);
+      expectTransferTo(SELECTED_ACCOUNT);
+    });
+
+    it('uses the current receive token when none is given', () => {
+      mockSelectPaymentToken.mockReturnValue(
+        QUOTED_TOKEN as unknown as ReturnType<
+          typeof selectTransactionPaymentTokenByTransactionId
+        >,
+      );
+
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        recipient: SELECTED_ACCOUNT,
+      });
+
+      expect(mockSelectPaymentToken).toHaveBeenCalledWith(
+        STATE_MOCK,
+        TRANSACTION_ID,
+      );
+      expectTransferTo(MONEY_ACCOUNT);
     });
 
     it('does nothing when the transfer already pays the target', () => {
-      syncMoneyAccountWithdrawTransfer(
+      mockSelectTransactionMetadataById.mockReturnValue(
         buildTransactionMeta({ transferTo: MONEY_ACCOUNT }),
-        SELECTED_ACCOUNT,
-        QUOTED_TOKEN,
       );
+
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: QUOTED_TOKEN,
+        recipient: SELECTED_ACCOUNT,
+      });
 
       expect(mockUpdateAtomicBatchData).not.toHaveBeenCalled();
     });
 
     it('does nothing for the zero-amount placeholder', () => {
-      syncMoneyAccountWithdrawTransfer(
+      mockSelectTransactionMetadataById.mockReturnValue(
         buildTransactionMeta({ amount: BigInt(0) }),
-        SELECTED_ACCOUNT,
-        QUOTED_TOKEN,
       );
+
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: QUOTED_TOKEN,
+        recipient: SELECTED_ACCOUNT,
+      });
 
       expect(mockUpdateAtomicBatchData).not.toHaveBeenCalled();
     });
@@ -678,11 +761,9 @@ describe('moneyAccountTransactions', () => {
     it('does nothing when no recipient can be resolved', () => {
       mockSelectEvmAddress.mockReturnValue(undefined);
 
-      syncMoneyAccountWithdrawTransfer(
-        buildTransactionMeta(),
-        undefined,
-        QUOTED_TOKEN,
-      );
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: QUOTED_TOKEN,
+      });
 
       expect(mockUpdateAtomicBatchData).not.toHaveBeenCalled();
     });
@@ -692,20 +773,31 @@ describe('moneyAccountTransactions', () => {
         buildTransactionMeta({
           firstNestedType: TransactionType.moneyAccountDeposit,
         }),
-        SELECTED_ACCOUNT,
-        QUOTED_TOKEN,
+        { paymentToken: QUOTED_TOKEN, recipient: SELECTED_ACCOUNT },
       );
+
+      expect(mockSelectTransactionMetadataById).not.toHaveBeenCalled();
+      expect(mockUpdateAtomicBatchData).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when the transaction is not in state', () => {
+      mockSelectTransactionMetadataById.mockReturnValue(undefined);
+
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: QUOTED_TOKEN,
+        recipient: SELECTED_ACCOUNT,
+      });
 
       expect(mockUpdateAtomicBatchData).not.toHaveBeenCalled();
     });
 
     it('does nothing without a transaction', () => {
-      syncMoneyAccountWithdrawTransfer(
-        undefined,
-        SELECTED_ACCOUNT,
-        QUOTED_TOKEN,
-      );
+      syncMoneyAccountWithdrawTransfer(undefined, {
+        paymentToken: QUOTED_TOKEN,
+        recipient: SELECTED_ACCOUNT,
+      });
 
+      expect(mockSelectTransactionMetadataById).not.toHaveBeenCalled();
       expect(mockUpdateAtomicBatchData).not.toHaveBeenCalled();
     });
 
@@ -713,11 +805,10 @@ describe('moneyAccountTransactions', () => {
       const error = new Error('Update failed');
       mockUpdateAtomicBatchData.mockRejectedValue(error);
 
-      syncMoneyAccountWithdrawTransfer(
-        buildTransactionMeta(),
-        SELECTED_ACCOUNT,
-        QUOTED_TOKEN,
-      );
+      syncMoneyAccountWithdrawTransfer(buildTransactionMeta(), {
+        paymentToken: QUOTED_TOKEN,
+        recipient: SELECTED_ACCOUNT,
+      });
       await Promise.resolve();
 
       expect(Logger.error).toHaveBeenCalledWith(
@@ -728,7 +819,6 @@ describe('moneyAccountTransactions', () => {
   });
 
   describe('updateMoneyAccountWithdrawTokenAmount', () => {
-    const mockGetState = jest.mocked(ReduxService).store.getState as jest.Mock;
     const mockSelectVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
     const mockSelectPrimaryMoneyAccount = jest.mocked(
       selectPrimaryMoneyAccount,
@@ -758,7 +848,7 @@ describe('moneyAccountTransactions', () => {
     } as unknown as TransactionMeta;
 
     beforeEach(() => {
-      mockGetState.mockReturnValue({});
+      (ReduxService.store.getState as jest.Mock).mockReturnValue({});
       mockSelectVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
       mockSelectPrimaryMoneyAccount.mockReturnValue({
         address: MOCK_MONEY_ACCOUNT_ADDRESS,
@@ -1186,7 +1276,6 @@ describe('moneyAccountTransactions', () => {
   });
 
   describe('getMoneyAccountWithdrawTransactionsData', () => {
-    const mockGetState = jest.mocked(ReduxService).store.getState as jest.Mock;
     const mockSelectVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
     const mockSelectPrimaryMoneyAccount = jest.mocked(
       selectPrimaryMoneyAccount,
@@ -1198,7 +1287,7 @@ describe('moneyAccountTransactions', () => {
     const MOCK_RECIPIENT = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
 
     beforeEach(() => {
-      mockGetState.mockReturnValue({});
+      (ReduxService.store.getState as jest.Mock).mockReturnValue({});
       mockSelectVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
       mockSelectPrimaryMoneyAccount.mockReturnValue({
         address: MOCK_MONEY_ACCOUNT_ADDRESS,
