@@ -6,7 +6,7 @@ import type {
 } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
 import type { SocialRealtimeLeaseStatus } from '../../../../UI/SocialFeed/data/socialRealtimeLease';
-import { buildPosition } from '../positionDetailsSheet.fixtures';
+import { buildPosition, buildTrade } from '../positionDetailsSheet.fixtures';
 import { useLivePosition, type UseLivePositionParams } from './useLivePosition';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -153,7 +153,23 @@ describe('useLivePosition', () => {
     emit('position-1', 1, buildPosition({ tokenSymbol: 'REV1' }));
     emit('position-2', 3, buildPosition({ tokenSymbol: 'OTHER' }));
 
-    expect(result.current.position).toBe(revisionTwo);
+    expect(result.current.position).toEqual(revisionTwo);
+  });
+
+  it('keeps the known trades when a revision leaves them out', () => {
+    const knownTrades = [buildTrade({ transactionHash: '0xknown' })];
+    const { result } = renderLivePosition({
+      snapshot: buildPosition({ trades: knownTrades }),
+      isSnapshotLive: true,
+    });
+    const { trades: _trades, ...withoutTrades } = buildPosition({
+      tokenSymbol: 'REV1',
+    });
+
+    emit('position-1', 1, withoutTrades as Position);
+
+    expect(result.current.position?.tokenSymbol).toBe('REV1');
+    expect(result.current.position?.trades).toBe(knownTrades);
   });
 
   it('refetches after a reconnect and shows the caught-up copy', async () => {
@@ -169,6 +185,29 @@ describe('useLivePosition', () => {
     rerender({});
 
     await waitFor(() => expect(result.current.position).toBe(caughtUp));
+  });
+
+  it('ignores a late revision older than the caught-up copy', async () => {
+    const { result, rerender } = renderLivePosition({ isSnapshotLive: true });
+    emit('position-1', 1, buildPosition({ tokenSymbol: 'REV1' }));
+    const caughtUp = buildPosition({ tokenSymbol: 'CAUGHT_UP' });
+    mockRefetch.mockImplementationOnce(async () => {
+      mockFetchedPosition = caughtUp;
+    });
+    act(() => reconnectListener?.());
+    await waitFor(() => expect(mockRefetch).toHaveBeenCalled());
+    rerender({});
+
+    emit(
+      'position-1',
+      2,
+      buildPosition({
+        tokenSymbol: 'LATE',
+        lastTradeAt: caughtUp.lastTradeAt - 1,
+      }),
+    );
+
+    expect(result.current.position).toBe(caughtUp);
   });
 
   it('keeps a revision that arrives while the reconnect fetch is in flight', async () => {
@@ -191,7 +230,7 @@ describe('useLivePosition', () => {
     await act(async () => settleFetch());
     rerender({});
 
-    expect(result.current.position).toBe(duringFetch);
+    expect(result.current.position).toEqual(duringFetch);
   });
 
   it('releases the lease on unmount', () => {

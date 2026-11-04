@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Position } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
@@ -109,11 +109,30 @@ export const useLivePosition = ({
     };
   }, [isOffline, positionId]);
 
-  const position = liveRevision?.position ?? fetchedPosition ?? snapshot;
+  // The API copy carries no revision, so after a reconnect a late revision is
+  // judged by its last fill: one older than the caught-up copy is stale.
+  const livePosition =
+    liveRevision &&
+    !(
+      fetchedPosition &&
+      liveRevision.position.lastTradeAt < fetchedPosition.lastTradeAt
+    )
+      ? liveRevision.position
+      : undefined;
+  const basePosition = fetchedPosition ?? snapshot;
+  // Merged like the feed merges revisions, so a field the event leaves out
+  // keeps the known value.
+  const position = useMemo(
+    () =>
+      livePosition && basePosition
+        ? { ...basePosition, ...livePosition }
+        : (livePosition ?? basePosition),
+    [livePosition, basePosition],
+  );
 
   return {
     position,
-    isRefreshed: Boolean(liveRevision ?? fetchedPosition),
+    isRefreshed: Boolean(livePosition ?? fetchedPosition),
     isLoading: !position && fetched.isLoading,
   };
 };
