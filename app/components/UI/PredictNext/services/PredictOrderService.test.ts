@@ -973,6 +973,87 @@ describe('PredictOrderService', () => {
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
     });
 
+    it('does not conclude "not placed" from a post-expiry 401 after an ambiguous Commit', async () => {
+      jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
+      trading.commitOrder.mockRejectedValueOnce(lostResponse());
+      // The auth guard (or a token the client could not get, e.g. a locked
+      // wallet) answers before the Commit route looks the operation up.
+      trading.commitOrder.mockRejectedValueOnce(
+        PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
+          metadata: { status: 401 },
+        }),
+      );
+      trading.commitOrder.mockResolvedValueOnce(
+        receiptWith({ status: 'filled' }),
+      );
+      const orderService = await quote(
+        serviceWith(0, {
+          backgroundObservationDelaysMs: [1_000],
+          ambiguousCommitGraceMs: 5_000,
+        }),
+      );
+
+      await settleWithFakeTimers(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).catch(() => undefined);
+      await jest.advanceTimersByTimeAsync(15_000);
+      expect(trading.commitOrder).toHaveBeenCalledTimes(2);
+      expect(orderResolved).not.toHaveBeenCalled();
+
+      await jest.advanceTimersByTimeAsync(1_000);
+      expect(trading.commitOrder).toHaveBeenCalledTimes(3);
+      expect(orderResolved).toHaveBeenCalledTimes(1);
+      expect(orderResolved).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcome: expect.objectContaining({ status: 'settled' }),
+        }),
+      );
+    });
+
+    it('never concludes "not placed" once a Receipt has been seen', async () => {
+      jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
+      // The bounded loop (one Commit, three re-POSTs) sees the operation in
+      // progress.
+      for (let call = 0; call < 4; call += 1) {
+        trading.commitOrder.mockResolvedValueOnce(
+          receiptWith({ status: 'pending' }),
+        );
+      }
+      // A post-expiry refusal cannot unmake an operation a Receipt proved.
+      trading.commitOrder.mockRejectedValueOnce(
+        preOperationFailure(
+          PredictErrorCode.PREVIEW_EXPIRED,
+          'preview_expired',
+        ),
+      );
+      trading.commitOrder.mockResolvedValueOnce(
+        receiptWith({ status: 'filled' }),
+      );
+      const orderService = await quote(
+        serviceWith(0, {
+          backgroundObservationDelaysMs: [20_000],
+          ambiguousCommitGraceMs: 5_000,
+        }),
+      );
+
+      await settleWithFakeTimers(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+      );
+      expect(trading.commitOrder).toHaveBeenCalledTimes(4);
+      await jest.advanceTimersByTimeAsync(20_000);
+      expect(trading.commitOrder).toHaveBeenCalledTimes(5);
+      expect(orderResolved).not.toHaveBeenCalled();
+
+      await jest.advanceTimersByTimeAsync(20_000);
+      expect(trading.commitOrder).toHaveBeenCalledTimes(6);
+      expect(orderResolved).toHaveBeenCalledTimes(1);
+      expect(orderResolved).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcome: expect.objectContaining({ status: 'settled' }),
+        }),
+      );
+    });
+
     it('does not conclude "not placed" from a refusal inside the validity window after an ambiguous Commit', async () => {
       jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
       trading.commitOrder.mockRejectedValueOnce(lostResponse());

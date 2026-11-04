@@ -147,23 +147,28 @@ const PRE_OPERATION_COMMIT_CODES: readonly string[] = [
 ];
 
 /**
- * The backend answered that no operation exists for the Preview: a
- * canonical Commit failure code, or a 401 from the auth guard that runs
- * before the Commit route. Everything else, including network failures,
- * timeouts, aborts, 5xx without a canonical code and unparseable responses,
- * leaves the operation ambiguous.
+ * The Commit route answered with a canonical failure code. It looks the
+ * Preview's operation up first, so for the same Predict User this proves no
+ * operation exists for the Preview.
  */
-const isPreOperationFailure = (error: unknown): error is PredictError => {
-  if (!(error instanceof PredictError)) {
-    return false;
-  }
-  const { bodyCode, status } = error.metadata ?? {};
+const isCanonicalCommitFailure = (error: PredictError): boolean => {
+  const { bodyCode } = error.metadata ?? {};
   return (
-    status === 401 ||
-    (typeof bodyCode === 'string' &&
-      PRE_OPERATION_COMMIT_CODES.includes(bodyCode))
+    typeof bodyCode === 'string' &&
+    PRE_OPERATION_COMMIT_CODES.includes(bodyCode)
   );
 };
+
+/**
+ * The backend answered that this request created nothing: a canonical
+ * Commit failure code, or a 401 from the auth guard that runs before the
+ * Commit route. Everything else, including network failures, timeouts,
+ * aborts, 5xx without a canonical code and unparseable responses, leaves the
+ * operation ambiguous.
+ */
+const isPreOperationFailure = (error: unknown): error is PredictError =>
+  error instanceof PredictError &&
+  (error.metadata?.status === 401 || isCanonicalCommitFailure(error));
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -624,9 +629,15 @@ export class PredictOrderService {
     const mayStillLand = operation.receiptSeen || operation.ambiguous;
     const sentAfterGrace =
       startedAt >= operation.expiresAt + this.#ambiguousCommitGraceMs;
-    if (mayStillLand && !sentAfterGrace) {
-      // An earlier request may still be landing; only a post-expiry
-      // observation is conclusive.
+    // An earlier request may have created the operation. Only the Commit
+    // route's own refusal, sent once the Preview has expired, proves it did
+    // not: a Receipt already proves it did, and a 401 comes from the auth
+    // guard (or a token the client could not get) before any lookup.
+    const provesNoOperation =
+      !operation.receiptSeen &&
+      sentAfterGrace &&
+      isCanonicalCommitFailure(error);
+    if (mayStillLand && !provesNoOperation) {
       return;
     }
     const canReturnBeforeBoundary =
