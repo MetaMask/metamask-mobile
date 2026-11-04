@@ -123,9 +123,9 @@ import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TabBarFloating, {
-  FloatingTabBarInsetContext,
-} from '../../../component-library/components/Navigation/TabBarFloating';
+import { FloatingTabBarInsetContext } from '../../../component-library/components/Navigation/TabBarFloating';
+import ContextualHomeFooter from './contextualNav/ContextualHomeFooter';
+import ContextualHomeSectionOverlay from './contextualNav/ContextualHomeSectionOverlay';
 import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { useHomeNavBarConfig } from '../../Views/Homepage/hooks/useHomeNavBarConfig';
@@ -546,6 +546,8 @@ const RewardsHome = () => {
 
 const REWARDS_PAGE_STYLE: ViewStyle = { flex: 1 };
 
+const HOME_TABS_FRAME: ViewStyle = { flex: 1 };
+
 /**
  * Rewards opened from the + menu. The footer rides in with this screen.
  * Other entries leave the section unset and keep the plain rewards home.
@@ -926,7 +928,7 @@ const HomeTabs = () => {
         descriptors as unknown as TabBarProps['descriptors'];
 
       return isFloatingTabBar ? (
-        <TabBarFloating
+        <ContextualHomeFooter
           state={state}
           descriptors={extendedDescriptors}
           navigation={navigation}
@@ -1015,29 +1017,32 @@ const HomeTabs = () => {
         <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
       ) : null}
       <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
-        <JsTab.Navigator
-          initialRouteName={Routes.WALLET.HOME}
-          tabBar={renderTabBar}
-          screenOptions={{
-            headerShown: false,
-            // Never suspend blurred tabs: react-native-screens' delayed freeze
-            // can drop the activityState commit when a tab is left mid-mount,
-            // leaving the old screen (usually Money) stuck on top.
-            freezeOnBlur: false,
-          }}
-        >
-          {tabs.slice(0, 3).map(renderJsTabScreen)}
+        <View style={HOME_TABS_FRAME}>
+          <JsTab.Navigator
+            initialRouteName={Routes.WALLET.HOME}
+            tabBar={renderTabBar}
+            screenOptions={{
+              headerShown: false,
+              // Never suspend blurred tabs: react-native-screens' delayed freeze
+              // can drop the activityState commit when a tab is left mid-mount,
+              // leaving the old screen (usually Money) stuck on top.
+              freezeOnBlur: false,
+            }}
+          >
+            {tabs.slice(0, 3).map(renderJsTabScreen)}
 
-          {isFloatingTabBar ? null : (
-            <JsTab.Screen
-              name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-              options={tradeOptions}
-              component={WalletTabStackFlow}
-            />
-          )}
+            {isFloatingTabBar ? null : (
+              <JsTab.Screen
+                name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+                options={tradeOptions}
+                component={WalletTabStackFlow}
+              />
+            )}
 
-          {tabs.slice(3).map(renderJsTabScreen)}
-        </JsTab.Navigator>
+            {tabs.slice(3).map(renderJsTabScreen)}
+          </JsTab.Navigator>
+          {isFloatingTabBar ? <ContextualHomeSectionOverlay /> : null}
+        </View>
       </FloatingTabBarInsetContext.Provider>
     </HomeTabSheetHosts>
   );

@@ -4,7 +4,9 @@ export type ContextualSection =
   | 'perps'
   | 'predict'
   | 'rewards'
-  | 'collectibles';
+  | 'collectibles'
+  | 'money'
+  | 'explore';
 
 export type ContextualTab =
   | 'explore'
@@ -17,7 +19,14 @@ export type ContextualTab =
   | 'popular'
   | 'packs'
   | 'collection'
-  | 'market';
+  | 'market'
+  | 'account'
+  | 'payments'
+  | 'news'
+  | 'browser';
+
+/** Round button beside the pill. Depends on where the footer is. */
+export type ContextualCircleAction = 'add' | 'home' | 'search';
 
 export interface ContextualNavState {
   section: ContextualSection | null;
@@ -67,6 +76,40 @@ export const enterRewardsSection = (): void => {
 export const enterCollectiblesSection = (): void => {
   state = { section: 'collectibles', tab: 'popular' };
   emit();
+};
+
+/** Money section: footer becomes Account and Payments, plus Search. */
+export const enterMoneySection = (): void => {
+  state = { section: 'money', tab: 'account' };
+  emit();
+};
+
+/** Explore section: footer becomes Explore, News, Browser, and Search. */
+export const enterExploreSection = (): void => {
+  state = { section: 'explore', tab: 'explore' };
+  emit();
+};
+
+/** Sections opened from the + menu. Their circle is Home. */
+export const isPlusMenuSection = (section: ContextualSection | null): boolean =>
+  section === 'perps' ||
+  section === 'predict' ||
+  section === 'rewards' ||
+  section === 'collectibles';
+
+/**
+ * + on the home footer, Home in + menu sections, Search on Money and Explore.
+ */
+export const getContextualCircleAction = (
+  section: ContextualSection | null,
+): ContextualCircleAction => {
+  if (section === null) {
+    return 'add';
+  }
+  if (isPlusMenuSection(section)) {
+    return 'home';
+  }
+  return 'search';
 };
 
 export const setContextualTab = (tab: ContextualTab): void => {

@@ -1,9 +1,12 @@
 import {
   enterCollectiblesSection,
+  enterExploreSection,
+  enterMoneySection,
   enterPerpsSection,
   enterPredictSection,
   enterRewardsSection,
   exitContextualSection,
+  getContextualCircleAction,
   getContextualNavState,
   setContextualTab,
 } from './contextualSection';
@@ -53,6 +56,58 @@ describe('contextualSection', () => {
     expect(getContextualNavState()).toEqual({
       section: 'collectibles',
       tab: 'popular',
+    });
+  });
+
+  it('enters Money on Account', () => {
+    enterMoneySection();
+
+    expect(getContextualNavState()).toEqual({
+      section: 'money',
+      tab: 'account',
+    });
+  });
+
+  it('enters Explore on Explore', () => {
+    enterExploreSection();
+
+    expect(getContextualNavState()).toEqual({
+      section: 'explore',
+      tab: 'explore',
+    });
+  });
+
+  it('chooses the circle from the section', () => {
+    expect(getContextualCircleAction(null)).toBe('add');
+    expect(getContextualCircleAction('perps')).toBe('home');
+    expect(getContextualCircleAction('predict')).toBe('home');
+    expect(getContextualCircleAction('rewards')).toBe('home');
+    expect(getContextualCircleAction('collectibles')).toBe('home');
+
+    enterMoneySection();
+
+    expect(getContextualCircleAction(getContextualNavState().section)).toBe(
+      'search',
+    );
+
+    enterExploreSection();
+
+    expect(getContextualCircleAction(getContextualNavState().section)).toBe(
+      'search',
+    );
+  });
+
+  it('switches the Money tab and restores the default footer', () => {
+    enterMoneySection();
+    setContextualTab('payments');
+
+    expect(getContextualNavState().tab).toBe('payments');
+
+    exitContextualSection();
+
+    expect(getContextualNavState()).toEqual({
+      section: null,
+      tab: 'explore',
     });
   });
 
