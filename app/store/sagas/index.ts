@@ -218,7 +218,9 @@ export function* basicFunctionalityToggle() {
 
 function* initializeWalletConnectService() {
   try {
-    yield call(() => WC2Manager.init({}));
+    // Only when there are sessions or pairings to serve; otherwise WalletConnect
+    // starts on first use (deeplink, QR code, sessions screen).
+    yield call(() => WC2Manager.startIfNeeded());
   } catch (e) {
     Logger.log('Failed to initialize WalletConnect V2', e);
   }
