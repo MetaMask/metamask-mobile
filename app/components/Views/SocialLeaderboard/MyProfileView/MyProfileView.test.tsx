@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking, Share } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import { brandColor } from '@metamask/design-tokens';
+import { brandColor, lightTheme } from '@metamask/design-tokens';
 import {
   act,
   fireEvent,
@@ -754,6 +754,7 @@ describe('MyProfileView', () => {
     });
 
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
     fireEvent(
       screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL),
       'momentumScrollEnd',
@@ -782,6 +783,7 @@ describe('MyProfileView', () => {
     });
 
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING),
@@ -801,6 +803,7 @@ describe('MyProfileView', () => {
     });
 
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
@@ -813,6 +816,7 @@ describe('MyProfileView', () => {
 
   it('renders a centered Posts empty line without a create action', () => {
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
@@ -1058,6 +1062,24 @@ describe('MyProfileView', () => {
     ).toBeNull();
   });
 
+  it('spaces the other trader header actions like the home capsule', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_ACTIONS_CAPSULE),
+    ).toHaveStyle({
+      gap: 8,
+      paddingLeft: 8,
+      paddingRight: 8,
+    });
+  });
+
   it('shows the profile options button only for another trader', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
@@ -1213,7 +1235,7 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
     ).toBeOnTheScreen();
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
     expect(screen.queryByText('Your feed starts here')).toBeNull();
     expect(
       screen.queryByText('When they share a trade, it will show up here.'),
@@ -1334,12 +1356,9 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('defaults to Posts and shows Open and Closed tabs for the owner', () => {
+  it('defaults to Open and shows Closed and Posts tabs for the owner', () => {
     renderWithProvider(<MyProfileView />);
 
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
-    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
     ).toBeOnTheScreen();
@@ -1347,10 +1366,14 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toBeNull();
   });
 
@@ -1435,12 +1458,10 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.PERPS_SECTION),
-    ).toBeOnTheScreen();
+    expect(screen.queryByText('Tokens')).toBeNull();
+    expect(screen.queryByText('Perpetuals')).toBeNull();
+    expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
+    expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toBeNull();
@@ -1461,9 +1482,16 @@ describe('MyProfileView', () => {
       trades: [],
       lastTradeAt: 1,
     };
+    const closedPerp: Position = {
+      ...closedSpot,
+      positionId: 'btc-closed',
+      tokenSymbol: 'BTC',
+      chain: 'hyperliquid',
+      perpPositionType: 'short',
+    };
     mockUseTraderPositions.mockReturnValue({
       openPositions: [],
-      closedPositions: [closedSpot],
+      closedPositions: [closedPerp, closedSpot],
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
@@ -1475,14 +1503,140 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
     fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+
+    const allOption = screen.getByTestId(
+      MyProfileViewSelectorsIDs.ASSET_FILTER_ALL,
+    );
+    expect(screen.getByText('Asset type')).toBeOnTheScreen();
+    expect(screen.getByText('All')).toBeOnTheScreen();
+    expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.getByText('Perps')).toBeOnTheScreen();
+    expect(allOption.props.accessibilityState.selected).toBe(true);
+    expect(
+      within(allOption).UNSAFE_getAllByProps({ name: IconName.Check }).length,
+    ).toBeGreaterThan(0);
+
+    fireEvent.press(
       screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
     );
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
-    ).toBeOnTheScreen();
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.background.pressed });
     expect(screen.getByTestId('position-row-DOGE')).toBeOnTheScreen();
+    expect(screen.queryByTestId('position-row-BTC')).toBeNull();
+  });
+
+  it('applies the same Tokens filter on Posts', () => {
+    const spotPosition: Position = {
+      positionId: 'eth-spot',
+      tokenSymbol: 'ETH',
+      tokenName: 'Ethereum',
+      tokenAddress: '0xeth',
+      chain: 'ethereum',
+      positionAmount: 1,
+      boughtUsd: 100,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 100,
+      trades: [],
+      lastTradeAt: 1,
+    };
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [
+        mockMyProfilePost({ id: 'spot-post', position: spotPosition }),
+        mockMyProfilePost({
+          id: 'perp-post',
+          position: {
+            ...spotPosition,
+            positionId: 'btc-perp',
+            tokenSymbol: 'BTC',
+            chain: 'hyperliquid',
+            perpPositionType: 'long',
+          },
+        }),
+      ],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(screen.getByTestId('my-profile-post-spot-post')).toBeOnTheScreen();
+    expect(screen.queryByTestId('my-profile-post-perp-post')).toBeNull();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('loads later pages when a filter hides every loaded post', () => {
+    const loadMore = jest.fn();
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: true,
+      loadMore,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+
+    expect(loadMore).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('No token activity')).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeNull();
+  });
+
+  it('shows the posts error when a filter hides every loaded post', () => {
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: 'failed',
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_ERROR),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("The feed didn't load")).toBeOnTheScreen();
   });
 
   it('shows closed empty copy when only the open fetch failed', () => {

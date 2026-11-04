@@ -1247,7 +1247,6 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Счет Money Account предоставляет [Entity], [regulated status, to confirm]. Реалы конвертируются в mUSD при поступлении.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Пополнение банковским переводом",
@@ -1510,7 +1509,7 @@
         "kols": "Лидеры мнений"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Применить",
         "apply": "Применить",
         "reset": "Сброс",

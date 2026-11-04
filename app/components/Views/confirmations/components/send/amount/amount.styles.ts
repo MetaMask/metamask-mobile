@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 import {
@@ -45,8 +45,21 @@ export const styleSheet = (params: {
     },
     inputText: {
       fontSize: inputFontSize,
-      lineHeight: 75,
-      fontFamily: 'Inter-Medium',
+      lineHeight: inputFontSize,
+    },
+    cursor: {
+      marginHorizontal: 0,
+      width: 1,
+      height: Math.round(inputFontSize * 0.95),
+      backgroundColor: theme.colors.text.muted,
+      // Android renders glyphs lower than iOS in a line box equal to fontSize.
+      transform: [
+        {
+          translateY: Math.round(
+            inputFontSize * (Platform.OS === 'android' ? 0.02 : -0.04),
+          ),
+        },
+      ],
     },
     inputWrapper: {
       alignItems: 'center',

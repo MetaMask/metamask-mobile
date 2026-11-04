@@ -1,85 +1,50 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { scheduleOnRN } from 'react-native-worklets';
 import Animated, {
-  runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useTheme } from '../../../../../../util/theme';
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../../../util/haptics';
 
 /**
- * Geometry constants mirrored from `@metamask/design-system-react-native`'s
- * `Slider.constants.mjs`. Keep in sync if that package's Slider geometry changes.
+ * Geometry from `@metamask/design-system-react-native` `Slider`. The package
+ * slider draws one thumb, so this control reuses that track, fill, and thumb
+ * and adds a second thumb. Keep in sync if the package slider geometry changes.
  */
 const THUMB_SIZE = 32;
 const THUMB_TOP_OFFSET = -13;
 /** Negative offset so the thumb center aligns with the track start at 0%. */
 const THUMB_LEFT_OFFSET = -16;
 const THUMB_BOTTOM_OFFSET = THUMB_TOP_OFFSET + THUMB_SIZE;
-const TRACK_HEIGHT = 8;
-const SLIDER_VERTICAL_PADDING = 8;
 /**
  * Default horizontal inset on the root container; equals |THUMB_LEFT_OFFSET| so
  * the thumb can overhang at min/max without clipping.
  */
 const SLIDER_TRACK_INSET = Math.abs(THUMB_LEFT_OFFSET);
-const SLIDER_TRACK_AREA_HEIGHT =
-  SLIDER_VERTICAL_PADDING * 2 + THUMB_BOTTOM_OFFSET;
 
-const styles = StyleSheet.create({
-  root: {
-    alignSelf: 'stretch',
-    marginHorizontal: SLIDER_TRACK_INSET,
-    overflow: 'visible',
-  },
-  trackArea: {
-    position: 'relative',
-    height: SLIDER_TRACK_AREA_HEIGHT,
-    paddingVertical: SLIDER_VERTICAL_PADDING,
-    overflow: 'visible',
-  },
-  track: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top:
-      SLIDER_VERTICAL_PADDING +
-      THUMB_TOP_OFFSET +
-      THUMB_SIZE / 2 -
-      TRACK_HEIGHT / 2,
-    height: TRACK_HEIGHT,
-    borderRadius: TRACK_HEIGHT / 2,
-  },
-  fill: {
-    position: 'absolute',
-    top:
-      SLIDER_VERTICAL_PADDING +
-      THUMB_TOP_OFFSET +
-      THUMB_SIZE / 2 -
-      TRACK_HEIGHT / 2,
-    height: TRACK_HEIGHT,
-    borderRadius: TRACK_HEIGHT / 2,
-  },
-  thumb: {
-    position: 'absolute',
-    top: SLIDER_VERTICAL_PADDING + THUMB_TOP_OFFSET,
-    left: THUMB_LEFT_OFFSET,
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: THUMB_SIZE / 2,
-    borderWidth: 2,
-    elevation: 4,
-  },
-  minThumb: {
-    zIndex: 1,
-  },
-  maxThumb: {
-    zIndex: 2,
-  },
-});
+const THUMB_LAYOUT = {
+  width: THUMB_SIZE,
+  height: THUMB_SIZE,
+  top: THUMB_TOP_OFFSET,
+  left: THUMB_LEFT_OFFSET,
+  elevation: 4,
+};
+const MIN_THUMB_LAYOUT = {
+  ...THUMB_LAYOUT,
+  zIndex: 1,
+};
+const MAX_THUMB_LAYOUT = {
+  ...THUMB_LAYOUT,
+  zIndex: 2,
+};
+const THUMB_ACCESSIBILITY_ACTIONS = [
+  { name: 'increment' },
+  { name: 'decrement' },
+] as const;
 
 export interface RangeSliderProps {
   minimumValue: number;
@@ -179,9 +144,9 @@ function resolvedValueWorklet(
 }
 
 /**
- * Dual-thumb range slider. MMDS `Slider` is single-thumb only, so this mirrors
- * its geometry and gesture patterns (pixel `translateX`, track inset, full-track
- * pan) with separate min/max thumbs.
+ * Dual-thumb range slider. Uses the design-system `Slider` track (`border-muted`),
+ * fill (`icon-alternative`), and 32px `icon-default` thumb, with a second thumb
+ * so a range can be selected.
  */
 const RangeSlider: React.FC<RangeSliderProps> = ({
   minimumValue,
@@ -194,7 +159,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   maxThumbAccessibilityLabel,
   testID,
 }) => {
-  const { colors } = useTheme();
+  const tw = useTailwind();
 
   const span = maximumValue - minimumValue;
   const minPercent = useSharedValue(
@@ -227,6 +192,41 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   const setDragging = useCallback((dragging: boolean) => {
     isDraggingRef.current = dragging;
   }, []);
+
+  const stepThumbFromAccessibility = useCallback(
+    (thumb: ActiveThumb, actionName: string) => {
+      const direction = actionName === 'increment' ? 1 : -1;
+      if (actionName !== 'increment' && actionName !== 'decrement') {
+        return;
+      }
+      const nextMin =
+        thumb === 'min'
+          ? Math.min(
+              value.max,
+              Math.max(minimumValue, value.min + direction * step),
+            )
+          : value.min;
+      const nextMax =
+        thumb === 'max'
+          ? Math.max(
+              value.min,
+              Math.min(maximumValue, value.max + direction * step),
+            )
+          : value.max;
+      const next = { min: nextMin, max: nextMax };
+      onValueChange(next);
+      onDragEnd?.(next);
+    },
+    [
+      maximumValue,
+      minimumValue,
+      onDragEnd,
+      onValueChange,
+      step,
+      value.max,
+      value.min,
+    ],
+  );
 
   const syncPercentsFromValue = useCallback(
     (nextValue: ResolvedValue) => {
@@ -276,11 +276,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
       if (isDragging.value) {
         return;
       }
-      if (
-        previous &&
-        current.min === previous.min &&
-        current.max === previous.max
-      ) {
+      if (current.min === previous?.min && current.max === previous?.max) {
         return;
       }
       minPercent.value = current.min;
@@ -318,7 +314,8 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
       } else {
         maxPercent.value = Math.max(trackPercent, minPercent.value);
       }
-      runOnJS(reportChange)(
+      scheduleOnRN(
+        reportChange,
         resolvedValueWorklet(
           minPercent.value,
           maxPercent.value,
@@ -346,12 +343,22 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           : 'max';
     };
 
+    // Horizontal activation so the sheet pan and the scroll view keep
+    // vertical drags, and this slider keeps min/max drags.
     return Gesture.Pan()
+      .activeOffsetX([-6, 6])
+      .failOffsetY([-12, 12])
+      .hitSlop({
+        top: -THUMB_TOP_OFFSET,
+        bottom: 8,
+        left: SLIDER_TRACK_INSET,
+        right: SLIDER_TRACK_INSET,
+      })
       .onStart((event) => {
         'worklet';
         isDragging.value = true;
-        runOnJS(setDragging)(true);
-        runOnJS(playImpact)(ImpactMoment.SliderGrip);
+        scheduleOnRN(setDragging, true);
+        scheduleOnRN(playImpact, ImpactMoment.SliderGrip);
         pickActiveThumb(event.x);
         updateThumbAtPosition(event.x);
       })
@@ -361,7 +368,8 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
       })
       .onEnd(() => {
         'worklet';
-        runOnJS(reportDragEnd)(
+        scheduleOnRN(
+          reportDragEnd,
           resolvedValueWorklet(
             minPercent.value,
             maxPercent.value,
@@ -375,7 +383,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
       .onFinalize(() => {
         'worklet';
         isDragging.value = false;
-        runOnJS(setDragging)(false);
+        scheduleOnRN(setDragging, false);
       });
   }, [
     activeThumb,
@@ -421,52 +429,80 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   const baseTestID = testID ?? 'range-slider';
 
   return (
-    <View style={styles.root} onLayout={handleLayout} testID={baseTestID}>
+    <Box
+      testID={baseTestID}
+      onLayout={handleLayout}
+      twClassName="relative self-stretch overflow-visible pb-2"
+      // The thumb is drawn 13px above the track. That top padding keeps the
+      // thumb inside this box so the section's 8px margin stays visible.
+      style={{
+        marginHorizontal: SLIDER_TRACK_INSET,
+        paddingTop: -THUMB_TOP_OFFSET,
+      }}
+    >
       <GestureDetector gesture={gesture}>
-        <Animated.View style={styles.trackArea} accessibilityRole="adjustable">
-          <View
-            style={[styles.track, { backgroundColor: colors.background.muted }]}
+        <Animated.View
+          style={[
+            tw.style('relative overflow-visible'),
+            { height: THUMB_BOTTOM_OFFSET },
+          ]}
+        >
+          <Animated.View
+            style={tw.style(
+              'absolute left-0 top-0 h-2 w-full rounded-full bg-border-muted',
+            )}
           />
           <Animated.View
             style={[
-              styles.fill,
-              { backgroundColor: colors.icon.default },
+              tw.style('absolute top-0 h-2 rounded-full bg-icon-alternative'),
               trackFillStyle,
             ]}
           />
           <Animated.View
             style={[
-              styles.thumb,
-              styles.minThumb,
+              tw.style('absolute rounded-full bg-icon-default'),
+              MIN_THUMB_LAYOUT,
               minThumbStyle,
-              {
-                backgroundColor: colors.background.default,
-                borderColor: colors.icon.default,
-              },
             ]}
             pointerEvents="none"
+            accessible
             accessibilityLabel={minThumbAccessibilityLabel}
             accessibilityRole="adjustable"
+            accessibilityValue={{
+              min: minimumValue,
+              max: maximumValue,
+              now: value.min,
+            }}
+            accessibilityActions={THUMB_ACCESSIBILITY_ACTIONS}
+            onAccessibilityAction={(event) => {
+              stepThumbFromAccessibility('min', event.nativeEvent.actionName);
+            }}
             testID={`${baseTestID}-min-thumb`}
           />
           <Animated.View
             style={[
-              styles.thumb,
-              styles.maxThumb,
+              tw.style('absolute rounded-full bg-icon-default'),
+              MAX_THUMB_LAYOUT,
               maxThumbStyle,
-              {
-                backgroundColor: colors.background.default,
-                borderColor: colors.icon.default,
-              },
             ]}
             pointerEvents="none"
+            accessible
             accessibilityLabel={maxThumbAccessibilityLabel}
             accessibilityRole="adjustable"
+            accessibilityValue={{
+              min: minimumValue,
+              max: maximumValue,
+              now: value.max,
+            }}
+            accessibilityActions={THUMB_ACCESSIBILITY_ACTIONS}
+            onAccessibilityAction={(event) => {
+              stepThumbFromAccessibility('max', event.nativeEvent.actionName);
+            }}
             testID={`${baseTestID}-max-thumb`}
           />
         </Animated.View>
       </GestureDetector>
-    </View>
+    </Box>
   );
 };
 

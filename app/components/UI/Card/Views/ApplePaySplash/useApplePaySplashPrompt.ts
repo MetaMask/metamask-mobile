@@ -19,6 +19,8 @@ import { shouldShowApplePaySplash } from './shouldShowApplePaySplash';
 interface UseApplePaySplashPromptParams {
   canAddToWallet: boolean;
   isPushProvisioningLoading: boolean;
+  countryCode?: string;
+  cardProcessor?: string;
 }
 
 /**
@@ -30,6 +32,8 @@ interface UseApplePaySplashPromptParams {
 export function useApplePaySplashPrompt({
   canAddToWallet,
   isPushProvisioningLoading,
+  countryCode,
+  cardProcessor,
 }: UseApplePaySplashPromptParams): void {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
@@ -39,7 +43,10 @@ export function useApplePaySplashPrompt({
   const capabilities = useCardCapabilities();
   const provisioningEnabled = useSelector(
     (state: Parameters<typeof selectPushProvisioningEnabled>[0]) =>
-      selectPushProvisioningEnabled(state, providerId, 'apple_wallet'),
+      selectPushProvisioningEnabled(state, providerId, 'apple_wallet', {
+        countryCode,
+        cardProcessor,
+      }),
   );
   const prompted = useRef(false);
   const openedSplash = useRef(false);

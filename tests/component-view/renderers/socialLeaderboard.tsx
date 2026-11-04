@@ -12,6 +12,8 @@
 import '../mocks';
 import React from 'react';
 import { View } from 'react-native';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -244,10 +246,70 @@ export const SECOND_ONBOARDING_EVM_ACCOUNT = {
   address: '0x0000000000000000000000000000000000000002',
 };
 
+const ONBOARDING_WALLET_ID = 'entropy:wallet1';
+const ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/0`;
+const SECOND_ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/1`;
+
+/**
+ * Account tree mirroring `AccountsController`: one entropy wallet whose groups
+ * hold the EVM accounts. `useLinkableSocialAccounts` reads the groups (not the
+ * flat account list) to build its rows, so onboarding needs this slice even
+ * though it only ever shows EVM accounts. The Solana account is deliberately
+ * left out of the tree, matching a snap wallet onboarding must not offer.
+ */
+const buildOnboardingAccountTree = (
+  includeSecondEvmAccount: boolean,
+): DeepPartial<AccountTreeControllerState> => ({
+  accountTree: {
+    wallets: {
+      [ONBOARDING_WALLET_ID]: {
+        id: ONBOARDING_WALLET_ID,
+        type: AccountWalletType.Entropy,
+        status: 'ready',
+        metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
+        groups: {
+          [ONBOARDING_ACCOUNT_GROUP_ID]: {
+            id: ONBOARDING_ACCOUNT_GROUP_ID,
+            type: AccountGroupType.MultichainAccount,
+            metadata: {
+              name: 'Account 1',
+              pinned: false,
+              hidden: false,
+              lastSelected: 0,
+              entropy: { groupIndex: 0 },
+            },
+            accounts: ['acc-1'],
+          },
+          ...(includeSecondEvmAccount
+            ? {
+                [SECOND_ONBOARDING_ACCOUNT_GROUP_ID]: {
+                  id: SECOND_ONBOARDING_ACCOUNT_GROUP_ID,
+                  type: AccountGroupType.MultichainAccount,
+                  metadata: {
+                    name: SECOND_ONBOARDING_EVM_ACCOUNT.name,
+                    pinned: false,
+                    hidden: false,
+                    lastSelected: 0,
+                    entropy: { groupIndex: 1 },
+                  },
+                  accounts: [SECOND_ONBOARDING_EVM_ACCOUNT.id],
+                },
+              }
+            : {}),
+        },
+      },
+    },
+  },
+  selectedAccountGroup: ONBOARDING_ACCOUNT_GROUP_ID,
+});
+
 /**
  * Renders profile onboarding with an EVM account that has a native mainnet
  * balance, plus a Solana account. The balance hooks are EVM-only. Onboarding
  * must mount and list only the EVM account.
+ *
+ * Seeds `AccountTreeController` because `useLinkableSocialAccounts` reads
+ * account groups (the production shape) rather than the flat account list.
  *
  * Pass `includeSecondEvmAccount` to add a second EVM account after the default.
  */
@@ -325,6 +387,9 @@ export function renderSocialProfileOnboarding(
               },
             },
           },
+          AccountTreeController: buildOnboardingAccountTree(
+            options.includeSecondEvmAccount ?? false,
+          ),
         },
       },
     })

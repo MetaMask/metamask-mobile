@@ -33,3 +33,7 @@ export {
   type PredictIntent,
 } from './navigation/entry';
 export type { PredictAppRouteParamList } from './navigation/appRoutes';
+export {
+  PredictHomeSection,
+  type PredictHomeSectionProps,
+} from './homeSection';
