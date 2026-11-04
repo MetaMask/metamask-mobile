@@ -1,4 +1,6 @@
+import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
@@ -7,15 +9,71 @@ import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedV
 import { NetworkSwitchErrorType } from '../../../constants/error';
 import { getDecimalChainId } from '../../../util/networks';
 import { MAINNET } from '../../../constants/network';
+import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
 import Routes from '../../../constants/navigation/Routes';
+import { InitSendLocation } from '../../../components/Views/confirmations/constants/send';
+import { AssetType } from '../../../components/Views/confirmations/types/token';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../components/Views/confirmations/utils/deeplink';
+import {
+  ChainType,
+  handleSendPageNavigation,
+} from '../../../components/Views/confirmations/utils/send';
 import NavigationService from '../../NavigationService';
 import handleApproveUrl from './legacy/handleApproveUrl';
 import switchNetwork from '../../../util/networks/switchNetwork';
+
+/**
+ * ERC-681 treats `value` as optional. When it is absent, open Send so the
+ * user can enter an amount instead of building a transaction with no value.
+ */
+function openAmountlessNativeSend({
+  chainId,
+  recipient,
+  origin,
+}: {
+  chainId: Hex;
+  recipient: string;
+  origin: string;
+}) {
+  const { NetworkController } = Engine.context;
+  NetworkController.findNetworkClientIdByChainId(chainId);
+
+  const network =
+    NetworkController.state.networkConfigurationsByChainId[chainId];
+  const symbol = network?.nativeCurrency ?? 'ETH';
+  const decimalChainId = Number.parseInt(chainId, 16).toString(10);
+  const assetId = `eip155:${decimalChainId}/slip44:60`;
+  const asset: AssetType = {
+    address: assetId,
+    assetId,
+    chainId,
+    decimals: 18,
+    image: '',
+    logo: undefined,
+    name: network?.name ?? symbol,
+    symbol,
+    ticker: symbol,
+    balance: '0',
+    isNative: true,
+    isETH: chainId === CHAIN_IDS.MAINNET,
+  };
+
+  handleSendPageNavigation(NavigationService.navigation.navigate, {
+    location:
+      origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
+        ? InitSendLocation.QRScanner
+        : InitSendLocation.Deeplink,
+    predefinedRecipient: {
+      address: recipient,
+      chainType: ChainType.EVM,
+    },
+    asset,
+  });
+}
 
 async function handleEthereumUrl({
   url,
@@ -59,6 +117,19 @@ async function handleEthereumUrl({
     }
 
     if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+      if (
+        !ethUrl.function_name &&
+        !ethUrl.parameters?.value &&
+        ethUrl.target_address
+      ) {
+        openAmountlessNativeSend({
+          chainId: ethUrl.chain_id ? toHex(ethUrl.chain_id) : CHAIN_IDS.MAINNET,
+          recipient: ethUrl.target_address,
+          origin,
+        });
+        return;
+      }
+
       await addTransactionForDeeplink({
         ...txMeta,
         origin,

@@ -7,10 +7,15 @@ import handleEthereumUrl from '../handleEthereumUrl';
 import { getDecimalChainId } from '../../../../util/networks';
 import Engine from '../../../Engine';
 import { MAINNET } from '../../../../constants/network';
+import { InitSendLocation } from '../../../../components/Views/confirmations/constants/send';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../../components/Views/confirmations/utils/deeplink';
+import {
+  ChainType,
+  handleSendPageNavigation,
+} from '../../../../components/Views/confirmations/utils/send';
 import NavigationService from '../../../NavigationService';
 import handleApproveUrl from '../legacy/handleApproveUrl';
 import switchNetwork from '../../../../util/networks/switchNetwork';
@@ -52,6 +57,11 @@ jest.mock('../../../Engine', () => ({
 
 jest.mock('../../../../components/Views/confirmations/utils/deeplink');
 
+jest.mock('../../../../components/Views/confirmations/utils/send', () => ({
+  ChainType: { EVM: 'evm' },
+  handleSendPageNavigation: jest.fn(),
+}));
+
 describe('handleEthereumUrl', () => {
   const mockParse = jest.mocked(parse);
   const mockGetDecimalChainId = jest.mocked(getDecimalChainId);
@@ -61,7 +71,9 @@ describe('handleEthereumUrl', () => {
     isDeeplinkRedesignedConfirmationCompatible,
   );
   const mockAddTransactionForDeeplink = jest.mocked(addTransactionForDeeplink);
+  const mockHandleSendPageNavigation = jest.mocked(handleSendPageNavigation);
   const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+  const recipient = '0xd05a432ad6bdfe5520addae7f27fc325de036d89';
   const parsedUrl = (value: object) => value as ParseOutput;
 
   beforeEach(() => {
@@ -206,6 +218,136 @@ describe('handleEthereumUrl', () => {
         }),
       },
     });
+  });
+
+  it('opens the send amount screen when a native payment has no value', async () => {
+    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockParse.mockReturnValue(
+      parsedUrl({
+        target_address: recipient,
+        chain_id: '1',
+        parameters: {},
+      }),
+    );
+    const findNetworkClientIdByChainId = jest.fn().mockReturnValue('mainnet');
+    Engine.context.NetworkController = {
+      findNetworkClientIdByChainId,
+      state: {
+        networkConfigurationsByChainId: {
+          '0x1': { nativeCurrency: 'ETH', name: 'Ethereum Mainnet' },
+        },
+      },
+    } as unknown as typeof Engine.context.NetworkController;
+
+    await handleEthereumUrl({
+      url: `ethereum:${recipient}@1`,
+      origin: 'test_origin',
+    });
+
+    expect(findNetworkClientIdByChainId).toHaveBeenCalledWith('0x1');
+    expect(mockAddTransactionForDeeplink).not.toHaveBeenCalled();
+    expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(
+      NavigationService.navigation.navigate,
+      {
+        location: InitSendLocation.Deeplink,
+        predefinedRecipient: {
+          address: recipient,
+          chainType: ChainType.EVM,
+        },
+        asset: expect.objectContaining({
+          address: 'eip155:1/slip44:60',
+          assetId: 'eip155:1/slip44:60',
+          chainId: '0x1',
+          isNative: true,
+          isETH: true,
+          symbol: 'ETH',
+          name: 'Ethereum Mainnet',
+        }),
+      },
+    );
+  });
+
+  it('uses mainnet when a native payment omits the chain id', async () => {
+    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockParse.mockReturnValue(
+      parsedUrl({
+        target_address: recipient,
+      }),
+    );
+    Engine.context.NetworkController = {
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      state: {
+        networkConfigurationsByChainId: {
+          '0x1': { nativeCurrency: 'ETH', name: 'Ethereum Mainnet' },
+        },
+      },
+    } as unknown as typeof Engine.context.NetworkController;
+
+    await handleEthereumUrl({
+      url: `ethereum:${recipient}`,
+      origin: 'test_origin',
+    });
+
+    expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(
+      NavigationService.navigation.navigate,
+      expect.objectContaining({
+        asset: expect.objectContaining({ chainId: '0x1', symbol: 'ETH' }),
+      }),
+    );
+  });
+
+  it('builds a confirmation when a native payment includes value', async () => {
+    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockParse.mockReturnValue(
+      parsedUrl({
+        target_address: recipient,
+        chain_id: '1',
+        parameters: { value: '10000000000000000' },
+      }),
+    );
+
+    await handleEthereumUrl({
+      url: `ethereum:${recipient}@1?value=1e16`,
+      origin: 'test_origin',
+    });
+
+    expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
+    expect(mockAddTransactionForDeeplink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target_address: recipient,
+        chain_id: '1',
+        origin: 'test_origin',
+      }),
+    );
+  });
+
+  it('shows network not found when the payment chain is missing from the wallet', async () => {
+    const spyAlert = jest.spyOn(Alert, 'alert');
+    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockParse.mockReturnValue(
+      parsedUrl({
+        target_address: recipient,
+        chain_id: '1',
+      }),
+    );
+    Engine.context.NetworkController = {
+      findNetworkClientIdByChainId: jest.fn(() => {
+        throw new Error('Invalid chain ID "0x1"');
+      }),
+      state: { networkConfigurationsByChainId: {} },
+    } as unknown as typeof Engine.context.NetworkController;
+
+    await handleEthereumUrl({
+      url: `ethereum:${recipient}@1`,
+      origin: 'test_origin',
+    });
+
+    expect(spyAlert).toHaveBeenCalledWith(
+      'send.network_not_found_title',
+      'send.network_not_found_description',
+    );
+    expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
+    expect(mockAddTransactionForDeeplink).not.toHaveBeenCalled();
   });
 
   it('calls addTransactionForDeeplink if deeplink is compatible with redesigned confirmation', () => {
