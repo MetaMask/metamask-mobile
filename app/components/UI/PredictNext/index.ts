@@ -22,3 +22,7 @@ export {
   usePredictPortfolioValue,
   type PredictPortfolioValue,
 } from './portfolio';
+export {
+  PredictHomeSection,
+  type PredictHomeSectionProps,
+} from './homeSection';

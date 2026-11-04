@@ -6,7 +6,6 @@ import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import PerpsTradingCampaignLeaderboard from '../components/Campaigns/PerpsTradingCampaignLeaderboard';
@@ -41,7 +40,6 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
       >
     >();
   const { campaignId } = route.params;
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const referralCode = useSelector(selectReferralCode);
 
   const selectCampaign = useMemo(
@@ -95,7 +93,6 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
           mechanicsButtonTestID="perps-leaderboard-mechanics-button"
           hasCampaign={campaign != null}
           campaignId={campaignId}
-          isGlass={isGlassHeader}
         />
         <ScrollView
           showsVerticalScrollIndicator={false}

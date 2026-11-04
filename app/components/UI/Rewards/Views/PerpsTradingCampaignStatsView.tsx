@@ -18,7 +18,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
@@ -63,7 +62,6 @@ const CheckIcon: React.FC = () => (
 
 const PerpsTradingCampaignStatsView: React.FC = () => {
   const tw = useTailwind();
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
@@ -150,7 +148,6 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
           mechanicsButtonTestID="perps-stats-mechanics-button"
           hasCampaign={campaign != null}
           campaignId={campaignId}
-          isGlass={isGlassHeader}
         />
         <ScrollView
           showsVerticalScrollIndicator={false}

@@ -105,7 +105,7 @@ describe('overlayPendingPosts', () => {
     expect(result.posts).toEqual([served, otherRow]);
   });
 
-  it('keeps the confirmed copy pinned on Following, under the pending id', () => {
+  it('leaves Following to the API, including a comment it has already returned', () => {
     const served = serverRow('served', 'comment-1', 'position-1');
 
     const result = overlayPendingPosts(
@@ -115,10 +115,8 @@ describe('overlayPendingPosts', () => {
       [otherRow, served],
     );
 
-    expect(result.pinnedPosts).toEqual([
-      { ...served, id: 'pending-comment-1' },
-    ]);
-    expect(result.posts).toEqual([otherRow]);
+    expect(result.pinnedPosts).toEqual([]);
+    expect(result.posts).toEqual([otherRow, served]);
   });
 
   it('drops an entry dismissed on that surface', () => {

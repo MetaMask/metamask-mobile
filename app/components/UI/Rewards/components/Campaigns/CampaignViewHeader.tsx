@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { TextVariant } from '@metamask/design-system-react-native';
-import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getCampaignMechanicsButtonProps } from '../../utils/campaignHeaderUtils';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CampaignViewHeaderProps {
   title: string;
@@ -12,11 +14,6 @@ interface CampaignViewHeaderProps {
   mechanicsButtonTestID: string;
   hasCampaign: boolean;
   campaignId: string;
-  /**
-   * When true, the header follows the glass treatment. Callers pass the
-   * glass-headers flag. Omit it to keep the plain compact header.
-   */
-  isGlass?: boolean;
 }
 
 const CampaignViewHeader: React.FC<CampaignViewHeaderProps> = ({
@@ -25,12 +22,12 @@ const CampaignViewHeader: React.FC<CampaignViewHeaderProps> = ({
   mechanicsButtonTestID,
   hasCampaign,
   campaignId,
-  isGlass = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   return (
     <HeaderStandardGlass
-      isGlass={isGlass}
+      isGlass={isGlassHeader}
       isFloating={false}
       title={title}
       titleProps={{ variant: TextVariant.HeadingSm }}

@@ -110,6 +110,13 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: () => false,
+  }),
+);
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));

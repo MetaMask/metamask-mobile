@@ -13,7 +13,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
@@ -59,7 +58,6 @@ const getMetricColor = (value: number | null): TextColor => {
 
 const PredictThePitchCampaignStatsView: React.FC = () => {
   const tw = useTailwind();
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
@@ -139,7 +137,6 @@ const PredictThePitchCampaignStatsView: React.FC = () => {
           mechanicsButtonTestID="predict-the-pitch-stats-mechanics-button"
           hasCampaign={campaign != null}
           campaignId={campaignId}
-          isGlass={isGlassHeader}
         />
         <ScrollView
           showsVerticalScrollIndicator={false}
