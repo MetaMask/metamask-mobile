@@ -85,9 +85,11 @@ internal object PerfProfiles {
             }.onFailure { Log.w(PerfSession.TAG, "Could not start Hermes sampling", it) }
         } else if (!active && samplerOn) {
             // Background, collector off or feature off: keep what was captured if it
-            // matters, then stop sampling.
-            if (!manualActive) finishSegment()
+            // matters, then stop sampling. Disable before the final dump: a sample
+            // taken between the dump and disable() would stay in the buffer and
+            // land in the next segment with an old timestamp.
             runCatching { HermesSamplingProfiler.disable() }
+            if (!manualActive) finishSegment()
             samplerOn = false
             previous?.takeIf { !it.queued }?.file?.delete()
             previous = null
