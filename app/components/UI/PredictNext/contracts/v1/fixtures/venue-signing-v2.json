@@ -96,7 +96,7 @@
               }
             },
             {
-              "request": "positions_for_market",
+              "request": "position",
               "when": {
                 "input": "action",
                 "equals": "sell"
@@ -121,7 +121,7 @@
               }
             },
             {
-              "request": "positions_for_market",
+              "request": "position",
               "when": {
                 "input": "action",
                 "equals": "sell"
@@ -319,7 +319,7 @@
           "input": "idempotencyKey"
         }
       },
-      "positions_for_market": {
+      "position": {
         "class": "read",
         "method": "GET",
         "path": "/trade-api/v2/portfolio/positions",
@@ -821,7 +821,7 @@
       "step": "default",
       "inputs": {
         "action": "buy",
-        "marketId": "MKT"
+        "marketId": "KXTEST-26-A"
       },
       "values": {},
       "nowMs": 1700000000000,
@@ -840,9 +840,9 @@
           "class": "read",
           "method": "GET",
           "path": "/trade-api/v2/isv/market-restriction",
-          "query": "ticker=MKT",
+          "query": "ticker=KXTEST-26-A",
           "body": "",
-          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/market-restriction\n\"@query\": ?ticker=MKT\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/market-restriction\n\"@query\": ?ticker=KXTEST-26-A\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
         }
       ]
     },
@@ -852,45 +852,45 @@
       "step": "default",
       "inputs": {
         "action": "sell",
-        "marketId": "MKT"
+        "marketId": "KXTEST-26-A"
       },
       "values": {},
       "nowMs": 1700000000000,
       "requests": [
         {
-          "name": "positions_for_market",
+          "name": "position",
           "class": "read",
           "method": "GET",
           "path": "/trade-api/v2/portfolio/positions",
-          "query": "ticker=MKT&count_filter=position&limit=200",
+          "query": "ticker=KXTEST-26-A&count_filter=position&limit=200",
           "body": "",
-          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/positions\n\"@query\": ?ticker=MKT&count_filter=position&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/positions\n\"@query\": ?ticker=KXTEST-26-A&count_filter=position&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
         },
         {
           "name": "market_restriction",
           "class": "read",
           "method": "GET",
           "path": "/trade-api/v2/isv/market-restriction",
-          "query": "ticker=MKT",
+          "query": "ticker=KXTEST-26-A",
           "body": "",
-          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/market-restriction\n\"@query\": ?ticker=MKT\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/isv/market-restriction\n\"@query\": ?ticker=KXTEST-26-A\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
         }
       ]
     },
     {
-      "name": "order commit submit",
+      "name": "order submit buy",
       "operation": "orders.commit",
       "step": "submit",
       "inputs": {
         "action": "buy",
         "outcome": "yes",
-        "marketId": "MKT",
+        "marketId": "KXTEST-26-A",
         "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
-        "amountCents": 2000
+        "amountCents": 400
       },
       "values": {
-        "count": "10.00",
-        "price": "0.4500"
+        "count": "6.00",
+        "price": "0.6000"
       },
       "nowMs": 1700000000000,
       "requests": [
@@ -909,22 +909,60 @@
           "method": "POST",
           "path": "/trade-api/v2/portfolio/events/orders",
           "query": "",
-          "body": "{\"ticker\":\"MKT\",\"client_order_id\":\"a1b2c3d4-1111-4222-8333-444455556666\",\"side\":\"bid\",\"count\":\"10.00\",\"price\":\"0.4500\",\"time_in_force\":\"immediate_or_cancel\",\"self_trade_prevention_type\":\"taker_at_cross\"}",
+          "body": "{\"ticker\":\"KXTEST-26-A\",\"client_order_id\":\"a1b2c3d4-1111-4222-8333-444455556666\",\"side\":\"bid\",\"count\":\"6.00\",\"price\":\"0.6000\",\"time_in_force\":\"immediate_or_cancel\",\"self_trade_prevention_type\":\"taker_at_cross\"}",
           "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
-          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/events/orders\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:EkGLAI9DSvd6oyyItOxBF8iW8eUzlyFoZ2j08gO2s24=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+          "digest": "sha-256=:B3/4iH873tDE+r5VDRGmHTei+otY0A8w4W9+xCuMurc=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/events/orders\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:B3/4iH873tDE+r5VDRGmHTei+otY0A8w4W9+xCuMurc=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
         }
       ]
     },
     {
-      "name": "order commit lookup",
+      "name": "order submit sell no",
       "operation": "orders.commit",
-      "step": "lookup",
+      "step": "submit",
       "inputs": {
-        "marketId": "MKT",
-        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666"
+        "action": "sell",
+        "outcome": "no",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "contracts": "6",
+        "minOutcomePrice": "0.4000"
       },
       "values": {
-        "order_id": "0a1b2c3d-1111-4222-8333-444455556666"
+        "count": "6.00",
+        "price": "0.6000"
+      },
+      "nowMs": 1700000000000,
+      "requests": [
+        {
+          "name": "position",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/positions",
+          "query": "ticker=KXTEST-26-A&count_filter=position&limit=200",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/positions\n\"@query\": ?ticker=KXTEST-26-A&count_filter=position&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        },
+        {
+          "name": "order_create",
+          "class": "mutation",
+          "method": "POST",
+          "path": "/trade-api/v2/portfolio/events/orders",
+          "query": "",
+          "body": "{\"ticker\":\"KXTEST-26-A\",\"client_order_id\":\"a1b2c3d4-1111-4222-8333-444455556666\",\"side\":\"bid\",\"count\":\"6.00\",\"price\":\"0.6000\",\"time_in_force\":\"immediate_or_cancel\",\"self_trade_prevention_type\":\"taker_at_cross\"}",
+          "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+          "digest": "sha-256=:B3/4iH873tDE+r5VDRGmHTei+otY0A8w4W9+xCuMurc=:",
+          "signingBase": "\"@method\": POST\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/events/orders\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"content-digest\": sha-256=:B3/4iH873tDE+r5VDRGmHTei+otY0A8w4W9+xCuMurc=:\n\"content-type\": application/json\n\"idempotency-key\": a1b2c3d4-1111-4222-8333-444455556666\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\" \"content-digest\" \"content-type\" \"idempotency-key\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
+    },
+    {
+      "name": "order lookup",
+      "operation": "orders.commit",
+      "step": "lookup",
+      "inputs": {},
+      "values": {
+        "order_id": "c3d4e5f6-3333-4444-8555-666677778888"
       },
       "nowMs": 1700000000000,
       "requests": [
@@ -932,22 +970,22 @@
           "name": "order_lookup",
           "class": "read",
           "method": "GET",
-          "path": "/trade-api/v2/portfolio/orders/0a1b2c3d-1111-4222-8333-444455556666",
+          "path": "/trade-api/v2/portfolio/orders/c3d4e5f6-3333-4444-8555-666677778888",
           "query": "",
           "body": "",
-          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/orders/0a1b2c3d-1111-4222-8333-444455556666\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/orders/c3d4e5f6-3333-4444-8555-666677778888\n\"@query\": ?\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
         }
       ]
     },
     {
-      "name": "order commit scan",
+      "name": "order scan",
       "operation": "orders.commit",
       "step": "scan",
       "inputs": {
-        "marketId": "MKT"
+        "marketId": "KXTEST-26-A"
       },
       "values": {
-        "min_ts": 1700000000
+        "min_ts": 1699999900
       },
       "nowMs": 1700000000000,
       "requests": [
@@ -956,20 +994,35 @@
           "class": "read",
           "method": "GET",
           "path": "/trade-api/v2/portfolio/orders",
-          "query": "ticker=MKT&min_ts=1700000000&limit=200",
+          "query": "ticker=KXTEST-26-A&min_ts=1699999900&limit=200",
           "body": "",
-          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/orders\n\"@query\": ?ticker=MKT&min_ts=1700000000&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/orders\n\"@query\": ?ticker=KXTEST-26-A&min_ts=1699999900&limit=200\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
         }
       ]
     },
     {
-      "name": "order commit none",
+      "name": "order scan with cursor",
       "operation": "orders.commit",
-      "step": "none",
-      "inputs": {},
-      "values": {},
+      "step": "scan",
+      "inputs": {
+        "marketId": "KXTEST-26-A"
+      },
+      "values": {
+        "min_ts": 1699999900,
+        "cursor": "next-page"
+      },
       "nowMs": 1700000000000,
-      "requests": []
+      "requests": [
+        {
+          "name": "order_scan",
+          "class": "read",
+          "method": "GET",
+          "path": "/trade-api/v2/portfolio/orders",
+          "query": "ticker=KXTEST-26-A&min_ts=1699999900&limit=200&cursor=next-page",
+          "body": "",
+          "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/portfolio/orders\n\"@query\": ?ticker=KXTEST-26-A&min_ts=1699999900&limit=200&cursor=next-page\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
+        }
+      ]
     },
     {
       "name": "holdings first page",
@@ -1081,6 +1134,15 @@
           "signingBase": "\"@method\": GET\n\"@authority\": demo-api.kalshi.co\n\"@path\": /trade-api/v2/historical/positions\n\"@query\": ?limit=1\n\"authorization\": Kalshi-A2T eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InZlY3Rvci1pc3N1ZXIifQ.eyJpc3MiOiJodHRwczovL3ByZWRpY3QtYXBpLmRldi1hcGkuY3gubWV0YW1hc2suaW8vIiwic3ViIjoicHJvZmlsZS0xIiwiYXVkIjoia2Fsc2hpLWRlbW8tZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTIwLCJub25jZSI6IlF6b0s4ZGlUelZtUkJjRHU5NWZCRDc5ajdTeVJRVU1qUE1hOXBDajQ2NXMifQ.2qGuyAoMsVMEdVUeYdVXucv7CsH2ewYbAMFSaSDPxR96fOWncwS4QzXvm4QTpMZIVkKEuUVl8YWm3shcsZFohg\n\"kalshi-device-request-id\": a1b2c3d4-1111-4222-8333-444455556666\n\"kalshi-device-key\": BPdelYf21hhTSj2JQaW5oit4rdNe4aS3y6i_IDqGykDMWeeMV6tlhdv_PwSICc2fSkOqD1PxGM4MwNUB-A-Bic8\n\"kalshi-device-key-salt\": BwcHBwcHBwcHBwcHBwcHBw\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"@query\" \"authorization\" \"kalshi-device-request-id\" \"kalshi-device-key\" \"kalshi-device-key-salt\");created=1700000000;expires=1700000060;nonce=\"a1b2c3d4-1111-4222-8333-444455556666\";tag=\"kalshi-device-request-v1\""
         }
       ]
+    },
+    {
+      "name": "order commit none",
+      "operation": "orders.commit",
+      "step": "none",
+      "inputs": {},
+      "values": {},
+      "nowMs": 1700000000000,
+      "requests": []
     }
   ],
   "refusals": [
@@ -1165,40 +1227,6 @@
       "rule": "idempotency_key"
     },
     {
-      "name": "buy over the typed amount",
-      "operation": "orders.commit",
-      "step": "submit",
-      "inputs": {
-        "action": "buy",
-        "outcome": "yes",
-        "marketId": "MKT",
-        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
-        "amountCents": 1
-      },
-      "values": {
-        "count": "10.00",
-        "price": "0.4500"
-      },
-      "rule": "invariant"
-    },
-    {
-      "name": "sell count differs from the typed contracts",
-      "operation": "orders.commit",
-      "step": "submit",
-      "inputs": {
-        "action": "sell",
-        "outcome": "yes",
-        "marketId": "MKT",
-        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
-        "contracts": "1"
-      },
-      "values": {
-        "count": "10.00",
-        "price": "0.4500"
-      },
-      "rule": "invariant"
-    },
-    {
       "name": "verify with a numeric code",
       "operation": "onboarding.verify",
       "step": "default",
@@ -1208,6 +1236,95 @@
       },
       "values": {},
       "rule": "shape"
+    },
+    {
+      "name": "buy over the amount",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "buy",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "amountCents": 100
+      },
+      "values": {
+        "count": "6.00",
+        "price": "0.6000"
+      },
+      "rule": "invariant"
+    },
+    {
+      "name": "sell count is not the user contracts",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "sell",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "contracts": "2"
+      },
+      "values": {
+        "count": "6.00",
+        "price": "0.4000"
+      },
+      "rule": "invariant"
+    },
+    {
+      "name": "sell below the floor",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "sell",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "contracts": "6",
+        "minOutcomePrice": "0.5000"
+      },
+      "values": {
+        "count": "6.00",
+        "price": "0.4000"
+      },
+      "rule": "invariant"
+    },
+    {
+      "name": "order price above the range",
+      "operation": "orders.commit",
+      "step": "submit",
+      "inputs": {
+        "action": "buy",
+        "outcome": "yes",
+        "marketId": "KXTEST-26-A",
+        "idempotencyKey": "a1b2c3d4-1111-4222-8333-444455556666",
+        "amountCents": 100000
+      },
+      "values": {
+        "count": "1.00",
+        "price": "1.0000"
+      },
+      "rule": "shape"
+    },
+    {
+      "name": "scan min_ts too old",
+      "operation": "orders.commit",
+      "step": "scan",
+      "inputs": {
+        "marketId": "KXTEST-26-A"
+      },
+      "values": {
+        "min_ts": 1699990000
+      },
+      "rule": "shape"
+    },
+    {
+      "name": "lookup without an order id",
+      "operation": "orders.commit",
+      "step": "lookup",
+      "inputs": {},
+      "values": {},
+      "rule": "value"
     },
     {
       "name": "too many settlement tickers",

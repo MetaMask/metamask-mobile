@@ -137,7 +137,7 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
       steps: {
         default: [
           { request: 'balance', when: WHEN_BUY },
-          { request: 'positions_for_market', when: WHEN_SELL },
+          { request: 'position', when: WHEN_SELL },
           { request: 'market_restriction' },
         ],
       },
@@ -148,7 +148,7 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
       steps: {
         submit: [
           { request: 'balance', when: WHEN_BUY },
-          { request: 'positions_for_market', when: WHEN_SELL },
+          { request: 'position', when: WHEN_SELL },
           { request: 'order_create' },
         ],
         lookup: [{ request: 'order_lookup' }],
@@ -256,7 +256,7 @@ export const KALSHI_DEMO_SIGNING_PROFILE: VenueSigningProfile = {
       },
       idempotencyKey: IDEMPOTENCY_KEY,
     },
-    positions_for_market: {
+    position: {
       class: 'read',
       method: 'GET',
       path: `${TRADE_API}/portfolio/positions`,
