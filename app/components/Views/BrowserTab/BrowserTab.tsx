@@ -968,10 +968,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Check if this is an internal MetaMask deeplink that should be handled within the app
         if (isInternalDeepLink(urlToLoad)) {
+          // ethereum: links come from the page, so the request origin is that page.
+          // Other in-app schemes stay on the browser placeholder origin.
+          let deeplinkOrigin: string =
+            AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER;
+          if (urlToLoad.toLowerCase().startsWith('ethereum:')) {
+            try {
+              const pageUrl =
+                resolvedUrlRef.current || webViewUriRef.current || '';
+              const pageOrigin = new URLParse(pageUrl).origin;
+              deeplinkOrigin =
+                pageOrigin && pageOrigin !== 'null'
+                  ? pageOrigin
+                  : AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+            } catch {
+              deeplinkOrigin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+            }
+          }
           // Handle the deeplink internally instead of passing to OS
           SharedDeeplinkManager.getInstance()
             .parse(urlToLoad, {
-              origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+              origin: deeplinkOrigin,
               browserCallBack: (url: string) => {
                 // If the deeplink handler wants to navigate to a different URL in the browser
                 if (url) {

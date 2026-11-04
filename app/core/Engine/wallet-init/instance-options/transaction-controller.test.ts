@@ -32,12 +32,16 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from '../../controllers/transaction-controller/event-handlers/metrics';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from '../../controllers/transaction-controller/event-handlers/money-account-override';
+import { getPermittedAccounts } from '../../../Permissions';
 
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('../../../../util/transactions/account-supports-7702');
 jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/transactions/hooks', () => ({
   getTransactionControllerHooks: jest.fn(() => ({ beforeSign: jest.fn() })),
+}));
+jest.mock('../../../Permissions', () => ({
+  getPermittedAccounts: jest.fn(() => ['0xABC']),
 }));
 jest.mock(
   '../../controllers/transaction-controller/event-handlers/notification',
@@ -278,6 +282,17 @@ describe('TransactionController wallet instance options', () => {
         }),
       ).toBe(true);
     });
+  });
+
+  it('returns permitted accounts for a transaction origin', async () => {
+    const permittedAccounts = await testConstructorOption(
+      'getPermittedAccounts',
+    )?.('https://example.com');
+
+    expect(getPermittedAccounts).toHaveBeenCalledWith('https://example.com');
+    expect(permittedAccounts).toEqual(
+      expect.arrayContaining(['0xABC', '0xabc']),
+    );
   });
 });
 

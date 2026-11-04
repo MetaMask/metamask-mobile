@@ -19,6 +19,7 @@ import {
   RequestSourceFlow,
 } from '@metamask/phishing-controller';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
 const mockInjectJavaScript = jest.fn();
 const mockStopLoading = jest.fn();
@@ -449,6 +450,35 @@ describe('BrowserTab', () => {
           url: 'https://example.com:83/page',
         }),
       ).toBe(false);
+    });
+
+    it('uses the page origin for ethereum links', async () => {
+      const parse = jest.fn().mockResolvedValue(undefined);
+      jest.spyOn(SharedDeeplinkManager, 'getInstance').mockReturnValue({
+        parse,
+      } as unknown as ReturnType<typeof SharedDeeplinkManager.getInstance>);
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      expect(
+        onShouldStartLoadWithRequest({
+          url: 'ethereum:0x0000000000000000000000000000000000000000',
+        }),
+      ).toBe(false);
+      expect(parse).toHaveBeenCalledWith(
+        'ethereum:0x0000000000000000000000000000000000000000',
+        expect.objectContaining({ origin: 'https://metamask.io' }),
+      );
     });
 
     it('shows alert for non-whitelisted protocol javascript:', async () => {
