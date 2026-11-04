@@ -505,7 +505,7 @@ describe('TokenDetailsInlineHeader', () => {
       expect(queryByText('0x..0000')).toBeNull();
     });
 
-    it('replaces the contract address when a description is provided', () => {
+    it('replaces the contract address with the description but keeps the ticker', () => {
       const { Text } = jest.requireActual('react-native');
       const { getByText, queryByText, queryByTestId } = renderHeader({
         token: {
@@ -518,7 +518,9 @@ describe('TokenDetailsInlineHeader', () => {
 
       expect(getByText('$0.000012')).toBeOnTheScreen();
       expect(getByText('Ethereum')).toBeOnTheScreen();
-      expect(queryByText('ETH')).toBeNull();
+      // Ticker stays visible alongside the live price.
+      expect(getByText('ETH')).toBeOnTheScreen();
+      // Address and copy button are replaced by the description.
       expect(queryByText('0x..0000')).toBeNull();
       expect(queryByTestId('copy-contract-address-button')).toBeNull();
     });

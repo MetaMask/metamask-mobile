@@ -227,32 +227,28 @@ export const TokenDetailsInlineHeader = ({
     tokenTicker && tokenName && tokenTicker !== tokenName,
   );
 
-  const inlineDescription = useMemo(() => {
-    if (!showTickerBelowName && !contractAddress) {
-      return undefined;
+  // The trailing detail that sits next to the ticker: contract address at rest,
+  // live price once the user scrolls past the hero.
+  const trailingDetail = useMemo(() => {
+    if (description) {
+      return (
+        <Animated.View
+          key="live-price"
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
+        >
+          {description}
+        </Animated.View>
+      );
     }
 
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="w-full min-w-0 gap-1"
-        testID="token-details-subtitle"
-      >
-        {showTickerBelowName ? (
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            twClassName="shrink min-w-0"
-            testID="token-details-ticker"
-          >
-            {tokenTicker}
-          </Text>
-        ) : null}
-        {contractAddress ? (
+    if (contractAddress) {
+      return (
+        <Animated.View
+          key="contract-address"
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -279,48 +275,52 @@ export const TokenDetailsInlineHeader = ({
               accessibilityLabel={strings('token.contract_address')}
             />
           </Box>
-        ) : null}
-      </Box>
-    );
-  }, [
-    contractAddress,
-    handleCopyContractAddress,
-    showTickerBelowName,
-    tokenTicker,
-  ]);
-
-  const headerDescription = useMemo(() => {
-    if (description) {
-      return (
-        <Animated.View
-          key="live-price"
-          entering={FadeIn.duration(AnimationDuration.Fast)}
-          exiting={FadeOut.duration(AnimationDuration.Fast)}
-        >
-          {description}
         </Animated.View>
       );
     }
 
-    return inlineDescription ? <Box /> : undefined;
-  }, [description, inlineDescription]);
+    return null;
+  }, [description, contractAddress, handleCopyContractAddress]);
+
+  const hasSubtitle = showTickerBelowName || trailingDetail;
+
+  // Reserve the description row so HeaderSubpageGlass lays out the subtitle
+  // accessory; the actual content lives in `subtitleAccessory`.
+  const headerDescription = useMemo(
+    () => (hasSubtitle ? <Box /> : undefined),
+    [hasSubtitle],
+  );
 
   const subtitleAccessory = useMemo(() => {
-    if (description || !inlineDescription) {
+    if (!hasSubtitle) {
       return undefined;
     }
 
     return (
-      <Animated.View
-        key="contract-address"
-        entering={FadeIn.duration(AnimationDuration.Fast)}
-        exiting={FadeOut.duration(AnimationDuration.Fast)}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="w-full min-w-0 gap-1"
         style={tw.style('min-w-0 flex-1 -ml-1')}
+        testID="token-details-subtitle"
       >
-        {inlineDescription}
-      </Animated.View>
+        {showTickerBelowName ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            twClassName="shrink min-w-0"
+            testID="token-details-ticker"
+          >
+            {tokenTicker}
+          </Text>
+        ) : null}
+        {trailingDetail}
+      </Box>
     );
-  }, [description, inlineDescription, tw]);
+  }, [hasSubtitle, showTickerBelowName, tokenTicker, trailingDetail, tw]);
 
   return (
     <HeaderSubpageGlass
