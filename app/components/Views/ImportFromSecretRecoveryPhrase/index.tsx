@@ -783,7 +783,6 @@ const ImportFromSecretRecoveryPhrase = () => {
           {currentStep === 0 && (
             <Box twClassName="gap-y-6 pt-3">
               <TitleStandard
-                twClassName="pt-3"
                 title={strings('import_from_seed.title')}
                 titleProps={{
                   testID: ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
