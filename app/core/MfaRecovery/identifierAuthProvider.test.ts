@@ -78,11 +78,14 @@ jest.mock('../OAuthService/OAuthService', () => ({
   ),
 }));
 
-const mockSelectTelegramLoginEnabled = jest.fn(() => true);
+const mockSelectTelegramLoginEnabled = jest.fn(
+  (_state?: unknown): boolean => true,
+);
 jest.mock(
   '../../selectors/featureFlagController/seedlessTelegramLogin',
   () => ({
-    selectTelegramLoginEnabled: (state: unknown) =>
+    // Wrapper keeps the outer mock usable under jest.mock hoisting.
+    selectTelegramLoginEnabled: (state: unknown): boolean =>
       mockSelectTelegramLoginEnabled(state),
   }),
 );
