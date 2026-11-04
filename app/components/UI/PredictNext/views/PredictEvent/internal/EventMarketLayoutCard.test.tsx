@@ -123,7 +123,9 @@ describe('EventMarketLayoutCard', () => {
   const henry: MarketLayoutCard = {
     type: 'choice',
     key: 'henry',
+    // Only the second row carries the label; the title still shows.
     markets: [
+      createMarket('henry-20', { key: 'henry', groupType: 'choice' }, 'away'),
       createMarket(
         'henry-40',
         { key: 'henry', groupType: 'choice', label: 'Derrick Henry' },
@@ -153,23 +155,9 @@ describe('EventMarketLayoutCard', () => {
       ),
     );
     expect(onOrder).toHaveBeenCalledWith(
-      henry.markets[0],
-      henry.markets[0].outcomes[0],
+      henry.markets[1],
+      henry.markets[1].outcomes[0],
     );
-  });
-
-  it('reads the label from any row, not only the first', () => {
-    renderCard({
-      ...henry,
-      markets: [
-        createMarket('henry-20', { key: 'henry', groupType: 'choice' }, 'away'),
-        ...henry.markets,
-      ],
-    });
-
-    expect(
-      screen.getByTestId(ChoiceMarketGroupCardTestIds.title('henry')),
-    ).toHaveTextContent('Derrick Henry');
   });
 
   // A Player the backend couldn't name: every row backs the same Team.
@@ -189,16 +177,11 @@ describe('EventMarketLayoutCard', () => {
     expect(
       screen.queryByTestId(ChoiceMarketGroupCardTestIds.title('unnamed')),
     ).not.toBeOnTheScreen();
-    expect(
-      screen.getByTestId(
-        ChoiceMarketGroupCardTestIds.row('unnamed', '40+ yards'),
-      ),
-    ).toHaveTextContent(/40\+ yards/);
-    expect(
-      screen.getByTestId(
-        ChoiceMarketGroupCardTestIds.row('unnamed', '60+ yards'),
-      ),
-    ).toHaveTextContent(/60\+ yards/);
+    for (const row of ['40+ yards', '60+ yards']) {
+      expect(
+        screen.getByTestId(ChoiceMarketGroupCardTestIds.row('unnamed', row)),
+      ).toHaveTextContent(row, { exact: false });
+    }
   });
 
   it('renders a single unlabelled row as a choice card, not a moneyline', () => {
