@@ -29,11 +29,12 @@ async function main(): Promise<void> {
   console.log(`PR Number: ${prNumber}`);
   console.log(`RC comment: ${commentId}`);
 
-  const { testPlan, error } = readTestPlan(
+  const result = readTestPlan(
     process.env.TEST_PLAN_PATH || 'release-test-plan.json',
     process.env.TEST_PLAN_STATUS,
     buildInfo.semver,
   );
+  const { testPlan, error, cancelled } = result;
 
   if (testPlan) {
     console.log(`Test plan loaded:`);
@@ -41,6 +42,8 @@ async function main(): Promise<void> {
     console.log(`  - High Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'high').length}`);
     console.log(`  - Medium Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'medium').length}`);
     console.log(`  - Teams Signed Off: ${testPlan.signOffs.signedOff.length}/${testPlan.signOffs.signedOff.length + testPlan.signOffs.needsAttention.length}`);
+  } else if (cancelled) {
+    console.log('Test plan generation was cancelled');
   } else if (error) {
     console.error(`Test plan unavailable: ${error}`);
   } else {
@@ -63,8 +66,7 @@ async function main(): Promise<void> {
 
   const body = buildCommentWithTestPlan(
     comment.body,
-    testPlan,
-    error,
+    result,
     buildInfo.pipelineUrl,
   );
 

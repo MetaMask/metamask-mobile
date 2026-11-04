@@ -599,10 +599,11 @@ jobs:
       - validate-and-find-pr
       - post-rc-build-comment
       - generate-rc-test-plan
-    # A failed test plan job still runs this, so the comment gets a failure section instead of
-    # the pending note. A cancelled run (a newer push to the release branch) does not.
+    # Runs even when the test plan job failed or the run was cancelled (usually by a newer push
+    # to the release branch), so the comment never keeps the pending note. Cancellation skips
+    # steps whose condition is the default success(), so every step uses !failure() instead.
     if: >-
-      !cancelled() &&
+      always() &&
       needs.post-rc-build-comment.result == 'success' &&
       needs.post-rc-build-comment.outputs.comment-id != ''
     permissions:
@@ -610,19 +611,22 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+        if: ${{ !failure() }}
         with:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
           fetch-depth: 1
           persist-credentials: false
       - uses: actions/setup-node@v6
+        if: ${{ !failure() }}
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false
       - name: Install dependencies
+        if: ${{ !failure() }}
         run: yarn install --immutable
 
       - name: Download test plan artifact
-        if: needs.generate-rc-test-plan.outputs.status == 'success'
+        if: ${{ !failure() && needs.generate-rc-test-plan.outputs.status == 'success' }}
         continue-on-error: true
         uses: actions/download-artifact@v7
         with:
@@ -630,6 +634,7 @@ jobs:
           path: test-plan-artifact
 
       - name: Add Test Plan to RC Build Comment
+        if: ${{ !failure() }}
         run: node -r esbuild-register scripts/build-announce/add-test-plan.ts
         timeout-minutes: 3
         env:
@@ -639,8 +644,9 @@ jobs:
           SEMVER: ${{ needs.validate-and-find-pr.outputs.semver }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           RC_COMMENT_ID: ${{ needs.post-rc-build-comment.outputs.comment-id }}
-          # Falls back to the job result when the test plan workflow failed before reporting a status.
-          TEST_PLAN_STATUS: ${{ needs.generate-rc-test-plan.outputs.status || needs.generate-rc-test-plan.result }}
+          # A cancelled job can still report a `failure` status, so its result wins. Otherwise falls
+          # back to the result when the test plan workflow failed before reporting a status.
+          TEST_PLAN_STATUS: ${{ needs.generate-rc-test-plan.result == 'cancelled' && 'cancelled' || needs.generate-rc-test-plan.outputs.status || needs.generate-rc-test-plan.result }}
           TEST_PLAN_PATH: test-plan-artifact/release-test-plan.json
 
   slack-notification:

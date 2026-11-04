@@ -208,6 +208,18 @@ export function buildTestPlanSection(testPlan: TestPlanResult): string {
 }
 
 /**
+ * Builds a fallback section when the workflow run was cancelled before the test plan was ready
+ */
+export function buildTestPlanCancelledSection(pipelineUrl?: string): string {
+  const runLink = pipelineUrl ? `[workflow run](${pipelineUrl})` : 'workflow run';
+
+  return `## AI Test Plan
+
+:warning: **Test plan generation was cancelled**, usually by a newer push to the release branch. To add the test plan to this comment, use **Re-run failed jobs** on the ${runLink}.
+`;
+}
+
+/**
  * Builds a fallback section when test plan generation fails
  */
 export function buildTestPlanFailureSection(

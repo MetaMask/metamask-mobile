@@ -101,7 +101,7 @@ describe('removePendingTestPlanSection', () => {
 
 describe('buildCommentWithTestPlan', () => {
   it('replaces the pending block with the test plan', () => {
-    const body = buildCommentWithTestPlan(pendingComment, testPlan, undefined);
+    const body = buildCommentWithTestPlan(pendingComment, { testPlan });
 
     expect(body).toContain('Build links');
     expect(body).toContain('## AI Test Plan');
@@ -112,8 +112,10 @@ describe('buildCommentWithTestPlan', () => {
   it('replaces the pending block with a failure section', () => {
     const body = buildCommentWithTestPlan(
       pendingComment,
-      null,
-      'Test plan generation failed - check logs for details',
+      {
+        testPlan: null,
+        error: 'Test plan generation failed - check logs for details',
+      },
       PIPELINE_URL,
     );
 
@@ -121,8 +123,21 @@ describe('buildCommentWithTestPlan', () => {
     expect(body).not.toContain(TEST_PLAN_PENDING_MARKER);
   });
 
+  it('replaces the pending block with a cancelled section that links to the run', () => {
+    const body = buildCommentWithTestPlan(
+      pendingComment,
+      { testPlan: null, cancelled: true },
+      PIPELINE_URL,
+    );
+
+    expect(body).toContain('Test plan generation was cancelled');
+    expect(body).toContain(`[workflow run](${PIPELINE_URL})`);
+    expect(body).not.toContain(TEST_PLAN_PENDING_MARKER);
+    expect(body).not.toContain('is generating');
+  });
+
   it('removes the pending block when generation was skipped', () => {
-    expect(buildCommentWithTestPlan(pendingComment, null, undefined)).toBe(
+    expect(buildCommentWithTestPlan(pendingComment, { testPlan: null })).toBe(
       'Build links\n',
     );
   });

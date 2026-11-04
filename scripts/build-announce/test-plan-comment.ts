@@ -7,10 +7,11 @@
  */
 
 import {
+  buildTestPlanCancelledSection,
   buildTestPlanFailureSection,
   buildTestPlanSection,
 } from './test-plan-section';
-import type { TestPlanResult } from './types';
+import type { TestPlanReadResult } from './utils';
 
 export const TEST_PLAN_PENDING_MARKER =
   '<!-- metamask-bot-rc-test-plan-pending -->';
@@ -71,16 +72,19 @@ export function removePendingTestPlanSection(body: string): string {
 
 /**
  * Builds the comment body once the test plan job is done.
- * No test plan and no error means generation was skipped (no AI keys).
+ * No test plan, no error and not cancelled means generation was skipped (no AI keys).
  */
 export function buildCommentWithTestPlan(
   body: string,
-  testPlan: TestPlanResult | null,
-  error: string | undefined,
+  { testPlan, error, cancelled }: TestPlanReadResult,
   pipelineUrl?: string,
 ): string {
   if (testPlan) {
     return applyTestPlanSection(body, buildTestPlanSection(testPlan));
+  }
+
+  if (cancelled) {
+    return applyTestPlanSection(body, buildTestPlanCancelledSection(pipelineUrl));
   }
 
   if (error) {
