@@ -6,10 +6,11 @@ import {
   MpcMoneyKeyring as MpcMoneyKeyringV2,
   type MpcMoneyKeyringOptions,
 } from '@metamask/eth-money-mpc-keyring/v2';
+import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
 import {
-  MpcMoneyKeyring as RealMpcMoneyKeyring,
+  getMfaRequirement,
   type MfaWhitelistConfig,
-} from '@metamask/eth-money-mpc-keyring';
+} from '@metamask/money-account-mfa-whitelist';
 import { sha256 } from '@noble/hashes/sha2';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
 
@@ -35,6 +36,7 @@ export const MPC_MFA_WHITELIST_CONFIG: MfaWhitelistConfig = {
     ExactExecutionEnforcer: '0x146713078D39eCC1F5338309c28405ccf85Abfbb',
     LimitedCallsEnforcer: '0x04658B29F6b82ed55274221a06Fc97D318E25416',
     RedeemerEnforcer: '0xE144b0b2618071B4E56f746313528a669c7E65c5',
+    TimestampEnforcer: '0x1046bb45C8d673d4ea75321280DB34899413c069',
     ValueLteEnforcer: '0x92Bf12322527cAA612fd31a0e810472BBB106A8F',
   },
   musdTokenAddress: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
@@ -194,7 +196,12 @@ export function buildRealMpcMoneyKeyringBuilder({
             `mm-mobile-dev-backup:${getProfileId(await getBearerToken())}`,
           ),
         ),
-      getMfaWhitelistConfig: () => Promise.resolve(MPC_MFA_WHITELIST_CONFIG),
+      isMfaRequired: async (request, { address, hash }) =>
+        getMfaRequirement(request, {
+          address,
+          hash,
+          config: MPC_MFA_WHITELIST_CONFIG,
+        }).mfaRequired,
       webSocket: WebSocket,
     });
   };

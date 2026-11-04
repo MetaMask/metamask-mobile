@@ -1,4 +1,5 @@
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
+import { getMfaRequirement } from '@metamask/money-account-mfa-whitelist';
 import { sha256 } from '@noble/hashes/sha2';
 import {
   buildRealMpcMoneyKeyringBuilder,
@@ -11,6 +12,10 @@ jest.mock('@metamask/eth-money-mpc-keyring', () => ({
     jest.fn().mockImplementation((options) => ({ options })),
     { type: 'MPC Money Keyring' },
   ),
+}));
+
+jest.mock('@metamask/money-account-mfa-whitelist', () => ({
+  getMfaRequirement: jest.fn(),
 }));
 
 jest.mock('@metamask/mpc-react-native', () => ({
@@ -137,12 +142,35 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(getTwoFactorApproval).not.toHaveBeenCalled();
   });
 
-  it('pins the Money Account whitelist config', async () => {
+  it('checks signatures against the pinned Money Account whitelist config', async () => {
+    jest
+      .mocked(getMfaRequirement)
+      .mockReturnValue({ mfaRequired: true, reason: 'not whitelisted' });
+    const { options } = buildKeyring();
+    const request = { type: 'personal_message', message: '0x' } as never;
+    const context = { address: '0x1', hash: '0x2' } as const;
+
+    const isRequired = await options.isMfaRequired?.(request, context);
+
+    expect(isRequired).toBe(true);
+    expect(getMfaRequirement).toHaveBeenCalledWith(request, {
+      ...context,
+      config: MPC_MFA_WHITELIST_CONFIG,
+    });
+  });
+
+  it('skips 2FA for whitelisted signatures', async () => {
+    jest
+      .mocked(getMfaRequirement)
+      .mockReturnValue({ mfaRequired: false, rule: 'deposit' } as never);
     const { options } = buildKeyring();
 
-    expect(await options.getMfaWhitelistConfig?.()).toBe(
-      MPC_MFA_WHITELIST_CONFIG,
-    );
+    expect(
+      await options.isMfaRequired?.({} as never, {
+        address: '0x1',
+        hash: '0x2',
+      }),
+    ).toBe(false);
   });
 
   it('derives a 32-byte backup key from the profile id', async () => {
