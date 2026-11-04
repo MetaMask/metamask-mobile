@@ -5,6 +5,7 @@ import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
 
 import Engine from '../../../../../core/Engine';
+import EngineService from '../../../../../core/EngineService';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
@@ -34,6 +35,11 @@ jest.mock('../../../../../core/Engine', () => ({
       setTransactionConfig: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../../core/EngineService', () => ({
+  __esModule: true,
+  default: { flushState: jest.fn() },
 }));
 
 jest.mock('../AccountSelector', () => {
@@ -108,6 +114,7 @@ const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
 );
+const flushStateMock = jest.mocked(EngineService.flushState);
 
 function render() {
   return renderWithProvider(<PayAccountSelector />, {
@@ -261,6 +268,19 @@ describe('PayAccountSelector', () => {
     expect(config.accountOverride).toBe('0xSelectedAddress');
   });
 
+  it('flushes engine state after saving the selected account', async () => {
+    const { getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    expect(flushStateMock).toHaveBeenCalledTimes(1);
+    expect(flushStateMock.mock.invocationCallOrder[0]).toBeGreaterThan(
+      setTransactionConfigMock.mock.invocationCallOrder[0],
+    );
+  });
+
   it('sets accountOverride for withdraw transactions', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'mock-tx-id',
@@ -336,6 +356,7 @@ describe('PayAccountSelector', () => {
 
     expect(setTransactionConfigMock).not.toHaveBeenCalled();
     expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+    expect(flushStateMock).not.toHaveBeenCalled();
   });
 
   it('rewrites nested transactions using existing accountOverride as the old address', async () => {

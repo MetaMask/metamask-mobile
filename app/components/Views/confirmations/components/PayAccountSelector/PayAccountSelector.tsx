@@ -10,6 +10,7 @@ import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import EngineService from '../../../../../core/EngineService';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { isHardwareAccount } from '../../../../../util/address';
 import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
@@ -94,6 +95,8 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
           config.accountOverride = address as Hex;
         },
       );
+
+      EngineService.flushState();
     },
     [accountOverride, isMoneyAccountWithdraw, transactionId, transactionMeta],
   );
