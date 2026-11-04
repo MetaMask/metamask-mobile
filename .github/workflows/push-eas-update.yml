@@ -108,29 +108,18 @@ jobs:
           .github/scripts/validate-pr-commit.sh
 
   verify-release-branch:
-    name: Verify release branch (production only)
+    name: Verify release branch
     runs-on: ubuntu-latest
     steps:
-      - name: Enforce release branch for production channel
+      - name: Enforce release branch
         env:
           PR_NUMBER: ${{ inputs.pr_number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          TARGET_CHANNEL: ${{ inputs.channel }}
         run: |
           set -euo pipefail
 
-          if [ "${TARGET_CHANNEL}" != "production" ]; then
-            echo "ℹ️  Channel is '${TARGET_CHANNEL}' — release branch check skipped."
-            {
-              echo "### ℹ️ Release branch check skipped"
-              echo ""
-              echo "Channel \`${TARGET_CHANNEL}\` does not require a release branch."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          echo "🔒 Production channel selected — verifying PR head branch..."
+          echo "🔒 Verifying PR head branch is a release branch..."
 
           OWNER="${GITHUB_REPOSITORY%%/*}"
           REPO="${GITHUB_REPOSITORY#*/}"
@@ -149,9 +138,9 @@ jobs:
 
           if [[ "$head_ref" != release/* ]]; then
             {
-              echo "### ❌ Production OTA push rejected"
+              echo "### ❌ OTA push rejected"
               echo ""
-              echo "Production channel pushes are only allowed from a release branch PR."
+              echo "OTA pushes are only allowed from a release branch PR."
               echo ""
               echo "| Field | Value |"
               echo "| --- | --- |"
@@ -161,7 +150,7 @@ jobs:
               echo ""
               echo "Re-run this workflow against a PR whose head branch is a release branch (for example \`release/7.78.0\`)."
             } >> "$GITHUB_STEP_SUMMARY"
-            echo "::error title=Invalid branch for production OTA::PR #${PR_NUMBER} head branch is '${head_ref}' but must match 'release/*'"
+            echo "::error title=Invalid branch for OTA::PR #${PR_NUMBER} head branch is '${head_ref}' but must match 'release/*'"
             exit 1
           fi
 
@@ -232,11 +221,10 @@ jobs:
       secrets_json: ${{ steps.config.outputs.secrets_json }}
       build_name: ${{ steps.config.outputs.build_name }}
     steps:
-      - name: Checkout base ref for build config
+      - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          # Read builds.yml from the operator-selected base ref, not the PR commit.
-          ref: ${{ env.BASE_BRANCH_REF }}
+          ref: ${{ needs.validate-pr.outputs.commit_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -251,16 +239,27 @@ jobs:
         env:
           CHANNEL: ${{ inputs.channel }}
         run: |
+          # Environment is pinned per channel. builds.yml still supplies the secret mapping.
           case "${CHANNEL}" in
-            exp)        BUILD_NAME="main-exp" ;;
-            rc)         BUILD_NAME="main-rc" ;;
-            production) BUILD_NAME="main-prod" ;;
+            exp)
+              BUILD_NAME="main-exp"
+              ENVIRONMENT_NAME="build-exp"
+              ;;
+            rc)
+              BUILD_NAME="main-rc"
+              ENVIRONMENT_NAME="build-rc"
+              ;;
+            production)
+              BUILD_NAME="main-prod"
+              ENVIRONMENT_NAME="build-production"
+              ;;
             *)
               echo "::error::Unknown channel: ${CHANNEL}"
               exit 1
               ;;
           esac
           echo "build_name=$BUILD_NAME" >> "$GITHUB_OUTPUT"
+          echo "github_environment=$ENVIRONMENT_NAME" >> "$GITHUB_OUTPUT"
 
           node -e "
           const yaml = require('js-yaml');
@@ -268,7 +267,6 @@ jobs:
           const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
           const build = config.builds['${BUILD_NAME}'];
           if (!build) { console.error('Build not found: ${BUILD_NAME}'); process.exit(1); }
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           "
 
@@ -471,7 +469,6 @@ jobs:
       build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
-      trusted_ref: ${{ inputs.base_branch }}
     secrets: inherit
 
   push-update-android:
@@ -480,6 +477,7 @@ jobs:
       - fingerprint-comparison
       - approval
       - validate-pr
+      - verify-release-branch
       - setup-dependencies
       - prepare
     # approval is intentionally skipped for non-production channels, so the default implicit
@@ -488,6 +486,7 @@ jobs:
       always() && !cancelled() &&
       needs.fingerprint-comparison.result == 'success' &&
       needs.validate-pr.result == 'success' &&
+      needs.verify-release-branch.result == 'success' &&
       needs.setup-dependencies.result == 'success' &&
       needs.prepare.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
@@ -507,7 +506,6 @@ jobs:
       build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
-      trusted_ref: ${{ inputs.base_branch }}
     secrets: inherit
 
   fingerprint-mismatch:

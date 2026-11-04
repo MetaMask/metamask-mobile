@@ -40,11 +40,7 @@ on:
         type: string
         required: true
       secrets_json:
-        description: 'JSON mapping of secret aliases from the trusted base ref builds.yml'
-        type: string
-        required: true
-      trusted_ref:
-        description: 'Ref that owns the secret-mapping script. The pull-request checkout must not receive the secrets blob.'
+        description: 'JSON mapping of secret aliases from builds.yml'
         type: string
         required: true
       runner_provider:
@@ -140,18 +136,11 @@ jobs:
           eval "$(node scripts/apply-build-config.js "$BUILD_NAME" --export)"
           node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
 
-      - name: Checkout trusted secret helper
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trusted_ref }}
-          path: trusted-ci
-          fetch-depth: 1
-
-      - name: Set secrets from trusted mapping
+      - name: Set secrets from builds.yml mapping
         env:
           CONFIG_SECRETS: ${{ inputs.secrets_json }}
           ALL_SECRETS: ${{ toJSON(secrets) }}
-        run: node trusted-ci/scripts/set-secrets-from-config.js
+        run: node scripts/set-secrets-from-config.js
 
       - name: Determine signing secret name
         shell: bash
