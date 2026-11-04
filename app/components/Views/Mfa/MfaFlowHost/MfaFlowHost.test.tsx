@@ -95,7 +95,7 @@ const start = async (
   controller: MfaControllerAdapter,
   passkey?: MfaFlowOptions['passkey'],
   reason: MfaReason = {
-    operation: 'test',
+    operation: 'qa.test',
     enrollDescription: 'Why we ask',
   },
 ) => {
@@ -136,7 +136,7 @@ describe('MfaFlowHost', () => {
         { kind: 'enroll', method: 'email_otp' },
         createController(),
         undefined,
-        { operation: 'test', presentation },
+        { operation: 'qa.test', presentation },
       );
 
       const { getByTestId, unmount } = renderHost();

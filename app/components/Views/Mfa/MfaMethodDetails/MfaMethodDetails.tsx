@@ -39,7 +39,10 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedles
 import { useTheme } from '../../../../util/theme';
 import { useMfa } from '../../../../util/identity/mfa';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
-import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../../util/identity/mfa/engine/types';
 import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCredential';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import {
@@ -68,7 +71,7 @@ const COPY: Record<
     lastTitle: string;
     lastDescription: string;
     removed: string;
-    operation: string;
+    operation: MfaReason['operation'];
   }
 > = {
   passkey: {
