@@ -37,11 +37,7 @@ const styleSheet = (params: {
     assistive: {
       color: params.theme.colors.text.muted,
     },
-    cursor: {
-      width: 1,
-      backgroundColor: params.theme.colors.text.muted,
-      ...getAmountCursorStyle(fontSize),
-    },
+    cursor: getAmountCursorStyle(fontSize, params.theme.colors.text.muted),
     alertMessage: {
       textAlign: 'center',
       marginTop: 16,

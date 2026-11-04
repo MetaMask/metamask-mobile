@@ -53,9 +53,7 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
   const cursorStyle = {
     flexShrink: 0,
     marginHorizontal: 0,
-    width: 1,
-    backgroundColor: colors.text.muted,
-    ...getAmountCursorStyle(amountFontSize),
+    ...getAmountCursorStyle(amountFontSize, colors.text.muted),
   };
 
   return (

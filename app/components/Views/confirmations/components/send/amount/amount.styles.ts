@@ -40,9 +40,7 @@ export const styleSheet = (params: {
     },
     cursor: {
       marginHorizontal: 0,
-      width: 1,
-      backgroundColor: theme.colors.text.muted,
-      ...getAmountCursorStyle(inputFontSize),
+      ...getAmountCursorStyle(inputFontSize, theme.colors.text.muted),
     },
     inputWrapper: {
       alignItems: 'center',

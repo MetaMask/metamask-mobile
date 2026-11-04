@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 
+import { mockTheme } from '../../../util/theme';
 import { getAmountCursorStyle } from './getAmountCursorStyle';
 
 describe('getAmountCursorStyle', () => {
@@ -11,9 +12,13 @@ describe('getAmountCursorStyle', () => {
     (os, expectedTranslateY) => {
       jest.replaceProperty(Platform, 'OS', os);
 
-      const style = getAmountCursorStyle(88);
+      const color = mockTheme.colors.text.muted;
+
+      const style = getAmountCursorStyle(88, color);
 
       expect(style).toEqual({
+        width: 1,
+        backgroundColor: color,
         height: 84,
         transform: [{ translateY: expectedTranslateY }],
       });

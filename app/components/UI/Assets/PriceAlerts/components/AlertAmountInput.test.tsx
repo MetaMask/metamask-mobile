@@ -58,10 +58,8 @@ describe('AlertAmountInput', () => {
     const fontSize = getFontSizeForInputLength(2 + 2);
 
     expect(getByTestId(getAlertAmountCursorTestId(TEST_ID))).toHaveStyle({
-      backgroundColor: mockTheme.colors.text.muted,
       marginHorizontal: 0,
-      width: 1,
-      ...getAmountCursorStyle(fontSize),
+      ...getAmountCursorStyle(fontSize, mockTheme.colors.text.muted),
     });
     expect(StyleSheet.flatten(getByText('4').props.style)).toMatchObject({
       fontSize,
