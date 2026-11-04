@@ -33,6 +33,7 @@ export function getCardControllerMessenger(
       'AuthenticationController:getBearerToken',
       'AuthenticationController:refreshCanonicalProfileId',
       'RemoteFeatureFlagController:getState',
+      'KeyringController:getState',
       'KeyringController:signPersonalMessage',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
