@@ -35,6 +35,8 @@ const makeUnresolvedSellReceipt = (status: string) =>
     netProceeds: null,
   });
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
+import type { PredictOrderService } from '../../services/PredictOrderService';
 import { PredictOrderFlowTestIds } from './internal/PredictOrderFlow.testIds';
 import {
   usePredictOrderFlow,
@@ -273,6 +275,10 @@ describe('PredictOrderFlow', () => {
   });
 
   afterEach(() => {
+    // Background observation must not outlive its test.
+    (
+      Engine.context as unknown as { PredictOrderService: PredictOrderService }
+    ).PredictOrderService.destroy();
     jest.restoreAllMocks();
   });
 
@@ -971,6 +977,147 @@ describe('PredictOrderFlow', () => {
     await waitFor(() => expect(commitCalls()).toHaveLength(2));
     expect(commitCalls()[0]?.body).toEqual(commitCalls()[1]?.body);
   }, 30000);
+
+  describe('Active Venue change', () => {
+    const engine = Engine as unknown as { state: Record<string, unknown> };
+    let originalEngineState: Record<string, unknown>;
+    beforeEach(() => {
+      originalEngineState = engine.state;
+    });
+    afterEach(() => {
+      engine.state = originalEngineState;
+    });
+
+    /** A rollout change that turns Kalshi off: Polymarket becomes active
+     * while this sheet, mounted outside the implementation switch, stays. */
+    const moveActiveVenueToPolymarket = (
+      view: ReturnType<typeof renderProbe>,
+    ) =>
+      act(() => {
+        const current = view.store.getState().engine.backgroundState
+          .RemoteFeatureFlagController as Record<string, unknown>;
+        engine.state = {
+          ...engine.state,
+          RemoteFeatureFlagController: {
+            ...current,
+            remoteFeatureFlags: {
+              ...(current.remoteFeatureFlags as Record<string, unknown>),
+              predictConfig: {
+                enabled: true,
+                venues: {
+                  polymarket: { enabled: true },
+                  kalshi: { enabled: false },
+                },
+                venueSelection: { enabled: false },
+              },
+            },
+          },
+        };
+        view.store.dispatch(
+          updateBgState({ key: 'RemoteFeatureFlagController' }),
+        );
+      });
+
+    it('drops an uncommitted quote and disables every action except closing', async () => {
+      stubFetch(() => ({ body: makePreview() }));
+      const view = renderProbe();
+      fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+      await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+      typeAmount('20');
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+
+      moveActiveVenueToPolymarket(view);
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.VENUE_CHANGED),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.APPROVAL),
+      ).not.toBeOnTheScreen();
+      // The amount can no longer be edited, so nothing re-quotes the stale
+      // intent, and nothing was committed.
+      const quotes = previewCalls().length;
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.KEYPAD),
+      ).not.toBeOnTheScreen();
+      await flushDebounce();
+      expect(previewCalls()).toHaveLength(quotes);
+      expect(commitCalls()).toHaveLength(0);
+    });
+
+    it('drops an approval that was never committed', async () => {
+      stubFetch(() => ({ body: makePreview() }));
+      const view = renderProbe();
+      fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+      await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+      typeAmount('20');
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      await screen.findByTestId(PredictOrderFlowTestIds.APPROVAL);
+
+      moveActiveVenueToPolymarket(view);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.APPROVE),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.VENUE_CHANGED),
+      ).toBeOnTheScreen();
+      expect(commitCalls()).toHaveLength(0);
+    });
+
+    it('keeps showing a committed operation but never re-approves it from a stale sheet', async () => {
+      stubFetch(() => ({ body: makePreview() }), {
+        commit: () => ({ status: 502, body: {} }),
+      });
+      const view = await (async () => {
+        const rendered = renderProbe();
+        fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+        await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+        typeAmount('20');
+        await flushDebounce();
+        await waitFor(() =>
+          expect(
+            screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+          ).toBeEnabled(),
+        );
+        fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+        fireEvent.press(
+          await screen.findByTestId(PredictOrderFlowTestIds.APPROVE),
+        );
+        return rendered;
+      })();
+      // The response was lost: the Commit is ambiguous.
+      await screen.findByTestId(PredictOrderFlowTestIds.ERROR);
+      expect(commitCalls()).toHaveLength(1);
+
+      moveActiveVenueToPolymarket(view);
+
+      // Still shown, never cancelled, but the stale sheet cannot re-POST it.
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.APPROVAL),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+      ).toBeDisabled();
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+      await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+      expect(commitCalls()).toHaveLength(1);
+    });
+  });
 
   it('keeps the original previewId after a failed commit even when the quote later expires', async () => {
     stubFetch(

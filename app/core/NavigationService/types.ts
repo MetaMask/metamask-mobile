@@ -171,11 +171,7 @@ import type {
 import type { SendStackParamList } from '../../components/Views/confirmations/components/send/types/navigation';
 
 // Predict params
-import type {
-  PredictStackParamList,
-  PredictModalsNavigationParamList,
-  PredictNavigationParamList,
-} from '../../components/UI/Predict/types/navigation';
+import type { PredictAppRouteParamList } from '../../components/UI/PredictNext';
 
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
@@ -1012,21 +1008,19 @@ export type RootStackParamList = {
   PerpsPriceAlerts: PerpsStackParamList['PerpsPriceAlerts'];
   PerpsCreatePriceAlert: PerpsStackParamList['PerpsCreatePriceAlert'];
 
-  // Predict routes — `Predict` is a nested stack navigator.
-  Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
-  PredictMarketList: PredictNavigationParamList['PredictMarketList'];
-  PredictFeed: PredictNavigationParamList['PredictFeed'];
-  PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
-  PredictPositions: PredictNavigationParamList['PredictPositions'];
-  PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
-  PredictModals:
-    | NavigatorScreenParams<PredictModalsNavigationParamList>
-    | undefined;
-  PredictBuyPreview: PredictNavigationParamList['PredictBuyPreview'];
-  PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
-  PredictUnavailable: undefined;
-  PredictMarketUnavailable: undefined;
-  PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
+  // Predict routes, owned by PredictNext — `Predict` is a nested stack navigator.
+  Predict: PredictAppRouteParamList['Predict'];
+  PredictMarketList: PredictAppRouteParamList['PredictMarketList'];
+  PredictFeed: PredictAppRouteParamList['PredictFeed'];
+  PredictMarketDetails: PredictAppRouteParamList['PredictMarketDetails'];
+  PredictPositions: PredictAppRouteParamList['PredictPositions'];
+  PredictActivityDetail: PredictAppRouteParamList['PredictActivityDetail'];
+  PredictModals: PredictAppRouteParamList['PredictModals'];
+  PredictBuyPreview: PredictAppRouteParamList['PredictBuyPreview'];
+  PredictSellPreview: PredictAppRouteParamList['PredictSellPreview'];
+  PredictUnavailable: PredictAppRouteParamList['PredictUnavailable'];
+  PredictMarketUnavailable: PredictAppRouteParamList['PredictMarketUnavailable'];
+  PredictAddFundsSheet: PredictAppRouteParamList['PredictAddFundsSheet'];
 
   // Social Leaderboard routes
   SocialV0View:

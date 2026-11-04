@@ -7,6 +7,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
   Text,
@@ -32,6 +34,7 @@ import {
   type PredictVenueCapabilities,
 } from '../../capabilities';
 import { useNextVenueId } from '../../implementation';
+import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
@@ -200,20 +203,24 @@ const PredictHomeView = ({
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
-        endButtonIconProps={
-          isVenueSearchSupported(capabilities)
-            ? [
-                {
-                  iconName: IconName.Search,
-                  onPress: openSearch,
-                  testID: PredictHomeTestIds.SEARCH,
-                  accessibilityLabel: strings(
-                    'predict_next.search.placeholder',
-                  ),
-                  accessibilityRole: 'button',
-                },
-              ]
-            : undefined
+        endAccessory={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            <PredictVenueSelectorButton variant="standard" />
+            {isVenueSearchSupported(capabilities) ? (
+              <ButtonIcon
+                size={ButtonIconSize.Md}
+                iconName={IconName.Search}
+                onPress={openSearch}
+                testID={PredictHomeTestIds.SEARCH}
+                accessibilityLabel={strings('predict_next.search.placeholder')}
+                accessibilityRole="button"
+              />
+            ) : null}
+          </Box>
         }
         {...(navigation.canGoBack()
           ? {

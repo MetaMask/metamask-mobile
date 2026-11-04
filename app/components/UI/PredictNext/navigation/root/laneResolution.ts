@@ -1,8 +1,11 @@
 import type { PredictConfiguredVenue } from '../../implementation';
-import type {
-  PredictMarketListRouteParams,
-  PredictStackParamList,
-} from '../../../Predict/types/navigation';
+import type { PredictMarketListRouteParams } from '../../../Predict/types/navigation';
+import type { PredictRootScreenParamList } from '../appRoutes';
+import { PredictNextRoutes } from '../routes';
+
+const PREDICT_NEXT_SCREENS: ReadonlySet<string> = new Set(
+  Object.values(PredictNextRoutes),
+);
 
 export const hasLegacyMarketListParams = (
   params?: PredictMarketListRouteParams,
@@ -21,18 +24,21 @@ export const resolvePinnedMarketListVenue = (
 
 /**
  * Venue that a legacy root entry point stays on regardless of the Active
- * Venue: specific child routes and parameterized market lists. PRED-1379
- * removes this pinning.
+ * Venue: specific legacy child routes and parameterized market lists.
+ * PredictNext routes, which intents open for the Active Venue, are never
+ * pinned. PRED-1379 removes this pinning.
  */
 export const resolvePinnedVenue = (route?: {
-  screen?: keyof PredictStackParamList;
-  params?: PredictMarketListRouteParams;
+  screen?: keyof PredictRootScreenParamList;
+  params?: object;
 }): PredictConfiguredVenue | undefined => {
-  if (!route?.screen) {
+  if (!route?.screen || PREDICT_NEXT_SCREENS.has(route.screen)) {
     return undefined;
   }
   if (route.screen !== 'PredictMarketList') {
     return 'polymarket';
   }
-  return resolvePinnedMarketListVenue(route.params);
+  return resolvePinnedMarketListVenue(
+    route.params as PredictMarketListRouteParams | undefined,
+  );
 };

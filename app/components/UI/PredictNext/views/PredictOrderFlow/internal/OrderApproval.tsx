@@ -27,6 +27,8 @@ interface OrderApprovalProps {
   display?: InvariantDisplay;
   /** Whether the Preview can no longer be committed, locally or at the venue. */
   isExpired: boolean;
+  /** The sheet is stale: no approval, refresh or edit may run. */
+  isDisabled?: boolean;
   onApprove: () => void;
   onBack: () => void;
   onRefresh: () => void;
@@ -43,6 +45,7 @@ export const OrderApproval = ({
   preview,
   display,
   isExpired,
+  isDisabled = false,
   onApprove,
   onBack,
   onRefresh,
@@ -78,6 +81,7 @@ export const OrderApproval = ({
           size={ButtonSize.Lg}
           isFullWidth
           onPress={onRefresh}
+          isDisabled={isDisabled}
           testID={PredictOrderFlowTestIds.REFRESH}
         >
           {strings('predict_next.order_preview.refresh')}
@@ -90,6 +94,7 @@ export const OrderApproval = ({
           size={ButtonSize.Lg}
           isFullWidth
           onPress={onApprove}
+          isDisabled={isDisabled}
           testID={PredictOrderFlowTestIds.APPROVE}
         >
           {strings('predict_next.order_approval.approve')}
@@ -99,6 +104,7 @@ export const OrderApproval = ({
           size={ButtonSize.Lg}
           isFullWidth
           onPress={onBack}
+          isDisabled={isDisabled}
           testID={PredictOrderFlowTestIds.BACK}
         >
           {strings('predict_next.order_approval.edit_order')}

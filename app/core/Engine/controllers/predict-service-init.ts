@@ -25,6 +25,8 @@ import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-
 import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
 import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
 import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
+import { subscribeToActiveVenueChanges } from '../../../components/UI/PredictNext/implementation/subscribeToActiveVenueChanges';
+import { store } from '../../../store';
 import type { MessengerClientInitFunction } from '../types';
 
 export const predictMarketDataServiceInit: MessengerClientInitFunction<
@@ -107,7 +109,7 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
   PredictOrderService,
   PredictOrderServiceMessenger,
   PredictOrderServiceInitMessenger
-> = ({ controllerMessenger, initMessenger }) => {
+> = ({ controllerMessenger, initMessenger, getState }) => {
   // Trading-capable composition lives here, at the Engine composition root —
   // product modules never import concrete adapters (see venue-adapters.md).
   // Quote and Commit requests are single-flight workflow calls that must
@@ -129,11 +131,18 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
         initMessenger.call('PredictDeviceAuthService:clear'),
     }),
   );
-  return {
-    controller: new PredictOrderService({
-      messenger: controllerMessenger,
-      trading: adapter.trading,
-      venueId: adapter.venueId,
-    }),
-  };
+  const controller = new PredictOrderService({
+    messenger: controllerMessenger,
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+  // An Active Venue change cancels every Preview that has not crossed the
+  // submission boundary. It is watched here, not on a screen, so it applies
+  // whether or not the Order sheet is mounted; committed operations keep
+  // being observed.
+  subscribeToActiveVenueChanges(
+    { getState, subscribe: (listener) => store.subscribe(listener) },
+    () => controller.cancelUncommittedPreviews(),
+  );
+  return { controller };
 };

@@ -3,7 +3,8 @@ import { render, act } from '@testing-library/react-native';
 import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyNextBestActionParallax from './MoneyNextBestActionParallax';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
-import { useReduceMotion } from '../../hooks/useReduceMotion';
+import { useReduceMotionState } from '../../hooks/useReduceMotion';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import {
   PARALLAX_REST_VALUE,
@@ -28,11 +29,24 @@ const mockNumberProperty = jest.fn((path: string) => ({
   set: (value: number) => mockSetNumber(path, value),
 }));
 let mockInstanceReady = true;
+let mockViewReady = true;
+const mockRiveViewRefValue = { playIfNeeded: jest.fn() };
+const mockSetHybridRef = { f: jest.fn() };
+let mockRiveFileResult: {
+  riveFile: unknown;
+  isLoading: boolean;
+  error: Error | null;
+} = {
+  riveFile: { id: 'mock-rive-file' },
+  isLoading: false,
+  error: null,
+};
 const mockRiveViewProps: {
   current?: {
     testID?: string;
     artboardName?: string;
     onError?: (error: RiveError) => void;
+    hybridRef?: { f: (ref: unknown) => void };
   };
 } = {};
 const mockMountCount = { current: 0 };
@@ -44,10 +58,15 @@ jest.mock('@rive-app/react-native', () => {
     testID?: string;
     artboardName?: string;
     onError?: (error: RiveError) => void;
+    hybridRef?: { f: (ref: unknown) => void };
   }) => {
     ReactActual.useEffect(() => {
       mockMountCount.current += 1;
     }, []);
+    // Stand-in for the native view handing back its ref on mount.
+    ReactActual.useEffect(() => {
+      props.hybridRef?.f(mockRiveViewRefValue);
+    }, [props.hybridRef]);
     // Captured in a per-render effect (not during render) to keep the
     // react-compiler happy about external writes.
     ReactActual.useEffect(() => {
@@ -58,6 +77,12 @@ jest.mock('@rive-app/react-native', () => {
   return {
     __esModule: true,
     ...actual,
+    useRiveFile: () => mockRiveFileResult,
+    useRive: () => ({
+      riveRef: { current: null },
+      riveViewRef: mockViewReady ? mockRiveViewRefValue : undefined,
+      setHybridRef: mockSetHybridRef,
+    }),
     useViewModelInstance: () => ({
       instance: mockInstanceReady
         ? { numberProperty: mockNumberProperty }
@@ -75,14 +100,19 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../hooks/useReduceMotion', () => ({
-  useReduceMotion: jest.fn(),
+  useReduceMotionState: jest.fn(),
+}));
+
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(),
 }));
 
 jest.mock('../../hooks/useDeviceOrientation', () => ({
   useDeviceOrientation: jest.fn(),
 }));
 
-const mockUseReduceMotion = useReduceMotion as jest.Mock;
+const mockUseReduceMotionState = useReduceMotionState as jest.Mock;
+const mockGetHardwareTier = getHardwareTier as jest.Mock;
 const mockUseDeviceOrientation = useDeviceOrientation as jest.Mock;
 
 const registeredApplyTilt = (): ((x: number, y: number, hz: number) => void) =>
@@ -118,17 +148,28 @@ const expectSettledNear = (path: string, expected: number): void => {
 };
 
 describe('MoneyNextBestActionParallax', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     __resetRiveMocks();
     mockRiveViewProps.current = undefined;
     mockMountCount.current = 0;
     mockInstanceReady = true;
+    mockViewReady = true;
+    mockRiveFileResult = {
+      riveFile: { id: 'mock-rive-file' },
+      isLoading: false,
+      error: null,
+    };
     mockNumberProperty.mockImplementation((path: string) => ({
       set: (value: number) => mockSetNumber(path, value),
     }));
     mockUseSelector.mockReturnValue(true);
-    mockUseReduceMotion.mockReturnValue(false);
+    mockUseReduceMotionState.mockReturnValue(false);
+    mockGetHardwareTier.mockReturnValue('HIGH');
   });
 
   it('renders the Rive animation when enabled and reduce motion is off', () => {
@@ -145,6 +186,241 @@ describe('MoneyNextBestActionParallax', () => {
     expect(
       queryByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
     ).toBeNull();
+  });
+
+  it('withholds the card until the native Rive view is ready', () => {
+    mockViewReady = false;
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).toHaveStyle({ opacity: 0 });
+    expect(
+      queryByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeNull();
+  });
+
+  it('reveals the card once the native view becomes ready', () => {
+    mockViewReady = false;
+
+    const { getByTestId, rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).toHaveStyle({ opacity: 0 });
+
+    mockViewReady = true;
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).not.toHaveStyle({ opacity: 0 });
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.RIVE),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.BACKGROUND),
+    ).toBeOnTheScreen();
+  });
+
+  it('wires the Rive view to the hook that reports readiness', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(mockSetHybridRef.f).toHaveBeenCalledWith(mockRiveViewRefValue);
+  });
+
+  it('does not fall back to the static image once the card is ready', () => {
+    jest.useFakeTimers();
+    mockViewReady = false;
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    mockViewReady = true;
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.RIVE),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeNull();
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).not.toHaveStyle({ opacity: 0 });
+  });
+
+  it('withholds the card again when the artboard changes', () => {
+    const { getByTestId, rerender } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).not.toHaveStyle({ opacity: 0 });
+
+    mockViewReady = false;
+    rerender(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 2"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).toHaveStyle({ opacity: 0 });
+  });
+
+  it('withholds the card while the Rive file is loading', () => {
+    mockRiveFileResult = { riveFile: undefined, isLoading: true, error: null };
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).toHaveStyle({ opacity: 0 });
+    expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
+    expect(
+      queryByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeNull();
+  });
+
+  it('withholds the card while reduce motion is unresolved', () => {
+    mockUseReduceMotionState.mockReturnValue(null);
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
+    expect(
+      queryByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeNull();
+  });
+
+  it('renders the fallback image when the Rive file fails to load', () => {
+    mockRiveFileResult = {
+      riveFile: null,
+      isLoading: false,
+      error: new Error('boom'),
+    };
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
+  });
+
+  it('falls back to the static image when the native view never resolves', () => {
+    jest.useFakeTimers();
+    mockViewReady = false;
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
+  });
+
+  it('renders the fallback image on a LOW hardware tier', () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
+  });
+
+  it('renders the Rive animation when the hardware tier is unknown', () => {
+    mockGetHardwareTier.mockReturnValue(null);
+
+    const { getByTestId } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.RIVE),
+    ).toBeOnTheScreen();
   });
 
   it('renders the gradient background behind the Rive when animating', () => {
@@ -172,7 +448,7 @@ describe('MoneyNextBestActionParallax', () => {
   });
 
   it('does not render the gradient background behind the fallback image', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+    mockUseReduceMotionState.mockReturnValue(true);
 
     const { queryByTestId } = render(
       <MoneyNextBestActionParallax
@@ -203,7 +479,7 @@ describe('MoneyNextBestActionParallax', () => {
   });
 
   it('renders the fallback image (with the provided source) when reduce motion is enabled', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+    mockUseReduceMotionState.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(
       <MoneyNextBestActionParallax
@@ -235,7 +511,7 @@ describe('MoneyNextBestActionParallax', () => {
   });
 
   it('disables the device tilt callback when not animating', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+    mockUseReduceMotionState.mockReturnValue(true);
 
     render(
       <MoneyNextBestActionParallax
@@ -426,14 +702,14 @@ describe('MoneyNextBestActionParallax', () => {
     );
 
     holdTilt(1, 0);
-    mockUseReduceMotion.mockReturnValue(true);
+    mockUseReduceMotionState.mockReturnValue(true);
     rerender(
       <MoneyNextBestActionParallax
         artboardName="Parallax Block 1"
         fallbackImage={fallbackImage}
       />,
     );
-    mockUseReduceMotion.mockReturnValue(false);
+    mockUseReduceMotionState.mockReturnValue(false);
     rerender(
       <MoneyNextBestActionParallax
         artboardName="Parallax Block 1"

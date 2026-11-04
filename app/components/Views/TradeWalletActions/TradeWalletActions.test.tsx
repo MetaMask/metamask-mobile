@@ -389,25 +389,30 @@ jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
 }));
 
+// AppConstants is a default export, so the override must keep the module's
+// default; spreading the module itself hides every real constant.
 jest.mock('../../../core/AppConstants', () => {
-  const actual = jest.requireActual('../../../core/AppConstants');
+  const actual = jest.requireActual('../../../core/AppConstants').default;
 
   return {
-    ...actual,
-    SWAPS: {
-      ACTIVE: true,
-    },
-    BUNDLE_IDS: {
-      ANDROID: 'io.metamask',
-      IOS: '1438144202',
-    },
-    MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
-    WALLET_CONNECT: {
-      PROJECT_ID: 'test-project-id',
-    },
-    BRIDGE: {
-      ACTIVE: true,
-      URL: 'https://bridge.metamask.io',
+    __esModule: true,
+    default: {
+      ...actual,
+      SWAPS: {
+        ACTIVE: true,
+      },
+      BUNDLE_IDS: {
+        ANDROID: 'io.metamask',
+        IOS: '1438144202',
+      },
+      MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+      WALLET_CONNECT: {
+        PROJECT_ID: 'test-project-id',
+      },
+      BRIDGE: {
+        ACTIVE: true,
+        URL: 'https://bridge.metamask.io',
+      },
     },
   };
 });
