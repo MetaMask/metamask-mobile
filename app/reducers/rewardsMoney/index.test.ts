@@ -367,6 +367,7 @@ describe('rewardsMoneyReducer', () => {
             summaryKey: 'stale',
           },
         },
+        commissionMechanisms: {},
       };
 
       const state = rewardsMoneyReducer(initialState, {
