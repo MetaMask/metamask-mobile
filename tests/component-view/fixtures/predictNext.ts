@@ -595,10 +595,11 @@ export interface PredictNextPositionsPageFixture {
  * trading adapter is bound to the stubbed transport and the bearer-token
  * provider resolves through the mocked Engine context.
  */
-export const composePredictNextOrderService = (): PredictOrderService => {
-  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+export const composePredictNextOrderService = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
-  });
+  }),
+): PredictOrderService => {
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
