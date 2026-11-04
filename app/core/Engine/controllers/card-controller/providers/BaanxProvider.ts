@@ -2030,7 +2030,7 @@ export class BaanxProvider implements ICardProvider {
     return {
       eligible:
         card.status === CardStatus.ACTIVE &&
-        location === 'us' &&
+        location.toLowerCase() === 'us' &&
         isAccountEligibleForProvisioning(user.createdAt),
       cardholderName: buildBaanxCardholderName(user),
       lastFour: card.lastFour,

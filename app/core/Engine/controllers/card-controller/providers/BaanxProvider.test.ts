@@ -2132,6 +2132,33 @@ describe('BaanxProvider push provisioning', () => {
     });
   });
 
+  it('treats an uppercase US location as eligible for wallet provisioning', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+          lastName: 'Doe',
+          createdAt: '2025-12-01T00:00:00.000Z',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve(activeCard);
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', {
+      ...tokens,
+      location: 'US',
+    });
+
+    expect(data.walletProvisioning?.eligible).toBe(true);
+  });
+
   it('marks an active international card ineligible for wallet provisioning', async () => {
     const get = jest.fn().mockImplementation((path: string) => {
       if (path === '/v1/user') {
