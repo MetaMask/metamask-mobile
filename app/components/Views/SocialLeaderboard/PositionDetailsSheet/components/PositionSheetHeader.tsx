@@ -38,7 +38,10 @@ const PositionSheetHeader = ({
 }: PositionSheetHeaderProps) => {
   const tw = useTailwind();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+    requireSocialProfile: true,
+  });
 
   const handleFollowPress = useCallback(
     () =>

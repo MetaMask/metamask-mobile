@@ -21,6 +21,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../Onboarding/socialLeaderboardOnboardingNavigation', () => ({
   ...jest.requireActual('../Onboarding/socialLeaderboardOnboardingNavigation'),
   isSocialV1Treatment: jest.fn(() => false),
@@ -423,6 +424,8 @@ describe('TraderPositionView', () => {
     );
 
     expect(shareSpy).toHaveBeenCalledWith({
+      message:
+        'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
       url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
     });
     expect(

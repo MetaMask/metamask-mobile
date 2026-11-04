@@ -1,15 +1,26 @@
 import React, { StrictMode } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
+import renderWithProvider, {
+  type ProviderValues,
+} from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
+import ReduxService from '../../../../../core/redux';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
+import {
+  clearCachedDepositInstructions,
+  getCachedDepositInstructions,
+  setCachedDepositInstructions,
+} from './vbaDepositInstructionsCache';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
+import { trackVbaEvent } from './vbaAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -24,37 +35,48 @@ import {
   startVbaCufChildTrace,
 } from './vbaCufTrace';
 import { VBA_CUF_END_REASON } from './vbaCufTags';
+import { AVENIA_URL } from './constants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockGetDepositInstructions = jest.fn();
 const mockListTransactions = jest.fn();
+const mockRefreshAutorampTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
 const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
+const mockRefreshCustomerAbilities = jest.fn();
 const mockNavigateToVbaOnboardingDestination = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
 let mockRouteParams: { sourceCurrency?: string } | undefined;
 let mockChooseCurrency = false;
 let mockRegionOverride: string | undefined;
+let mockNeobankFlagOn = true;
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
 let mockCanGoBack = true;
 
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
+}));
+
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
 
+const mockNavigation = {
+  canGoBack: () => mockCanGoBack,
+  goBack: (...args: unknown[]) => mockGoBack(...args),
+  navigate: (...args: unknown[]) => mockNavigate(...args),
+};
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    canGoBack: () => mockCanGoBack,
-    goBack: mockGoBack,
-    navigate: mockNavigate,
-  }),
+  // Stable like the real hook, so effects keyed on navigation do not rerun.
+  useNavigation: () => mockNavigation,
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
@@ -62,22 +84,25 @@ jest.mock('../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/moneyAccount',
-  () => ({
-    ...jest.requireActual(
-      '../../../../../selectors/featureFlagController/moneyAccount',
-    ),
-    selectMoneyMovementNeobank: () => ({
-      isEnabled: true,
-      regions: ['BR', 'US'],
-      regionCurrencies: { BR: 'BRL', US: 'USD' },
-      defaultCurrency: undefined,
-      chooseCurrency: mockChooseCurrency,
-      regionOverride: mockRegionOverride,
-    }),
-  }),
-);
+jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/featureFlagController/moneyAccount',
+  );
+  return {
+    ...actual,
+    selectMoneyMovementNeobank: (state: unknown) =>
+      mockNeobankFlagOn
+        ? {
+            isEnabled: true,
+            regions: ['BR', 'US'],
+            regionCurrencies: { BR: 'BRL', US: 'USD' },
+            defaultCurrency: undefined,
+            chooseCurrency: mockChooseCurrency,
+            regionOverride: mockRegionOverride,
+          }
+        : actual.selectMoneyMovementNeobank(state),
+  };
+});
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
@@ -121,6 +146,10 @@ jest.mock('../../../../../hooks/useScreenPerformance');
 const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 
 jest.mock('../../../../../core/Engine', () => ({
+  // Lets tests push RampsController changes into Redux via updateBgState.
+  get state() {
+    return { RampsController: this.context.RampsController.state };
+  },
   context: {
     RampsController: {
       state: {
@@ -137,6 +166,10 @@ jest.mock('../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
+      refreshCustomerAbilities: (...args: unknown[]) =>
+        mockRefreshCustomerAbilities(...args),
+      refreshAutorampTransactions: (...args: unknown[]) =>
+        mockRefreshAutorampTransactions(...args),
     },
     NeoBankService: {
       getDepositInstructions: (...args: unknown[]) =>
@@ -168,6 +201,14 @@ const pixInstructions = {
   pixKey: 'pix@example.com',
 };
 
+// Test fixtures use plain status strings, not the controller's enum.
+const withPersistedAutoramps = (
+  autoramps: TestAutoramp[],
+): ProviderValues['state'] =>
+  ({
+    engine: { backgroundState: { RampsController: { autoramps } } },
+  }) as unknown as ProviderValues['state'];
+
 const setAutoramps = (autoramps: TestAutoramp[]) => {
   (
     Engine.context.RampsController.state as { autoramps: TestAutoramp[] }
@@ -193,17 +234,32 @@ describe('VbaDetails', () => {
     jest.clearAllMocks();
     mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
     resetMusdAutorampSetupGuard();
+    // Region on the analytics events is read from the app store. Without one,
+    // that read logs a missing-store error before it is swallowed.
+    ReduxService.store = {
+      getState: () => ({
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: mockLocation },
+          },
+        },
+      }),
+      dispatch: () => undefined,
+    } as never;
+    clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
     mockRouteParams = undefined;
     mockChooseCurrency = false;
     mockRegionOverride = undefined;
+    mockNeobankFlagOn = true;
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
     mockCanGoBack = true;
     mockGetDepositInstructions.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
+    mockRefreshAutorampTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
     mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
     mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
@@ -212,33 +268,107 @@ describe('VbaDetails', () => {
       walletAddress: '0xabc',
       status: 'Created',
     });
+    mockRefreshCustomerAbilities.mockResolvedValue({
+      fiat_deposit: {
+        brl: { pix: 'Active', pix_thirdparty: 'Active' },
+        usd: { ach: 'Active', ach_thirdparty: 'Active' },
+      },
+      fiat_payout: {},
+      currencies: [],
+      blocking_abilities: {},
+    });
     setAutoramps([{ ...approvedAutoramp }]);
     restoreNeoBankService();
   });
 
   it('renders the details screen', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
-    expect(getByTestId(VbaDetailsSelectorsIDs.LOGO)).toHaveProp(
-      'importantForAccessibility',
-      'no',
-    );
+    expect(queryByTestId('vba-details-logo')).not.toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
       strings('virtual_bank_account.vba_details.title'),
     );
     expect(
-      queryByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT),
-    ).not.toBeOnTheScreen();
+      getByText(
+        'Add funds directly from your bank. Funds usually land in your Money account within minutes.',
+      ),
+    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON)).toBeOnTheScreen();
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
     expect(mockListTransactions).not.toHaveBeenCalled();
+    expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
+  });
+
+  it('shows the Brazil provider disclosure on the Pix layout', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(
+      getByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE),
+    ).toHaveTextContent(
+      `${strings('virtual_bank_account.vba_details.provider_disclosure')} ${strings(
+        'virtual_bank_account.vba_details.provider_disclosure_link',
+      )}`,
+    );
+  });
+
+  it('opens Avenia from the provider disclosure link', async () => {
+    const openURLSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+
+    const link = getByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK);
+    expect(link).toHaveTextContent('Learn more');
+    expect(link).toHaveProp('accessibilityRole', 'link');
+    fireEvent.press(link);
+
+    expect(openURLSpy).toHaveBeenCalledWith(AVENIA_URL);
+    expect(AVENIA_URL).toBe('https://avenia.io/');
+    openURLSpy.mockRestore();
+  });
+
+  it('logs when the provider disclosure link fails to open', async () => {
+    const openError = new Error('cannot open');
+    const openURLSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockRejectedValue(openError);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+
+    fireEvent.press(
+      getByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK),
+    );
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(openError, {
+        message: 'VbaDetails: failed to open the provider link',
+      });
+    });
+    openURLSpy.mockRestore();
   });
 
   it('returns to the caller from the header', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
@@ -251,7 +381,40 @@ describe('VbaDetails', () => {
       false,
       VBA_CUF_END_REASON.BAILED,
     );
-    expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
+  });
+
+  it('returns to the caller from the Done button, like the header back', async () => {
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    const doneButton = getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON);
+    expect(doneButton).toHaveTextContent('Done');
+    fireEvent.press(doneButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
+  });
+
+  it('returns to Money home from the Done button when there is no navigation history', async () => {
+    mockCanGoBack = false;
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('returns to Money home when there is no navigation history', async () => {
@@ -267,6 +430,121 @@ describe('VbaDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
+    });
+  });
+
+  it('renders cached Pix details immediately and revalidates in the background', async () => {
+    setCachedDepositInstructions('ar-1', pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue({
+      ...pixInstructions,
+      pixKey: 'new@example.com',
+    });
+
+    const { getByTestId, queryByTestId, getByText } = renderWithProvider(
+      <VbaDetails />,
+    );
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
+    await waitFor(() => {
+      expect(getByText('new@example.com')).toBeOnTheScreen();
+    });
+    expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+  });
+
+  it('reopens instantly with details fetched on the first visit', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+    const first = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(
+        first.getByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
+      ).toBeOnTheScreen();
+    });
+    first.unmount();
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
+  });
+
+  it('ignores cached details for an account whose currency is not confirmed', () => {
+    setAutoramps([{ ...approvedAutoramp, depositRailsSummary: undefined }]);
+    setCachedDepositInstructions('ar-1', pixInstructions);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+  });
+
+  it('clears shown details when a background hydrate rejects the autoramp', async () => {
+    setAutoramps([approvedAutoramp]);
+    setCachedDepositInstructions('ar-1', pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+    const { getByTestId, queryByTestId, store } = renderWithProvider(
+      <VbaDetails />,
+      { state: withPersistedAutoramps([approvedAutoramp]) },
+    );
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalled();
+    });
+
+    setAutoramps([{ ...approvedAutoramp, status: 'Rejected' }]);
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'RampsController' }));
+    });
+
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        undefined,
+        'BRL',
+      );
+    });
+  });
+
+  it('drops late details and routes away when the autoramp is rejected mid-fetch', async () => {
+    setAutoramps([approvedAutoramp]);
+    let resolveDetails: (value: typeof pixInstructions) => void = () =>
+      undefined;
+    mockGetDepositInstructions.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDetails = resolve;
+      }),
+    );
+    const { queryByTestId, getByTestId, store } = renderWithProvider(
+      <VbaDetails />,
+      { state: withPersistedAutoramps([approvedAutoramp]) },
+    );
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    setAutoramps([{ ...approvedAutoramp, status: 'Rejected' }]);
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'RampsController' }));
+    });
+    await act(async () => {
+      resolveDetails(pixInstructions);
+    });
+
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(getCachedDepositInstructions('ar-1')).toBeNull();
+    // Routes on an immediate re-poll, not the next 10s interval.
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        undefined,
+        'BRL',
+      );
     });
   });
 
@@ -292,19 +570,37 @@ describe('VbaDetails', () => {
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
     });
-    expect(getByText('PIX Copia e Cola')).toBeOnTheScreen();
+    expect(getByText('Pix Copia e Cola')).toBeOnTheScreen();
     expect(getByText('00020126')).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
-    expect(getByText('PIX key')).toBeOnTheScreen();
+    expect(getByText('Pix key')).toBeOnTheScreen();
     expect(getByText('pix@example.com')).toBeOnTheScreen();
     expect(
       queryByTestId('vba-details-row-icon-copia-cola'),
     ).not.toBeOnTheScreen();
     expect(queryByTestId('vba-details-row-icon-pix-key')).not.toBeOnTheScreen();
-    expect(getByLabelText('Copy PIX Copia e Cola')).toBeOnTheScreen();
-    expect(getByLabelText('Copy PIX key')).toBeOnTheScreen();
+    expect(getByLabelText('Copy Pix Copia e Cola')).toBeOnTheScreen();
+    expect(getByLabelText('Copy Pix key')).toBeOnTheScreen();
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
     expect(mockListTransactions).not.toHaveBeenCalled();
+    expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
+  });
+
+  it('lists the Pix key before Copia e Cola', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getAllByLabelText, getByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+
+    expect(
+      getAllByLabelText(/^Copy Pix/).map(
+        (button) => button.props.accessibilityLabel,
+      ),
+    ).toEqual(['Copy Pix key', 'Copy Pix Copia e Cola']);
   });
 
   it('copies a Pix value', async () => {
@@ -315,11 +611,11 @@ describe('VbaDetails', () => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
     });
 
-    fireEvent.press(getByLabelText('Copy PIX key'));
+    fireEvent.press(getByLabelText('Copy Pix key'));
 
     expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-      'Copied PIX key',
+      'Copied Pix key',
     );
   });
 
@@ -355,6 +651,24 @@ describe('VbaDetails', () => {
       expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
     });
 
+    it('does not show the Brazil provider disclosure on the US bank transfer layout', async () => {
+      mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK),
+      ).not.toBeOnTheScreen();
+    });
+
     it('copies the routing number', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
 
@@ -371,6 +685,37 @@ describe('VbaDetails', () => {
       fireEvent.press(getByLabelText('Copy Routing number'));
 
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
+    });
+
+    it('renders cached US bank details immediately for a USD account', () => {
+      mockRouteParams = { sourceCurrency: 'USD' };
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'USD' },
+        },
+      ]);
+      setCachedDepositInstructions(
+        'ar-1',
+        usBankInstructions as AutorampDepositInstructions,
+      );
+      mockGetDepositInstructions.mockReturnValue(new Promise(() => undefined));
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <VbaDetails />,
+      );
+
+      expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+        strings('virtual_bank_account.vba_details.bank_transfer_title'),
+      );
+      expect(getByText('021000021')).toBeOnTheScreen();
+      expect(getByText('123456789')).toBeOnTheScreen();
+      expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE),
+      ).not.toBeOnTheScreen();
     });
 
     it('shows the bank transfer title while USD instructions are loading', async () => {
@@ -554,7 +899,9 @@ describe('VbaDetails', () => {
   it('keeps the Pix code when the debug transaction poll fails', async () => {
     mockDebugEnv = 'true';
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockRejectedValue(new Error('tx poll failed'));
+    mockRefreshAutorampTransactions.mockRejectedValue(
+      new Error('tx poll failed'),
+    );
 
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <VbaDetails />,
@@ -573,7 +920,7 @@ describe('VbaDetails', () => {
   it('shows the newest deposit status in the debug sheet', async () => {
     mockDebugEnv = 'true';
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockResolvedValue([
+    mockRefreshAutorampTransactions.mockResolvedValue([
       { id: 'tx-old', status: 'Completed', createdAt: '2026-01-01T00:00:00Z' },
       { id: 'tx-new', status: 'Pending', createdAt: '2026-06-01T00:00:00Z' },
     ]);
@@ -581,7 +928,7 @@ describe('VbaDetails', () => {
     const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(mockListTransactions).toHaveBeenCalledWith('ar-1');
+      expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
     });
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DEBUG_BUTTON));
 
@@ -628,7 +975,7 @@ describe('VbaDetails', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows Creating your bank account until the autoramp is Approved', async () => {
+  it('shows the account creation design until the autoramp is Approved', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
     mockRefreshAutoramp.mockResolvedValue({
       id: 'ar-1',
@@ -636,31 +983,27 @@ describe('VbaDetails', () => {
       status: 'Authorized',
     });
 
-    const { getByText, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     await waitFor(() => {
       expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
     });
     expect(
+      getByTestId(VbaCreatingAccountSelectorsIDs.ILLUSTRATION),
+    ).toBeOnTheScreen();
+    expect(
       getByText(strings('virtual_bank_account.creating_account.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('virtual_bank_account.creating_account.description')),
     ).toBeOnTheScreen();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(queryByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeNull();
-  });
 
-  it('goes to Money home from the creating state back button', async () => {
-    setAutoramps([]);
-
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
-    await waitFor(() => {
-      expect(mockHydrate).toHaveBeenCalled();
-    });
     fireEvent.press(getByTestId(VbaCreatingAccountSelectorsIDs.BACK_BUTTON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
@@ -670,9 +1013,8 @@ describe('VbaDetails', () => {
       kycStatus: 'approved',
     });
 
-    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-      <VbaDetails />,
-    );
+    const { getByTestId, getByText, queryByText, queryByTestId } =
+      renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(mockHydrate).toHaveBeenCalled();
@@ -685,6 +1027,9 @@ describe('VbaDetails', () => {
     expect(
       getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('virtual_bank_account.creating_account.description')),
+    ).toBeNull();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
   });
@@ -701,6 +1046,20 @@ describe('VbaDetails', () => {
       expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     });
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('opens an existing approved account without creating one when moneyMovementNeobank is absent', async () => {
+    mockNeobankFlagOn = false;
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockRegisterWallet).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
   it('creates the autoramp for the flag region override ahead of the IP country', async () => {
@@ -1148,6 +1507,41 @@ describe('VbaDetails', () => {
       enabled: true,
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
+  });
+
+  describe('analytics', () => {
+    const detailsViewedCalls = () =>
+      jest
+        .mocked(trackVbaEvent)
+        .mock.calls.filter(
+          ([event]) => event.category === 'Money VBA Details Viewed',
+        );
+
+    it('tracks Money VBA Details Viewed once for an approved account', async () => {
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+      });
+      expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+      expect(detailsViewedCalls()).toHaveLength(1);
+      expect(detailsViewedCalls()[0][1]()).toMatchObject({
+        screen_name: 'vba_details',
+      });
+    });
+
+    it('does not track Money VBA Details Viewed while the account is still being created', async () => {
+      setAutoramps([{ ...approvedAutoramp, status: 'Created' }]);
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(detailsViewedCalls()).toHaveLength(0);
     });
   });
 });

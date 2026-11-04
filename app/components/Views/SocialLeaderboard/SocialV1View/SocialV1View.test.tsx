@@ -17,6 +17,7 @@ import {
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
 import { LiveViewSelectorsIDs } from '../LiveView/LiveView.testIds';
+import { SocialFeedRealtimeSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedRealtime';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 import type { SocialShellTab } from '../shell/types';
 import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
@@ -42,8 +43,22 @@ let mockRouteParams: {
   initialTab?: SocialShellTab;
 } = {};
 
+jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
+  useSocialBlockLists: () => ({
+    blockedProfileIds: new Set(),
+    blockedCommentIds: new Set(),
+  }),
+}));
+
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
+}));
+
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
 }));
 
 jest.mock('../hooks/useOpenSocialPostComposer', () => ({
@@ -82,14 +97,16 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const { View } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
+  const { SocialFeedRealtimeContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedRealtime/SocialFeedRealtimeContext',
+  );
 
   interface MockSocialFeedProps {
+    location?: string;
     realtime?: boolean;
+    paused?: boolean;
     filterPost?: (post: unknown) => boolean;
-    renderHeader?: (props: {
-      pendingNewCount: number;
-      onRevealPending: () => void;
-    }) => React.ReactNode;
+    renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
   }
@@ -101,10 +118,16 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
       return ReactActual.createElement(
         View,
         { testID: props.testID },
-        props.renderHeader?.({
-          pendingNewCount: 0,
-          onRevealPending: jest.fn(),
-        }),
+        ReactActual.createElement(
+          SocialFeedRealtimeContext.Provider,
+          {
+            value: {
+              paused: props.paused ?? false,
+              pendingNewCount: 0,
+            },
+          },
+          props.renderHeader?.(),
+        ),
         ReactActual.createElement(View, { testID: props.scrollTestID }),
       );
     },
@@ -370,14 +393,26 @@ describe('SocialV1View', () => {
     );
   });
 
-  it('renders the three mocked position cards on Trending', () => {
+  it('renders Trending through the shared virtualized feed', () => {
     renderWithProvider(<SocialV1View />);
 
-    MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {
-      expect(
-        screen.getByTestId(getSocialFeedPositionCardTestId(item.id)),
-      ).toBeOnTheScreen();
-    });
+    const trendingFeed = mockSocialFeed.mock.calls
+      .map(([props]) => props)
+      .filter((props) => props.location === 'social_trending')
+      .pop();
+
+    expect(trendingFeed).toEqual(
+      expect.objectContaining({
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
+        performance: expect.objectContaining({ tab: 'trending' }),
+        testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
+        scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
+      }),
+    );
   });
 
   it('emits TSA-1122 exposure when the v1 home opens', () => {
@@ -464,7 +499,6 @@ describe('SocialV1View', () => {
           profileId: 'viewer-profile',
           displayName: 'Giga Whale',
           handle: 'giga_whale',
-          shareUrl: '',
         },
         isLoading: false,
         error: null,
@@ -488,18 +522,17 @@ describe('SocialV1View', () => {
       });
     });
 
-    it('pins the new post on top of Following', () => {
+    it('does not pin the new post on Following', () => {
       renderWithProvider(<SocialV1View />);
       fireEvent.press(
         screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
       );
 
-      const followingCards = within(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-      ).getAllByTestId(/^social-v1-feed-card-/);
-      expect(followingCards[0].props.testID).toBe(
-        getSocialFeedPositionCardTestId(PENDING_ITEM_ID),
-      );
+      expect(
+        within(
+          screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+        ).queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+      ).toBeNull();
     });
 
     it('stays on Trending, without the post, when no post was just written', () => {
@@ -518,7 +551,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON),
+      screen.getByTestId(SocialFeedRealtimeSelectorsIDs.LIVE_BUTTON),
     ).toBeOnTheScreen();
   });
 
@@ -584,6 +617,28 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
+  });
+
+  it('opens Trending Custom filters with Positions and without Verification', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON),
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'open')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'closed')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('verification', 'verified')),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('type', 'predictions')),
+    ).toBeNull();
   });
 
   it('opens the filters bottom sheet from the Following filter button', () => {
@@ -776,13 +831,12 @@ describe('SocialV1View', () => {
     );
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getAllByTestId(
+      within(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+      ).getByTestId(
         getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
       ),
-    ).toHaveLength(2);
+    ).toBeOnTheScreen();
   });
 
   it('insets the header avatar so it shares the 16px tab padding', () => {
@@ -802,7 +856,6 @@ describe('SocialV1View', () => {
         displayName: 'Test User',
         handle: 'test-user',
         imageUrl: 'https://example.com/avatar.png',
-        shareUrl: 'https://metamask.io/social/test-user',
       },
       isLoading: false,
       error: null,

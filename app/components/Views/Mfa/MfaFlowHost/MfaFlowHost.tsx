@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, BackHandler } from 'react-native';
 import Animated, { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import {
   StackActions,
@@ -61,6 +61,24 @@ const MfaFlowHost = () => {
       ),
     [navigation, flow],
   );
+
+  // Android's back button goes back like the header's: a setup code returns
+  // to its setup; anywhere else, leaving the screen cancels the flow.
+  const isSetupCode =
+    state?.step.name === 'otp' && state.step.purpose === 'setup';
+  useEffect(() => {
+    if (!flow || !isSetupCode) {
+      return undefined;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        flow.dispatch({ type: 'back' });
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [flow, isSetupCode]);
 
   useEffect(() => {
     if (isOnStack && !isRunning) {

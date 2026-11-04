@@ -48,7 +48,9 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
+  selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
@@ -112,13 +114,31 @@ const AddDeviceToWallet = () => {
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
+  const needsProvisioning = useSelector(selectQrSyncNeedsProvisioning);
+  // Import and existing-user Phase C pop this screen while they still read
+  // pending secrets and provisioning metadata.
+  const shouldKeepQrSyncState = shouldNavigateToImport || needsProvisioning;
 
   const handleBack = useCallback(() => {
-    Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-      () => undefined,
-    );
     navigation.goBack();
-  }, [messenger, navigation]);
+  }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      if (shouldKeepQrSyncState) {
+        return;
+      }
+
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
+    });
+
+    return unsubscribe;
+  }, [messenger, navigation, shouldKeepQrSyncState]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
@@ -268,7 +288,7 @@ const AddDeviceToWallet = () => {
         ) : null}
 
         <FooterGlass
-          twClassName="mt-auto py-4"
+          twClassName="mt-auto py-2"
           primaryButtonProps={{
             children: strings('app_settings.add_device.scan_qr_code_button'),
             onPress: openQRScanner,

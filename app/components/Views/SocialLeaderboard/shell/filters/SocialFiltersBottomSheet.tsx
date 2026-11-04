@@ -23,6 +23,8 @@ import {
   COHORT_OPTIONS_LEADERBOARD,
   COHORT_OPTIONS_LIVE,
   MARKET_CAP_RANGE,
+  POSITION_STATUS_LABEL_KEY,
+  POSITION_STATUS_OPTIONS,
   TIMEFRAME_LABEL_KEY,
   TIMEFRAME_OPTIONS,
   TYPE_LABEL_KEY,
@@ -38,6 +40,7 @@ import {
 import FilterChipSection from './sections/FilterChipSection';
 import FilterRangeSection from './sections/FilterRangeSection';
 import type {
+  SocialFilterPositionStatus,
   SocialFilterTimeframe,
   SocialFilterType,
   SocialFilterVerification,
@@ -108,6 +111,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const { colors } = useTheme();
 
   const showType = tab !== 'leaderboard';
+  const showPositions = tab === 'trending';
   const showTimeframe = tab === 'leaderboard';
   const showMarketCap = tab !== 'leaderboard';
   // TODO: show 24h volume once the feed / live payload (or API) carries token
@@ -124,6 +128,11 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
 
   const handleTypeChange = useCallback(
     (next: string) => onChange({ type: next as SocialFilterType }),
+    [onChange],
+  );
+  const handlePositionStatusChange = useCallback(
+    (next: string) =>
+      onChange({ positionStatus: next as SocialFilterPositionStatus }),
     [onChange],
   );
   const handleCohortChange = useCallback(
@@ -148,6 +157,14 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
     [onChange],
   );
 
+  const positionStatusOptions = useMemo(
+    () =>
+      POSITION_STATUS_OPTIONS.map((id) => ({
+        id,
+        labelKey: POSITION_STATUS_LABEL_KEY[id],
+      })),
+    [],
+  );
   const typeOptionObjects = useMemo(
     () =>
       typeOptions.map((id) => ({
@@ -251,6 +268,16 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
                       value={draft.type}
                       onChange={handleTypeChange}
                       testID="social-filters-type"
+                    />
+                  ) : null}
+
+                  {showPositions ? (
+                    <FilterChipSection<SocialFilterPositionStatus>
+                      titleKey="social_leaderboard.shell.filters.section.positions"
+                      options={positionStatusOptions}
+                      value={draft.positionStatus}
+                      onChange={handlePositionStatusChange}
+                      testID="social-filters-positions"
                     />
                   ) : null}
 

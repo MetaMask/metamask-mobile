@@ -24,7 +24,7 @@ describe('selectAiSocialCommentTranslationEnabled', () => {
 
   it('returns true when the remote flag is enabled and the version requirement is met', () => {
     const result = selectAiSocialCommentTranslationEnabled.resultFunc({
-      aiSocialCommentTranslationEnabled: {
+      aiSocialCommentTranslation: {
         enabled: true,
         minimumVersion: '8.19.0',
       },
@@ -35,7 +35,7 @@ describe('selectAiSocialCommentTranslationEnabled', () => {
 
   it('returns false when the remote flag is disabled', () => {
     const result = selectAiSocialCommentTranslationEnabled.resultFunc({
-      aiSocialCommentTranslationEnabled: {
+      aiSocialCommentTranslation: {
         enabled: false,
         minimumVersion: '8.19.0',
       },
@@ -48,7 +48,7 @@ describe('selectAiSocialCommentTranslationEnabled', () => {
     mockHasMinimumRequiredVersion.mockReturnValue(false);
 
     const result = selectAiSocialCommentTranslationEnabled.resultFunc({
-      aiSocialCommentTranslationEnabled: {
+      aiSocialCommentTranslation: {
         enabled: true,
         minimumVersion: '99.0.0',
       },
@@ -65,7 +65,7 @@ describe('selectAiSocialCommentTranslationEnabled', () => {
 
   it('returns false when the remote flag has an unexpected shape', () => {
     const result = selectAiSocialCommentTranslationEnabled.resultFunc({
-      aiSocialCommentTranslationEnabled: {
+      aiSocialCommentTranslation: {
         enabled: 'invalid',
         minimumVersion: 123,
       },

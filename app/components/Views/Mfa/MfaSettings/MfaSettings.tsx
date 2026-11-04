@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   ContentVariant,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -23,15 +22,18 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
-import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectMfaUiKitMethods } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import { getMethodLabel } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const ROW_TEST_IDS: Record<MfaMethod, string> = {
   passkey: MfaSettingsSelectorsIDs.PASSKEY_ROW,
@@ -58,12 +60,14 @@ const ADD_SUCCESS_MESSAGE_KEYS: Record<MfaMethod, string> = {
  * second factor.
  */
 const MfaSettings = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const { credentials, enroll } = useMfa();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const methods = useSelector(selectMfaUiKitMethods);
   const passkeyCount = getActivePasskeys(credentials).length;
   const activeTypes = new Set(
     getActiveCredentials(credentials).map(({ type }) => type),
@@ -116,7 +120,9 @@ const MfaSettings = () => {
     },
   ];
   const visibleRows = rows.filter(
-    ({ method }) => !(isSocialLogin && method === 'email_otp'),
+    ({ method, isSetUp }) =>
+      !(isSocialLogin && method === 'email_otp') &&
+      (isSetUp || methods.includes(method)),
   );
 
   const open = (method: MfaMethod, isSetUp: boolean) => {
@@ -135,7 +141,12 @@ const MfaSettings = () => {
       style={tw.style('flex-1 bg-default')}
       testID={MfaSettingsSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard onBack={() => navigation.goBack()} includesTopInset />
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
       <ScrollView contentContainerStyle={tw.style('pb-4')}>
         <Text variant={TextVariant.HeadingLg} twClassName="px-4 pb-2">
           {strings('mfa.settings.title')}
@@ -167,7 +178,7 @@ const MfaSettings = () => {
             testID={ROW_TEST_IDS[method]}
           />
         ))}
-        {isMfaKitEnabled() ? <MfaQaPresets /> : null}
+        {isMfaDevBuild() ? <MfaQaPresets /> : null}
       </ScrollView>
     </SafeAreaView>
   );

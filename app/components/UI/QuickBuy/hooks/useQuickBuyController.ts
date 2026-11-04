@@ -57,6 +57,7 @@ import {
   patchPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
@@ -85,11 +86,23 @@ import {
   selectIsSubmittingTx,
   selectIsSlippageUserOverride,
   selectSlippage,
+  resetHardwareWalletsSwaps,
   setDestToken,
   setIsSubmittingTx,
   setSourceAmount,
   setSourceToken,
+  updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
+import { buildStartPayload } from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import {
+  BridgeEntryPoint,
+  isSameChainSwap,
+} from '../../HardwareWallet/Swaps/flowStrategy';
+import { registerHwSubmissionOutcomeListener } from '../../HardwareWallet/Swaps/hwSubmissionOutcome';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
 import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
@@ -296,6 +309,7 @@ export function useQuickBuyController(
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
@@ -324,6 +338,7 @@ export function useQuickBuyController(
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
+    preserveBridgeStateOnUnmount,
   } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext, tradeMode);
   const [fiatAmount, setFiatAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
@@ -1657,6 +1672,44 @@ export function useQuickBuyController(
     }
     markTradeSubmitted();
     submitStartedAtRef.current = Date.now();
+
+    // The HW signing screen reads the bridge slice this sheet populated, so
+    // it must outlive the sheet's dismissal; that screen resets it instead.
+    if (isHardwareAddress) {
+      preserveBridgeStateOnUnmount();
+    }
+    const submitWithHardwareWallet = () =>
+      new Promise<TransactionMeta>((resolve, reject) => {
+        const outcomeListenerId = registerHwSubmissionOutcomeListener(
+          (outcome) =>
+            outcome.status === 'submitted'
+              ? resolve(outcome.transaction)
+              : reject(new Error('Hardware wallet signing did not complete')),
+        );
+        dispatch(resetHardwareWalletsSwaps());
+        dispatch(
+          updateHardwareWalletsSwaps(
+            buildStartPayload(activeQuote, {
+              isSwap: isSameChainSwap(sourceToken, destToken),
+            }),
+          ),
+        );
+        navigation.navigate(Routes.BRIDGE.HARDWARE_WALLETS_SWAPS, {
+          bridgeEntryPoint: BridgeEntryPoint.QuickBuy,
+          submissionParams: {
+            quoteResponse: activeQuote,
+            postTradeModalParams: {
+              sourceAmount:
+                sourceTokenAmount ?? activeQuote.quote.src.normalizedAmount,
+              destAmount: amountTokenRaw,
+              sourceToken,
+              destToken,
+            },
+            outcomeListenerId,
+          },
+        });
+      });
+
     // Same-chain non-EVM swaps (Solana, Tron, Bitcoin) never reach a terminal
     // `BridgeStatusController` status, so the terminal toast must resolve from
     // `MultichainTransactionsController` instead. Cross-chain bridges (incl.
@@ -1694,17 +1747,28 @@ export function useQuickBuyController(
     // Public copy-trades always share. Private profiles use the normal
     // Quick Buy toasts instead. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
-    const shouldForcePostTradeShare =
+    const canPostTradeShare = isSpotPostTradeShareEligible(amountUsdValue);
+    const isForcedPostTradeShare =
       postTradeShare && !isProfileTradingActivityPrivate;
-    const prompt = shouldForcePostTradeShare
+    const shouldForcePostTradeShare =
+      isForcedPostTradeShare && canPostTradeShare;
+    const prompt = isForcedPostTradeShare
       ? undefined
       : resolvePostTradePrompt('swap');
     let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
     if (prompt?.kind === 'claim_sheet') {
       trackedPostTradePrompt = prompt;
-    } else if (prompt?.kind === 'share_sheet' && tradeInFlightChain) {
+    } else if (
+      prompt?.kind === 'share_sheet' &&
+      canPostTradeShare &&
+      tradeInFlightChain
+    ) {
       trackedPostTradePrompt = prompt;
-    } else if (prompt?.kind === 'post_to_feed_toast' && tradeInFlightChain) {
+    } else if (
+      prompt?.kind === 'post_to_feed_toast' &&
+      canPostTradeShare &&
+      tradeInFlightChain
+    ) {
       trackedPostTradePrompt = {
         kind: 'post_to_feed_toast',
         tradeInFlightChain,
@@ -1718,28 +1782,35 @@ export function useQuickBuyController(
       ((shouldForcePostTradeShare ||
         trackedPostTradePrompt?.kind === 'share_sheet') &&
         Boolean(tradeInFlightChain));
-    const postTradeShareSessionId = shouldPostTradeShare
-      ? beginPostTradeShareSession({
-          variant: isCreateProfilePrompt ? 'create_profile' : 'share',
-          target,
-          tradeMode,
-          pairLabel:
-            sourceToken?.symbol && destToken?.symbol
-              ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
-              : undefined,
-          tradeInFlightChain,
-          copyTradeOrigin,
-          owner: postTradeShareOwner,
-          preview: sharePreview,
-        })
-      : undefined;
-    if (shouldPostTradeShare) {
-      onClose();
-    } else {
-      onClose();
+    const beginShareSession = () =>
+      shouldPostTradeShare
+        ? beginPostTradeShareSession({
+            variant: isCreateProfilePrompt ? 'create_profile' : 'share',
+            target,
+            tradeMode,
+            pairLabel:
+              sourceToken?.symbol && destToken?.symbol
+                ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
+                : undefined,
+            tradeInFlightChain,
+            copyTradeOrigin,
+            owner: postTradeShareOwner,
+            preview: sharePreview,
+          })
+        : undefined;
+    // HW: the share sheet would cover the signing screen and the pending toast
+    // would time out during on-device signing, so both wait until the signing
+    // screen hands back.
+    let postTradeShareSessionId = isHardwareAddress
+      ? undefined
+      : beginShareSession();
+    const showPendingToast = () =>
       toastRef?.current?.showToast(
         buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
       );
+    onClose();
+    if (!shouldPostTradeShare && !isHardwareAddress) {
+      showPendingToast();
     }
     // Medium impact acknowledging the Buy commit (catalog `PrimaryCTA`);
     // success/error feedback is deferred to the terminal complete/failed
@@ -1759,44 +1830,49 @@ export function useQuickBuyController(
       if (copyTradeOrigin) {
         postCopyTradeIntent(
           () =>
-            sourceToken
+            sourceToken && activeQuote.quoteId
               ? buildCopyTradeIntentOptions(
                   copyTradeOrigin,
                   `${formatChainIdToCaip(sourceToken.chainId)}:${walletAddress}`,
                   {
                     product: 'swaps',
-                    quoteId: activeQuote.quote.requestId,
+                    quoteId: activeQuote.quoteId,
                   },
                 )
               : undefined,
           { surface: 'quick_buy', source: 'useQuickBuyController' },
         );
       }
-      const submitResult = activeQuote.quote.intent
-        ? await Engine.context.BridgeStatusController.submitIntent({
-            quoteResponse: activeQuote,
-            accountAddress: walletAddress,
-            location: undefined,
-            abTests: undefined,
-            activeAbTests: undefined,
-            tokenSecurityTypeDestination: destToken?.securityData?.type ?? null,
-            inputPrimaryDenomination: 'token_amount',
-            quotesReceivedContext: undefined,
-            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-          })
-        : await Engine.context.BridgeStatusController.submitTx(
-            walletAddress,
-            activeQuote,
-            stxEnabled,
-            undefined, // quotesReceivedContext
-            undefined, // location
-            undefined, // abTests
-            undefined, // mergedActiveAbTests
-            undefined, // tokenSecurityTypeDestination
-            undefined, // batchSellTrades
-            undefined, // inputPrimaryDenomination
-            BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-          );
+      const submitResult = isHardwareAddress
+        ? await submitWithHardwareWallet()
+        : activeQuote.quote.intent
+          ? await Engine.context.BridgeStatusController.submitIntent({
+              quoteResponse: activeQuote,
+              accountAddress: walletAddress,
+              location: undefined,
+              abTests: undefined,
+              activeAbTests: undefined,
+              tokenSecurityTypeDestination:
+                destToken?.securityData?.type ?? null,
+              inputPrimaryDenomination: 'token_amount',
+              quotesReceivedContext: undefined,
+              migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+            })
+          : await Engine.context.BridgeStatusController.submitTx({
+              accountAddress: walletAddress,
+              quoteResponses: [activeQuote],
+              isStxEnabled: stxEnabled,
+              tokenSecurityTypeDestination:
+                destToken?.securityData?.type ?? null,
+              inputPrimaryDenomination: 'token_amount',
+              migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+            });
+      if (isHardwareAddress) {
+        postTradeShareSessionId = beginShareSession();
+        if (!shouldPostTradeShare) {
+          showPendingToast();
+        }
+      }
       if (isSocialTradeSource(analyticsContext.source)) {
         recordSocialTrade();
       }
@@ -1891,7 +1967,6 @@ export function useQuickBuyController(
     goToBuy,
     handleClose,
     activeQuote,
-    destToken?.securityData?.type,
     walletAddress,
     stxEnabled,
     dispatch,
@@ -1902,7 +1977,7 @@ export function useQuickBuyController(
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,
     sourceToken,
-    destToken?.chainId,
+    destToken,
     fiatAmountNumber,
     toAmountUsd,
     currentCurrency,
@@ -1910,11 +1985,13 @@ export function useQuickBuyController(
     traderAddress,
     caip19,
     tradeMode,
-    destToken?.symbol,
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
     submitStartedAtRef,
+    isHardwareAddress,
+    preserveBridgeStateOnUnmount,
+    navigation,
     postTradeShare,
     isProfileTradingActivityPrivate,
     resolvePostTradePrompt,

@@ -15,6 +15,8 @@ import ReduxService from '../../core/redux';
 import { persistor } from '../../store';
 import Engine from '../../core/Engine';
 import { Engine as EngineClass } from '../../core/Engine/Engine';
+import ReactQueryService from '../../core/ReactQueryService';
+import { MoneyAccountBalanceServiceQueryKeys } from '../../components/UI/Money/queryKeys';
 import {
   passwordSet,
   setExistingUser,
@@ -130,6 +132,14 @@ interface AgenticBridge {
   navigate: (name: string, params?: object) => void;
   getRoute: () => unknown;
   getState: () => unknown;
+  seedMoneyBalance: (input: {
+    address: string;
+    totalBalance: string;
+    musdBalance?: string;
+    vmusdValueInMusd?: string;
+    source?: 'api' | 'rpc';
+    usedFallback?: boolean;
+  }) => { ok: boolean; queryKey: unknown };
   canGoBack: () => boolean;
   goBack: () => void;
   listAccounts: () => { id: string; address: string; name: string }[];
@@ -1409,6 +1419,27 @@ const AgenticService = {
         ).navigate(name, params),
       getRoute: () => navRef.getCurrentRoute(),
       getState: () => navRef.getState(),
+      seedMoneyBalance: ({
+        address,
+        totalBalance,
+        musdBalance,
+        vmusdValueInMusd,
+        source = 'api',
+        usedFallback = false,
+      }) => {
+        const queryKey = [
+          MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
+          address,
+        ];
+        ReactQueryService.queryClient.setQueryData(queryKey, {
+          totalBalance,
+          musdBalance: musdBalance ?? totalBalance,
+          vmusdValueInMusd: vmusdValueInMusd ?? '0',
+          source,
+          usedFallback,
+        });
+        return { ok: true, queryKey };
+      },
       canGoBack: () => navRef.canGoBack(),
       goBack: () => deferredNav.goBack(),
       listAccounts: () =>

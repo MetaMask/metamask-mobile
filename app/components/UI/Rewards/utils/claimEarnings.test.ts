@@ -381,12 +381,26 @@ describe('claimToastKey', () => {
     ).toBe('claimFailureRetryToast');
   });
 
+  it('uses the retry sentence when the Money Account check does not answer', () => {
+    expect(
+      claimToastKey([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'MONEY_ACCOUNT_CHECK_UNAVAILABLE',
+        },
+      ]),
+    ).toBe('claimFailureRetryToast');
+  });
+
   it.each([
     ['NO_ELIGIBLE_BALANCE', 'claimFailureNoEligibleBalanceToast'],
     ['EARNING_ADDRESS_UNSCREENABLE', 'claimFailureUnavailableToast'],
     ['UNSUPPORTED_EARNING_ADDRESS', 'claimFailureUnavailableToast'],
     ['EARNING_ADDRESS_MISSING', 'claimFailureContactSupportToast'],
     ['TAX_DETERMINATION_REQUIRED', 'claimFailureUnavailableToast'],
+    ['PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT', 'claimFailureUnavailableToast'],
   ] as const)(
     'uses the %s sentence when the claim pays nothing',
     (reason, toast) => {
@@ -1314,7 +1328,9 @@ describe('claim metrics', () => {
     ['ADDRESS_SCREENING_UNAVAILABLE', 'retry'],
     ['PAIRING_PENDING', 'retry'],
     ['PROOF_UNAVAILABLE', 'retry'],
+    ['MONEY_ACCOUNT_CHECK_UNAVAILABLE', 'retry'],
     ['VOIDED', 'other'],
+    ['PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT', 'other'],
     ['UNKNOWN', 'other'],
   ])('maps %s to %s', (reason, failureReason) => {
     expect(claimFailureReason(reason)).toBe(failureReason);

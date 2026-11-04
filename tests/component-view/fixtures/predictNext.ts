@@ -19,14 +19,19 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
+  PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
   PredictMarket,
+  PredictMarketLayout,
   PredictOutcome,
+  PredictPosition,
   PredictSignedAmount,
+  PredictSignedPercent,
   PredictTimestamp,
+  PredictVenueId,
 } from '../../../app/components/UI/PredictNext/types';
 
 interface GameEventOptions {
@@ -344,6 +349,143 @@ export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   };
 };
 
+const gameLinesLayout = (
+  section: { key: string; order: number },
+  subgroup: { key: string; order: number },
+): PredictMarketLayout => ({
+  tab: { key: 'game_lines', order: 0 },
+  section,
+  subgroup,
+});
+const MONEYLINE = { key: 'moneyline', order: 0 };
+const FULL_GAME = { key: 'full_game', order: 0 };
+const FIRST_HALF = { key: 'first_half', order: 1 };
+
+/**
+ * The composite Game as the backend composes it (PRED-1424): every moneyline
+ * is a `choice` group with an Event screen layout, and a first-half moneyline
+ * with a tie claims the same Game Selections as the full-game one.
+ */
+export const makePredictNextLaidOutGameEvent = (): PredictEvent => {
+  const event = makePredictNextCompositeGameEvent();
+  const markets = event.markets.map((market): PredictMarket => {
+    if (market.group !== undefined) {
+      const section =
+        market.group.marketType === PREDICT_MARKET_TYPES.TOTAL
+          ? { key: 'total_points', order: 2 }
+          : { key: 'spread', order: 1 };
+      return { ...market, layout: gameLinesLayout(section, FULL_GAME) };
+    }
+    const isAway = market.outcomes[0].gameSelection === 'away';
+    return {
+      ...market,
+      group: {
+        key: `${event.id}:moneyline`,
+        groupType: 'choice',
+        displayOrder: isAway ? 0 : 1,
+      },
+      layout: gameLinesLayout(MONEYLINE, FULL_GAME),
+    };
+  });
+  const [template] = event.markets;
+  const firstHalf = (
+    suffix: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    displayOrder: number,
+  ): PredictMarket => ({
+    ...template,
+    id: `${event.id}-1h-${suffix}` as PredictEntityId,
+    outcomes: [
+      {
+        ...template.outcomes[0],
+        id: `${event.id}-1h-${suffix}-yes` as PredictEntityId,
+        gameSelection,
+      },
+      {
+        ...template.outcomes[1],
+        id: `${event.id}-1h-${suffix}-no` as PredictEntityId,
+      },
+    ],
+    group: {
+      key: `${event.id}-1h:moneyline`,
+      groupType: 'choice',
+      displayOrder,
+    },
+    layout: gameLinesLayout(MONEYLINE, FIRST_HALF),
+  });
+
+  return {
+    ...event,
+    markets: [
+      // Period moneylines first, so a lookup by order alone would pick them.
+      firstHalf('away', 'away', 0),
+      firstHalf('tie', undefined, 1),
+      firstHalf('home', 'home', 2),
+      ...markets,
+    ],
+  };
+};
+
+/**
+ * The laid-out Game with player props as the backend composes them
+ * (PRED-1438): a `player_props` tab where each Player's thresholds are one
+ * `choice` group titled with the Player. Rushing yards has four Players (one
+ * with a single threshold), passing yards one.
+ */
+export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
+  const event = makePredictNextLaidOutGameEvent();
+  const [template] = makePredictNextCompositeGameEvent().markets;
+  const prop = (
+    stat: { key: string; order: number },
+    player: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    threshold: number,
+    displayOrder: number,
+  ): PredictMarket => {
+    const id = `${event.id}-${stat.key}-${player}-${threshold}`;
+    const label = `${threshold}+ yards`;
+    return {
+      ...template,
+      id: id as PredictEntityId,
+      question: `${player}: ${label}`,
+      outcomes: [
+        {
+          ...template.outcomes[0],
+          id: `${id}-yes` as PredictEntityId,
+          label,
+          gameSelection,
+        },
+        { ...template.outcomes[1], id: `${id}-no` as PredictEntityId, label },
+      ],
+      group: {
+        key: `${event.id}:${stat.key}:${player}`,
+        groupType: 'choice',
+        displayOrder,
+        label: player,
+      },
+      layout: { tab: { key: 'player_props', order: 1 }, section: stat },
+    };
+  };
+  const rushing = { key: 'rushing_yards', order: 1 };
+  const passing = { key: 'passing_yards', order: 3 };
+
+  return {
+    ...event,
+    markets: [
+      ...event.markets,
+      prop(rushing, 'Rhamondre Stevenson', 'away', 60, 1),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 40, 0),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 80, 2),
+      prop(rushing, 'Kenneth Walker', 'home', 50, 0),
+      prop(rushing, 'Kenneth Walker', 'home', 70, 1),
+      prop(rushing, 'Drake Maye', 'away', 20, 0),
+      prop(rushing, 'Zach Charbonnet', 'home', 30, 0),
+      prop(passing, 'Drake Maye', 'away', 200, 0),
+      prop(passing, 'Drake Maye', 'away', 250, 1),
+    ],
+  };
+};
+
 export const nflEvents = [
   makePredictNextGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL', {
     askPrices: { away: '0.41', home: '0.59' },
@@ -453,10 +595,11 @@ export interface PredictNextPositionsPageFixture {
  * trading adapter is bound to the stubbed transport and the bearer-token
  * provider resolves through the mocked Engine context.
  */
-export const composePredictNextOrderService = (): PredictOrderService => {
-  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+export const composePredictNextOrderService = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
-  });
+  }),
+): PredictOrderService => {
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -525,66 +668,88 @@ export const composePredictNextPortfolioTrading = () => {
   };
 };
 
+const lakersContext = {
+  eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
+  eventTitle: 'Lakers vs Celtics',
+  marketQuestion: 'Will the Lakers win?',
+  outcomeLabel: 'Lakers',
+};
+
+/** A valued open Position, valid against the C1 Positions contract. */
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
+): PredictPosition =>
+  ({
+    venueId: 'kalshi' as PredictVenueId,
+    marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+    side: 'yes' as const,
+    status: 'open' as const,
+    shares: '75.00' as PredictAmount,
+    averagePrice: '0.55' as PredictDecimal,
+    costBasis: '41.25' as PredictAmount,
+    currentValue: '45.00' as PredictAmount,
+    unrealizedPnl: '3.75' as PredictSignedAmount,
+    unrealizedPnlPercent: '9.09' as PredictSignedPercent,
+    context: lakersContext,
+    ...overrides,
+  }) as PredictPosition;
+
+/** A sell Trade, valid against the C1 Activity contract. */
+export const makePredictNextTrade = (
+  overrides: Record<string, unknown> = {},
 ) => ({
+  type: 'trade' as const,
+  id: '0199f6a0-8c1e-7b3a-9d2e-4f1a2b3c4d5e',
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
   side: 'yes' as const,
-  shares: '75.00',
-  marketExposure: '41.25',
-  realizedPnl: '-2.50' as PredictSignedAmount,
-  updatedAt: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
-  context: {
-    eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
-    eventTitle: 'Lakers vs Celtics',
-    marketQuestion: 'Will the Lakers win?',
-    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES' as PredictEntityId,
-    outcomeLabel: 'Lakers',
-  },
-  ...overrides,
-});
-
-export const makePredictNextFill = (
-  overrides: Record<string, unknown> = {},
-) => ({
-  type: 'fill' as const,
-  id: 'fill-1',
-  venueId: 'kalshi',
-  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
-  outcomeSide: 'yes' as const,
-  shares: '75.00',
-  price: '0.55' as PredictDecimal,
-  fee: '0.10',
+  action: 'sell' as const,
+  shares: '10',
+  price: '0.61' as PredictDecimal,
+  amount: '5.93',
+  fee: '0.17',
+  realizedPnl: '0.27' as PredictSignedAmount,
   timestamp: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
-  context: {
-    eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
-    eventTitle: 'Lakers vs Celtics',
-    marketQuestion: 'Will the Lakers win?',
-    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES' as PredictEntityId,
-    outcomeLabel: 'Lakers',
-  },
+  context: lakersContext,
   ...overrides,
 });
 
+/** A winning Settlement of the net held side, valid against C1. */
 export const makePredictNextSettlement = (
   overrides: Record<string, unknown> = {},
 ) => ({
   type: 'settlement' as const,
-  id: 'KXNBAGAME-20MAY01-LALBOS-LAL:2026-05-21T00:00:00.000Z',
+  id: 'settlement-KXNBAGAME-20MAY01-LALBOS-LAL-yes',
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-20MAY01-LALBOS-LAL' as PredictEntityId,
-  result: 'yes' as const,
   side: 'yes' as const,
   shares: '10.00',
+  result: 'yes' as const,
   proceeds: '10.00',
-  costBasis: '5.20',
+  realizedPnl: '4.80' as PredictSignedAmount,
   timestamp: '2026-05-21T00:00:00.000Z' as PredictTimestamp,
   context: {
+    ...lakersContext,
     eventId: 'KXNBAGAME-20MAY01-LALBOS' as PredictEntityId,
-    eventTitle: 'Lakers vs Celtics',
-    marketQuestion: 'Will the Lakers win?',
   },
+  ...overrides,
+});
+
+/** A complete Portfolio Summary whose total is the exact sum of its parts,
+ * valid against C1. Override the parts and the total together. */
+export const makePredictNextSummary = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  venueId: 'kalshi',
+  currency: 'USD' as const,
+  availableBalance: '123.13',
+  positionsValue: '45.00',
+  claimableValue: '0',
+  totalValue: '168.13',
+  unrealizedPnl: '3.75',
+  unrealizedPnlPercent: '9.09',
+  asOf: '2026-10-23T12:00:05.120Z' as PredictTimestamp,
+  complete: true,
   ...overrides,
 });
 
@@ -659,6 +824,8 @@ export const configurePredictNextFeeds = ({
   positions,
   positionPages,
   activity,
+  settlementsCompleteFrom,
+  summary = makePredictNextSummary(),
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
@@ -668,6 +835,9 @@ export const configurePredictNextFeeds = ({
    * pagination; `positions` is ignored when this is set. */
   positionPages?: readonly PredictNextPositionsPageFixture[];
   activity?: readonly unknown[] | Error;
+  /** The Activity pages' settlement archive horizon. */
+  settlementsCompleteFrom?: string;
+  summary?: unknown;
 } = {}) => {
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
@@ -718,7 +888,14 @@ export const configurePredictNextFeeds = ({
           : Promise.resolve({
               venueId: 'kalshi',
               activity: activity ?? [],
+              ...(settlementsCompleteFrom ? { settlementsCompleteFrom } : {}),
             });
+      }
+
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return summary instanceof Error
+          ? Promise.reject(summary)
+          : Promise.resolve(summary);
       }
 
       if (action === 'PredictMarketDataService:getEvent') {

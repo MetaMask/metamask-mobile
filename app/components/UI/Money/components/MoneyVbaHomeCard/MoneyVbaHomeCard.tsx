@@ -14,10 +14,21 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
-import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
-import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import Logger from '../../../../../util/Logger';
+import {
+  canOpenPersistedVbaDetails,
+  navigateToVbaOnboardingDestination,
+  openVbaEntry,
+  resolveVbaOnboarding,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import {
+  endVbaCufJourney,
+  startVbaCufJourney,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import {
+  VBA_CUF_END_REASON,
+  VBA_CUF_ENTRY_SURFACE,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   MONEY_BUTTON_INTENTS,
@@ -53,22 +64,14 @@ const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
 const HERO_GRADIENT_ANGLE = 224;
 
 /**
- * Blocks repeat CTA taps until the loading route has had time to present. A
- * second reset in that window would remount the loading route and start a
- * second hydrate.
- */
-const CTA_REENTRY_WINDOW_MS = 1000;
-
-/**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
  * kyc_decision); all per-variant differences — copy, analytics names, CTA
  * treatment, hero art and optional Rive hero — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
- * The card variant is chosen by {@link useVbaHomeCard}. The CTA routes
- * immediately to the onboarding loading screen, which hydrates status and
- * forwards to the first incomplete module; the card never shows an in-place
- * busy state.
+ * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
+ * this card remains visible, then opens the resolved onboarding destination.
+ * This avoids flashing a standalone full-screen loading route.
  */
 const MoneyVbaHomeCard = ({
   variant,
@@ -84,7 +87,9 @@ const MoneyVbaHomeCard = ({
   });
   const hasTrackedCardViewRef = useRef(false);
   const hasPendingCtaOpenRef = useRef(false);
+  const isMountedRef = useRef(true);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
 
   useEffect(() => {
     if (hasTrackedCardViewRef.current) {
@@ -94,30 +99,89 @@ const MoneyVbaHomeCard = ({
     trackComponentViewed();
   }, [trackComponentViewed]);
 
-  const handleCtaPress = useCallback(() => {
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
+
+  const handleCtaPress = useCallback(async () => {
     // A status-only CTA (KYC_PENDING) is disabled and never fires.
     if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
-    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
-    hasPendingCtaOpenRef.current = true;
-    // Self-clears so the CTA recovers if no navigator presents the route.
-    setTimeout(() => {
-      hasPendingCtaOpenRef.current = false;
-    }, CTA_REENTRY_WINDOW_MS);
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: config.cta.buttonIntent,
       label_key: `${config.i18nPrefix}.cta`,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
-    // Route immediately: the loading screen hydrates and replaces itself with
-    // the first incomplete module, so the CTA never shows an in-place busy
-    // state while status resolves.
-    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, {
-      source: config.source,
-    });
-  }, [config, navigation, trackButtonClicked]);
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
+    hasPendingCtaOpenRef.current = true;
+
+    // The pending card is itself derived from current KYC state, so its
+    // destination is already known. Re-hydrating here only makes the card
+    // flicker before opening the same screen.
+    if (variant === 'kyc_pending') {
+      navigateToVbaOnboardingDestination(navigation, 'kycPending');
+      hasPendingCtaOpenRef.current = false;
+      return;
+    }
+
+    // Only an Approved autoramp can open details from persisted state.
+    // account_is_ready also covers provider-final KYC with no autoramp yet,
+    // and that case must stay on the card while hydrate runs. This path is
+    // synchronous, same as the pending card, and Money home stays mounted
+    // under details, so the guard has to clear or the CTA stays dead after
+    // the user comes back.
+    if (variant === 'account_is_ready' && canOpenPersistedVbaDetails()) {
+      openVbaEntry(navigation, { source: config.source });
+      hasPendingCtaOpenRef.current = false;
+      return;
+    }
+
+    setIsRouting(true);
+    try {
+      const resolved = await resolveVbaOnboarding(config.source);
+      if (!isMountedRef.current) {
+        return;
+      }
+      if (resolved.status === 'error') {
+        endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
+        navigateToVbaOnboardingDestination(navigation, 'error');
+        return;
+      }
+
+      Logger.log('[vba-onboarding] resume', {
+        source: config.source,
+        snapshot: resolved.snapshot,
+        destinationId: resolved.destinationId,
+      });
+      navigateToVbaOnboardingDestination(
+        navigation,
+        resolved.destinationId,
+        resolved.snapshot,
+      );
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: {
+          name: 'MoneyVbaHomeCard',
+          data: { source: config.source },
+        },
+      });
+      if (isMountedRef.current) {
+        endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
+        navigateToVbaOnboardingDestination(navigation, 'error');
+      }
+    } finally {
+      hasPendingCtaOpenRef.current = false;
+      if (isMountedRef.current) {
+        setIsRouting(false);
+      }
+    }
+  }, [config, navigation, trackButtonClicked, variant]);
 
   const handleDismissPress = useCallback(() => {
     trackButtonClicked({
@@ -149,6 +213,7 @@ const MoneyVbaHomeCard = ({
       isFullWidth
       twClassName={cta.className}
       textClassName={() => cta.textClassName}
+      isLoading={isRouting}
       onPress={handleCtaPress}
       testID={testIds.CTA_BUTTON}
     >

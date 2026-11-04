@@ -34,6 +34,7 @@ import {
   createFundedAccountForViews,
   createEthMarketForViews,
   createLongPositionForViews,
+  createShortPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -43,6 +44,7 @@ import Logger from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
+import { FEE_DISPLAY_AB_TEST_KEY } from '../../abTestConfig';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
 import {
@@ -55,6 +57,7 @@ import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
+  getPerpsProPositionRowSelector,
   PerpsTPSLViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
   getPerpsProChaseHandleSelector,
@@ -3296,6 +3299,80 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     },
   );
 
+  itForPlatforms('keeps coin sizing after opening another market', async () => {
+    const { store } = renderPerpsProMarketView({
+      streamOverrides: {
+        account: createFundedAccountForViews('1000'),
+        marketData: [
+          createEthMarketForViews({ providerId: 'hyperliquid' }),
+          createBtcMarketForViews({ providerId: 'hyperliquid' }),
+        ],
+        prices: {
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            markPrice: '2500',
+            percentChange24h: '2',
+            timestamp: 1,
+            isTradable: true,
+          },
+          BTC: {
+            symbol: 'BTC',
+            price: '50000',
+            markPrice: '50000',
+            percentChange24h: '1',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+        positions: [createShortPositionForViews()],
+      },
+    });
+    const unwire = wirePerpsControllerForStore(store);
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
+    await waitFor(() => expect(sizeInput).toHaveProp('value', '100'));
+    fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+    await waitFor(() => {
+      expect(sizeInput).toHaveProp('value', '0.04');
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (ETH)',
+      );
+    });
+    // ETH szDecimals is 2, so a third decimal place is rejected.
+    fireEvent.changeText(sizeInput, '0.123');
+    expect(sizeInput).toHaveProp('value', '0.04');
+    expect(
+      (
+        store.getState().engine.backgroundState.PerpsController as {
+          orderBookPreferences?: { currency?: string };
+        }
+      ).orderBookPreferences?.currency,
+    ).toBe('base');
+
+    const btcRow = await screen.findByTestId(
+      getPerpsProPositionRowSelector('BTC'),
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    fireEvent.press(within(btcRow).getByText('BTC'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (BTC)',
+      );
+    });
+    const nextSizeInput = screen.getByTestId(ids.SIZE_INPUT);
+    // BTC szDecimals is 5. A sixth decimal is rejected once market data lands.
+    // Stay under the balance cap so the draft is not clamped back to USD.
+    await waitFor(() => {
+      fireEvent.changeText(nextSizeInput, '0.00123');
+      fireEvent.changeText(nextSizeInput, '0.001234');
+      expect(nextSizeInput).toHaveProp('value', '0.00123');
+    });
+    unwire();
+  });
+
   itForPlatforms(
     'opens the size field and order book in the saved coin denomination',
     async () => {
@@ -5559,5 +5636,120 @@ describe('Pro market Lighter limit order take profit and stop loss', () => {
       ),
     ).toBeOnTheScreen();
     await waitFor(() => expect(submit).toBeDisabled());
+  });
+});
+
+describe('Pro fee display format', () => {
+  const calculateFees = () =>
+    Engine.context.PerpsController.calculateFees as jest.Mock;
+
+  afterEach(() => {
+    calculateFees().mockReset().mockResolvedValue({});
+  });
+
+  const renderTreatmentProMarket = ({
+    positionSize,
+  }: {
+    positionSize?: string;
+  } = {}) =>
+    renderPerpsProMarketView({
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: positionSize
+          ? [createLongPositionForViews({ size: positionSize })]
+          : [],
+        orders: [],
+      },
+      overrides: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [FEE_DISPLAY_AB_TEST_KEY]: 'treatment',
+              },
+            },
+          },
+        },
+      },
+    });
+
+  it('renders taker and maker rates for treatment and dollars after reduce-only', async () => {
+    calculateFees().mockImplementation(({ isMaker }: { isMaker: boolean }) =>
+      Promise.resolve(
+        isMaker
+          ? { protocolFeeRate: 0.00015, metamaskFeeRate: 0.00005 }
+          : { protocolFeeRate: 0.00045, metamaskFeeRate: 0.00005 },
+      ),
+    );
+    renderTreatmentProMarket({ positionSize: '-1' });
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '120');
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(ids.SUMMARY_FEES_VALUE_TAKER),
+      ).toHaveTextContent('Taker 0.050% /');
+      expect(
+        screen.getByTestId(ids.SUMMARY_FEES_VALUE_MAKER),
+      ).toHaveTextContent('Maker 0.020%');
+    });
+    expect(calculateFees()).toHaveBeenCalledWith(
+      expect.objectContaining({ orderType: 'limit', isMaker: true }),
+    );
+
+    fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SUMMARY_FEES_VALUE)).toHaveTextContent(
+        '$0.06',
+      );
+    });
+    expect(
+      screen.queryByTestId(ids.SUMMARY_FEES_VALUE_TAKER),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(ids.SUMMARY_FEES_VALUE_MAKER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps a treatment TWAP order on the dollar fee', async () => {
+    calculateFees().mockImplementation(() =>
+      Promise.resolve({
+        protocolFeeRate: 0.0005,
+        metamaskFeeRate: 0,
+      }),
+    );
+    const { store } = renderProMarketWithTwapFlag(true);
+    const remoteFeatureFlagController = store.getState().engine.backgroundState
+      .RemoteFeatureFlagController as unknown as {
+      remoteFeatureFlags: Record<string, unknown>;
+    };
+    act(() => {
+      syncEngineControllerState(store, 'RemoteFeatureFlagController', {
+        ...remoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...remoteFeatureFlagController.remoteFeatureFlags,
+          [FEE_DISPLAY_AB_TEST_KEY]: 'treatment',
+        },
+      });
+    });
+    const { sizeInput } = await openTwapOrderForm();
+    calculateFees().mockClear();
+    fireEvent.changeText(sizeInput, '120');
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SUMMARY_FEES_VALUE)).toHaveTextContent(
+        '$0.06',
+      );
+    });
+    expect(
+      screen.queryByTestId(ids.SUMMARY_FEES_VALUE_TAKER),
+    ).not.toBeOnTheScreen();
+    expect(calculateFees()).toHaveBeenCalledWith(
+      expect.objectContaining({ orderType: 'twap' }),
+    );
+    expect(calculateFees()).not.toHaveBeenCalledWith(
+      expect.objectContaining({ orderType: 'limit' }),
+    );
   });
 });

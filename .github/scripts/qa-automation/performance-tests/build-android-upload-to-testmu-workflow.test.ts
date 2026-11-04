@@ -222,3 +222,65 @@ describe('build-android-upload-to-testmu sourcemap retention', () => {
     );
   });
 });
+
+describe('build-android-upload-to-testmu daily app cleanup', () => {
+  const JOB = 'upload-to-browserstack';
+  const stepIndex = (name: string) =>
+    stepsOf(JOB).findIndex((step) => step.name === name);
+
+  it('runs the cleanup before the TestMu upload so a reused APK is re-uploaded, not deleted after', () => {
+    const cleanup = stepIndex('Clean up old TestMu AI apps');
+    const upload = stepIndex('Upload APKs to TestMu AI');
+
+    expect(cleanup).toBeGreaterThan(-1);
+    expect(upload).toBeGreaterThan(cleanup);
+  });
+
+  it('skips the cleanup when the per-day cache marker already exists', () => {
+    const lookup = stepByName(JOB, 'Check if TestMu cleanup already ran today');
+    const cleanup = stepByName(JOB, 'Clean up old TestMu AI apps');
+
+    expect(lookup?.uses).toBe('actions/cache/restore@v6');
+    expect(lookup?.with?.key).toMatch(
+      /^testmu-apps-cleanup-\$\{\{ steps\.testmu-cleanup-day\.outputs\.day \}\}$/,
+    );
+    expect(cleanup?.if).toContain('inputs.upload_to_testmu');
+    expect(cleanup?.if).toContain(
+      "steps.testmu-cleanup-cache.outputs.cache-hit != 'true'",
+    );
+  });
+
+  it('never blocks the APK upload when the cleanup fails', () => {
+    const cleanup = stepByName(JOB, 'Clean up old TestMu AI apps') as
+      | (WorkflowStep & { 'continue-on-error'?: boolean })
+      | undefined;
+
+    expect(cleanup?.['continue-on-error']).toBe(true);
+  });
+
+  it('never lets the cache steps block the APK upload', () => {
+    const cacheSteps = [
+      'Check if TestMu cleanup already ran today',
+      'Mark TestMu cleanup as done for today',
+    ].map(
+      (name) =>
+        stepByName(JOB, name) as
+          | (WorkflowStep & { 'continue-on-error'?: boolean })
+          | undefined,
+    );
+
+    expect(cacheSteps).toHaveLength(2);
+    cacheSteps.forEach((step) => {
+      expect(step?.['continue-on-error']).toBe(true);
+    });
+  });
+
+  it('only records the daily marker after a successful cleanup', () => {
+    const save = stepByName(JOB, 'Mark TestMu cleanup as done for today');
+    const lookup = stepByName(JOB, 'Check if TestMu cleanup already ran today');
+
+    expect(save?.uses).toBe('actions/cache/save@v6');
+    expect(save?.if).toBe("steps.testmu-cleanup.outcome == 'success'");
+    expect(save?.with?.key).toBe(lookup?.with?.key);
+  });
+});

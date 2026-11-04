@@ -16,8 +16,8 @@ describe('SocialV1FeedEmptyState', () => {
       screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.feed.v1_empty.following.title'),
-    ).toBeOnTheScreen();
+      screen.queryByText('social_leaderboard.feed.v1_empty.following.title'),
+    ).toBeNull();
     expect(
       screen.getByText(
         'social_leaderboard.feed.v1_empty.following.description',
@@ -29,8 +29,8 @@ describe('SocialV1FeedEmptyState', () => {
     renderWithProvider(<SocialV1FeedEmptyState tab="trending" />);
 
     expect(
-      screen.getByText('social_leaderboard.feed.v1_empty.trending.title'),
-    ).toBeOnTheScreen();
+      screen.queryByText('social_leaderboard.feed.v1_empty.trending.title'),
+    ).toBeNull();
     expect(
       screen.getByText('social_leaderboard.feed.v1_empty.trending.description'),
     ).toBeOnTheScreen();
@@ -40,8 +40,8 @@ describe('SocialV1FeedEmptyState', () => {
     renderWithProvider(<SocialV1FeedEmptyState tab="live" />);
 
     expect(
-      screen.getByText('social_leaderboard.feed.v1_empty.live.title'),
-    ).toBeOnTheScreen();
+      screen.queryByText('social_leaderboard.feed.v1_empty.live.title'),
+    ).toBeNull();
     expect(
       screen.getByText('social_leaderboard.feed.v1_empty.live.description'),
     ).toBeOnTheScreen();

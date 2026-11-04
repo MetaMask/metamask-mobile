@@ -13,9 +13,6 @@ const createStyles = (params: {
     container: {
       flex: 1,
     },
-    scrollContentContainer: {
-      paddingBottom: 100,
-    },
     addNetworkButtonContainer: {
       borderRadius: 8,
       padding: 16,
@@ -31,9 +28,6 @@ const createStyles = (params: {
       height: 32,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    networkItem: {
-      alignItems: 'center',
     },
   });
 };

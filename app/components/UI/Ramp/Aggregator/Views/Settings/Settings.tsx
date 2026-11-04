@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -27,6 +27,9 @@ import ListItem from '../../../../../../component-library/components/List/ListIt
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
 
 import styles from './Settings.styles';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export const RAMP_SETTINGS_HEADER_TEST_ID = 'ramp-settings-header';
 export const RAMP_SETTINGS_BACK_BUTTON_TEST_ID = 'ramp-settings-back-button';
@@ -34,6 +37,7 @@ export const RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID =
   'ramp-settings-headless-playground-button';
 
 function Settings() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { isInternalBuild } = useRampSDK();
   const trackEvent = useAnalytics();
@@ -54,7 +58,9 @@ function Settings() {
 
   return (
     <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID={RAMP_SETTINGS_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.title')}
         onBack={handleBack}

@@ -30,8 +30,12 @@ jest.mock('../../../UI/Perps', () => ({
     children,
 }));
 
-jest.mock('../../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(() => false),
+jest.mock('../../../UI/PredictNext', () => ({
+  selectPredictAvailability: jest.fn(() => false),
+  usePredictEntryActions: () => ({
+    openPredict: jest.fn(() => true),
+    canOpenPredict: jest.fn(() => true),
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => ({

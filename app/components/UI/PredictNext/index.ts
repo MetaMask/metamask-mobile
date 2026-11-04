@@ -4,3 +4,36 @@
  * ticket migrates a real caller. See docs/public-api-contract.md.
  */
 export { default as PredictRoot } from './navigation/root/PredictRoot';
+export {
+  PredictActivityDetails,
+  usePredictActivityDetailsItem,
+  usePredictActivityItems,
+  type PredictActivityDetailsItemResult,
+  type PredictActivityDetailsProps,
+  type PredictActivityItemsResult,
+  type UsePredictActivityItemsOptions,
+} from './activity';
+export {
+  selectPredictAvailability,
+  usePredictAvailability,
+} from './availability';
+export { PredictEventProperties, PredictEventValues } from './analytics';
+export {
+  usePredictPortfolioValue,
+  type PredictPortfolioValue,
+} from './portfolio';
+export {
+  createLegacyPredictEventRef,
+  openPredict,
+  usePredictEntryActions,
+  type PredictEntryActions,
+  type PredictEntryPoint,
+  type PredictEventRef,
+  type PredictFeedCategory,
+  type PredictIntent,
+} from './navigation/entry';
+export type { PredictAppRouteParamList } from './navigation/appRoutes';
+export {
+  PredictHomeSection,
+  type PredictHomeSectionProps,
+} from './homeSection';

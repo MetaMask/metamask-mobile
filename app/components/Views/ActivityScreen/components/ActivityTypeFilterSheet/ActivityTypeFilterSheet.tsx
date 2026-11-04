@@ -1,13 +1,18 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { selectBridgeLimitOrderTabEnabledFlag } from '../../../../../selectors/bridge/featureFlags';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
-import { ACTIVITY_TYPE_FILTER_ORDER, ActivityTypeFilter } from '../../types';
+import {
+  ActivityTypeFilter,
+  getSelectableActivityTypeFilters,
+} from '../../types';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
 import { FilterOptionSheet } from '../FilterOptionSheet';
 
@@ -21,6 +26,7 @@ export const ACTIVITY_TYPE_FILTER_LABEL_KEY: Record<
   [ActivityTypeFilter.All]: 'activity_view.type_filter.all',
   [ActivityTypeFilter.Transactions]: 'activity_view.type_filter.transactions',
   [ActivityTypeFilter.BuySell]: 'activity_view.type_filter.buy_sell',
+  [ActivityTypeFilter.LimitOrders]: 'activity_view.type_filter.limit_orders',
   [ActivityTypeFilter.Perps]: 'activity_view.type_filter.perps',
   [ActivityTypeFilter.Predictions]: 'activity_view.type_filter.predictions',
   [ActivityTypeFilter.MetamaskCard]: 'activity_view.type_filter.metamask_card',
@@ -45,6 +51,9 @@ export const createActivityTypeFilterNavDetails =
 const ActivityTypeFilterSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { selected, onSelect } = useParams<ActivityTypeFilterSheetParams>();
+  const isLimitOrdersEnabled = useSelector(
+    selectBridgeLimitOrderTabEnabledFlag,
+  );
 
   const handleGoBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -55,7 +64,7 @@ const ActivityTypeFilterSheet: React.FC = () => {
   return (
     <FilterOptionSheet
       title={strings('activity_view.type_filter.title')}
-      options={ACTIVITY_TYPE_FILTER_ORDER}
+      options={getSelectableActivityTypeFilters(isLimitOrdersEnabled)}
       selected={selected}
       getLabel={(filter) => strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[filter])}
       onSelect={onSelect}

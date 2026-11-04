@@ -13,6 +13,7 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -20,8 +21,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
@@ -40,14 +40,14 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    openAsOnlyOnboardingRoute: jest.fn(),
+    openVbaEntry: jest.fn(),
   }),
 );
 jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
   startVbaCufJourney: jest.fn(),
 }));
 
-const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
+const mockOpenVbaEntry = jest.mocked(openVbaEntry);
 const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -107,6 +107,11 @@ jest.mock(
     selectMoneyMovementNeobank: jest.fn(),
   }),
 );
+
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.requireActual('../../../../../selectors/rampsController'),
+  selectUsableVbaAutoramp: jest.fn(),
+}));
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   ...jest.requireActual('../../../../../selectors/geolocationController'),
@@ -177,6 +182,9 @@ describe('MoneyAddMoneySheet', () => {
       isEnabled: true,
       regions: ['BR'],
     });
+    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
     delete process.env.MM_MONEY_VBA_GEO_BYPASS;
   });
@@ -229,12 +237,11 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     // It is a standalone VBA screen, not part of the crypto deposit flow.
-    // Opening shows the loading screen before onboarding status is known.
+    // Opening routes through the VBA entry helper before status is known.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+    expect(mockOpenVbaEntry).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: mockNavigate }),
-      VbaOnboardingRoutes.LOADING,
     );
   });
 
@@ -254,6 +261,26 @@ describe('MoneyAddMoneySheet', () => {
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('enables the Bank account row for a usable autoramp even when the flag is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
+    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue({
+      id: 'ar-1',
+    });
+
+    const { getByTestId, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeEnabled();
+    // Only External address is coming soon.
+    expect(getAllByText('Coming soon')).toHaveLength(1);
   });
 
   it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {
@@ -312,9 +339,8 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     fireEvent.press(bankRow);
-    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+    expect(mockOpenVbaEntry).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: mockNavigate }),
-      VbaOnboardingRoutes.LOADING,
     );
   });
 

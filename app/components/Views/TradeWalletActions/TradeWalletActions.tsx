@@ -40,7 +40,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BlurView } from 'expo-blur';
 import { GlassView } from 'expo-glass-effect';
-import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -62,7 +61,6 @@ import {
   TRADE_TRAY_GLASS_RADIUS,
 } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
-import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import { selectNativeTabBarEnabled } from '../../../selectors/featureFlagController/nativeTabBar';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog. */
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
@@ -71,11 +69,7 @@ import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
-import {
-  selectCanSignTransactions,
-  selectSelectedInternalAccountAddress,
-} from '../../../selectors/accountsController';
-import { isHardwareAccount } from '../../../util/address';
+import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { colorWithOpacity } from '../../../util/colors';
 import {
   SwapBridgeNavigationLocation,
@@ -89,8 +83,11 @@ import {
 } from '../../UI/Perps/utils/perpsModeSwitch';
 import { openPerpsModeSelection } from '../../UI/Perps/utils/openPerpsModeSelection';
 import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
-import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+  usePredictEntryActions,
+} from '../../UI/PredictNext';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
@@ -118,10 +115,6 @@ const TRAY_BUTTON_GAP = 16;
 const TRADE_FOCUSED_BACKDROP_OPACITY = 0.2;
 export const TRADE_FOCUSED_BORDER_OPACITY = 0.2;
 const animationDuration = AnimationDuration.Fast;
-
-const batchSellIconStyle = {
-  transform: [{ rotate: '180deg' }],
-} satisfies ViewStyle;
 
 // UIKit draws the glass with continuous (squircle) corners; the clips and borders
 // around it need the same curve, or their circular arcs show at each corner.
@@ -308,16 +301,10 @@ function TradeWalletActions() {
   const navigation = useNavigation();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const isHardwareWallet = selectedAddress
-    ? Boolean(isHardwareAccount(selectedAddress))
-    : false;
-  const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
-  const shouldRenderBatchSell =
-    isBatchSellEnabled && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
+  const { openPredict } = usePredictEntryActions();
 
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
@@ -392,18 +379,6 @@ function TradeWalletActions() {
     handleNavigateBack();
   }, [goToSwapsBase, handleNavigateBack]);
 
-  const onBatchSell = useCallback(() => {
-    postCallback.current = () => {
-      navigate(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
-        params: {
-          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
-        },
-      });
-    };
-    handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
-
   const onPerps = useCallback(() => {
     postCallback.current = async () => {
       if (isPerpsProModeEnabled) {
@@ -436,15 +411,13 @@ function TradeWalletActions() {
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
+      openPredict({
+        type: 'home',
+        entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
       });
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
+  }, [handleNavigateBack, openPredict]);
 
   useFocusEffect(
     useCallback(() => {
@@ -495,19 +468,6 @@ function TradeWalletActions() {
 
   const actionList = (
     <>
-      {shouldRenderBatchSell && (
-        <ActionListItem
-          label={strings('asset_overview.batch_sell')}
-          description={strings('asset_overview.batch_sell_description')}
-          iconName={IconName.Merge}
-          iconProps={{
-            style: batchSellIconStyle,
-          }}
-          onPress={onBatchSell}
-          testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
-          isDisabled={!isSwapsEnabled}
-        />
-      )}
       {AppConstants.SWAPS.ACTIVE && (
         <ActionListItem
           label={strings('asset_overview.swap')}
