@@ -10552,6 +10552,7 @@
     "quote_stream_complete_rwa_market_unavailable": "The market for this asset is currently unavailable. Try again later.",
     "max": "Max",
     "approval_needed": "Approves token for swap.",
+    "tooltip_accessibility_hint": "Shows more information",
     "approval_tooltip_title": "Grant exact access",
     "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
     "minimum_received": "Minimum received",
