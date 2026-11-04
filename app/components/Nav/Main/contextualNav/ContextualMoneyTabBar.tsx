@@ -14,6 +14,7 @@ import {
 export interface ContextualMoneyTabBarProps {
   onHomePress: () => void;
   onHeightChange?: (height: number) => void;
+  inline?: boolean;
 }
 
 type MoneyFooterTab = 'home' | 'account' | 'card' | 'earn';
@@ -34,6 +35,7 @@ const MONEY_TABS: readonly ContextualTab[] = ['account', 'card', 'earn'];
 const ContextualMoneyTabBar = ({
   onHomePress,
   onHeightChange,
+  inline = false,
 }: ContextualMoneyTabBarProps) => {
   const { section, tab } = useContextualNavState();
   const activeTab: MoneyFooterTab =
@@ -60,6 +62,7 @@ const ContextualMoneyTabBar = ({
       onTabPress={handleTabPress}
       onHeightChange={onHeightChange}
       testIDPrefix="contextual-money"
+      inline={inline}
     />
   );
 };

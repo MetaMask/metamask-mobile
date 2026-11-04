@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, type ViewStyle } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
 import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
 import {
@@ -15,8 +14,6 @@ import HeaderRootGlass from '../../../component-library/components-temp/HeaderRo
 import { useNativeHeader } from '../../hooks/useNativeHeader';
 import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import { selectMoneyBrandRefreshEnabled } from '../../../selectors/featureFlagController/moneyBrandRefresh';
-import Routes from '../../../constants/navigation/Routes';
-import ContextualCollectiblesTabBar from '../../Nav/Main/contextualNav/ContextualCollectiblesTabBar';
 import {
   exitContextualSection,
   getContextualNavState,
@@ -97,21 +94,13 @@ const CollectiblesView = () => {
 };
 
 /**
- * Collectibles opened from the + menu. The footer rides in with this screen.
+ * Collectibles opened from Trade. The shared footer host draws Popular,
+ * Packs, Collection, and Market over this screen.
  */
 const CollectiblesSectionScreen = () => {
-  const navigation = useNavigation();
   const [isSection] = useState(
     () => getContextualNavState().section === 'collectibles',
   );
-  const handleHomePress = useCallback(() => {
-    navigation.dispatch(
-      StackActions.popTo(Routes.HOME_TABS, {
-        screen: Routes.WALLET.HOME,
-        params: { screen: Routes.WALLET_VIEW },
-      }),
-    );
-  }, [navigation]);
 
   useEffect(() => {
     if (!isSection) {
@@ -125,9 +114,6 @@ const CollectiblesSectionScreen = () => {
   return (
     <View style={PAGE_STYLE}>
       <CollectiblesView />
-      {isSection ? (
-        <ContextualCollectiblesTabBar onHomePress={handleHomePress} />
-      ) : null}
     </View>
   );
 };

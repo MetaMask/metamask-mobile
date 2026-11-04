@@ -30,10 +30,5 @@ describe('CollectiblesView', () => {
 
     expect(getByText('Collectibles')).toBeOnTheScreen();
     expect(getByText('Placeholder')).toBeOnTheScreen();
-    expect(getByText('Popular')).toBeOnTheScreen();
-    expect(getByText('Packs')).toBeOnTheScreen();
-    expect(getByText('Collection')).toBeOnTheScreen();
-    expect(getByText('Market')).toBeOnTheScreen();
-    expect(getByText('Home')).toBeOnTheScreen();
   });
 });

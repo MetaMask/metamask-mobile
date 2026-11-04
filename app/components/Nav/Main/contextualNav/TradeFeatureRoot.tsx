@@ -1,18 +1,10 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { View } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useEffect, useRef } from 'react';
 
-import Routes from '../../../../constants/navigation/Routes';
-import TradeHubFooter from './TradeHubFooter';
 import {
   exitContextualSection,
   getContextualNavState,
-  useContextualNavState,
   type TradingHubTab,
 } from './contextualSection';
-import { replaceTradingHub } from './tradeHubRoutes';
-import { useTradingHubAvailability } from './useTradingHubAvailability';
 
 export interface TradeFeatureRootProps {
   hub: TradingHubTab;
@@ -20,63 +12,25 @@ export interface TradeFeatureRootProps {
 }
 
 /**
- * Real Swap, Perps, or Predictions screen with the trading footer when this
- * hub was opened from Trade. Other entries leave the section unset and keep
- * the screen's own navigation.
+ * Swap, Perps, or Predictions. The footer host draws the trade pill, so this
+ * screen does not mount another one. Leaving the hub clears the section
+ * unless another hub already took over.
  */
 const TradeFeatureRoot = ({ hub, children }: TradeFeatureRootProps) => {
-  const tw = useTailwind();
-  const navigation = useNavigation();
-  const availability = useTradingHubAvailability();
-  const leavingForHub = useRef(false);
-  const { section, tab } = useContextualNavState();
-  const showFooter = section === 'trading' && tab === hub;
-
-  const handleHomePress = useCallback(() => {
-    exitContextualSection();
-    navigation.dispatch(
-      StackActions.popTo(Routes.HOME_TABS, {
-        screen: Routes.WALLET.HOME,
-        params: { screen: Routes.WALLET_VIEW },
-      }),
-    );
-  }, [navigation]);
-
-  const handleHubPress = useCallback(
-    (nextHub: TradingHubTab) => {
-      leavingForHub.current = true;
-      replaceTradingHub(nextHub, availability);
-    },
-    [availability],
-  );
+  const hubRef = useRef(hub);
+  hubRef.current = hub;
 
   useEffect(
     () => () => {
-      if (leavingForHub.current) {
-        return;
-      }
       const current = getContextualNavState();
-      if (current.section === 'trading' && current.tab === hub) {
+      if (current.section === 'trading' && current.tab === hubRef.current) {
         exitContextualSection();
       }
     },
-    [hub],
+    [],
   );
 
-  if (!showFooter) {
-    return <>{children}</>;
-  }
-
-  return (
-    <View style={tw.style('flex-1 bg-default')} testID={`trade-feature-${hub}`}>
-      <View style={tw.style('flex-1')}>{children}</View>
-      <TradeHubFooter
-        active={hub}
-        onHomePress={handleHomePress}
-        onHubPress={handleHubPress}
-      />
-    </View>
-  );
+  return <>{children}</>;
 };
 
 export default TradeFeatureRoot;

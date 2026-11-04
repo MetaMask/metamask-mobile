@@ -5,15 +5,18 @@ import { strings } from '../../../../../locales/i18n';
 import TradeTabBar, { type TradeTab } from './TradeTabBar';
 import type { TradingHubTab } from './contextualSection';
 
+export type TradeFooterTab = 'home' | TradingHubTab | 'collectibles';
+
 export interface TradeHubFooterProps {
-  active: TradingHubTab;
+  /** `null` on the Trade dashboard: no hub is selected, and neither is Home. */
+  active: TradingHubTab | null;
   onHomePress: () => void;
   onHubPress: (hub: TradingHubTab) => void;
+  onCollectiblesPress: () => void;
+  inline?: boolean;
 }
 
-type HubFooterTab = 'home' | TradingHubTab;
-
-const TABS: TradeTab<HubFooterTab>[] = [
+const TABS: TradeTab<TradeFooterTab>[] = [
   { id: 'home', label: strings('bottom_nav.home'), iconName: IconName.Home },
   { id: 'swap', label: 'Swap', iconName: IconName.SwapVertical },
   { id: 'perps', label: 'Perps', iconName: IconName.Infinity },
@@ -22,21 +25,28 @@ const TABS: TradeTab<HubFooterTab>[] = [
     label: 'Predictions',
     iconName: IconName.Predictions,
   },
+  { id: 'collectibles', label: 'Collectibles', iconName: IconName.Card },
 ];
 
 /**
- * Footer inside Swap, Perps, or Predictions. The other ways to trade, with
- * the current one selected. Home is the first tab and leaves the hub.
+ * Trade footer. Home, Swap, Perps, Predictions, and Collectibles. The open
+ * hub is selected. The dashboard leaves every item unselected.
  */
 const TradeHubFooter = ({
   active,
   onHomePress,
   onHubPress,
+  onCollectiblesPress,
+  inline = false,
 }: TradeHubFooterProps) => {
   const handleTabPress = useCallback(
-    (nextTab: HubFooterTab) => {
+    (nextTab: TradeFooterTab) => {
       if (nextTab === 'home') {
         onHomePress();
+        return;
+      }
+      if (nextTab === 'collectibles') {
+        onCollectiblesPress();
         return;
       }
       if (nextTab === active) {
@@ -44,7 +54,7 @@ const TradeHubFooter = ({
       }
       onHubPress(nextTab);
     },
-    [active, onHomePress, onHubPress],
+    [active, onCollectiblesPress, onHomePress, onHubPress],
   );
 
   return (
@@ -53,6 +63,7 @@ const TradeHubFooter = ({
       activeTab={active}
       onTabPress={handleTabPress}
       testIDPrefix="trade-hub"
+      inline={inline}
     />
   );
 };

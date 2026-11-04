@@ -11,6 +11,9 @@ export type ContextualSection =
 
 export type TradingHubTab = 'swap' | 'perps' | 'predictions';
 
+/** Trade tab body. The trade footer is showing and no hub is selected. */
+export type TradeDashboardTab = 'dashboard';
+
 export type ContextualTab =
   | 'explore'
   | 'live'
@@ -28,7 +31,8 @@ export type ContextualTab =
   | 'card'
   | 'news'
   | 'browser'
-  | TradingHubTab;
+  | TradingHubTab
+  | TradeDashboardTab;
 
 /** Round button beside the pill. + on Home, Home in every section. */
 export type ContextualCircleAction = 'add' | 'home';
@@ -93,8 +97,20 @@ export const enterMoneySection = (): void => {
 };
 
 /**
- * Trading hub. The footer is Home, Swap, Perps, and Predictions, with `tab`
- * selected. It does not list sub-sections of a hub.
+ * Trade tab. Footer becomes Home, Swap, Perps, Predictions, and Collectibles.
+ * Nothing is selected until a hub is opened. Does not reset a hub already open.
+ */
+export const enterTradeDashboard = (): void => {
+  if (state.section === 'trading') {
+    return;
+  }
+  state = { section: 'trading', tab: 'dashboard' };
+  emit();
+};
+
+/**
+ * Trading hub. The same trade footer, with `tab` selected. It does not list
+ * sub-sections of a hub.
  */
 export const enterTradingHub = (tab: TradingHubTab): void => {
   if (state.section === 'trading' && state.tab === tab) {

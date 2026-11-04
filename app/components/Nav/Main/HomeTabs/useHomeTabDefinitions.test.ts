@@ -314,6 +314,24 @@ describe('useHomeTabDefinitions', () => {
       expect(getContextualNavState().section).toBeNull();
     });
 
+    it('records the Trade dashboard from the native focus listener without selecting a hub', () => {
+      const { result } = renderDefinitions();
+      const trade = result.current.tabs.find((tab) => tab.key === 'trade');
+      if (!trade) {
+        throw new Error('Trade tab is not defined');
+      }
+
+      result.current
+        .getNativeTabListeners(trade)({ navigation: mockNavigation })
+        .focus?.();
+
+      expect(getContextualNavState()).toEqual({
+        section: 'trading',
+        tab: 'dashboard',
+      });
+      exitContextualSection();
+    });
+
     it('records Money from the native focus listener so the overlay can update', () => {
       const { result } = renderDefinitions({ isMoneyAccountVisible: true });
       const money = result.current.tabs.find((tab) => tab.key === 'money');

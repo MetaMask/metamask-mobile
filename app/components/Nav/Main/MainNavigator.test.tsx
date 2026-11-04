@@ -503,7 +503,9 @@ describe('MainNavigator', () => {
       expect(moneyScreen?.props.options.tabBarStyle).toEqual({
         display: 'none',
       });
-      expect(trendingScreen?.props.options.tabBarStyle).toBeUndefined();
+      expect(trendingScreen?.props.options.tabBarStyle).toEqual({
+        display: 'none',
+      });
     });
 
     it('gives every tab a title, an icon and press listeners', () => {

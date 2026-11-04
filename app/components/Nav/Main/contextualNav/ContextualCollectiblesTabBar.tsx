@@ -11,6 +11,7 @@ import {
 
 export interface ContextualCollectiblesTabBarProps {
   onHomePress: () => void;
+  inline?: boolean;
 }
 
 type CollectiblesFooterTab =
@@ -41,6 +42,7 @@ const COLLECTIBLES_TABS: readonly ContextualTab[] = [
  */
 const ContextualCollectiblesTabBar = ({
   onHomePress,
+  inline = false,
 }: ContextualCollectiblesTabBarProps) => {
   const { section, tab } = useContextualNavState();
   const activeTab: CollectiblesFooterTab =
@@ -65,6 +67,7 @@ const ContextualCollectiblesTabBar = ({
       activeTab={activeTab}
       onTabPress={handleTabPress}
       testIDPrefix="contextual-collectibles"
+      inline={inline}
     />
   );
 };

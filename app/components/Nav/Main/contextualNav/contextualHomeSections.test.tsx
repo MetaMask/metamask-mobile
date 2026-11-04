@@ -22,6 +22,9 @@ jest.mock('../../../../util/haptics');
 jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({ navigateToMoneyHome: jest.fn() }),
 }));
+jest.mock('../../../UI/Perps', () => ({
+  selectPerpsEnabledFlag: () => false,
+}));
 jest.mock('../../../../core/NavigationService', () => ({
   __esModule: true,
   default: { navigation: { navigate: jest.fn() } },
@@ -164,27 +167,37 @@ describe('contextual home and Money footers', () => {
     expect(queryByTestId('contextual-section-placeholder')).toBeNull();
   });
 
-  it('keeps the default footer on Trending, with no circle and no Explore section', () => {
-    const navigate = jest.fn();
-    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-      homeFooter(navigate),
-    );
+  it('keeps Trending on the default footer and opens the trade set with nothing selected', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(homeFooter());
 
-    fireEvent.press(getByText(strings('bottom_nav.trending')));
-
-    expect(getContextualNavState().section).toBeNull();
-    expect(queryByTestId('contextual-explore-tab-news')).toBeNull();
+    expect(getByTestId('footer-tab-trending')).toBeOnTheScreen();
+    expect(queryByTestId('trade-hub-tab-swap')).toBeNull();
     expect(queryByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON)).toBeNull();
-    expect(queryByTestId(TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON)).toBeNull();
-    expect(getByTestId('tab-bar-item-Actions')).toBeOnTheScreen();
-    expect(navigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+
+    fireEvent.press(getByTestId('footer-tab-trade'));
+
+    expect(getContextualNavState()).toEqual({
+      section: 'trading',
+      tab: 'dashboard',
+    });
+    expect(getByTestId('trade-hub-tab-swap')).toBeOnTheScreen();
+    expect(getByTestId('trade-hub-tab-collectibles')).toBeOnTheScreen();
+    expect(getByTestId('trade-hub-tab-swap').props.accessibilityState).toEqual({
+      selected: false,
+    });
+    expect(getByTestId('trade-hub-tab-home').props.accessibilityState).toEqual({
+      selected: false,
+    });
+    expect(getByTestId('trade-hub-tab-perps').props.accessibilityState).toEqual(
+      { selected: false },
+    );
   });
 
   it('swaps the home pill when Money is pressed, before the tab route changes', () => {
     const { getByTestId, getByText, queryByTestId } =
       renderWithProvider(homeFooter());
 
-    fireEvent.press(getByText(strings('bottom_nav.money')));
+    fireEvent.press(getByTestId('footer-tab-money'));
 
     expect(getContextualNavState().section).toBe('money');
     expect(getByTestId('contextual-money-tab-home')).toBeOnTheScreen();
@@ -199,13 +212,13 @@ describe('contextual home and Money footers', () => {
       <ContextualNativeHomeChrome />,
     );
 
-    expect(queryByTestId('contextual-native-home-chrome')).toBeNull();
+    expect(queryByTestId('contextual-footer')).toBeNull();
 
     act(() => {
       enterMoneySection();
     });
 
-    expect(getByTestId('contextual-native-home-chrome')).toBeOnTheScreen();
+    expect(getByTestId('contextual-footer')).toBeOnTheScreen();
     expect(getByTestId('contextual-money-tab-account')).toBeOnTheScreen();
     expect(
       getByTestId('contextual-money-tab-account').props.accessibilityState,

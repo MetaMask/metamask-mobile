@@ -28,10 +28,13 @@ export interface TradeTab<T extends string> {
 
 export interface TradeTabBarProps<T extends string> {
   tabs: TradeTab<T>[];
-  activeTab: T;
+  /** `null` leaves every tab unselected. */
+  activeTab: T | null;
   onTabPress: (tab: T) => void;
   testIDPrefix: string;
   onHeightChange?: (height: number) => void;
+  /** Render only the pill, for the shared animated shell. */
+  inline?: boolean;
 }
 
 const OVERLAY_STYLE: ViewStyle = {
@@ -54,6 +57,7 @@ const TradeTabBar = <T extends string>({
   onTabPress,
   testIDPrefix,
   onHeightChange,
+  inline = false,
 }: TradeTabBarProps<T>) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -97,8 +101,34 @@ const TradeTabBar = <T extends string>({
     }
   }, [isKeyboardHidden, onHeightChange]);
 
-  if (!isKeyboardHidden) {
+  if (!inline && !isKeyboardHidden) {
     return null;
+  }
+
+  const pill = (
+    <TabBarFloatingSurface
+      isBlurAvailable={isBlurAvailable}
+      colorScheme={colorScheme}
+      twClassName="flex-row items-center rounded-full p-1"
+      style={PILL_STYLE}
+      testID={`${testIDPrefix}-tab-pill`}
+    >
+      {tabs.map((item) => (
+        <TabBarFloatingItem
+          key={item.id}
+          testID={`${testIDPrefix}-tab-${item.id}`}
+          iconName={item.iconName}
+          label={item.label}
+          isActive={activeTab !== null && activeTab === item.id}
+          fullContrast
+          onPress={() => handleTabPress(item.id)}
+        />
+      ))}
+    </TabBarFloatingSurface>
+  );
+
+  if (inline) {
+    return pill;
   }
 
   const bottomPadding = getTabBarFloatingBottomPadding(bottomInset);
@@ -117,25 +147,7 @@ const TradeTabBar = <T extends string>({
       pointerEvents="box-none"
       onLayout={handleFrameLayout}
     >
-      <TabBarFloatingSurface
-        isBlurAvailable={isBlurAvailable}
-        colorScheme={colorScheme}
-        twClassName="flex-row items-center rounded-full p-1"
-        style={PILL_STYLE}
-        testID={`${testIDPrefix}-tab-pill`}
-      >
-        {tabs.map((item) => (
-          <TabBarFloatingItem
-            key={item.id}
-            testID={`${testIDPrefix}-tab-${item.id}`}
-            iconName={item.iconName}
-            label={item.label}
-            isActive={activeTab === item.id}
-            fullContrast
-            onPress={() => handleTabPress(item.id)}
-          />
-        ))}
-      </TabBarFloatingSurface>
+      {pill}
     </View>
   );
 };

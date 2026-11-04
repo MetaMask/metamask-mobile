@@ -125,6 +125,8 @@ import TabBar from '../../../component-library/components/Navigation/TabBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FloatingTabBarInsetContext } from '../../../component-library/components/Navigation/TabBarFloating';
 import ContextualHomeFooter from './contextualNav/ContextualHomeFooter';
+import ContextualFooterHost from './contextualNav/ContextualFooterHost';
+import { useFooterHostActive } from './contextualNav/footerHostState';
 import ContextualHomeSectionOverlay from './contextualNav/ContextualHomeSectionOverlay';
 import ContextualNativeHomeChrome from './contextualNav/ContextualNativeHomeChrome';
 import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
@@ -821,6 +823,7 @@ const HomeTabs = () => {
   const homeNavBarConfig = useHomeNavBarConfig({ trackExposure: true });
   const isFloatingTabBar = homeNavBarConfig.isRefreshedNavBar;
   const isNativeTabBar = useIsNativeTabBar();
+  const footerHostActive = useFooterHostActive();
   const safeAreaInsets = useSafeAreaInsets();
   const nativeTabBarInset =
     getTabBarFloatingBottomPadding(safeAreaInsets.bottom) +
@@ -904,6 +907,10 @@ const HomeTabs = () => {
       return null;
     }
 
+    if (isFloatingTabBar && footerHostActive) {
+      return null;
+    }
+
     if (isKeyboardHidden) {
       // Screens here are registered with `ExtendedBottomTabNavigationOptions`
       // (see `toJsTabOptions`), which the navigator still types as the base
@@ -950,8 +957,9 @@ const HomeTabs = () => {
       ? ({ route }: { route: HomeTabRoute }) =>
           toNativeTabOptions(tab, route, colors.success.default)
       : toNativeTabOptions(tab, undefined, colors.success.default);
-    // Money and Explore replace the system bar with the contextual pill.
-    const hidesSystemBar = tab.key === 'money';
+    // The JS footer host draws every set, including the default one, so the
+    // system bar stays hidden and the pill can animate on iOS 26.
+    const hidesSystemBar = true;
     const options = hidesSystemBar
       ? typeof baseOptions === 'function'
         ? ({ route }: { route: HomeTabRoute }) => ({
@@ -1130,597 +1138,606 @@ const MainNavigator = () => {
   const isSocialExperienceEnabled =
     isSocialV1Enabled || isSocialLeaderboardEnabled;
   return (
-    <NativeStack.Navigator
-      screenOptions={defaultScreenOptions}
-      initialRouteName={'Home'}
-    >
-      <NativeStack.Screen name="Home" component={HomeTabs} />
-      {/*
-       * Fallback home for Rewards. Treatment gives the tab slot to Social, so
-       * `navigate(REWARDS_VIEW)` from the header has no tab to land on and
-       * bubbles up to here. Control registers the tab too, and the tab
-       * navigator is nearer to the caller, so it wins and this is never
-       * reached. Registered unconditionally so the route always resolves
-       * regardless of how the arms are configured.
-       */}
-      <NativeStack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsSectionScreen}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.COLLECTIBLES_VIEW}
-        component={CollectiblesSectionScreen}
-        options={slideFromRightNativeOptions}
-      />
-      {/*
-       * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
-       * is its own native stack pushed onto the root native stack; nesting a native
-       * stack inside another native stack is supported — the outer push uses the
-       * root-stack transition, while screens inside RewardsNavigator animate natively.
-       * Reach it with navigation.navigate(REWARDS_FLOW, { screen, params }).
-       */}
-      <NativeStack.Screen
-        name={Routes.REWARDS_FLOW}
-        component={RewardsNavigator}
-      />
-      {/*
-       * Rewards sheets are registered on the root MainNavigator so they are
-       * reachable from both the Rewards tab (dashboard/onboarding) and
-       * REWARDS_FLOW sub-pages. transparentModalStackOptions carries
-       * animation: 'none' so only the BottomSheet's internal slide runs —
-       * without it the native stack slides the entire screen (overlay
-       * included) from the bottom.
-       */}
-      <NativeStack.Group screenOptions={transparentModalStackOptions}>
+    <View style={HOME_TABS_FRAME}>
+      <NativeStack.Navigator
+        screenOptions={defaultScreenOptions}
+        initialRouteName={'Home'}
+      >
+        <NativeStack.Screen name="Home" component={HomeTabs} />
+        {/*
+         * Fallback home for Rewards. Treatment gives the tab slot to Social, so
+         * `navigate(REWARDS_VIEW)` from the header has no tab to land on and
+         * bubbles up to here. Control registers the tab too, and the tab
+         * navigator is nearer to the caller, so it wins and this is never
+         * reached. Registered unconditionally so the route always resolves
+         * regardless of how the arms are configured.
+         */}
         <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-          component={RewardsBottomSheetModal as ScreenComponent}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
-          component={RewardsInfoSheetModal as ScreenComponent}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL}
-          component={RewardsMoneyClaimsPausedModal as ScreenComponent}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-          component={RewardsClaimBottomSheetModal as ScreenComponent}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-          component={RewardOptInAccountGroupModal}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-          component={EndOfSeasonClaimBottomSheet as ScreenComponent}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_SELECT_SHEET}
-          component={RewardsSelectSheet as ScreenComponent}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_INVITE_SHEET}
-          component={AcceptInviteSheet}
-        />
-        <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
-          component={TermsSheet}
-        />
-      </NativeStack.Group>
-      {/*
-       * Post-accept confirmation. Registered on the root stack (not inside
-       * RewardsNavigator) so it can fade over the Money dashboard after the
-       * invite sheet dismisses — same pattern as Money onboarding.
-       */}
-      <NativeStack.Screen
-        name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
-        component={RewardsMoneyReferralAcceptedSplashView}
-        options={{ headerShown: false, ...fadeNativeOptions }}
-      />
-      <NativeStack.Screen
-        name={Routes.DEPRECATED_NETWORK_DETAILS}
-        component={DeprecatedNetworkDetails}
-        options={{
-          presentation: 'transparentModal',
-          contentStyle: { backgroundColor: importedColors.transparent },
-        }}
-      />
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.WALLET.TOKENS_FULL_VIEW}
-          component={TokensFullView}
-        />
-        <NativeStack.Screen
-          name={Routes.WALLET.DEFI_FULL_VIEW}
-          component={DeFiFullView}
-        />
-        <NativeStack.Screen
-          name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
-          component={CashTokensFullView}
-        />
-        <NativeStack.Screen
-          name={Routes.WALLET.WATCHLIST_FULL_VIEW}
-          component={WatchlistFullScreenView}
-        />
-      </NativeStack.Group>
-      <NativeStack.Screen name="AddAsset" component={AddAsset} />
-      <NativeStack.Screen
-        name="ConfirmAddAsset"
-        component={ConfirmAddAsset}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.SETTINGS_VIEW}
-        component={SettingsFlow}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        {isSocialV1Enabled && (
-          <NativeStack.Screen
-            name={Routes.SOCIAL_PROFILE.DRAWER}
-            component={ProfileDrawer}
-            options={slideFromLeftNativeOptions}
-          />
-        )}
-        <NativeStack.Screen
-          name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
-          component={ManageProfile}
-        />
-        <NativeStack.Screen
-          name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD}
-          component={ManageProfileField}
-        />
-        <NativeStack.Screen
-          name={Routes.SOCIAL_PROFILE.X_ACCOUNT}
-          component={ManageProfileXAccount}
-        />
-        <NativeStack.Screen
-          name={Routes.SOCIAL_PROFILE.LINKED_SOCIAL_ACCOUNT}
-          component={LinkedSocialAccount}
-        />
-      </NativeStack.Group>
-      <NativeStack.Screen
-        name={Routes.ACCOUNT_HUB_VIEW}
-        component={AccountHub}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Screen
-        name="Asset"
-        component={AssetStackFlow}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.ACTIVITY_DETAILS}
-        component={ActivityDetails}
-      />
-      <NativeStack.Screen
-        name={Routes.TRANSACTION_DETAILS}
-        component={TransactionDetails}
-      />
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.WALLET.TRENDING_TOKENS_FULL_VIEW}
-          component={TrendingTokensFullView}
-        />
-        <NativeStack.Screen
-          name={Routes.WALLET.RWA_TOKENS_FULL_VIEW}
-          component={RWATokensFullView}
-        />
-      </NativeStack.Group>
-
-      <NativeStack.Screen name="Webview" component={Webview} />
-      <NativeStack.Screen
-        name="Send"
-        component={Send}
-        options={{
-          gestureEnabled: false,
-          ...slideFromRightNativeOptions,
-        }}
-      />
-      <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
-      <NativeStack.Screen
-        name="OfflineModeView"
-        component={OfflineMode}
-        options={OfflineMode.navigationOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.NOTIFICATIONS.VIEW}
-        component={NotificationsModeView}
-      />
-      <NativeStack.Screen
-        name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcherWithMessenger}
-      />
-      <NativeStack.Screen
-        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
-        component={VerificationCodeBottomSheet}
-        options={addDeviceVerificationCodeScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWalletWithMessenger}
-      />
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen name="NftDetails" component={NftDetails} />
-        <NativeStack.Screen
-          name="NftDetailsFullImage"
-          component={NftDetailsFullImage}
-        />
-        <NativeStack.Screen
-          name={Routes.WALLET.NFTS_FULL_VIEW}
-          component={NftFullView}
-        />
-      </NativeStack.Group>
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.REWARD_BENEFIT_FULL_VIEW}
-          component={BenefitFullView}
-        />
-        <NativeStack.Screen
-          name={Routes.REWARD_BENEFITS_FULL_VIEW}
-          component={BenefitsFullView}
-        />
-      </NativeStack.Group>
-      <NativeStack.Screen
-        name={Routes.RAMP.TOKEN_SELECTION}
-        component={TokenListRoutes}
-      />
-      <NativeStack.Screen
-        name={Routes.RAMP.HEADLESS_ENTRY}
-        component={TokenListRoutes}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen name={Routes.RAMP.BUY}>
-        {() => <RampRoutes rampType={RampType.BUY} />}
-      </NativeStack.Screen>
-      <NativeStack.Screen name={Routes.RAMP.SELL}>
-        {() => <RampRoutes rampType={RampType.SELL} />}
-      </NativeStack.Screen>
-      <NativeStack.Screen
-        name={Routes.RAMP.VBA_ONBOARDING}
-        component={VbaOnboardingNavigator}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
-      />
-      <NativeStack.Screen
-        name={Routes.RAMP.VBA_DETAILS}
-        component={VbaDetails}
-        options={{
-          ...slideFromRightNativeOptions,
-          headerShown: false,
-        }}
-      />
-      <NativeStack.Screen
-        name={Routes.BRIDGE.ROOT}
-        component={TradeSwapRoot}
-        options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.TRADE_HUB}
-        component={TradeHubScreen}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.BRIDGE.MODALS.ROOT}
-        component={BridgeModalStack}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen
-        name="StakeScreens"
-        component={StakeScreenStack}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.EARN.ROOT}
-        component={EarnScreenStack}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.EARN.MODALS.ROOT}
-        component={EarnModalStack}
-        options={transparentModalStackOptions}
-      />
-      {isMoneyAccountEnabled && (
-        <>
-          <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-            <NativeStack.Screen
-              name={Routes.MONEY.ROOT}
-              component={MoneyTabScreenStack}
-            />
-            <NativeStack.Screen
-              name={Routes.MONEY.CONFIRMATIONS_ROOT}
-              component={MoneyConfirmationScreenStack}
-            />
-            <NativeStack.Screen
-              name={Routes.MONEY.POTENTIAL_EARNINGS}
-              component={MoneyPotentialEarningsView}
-            />
-            <NativeStack.Screen
-              name={Routes.MONEY.MUSD_RESCUE_SEND}
-              component={MusdRescueSendScreen}
-            />
-            <NativeStack.Screen
-              name={Routes.MONEY.MUSD_RESCUE_RECIPIENT}
-              component={MusdRescueRecipientScreen}
-            />
-            <NativeStack.Screen
-              name={Routes.MONEY.TRANSACTION_DETAILS}
-              component={TransactionDetails}
-            />
-            <NativeStack.Screen
-              name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
-              component={MoneyApiActivityDetailsView}
-            />
-          </NativeStack.Group>
-          <NativeStack.Screen
-            name={Routes.MONEY.ONBOARDING}
-            component={MoneyOnboardingView}
-            options={fadeNativeOptions}
-          />
-          <NativeStack.Screen
-            name={Routes.MONEY.FIRST_TIME_DEPOSIT}
-            component={MoneyFirstTimeDepositView}
-            options={{
-              ...transparentModalStackOptions,
-              gestureEnabled: false,
-            }}
-          />
-          <NativeStack.Screen
-            name={Routes.MONEY.MODALS.ROOT}
-            component={MoneyModalStack}
-            options={transparentModalStackOptions}
-          />
-          <NativeStack.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            component={TransactionsHome}
-            options={slideFromRightNativeOptions}
-          />
-        </>
-      )}
-      {/*
-       * Rendered outside isMoneyAccountEnabled so we can display modal when feature is disabled.
-       * - Maintenance modal when the feature is disabled.
-       * - Gradual rollout modal when the user is not part of the gradual rollout cohort yet but feature is enabled.
-       */}
-      <NativeStack.Screen
-        name={Routes.MONEY.MODALS.DEEPLINK_MODAL}
-        component={MoneyDeeplinkModal}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MONEY.DEPOSIT_DEEPLINK}
-        component={MoneyDepositDeeplinkBridge}
-        options={transparentModalStackOptions}
-      />
-      <NativeStack.Screen
-        name="StakeModals"
-        component={StakeModalStack}
-        options={transparentModalStackOptions}
-      />
-      {isPerpsEnabled && (
-        <>
-          <NativeStack.Screen
-            name={Routes.PERPS.ROOT}
-            component={TradePerpsRoot}
-            options={slideFromRightNativeOptions}
-          />
-          <NativeStack.Screen
-            name={Routes.PERPS.TUTORIAL}
-            component={PerpsTutorialCarousel}
-          />
-          <NativeStack.Screen
-            name={Routes.PERPS.MODALS.ROOT}
-            component={PerpsModalStackWithErrorGate}
-            options={transparentModalStackOptions}
-          />
-          <NativeStack.Screen
-            name={Routes.PERPS.POSITION_TRANSACTION}
-            component={PerpsPositionTransactionView}
-          />
-          <NativeStack.Screen
-            name={Routes.PERPS.ORDER_TRANSACTION}
-            component={PerpsOrderTransactionView}
-          />
-          <NativeStack.Screen
-            name={Routes.PERPS.FUNDING_TRANSACTION}
-            component={PerpsFundingTransactionView}
-          />
-          <NativeStack.Screen
-            name={Routes.PERPS.PRICE_ALERTS}
-            component={ManagePriceAlertsView}
-          />
-          <NativeStack.Screen
-            name={Routes.PERPS.CREATE_PRICE_ALERT}
-            component={CreatePriceAlertView}
-          />
-        </>
-      )}
-      {isPredictEnabled && (
-        <>
-          <NativeStack.Screen
-            name={Routes.PREDICT.ROOT}
-            component={TradePredictRoot}
-            options={slideFromRightNativeOptions}
-          />
-          <NativeStack.Screen
-            name={Routes.PREDICT.MODALS.ROOT}
-            component={PredictModalStack}
-            options={transparentModalStackOptions}
-          />
-        </>
-      )}
-      {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
-        <NativeStack.Screen
-          name={Routes.MARKET_INSIGHTS.VIEW}
-          component={MarketInsightsView}
+          name={Routes.REWARDS_VIEW}
+          component={RewardsSectionScreen}
           options={slideFromRightNativeOptions}
         />
-      )}
-      {isSocialV1Enabled && (
-        <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+        <NativeStack.Screen
+          name={Routes.COLLECTIBLES_VIEW}
+          component={CollectiblesSectionScreen}
+          options={slideFromRightNativeOptions}
+        />
+        {/*
+         * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
+         * is its own native stack pushed onto the root native stack; nesting a native
+         * stack inside another native stack is supported — the outer push uses the
+         * root-stack transition, while screens inside RewardsNavigator animate natively.
+         * Reach it with navigation.navigate(REWARDS_FLOW, { screen, params }).
+         */}
+        <NativeStack.Screen
+          name={Routes.REWARDS_FLOW}
+          component={RewardsNavigator}
+        />
+        {/*
+         * Rewards sheets are registered on the root MainNavigator so they are
+         * reachable from both the Rewards tab (dashboard/onboarding) and
+         * REWARDS_FLOW sub-pages. transparentModalStackOptions carries
+         * animation: 'none' so only the BottomSheet's internal slide runs —
+         * without it the native stack slides the entire screen (overlay
+         * included) from the bottom.
+         */}
+        <NativeStack.Group screenOptions={transparentModalStackOptions}>
           <NativeStack.Screen
-            name={Routes.SOCIAL.V1}
-            component={SocialV1View}
-            options={{
-              // `enableFreeze(true)` is global (index.js). The feed must keep
-              // reacting to the composed-post store while the composer sits on
-              // top, otherwise the posting banner and the committed post are
-              // both swallowed by the frozen subtree.
-              freezeOnBlur: false,
-            }}
+            name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+            component={RewardsBottomSheetModal as ScreenComponent}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.POST_COMPOSER}
-            component={SocialPostComposerView}
+            name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
+            component={RewardsInfoSheetModal as ScreenComponent}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.MY_PROFILE}
-            component={MyProfileView}
+            name={Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL}
+            component={RewardsMoneyClaimsPausedModal as ScreenComponent}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.V1_PROFILE}
-            component={MyProfileView}
+            name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+            component={RewardsClaimBottomSheetModal as ScreenComponent}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
-            component={FollowConnectionsView}
+            name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+            component={RewardOptInAccountGroupModal}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.PROFILES_TO_FOLLOW}
-            component={ProfilesToFollowView}
-            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+            name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+            component={EndOfSeasonClaimBottomSheet as ScreenComponent}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.MANAGE_PROFILE}
-            component={ManageProfileView}
+            name={Routes.MODAL.REWARDS_SELECT_SHEET}
+            component={RewardsSelectSheet as ScreenComponent}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR}
-            component={ManageProfileTextEditorView}
+            name={Routes.MODAL.REWARDS_MONEY_INVITE_SHEET}
+            component={AcceptInviteSheet}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY}
-            component={ManageProfileTradingActivityView}
-          />
-          <NativeStack.Screen
-            name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
-            component={ManageProfileLinkedAccountView}
-          />
-          <NativeStack.Screen
-            name={Routes.SOCIAL.EDIT_AVATAR}
-            component={EditProfileAvatarView}
-          />
-          <NativeStack.Screen
-            name={Routes.SOCIAL.PROFILE_ONBOARDING}
-            component={SocialProfileOnboardingView}
+            name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
+            component={TermsSheet}
           />
         </NativeStack.Group>
-      )}
-      {isSocialExperienceEnabled && (
-        <>
-          {isSocialLeaderboardEnabled && (
+        {/*
+         * Post-accept confirmation. Registered on the root stack (not inside
+         * RewardsNavigator) so it can fade over the Money dashboard after the
+         * invite sheet dismisses — same pattern as Money onboarding.
+         */}
+        <NativeStack.Screen
+          name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
+          component={RewardsMoneyReferralAcceptedSplashView}
+          options={{ headerShown: false, ...fadeNativeOptions }}
+        />
+        <NativeStack.Screen
+          name={Routes.DEPRECATED_NETWORK_DETAILS}
+          component={DeprecatedNetworkDetails}
+          options={{
+            presentation: 'transparentModal',
+            contentStyle: { backgroundColor: importedColors.transparent },
+          }}
+        />
+        <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+          <NativeStack.Screen
+            name={Routes.WALLET.TOKENS_FULL_VIEW}
+            component={TokensFullView}
+          />
+          <NativeStack.Screen
+            name={Routes.WALLET.DEFI_FULL_VIEW}
+            component={DeFiFullView}
+          />
+          <NativeStack.Screen
+            name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
+            component={CashTokensFullView}
+          />
+          <NativeStack.Screen
+            name={Routes.WALLET.WATCHLIST_FULL_VIEW}
+            component={WatchlistFullScreenView}
+          />
+        </NativeStack.Group>
+        <NativeStack.Screen name="AddAsset" component={AddAsset} />
+        <NativeStack.Screen
+          name="ConfirmAddAsset"
+          component={ConfirmAddAsset}
+          options={slideFromRightNativeOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.SETTINGS_VIEW}
+          component={SettingsFlow}
+          options={slideFromRightNativeOptions}
+        />
+        <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+          {isSocialV1Enabled && (
             <NativeStack.Screen
-              name={Routes.SOCIAL.V0}
-              component={SocialV0View}
-              options={slideFromRightNativeOptions}
+              name={Routes.SOCIAL_PROFILE.DRAWER}
+              component={ProfileDrawer}
+              options={slideFromLeftNativeOptions}
             />
           )}
-          <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-            <NativeStack.Screen
-              name={Routes.SOCIAL.PROFILE}
-              component={TraderProfileView}
-            />
-            <NativeStack.Screen
-              name={Routes.SOCIAL.POSITION}
-              component={TraderPositionView}
-            />
-            <NativeStack.Screen
-              name={Routes.SOCIAL.ONBOARDING}
-              component={SocialLeaderboardOnboarding}
-            />
-          </NativeStack.Group>
           <NativeStack.Screen
-            name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
-            component={TradingSignalsSetupBottomSheet}
-            options={transparentModalStackOptions}
+            name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
+            component={ManageProfile}
           />
           <NativeStack.Screen
-            name={Routes.SOCIAL.POSITION_SHEET}
-            component={PositionDetailsSheet}
-            options={transparentModalStackOptions}
+            name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD}
+            component={ManageProfileField}
           />
-        </>
-      )}
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+          <NativeStack.Screen
+            name={Routes.SOCIAL_PROFILE.X_ACCOUNT}
+            component={ManageProfileXAccount}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL_PROFILE.LINKED_SOCIAL_ACCOUNT}
+            component={LinkedSocialAccount}
+          />
+        </NativeStack.Group>
         <NativeStack.Screen
-          name={Routes.EXPLORE_SEARCH}
-          component={ExploreSearchScreen}
-          options={({ route }) => {
-            const { entryPoint } = (route.params ??
-              {}) as ExploreSearchRouteParams;
-            return getExploreSearchScreenOptions(
-              entryPoint,
-              slideFromRightNativeOptions,
-            );
+          name={Routes.ACCOUNT_HUB_VIEW}
+          component={AccountHub}
+          options={slideFromRightNativeOptions}
+        />
+        <NativeStack.Screen
+          name="Asset"
+          component={AssetStackFlow}
+          options={slideFromRightNativeOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.ACTIVITY_DETAILS}
+          component={ActivityDetails}
+        />
+        <NativeStack.Screen
+          name={Routes.TRANSACTION_DETAILS}
+          component={TransactionDetails}
+        />
+        <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+          <NativeStack.Screen
+            name={Routes.WALLET.TRENDING_TOKENS_FULL_VIEW}
+            component={TrendingTokensFullView}
+          />
+          <NativeStack.Screen
+            name={Routes.WALLET.RWA_TOKENS_FULL_VIEW}
+            component={RWATokensFullView}
+          />
+        </NativeStack.Group>
+
+        <NativeStack.Screen name="Webview" component={Webview} />
+        <NativeStack.Screen
+          name="Send"
+          component={Send}
+          options={{
+            gestureEnabled: false,
+            ...slideFromRightNativeOptions,
+          }}
+        />
+        <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
+        <NativeStack.Screen
+          name="OfflineModeView"
+          component={OfflineMode}
+          options={OfflineMode.navigationOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.NOTIFICATIONS.VIEW}
+          component={NotificationsModeView}
+        />
+        <NativeStack.Screen
+          name={Routes.QR_TAB_SWITCHER}
+          component={QRTabSwitcherWithMessenger}
+        />
+        <NativeStack.Screen
+          name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+          component={VerificationCodeBottomSheet}
+          options={addDeviceVerificationCodeScreenOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          component={AddDeviceToWalletWithMessenger}
+        />
+        <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+          <NativeStack.Screen name="NftDetails" component={NftDetails} />
+          <NativeStack.Screen
+            name="NftDetailsFullImage"
+            component={NftDetailsFullImage}
+          />
+          <NativeStack.Screen
+            name={Routes.WALLET.NFTS_FULL_VIEW}
+            component={NftFullView}
+          />
+        </NativeStack.Group>
+        <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+          <NativeStack.Screen
+            name={Routes.REWARD_BENEFIT_FULL_VIEW}
+            component={BenefitFullView}
+          />
+          <NativeStack.Screen
+            name={Routes.REWARD_BENEFITS_FULL_VIEW}
+            component={BenefitsFullView}
+          />
+        </NativeStack.Group>
+        <NativeStack.Screen
+          name={Routes.RAMP.TOKEN_SELECTION}
+          component={TokenListRoutes}
+        />
+        <NativeStack.Screen
+          name={Routes.RAMP.HEADLESS_ENTRY}
+          component={TokenListRoutes}
+          options={transparentModalStackOptions}
+        />
+        <NativeStack.Screen name={Routes.RAMP.BUY}>
+          {() => <RampRoutes rampType={RampType.BUY} />}
+        </NativeStack.Screen>
+        <NativeStack.Screen name={Routes.RAMP.SELL}>
+          {() => <RampRoutes rampType={RampType.SELL} />}
+        </NativeStack.Screen>
+        <NativeStack.Screen
+          name={Routes.RAMP.VBA_ONBOARDING}
+          component={VbaOnboardingNavigator}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+        <NativeStack.Screen
+          name={Routes.RAMP.VBA_DETAILS}
+          component={VbaDetails}
+          options={{
+            ...slideFromRightNativeOptions,
+            headerShown: false,
           }}
         />
         <NativeStack.Screen
-          name={Routes.SITES_FULL_VIEW}
-          component={SitesFullView}
+          name={Routes.BRIDGE.ROOT}
+          component={TradeSwapRoot}
+          options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
         />
         <NativeStack.Screen
-          name={Routes.WHATS_HAPPENING_DETAIL}
-          component={WhatsHappeningDetailView}
+          name={Routes.TRADE_HUB}
+          component={TradeHubScreen}
+          options={slideFromRightNativeOptions}
         />
-      </NativeStack.Group>
-      <NativeStack.Screen
-        name={Routes.BROWSER.HOME}
-        component={BrowserFlow}
-        options={slideFromRightNativeOptions}
-      />
-      <NativeStack.Screen name="SetPasswordFlow" component={SetPasswordFlow} />
-      {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
-      <NativeStack.Screen name="GeneralSettings" component={GeneralSettings} />
-      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
         <NativeStack.Screen
-          name={Routes.FEATURE_FLAG_OVERRIDE}
-          component={FeatureFlagOverride}
+          name={Routes.BRIDGE.MODALS.ROOT}
+          component={BridgeModalStack}
+          options={transparentModalStackOptions}
         />
-      )}
-      <NativeStack.Screen
-        name="DeFiProtocolPositionDetails"
-        component={DeFiProtocolPositionDetails}
-        options={slideFromRightNativeOptions}
-      />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <NativeStack.Screen
-        name={Routes.SAMPLE_FEATURE}
-        component={SampleFeature}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
-      <NativeStack.Screen
-        name={Routes.CARD.ROOT}
-        component={CardRoutes}
-        options={({ route }) => {
-          const { animation } = (route.params ?? {}) as CardRootRouteParams;
-          return {
-            ...fullScreenModalSlideFromBottomNativeOptions,
-            animation: animation ?? 'slide_from_right',
-          };
-        }}
-      />
-      <NativeStack.Screen
-        name={Routes.RAMP.MODALS.PROCESSING_INFO}
-        component={ProcessingInfoModal}
-        options={transparentModalStackOptions}
-      />
-    </NativeStack.Navigator>
+        <NativeStack.Screen
+          name="StakeScreens"
+          component={StakeScreenStack}
+          options={slideFromRightNativeOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.EARN.ROOT}
+          component={EarnScreenStack}
+          options={slideFromRightNativeOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.EARN.MODALS.ROOT}
+          component={EarnModalStack}
+          options={transparentModalStackOptions}
+        />
+        {isMoneyAccountEnabled && (
+          <>
+            <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+              <NativeStack.Screen
+                name={Routes.MONEY.ROOT}
+                component={MoneyTabScreenStack}
+              />
+              <NativeStack.Screen
+                name={Routes.MONEY.CONFIRMATIONS_ROOT}
+                component={MoneyConfirmationScreenStack}
+              />
+              <NativeStack.Screen
+                name={Routes.MONEY.POTENTIAL_EARNINGS}
+                component={MoneyPotentialEarningsView}
+              />
+              <NativeStack.Screen
+                name={Routes.MONEY.MUSD_RESCUE_SEND}
+                component={MusdRescueSendScreen}
+              />
+              <NativeStack.Screen
+                name={Routes.MONEY.MUSD_RESCUE_RECIPIENT}
+                component={MusdRescueRecipientScreen}
+              />
+              <NativeStack.Screen
+                name={Routes.MONEY.TRANSACTION_DETAILS}
+                component={TransactionDetails}
+              />
+              <NativeStack.Screen
+                name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
+                component={MoneyApiActivityDetailsView}
+              />
+            </NativeStack.Group>
+            <NativeStack.Screen
+              name={Routes.MONEY.ONBOARDING}
+              component={MoneyOnboardingView}
+              options={fadeNativeOptions}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.FIRST_TIME_DEPOSIT}
+              component={MoneyFirstTimeDepositView}
+              options={{
+                ...transparentModalStackOptions,
+                gestureEnabled: false,
+              }}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.MODALS.ROOT}
+              component={MoneyModalStack}
+              options={transparentModalStackOptions}
+            />
+            <NativeStack.Screen
+              name={Routes.TRANSACTIONS_VIEW}
+              component={TransactionsHome}
+              options={slideFromRightNativeOptions}
+            />
+          </>
+        )}
+        {/*
+         * Rendered outside isMoneyAccountEnabled so we can display modal when feature is disabled.
+         * - Maintenance modal when the feature is disabled.
+         * - Gradual rollout modal when the user is not part of the gradual rollout cohort yet but feature is enabled.
+         */}
+        <NativeStack.Screen
+          name={Routes.MONEY.MODALS.DEEPLINK_MODAL}
+          component={MoneyDeeplinkModal}
+          options={transparentModalStackOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.MONEY.DEPOSIT_DEEPLINK}
+          component={MoneyDepositDeeplinkBridge}
+          options={transparentModalStackOptions}
+        />
+        <NativeStack.Screen
+          name="StakeModals"
+          component={StakeModalStack}
+          options={transparentModalStackOptions}
+        />
+        {isPerpsEnabled && (
+          <>
+            <NativeStack.Screen
+              name={Routes.PERPS.ROOT}
+              component={TradePerpsRoot}
+              options={slideFromRightNativeOptions}
+            />
+            <NativeStack.Screen
+              name={Routes.PERPS.TUTORIAL}
+              component={PerpsTutorialCarousel}
+            />
+            <NativeStack.Screen
+              name={Routes.PERPS.MODALS.ROOT}
+              component={PerpsModalStackWithErrorGate}
+              options={transparentModalStackOptions}
+            />
+            <NativeStack.Screen
+              name={Routes.PERPS.POSITION_TRANSACTION}
+              component={PerpsPositionTransactionView}
+            />
+            <NativeStack.Screen
+              name={Routes.PERPS.ORDER_TRANSACTION}
+              component={PerpsOrderTransactionView}
+            />
+            <NativeStack.Screen
+              name={Routes.PERPS.FUNDING_TRANSACTION}
+              component={PerpsFundingTransactionView}
+            />
+            <NativeStack.Screen
+              name={Routes.PERPS.PRICE_ALERTS}
+              component={ManagePriceAlertsView}
+            />
+            <NativeStack.Screen
+              name={Routes.PERPS.CREATE_PRICE_ALERT}
+              component={CreatePriceAlertView}
+            />
+          </>
+        )}
+        {isPredictEnabled && (
+          <>
+            <NativeStack.Screen
+              name={Routes.PREDICT.ROOT}
+              component={TradePredictRoot}
+              options={slideFromRightNativeOptions}
+            />
+            <NativeStack.Screen
+              name={Routes.PREDICT.MODALS.ROOT}
+              component={PredictModalStack}
+              options={transparentModalStackOptions}
+            />
+          </>
+        )}
+        {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
+          <NativeStack.Screen
+            name={Routes.MARKET_INSIGHTS.VIEW}
+            component={MarketInsightsView}
+            options={slideFromRightNativeOptions}
+          />
+        )}
+        {isSocialV1Enabled && (
+          <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+            <NativeStack.Screen
+              name={Routes.SOCIAL.V1}
+              component={SocialV1View}
+              options={{
+                // `enableFreeze(true)` is global (index.js). The feed must keep
+                // reacting to the composed-post store while the composer sits on
+                // top, otherwise the posting banner and the committed post are
+                // both swallowed by the frozen subtree.
+                freezeOnBlur: false,
+              }}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.POST_COMPOSER}
+              component={SocialPostComposerView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.MY_PROFILE}
+              component={MyProfileView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.V1_PROFILE}
+              component={MyProfileView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
+              component={FollowConnectionsView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.PROFILES_TO_FOLLOW}
+              component={ProfilesToFollowView}
+              options={{ headerShown: false, ...slideFromRightNativeOptions }}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.MANAGE_PROFILE}
+              component={ManageProfileView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR}
+              component={ManageProfileTextEditorView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY}
+              component={ManageProfileTradingActivityView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
+              component={ManageProfileLinkedAccountView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.EDIT_AVATAR}
+              component={EditProfileAvatarView}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.PROFILE_ONBOARDING}
+              component={SocialProfileOnboardingView}
+            />
+          </NativeStack.Group>
+        )}
+        {isSocialExperienceEnabled && (
+          <>
+            {isSocialLeaderboardEnabled && (
+              <NativeStack.Screen
+                name={Routes.SOCIAL.V0}
+                component={SocialV0View}
+                options={slideFromRightNativeOptions}
+              />
+            )}
+            <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+              <NativeStack.Screen
+                name={Routes.SOCIAL.PROFILE}
+                component={TraderProfileView}
+              />
+              <NativeStack.Screen
+                name={Routes.SOCIAL.POSITION}
+                component={TraderPositionView}
+              />
+              <NativeStack.Screen
+                name={Routes.SOCIAL.ONBOARDING}
+                component={SocialLeaderboardOnboarding}
+              />
+            </NativeStack.Group>
+            <NativeStack.Screen
+              name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
+              component={TradingSignalsSetupBottomSheet}
+              options={transparentModalStackOptions}
+            />
+            <NativeStack.Screen
+              name={Routes.SOCIAL.POSITION_SHEET}
+              component={PositionDetailsSheet}
+              options={transparentModalStackOptions}
+            />
+          </>
+        )}
+        <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+          <NativeStack.Screen
+            name={Routes.EXPLORE_SEARCH}
+            component={ExploreSearchScreen}
+            options={({ route }) => {
+              const { entryPoint } = (route.params ??
+                {}) as ExploreSearchRouteParams;
+              return getExploreSearchScreenOptions(
+                entryPoint,
+                slideFromRightNativeOptions,
+              );
+            }}
+          />
+          <NativeStack.Screen
+            name={Routes.SITES_FULL_VIEW}
+            component={SitesFullView}
+          />
+          <NativeStack.Screen
+            name={Routes.WHATS_HAPPENING_DETAIL}
+            component={WhatsHappeningDetailView}
+          />
+        </NativeStack.Group>
+        <NativeStack.Screen
+          name={Routes.BROWSER.HOME}
+          component={BrowserFlow}
+          options={slideFromRightNativeOptions}
+        />
+        <NativeStack.Screen
+          name="SetPasswordFlow"
+          component={SetPasswordFlow}
+        />
+        {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
+        <NativeStack.Screen
+          name="GeneralSettings"
+          component={GeneralSettings}
+        />
+        {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+          <NativeStack.Screen
+            name={Routes.FEATURE_FLAG_OVERRIDE}
+            component={FeatureFlagOverride}
+          />
+        )}
+        <NativeStack.Screen
+          name="DeFiProtocolPositionDetails"
+          component={DeFiProtocolPositionDetails}
+          options={slideFromRightNativeOptions}
+        />
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+        }
+        <NativeStack.Screen
+          name={Routes.SAMPLE_FEATURE}
+          component={SampleFeature}
+        />
+        {
+          ///: END:ONLY_INCLUDE_IF
+        }
+        <NativeStack.Screen
+          name={Routes.CARD.ROOT}
+          component={CardRoutes}
+          options={({ route }) => {
+            const { animation } = (route.params ?? {}) as CardRootRouteParams;
+            return {
+              ...fullScreenModalSlideFromBottomNativeOptions,
+              animation: animation ?? 'slide_from_right',
+            };
+          }}
+        />
+        <NativeStack.Screen
+          name={Routes.RAMP.MODALS.PROCESSING_INFO}
+          component={ProcessingInfoModal}
+          options={transparentModalStackOptions}
+        />
+      </NativeStack.Navigator>
+      <ContextualFooterHost />
+    </View>
   );
 };
 

@@ -6,6 +6,7 @@ import type { ParamListBase } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   enterMoneySection,
+  enterTradeDashboard,
   exitContextualSection,
   getContextualNavState,
 } from '../contextualNav/contextualSection';
@@ -37,7 +38,12 @@ type NativeTabNavigation = NativeBottomTabNavigationProp<ParamListBase>;
 
 const exitHomeFooterSection = (): void => {
   const section = getContextualNavState().section;
-  if (section === 'money' || section === 'explore') {
+  if (
+    section === 'money' ||
+    section === 'explore' ||
+    section === 'trading' ||
+    section === 'collectibles'
+  ) {
     exitContextualSection();
   }
 };
@@ -146,7 +152,7 @@ export const useHomeTabDefinitions = ({
       nativeIcon: NATIVE_TAB_ICONS.trade,
       nativeSfSymbol: 'arrow.left.arrow.right',
       onPress: () => {
-        exitHomeFooterSection();
+        enterTradeDashboard();
       },
     };
 
@@ -204,7 +210,7 @@ export const useHomeTabDefinitions = ({
           playImpact(ImpactMoment.TabChange);
           trackBottomNavPress(tab.iconKey);
           tab.onPress?.();
-          if (tab.key !== 'money') {
+          if (tab.key !== 'money' && tab.key !== 'trade') {
             exitHomeFooterSection();
           }
           // UIKit already selected the tab; this mirrors the JS bars' nested navigation.
@@ -243,12 +249,16 @@ export const useHomeTabDefinitions = ({
               },
             }
           : null),
-        ...(tab.key === 'money'
+        ...(tab.key === 'money' || tab.key === 'trade'
           ? {
               // UIKit can select the tab without a JS tabPress. Focus still
               // records the section so the overlay footer updates on device.
               focus: () => {
-                enterMoneySection();
+                if (tab.key === 'money') {
+                  enterMoneySection();
+                  return;
+                }
+                enterTradeDashboard();
               },
             }
           : null),
