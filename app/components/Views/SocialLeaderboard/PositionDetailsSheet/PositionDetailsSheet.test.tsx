@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -320,14 +326,33 @@ describe('PositionDetailsSheet', () => {
       ).toBeNull();
     });
 
-    it('closes when the list is pulled down past its top', () => {
+    it('scrolls the sheet with the footer pinned below only while open', () => {
+      render(<PositionDetailsSheet />);
+      const scroll = screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.SCROLL,
+      );
+      const copyTradeId = PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON;
+
+      expect(scroll).toHaveProp('scrollEnabled', false);
+      expect(within(scroll).getByTestId(copyTradeId)).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      );
+
+      expect(scroll).toHaveProp('scrollEnabled', true);
+      expect(within(scroll).queryByTestId(copyTradeId)).toBeNull();
+      expect(screen.getByTestId(copyTradeId)).toBeOnTheScreen();
+    });
+
+    it('closes when the sheet is pulled down past its top', () => {
       render(<PositionDetailsSheet />);
       fireEvent.press(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
       );
 
       fireEvent(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SCROLL),
         'scrollEndDrag',
         { nativeEvent: { contentOffset: { x: 0, y: -80 } } },
       );

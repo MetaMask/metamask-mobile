@@ -1,5 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
@@ -128,6 +134,16 @@ const PositionDetailsSheet = () => {
     [isTabsExpanded],
   );
 
+  // iOS bounce: pulling the open sheet down past its top closes the tab.
+  const handleScrollEndDrag = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (event.nativeEvent.contentOffset.y < -SWIPE_THRESHOLD * 2) {
+        setIsTabsExpanded(false);
+      }
+    },
+    [],
+  );
+
   const closeThen = useCallback((next: () => void) => {
     if (sheetRef.current) {
       sheetRef.current.onCloseBottomSheet(next);
@@ -233,6 +249,17 @@ const PositionDetailsSheet = () => {
     ? formatChartTimestamp(Number(scrubPoint[0]))
     : strings('social_leaderboard.position_sheet.today');
 
+  const footer = (
+    <PositionSheetFooter
+      isPerp={data.isPerp}
+      isClosed={data.isClosed}
+      canSell={Boolean(heldBalance)}
+      onCopyTrade={handleCopyTrade}
+      onPerpsOrder={handlePerpsOrder}
+      onSpotTrade={setQuickBuyMode}
+    />
+  );
+
   const details = (
     <GestureDetector gesture={expandGesture}>
       <View>
@@ -253,14 +280,7 @@ const PositionDetailsSheet = () => {
           isExpanded={isTabsExpanded}
           onExpandedChange={setIsTabsExpanded}
         />
-        <PositionSheetFooter
-          isPerp={data.isPerp}
-          isClosed={data.isClosed}
-          canSell={Boolean(heldBalance)}
-          onCopyTrade={handleCopyTrade}
-          onPerpsOrder={handlePerpsOrder}
-          onSpotTrade={setQuickBuyMode}
-        />
+        {isTabsExpanded ? null : footer}
       </View>
     </GestureDetector>
   );
@@ -278,47 +298,56 @@ const PositionDetailsSheet = () => {
           position={position}
           isOwnPost={isOwnPost}
         />
-        <PositionSheetPriceHeader
-          assetName={data.assetName}
-          isPerp={data.isPerp}
-          leverage={data.leverage}
-          valueLabel={
-            headerValue !== undefined
-              ? data.formatValue(headerValue)
-              : undefined
-          }
-          isMarketCapMode={data.isMarketCapMode}
-          changePercent={headerChange}
-          changeCaption={headerCaption}
-        />
-        <PositionSheetChart
-          prices={data.prices}
-          isLoading={isChartLoading}
-          isTrendPositive={data.isTrendPositive}
-          markers={data.markers}
-          levels={data.levels}
-          timeAxisLabels={data.timeAxisLabels}
-          lineProgress={reveal.lineProgress}
-          overlayStyle={reveal.overlayStyle}
-          onScrub={setScrubPoint}
-        />
-        {reveal.isAnimated ? (
-          <Animated.View
-            style={reveal.detailsContainerStyle}
-            testID={PositionDetailsSheetSelectorsIDs.DETAILS}
-          >
+        {/* Collapsed, everything fits and drags move the sheet instead. */}
+        <ScrollView
+          scrollEnabled={isTabsExpanded}
+          showsVerticalScrollIndicator={false}
+          onScrollEndDrag={handleScrollEndDrag}
+          testID={PositionDetailsSheetSelectorsIDs.SCROLL}
+        >
+          <PositionSheetPriceHeader
+            assetName={data.assetName}
+            isPerp={data.isPerp}
+            leverage={data.leverage}
+            valueLabel={
+              headerValue !== undefined
+                ? data.formatValue(headerValue)
+                : undefined
+            }
+            isMarketCapMode={data.isMarketCapMode}
+            changePercent={headerChange}
+            changeCaption={headerCaption}
+          />
+          <PositionSheetChart
+            prices={data.prices}
+            isLoading={isChartLoading}
+            isTrendPositive={data.isTrendPositive}
+            markers={data.markers}
+            levels={data.levels}
+            timeAxisLabels={data.timeAxisLabels}
+            lineProgress={reveal.lineProgress}
+            overlayStyle={reveal.overlayStyle}
+            onScrub={setScrubPoint}
+          />
+          {reveal.isAnimated ? (
             <Animated.View
-              style={[styles.detailsMeasure, reveal.detailsContentStyle]}
-              onLayout={reveal.onDetailsLayout}
+              style={reveal.detailsContainerStyle}
+              testID={PositionDetailsSheetSelectorsIDs.DETAILS}
             >
-              {details}
+              <Animated.View
+                style={[styles.detailsMeasure, reveal.detailsContentStyle]}
+                onLayout={reveal.onDetailsLayout}
+              >
+                {details}
+              </Animated.View>
             </Animated.View>
-          </Animated.View>
-        ) : (
-          <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
-            {details}
-          </View>
-        )}
+          ) : (
+            <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
+              {details}
+            </View>
+          )}
+        </ScrollView>
+        {isTabsExpanded ? footer : null}
       </BottomSheet>
 
       {!data.isPerp && position ? (

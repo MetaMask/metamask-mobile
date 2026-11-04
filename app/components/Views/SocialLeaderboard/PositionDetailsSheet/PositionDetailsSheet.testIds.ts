@@ -12,6 +12,7 @@ export const PositionDetailsSheetSelectorsIDs = {
   CHART_MARKER: 'position-details-sheet-chart-marker',
   CHART_TOOLTIP: 'position-details-sheet-chart-tooltip',
   CHART_SCRUB: 'position-details-sheet-chart-scrub',
+  SCROLL: 'position-details-sheet-scroll',
   DETAILS: 'position-details-sheet-details',
   DETAILS_EXPAND_GESTURE: 'position-details-sheet-details-expand-gesture',
   TABS_COLLAPSE_GESTURE: 'position-details-sheet-tabs-collapse-gesture',
