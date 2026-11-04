@@ -4,7 +4,6 @@ import {
   type GeolocationData,
 } from '@metamask/geolocation-controller';
 import { LAST_GEOLOCATION } from '../../../constants/storage';
-import { ApiEnv, getApiEnv } from '../../apiEnv';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { hasTestOverrides } from '../../../util/test/utils';
 
@@ -14,21 +13,19 @@ import { hasTestOverrides } from '../../../util/test/utils';
  * Built-in chain RPCs are Infura, and Infura is unreachable from mainland
  * China. `corePlatformRpcFailoverMode: 'forced'` makes the network controller
  * skip Infura hostnames that already have Quicknode failover URLs compiled
- * into the build. The mode is chosen from the geolocation request the app
- * already makes. No probe is added for anyone else.
+ * into the build. The mode follows the geolocation result the app already
+ * fetches. Startup does not wait on that request.
  *
- * The flag has to be present in the initial controller state. Network
- * controller init reads it while remote-feature-flag init is still in flight,
- * so a later override alone can lose the race and still dial Infura.
+ * A country already stored on device is applied before engine init, because
+ * network controller init reads the flag while remote-feature-flag init is
+ * still in flight. With nothing stored, the controller's own fetch runs in
+ * parallel and the flag is set when that response arrives.
  */
 
 const RPC_FAILOVER_MODE_FLAG = 'corePlatformRpcFailoverMode';
 const FORCED_RPC_FAILOVER_MODE = 'forced';
 const ENABLED_RPC_FAILOVER_MODE = 'enabled';
 const MAINLAND_CHINA_COUNTRY_CODE = 'CN';
-
-/** Safety cap so a stuck geolocation request cannot hold launch open. */
-const GEOLOCATION_REQUEST_TIMEOUT_MS = 5000;
 
 const COUNTRY_PATTERN = /^[A-Z]{2}$/u;
 const REGION_PATTERN = /^[A-Z0-9]{1,3}$/u;
@@ -38,11 +35,21 @@ const REMOTE_FEATURE_FLAG_CONTROLLER = 'RemoteFeatureFlagController';
 const GEOLOCATION_CONTROLLER = 'GeolocationController';
 
 export interface CnInfuraFailoverDependencies {
-  fetchImpl: typeof fetch;
   readCachedGeolocation: () => Promise<GeolocationData | null>;
   writeCachedGeolocation: (geolocation: GeolocationData) => Promise<void>;
   isTestOverrideRun: boolean;
   now: () => number;
+}
+
+export interface CnInfuraFailoverPreparation<T> {
+  state: T;
+  /** Refresh the cached country after init without blocking startup. */
+  refreshInBackground: boolean;
+  /**
+   * No country is stored. Watch the geolocation fetch the controller already
+   * starts, and apply failover when that response arrives.
+   */
+  watchEagerFetch: boolean;
 }
 
 export interface CnInfuraFailoverControllers {
@@ -62,18 +69,6 @@ export interface CnInfuraFailoverControllers {
       localOverrides?: Record<string, unknown>;
     };
   };
-}
-
-/**
- * Same host the GeolocationApiService uses. Production stays on the
- * unprefixed API; every other cluster uses the dev prefix, matching
- * `geolocationApiServiceInit`.
- *
- * @returns The geolocation endpoint for this build.
- */
-export function geolocationEndpointUrl(): string {
-  const prefix = getApiEnv() === ApiEnv.Prod ? '' : 'dev-';
-  return `https://geolocation.${prefix}api.cx.metamask.io/v2/geolocation`;
 }
 
 /**
@@ -179,26 +174,25 @@ function nextFailoverFlags(
 }
 
 /**
- * Decide Infura failover before the engine starts.
+ * Decide Infura failover from a country already stored on device.
  *
  * A cached country is applied immediately and refreshed in the background.
- * With no cache, this waits on the one geolocation request the controller
- * would have sent itself, then skips that eager fetch. A failed lookup leaves
- * state alone so startup is unchanged.
+ * With no cache, state is unchanged and startup does not wait. The
+ * controller's own geolocation fetch is watched after init.
  *
  * Test and E2E overrides skip the decision. Fixtures keep their own flags.
  *
  * @param state - Persisted background state.
- * @param dependencies - Storage and fetch, replaced in tests.
- * @returns The state to give `Engine.init`, and whether to refresh after init.
+ * @param dependencies - Storage, replaced in tests.
+ * @returns The state to give `Engine.init`, and how to follow geolocation.
  */
 export async function prepareCnInfuraFailover<T>(
   state: T,
   dependencies: Partial<CnInfuraFailoverDependencies> = {},
-): Promise<{ state: T; refreshInBackground: boolean }> {
+): Promise<CnInfuraFailoverPreparation<T>> {
   const deps = { ...defaultDependencies(), ...dependencies };
   if (deps.isTestOverrideRun) {
-    return { state, refreshInBackground: false };
+    return { state, refreshInBackground: false, watchEagerFetch: false };
   }
 
   const cached = await deps.readCachedGeolocation();
@@ -206,19 +200,11 @@ export async function prepareCnInfuraFailover<T>(
     return {
       state: applyGeolocationToBackgroundState(state, cached, deps.now()),
       refreshInBackground: true,
+      watchEagerFetch: false,
     };
   }
 
-  const snapshot = await fetchGeolocationSnapshot(deps.fetchImpl);
-  if (!snapshot) {
-    return { state, refreshInBackground: false };
-  }
-
-  await deps.writeCachedGeolocation(snapshot);
-  return {
-    state: applyGeolocationToBackgroundState(state, snapshot, deps.now()),
-    refreshInBackground: false,
-  };
+  return { state, refreshInBackground: false, watchEagerFetch: true };
 }
 
 /**
@@ -236,11 +222,64 @@ export async function refreshCnInfuraFailover(
     Pick<CnInfuraFailoverDependencies, 'writeCachedGeolocation'>
   > = {},
 ): Promise<void> {
+  await controllers.geolocation.refreshGeolocation();
+  await syncFailoverToGeolocation(controllers, dependencies);
+}
+
+/**
+ * Apply failover when the controller's in-flight geolocation fetch completes.
+ *
+ * Does not start a request. If the fetch already finished, the current state
+ * is applied immediately.
+ *
+ * @param controllers - Live geolocation and remote-feature-flag controllers.
+ * @param subscribe - Registers a listener and returns its unsubscribe function.
+ * @param dependencies - Cache writer, replaced in tests.
+ */
+export function watchCnInfuraFailover(
+  controllers: CnInfuraFailoverControllers,
+  subscribe: (listener: () => void) => () => void,
+  dependencies: Partial<
+    Pick<CnInfuraFailoverDependencies, 'writeCachedGeolocation'>
+  > = {},
+): void {
+  let settled = false;
+  let unsubscribe = (): void => undefined;
+  const finish = (): void => {
+    if (settled) {
+      return;
+    }
+    const { status } = controllers.geolocation.state;
+    if (status !== 'complete' && status !== 'error') {
+      return;
+    }
+    settled = true;
+    unsubscribe();
+    if (status === 'complete') {
+      syncFailoverToGeolocation(controllers, dependencies).catch(() => {
+        // A missed write only costs the next cold start a parallel refresh.
+      });
+    }
+  };
+  unsubscribe = subscribe(finish);
+  finish();
+}
+
+/**
+ * Copy a completed geolocation result onto the failover flag and the device cache.
+ *
+ * @param controllers - Live geolocation and remote-feature-flag controllers.
+ * @param dependencies - Cache writer, replaced in tests.
+ */
+async function syncFailoverToGeolocation(
+  controllers: CnInfuraFailoverControllers,
+  dependencies: Partial<
+    Pick<CnInfuraFailoverDependencies, 'writeCachedGeolocation'>
+  >,
+): Promise<void> {
   const persistGeolocation =
     dependencies.writeCachedGeolocation ??
     defaultDependencies().writeCachedGeolocation;
-
-  await controllers.geolocation.refreshGeolocation();
   const { country, region, timezone, status } = controllers.geolocation.state;
   if (status !== 'complete' || !isCountryCode(country)) {
     return;
@@ -270,27 +309,8 @@ export async function refreshCnInfuraFailover(
   await persistGeolocation(snapshot);
 }
 
-async function fetchGeolocationSnapshot(
-  fetchImpl: typeof fetch,
-): Promise<GeolocationData | null> {
-  try {
-    const response = await fetchImpl(geolocationEndpointUrl(), {
-      signal: AbortSignal.timeout(GEOLOCATION_REQUEST_TIMEOUT_MS),
-    });
-    if (!response.ok) {
-      return null;
-    }
-    return parseGeolocationBody(await response.json());
-  } catch {
-    // A timed-out or unreachable lookup must not block launch. Failover stays
-    // unchanged this session; the controller's own fetch still runs.
-    return null;
-  }
-}
-
 function defaultDependencies(): CnInfuraFailoverDependencies {
   return {
-    fetchImpl: globalThis.fetch.bind(globalThis),
     readCachedGeolocation,
     writeCachedGeolocation,
     isTestOverrideRun: hasTestOverrides,

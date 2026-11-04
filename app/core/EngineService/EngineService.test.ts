@@ -44,8 +44,10 @@ jest.mock('../Engine/cn-infura-failover/cnInfuraFailover', () => ({
   prepareCnInfuraFailover: jest.fn(async (state: unknown) => ({
     state,
     refreshInBackground: false,
+    watchEagerFetch: false,
   })),
   refreshCnInfuraFailover: jest.fn(),
+  watchCnInfuraFailover: jest.fn(),
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown

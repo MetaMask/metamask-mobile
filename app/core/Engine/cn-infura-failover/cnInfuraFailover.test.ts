@@ -3,9 +3,9 @@ import { LAST_GEOLOCATION } from '../../../constants/storage';
 import StorageWrapper from '../../../store/storage-wrapper';
 import {
   applyGeolocationToBackgroundState,
-  geolocationEndpointUrl,
   prepareCnInfuraFailover,
   refreshCnInfuraFailover,
+  watchCnInfuraFailover,
   type CnInfuraFailoverControllers,
 } from './cnInfuraFailover';
 
@@ -245,41 +245,27 @@ describe('applyGeolocationToBackgroundState', () => {
 });
 
 describe('prepareCnInfuraFailover', () => {
-  const originalApiEnv = process.env.MM_API_ENV;
-
-  afterEach(() => {
-    if (originalApiEnv === undefined) {
-      delete process.env.MM_API_ENV;
-    } else {
-      process.env.MM_API_ENV = originalApiEnv;
-    }
-  });
-
   it('returns the original state when test overrides are on', async () => {
     const state = backgroundState();
-    const fetchImpl = jest.fn();
-
     const prepared = await prepareCnInfuraFailover(state, {
-      fetchImpl: fetchImpl as unknown as typeof fetch,
       readCachedGeolocation: async () => china(),
       isTestOverrideRun: true,
     });
 
-    expect(prepared).toEqual({ state, refreshInBackground: false });
-    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(prepared).toEqual({
+      state,
+      refreshInBackground: false,
+      watchEagerFetch: false,
+    });
   });
 
   it('applies a cached country without requesting geolocation', async () => {
-    const fetchImpl = jest.fn();
-
     const prepared = await prepareCnInfuraFailover(backgroundState(), {
-      fetchImpl: fetchImpl as unknown as typeof fetch,
       readCachedGeolocation: async () => china(),
       isTestOverrideRun: false,
       now: () => 30,
     });
 
-    expect(fetchImpl).not.toHaveBeenCalled();
     expect(prepared.refreshInBackground).toBe(true);
     expect(
       prepared.state.RemoteFeatureFlagController?.remoteFeatureFlags?.[FLAG],
@@ -288,101 +274,44 @@ describe('prepareCnInfuraFailover', () => {
     expect(prepared.state.GeolocationController?.lastFetchedAt).toBe(30);
   });
 
-  it('fetches once and stores the country when nothing is cached', async () => {
-    process.env.MM_API_ENV = 'prod';
+  it('does not fetch geolocation when nothing is cached', async () => {
+    const state = backgroundState();
     const writeCachedGeolocation = jest.fn(async () => undefined);
-    const fetchImpl = jest.fn(async () => ({
-      ok: true,
-      json: async () => ({
-        country: ' CN ',
-        region: 'SC',
-        timezone: 'Asia/Shanghai',
-        extra: 'ignore',
-      }),
-    }));
 
-    const prepared = await prepareCnInfuraFailover(backgroundState(), {
-      fetchImpl: fetchImpl as unknown as typeof fetch,
+    const prepared = await prepareCnInfuraFailover(state, {
       readCachedGeolocation: async () => null,
       writeCachedGeolocation,
       isTestOverrideRun: false,
-      now: () => 40,
     });
 
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
-    expect(fetchImpl).toHaveBeenCalledWith(
-      'https://geolocation.api.cx.metamask.io/v2/geolocation',
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
-    );
-    expect(writeCachedGeolocation).toHaveBeenCalledWith({
-      country: 'CN',
-      region: 'SC',
-      timezone: 'Asia/Shanghai',
+    expect(writeCachedGeolocation).not.toHaveBeenCalled();
+    expect(prepared).toEqual({
+      state,
+      refreshInBackground: false,
+      watchEagerFetch: true,
     });
-    expect(prepared.refreshInBackground).toBe(false);
-    expect(prepared.state.GeolocationController?.location).toBe('CN');
   });
 
-  it('requests the dev geolocation host outside production', async () => {
-    process.env.MM_API_ENV = 'uat';
-    const fetchImpl = jest.fn(async () => ({
-      ok: true,
-      json: async () => ({ country: 'DE' }),
-    }));
-
-    await prepareCnInfuraFailover(backgroundState(), {
-      fetchImpl: fetchImpl as unknown as typeof fetch,
-      readCachedGeolocation: async () => null,
-      writeCachedGeolocation: async () => undefined,
-      isTestOverrideRun: false,
-    });
-
-    expect(geolocationEndpointUrl()).toBe(
-      'https://geolocation.dev-api.cx.metamask.io/v2/geolocation',
-    );
-    expect(fetchImpl).toHaveBeenCalledWith(
-      'https://geolocation.dev-api.cx.metamask.io/v2/geolocation',
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
-    );
-  });
-
-  it('leaves failover unchanged when geolocation fails', async () => {
+  it('leaves startup state unchanged when nothing is cached', async () => {
     const state = backgroundState();
     const writeCachedGeolocation = jest.fn();
 
     const prepared = await prepareCnInfuraFailover(state, {
-      fetchImpl: jest.fn(async () => {
-        throw new Error('timed out');
-      }) as unknown as typeof fetch,
       readCachedGeolocation: async () => null,
       writeCachedGeolocation,
       isTestOverrideRun: false,
     });
 
-    expect(prepared).toEqual({ state, refreshInBackground: false });
-    expect(writeCachedGeolocation).not.toHaveBeenCalled();
-  });
-
-  it('leaves failover unchanged when the response has no country', async () => {
-    const state = backgroundState();
-
-    const prepared = await prepareCnInfuraFailover(state, {
-      fetchImpl: jest.fn(async () => ({
-        ok: true,
-        json: async () => ({ country: 'China' }),
-      })) as unknown as typeof fetch,
-      readCachedGeolocation: async () => null,
-      writeCachedGeolocation: jest.fn(),
-      isTestOverrideRun: false,
+    expect(prepared).toEqual({
+      state,
+      refreshInBackground: false,
+      watchEagerFetch: true,
     });
-
-    expect(prepared.state).toBe(state);
-    expect(prepared.refreshInBackground).toBe(false);
+    expect(writeCachedGeolocation).not.toHaveBeenCalled();
   });
 
   it('reads a stored geolocation without requesting it again', async () => {
     const getItem = jest.mocked(StorageWrapper.getItem);
-    const fetchImpl = jest.fn();
     getItem.mockResolvedValueOnce(
       JSON.stringify({
         country: 'US',
@@ -392,13 +321,11 @@ describe('prepareCnInfuraFailover', () => {
     );
 
     const cached = await prepareCnInfuraFailover(backgroundState(), {
-      fetchImpl: fetchImpl as unknown as typeof fetch,
       isTestOverrideRun: false,
       now: () => 7,
     });
 
     expect(getItem).toHaveBeenCalledWith(LAST_GEOLOCATION);
-    expect(fetchImpl).not.toHaveBeenCalled();
     expect(cached.state.GeolocationController?.location).toBe('US-NY');
     expect(cached.refreshInBackground).toBe(true);
   });
@@ -407,7 +334,6 @@ describe('prepareCnInfuraFailover', () => {
     jest.mocked(StorageWrapper.getItem).mockResolvedValueOnce('CN');
 
     const prepared = await prepareCnInfuraFailover(backgroundState(), {
-      fetchImpl: jest.fn() as unknown as typeof fetch,
       isTestOverrideRun: false,
       now: () => 8,
     });
@@ -416,47 +342,19 @@ describe('prepareCnInfuraFailover', () => {
     expect(prepared.refreshInBackground).toBe(true);
   });
 
-  it('does not store a failed geolocation response', async () => {
+  it('does not write the cache when nothing is stored', async () => {
     const setItem = jest.mocked(StorageWrapper.setItem);
     jest.mocked(StorageWrapper.getItem).mockResolvedValueOnce(null);
 
     await prepareCnInfuraFailover(backgroundState(), {
-      fetchImpl: jest.fn(async () => ({
-        ok: false,
-      })) as unknown as typeof fetch,
       isTestOverrideRun: false,
     });
 
     expect(setItem).not.toHaveBeenCalled();
   });
 
-  it('drops a timezone that fails validation before storing it', async () => {
-    const setItem = jest.mocked(StorageWrapper.setItem);
-    jest.mocked(StorageWrapper.getItem).mockResolvedValueOnce(null);
-
-    await prepareCnInfuraFailover(backgroundState(), {
-      fetchImpl: jest.fn(async () => ({
-        ok: true,
-        json: async () => ({
-          country: 'JP',
-          region: '13',
-          timezone: 'not a zone',
-        }),
-      })) as unknown as typeof fetch,
-      isTestOverrideRun: false,
-    });
-
-    expect(setItem).toHaveBeenCalledWith(
-      LAST_GEOLOCATION,
-      JSON.stringify({ country: 'JP', region: '13', timezone: null }),
-    );
-  });
-
   it('treats a country-only cache entry as a hit', async () => {
-    const fetchImpl = jest.fn();
-
     const prepared = await prepareCnInfuraFailover(backgroundState(), {
-      fetchImpl: fetchImpl as unknown as typeof fetch,
       readCachedGeolocation: async () => ({
         country: 'CN',
         region: null,
@@ -466,9 +364,9 @@ describe('prepareCnInfuraFailover', () => {
       now: () => 1,
     });
 
-    expect(fetchImpl).not.toHaveBeenCalled();
     expect(prepared.state.GeolocationController?.location).toBe('CN');
     expect(prepared.refreshInBackground).toBe(true);
+    expect(prepared.watchEagerFetch).toBe(false);
   });
 });
 
@@ -588,5 +486,138 @@ describe('refreshCnInfuraFailover', () => {
     expect(setFlagOverride).not.toHaveBeenCalled();
     expect(removeFlagOverride).not.toHaveBeenCalled();
     expect(writeCachedGeolocation).not.toHaveBeenCalled();
+  });
+
+  it('drops a timezone that fails validation before storing it', async () => {
+    const writeCachedGeolocation = jest.fn(async () => undefined);
+    const { controllers } = controllersFor({
+      country: 'JP',
+      region: '13',
+    });
+    controllers.geolocation.state.timezone = 'not a zone';
+
+    await refreshCnInfuraFailover(controllers, { writeCachedGeolocation });
+
+    expect(writeCachedGeolocation).toHaveBeenCalledWith({
+      country: 'JP',
+      region: '13',
+      timezone: null,
+    });
+  });
+});
+
+describe('watchCnInfuraFailover', () => {
+  it('applies a completed fetch without waiting for another request', async () => {
+    const writeCachedGeolocation = jest.fn(async () => undefined);
+    const setFlagOverride = jest.fn();
+    const subscribe = jest.fn(() => jest.fn());
+
+    watchCnInfuraFailover(
+      {
+        geolocation: {
+          refreshGeolocation: jest.fn(),
+          state: {
+            country: 'CN',
+            region: 'SC',
+            timezone: 'Asia/Shanghai',
+            status: 'complete',
+          },
+        },
+        remoteFeatureFlags: {
+          setFlagOverride,
+          removeFlagOverride: jest.fn(),
+          state: { localOverrides: {} },
+        },
+      },
+      subscribe,
+      { writeCachedGeolocation },
+    );
+
+    await Promise.resolve();
+
+    expect(setFlagOverride).toHaveBeenCalledWith(FLAG, FORCED);
+    expect(writeCachedGeolocation).toHaveBeenCalledWith({
+      country: 'CN',
+      region: 'SC',
+      timezone: 'Asia/Shanghai',
+    });
+  });
+
+  it('sets forced mode when the in-flight fetch later returns CN', async () => {
+    const writeCachedGeolocation = jest.fn(async () => undefined);
+    const setFlagOverride = jest.fn();
+    const state = {
+      country: null as string | null,
+      region: null as string | null,
+      timezone: null as string | null,
+      status: 'loading',
+    };
+    let listener: (() => void) | undefined;
+    const unsubscribe = jest.fn();
+
+    watchCnInfuraFailover(
+      {
+        geolocation: {
+          refreshGeolocation: jest.fn(),
+          state,
+        },
+        remoteFeatureFlags: {
+          setFlagOverride,
+          removeFlagOverride: jest.fn(),
+          state: { localOverrides: {} },
+        },
+      },
+      (nextListener) => {
+        listener = nextListener;
+        return unsubscribe;
+      },
+      { writeCachedGeolocation },
+    );
+
+    expect(setFlagOverride).not.toHaveBeenCalled();
+
+    state.country = 'CN';
+    state.region = 'SC';
+    state.timezone = 'Asia/Shanghai';
+    state.status = 'complete';
+    listener?.();
+    await Promise.resolve();
+
+    expect(setFlagOverride).toHaveBeenCalledWith(FLAG, FORCED);
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not change failover when the fetch fails', () => {
+    const setFlagOverride = jest.fn();
+    const state = {
+      country: null as string | null,
+      region: null,
+      timezone: null,
+      status: 'loading',
+    };
+    let listener: (() => void) | undefined;
+
+    watchCnInfuraFailover(
+      {
+        geolocation: {
+          refreshGeolocation: jest.fn(),
+          state,
+        },
+        remoteFeatureFlags: {
+          setFlagOverride,
+          removeFlagOverride: jest.fn(),
+          state: { localOverrides: {} },
+        },
+      },
+      (nextListener) => {
+        listener = nextListener;
+        return jest.fn();
+      },
+    );
+
+    state.status = 'error';
+    listener?.();
+
+    expect(setFlagOverride).not.toHaveBeenCalled();
   });
 });

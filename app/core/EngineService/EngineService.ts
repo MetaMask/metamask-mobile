@@ -29,6 +29,7 @@ import { getAnalyticsId } from '../../util/analytics/analyticsId';
 import {
   prepareCnInfuraFailover,
   refreshCnInfuraFailover,
+  watchCnInfuraFailover,
 } from '../Engine/cn-infura-failover/cnInfuraFailover';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
@@ -181,15 +182,18 @@ export class EngineService {
       // Passing it to engine ensures all controllers are initialized with the same analyticsId.
       // The persisted controller copy is passed as a recovery source for MMKV loss.
       const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
-      // Mainland China skips Infura before the first chain call. A cached
-      // country is local; only a first launch waits on geolocation, and that
-      // wait is capped. Failure here must not turn into vault recovery.
+      // A stored mainland China country skips Infura before the first chain
+      // call. That read is local. A missing country does not delay startup;
+      // the controller's own geolocation fetch updates failover when it
+      // returns. Failure here must not turn into vault recovery.
       let engineState = state;
       let refreshCnFailoverInBackground = false;
+      let watchCnFailover = false;
       try {
         const prepared = await prepareCnInfuraFailover(state);
         engineState = prepared.state;
         refreshCnFailoverInBackground = prepared.refreshInBackground;
+        watchCnFailover = prepared.watchEagerFetch;
       } catch (error) {
         Logger.error(
           error as Error,
@@ -208,15 +212,31 @@ export class EngineService {
       // Non-blocking — persisted state covers the UI until this resolves.
       // Skipped while the wallet is locked or not signed in.
       hydrateSocialFollowing();
-      if (refreshCnFailoverInBackground) {
-        const { GeolocationController, RemoteFeatureFlagController } = (
-          Engine as unknown as TypedEngine
-        ).context;
-        // One background refresh replaces the controller's eager fetch.
-        refreshCnInfuraFailover({
-          geolocation: GeolocationController,
-          remoteFeatureFlags: RemoteFeatureFlagController,
-        }).catch((error: unknown) => {
+      const { GeolocationController, RemoteFeatureFlagController } = (
+        Engine as unknown as TypedEngine
+      ).context;
+      const failoverControllers = {
+        geolocation: GeolocationController,
+        remoteFeatureFlags: RemoteFeatureFlagController,
+      };
+      if (watchCnFailover) {
+        const engine = Engine as unknown as TypedEngine;
+        watchCnInfuraFailover(failoverControllers, (listener) => {
+          engine.controllerMessenger.subscribe(
+            'GeolocationController:stateChange',
+            listener,
+          );
+          return () => {
+            engine.controllerMessenger.unsubscribe(
+              'GeolocationController:stateChange',
+              listener,
+            );
+          };
+        });
+      } else if (refreshCnFailoverInBackground) {
+        // The cached country was already applied. This refresh only notices
+        // a country change, and startup does not wait for it.
+        refreshCnInfuraFailover(failoverControllers).catch((error: unknown) => {
           Logger.error(
             error as Error,
             `${LOG_TAG}: Failed to refresh mainland China Infura failover`,
