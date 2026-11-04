@@ -16,6 +16,15 @@ export const createStyles = (
       width: '100%',
       alignSelf: 'stretch',
     },
+    listItem: {
+      minHeight: 64,
+      width: '100%',
+      justifyContent: 'center',
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingTop: 8,
+      paddingBottom: 8,
+    },
     icon: {
       width: 32,
       height: 32,

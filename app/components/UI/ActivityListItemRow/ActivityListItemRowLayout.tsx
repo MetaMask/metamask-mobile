@@ -161,6 +161,7 @@ export function ActivityListItemRowLayout({
         description={subtitleNode}
         endAccessory={amountColumn}
         onPress={onPress}
+        style={styles.listItem}
         testID={`transaction-item-${index ?? 0}`}
         title={titleNode}
         accessoryGap={4}
