@@ -88,13 +88,17 @@ const getAccountTrackerControllerAccountsByChainId = makeDirect([
 ], (assetsBalance, assetsInfo, internalAccountsById) => {
     var _a;
     const result = {};
-    for (const [accountId, accountBalances] of Object.entries(assetsBalance)) {
+    for (const accountId of Object.keys(assetsBalance)) {
+        const accountBalances = assetsBalance[accountId];
         const internalAccount = internalAccountsById[accountId];
         if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
             continue;
         }
         const checksummedAddress = toChecksumHexAddress(internalAccount.address);
-        for (const [assetId, balanceData] of Object.entries(accountBalances)) {
+        const balanceIds = Object.keys(accountBalances);
+        for (let bi = 0; bi < balanceIds.length; bi++) {
+            const assetId = balanceIds[bi];
+            const balanceData = accountBalances[assetId];
             const metadata = assetsInfo[assetId];
             const assetType = parseCaipAssetTypeCached(assetId);
             if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
@@ -229,14 +233,18 @@ const getTokenBalancesControllerTokenBalances = makeDirect([
 ], (assetsInfo, assetsBalance, customAssets, internalAccountsById) => {
     var _a, _b;
     const result = {};
-    for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
+    for (const accountId of Object.keys(assetsBalance)) {
+        const chainIdBalances = assetsBalance[accountId];
         const internalAccount = internalAccountsById[accountId];
         if (!internalAccount || !isEvmAccountType(internalAccount.type)) {
             continue;
         }
         const accountAddress = internalAccount.address;
         result[accountAddress] ?? (result[accountAddress] = {});
-        for (const [assetId, assetBalance] of Object.entries(chainIdBalances)) {
+        const balanceIds = Object.keys(chainIdBalances);
+        for (let bi = 0; bi < balanceIds.length; bi++) {
+            const assetId = balanceIds[bi];
+            const assetBalance = chainIdBalances[assetId];
             const metadata = assetsInfo[assetId];
             if (!metadata) {
                 continue;
