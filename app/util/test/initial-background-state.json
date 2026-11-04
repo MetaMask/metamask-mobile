@@ -969,6 +969,7 @@
     "autorampTransactionRecords": {},
     "moneyAccountWalletRegistrations": [],
     "vbaAutorampListFetchedAt": null,
+    "vbaCustomerAbilities": null,
     "userRegion": null,
     "countries": {
       "data": [],

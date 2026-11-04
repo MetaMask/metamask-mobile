@@ -188,6 +188,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "breaking",
+      "previewVersion": "29.0.0-preview-dd61a447a"
+    }
+  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -298,7 +304,6 @@
     "@metamask/base-controller": "^10.0.0",
     "@metamask/base-data-service": "^2.1.0",
     "@metamask/messenger": "^3.0.0",
-    "@metamask/ramps-controller@^28.0.0": "npm:@metamask-previews/ramps-controller@28.1.0-preview-c1f9a0f",
     "@metamask/connectivity-controller": "^1.0.0",
     "@metamask/keyring-internal-api": "^12.1.2",
     "@metamask/keyring-api": "^24.3.0",
