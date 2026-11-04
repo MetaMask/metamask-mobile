@@ -26,6 +26,10 @@ import { VaultBackupResult } from './types';
 import { hasTestOverrides } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { getAnalyticsId } from '../../util/analytics/analyticsId';
+import {
+  prepareCnInfuraFailover,
+  refreshCnInfuraFailover,
+} from '../Engine/cn-infura-failover/cnInfuraFailover';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
@@ -177,9 +181,24 @@ export class EngineService {
       // Passing it to engine ensures all controllers are initialized with the same analyticsId.
       // The persisted controller copy is passed as a recovery source for MMKV loss.
       const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
-      Engine.init(analyticsId, state);
+      // Mainland China skips Infura before the first chain call. A cached
+      // country is local; only a first launch waits on geolocation, and that
+      // wait is capped. Failure here must not turn into vault recovery.
+      let engineState = state;
+      let refreshCnFailoverInBackground = false;
+      try {
+        const prepared = await prepareCnInfuraFailover(state);
+        engineState = prepared.state;
+        refreshCnFailoverInBackground = prepared.refreshInBackground;
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          `${LOG_TAG}: Failed to apply mainland China Infura failover`,
+        );
+      }
+      Engine.init(analyticsId, engineState);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
-      // Pass state to detect controllers that changed during init
+      // Compare against the persisted state so a session failover override is saved.
       this.initializeControllers(
         Engine as unknown as TypedEngine,
         state as Record<string, unknown>,
@@ -189,6 +208,21 @@ export class EngineService {
       // Non-blocking — persisted state covers the UI until this resolves.
       // Skipped while the wallet is locked or not signed in.
       hydrateSocialFollowing();
+      if (refreshCnFailoverInBackground) {
+        const { GeolocationController, RemoteFeatureFlagController } = (
+          Engine as unknown as TypedEngine
+        ).context;
+        // One background refresh replaces the controller's eager fetch.
+        refreshCnInfuraFailover({
+          geolocation: GeolocationController,
+          remoteFeatureFlags: RemoteFeatureFlagController,
+        }).catch((error: unknown) => {
+          Logger.error(
+            error as Error,
+            `${LOG_TAG}: Failed to refresh mainland China Infura failover`,
+          );
+        });
+      }
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',

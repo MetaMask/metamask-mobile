@@ -40,6 +40,14 @@ jest.mock('../Engine/controllers/social-controller-hydration', () => ({
   hydrateSocialFollowing: jest.fn(),
 }));
 
+jest.mock('../Engine/cn-infura-failover/cnInfuraFailover', () => ({
+  prepareCnInfuraFailover: jest.fn(async (state: unknown) => ({
+    state,
+    refreshInBackground: false,
+  })),
+  refreshCnInfuraFailover: jest.fn(),
+}));
+
 // Mock whenEngineReady to prevent Engine access after Jest teardown
 jest.mock('../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
