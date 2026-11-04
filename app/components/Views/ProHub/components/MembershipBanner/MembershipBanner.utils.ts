@@ -31,6 +31,8 @@ export type MembershipStatusKind =
 export const MembershipAlertAction = {
   AddFunds: 'addFunds',
   Renew: 'renew',
+  /** Uncancel a period-end cancellation that is still inside its resume window. */
+  Resume: 'resume',
 } as const;
 
 export type MembershipAlertAction =
@@ -153,6 +155,20 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
 };
 
 /**
+ * Same cancelled copy as an ended plan, with Resume instead of Renew.
+ *
+ * Renew opens the subscription screen. A period-end cancel is still active,
+ * so that screen sends the user back here. Resume uncancels in place.
+ */
+const pendingCancellationAlert = (
+  date: string | undefined,
+): MembershipAlert => ({
+  ...cancelledAlert(date),
+  actionKey: 'pro_hub.membership.resume_membership',
+  action: MembershipAlertAction.Resume,
+});
+
+/**
  * Active status plus the cancelled alert while a period-end cancel can still
  * be reversed. The membership has not ended, so the label stays Active.
  */
@@ -161,7 +177,7 @@ const pendingCancellationModel = (
 ): MembershipBannerModel => ({
   ...ACTIVE_MODEL,
   iconColor: IconColor.WarningDefault,
-  alert: cancelledAlert(
+  alert: pendingCancellationAlert(
     subscription.currentPeriodEnd || subscription.canceledAt,
   ),
 });
@@ -171,7 +187,9 @@ const pendingCancellationModel = (
  *
  * A period-end cancellation keeps the label Active and shows the cancelled
  * alert while `cancelAtPeriodEnd` is set and `currentPeriodEnd` is still in
- * the future, the same window as Resume membership. `trialing` shows Free
+ * the future, the same window as Resume membership. That alert's action is
+ * Resume, which uncancels the plan. An ended `canceled` plan keeps Renew,
+ * which opens the subscription screen. `trialing` shows Free
  * trial. A `provisional` plan shows Free trial only while `trialPeriodDays`
  * is greater than zero, because a free trial stays provisional until CHOMP
  * moves it to `trialing`. A provisional plan with no trial shows Active, as

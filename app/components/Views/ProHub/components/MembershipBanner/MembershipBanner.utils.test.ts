@@ -88,8 +88,8 @@ describe('getMembershipBannerModel', () => {
       titleKey: 'pro_hub.membership_alert.cancelled.title',
       descriptionKey: 'pro_hub.membership_alert.cancelled.description',
       descriptionValues: { date: 'Jan 15, 2099' },
-      actionKey: 'pro_hub.membership_alert.cancelled.action',
-      action: MembershipAlertAction.Renew,
+      actionKey: 'pro_hub.membership.resume_membership',
+      action: MembershipAlertAction.Resume,
     });
   });
 
@@ -107,7 +107,7 @@ describe('getMembershipBannerModel', () => {
     expect(model.alert?.titleKey).toBe(
       'pro_hub.membership_alert.cancelled.title',
     );
-    expect(model.alert?.action).toBe(MembershipAlertAction.Renew);
+    expect(model.alert?.action).toBe(MembershipAlertAction.Resume);
   });
 
   it('shows Active with no alert when a period-end cancel can no longer be resumed', () => {
