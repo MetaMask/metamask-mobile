@@ -48,7 +48,7 @@ import {
 import { formatPerpsFiat } from '../utils/formatUtils';
 import {
   handlePerpsError,
-  isPostOnlyWouldCrossError,
+  type OrderEditRejection,
   type PerpsErrorInput,
 } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
@@ -150,7 +150,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      editFailed: (error?: string) => PerpsToastOptions;
+      editFailed: (rejection?: OrderEditRejection) => PerpsToastOptions;
     };
     chase: {
       submitted: (
@@ -719,16 +719,15 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          editFailed: (error?: string) => ({
+          editFailed: (rejection?: OrderEditRejection) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_update_failed'),
-              // HyperLiquid cancels the original order when the post-only
-              // replacement is rejected, so say so instead of "still open".
-              isPostOnlyWouldCrossError(error)
+              rejection?.reason === 'post_only_would_cross' &&
+                rejection.originalOrder === 'cancelled'
                 ? strings('perps.order.order_update_post_only_would_cross')
                 : handlePerpsError({
-                    error,
+                    error: rejection?.error,
                     fallbackMessage: strings(
                       'perps.order.order_update_failed_subtitle',
                     ),

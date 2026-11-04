@@ -74,8 +74,6 @@ jest.mock('../../../../store', () => ({
 }));
 
 jest.mock('../utils/translatePerpsError', () => ({
-  isPostOnlyWouldCrossError: jest.requireActual('../utils/translatePerpsError')
-    .isPostOnlyWouldCrossError,
   handlePerpsError: ({
     error,
     fallbackMessage,
@@ -633,17 +631,19 @@ describe('usePerpsToasts', () => {
       });
 
       describe('post-only edit failures', () => {
-        it('says the order was cancelled when a post-only edit would cross the spread', () => {
+        it('says the order was cancelled when the rejection reports a cancelled original', () => {
           // Arrange
-          const venueError =
+          const error =
             'Error placing new order during modify: Post only order would have immediately matched, bbo was 2347@2347.1.';
           const { result } = renderHook(() => usePerpsToasts());
 
           // Act
           const config =
-            result.current.PerpsToastOptions.orderManagement.limit.editFailed(
-              venueError,
-            );
+            result.current.PerpsToastOptions.orderManagement.limit.editFailed({
+              reason: 'post_only_would_cross',
+              originalOrder: 'cancelled',
+              error,
+            });
 
           // Assert
           expect(config.labelOptions).toEqual([

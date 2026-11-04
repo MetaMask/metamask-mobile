@@ -53,6 +53,7 @@ import {
   isNoPositionFoundError,
   isPostOnlyWindowError,
   isPostOnlyWouldCrossError,
+  normalizeOrderEditRejection,
   handlePerpsError,
 } from './translatePerpsError';
 
@@ -510,6 +511,39 @@ describe('post-only rejections', () => {
     // Assert
     expect(result).toBe(false);
   });
+
+  it('normalizeOrderEditRejection reports a cancelled original for a post-only would-cross modify', () => {
+    // Act
+    const result = normalizeOrderEditRejection(
+      POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+    );
+
+    // Assert
+    expect(result).toEqual({
+      reason: 'post_only_would_cross',
+      originalOrder: 'cancelled',
+      error: POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+    });
+  });
+
+  it.each([
+    ['the post-only window rejection', POST_ONLY_WINDOW_ERROR],
+    ['an unrelated error', 'Insufficient margin'],
+    ['no error', undefined],
+  ])(
+    'normalizeOrderEditRejection reports a retained original for %s',
+    (_label, error) => {
+      // Act
+      const result = normalizeOrderEditRejection(error);
+
+      // Assert
+      expect(result).toEqual({
+        reason: 'other',
+        originalOrder: 'retained',
+        error,
+      });
+    },
+  );
 });
 
 describe('handlePerpsError', () => {

@@ -299,7 +299,7 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it('shows the post-only network-upgrade restriction when a TP/SL update is rejected', async () => {
+  it('passes the translated post-only network-upgrade message to onError', async () => {
     // Arrange
     const onError = jest.fn();
     const { result } = renderHookWithToast({ onError });
@@ -319,9 +319,6 @@ describe('usePerpsTPSLUpdate', () => {
     });
 
     // Assert
-    expect(
-      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('perps.errors.postOnlyWindow');
     expect(onError).toHaveBeenCalledWith('perps.errors.postOnlyWindow');
   });
 

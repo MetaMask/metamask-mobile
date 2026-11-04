@@ -554,6 +554,27 @@ export function isPostOnlyWouldCrossError(error: unknown): boolean {
   );
 }
 
+/** Why an order edit was refused, and what happened to the order it replaced. */
+export interface OrderEditRejection {
+  reason: 'post_only_would_cross' | 'other';
+  originalOrder: 'cancelled' | 'retained';
+  error?: string;
+}
+
+/**
+ * Normalizes a refused order edit for the UI. HyperLiquid cancels the original
+ * order when its post-only replacement is rejected, so that outcome reports a
+ * cancelled original. `@metamask/perps-controller` reports it only as venue
+ * wording, so this is the one place that reads it.
+ */
+export function normalizeOrderEditRejection(
+  error?: string,
+): OrderEditRejection {
+  return isPostOnlyWouldCrossError(error)
+    ? { reason: 'post_only_would_cross', originalOrder: 'cancelled', error }
+    : { reason: 'other', originalOrder: 'retained', error };
+}
+
 /**
  * Parameters for handling Perps errors
  */
