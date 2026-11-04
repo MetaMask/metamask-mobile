@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Tag,
   TagSeverity,
@@ -168,11 +169,13 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         {/* Glyph row, not the slot reel: AnimatedSlotText sizes each digit to a
             `0` but measures the real glyphs. Inter digits are proportional, so a
             `1` leaves the reel wider than its measured box and the K or % overruns
-            the column. */}
+            the column. The glyph row's default face is condensed, so these
+            numbers stay on the default face and match the static card. */}
         {pnlValueLabel && live ? (
           <AnimatedNumericText
             animated={!live.reduceMotion}
             color={pnlColor(isPnlPositive)}
+            fontFamily={FontFamily.Default}
             fontWeight={FontWeight.Medium}
             testID={props.testID && `${props.testID}-pnl-value`}
             value={pnlValueLabel}
@@ -193,6 +196,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
           <AnimatedNumericText
             animated={!live.reduceMotion}
             color={pnlColor(isPnlPositive)}
+            fontFamily={FontFamily.Default}
             fontWeight={FontWeight.Medium}
             testID={props.testID && `${props.testID}-pnl`}
             value={pnlLabel}
