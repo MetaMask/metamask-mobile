@@ -41,16 +41,6 @@ const addOrUpdateIndex = (array, value, comparator) => {
   return { updatedArray: array, index };
 };
 
-/**
- * Add chain implementation to be used in JsonRpcEngine middleware.
- *
- * @param params.req - The JsonRpcEngine request.
- * @param params.res - The JsonRpcEngine result object.
- * @param params.requestUserApproval - The callback to trigger user approval flow.
- * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
- * @param params.hooks - Method hooks passed to the method implementation.
- * @returns {Nothing}.
- */
 const getBlockExplorerUpdate = (existingNetworkConfiguration, url) =>
   url
     ? addOrUpdateIndex(
@@ -68,6 +58,16 @@ const getNewBlockExplorerFields = (url) =>
     ? { blockExplorerUrls: [url], defaultBlockExplorerUrlIndex: 0 }
     : { blockExplorerUrls: [], defaultBlockExplorerUrlIndex: undefined };
 
+/**
+ * Add chain implementation to be used in JsonRpcEngine middleware.
+ *
+ * @param params.req - The JsonRpcEngine request.
+ * @param params.res - The JsonRpcEngine result object.
+ * @param params.requestUserApproval - The callback to trigger user approval flow.
+ * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
+ * @param params.hooks - Method hooks passed to the method implementation.
+ * @returns {Nothing}.
+ */
 export const wallet_addEthereumChain = async ({
   req,
   res,
