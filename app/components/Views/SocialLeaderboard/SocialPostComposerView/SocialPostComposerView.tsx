@@ -83,6 +83,7 @@ import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
+import { withCreateSwapCommentTimeout } from './createSwapCommentTimeout';
 import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
@@ -409,17 +410,21 @@ const SocialPostComposerView: React.FC = () => {
     try {
       let created;
       if (tradeInFlightParams) {
-        created = await createSwapComment({
-          commentText,
-          tradeInFlight: tradeInFlightParams,
-          source: 'metamask-mobile',
-        });
+        created = await withCreateSwapCommentTimeout(
+          createSwapComment({
+            commentText,
+            tradeInFlight: tradeInFlightParams,
+            source: 'metamask-mobile',
+          }),
+        );
       } else if (selectedPosition) {
-        created = await createSwapComment({
-          commentText,
-          positionUid: selectedPosition.position.positionId,
-          source: 'metamask-mobile',
-        });
+        created = await withCreateSwapCommentTimeout(
+          createSwapComment({
+            commentText,
+            positionUid: selectedPosition.position.positionId,
+            source: 'metamask-mobile',
+          }),
+        );
       } else {
         return;
       }
