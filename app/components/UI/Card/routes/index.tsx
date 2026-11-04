@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   createNativeStackNavigator,
   NativeStackNavigationOptions,
@@ -18,7 +18,9 @@ import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsCardAuthenticated,
   selectCardEntryRouting,
+  selectHasCard,
 } from '../../../../selectors/cardController';
+import { switchToLinkedCardAccount } from '../../../../core/DeeplinkManager/handlers/legacy/switchToLinkedCardAccount';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -84,14 +86,25 @@ const spendingLimitScreenOptions = ({
 const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const cardEntryRouting = useSelector(selectCardEntryRouting);
+  const hasCard = useSelector(selectHasCard);
 
   const initialRouteName = useMemo(
-    () =>
-      isAuthenticated || cardEntryRouting.hasCard
-        ? Routes.CARD.HOME
-        : Routes.CARD.WELCOME,
-    [isAuthenticated, cardEntryRouting.hasCard],
+    () => (isAuthenticated || hasCard ? Routes.CARD.HOME : Routes.CARD.WELCOME),
+    [isAuthenticated, hasCard],
   );
+
+  // The deep links already land on the linked account. Opening Card from the
+  // app should do the same, and only once stored links — not the legacy label
+  // — say this profile has a card.
+  useEffect(() => {
+    if (
+      !isAuthenticated &&
+      cardEntryRouting.source === 'card_links' &&
+      cardEntryRouting.hasCard
+    ) {
+      switchToLinkedCardAccount();
+    }
+  }, [isAuthenticated, cardEntryRouting.source, cardEntryRouting.hasCard]);
 
   return (
     <ScreensStack.Navigator

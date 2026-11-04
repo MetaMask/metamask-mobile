@@ -10,6 +10,7 @@ import {
   selectIsCardholder,
   selectCardLinks,
   selectHasLinkedCard,
+  selectHasCard,
   selectLinkedCardProvider,
   selectCardUserLocation,
   selectCardHomeData,
@@ -426,6 +427,60 @@ describe('card link selectors', () => {
     });
     expect(selectCardLinks(state)).toBeNull();
     expect(selectHasLinkedCard(state)).toBe(false);
+  });
+
+  describe('selectHasCard', () => {
+    const selectedAccount = {
+      address: '0xabc',
+      type: 'eip155:eoa',
+      scopes: ['eip155:0'],
+    } as unknown as InternalAccount;
+
+    beforeEach(() => {
+      mockIsEthAccount.mockReturnValue(true);
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(selectedAccount),
+      );
+    });
+
+    it('uses the selected account while routing is legacy', () => {
+      const flagOff = {
+        cardLinkApi: { enabled: false, minimumVersion: '0.0.0' },
+      };
+      const selected = withLinks(
+        null,
+        { cardholderAccounts: ['eip155:0:0xabc'] },
+        flagOff,
+      );
+      const otherAccount = withLinks(
+        null,
+        { cardholderAccounts: ['eip155:0:0xother'] },
+        flagOff,
+      );
+
+      expect(selectHasCard(selected)).toBe(true);
+      expect(selectHasCard(otherAccount)).toBe(false);
+    });
+
+    it('uses the stored links once Card API returned any', () => {
+      const linked = withLinks([row('immersve', 'active')], {
+        cardholderAccounts: [],
+      });
+      const closedOnly = withLinks([row('baanx', 'closed')], {
+        cardholderAccounts: ['eip155:0:0xabc'],
+      });
+
+      expect(selectHasCard(linked)).toBe(true);
+      expect(selectHasCard(closedOnly)).toBe(false);
+    });
+
+    it('falls back to the selected account when the link list is empty', () => {
+      const state = withLinks([], {
+        cardholderAccounts: ['eip155:0:0xabc'],
+      });
+
+      expect(selectHasCard(state)).toBe(true);
+    });
   });
 });
 
