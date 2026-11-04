@@ -3,16 +3,16 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import GifPickerSheet from './GifPickerSheet';
 import { GifPickerSheetSelectorsIDs } from './GifPickerSheet.testIds';
-import type { KlipyGif } from './klipyClient';
-import { useKlipyGifs } from './useKlipyGifs';
+import type { Gif } from './gifClient';
+import { useGifs } from './useGifs';
 
-jest.mock('./useKlipyGifs', () => ({
-  useKlipyGifs: jest.fn(),
+jest.mock('./useGifs', () => ({
+  useGifs: jest.fn(),
 }));
 
-const mockUseKlipyGifs = jest.mocked(useKlipyGifs);
+const mockUseGifs = jest.mocked(useGifs);
 
-const cheers: KlipyGif = {
+const cheers: Gif = {
   id: 'cheers',
   title: 'Cheers',
   previewUrl: 'https://media.test/cheers-sm.gif',
@@ -20,7 +20,7 @@ const cheers: KlipyGif = {
 };
 
 const idle = {
-  gifs: [] as KlipyGif[],
+  gifs: [] as Gif[],
   isLoading: false,
   error: null,
   loadMore: jest.fn(),
@@ -33,11 +33,11 @@ describe('GifPickerSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseKlipyGifs.mockReturnValue(idle);
+    mockUseGifs.mockReturnValue(idle);
   });
 
   it('selects a gif from the grid', () => {
-    mockUseKlipyGifs.mockReturnValue({
+    mockUseGifs.mockReturnValue({
       ...idle,
       gifs: [cheers],
     });
@@ -67,28 +67,9 @@ describe('GifPickerSheet', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('shows the missing api key message without a retry button', () => {
-    mockUseKlipyGifs.mockReturnValue({
-      ...idle,
-      error: 'missing_api_key',
-    });
-
-    renderWithProvider(
-      <GifPickerSheet onSelect={onSelect} onClose={onClose} />,
-    );
-
-    expect(
-      screen.getByTestId(GifPickerSheetSelectorsIDs.ERROR),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText('Add a Klipy API key to load GIFs'),
-    ).toBeOnTheScreen();
-    expect(screen.queryByTestId(GifPickerSheetSelectorsIDs.RETRY)).toBeNull();
-  });
-
   it('retries after a failed load', () => {
     const retry = jest.fn();
-    mockUseKlipyGifs.mockReturnValue({
+    mockUseGifs.mockReturnValue({
       ...idle,
       error: 'request_failed',
       retry,

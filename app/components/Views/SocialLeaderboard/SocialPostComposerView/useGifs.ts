@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import I18n from '../../../../../locales/i18n';
 import {
-  fetchKlipyGifs,
-  KlipyApiError,
-  type KlipyApiErrorCode,
-  type KlipyGif,
-} from './klipyClient';
+  fetchGifs,
+  GifApiError,
+  type Gif,
+  type GifApiErrorCode,
+} from './gifClient';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export interface UseKlipyGifsResult {
-  gifs: KlipyGif[];
+export interface UseGifsResult {
+  gifs: Gif[];
   isLoading: boolean;
-  error: KlipyApiErrorCode | null;
+  error: GifApiErrorCode | null;
   loadMore: () => void;
   retry: () => void;
 }
 
-const mergeGifs = (current: KlipyGif[], next: KlipyGif[]): KlipyGif[] => {
+const mergeGifs = (current: Gif[], next: Gif[]): Gif[] => {
   const seen = new Set<string>();
   return [...current, ...next].filter((gif) => {
     if (seen.has(gif.id)) {
@@ -28,14 +28,11 @@ const mergeGifs = (current: KlipyGif[], next: KlipyGif[]): KlipyGif[] => {
   });
 };
 
-export const useKlipyGifs = (
-  query: string,
-  enabled: boolean,
-): UseKlipyGifsResult => {
-  const [gifs, setGifs] = useState<KlipyGif[]>([]);
+export const useGifs = (query: string, enabled: boolean): UseGifsResult => {
+  const [gifs, setGifs] = useState<Gif[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<KlipyApiErrorCode | null>(null);
+  const [error, setError] = useState<GifApiErrorCode | null>(null);
   const [hasNext, setHasNext] = useState(false);
   const pageRef = useRef(1);
   const requestRef = useRef(0);
@@ -52,7 +49,7 @@ export const useKlipyGifs = (
     }
     setError(null);
     try {
-      const result = await fetchKlipyGifs({
+      const result = await fetchGifs({
         query: queryRef.current,
         page,
         locale: I18n.locale,
@@ -73,9 +70,7 @@ export const useKlipyGifs = (
         setGifs([]);
       }
       setHasNext(false);
-      setError(
-        caught instanceof KlipyApiError ? caught.code : 'request_failed',
-      );
+      setError(caught instanceof GifApiError ? caught.code : 'request_failed');
     } finally {
       if (requestId === requestRef.current) {
         setIsLoading(false);

@@ -22,8 +22,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { GifPickerSheetSelectorsIDs } from './GifPickerSheet.testIds';
-import type { KlipyGif } from './klipyClient';
-import { useKlipyGifs } from './useKlipyGifs';
+import type { Gif } from './gifClient';
+import { useGifs } from './useGifs';
 
 export interface GifPickerSheetProps {
   onSelect: (gifUrl: string) => void;
@@ -39,17 +39,17 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
   const tw = useTailwind();
   const { height } = useWindowDimensions();
   const [query, setQuery] = useState('');
-  const { gifs, isLoading, error, loadMore, retry } = useKlipyGifs(query, true);
+  const { gifs, isLoading, error, loadMore, retry } = useGifs(query, true);
   const panelHeight = Math.max(280, Math.round(height * 0.42));
 
   const handleSelect = useCallback(
-    (gif: KlipyGif) => {
+    (gif: Gif) => {
       onSelect(gif.gifUrl);
     },
     [onSelect],
   );
 
-  const renderItem = useCallback<ListRenderItem<KlipyGif>>(
+  const renderItem = useCallback<ListRenderItem<Gif>>(
     ({ item }) => (
       <Pressable
         onPress={() => handleSelect(item)}
@@ -72,10 +72,7 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
     [handleSelect, tw],
   );
 
-  const errorMessage =
-    error === 'missing_api_key'
-      ? strings('social_leaderboard.composer.gifs_missing_key')
-      : strings('social_leaderboard.composer.gifs_error');
+  const errorMessage = strings('social_leaderboard.composer.gifs_error');
 
   return (
     <Modal
@@ -133,14 +130,12 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
                   >
                     {errorMessage}
                   </Text>
-                  {error === 'missing_api_key' ? null : (
-                    <TextButton
-                      onPress={retry}
-                      testID={GifPickerSheetSelectorsIDs.RETRY}
-                    >
-                      {strings('social_leaderboard.composer.retry')}
-                    </TextButton>
-                  )}
+                  <TextButton
+                    onPress={retry}
+                    testID={GifPickerSheetSelectorsIDs.RETRY}
+                  >
+                    {strings('social_leaderboard.composer.retry')}
+                  </TextButton>
                 </Box>
               ) : isLoading && gifs.length === 0 ? (
                 <Box twClassName="flex-row flex-wrap gap-2 px-4">

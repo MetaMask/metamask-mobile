@@ -1,12 +1,12 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { fetchKlipyGifs, type KlipyGif } from './klipyClient';
-import { useKlipyGifs } from './useKlipyGifs';
+import { fetchGifs, type Gif } from './gifClient';
+import { useGifs } from './useGifs';
 
-jest.mock('./klipyClient', () => {
-  const actual = jest.requireActual('./klipyClient');
+jest.mock('./gifClient', () => {
+  const actual = jest.requireActual('./gifClient');
   return {
     ...actual,
-    fetchKlipyGifs: jest.fn(),
+    fetchGifs: jest.fn(),
   };
 });
 
@@ -15,19 +15,19 @@ jest.mock('../../../../../locales/i18n', () => ({
   default: { locale: 'en' },
 }));
 
-const mockFetchKlipyGifs = jest.mocked(fetchKlipyGifs);
+const mockFetchGifs = jest.mocked(fetchGifs);
 
-const gif = (id: string): KlipyGif => ({
+const gif = (id: string): Gif => ({
   id,
   title: id,
   previewUrl: `https://media.test/${id}-sm.gif`,
   gifUrl: `https://media.test/${id}.gif`,
 });
 
-describe('useKlipyGifs', () => {
+describe('useGifs', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    mockFetchKlipyGifs.mockReset();
+    mockFetchGifs.mockReset();
   });
 
   afterEach(() => {
@@ -35,18 +35,18 @@ describe('useKlipyGifs', () => {
   });
 
   it('loads trending gifs when the query is empty', async () => {
-    mockFetchKlipyGifs.mockResolvedValue({
+    mockFetchGifs.mockResolvedValue({
       gifs: [gif('trend')],
       hasNext: false,
     });
 
-    const { result } = renderHook(() => useKlipyGifs('', true));
+    const { result } = renderHook(() => useGifs('', true));
 
     await act(async () => {
       jest.advanceTimersByTime(0);
     });
 
-    expect(mockFetchKlipyGifs).toHaveBeenCalledWith(
+    expect(mockFetchGifs).toHaveBeenCalledWith(
       expect.objectContaining({ query: '', page: 1, locale: 'en' }),
     );
     expect(result.current.gifs.map((item) => item.id)).toEqual(['trend']);
@@ -54,46 +54,46 @@ describe('useKlipyGifs', () => {
   });
 
   it('loads search results after the query debounce', async () => {
-    mockFetchKlipyGifs.mockResolvedValue({
+    mockFetchGifs.mockResolvedValue({
       gifs: [gif('cheers')],
       hasNext: false,
     });
 
     const { result, rerender } = renderHook(
-      ({ query }: { query: string }) => useKlipyGifs(query, true),
+      ({ query }: { query: string }) => useGifs(query, true),
       { initialProps: { query: '' } },
     );
 
     await act(async () => {
       jest.advanceTimersByTime(0);
     });
-    mockFetchKlipyGifs.mockClear();
+    mockFetchGifs.mockClear();
 
     rerender({ query: 'cheers' });
     await act(async () => {
       jest.advanceTimersByTime(299);
     });
-    expect(mockFetchKlipyGifs).not.toHaveBeenCalled();
+    expect(mockFetchGifs).not.toHaveBeenCalled();
 
     await act(async () => {
       jest.advanceTimersByTime(1);
     });
 
-    expect(mockFetchKlipyGifs).toHaveBeenCalledWith(
+    expect(mockFetchGifs).toHaveBeenCalledWith(
       expect.objectContaining({ query: 'cheers', page: 1 }),
     );
     expect(result.current.gifs.map((item) => item.id)).toEqual(['cheers']);
   });
 
   it('appends the next page and skips duplicate ids', async () => {
-    mockFetchKlipyGifs
+    mockFetchGifs
       .mockResolvedValueOnce({ gifs: [gif('a')], hasNext: true })
       .mockResolvedValueOnce({
         gifs: [gif('a'), gif('b')],
         hasNext: false,
       });
 
-    const { result } = renderHook(() => useKlipyGifs('', true));
+    const { result } = renderHook(() => useGifs('', true));
 
     await act(async () => {
       jest.advanceTimersByTime(0);
@@ -106,23 +106,23 @@ describe('useKlipyGifs', () => {
       await Promise.resolve();
     });
 
-    expect(mockFetchKlipyGifs).toHaveBeenLastCalledWith(
+    expect(mockFetchGifs).toHaveBeenLastCalledWith(
       expect.objectContaining({ page: 2 }),
     );
     expect(result.current.gifs.map((item) => item.id)).toEqual(['a', 'b']);
   });
 
-  it('reports a missing api key', async () => {
-    const { KlipyApiError } = jest.requireActual('./klipyClient');
-    mockFetchKlipyGifs.mockRejectedValue(new KlipyApiError('missing_api_key'));
+  it('reports a failed load', async () => {
+    const { GifApiError } = jest.requireActual('./gifClient');
+    mockFetchGifs.mockRejectedValue(new GifApiError('request_failed'));
 
-    const { result } = renderHook(() => useKlipyGifs('', true));
+    const { result } = renderHook(() => useGifs('', true));
 
     await act(async () => {
       jest.advanceTimersByTime(0);
     });
 
-    expect(result.current.error).toBe('missing_api_key');
+    expect(result.current.error).toBe('request_failed');
     expect(result.current.gifs).toEqual([]);
   });
 });
