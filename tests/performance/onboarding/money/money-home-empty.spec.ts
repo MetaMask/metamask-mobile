@@ -46,7 +46,7 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
       // Don't include regular assertions in measure().
       // Each assertion carries overhead and can skew the results.
       await MoneyHomeView.expectOnboardingCardTitleVisible();
-      await MoneyHomeView.expectSendButtonDisabled();
+      await MoneyHomeView.expectSendButtonEnabled();
       await MoneyHomeView.expectEarningsSectionNotVisible();
 
       performanceTracker.addTimers(timer);

@@ -17,7 +17,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandard,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
   Text,
   TextColor,
@@ -81,12 +84,16 @@ import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
+import { PredictVenueSelectorButton } from '../../../PredictNext/venueSelection';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -572,6 +579,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   const predictPortfolioEnabled = useSelector(
     selectPredictPortfolioEnabledFlag,
   );
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -693,19 +701,41 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             backgroundColor: colors.background.default,
           })}
         >
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isBrandRefresh}
+            isFloating={false}
             includesTopInset
             onBack={handleBackPress}
             backButtonProps={{
               testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
             }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: handleShowSearch,
-                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-              },
-            ]}
+            endAccessory={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+              >
+                <PredictVenueSelectorButton
+                  variant={isBrandRefresh ? 'glass' : 'standard'}
+                />
+                {isBrandRefresh ? (
+                  <ButtonIconGlass
+                    isCapsule
+                    size={ButtonIconSize.Md}
+                    iconName={IconName.Search}
+                    onPress={handleShowSearch}
+                    testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
+                  />
+                ) : (
+                  <ButtonIcon
+                    size={ButtonIconSize.Md}
+                    iconName={IconName.Search}
+                    onPress={handleShowSearch}
+                    testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
+                  />
+                )}
+              </Box>
+            }
           />
         </Box>
 

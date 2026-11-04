@@ -97,5 +97,8 @@ export const toNativeTabOptions = (
       : null),
     // Only set when hiding, so the shared style identity survives otherwise.
     ...(isHidden ? { tabBarStyle: TAB_BAR_HIDDEN_STYLE } : null),
+    ...(tab.tabBarSelectionEnabled === false
+      ? { tabBarSelectionEnabled: false }
+      : null),
   };
 };
