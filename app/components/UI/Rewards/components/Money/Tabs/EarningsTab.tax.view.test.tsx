@@ -19,7 +19,10 @@ import type {
   TaxMeDto,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
-import { renderEarningsTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
+import {
+  renderEarningsTab as renderEarningsTabScreen,
+  type RenderRewardsMoneyOptions,
+} from '../../../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   earningsSummaryFixture,
   REFERRAL_LOCALIZED_TEXT,
@@ -99,14 +102,50 @@ const CASHBACK_AND_HELD = withTaxHeldIncome(
   }),
 );
 
-const HELD_ONLY = withTaxHeldIncome(
-  earningsSummaryFixture({
-    claimable: '0',
-    cashbackClaimable: '0',
-    claimed: '0',
-    held: '2000000',
-  }),
-);
+const HELD_ONLY = earningsSummaryFixture({
+  claimable: '0',
+  cashbackClaimable: '0',
+  claimed: '0',
+  held: '2000000',
+});
+HELD_ONLY.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE = {
+  lifetime: '2000000',
+  claimable: '0',
+  held: '2000000',
+  blocked: '0',
+  voided: '0',
+  pending: '0',
+  claimed: '0',
+  blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+};
+
+const OPEN_FOLLOW_TRADE_COMMISSIONS = {
+  results: [],
+  mechanisms: {
+    REFERRAL_REV_SHARE: {
+      claim_open: false,
+      reason: 'MECHANISM_NOT_CLAIMABLE' as const,
+    },
+    SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
+  },
+  has_more: false,
+  cursor: null,
+};
+
+function renderEarningsTab(options: RenderRewardsMoneyOptions = {}) {
+  return renderEarningsTabScreen({
+    ...options,
+    handlers: {
+      ...(options.summary === HELD_ONLY
+        ? {
+            'RewardsMoneyController:getCommissions': () =>
+              Promise.resolve(OPEN_FOLLOW_TRADE_COMMISSIONS),
+          }
+        : {}),
+      ...options.handlers,
+    },
+  });
+}
 
 function buttonProp(node: ReactTestInstance, name: string): unknown {
   let current: ReactTestInstance | null = node;
@@ -148,7 +187,60 @@ describe('EarningsTab tax documentation', () => {
     clearMintRateLimit();
   });
 
-  it('shows the held balance and Claim when the only balance is income held for tax', async () => {
+  it('shows Paused when only revenue share is held for tax', async () => {
+    const { findByTestId, queryByTestId } = renderEarningsTab({
+      persona: 'referee',
+      summary: withTaxHeldIncome(
+        earningsSummaryFixture({
+          claimable: '0',
+          cashbackClaimable: '0',
+          claimed: '0',
+          held: '2000000',
+        }),
+      ),
+    });
+
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows Paused when follow-trade is held for tax but its claim route is closed', async () => {
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+      persona: 'referee',
+      summary: HELD_ONLY,
+      handlers: {
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve({
+            ...OPEN_FOLLOW_TRADE_COMMISSIONS,
+            mechanisms: {
+              ...OPEN_FOLLOW_TRADE_COMMISSIONS.mechanisms,
+              SOCIAL_FOLLOW_TRADE: {
+                claim_open: false,
+                reason: 'MECHANISM_NOT_CLAIMABLE' as const,
+              },
+            },
+          }),
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+      ).toBeGreaterThan(0);
+    });
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the held balance and Claim when follow-trade is held for tax', async () => {
     const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
       persona: 'referee',
       summary: HELD_ONLY,

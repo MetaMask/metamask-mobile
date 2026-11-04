@@ -5,7 +5,7 @@ import type {
 import {
   clearMintRateLimit,
   holdMintRateLimit,
-  incomeHeldOnlyForTax,
+  followTradeHeldForTax,
   minutesFromRetryAfter,
   mintRateLimitRemainingMs,
   readMintRateLimit,
@@ -45,7 +45,7 @@ function heldSummary(options: {
     self_earned: { by_claim_family: {} },
     earned_by_others: {
       by_claim_family: {
-        REFERRAL_REV_SHARE: {
+        SOCIAL_FOLLOW_TRADE: {
           held: options.familyHeld ?? '0',
           blocking_reason: options.blockingReason ?? null,
         },
@@ -329,10 +329,10 @@ describe('resolveTaxFormUrl', () => {
   });
 });
 
-describe('incomeHeldOnlyForTax', () => {
-  it('is true only when held income is held for tax and nothing is blocked', () => {
+describe('followTradeHeldForTax', () => {
+  it('is true only when follow-trade is held for tax documentation', () => {
     expect(
-      incomeHeldOnlyForTax(
+      followTradeHeldForTax(
         heldSummary({
           held: '100',
           familyHeld: '100',
@@ -341,17 +341,7 @@ describe('incomeHeldOnlyForTax', () => {
       ),
     ).toBe(true);
     expect(
-      incomeHeldOnlyForTax(
-        heldSummary({
-          held: '100',
-          blocked: '1',
-          familyHeld: '100',
-          blockingReason: 'TAX_DETERMINATION_REQUIRED',
-        }),
-      ),
-    ).toBe(false);
-    expect(
-      incomeHeldOnlyForTax(
+      followTradeHeldForTax(
         heldSummary({
           held: '100',
           familyHeld: '100',
@@ -359,7 +349,28 @@ describe('incomeHeldOnlyForTax', () => {
         }),
       ),
     ).toBe(false);
-    expect(incomeHeldOnlyForTax(heldSummary({ held: '100' }))).toBe(false);
+    expect(followTradeHeldForTax(heldSummary({ held: '100' }))).toBe(false);
+    expect(
+      followTradeHeldForTax(
+        heldSummary({
+          held: '100',
+          familyHeld: '0',
+          blockingReason: 'TAX_DETERMINATION_REQUIRED',
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('ignores a revenue-share hold', () => {
+    const summary = heldSummary({ held: '100' });
+    summary.earned_by_others.by_claim_family = {
+      REFERRAL_REV_SHARE: {
+        held: '100',
+        blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+      },
+    } as unknown as EarningsSummaryDto['earned_by_others']['by_claim_family'];
+
+    expect(followTradeHeldForTax(summary)).toBe(false);
   });
 });
 

@@ -363,30 +363,18 @@ export function withMinutes(
 }
 
 /**
- * True when every positive held family is held only for tax documentation
- * and nothing is blocked. Claim stays Claim for that balance.
+ * True when follow-trade is held for tax documentation. Cashback is never
+ * held for tax, and revenue share is not a self-serve claim route, so
+ * neither one keeps Claim visible.
  */
-export function incomeHeldOnlyForTax(
+export function followTradeHeldForTax(
   summary: EarningsSummaryDto | null | undefined,
 ): boolean {
-  if (!summary || !isPositiveBaseUnits(summary.held)) {
-    return false;
-  }
-  if (isPositiveBaseUnits(summary.blocked)) {
-    return false;
-  }
-  const families = [
-    ...Object.values(summary.self_earned?.by_claim_family ?? {}),
-    ...Object.values(summary.earned_by_others?.by_claim_family ?? {}),
-  ];
-  const heldFamilies = families.filter((family) =>
-    isPositiveBaseUnits(family.held),
-  );
-  if (heldFamilies.length === 0) {
-    return false;
-  }
-  return heldFamilies.every(
-    (family) => family.blocking_reason === 'TAX_DETERMINATION_REQUIRED',
+  const followTrade =
+    summary?.earned_by_others?.by_claim_family?.SOCIAL_FOLLOW_TRADE;
+  return (
+    isPositiveBaseUnits(followTrade?.held) &&
+    followTrade?.blocking_reason === 'TAX_DETERMINATION_REQUIRED'
   );
 }
 
