@@ -3,48 +3,22 @@ import type {
   TraderProfileResponse,
 } from '@metamask/social-controllers';
 import Routes from '../../../../constants/navigation/Routes';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { analytics } from '../../../../util/analytics/analytics';
-import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
 import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import type { SocialV1FeedAuthor } from '../../../../components/UI/SocialFeed/types';
 import { toWholePercent } from '../../../../components/UI/SocialFeed/utils/feedCardStats';
 import { buildTraderProfileQueryKey } from '../../../../util/social/traderProfileQueries';
+import {
+  parseSocialNotificationDeeplinkParams,
+  trackSocialNotificationClick,
+} from './socialNotificationDeeplink';
 
 interface HandleSocialPostUrlParams {
   actionPath: string;
 }
-
-interface SocialPostNavigationParams {
-  positionId?: string;
-  traderId?: string;
-  deduplicationId?: string;
-  notificationSubtype?: string;
-  notificationTemplateVariant?: string;
-}
-
-const parseSocialPostNavigationParams = (
-  actionPath: string,
-): SocialPostNavigationParams => {
-  const urlParams = new URLSearchParams(
-    actionPath.includes('?') ? actionPath.split('?')[1] : '',
-  );
-
-  return {
-    positionId: urlParams.get('positionId')?.trim() || undefined,
-    traderId: urlParams.get('traderId')?.trim() || undefined,
-    deduplicationId: urlParams.get('deduplication_id')?.trim() || undefined,
-    notificationSubtype:
-      urlParams.get('notification_subtype')?.trim() || undefined,
-    notificationTemplateVariant:
-      urlParams.get('notification_template_variant')?.trim() || undefined,
-  };
-};
 
 /**
  * The recipient of this notification is the post's own author, so the
@@ -134,7 +108,7 @@ export const handleSocialPostUrl = ({
       deduplicationId,
       notificationSubtype,
       notificationTemplateVariant,
-    } = parseSocialPostNavigationParams(actionPath);
+    } = parseSocialNotificationDeeplinkParams(actionPath);
 
     DevLogger.log('[handleSocialPostUrl] Parsed navigation parameters:', {
       positionId,
@@ -144,21 +118,10 @@ export const handleSocialPostUrl = ({
       notificationTemplateVariant,
     });
 
-    if (notificationSubtype !== undefined) {
-      const event = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
-      )
-        .addProperties({
-          [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
-            notificationSubtype,
-          ...(notificationTemplateVariant !== undefined && {
-            [SocialLeaderboardEventProperties.NOTIFICATION_TEMPLATE_VARIANT]:
-              notificationTemplateVariant,
-          }),
-        })
-        .build();
-      analytics.trackEvent(event);
-    }
+    trackSocialNotificationClick({
+      notificationSubtype,
+      notificationTemplateVariant,
+    });
 
     if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
       return;
