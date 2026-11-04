@@ -592,6 +592,38 @@ describe('DeeplinkProtocolService', () => {
       jest.useRealTimers();
     });
 
+    it('rejects an account value that has no chain separator', () => {
+      const sendMessage = jest
+        .spyOn(service, 'sendMessage')
+        .mockResolvedValue(undefined);
+
+      service.handleMessage({
+        dappPublicKey: 'key',
+        url: 'url',
+        message: Buffer.from(
+          JSON.stringify({
+            id: '1',
+            method: 'eth_sendTransaction',
+            params: [],
+          }),
+        ).toString('base64'),
+        channelId: 'channel1',
+        scheme: 'scheme',
+        account: '0xabc',
+      });
+
+      expect(sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            id: '1',
+            error: expect.objectContaining({ code: -32602 }),
+          }),
+        }),
+        true,
+      );
+      expect(handleCustomRpcCalls).not.toHaveBeenCalled();
+    });
+
     it('logs an incoming deeplink message', () => {
       const params = {
         dappPublicKey: 'key',
