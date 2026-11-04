@@ -52,8 +52,6 @@ const PREDICT_NEXT_DIR = 'app/components/UI/PredictNext';
  */
 const predictCompositionFiles = [
   'app/components/Nav/App/App.tsx',
-  // Legacy stack, modal stack and preview-sheet provider only; routes, route
-  // types and availability come from the PredictNext entry point.
   'app/components/Nav/Main/MainNavigator.tsx',
   // Engine init loads it, so it cannot import the PredictNext entry point:
   // that would pull the Predict UI into Engine init and load in a cycle.
