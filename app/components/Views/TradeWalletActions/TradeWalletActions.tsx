@@ -86,6 +86,7 @@ import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSe
 import {
   PredictEventValues,
   selectPredictAvailability,
+  usePredictEntryActions,
 } from '../../UI/PredictNext';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
@@ -303,6 +304,7 @@ function TradeWalletActions() {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
+  const { openPredict } = usePredictEntryActions();
 
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
@@ -409,15 +411,13 @@ function TradeWalletActions() {
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
+      openPredict({
+        type: 'home',
+        entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
       });
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
+  }, [handleNavigateBack, openPredict]);
 
   useFocusEffect(
     useCallback(() => {

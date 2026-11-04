@@ -80,6 +80,15 @@ describe('PredictRoot', () => {
     expect(screen.getByTestId('legacy-predict-stack')).toBeOnTheScreen();
   });
 
+  it('routes a PredictNext screen to the Active Venue', () => {
+    mockConfig = config(false, true);
+    givenRoute({ screen: 'PredictNextEvent' });
+
+    render(<PredictRoot />);
+
+    expect(screen.getByTestId('predict-next-stack')).toBeOnTheScreen();
+  });
+
   it('routes a generic market list to the Active Venue', () => {
     mockConfig = config(false, true);
     givenRoute({ screen: 'PredictMarketList' });
