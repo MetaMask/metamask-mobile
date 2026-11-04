@@ -27,8 +27,8 @@ const ContextualHomeSectionOverlay = () => {
   const tabBarInset = useFloatingTabBarInset();
 
   const title =
-    section === 'money' && (tab === 'payments' || tab === 'search')
-      ? TITLE_BY_TAB[tab]
+    section === 'money' && tab === 'payments'
+      ? TITLE_BY_TAB.payments
       : section === 'explore' &&
           (tab === 'news' || tab === 'browser' || tab === 'search')
         ? TITLE_BY_TAB[tab]

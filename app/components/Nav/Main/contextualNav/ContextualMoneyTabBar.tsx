@@ -23,11 +23,11 @@ const TABS: ContextualFloatingTab[] = [
   { id: 'payments', label: 'Payments', iconName: IconName.Cash },
 ];
 
-const MONEY_TABS: readonly ContextualTab[] = ['account', 'payments', 'search'];
+const MONEY_TABS: readonly ContextualTab[] = ['account', 'payments'];
 
 /**
- * Money footer. Account and Payments sit in the pill. Search is the circle.
- * Long-press Search returns to the home footer.
+ * Money footer. Account and Payments sit in the pill. Home returns to the
+ * wallet footer.
  */
 const ContextualMoneyTabBar = ({
   onHomePress,
@@ -52,20 +52,12 @@ const ContextualMoneyTabBar = ({
     [ensureMoneySection],
   );
 
-  const handleSearchPress = useCallback(() => {
-    ensureMoneySection();
-    setContextualTab('search');
-  }, [ensureMoneySection]);
-
   return (
     <ContextualFloatingTabBar
       tabs={TABS}
       activeTab={activeTab}
       onTabPress={handleTabPress}
       onHomePress={onHomePress}
-      onSearchPress={handleSearchPress}
-      circleAction="search"
-      searchSelected={activeTab === 'search'}
       fadeIn={fadeIn}
       onHeightChange={onHeightChange}
       testIDPrefix="contextual-money"

@@ -50,35 +50,30 @@ describe('contextual Money and Explore footers', () => {
     ).toBe('Payments');
   });
 
-  it('selects Search from the circle and returns home on long press', () => {
+  it('returns to the wallet footer from the Money Home circle', () => {
     enterMoneySection();
 
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <ContextualMoneyTabBar onHomePress={onHomePress} />,
     );
-    const searchButton = getByTestId('contextual-money-search-button');
+    const homeButton = getByTestId('contextual-money-home-button');
 
-    fireEvent.press(searchButton);
-
-    expect(getContextualNavState().tab).toBe('search');
-    expect(
-      getByTestId('contextual-money-search-button').props.accessibilityState,
-    ).toEqual({ selected: true });
-    expect(
-      getByTestId('contextual-money-search-button').props.accessibilityLabel,
-    ).toBe(strings('wallet.search_accessibility_label'));
-    expect(getByTestId('contextual-money-search-button').props.hitSlop).toEqual(
-      {
-        top: 4,
-        bottom: 4,
-        left: 4,
-        right: 4,
-      },
+    expect(queryByTestId('contextual-money-search-button')).toBeNull();
+    expect(homeButton.props.accessibilityLabel).toBe(
+      strings('bottom_nav.home'),
     );
+    expect(homeButton.props.accessibilityState).toEqual({ selected: false });
+    expect(homeButton.props.hitSlop).toEqual({
+      top: 4,
+      bottom: 4,
+      left: 4,
+      right: 4,
+    });
 
-    fireEvent(getByTestId('contextual-money-search-button'), 'longPress');
+    fireEvent.press(homeButton);
 
     expect(onHomePress).toHaveBeenCalledTimes(1);
+    expect(getContextualNavState().tab).toBe('account');
   });
 
   it('selects Browser in the Explore pill', () => {
@@ -98,8 +93,30 @@ describe('contextual Money and Explore footers', () => {
       getByTestId('contextual-explore-tab-browser').props.accessibilityState,
     ).toEqual({ selected: true });
     expect(
-      getByTestId('contextual-explore-search-button').props.accessibilityState,
+      getByTestId('contextual-explore-home-button').props.accessibilityState,
     ).toEqual({ selected: false });
+  });
+
+  it('keeps Search as an Explore tab', () => {
+    enterExploreSection();
+
+    const { getByRole, getByTestId } = renderWithProvider(
+      <>
+        <ContextualExploreTabBar onHomePress={onHomePress} />
+        <ContextualHomeSectionOverlay />
+      </>,
+    );
+
+    fireEvent.press(getByTestId('contextual-explore-tab-search'));
+
+    expect(getContextualNavState()).toEqual({
+      section: 'explore',
+      tab: 'search',
+    });
+    expect(
+      getByTestId('contextual-explore-tab-search').props.accessibilityState,
+    ).toEqual({ selected: true });
+    expect(getByRole('header')).toHaveTextContent('Search');
   });
 
   it('shows a Payments placeholder with a header', () => {

@@ -87,13 +87,13 @@ describe('contextualSection', () => {
     enterMoneySection();
 
     expect(getContextualCircleAction(getContextualNavState().section)).toBe(
-      'search',
+      'home',
     );
 
     enterExploreSection();
 
     expect(getContextualCircleAction(getContextualNavState().section)).toBe(
-      'search',
+      'home',
     );
   });
 

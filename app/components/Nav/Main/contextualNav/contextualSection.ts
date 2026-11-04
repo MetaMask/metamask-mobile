@@ -25,8 +25,8 @@ export type ContextualTab =
   | 'news'
   | 'browser';
 
-/** Round button beside the pill. Depends on where the footer is. */
-export type ContextualCircleAction = 'add' | 'home' | 'search';
+/** Round button beside the pill. + on Home, Home in every section. */
+export type ContextualCircleAction = 'add' | 'home';
 
 export interface ContextualNavState {
   section: ContextualSection | null;
@@ -78,7 +78,7 @@ export const enterCollectiblesSection = (): void => {
   emit();
 };
 
-/** Money section: footer becomes Account and Payments, plus Search. */
+/** Money section: footer becomes Account and Payments, plus Home. */
 export const enterMoneySection = (): void => {
   state = { section: 'money', tab: 'account' };
   emit();
@@ -98,19 +98,11 @@ export const isPlusMenuSection = (section: ContextualSection | null): boolean =>
   section === 'collectibles';
 
 /**
- * + on the home footer, Home in + menu sections, Search on Money and Explore.
+ * + on the home footer. Home in + menu sections and on Money and Explore.
  */
 export const getContextualCircleAction = (
   section: ContextualSection | null,
-): ContextualCircleAction => {
-  if (section === null) {
-    return 'add';
-  }
-  if (isPlusMenuSection(section)) {
-    return 'home';
-  }
-  return 'search';
-};
+): ContextualCircleAction => (section === null ? 'add' : 'home');
 
 export const setContextualTab = (tab: ContextualTab): void => {
   if (state.section === null || state.tab === tab) {

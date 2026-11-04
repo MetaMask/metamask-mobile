@@ -34,7 +34,7 @@ const EXPLORE_TABS: readonly ContextualTab[] = [
 
 /**
  * Explore footer. Explore, News, Browser, and Search sit in the pill.
- * The circle is Search and opens that same tab. Long-press returns home.
+ * Home returns to the wallet footer.
  */
 const ContextualExploreTabBar = ({
   onHomePress,
@@ -59,20 +59,12 @@ const ContextualExploreTabBar = ({
     [ensureExploreSection],
   );
 
-  const handleSearchPress = useCallback(() => {
-    ensureExploreSection();
-    setContextualTab('search');
-  }, [ensureExploreSection]);
-
   return (
     <ContextualFloatingTabBar
       tabs={TABS}
       activeTab={activeTab}
       onTabPress={handleTabPress}
       onHomePress={onHomePress}
-      onSearchPress={handleSearchPress}
-      circleAction="search"
-      searchSelected={false}
       fadeIn={fadeIn}
       onHeightChange={onHeightChange}
       testIDPrefix="contextual-explore"
