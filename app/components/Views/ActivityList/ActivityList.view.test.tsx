@@ -25,6 +25,7 @@ import {
 } from '../../../../tests/component-view/renderers/activity';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 import {
+  ActivityListSelectorsIDs,
   activityListRowItemTestId,
   activityListRowPendingSpinnerTestId,
   activityListRowSubtitleTestId,
@@ -34,6 +35,16 @@ import {
 const ACTIVITY_CV_RECIPIENT = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
 
 describeForPlatforms('ActivityList', () => {
+  beforeEach(() => {
+    // Configured EVM networks start the accounts history query. Local rows stay
+    // unmounted while that query is loading, so answer it before render.
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
   it('shows pending and confirmed local rows then opens transaction details from a confirmed row', async () => {
     const pendingRowIndex = 1;
     const confirmedRowIndex = 3;
@@ -43,10 +54,19 @@ describeForPlatforms('ActivityList', () => {
       pendingTransaction,
     ]).build();
 
-    const { findByTestId } = renderActivityListViewWithRoutes({
+    const { findByTestId, queryByTestId } = renderActivityListViewWithRoutes({
       state,
       extraRoutes: [{ name: Routes.ACTIVITY_DETAILS }],
     });
+
+    await waitFor(
+      () => {
+        expect(
+          queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+        ).toBeNull();
+      },
+      { timeout: 10000 },
+    );
 
     const pendingRow = await findByTestId(
       activityListRowItemTestId(pendingRowIndex),

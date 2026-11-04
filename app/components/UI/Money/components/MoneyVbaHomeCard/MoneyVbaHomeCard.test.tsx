@@ -1,6 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
-import { IconName } from '@metamask/design-system-react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import MoneyVbaHomeCard from './MoneyVbaHomeCard';
 import {
   MONEY_VBA_HOME_CARD_CONFIG,
@@ -8,9 +7,21 @@ import {
 } from './MoneyVbaHomeCardConfig';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
-import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import {
+  canOpenPersistedVbaDetails,
+  navigateToVbaOnboardingDestination,
+  openVbaEntry,
+  resolveVbaOnboarding,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import {
+  endVbaCufJourney,
+  startVbaCufJourney,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import {
+  VBA_CUF_END_REASON,
+  VBA_CUF_ENTRY_SURFACE,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -18,6 +29,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 
 const mockNavigation = { dispatch: jest.fn() };
 
@@ -36,16 +48,34 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
+    canOpenPersistedVbaDetails: jest.fn(),
+    navigateToVbaOnboardingDestination: jest.fn(),
     openVbaEntry: jest.fn(),
+    resolveVbaOnboarding: jest.fn(),
   }),
 );
 jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  endVbaCufJourney: jest.fn(),
   startVbaCufJourney: jest.fn(),
+}));
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
 }));
 
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
+const mockNavigateToDestination = jest.mocked(
+  navigateToVbaOnboardingDestination,
+);
+const mockResolve = jest.mocked(resolveVbaOnboarding);
 const mockOpenVbaEntry = jest.mocked(openVbaEntry);
+const mockCanOpenPersistedVbaDetails = jest.mocked(canOpenPersistedVbaDetails);
+const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
 const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
+const mockLoggerError = jest.mocked(Logger.error);
 
 const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'get_started',
@@ -110,6 +140,11 @@ const VARIANT_EXPECTATIONS: Record<
 describe('MoneyVbaHomeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockResolve.mockResolvedValue({
+      status: 'ready',
+      destinationId: 'kycPending',
+      snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
+    });
     mockUseMoneyAnalytics.mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
       trackComponentViewed: mockTrackComponentViewed,
@@ -143,9 +178,9 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
   });
 
-  it.each(VARIANTS)(
-    'fires the CTA-tap event and routes straight to the loading screen for %s',
-    (variant) => {
+  it.each(VARIANTS.filter((variant) => variant !== 'kyc_pending'))(
+    'hydrates on the card and opens the resolved destination for %s',
+    async (variant) => {
       const expectations = VARIANT_EXPECTATIONS[variant];
 
       const { getByTestId } = render(<MoneyVbaHomeCard variant={variant} />);
@@ -162,8 +197,13 @@ describe('MoneyVbaHomeCard', () => {
           redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
         }),
       );
-      expect(mockOpenVbaEntry).toHaveBeenCalledWith(mockNavigation, {
-        source: expectations.source,
+      expect(mockResolve).toHaveBeenCalledWith(expectations.source);
+      await waitFor(() => {
+        expect(mockNavigateToDestination).toHaveBeenCalledWith(
+          mockNavigation,
+          'kycPending',
+          EMPTY_VBA_ONBOARDING_SNAPSHOT,
+        );
       });
       expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
         VBA_CUF_ENTRY_SURFACE.HOME_CARD,
@@ -171,7 +211,61 @@ describe('MoneyVbaHomeCard', () => {
     },
   );
 
-  it('does not put the CTA into a busy state', () => {
+  it('tracks the CTA click before starting the VBA journey', () => {
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON),
+    );
+
+    expect(mockTrackButtonClicked.mock.invocationCallOrder[0]).toBeLessThan(
+      mockStartVbaCufJourney.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('opens the pending screen immediately from the kyc_pending card', () => {
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON),
+    );
+
+    expect(mockResolve).not.toHaveBeenCalled();
+    expect(mockNavigateToDestination).toHaveBeenCalledWith(
+      mockNavigation,
+      'kycPending',
+    );
+    expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+      VBA_CUF_ENTRY_SURFACE.HOME_CARD,
+    );
+  });
+
+  it('opens persisted account details directly and stays tappable afterward', () => {
+    mockCanOpenPersistedVbaDetails.mockReturnValue(true);
+    const { getByTestId } = render(
+      <MoneyVbaHomeCard variant="account_is_ready" />,
+    );
+    const cta = getByTestId(
+      MONEY_VBA_HOME_CARD_TEST_IDS.account_is_ready.CTA_BUTTON,
+    );
+
+    fireEvent.press(cta);
+    fireEvent.press(cta);
+
+    expect(mockResolve).not.toHaveBeenCalled();
+    expect(mockOpenVbaEntry).toHaveBeenCalledTimes(2);
+    expect(mockOpenVbaEntry).toHaveBeenCalledWith(mockNavigation, {
+      source: 'vba-home-card-account-is-ready',
+    });
+    expect(cta.props.accessibilityState?.busy).toBeFalsy();
+  });
+
+  it('keeps the CTA busy while onboarding status resolves', () => {
+    mockResolve.mockReturnValue(
+      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
+        () => undefined,
+      ),
+    );
     const { getByTestId } = render(
       <MoneyVbaHomeCard variant="finish_verification" />,
     );
@@ -181,10 +275,15 @@ describe('MoneyVbaHomeCard', () => {
 
     fireEvent.press(cta);
 
-    expect(cta.props.accessibilityState?.busy).toBeFalsy();
+    expect(cta.props.accessibilityState?.busy).toBe(true);
   });
 
   it('ignores a repeat CTA tap while the first is still presenting', () => {
+    mockResolve.mockReturnValue(
+      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
+        () => undefined,
+      ),
+    );
     const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
     const cta = getByTestId(
       MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON,
@@ -193,8 +292,80 @@ describe('MoneyVbaHomeCard', () => {
     fireEvent.press(cta);
     fireEvent.press(cta);
 
-    expect(mockOpenVbaEntry).toHaveBeenCalledTimes(1);
+    expect(mockResolve).toHaveBeenCalledTimes(1);
     expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the error destination when onboarding cannot resolve', async () => {
+    mockResolve.mockResolvedValue({ status: 'error' });
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigateToDestination).toHaveBeenCalledWith(
+        mockNavigation,
+        'error',
+      );
+    });
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.ERROR,
+    );
+  });
+
+  it('logs rejected onboarding resolution and opens the error destination', async () => {
+    const error = new Error('hydrate failed');
+    mockResolve.mockRejectedValue(error);
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(error, expect.any(Object));
+      expect(mockNavigateToDestination).toHaveBeenCalledWith(
+        mockNavigation,
+        'error',
+      );
+    });
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.ERROR,
+    );
+  });
+
+  it('does not navigate after the card unmounts during onboarding resolution', async () => {
+    let resolveOnboarding!: (
+      result: Awaited<ReturnType<typeof resolveVbaOnboarding>>,
+    ) => void;
+    mockResolve.mockReturnValue(
+      new Promise<Awaited<ReturnType<typeof resolveVbaOnboarding>>>(
+        (resolve) => {
+          resolveOnboarding = resolve;
+        },
+      ),
+    );
+    const { getByTestId, unmount } = render(
+      <MoneyVbaHomeCard variant="get_started" />,
+    );
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON),
+    );
+
+    unmount();
+    await act(async () => {
+      resolveOnboarding({
+        status: 'ready',
+        destinationId: 'kycPending',
+        snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
+      });
+    });
+
+    expect(mockNavigateToDestination).not.toHaveBeenCalled();
   });
 
   it('hides the kyc_decision card when Dismiss is pressed', () => {
@@ -213,7 +384,7 @@ describe('MoneyVbaHomeCard', () => {
         label_key: 'money.vba_home_card.kyc_decision.dismiss',
       }),
     );
-    expect(mockOpenVbaEntry).not.toHaveBeenCalled();
+    expect(mockResolve).not.toHaveBeenCalled();
   });
 
   it('offers Dismiss only on the kyc_decision card', () => {
@@ -254,17 +425,19 @@ describe('MoneyVbaHomeCard', () => {
     expect(queryByText('Dismiss')).toBeNull();
   });
 
-  it('shows the spinner icon only on the kyc_pending CTA', () => {
-    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_pending.ctaStartIconName).toBe(
-      IconName.Loading,
-    );
+  it('shows an animated spinner only on the idle kyc_pending CTA', () => {
+    const pendingTestId = `${MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON}-spinner`;
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
+    expect(
+      getByTestId(pendingTestId, { includeHiddenElements: true }),
+    ).toBeOnTheScreen();
+
     const otherVariants = VARIANTS.filter(
       (variant) => variant !== 'kyc_pending',
     );
     otherVariants.forEach((variant) => {
-      expect(
-        MONEY_VBA_HOME_CARD_CONFIG[variant].ctaStartIconName,
-      ).toBeUndefined();
+      const { queryByTestId } = render(<MoneyVbaHomeCard variant={variant} />);
+      expect(queryByTestId(pendingTestId)).toBeNull();
     });
   });
 });

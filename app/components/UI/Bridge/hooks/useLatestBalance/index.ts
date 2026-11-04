@@ -5,7 +5,8 @@ import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
@@ -96,16 +97,22 @@ export const useLatestBalance = (
   featureId?: FeatureId,
 ) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const chainId = token.chainId;
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const selectedAccount = chainId
+    ? getSelectedAccountByScope(formatChainIdToCaip(chainId))
+    : undefined;
+  const selectedAddress = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : undefined;
   const previousToken = usePrevious(token);
 
   // Returns native non-EVM asset and non-EVM tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
   const nonEvmTokens = useNonEvmTokensWithBalance();
 
-  const chainId = token.chainId;
   const previousTokenIdentity = getTokenIdentity(previousToken);
   const tokenIdentity = getTokenIdentity(token);
   const tokenIdentityChanged = previousTokenIdentity !== tokenIdentity;

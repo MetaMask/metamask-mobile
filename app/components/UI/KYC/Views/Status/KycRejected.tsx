@@ -1,6 +1,7 @@
 import React from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import VbaOnboardingError from '../../components/OnboardingError';
 
 export const VbaKycRejectedSelectorsIDs = {
@@ -27,6 +28,7 @@ interface VbaKycRejectedProps {
  * session re-enters identity verification.
  */
 const VbaKycRejected = ({ action, onAction }: VbaKycRejectedProps) => {
+  useTrackKycResultViewed('rejected');
   const isRetry = action === 'retry';
 
   return (

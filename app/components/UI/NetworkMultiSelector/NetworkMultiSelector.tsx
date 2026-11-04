@@ -45,6 +45,7 @@ import Logger from '../../../util/Logger';
 
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';
+import { useTokenListFilteringEvent } from '../Tokens/hooks/useTokenListFilteringEvent';
 import { NetworkMultiSelectorProps } from './NetworkMultiSelector.types';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
 import Cell, {
@@ -81,6 +82,7 @@ const NetworkMultiSelector = ({
   openModal,
   dismissModal,
   openRpcModal,
+  searchQuery,
 }: NetworkMultiSelectorProps) => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
@@ -99,6 +101,7 @@ const NetworkMultiSelector = ({
     selectNonEvmNetworkConfigurationsByChainId,
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackFiltering = useTokenListFilteringEvent();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const currentEvmChainId = useSelector(selectEvmChainId);
@@ -254,7 +257,13 @@ const NetworkMultiSelector = ({
   );
 
   const trackNetworkSwitchedEvent = useCallback(
-    (chainId: string, fromNetworkName: string, toNetworkName: string): void => {
+    (
+      chainId: string,
+      fromNetworkName: string,
+      toNetworkName: string,
+      // Target network; omitted when switching to all networks.
+      toCaipChainId?: CaipChainId,
+    ): void => {
       if (toNetworkName === strings('network_information.unknown_network')) {
         return;
       }
@@ -269,8 +278,15 @@ const NetworkMultiSelector = ({
           })
           .build(),
       );
+
+      if (searchQuery !== undefined) {
+        trackFiltering('network_switched', {
+          searchQuery,
+          networkFilter: toCaipChainId,
+        });
+      }
     },
-    [trackEvent, createEventBuilder],
+    [trackEvent, createEventBuilder, trackFiltering, searchQuery],
   );
 
   const onSelectNetwork = useCallback(
@@ -326,6 +342,7 @@ const NetworkMultiSelector = ({
             chainIdForAnalytics,
             fromNetworkName,
             toNetworkName,
+            caipChainId,
           );
         }
       }

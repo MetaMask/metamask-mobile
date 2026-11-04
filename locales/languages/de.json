@@ -1247,7 +1247,6 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Ihr Money account wird von [Entity] bereitgestellt, [regulated status, to confirm]. Reais werden bei Eingang in mUSD umgerechnet.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "Geld per Banküberweisung einzahlen",
@@ -1510,7 +1509,7 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Anwenden",
         "apply": "Anwenden",
         "reset": "Zurücksetzen",
@@ -5106,7 +5105,7 @@
     "card_update_badge": "Update",
     "settings": "Einstellungen",
     "networks": "Netzwerke",
-    "log_out": "Abmelden",
+    "log_out": "Sperren",
     "notifications": "Benachrichtigungen",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orange beitreten",
@@ -6314,8 +6313,7 @@
           "description": "The main trading pool reported for this token."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "title": "Volume flags"
         },
         "listed_on_exchange": {
           "title": "Börsennotiert",
@@ -10124,7 +10122,6 @@
       "perps_withdraw": "Auszahlen",
       "predict_deposit": "Prognosegelder hinzufügen",
       "predict_withdraw": "Auszahlen",
-      "money_account_add_money": "Gelder hinzufügen",
       "money_account_send": "Senden"
     },
     "sub_title": {

@@ -63,6 +63,7 @@ import {
 } from '../analytics';
 
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
@@ -95,6 +96,7 @@ import TraderStatsSheet from './components/TraderStatsSheet';
 import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
 import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
+import { getPositionFlagLabelKey } from './utils/positionFlags';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -149,6 +151,7 @@ const TraderProfileView = () => {
     'deep_link') as TraderProfileScreenViewedSource;
   const { track } = useSocialLeaderboardAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
 
   const {
     profile,
@@ -219,7 +222,9 @@ const TraderProfileView = () => {
   }, [profile, traderAddress, source, isFollowing, traderRank, track]);
 
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialProfile: isSocialV1Enabled,
+  });
   const handleMutePress = useCallback(
     () => onMutePress(traderId),
     [onMutePress, traderId],
@@ -643,9 +648,14 @@ const TraderProfileView = () => {
                       <PositionRow
                         key={getPositionListKey(position)}
                         position={position}
-                        onPress={handlePositionPress}
+                        onPress={
+                          getPositionFlagLabelKey(position)
+                            ? undefined
+                            : handlePositionPress
+                        }
                         isClosed={activeTab === 'closed'}
                         showTradeDate={currentSortKey === 'recent'}
+                        flaggedPresentation="excluded"
                       />
                     ))
                   )}

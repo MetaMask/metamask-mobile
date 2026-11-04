@@ -6,4 +6,5 @@ export const SocialTermsSheetSelectorsIDs = {
   CHECKBOX: 'social-terms-sheet-checkbox',
   AGREE_BUTTON: 'social-terms-sheet-agree-button',
   SCROLL_HELPER: 'social-terms-sheet-scroll-helper',
+  SCROLL_TO_BOTTOM_BUTTON: 'social-terms-sheet-scroll-to-bottom-button',
 } as const;

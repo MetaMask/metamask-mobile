@@ -1247,7 +1247,6 @@
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "helper_text": "Money account는 [Entity], [regulated status, to confirm]에서 제공합니다. 헤알은 입금 시 mUSD로 전환됩니다.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
       "bank_transfer_title": "은행 송금으로 자금 추가",
@@ -1510,7 +1509,7 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "적용",
         "apply": "적용",
         "reset": "초기화",
@@ -5106,7 +5105,7 @@
     "card_update_badge": "업데이트",
     "settings": "설정",
     "networks": "네트워크",
-    "log_out": "로그아웃",
+    "log_out": "잠금",
     "notifications": "알림",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orange 가입",
@@ -6314,8 +6313,7 @@
           "description": "The main trading pool reported for this token."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          "title": "Volume flags"
         },
         "listed_on_exchange": {
           "title": "거래소 상장",
@@ -10124,7 +10122,6 @@
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
       "predict_withdraw": "출금",
-      "money_account_add_money": "자금 추가",
       "money_account_send": "전송"
     },
     "sub_title": {

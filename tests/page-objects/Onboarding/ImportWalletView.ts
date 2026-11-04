@@ -168,23 +168,6 @@ class ImportWalletView {
       ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
     );
   }
-
-  get importFromExtensionOption(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_OPTION_ID,
-    );
-  }
-
-  async tapImportFromExtensionLink(): Promise<void> {
-    await Gestures.waitAndTap(this.qrCodeButton, {
-      elemDescription: 'Import Wallet scan header button',
-      timeout: 15_000,
-    });
-    await Gestures.waitAndTap(this.importFromExtensionOption, {
-      elemDescription: 'Import from MetaMask extension option',
-      timeout: 15_000,
-    });
-  }
 }
 
 export default new ImportWalletView();

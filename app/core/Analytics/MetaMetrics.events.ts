@@ -307,6 +307,7 @@ enum EVENT_NAME {
   TOKEN_IMPORT_CLICKED = 'Token Import Clicked',
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
+  TOKEN_LIST_FILTERING_INTERACTED = 'Token List Filtering Interacted',
   EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
@@ -721,6 +722,8 @@ enum EVENT_NAME {
   CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
   CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
   CARD_LINK_SEEDED = 'Card Link Seeded',
+  CARD_LINK_ROUTING_DISAGREEMENT = 'Card Link Routing Disagreement',
+  CARD_LINK_MISSED_AT_LOGIN = 'Card Link Missed At Login',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -828,6 +831,18 @@ enum EVENT_NAME {
   MONEY_ONBOARDING_EVENT = 'Money Onboarding Event',
   MONEY_TOOLTIP_CLICKED = 'Money Tooltip Clicked',
   MONEY_VBA_TRANSACTION_UPDATED = 'Money VBA Transaction Updated',
+
+  // KYC (virtual bank account onboarding)
+  KYC_VERIFICATION_UPDATED = 'KYC Verification Updated',
+  KYC_STATUS_UPDATED = 'KYC Status Updated',
+
+  // Money VBA and KYC onboarding
+  MONEY_VBA_VENDOR_TERMS_UPDATED = 'Money VBA Vendor Terms Updated',
+  MONEY_VBA_AUTORAMP_CREATE_UPDATED = 'Money VBA Autoramp Create Updated',
+  MONEY_VBA_ERROR_VIEWED = 'Money VBA Error Viewed',
+  MONEY_VBA_DETAILS_VIEWED = 'Money VBA Details Viewed',
+  KYC_IDENTITY_TERMS_UPDATED = 'KYC Identity Terms Updated',
+  KYC_RESULT_VIEWED = 'KYC Result Viewed',
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
@@ -1279,6 +1294,9 @@ const events = {
   TOKEN_IMPORT_CLICKED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CLICKED),
   TOKEN_IMPORT_CANCELED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CANCELED),
   TOKENS_HIDDEN: generateOpt(EVENT_NAME.TOKENS_HIDDEN),
+  TOKEN_LIST_FILTERING_INTERACTED: generateOpt(
+    EVENT_NAME.TOKEN_LIST_FILTERING_INTERACTED,
+  ),
 
   // ONRAMP
   RAMP_REGION_SELECTED: generateOpt(EVENT_NAME.RAMP_REGION_SELECTED),
@@ -2076,6 +2094,10 @@ const events = {
     EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
   CARD_LINK_SEEDED: generateOpt(EVENT_NAME.CARD_LINK_SEEDED),
+  CARD_LINK_ROUTING_DISAGREEMENT: generateOpt(
+    EVENT_NAME.CARD_LINK_ROUTING_DISAGREEMENT,
+  ),
+  CARD_LINK_MISSED_AT_LOGIN: generateOpt(EVENT_NAME.CARD_LINK_MISSED_AT_LOGIN),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -2240,6 +2262,24 @@ const events = {
   MONEY_VBA_TRANSACTION_UPDATED: generateOpt(
     EVENT_NAME.MONEY_VBA_TRANSACTION_UPDATED,
   ),
+
+  // KYC (virtual bank account onboarding)
+  KYC_VERIFICATION_UPDATED: generateOpt(EVENT_NAME.KYC_VERIFICATION_UPDATED),
+  KYC_STATUS_UPDATED: generateOpt(EVENT_NAME.KYC_STATUS_UPDATED),
+
+  // Money VBA and KYC onboarding
+  MONEY_VBA_VENDOR_TERMS_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_VENDOR_TERMS_UPDATED,
+  ),
+  MONEY_VBA_AUTORAMP_CREATE_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_AUTORAMP_CREATE_UPDATED,
+  ),
+  MONEY_VBA_ERROR_VIEWED: generateOpt(EVENT_NAME.MONEY_VBA_ERROR_VIEWED),
+  MONEY_VBA_DETAILS_VIEWED: generateOpt(EVENT_NAME.MONEY_VBA_DETAILS_VIEWED),
+  KYC_IDENTITY_TERMS_UPDATED: generateOpt(
+    EVENT_NAME.KYC_IDENTITY_TERMS_UPDATED,
+  ),
+  KYC_RESULT_VIEWED: generateOpt(EVENT_NAME.KYC_RESULT_VIEWED),
 
   // Social Leaderboard (follow trading)
   SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED: generateOpt(
