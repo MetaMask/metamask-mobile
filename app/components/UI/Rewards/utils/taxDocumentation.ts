@@ -395,6 +395,8 @@ const LOCAL_TAX_FORM_ENVIRONMENTS = new Set([
   '',
   'local',
   'development',
+  // `.js.env` sets METAMASK_ENVIRONMENT to `dev` for a local main build.
+  'dev',
   'e2e',
   'exp',
 ]);

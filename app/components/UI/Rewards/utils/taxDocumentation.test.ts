@@ -310,6 +310,12 @@ describe('resolveTaxFormUrl', () => {
     ).toBe('http://127.0.0.1:5173/form');
     expect(
       resolveTaxFormUrl(https, {
+        override: 'http://localhost:5173',
+        metamaskEnvironment: 'dev',
+      }),
+    ).toBe('http://localhost:5173/');
+    expect(
+      resolveTaxFormUrl(https, {
         override: 'http://127.0.0.1:5173/form',
         metamaskEnvironment: 'production',
       }),
