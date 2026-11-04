@@ -52,3 +52,9 @@ export const MONEY_VBA_HOME_CARD_TEST_IDS: Record<
     CTA_BUTTON: 'money-vba-kyc-retry-card-cta-button',
   },
 };
+
+/** Test IDs for the optional Rive hero (`MoneyVbaHomeCardHeroAnimation`). */
+export const MONEY_VBA_HOME_CARD_HERO_TEST_IDS = {
+  RIVE: 'money-vba-home-card-hero-rive',
+  FALLBACK: 'money-vba-home-card-hero-fallback',
+} as const;

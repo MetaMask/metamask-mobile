@@ -8,8 +8,6 @@ import {
   ButtonBase,
   ButtonBaseSize,
   FontWeight,
-  IconColor,
-  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -42,6 +40,7 @@ import {
   type MoneyVbaHomeCardVariant,
 } from './MoneyVbaHomeCardConfig';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
+import MoneyVbaHomeCardHeroAnimation from './MoneyVbaHomeCardHeroAnimation';
 
 const styles = StyleSheet.create({
   heroContainer: {
@@ -67,8 +66,9 @@ const HERO_GRADIENT_ANGLE = 224;
 /**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
- * kyc_decision, kyc_retry); all per-variant differences — copy, analytics names, CTA
- * treatment, hero art — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
+ * kyc_decision, kyc_retry); all per-variant differences — copy, analytics
+ * names, CTA treatment, hero art and optional Rive hero — live in
+ * {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
  * this card remains visible, then opens the resolved onboarding destination.
@@ -108,12 +108,13 @@ const MoneyVbaHomeCard = ({
   );
 
   const handleCtaPress = useCallback(async () => {
-    if (hasPendingCtaOpenRef.current) {
+    // A status-only CTA (KYC_PENDING) is disabled and never fires.
+    if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: config.buttonIntent,
+      button_intent: config.cta.buttonIntent,
       label_key: `${config.i18nPrefix}.cta`,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
@@ -196,31 +197,28 @@ const MoneyVbaHomeCard = ({
     return null;
   }
 
-  const ctaButton = (
+  const { cta } = config;
+  const ctaLabel = strings(`${config.i18nPrefix}.cta`);
+  const ctaButton = cta.isDisabled ? (
     <ButtonBase
       size={ButtonBaseSize.Lg}
       isFullWidth
+      isDisabled
+      testID={testIds.CTA_BUTTON}
+    >
+      {ctaLabel}
+    </ButtonBase>
+  ) : (
+    <ButtonBase
+      size={ButtonBaseSize.Lg}
+      isFullWidth
+      twClassName={cta.className}
+      textClassName={() => cta.textClassName}
       isLoading={isRouting}
-      // Icon-only loading: a loadingText row is wider than the plain label
-      // and shifts it right. The spinner inherits the label color from
-      // textClassName so it stays visible on the light CTA backgrounds.
-      startAccessory={
-        variant === 'kyc_pending' ? (
-          <Spinner
-            color={IconColor.IconDefault}
-            testID={`${testIds.CTA_BUTTON}-spinner`}
-            accessible={false}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-          />
-        ) : undefined
-      }
-      twClassName={config.ctaClassName}
-      textClassName={() => config.ctaTextClassName}
       onPress={handleCtaPress}
       testID={testIds.CTA_BUTTON}
     >
-      {strings(`${config.i18nPrefix}.cta`)}
+      {ctaLabel}
     </ButtonBase>
   );
 
@@ -236,11 +234,21 @@ const MoneyVbaHomeCard = ({
         angle={HERO_GRADIENT_ANGLE}
         style={styles.heroContainer}
       >
-        <Image
-          source={config.heroArt.source}
-          style={{ width: config.heroArt.width, height: config.heroArt.height }}
-          resizeMode="contain"
-        />
+        {config.heroAnimation ? (
+          <MoneyVbaHomeCardHeroAnimation
+            animation={config.heroAnimation}
+            fallback={config.heroArt}
+          />
+        ) : (
+          <Image
+            source={config.heroArt.source}
+            style={{
+              width: config.heroArt.width,
+              height: config.heroArt.height,
+            }}
+            resizeMode="contain"
+          />
+        )}
       </LinearGradient>
       <Box twClassName="gap-1 py-4">
         <Text
