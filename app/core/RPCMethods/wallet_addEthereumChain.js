@@ -51,6 +51,23 @@ const addOrUpdateIndex = (array, value, comparator) => {
  * @param params.hooks - Method hooks passed to the method implementation.
  * @returns {Nothing}.
  */
+const getBlockExplorerUpdate = (existingNetworkConfiguration, url) =>
+  url
+    ? addOrUpdateIndex(
+        existingNetworkConfiguration.blockExplorerUrls,
+        url,
+        (existingUrl) => existingUrl === url,
+      )
+    : {
+        updatedArray: existingNetworkConfiguration.blockExplorerUrls,
+        index: existingNetworkConfiguration.defaultBlockExplorerUrlIndex,
+      };
+
+const getNewBlockExplorerFields = (url) =>
+  url
+    ? { blockExplorerUrls: [url], defaultBlockExplorerUrlIndex: 0 }
+    : { blockExplorerUrls: [], defaultBlockExplorerUrlIndex: undefined };
+
 export const wallet_addEthereumChain = async ({
   req,
   res,
@@ -171,16 +188,10 @@ export const wallet_addEthereumChain = async ({
         (endpoint) => endpoint.url === firstValidRPCUrl,
       );
 
-      const blockExplorerResult = firstValidBlockExplorerUrl
-        ? addOrUpdateIndex(
-            existingNetworkConfiguration.blockExplorerUrls,
-            firstValidBlockExplorerUrl,
-            (url) => url === firstValidBlockExplorerUrl,
-          )
-        : {
-            updatedArray: existingNetworkConfiguration.blockExplorerUrls,
-            index: existingNetworkConfiguration.defaultBlockExplorerUrlIndex,
-          };
+      const blockExplorerResult = getBlockExplorerUpdate(
+        existingNetworkConfiguration,
+        firstValidBlockExplorerUrl,
+      );
 
       const clonedNetworkConfiguration = {
         ...existingNetworkConfiguration,
@@ -221,13 +232,8 @@ export const wallet_addEthereumChain = async ({
     } else {
       updatedNetworkConfiguration = NetworkController.addNetwork({
         chainId,
-        blockExplorerUrls: firstValidBlockExplorerUrl
-          ? [firstValidBlockExplorerUrl]
-          : [],
         defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: firstValidBlockExplorerUrl
-          ? 0
-          : undefined,
+        ...getNewBlockExplorerFields(firstValidBlockExplorerUrl),
         name: chainName,
         nativeCurrency: ticker,
         rpcEndpoints: [
