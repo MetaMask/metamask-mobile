@@ -1,4 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
+import { lightTheme } from '@metamask/design-tokens';
 import {
   composePredictNextOrderService,
   composePredictNextPortfolioTrading,
@@ -226,8 +227,12 @@ const createTopMarketsEvent = () =>
   });
 
 const TOP_MARKET_IDS = ['drake', 'ella', 'taylor'] as const;
-// Figma's top Markets palette, in rank order.
-const topMarketColors = [`#${'33d999'}`, `#${'5980ff'}`, `#${'ff9e33'}`];
+// Theme colors of the top Markets, in rank order.
+const topMarketColors = [
+  lightTheme.colors.success.default,
+  lightTheme.colors.primary.default,
+  lightTheme.colors.warning.default,
+];
 
 const publishTopMarketQuote = ({
   marketId,

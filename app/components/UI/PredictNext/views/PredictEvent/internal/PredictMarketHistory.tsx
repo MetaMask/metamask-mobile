@@ -54,11 +54,6 @@ const STANDARD_HISTORY_RANGES: readonly PredictMarketHistoryRange[] = [
   'ALL',
 ];
 
-// Figma's top Markets palette, in rank order. Fixed hex values that don't
-// follow the theme, by product decision.
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const TOP_MARKET_SERIES_COLORS = ['#33d999', '#5980ff', '#ff9e33'] as const;
-
 const getRangeLabel = (range: PredictMarketHistoryRange) =>
   range === 'LIVE' ? strings('predict.history.range_live') : range;
 
@@ -447,8 +442,15 @@ export const PredictTopMarketsHistory = ({
   venueId,
   markets,
 }: PredictTopMarketsHistoryProps) => {
+  const { colors } = useTheme();
   const [range, setRange] = useState<PredictMarketHistoryRange>('ALL');
   const [first, second, third] = markets;
+  // Theme colors in rank order, so the lines follow light and dark mode.
+  const seriesColors = [
+    colors.success.default,
+    colors.primary.default,
+    colors.warning.default,
+  ];
   // Fixed slots keep the hook order stable when fewer Markets are charted.
   const histories = [
     useMarketHistory(venueId, first?.id ?? '', range, Boolean(first)),
@@ -467,7 +469,7 @@ export const PredictTopMarketsHistory = ({
       return {
         id: market.id,
         label: yesOutcome?.label || market.question,
-        color: TOP_MARKET_SERIES_COLORS[index],
+        color: seriesColors[index],
         points: appendLiveEndpoint(
           toChartPoints(history.data?.points ?? [], 'yesPrice'),
           market,
