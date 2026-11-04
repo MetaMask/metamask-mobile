@@ -39,11 +39,14 @@ const PositionSheetPostRow: React.FC<PositionSheetPostRowProps> = ({
       twClassName="px-4 py-3"
       testID={`${PositionDetailsSheetSelectorsIDs.POST_ROW}-${post.uid}`}
     >
-      <TraderAvatar
-        imageUrl={author.avatarUri}
-        address={author.id}
-        size={AVATAR_SIZE}
-      />
+      {/* Centred on the name and first text line, like a transaction row. */}
+      <Box twClassName="pt-1.5">
+        <TraderAvatar
+          imageUrl={author.avatarUri}
+          address={author.id}
+          size={AVATAR_SIZE}
+        />
+      </Box>
       <Box twClassName="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
